@@ -15,14 +15,12 @@
 using PeerId = uint32_t;
 static constexpr PeerId NO_PEER = -1;
 
-using TimePoint = SteadyMilliseconds;
-
 namespace avalanche {
 
 struct Node {
     NodeId nodeid;
     PeerId peerid;
-    TimePoint nextRequestTime;
+    SteadyMilliseconds nextRequestTime;
     bool avaproofsSent;
 
     Node(NodeId nodeid_, PeerId peerid_)

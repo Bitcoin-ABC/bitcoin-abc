@@ -955,7 +955,7 @@ void Processor::runEventLoop() {
 }
 
 void Processor::clearTimedoutRequests() {
-    auto now = std::chrono::steady_clock::now();
+    auto now = Now<SteadyMilliseconds>();
     std::map<CInv, uint8_t> timedout_items{};
 
     {

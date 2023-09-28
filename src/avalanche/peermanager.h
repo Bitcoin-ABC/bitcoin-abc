@@ -183,16 +183,16 @@ class PeerManager {
     ProofRadixTree shareableProofs;
 
     using NodeSet = boost::multi_index_container<
-        Node,
-        bmi::indexed_by<
-            // index by nodeid
-            bmi::hashed_unique<bmi::member<Node, NodeId, &Node::nodeid>>,
-            // sorted by peerid/nextRequestTime
-            bmi::ordered_non_unique<
-                bmi::tag<next_request_time>,
-                bmi::composite_key<
-                    Node, bmi::member<Node, PeerId, &Node::peerid>,
-                    bmi::member<Node, TimePoint, &Node::nextRequestTime>>>>>;
+        Node, bmi::indexed_by<
+                  // index by nodeid
+                  bmi::hashed_unique<bmi::member<Node, NodeId, &Node::nodeid>>,
+                  // sorted by peerid/nextRequestTime
+                  bmi::ordered_non_unique<
+                      bmi::tag<next_request_time>,
+                      bmi::composite_key<
+                          Node, bmi::member<Node, PeerId, &Node::peerid>,
+                          bmi::member<Node, SteadyMilliseconds,
+                                      &Node::nextRequestTime>>>>>;
 
     NodeSet nodes;
 
@@ -258,7 +258,7 @@ public:
     size_t getPendingNodeCount() const { return pendingNodes.size(); }
 
     // Update when a node is to be polled next.
-    bool updateNextRequestTime(NodeId nodeid, TimePoint timeout);
+    bool updateNextRequestTime(NodeId nodeid, SteadyMilliseconds timeout);
     /**
      * Flag that a node did send its compact proofs.
      * @return True if the flag changed state, i;e. if this is the first time

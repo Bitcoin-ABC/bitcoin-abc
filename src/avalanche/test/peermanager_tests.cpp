@@ -836,8 +836,8 @@ BOOST_AUTO_TEST_CASE(dangling_node) {
     PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
     BOOST_CHECK_NE(peerid, NO_PEER);
 
-    const TimePoint theFuture(Now<SteadyMilliseconds>() +
-                              std::chrono::hours(24));
+    const SteadyMilliseconds theFuture(Now<SteadyMilliseconds>() +
+                                       std::chrono::hours(24));
 
     // Add nodes to this peer and update their request time far in the future
     for (int i = 0; i < 10; i++) {

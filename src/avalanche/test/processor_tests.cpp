@@ -1038,7 +1038,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
         Response resp = {getRound(), 0, {Vote(0, itemid)}};
         avanodeid = getSuitableNodeToQuery();
 
-        auto start = std::chrono::steady_clock::now();
+        auto start = Now<SteadyMilliseconds>();
         runEventLoop();
         // We cannot guarantee that we'll wait for just 1ms, so we have to bail
         // if we aren't within the proper time range.
@@ -1047,7 +1047,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
 
         std::vector<avalanche::VoteItemUpdate> updates;
         bool ret = registerVotes(avanodeid, next(resp), updates);
-        if (std::chrono::steady_clock::now() > start + queryTimeDuration) {
+        if (Now<SteadyMilliseconds>() > start + queryTimeDuration) {
             // We waited for too long, bail. Because we can't know for sure when
             // previous steps ran, ret is not deterministic and we do not check
             // it.
@@ -1237,8 +1237,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
 
     // Respond and check the cooldown time is respected.
     uint64_t responseRound = getRound();
-    auto queryTime =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
+    auto queryTime = Now<SteadyMilliseconds>() + std::chrono::milliseconds(100);
 
     std::vector<VoteItemUpdate> updates;
     // Only the first node answers, so it's the only one that gets polled again
@@ -1249,7 +1248,7 @@ BOOST_AUTO_TEST_CASE(event_loop) {
         // We make sure that we do not get a request before queryTime.
         UninterruptibleSleep(std::chrono::milliseconds(1));
         if (getRound() != responseRound) {
-            BOOST_CHECK(std::chrono::steady_clock::now() > queryTime);
+            BOOST_CHECK(Now<SteadyMilliseconds>() >= queryTime);
             break;
         }
     }

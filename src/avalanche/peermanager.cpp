@@ -153,7 +153,8 @@ bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
     return true;
 }
 
-bool PeerManager::updateNextRequestTime(NodeId nodeid, TimePoint timeout) {
+bool PeerManager::updateNextRequestTime(NodeId nodeid,
+                                        SteadyMilliseconds timeout) {
     auto it = nodes.find(nodeid);
     if (it == nodes.end()) {
         return false;
@@ -476,9 +477,9 @@ NodeId PeerManager::selectNode() {
 
         // See if that peer has an available node.
         auto &nview = nodes.get<next_request_time>();
-        auto it = nview.lower_bound(boost::make_tuple(p, TimePoint()));
+        auto it = nview.lower_bound(boost::make_tuple(p, SteadyMilliseconds()));
         if (it != nview.end() && it->peerid == p &&
-            it->nextRequestTime <= std::chrono::steady_clock::now()) {
+            it->nextRequestTime <= Now<SteadyMilliseconds>()) {
             return it->nodeid;
         }
     }
@@ -579,9 +580,10 @@ bool PeerManager::removePeer(const PeerId peerid) {
     // Remove nodes associated with this peer, unless their timeout is still
     // active. This ensure that we don't overquery them in case they are
     // subsequently added to another peer.
-    nview.erase(nview.lower_bound(boost::make_tuple(peerid, TimePoint())),
-                nview.upper_bound(
-                    boost::make_tuple(peerid, Now<SteadyMilliseconds>())));
+    nview.erase(
+        nview.lower_bound(boost::make_tuple(peerid, SteadyMilliseconds())),
+        nview.upper_bound(
+            boost::make_tuple(peerid, Now<SteadyMilliseconds>())));
 
     // Release UTXOs attached to this proof.
     validProofPool.removeProof(it->getProofId());
@@ -717,10 +719,10 @@ bool PeerManager::verify() const {
         const auto count_nodes = [&]() {
             size_t count = 0;
             auto &nview = nodes.get<next_request_time>();
-            auto begin =
-                nview.lower_bound(boost::make_tuple(p.peerid, TimePoint()));
-            auto end =
-                nview.upper_bound(boost::make_tuple(p.peerid + 1, TimePoint()));
+            auto begin = nview.lower_bound(
+                boost::make_tuple(p.peerid, SteadyMilliseconds()));
+            auto end = nview.upper_bound(
+                boost::make_tuple(p.peerid + 1, SteadyMilliseconds()));
 
             for (auto it = begin; it != end; ++it) {
                 count++;

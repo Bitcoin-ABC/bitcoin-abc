@@ -203,7 +203,7 @@ class Processor final : public NetEventsInterface {
     struct Query {
         NodeId nodeid;
         uint64_t round;
-        TimePoint timeout;
+        SteadyMilliseconds timeout;
 
         /**
          * We declare this as mutable so it can be modified in the multi_index.
@@ -225,7 +225,7 @@ class Processor final : public NetEventsInterface {
             // sorted by timeout
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<query_timeout>,
-                boost::multi_index::member<Query, TimePoint,
+                boost::multi_index::member<Query, SteadyMilliseconds,
                                            &Query::timeout>>>>;
 
     RWCollection<QuerySet> queries;
