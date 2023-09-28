@@ -5033,15 +5033,20 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPOLL) {
-        auto now = Now<SteadyMilliseconds>();
-        int64_t cooldown =
+        const auto now = Now<SteadyMilliseconds>();
+        const int64_t cooldown =
             gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
 
-        if (now < pfrom.m_last_poll + std::chrono::milliseconds(cooldown)) {
-            Misbehaving(pfrom, 20, "avapool-cooldown");
-        }
-
+        const auto last_poll = pfrom.m_last_poll;
         pfrom.m_last_poll = now;
+
+        if (now < last_poll + std::chrono::milliseconds(cooldown)) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Ignoring repeated avapoll from peer %d: cooldown not "
+                     "elapsed\n",
+                     pfrom.GetId());
+            return;
+        }
 
         const bool quorum_established =
             g_avalanche && g_avalanche->isQuorumEstablished();

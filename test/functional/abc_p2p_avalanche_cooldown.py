@@ -74,7 +74,9 @@ class AvalancheCooldownTest(BitcoinTestFramework):
 
         self.log.info("Subsequent polls are spams")
         for _ in range(3):
-            with node.assert_debug_log(["Misbehaving", "avapool-cooldown"]):
+            with node.assert_debug_log(
+                ["Ignoring repeated avapoll", "cooldown not elapsed"]
+            ):
                 check_poll(inv=(tip, MSG_BLOCK), expect_response=False)
 
         # Restart with 100ms cooldown. Unfortunately we can't mock time as the
