@@ -2047,7 +2047,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
     def make_unsigned_transaction(
         self,
-        inputs,
+        inputs: List[Dict],
         outputs: List[TxOutput],
         config: SimpleConfig,
         fixed_fee=None,
@@ -2097,6 +2097,7 @@ class AbstractWallet(PrintError, SPVDelegate):
             def fee_estimator(size):
                 return fixed_fee
 
+        txinputs = [TxInput.from_coin_dict(inp) for inp in inputs]
         if i_max is None:
             # Let the coin chooser select the coins to spend
 
@@ -2150,7 +2151,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
             coin_chooser = coinchooser.CoinChooserPrivacy()
             tx = coin_chooser.make_tx(
-                inputs,
+                txinputs,
                 outputs,
                 change_addrs,
                 fee_estimator,
@@ -2159,7 +2160,6 @@ class AbstractWallet(PrintError, SPVDelegate):
         else:
             sendable = sum(x["value"] for x in inputs)
             outputs[i_max] = outputs[i_max]._replace(value=0)
-            txinputs = [TxInput.from_coin_dict(inp) for inp in inputs]
             tx = Transaction.from_io(txinputs, outputs, sign_schnorr=sign_schnorr)
             fee = fee_estimator(tx.estimated_size())
             amount = max(0, sendable - tx.output_value() - fee)

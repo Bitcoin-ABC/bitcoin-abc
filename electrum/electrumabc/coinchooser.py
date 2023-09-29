@@ -86,15 +86,14 @@ class Bucket:
         self.coins: List[TxInput] = []
         self.min_height: Optional[int] = None
 
-    def add_coin(self, coin_dict: Dict, sign_schnorr=False):
-        coin = TxInput.from_coin_dict(coin_dict)
+    def add_coin(self, coin: TxInput, sign_schnorr=False):
         self.coins.append(coin)
         self.value += coin.get_value()
         self.size += coin.size(sign_schnorr)
         self.min_height = (
-            min(self.min_height, coin_dict["height"])
+            min(self.min_height, coin.height)
             if self.min_height is not None
-            else coin_dict["height"]
+            else coin.height
         )
 
 
@@ -109,10 +108,10 @@ def strip_unneeded(bkts, sufficient_funds):
 
 
 class CoinChooserBase(PrintError):
-    def bucketize_coins(self, coins, sign_schnorr=False):
+    def bucketize_coins(self, coins: List[TxInput], sign_schnorr=False) -> List[Bucket]:
         buckets: Dict[str, Bucket] = {}
         for coin in coins:
-            address = coin["address"]
+            address = coin.address.to_cashaddr()
             if address not in buckets:
                 buckets[address] = Bucket(address)
             buckets[address].add_coin(coin, sign_schnorr)
@@ -189,7 +188,7 @@ class CoinChooserBase(PrintError):
 
     def make_tx(
         self,
-        coins: List[Dict],
+        coins: List[TxInput],
         outputs: List[TxOutput],
         change_addrs,
         fee_estimator,
@@ -201,7 +200,7 @@ class CoinChooserBase(PrintError):
         added to the transaction fee."""
 
         # Deterministic randomness from coins
-        utxos = [c["prevout_hash"] + str(c["prevout_n"]) for c in coins]
+        utxos = [str(c.outpoint) for c in coins]
         self.p = PRNG("".join(sorted(utxos)))
 
         # Copy the outputs so when adding change we don't modify "outputs"

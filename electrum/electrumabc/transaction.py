@@ -179,6 +179,7 @@ class TxInput:
         signatures: Optional[List[bytes]] = None,
         address: Optional[Address] = None,
         value: Optional[int] = None,
+        height: Optional[int] = None,
         prev_tx: Optional[Transaction] = None,
     ):
         self.outpoint: OutPoint = outpoint
@@ -194,8 +195,10 @@ class TxInput:
         self._signatures: Optional[List[Optional[bytes]]] = signatures
         self._address: Optional[Address] = address
 
-        # Must be defined for partially signed inputs (needed for signing)
+        # Needed by various tools (coinchooser, consolidate, fusion...).
+        # The value is also required for offline signing.
         self._value: Optional[int] = value
+        self.height: Optional[int] = height
 
         # This is set by the wallet for hardware wallets
         self._prev_tx: Optional[Transaction] = prev_tx
@@ -529,7 +532,8 @@ class TxInput:
             if self.get_value() is not None:
                 # The amount is needed for signing, in case of partially signed inputs.
                 d["value"] = self.get_value()
-
+        if self.height is not None:
+            d["height"] = self.height
         if self._prev_tx is not None:
             d["prev_tx"] = self._prev_tx
         return d
@@ -554,6 +558,7 @@ class TxInput:
         pubkeys: Optional[List[bytes]] = None,
         address: Optional[Address] = None,
         value: Optional[int] = None,
+        height: Optional[int] = None,
         prev_tx: Optional[Transaction] = None,
     ) -> TxInput:
         """Txinput factory for defining an input by its components"""
@@ -577,6 +582,7 @@ class TxInput:
             signatures=signatures,
             address=address,
             value=value,
+            height=height,
             prev_tx=prev_tx,
         )
 
@@ -586,6 +592,7 @@ class TxInput:
         sequence = coin.get("sequence", DEFAULT_TXIN_SEQUENCE)
         scriptsig = coin.get("scriptSig")
         value = coin.get("value")
+        height = coin.get("height")
         prev_tx = coin.get("prev_tx")
 
         if scriptsig is not None:
@@ -609,6 +616,7 @@ class TxInput:
             pubkeys=pubkeys,
             address=coin.get("address"),
             value=value,
+            height=height,
             prev_tx=prev_tx,
         )
 
