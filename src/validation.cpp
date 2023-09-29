@@ -3696,6 +3696,13 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                     }
                 }
             }
+        } // release cs_main and MempoolMutex
+        // Notify external listeners about the new tip, even if pindexFork
+        // == pindexNewTip.
+        if (blocks_connected && m_chainman.m_options.signals &&
+            this == &m_chainman.ActiveChainstate()) {
+            m_chainman.m_options.signals->ActiveTipChange(
+                *Assert(pindexNewTip), m_chainman.IsInitialBlockDownload());
         }
         // When we reach this point, we switched to a new tip (stored in
         // pindexNewTip).
@@ -4000,6 +4007,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
     }
 
     m_chainman.CheckBlockIndex();
+    CBlockIndex *new_tip;
 
     {
         LOCK(cs_main);
@@ -4038,6 +4046,9 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
         if (invalidate) {
             InvalidChainFound(to_mark_failed_or_parked);
         }
+        // Fetch the tip while still holding cs_main, to be used later for the
+        // ActiveTipChange signal.
+        new_tip = m_chain.Tip();
     }
 
     // Only notify about a new block tip if the active chain was modified.
@@ -4053,6 +4064,14 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
             GetSynchronizationState(m_chainman.IsInitialBlockDownload(),
                                     m_chainman.m_blockman.m_blockfiles_indexed),
             *to_mark_failed_or_parked->pprev);
+
+        // Fire ActiveTipChange now for the current chain tip to make sure
+        // clients are notified. ActivateBestChain may call this as well, but
+        // not necessarily.
+        if (m_chainman.m_options.signals) {
+            m_chainman.m_options.signals->ActiveTipChange(
+                *Assert(new_tip), m_chainman.IsInitialBlockDownload());
+        }
     }
     return true;
 }

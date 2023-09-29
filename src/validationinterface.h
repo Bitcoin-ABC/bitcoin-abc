@@ -64,6 +64,10 @@ protected:
                                  const CBlockIndex *pindexFork,
                                  bool fInitialDownload) {}
     /**
+     * Notifies listeners any time the block chain tip changes, synchronously.
+     */
+    virtual void ActiveTipChange(const CBlockIndex &new_tip, bool is_ibd) {};
+    /**
      * Notifies listeners of a transaction having been added to mempool.
      *
      * Called on a background thread.
@@ -237,6 +241,7 @@ public:
 
     void UpdatedBlockTip(const CBlockIndex *, const CBlockIndex *,
                          bool fInitialDownload);
+    void ActiveTipChange(const CBlockIndex &, bool);
     void TransactionAddedToMempool(const CTransactionRef &,
                                    std::shared_ptr<const std::vector<Coin>>,
                                    uint64_t mempool_sequence);

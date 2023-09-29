@@ -12,6 +12,7 @@
 #include <consensus/validation.h>
 #include <node/miner.h>
 #include <pow/pow.h>
+#include <primitives/blockhash.h>
 #include <random.h>
 #include <test/util/random.h>
 #include <test/util/script.h>
@@ -48,9 +49,9 @@ struct MinerTestingSetup : public TestingSetup {
 BOOST_FIXTURE_TEST_SUITE(validation_block_tests, MinerTestingSetup)
 
 struct TestSubscriber final : public CValidationInterface {
-    uint256 m_expected_tip;
+    BlockHash m_expected_tip;
 
-    explicit TestSubscriber(uint256 tip) : m_expected_tip(tip) {}
+    explicit TestSubscriber(BlockHash tip) : m_expected_tip(tip) {}
 
     void UpdatedBlockTip(const CBlockIndex *pindexNew,
                          const CBlockIndex *pindexFork,
@@ -459,4 +460,89 @@ BOOST_AUTO_TEST_CASE(mempool_locks_reorg) {
         rpc_thread.join();
     }
 }
+
+struct ActiveTipChangeSubscriber final : public CValidationInterface {
+    std::vector<BlockHash> tips;
+
+    void ActiveTipChange(const CBlockIndex &new_tip,
+                         [[maybe_unused]] bool is_ibd) override {
+        tips.emplace_back(new_tip.GetBlockHash());
+    }
+
+    size_t size() const { return tips.size(); }
+
+    BlockHash last() const {
+        BOOST_REQUIRE(!tips.empty());
+        return tips.back();
+    }
+};
+
+BOOST_AUTO_TEST_CASE(active_tip_change_signal) {
+    GlobalConfig config;
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+
+    // Drain any leftover events from fixture setup.
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
+
+    auto sub = std::make_shared<ActiveTipChangeSubscriber>();
+    m_node.validation_signals->RegisterSharedValidationInterface(sub);
+
+    // Genesis (or the tip that already exists after fixture setup
+    const CBlockIndex *tip_before =
+        WITH_LOCK(cs_main, return chainman.ActiveTip());
+    BOOST_REQUIRE(tip_before != nullptr);
+
+    // Connect a new block – ActiveTipChange must fire synchronously
+    std::shared_ptr<const CBlock> block1 =
+        GoodBlock(config, tip_before->GetBlockHash());
+    bool new_block = false;
+    BOOST_REQUIRE(chainman.ProcessNewBlock(block1, /*force_processing=*/true,
+                                           /*min_pow_checked=*/true,
+                                           &new_block));
+    BOOST_CHECK(new_block);
+
+    // No SyncWithValidationInterfaceQueue() needed – the callback is
+    // synchronous.
+    BOOST_CHECK_EQUAL(sub->size(), 1U);
+    BOOST_CHECK_EQUAL(sub->last(), block1->GetHash());
+
+    const CBlockIndex *tip1 = WITH_LOCK(cs_main, return chainman.ActiveTip());
+    BOOST_CHECK_EQUAL(tip1->GetBlockHash(), block1->GetHash());
+
+    // Another block on top of the previous one
+    std::shared_ptr<const CBlock> block2 = GoodBlock(config, block1->GetHash());
+    new_block = false;
+    BOOST_REQUIRE(chainman.ProcessNewBlock(block2, true, true, &new_block));
+    BOOST_CHECK(new_block);
+
+    BOOST_CHECK_EQUAL(sub->size(), 2U);
+    BOOST_CHECK_EQUAL(sub->last(), block2->GetHash());
+
+    // Reorg: build a longer competing chain from tip_before
+    auto original_sub_size = sub->size();
+    auto tip = tip_before->GetBlockHash();
+    for (int i = 0; i < 4; ++i) {
+        auto b = GoodBlock(config, tip);
+        tip = b->GetHash();
+        new_block = false;
+        BOOST_REQUIRE(chainman.ProcessNewBlock(b, true, true, &new_block));
+        BOOST_CHECK(new_block);
+
+        // The first two blocks in the reorg chain don't trigger an
+        // ActiveTipChange. Starting from the third block, the reorg chain is
+        // longer so the active tip is updated.
+        if (i >= 2) {
+            BOOST_CHECK_EQUAL(sub->last(), tip);
+        }
+    }
+
+    // Final tip of the reorg must be the last notification we received.
+    const CBlockIndex *final_tip =
+        WITH_LOCK(cs_main, return chainman.ActiveTip());
+    BOOST_CHECK_EQUAL(sub->last(), final_tip->GetBlockHash());
+    BOOST_CHECK_GE(sub->size(), original_sub_size + 2U);
+
+    m_node.validation_signals->UnregisterSharedValidationInterface(sub);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
