@@ -136,7 +136,7 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
         ];
         assert.throws(() => {
             coinSelect(stubChronikUtxos, [{ value: 500 }], 1);
-        }, Error('Transaction must send more than dust threshold of 546 satoshis'));
+        }, Error('Transaction output amount must be at least the dust threshold of 546 satoshis'));
     });
     it('throws expected error if sum(targetOutputs) < sum(inputs) + fee', function () {
         const stubChronikUtxos = [

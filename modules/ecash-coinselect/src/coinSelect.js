@@ -47,7 +47,7 @@ function coinSelect(utxos, targetOutputs, feeRate = 1) {
 
     if (outAccum < DUST_SATOSHIS) {
         throw new Error(
-            `Transaction must send more than dust threshold of ${DUST_SATOSHIS} satoshis`,
+            `Transaction output amount must be at least the dust threshold of ${DUST_SATOSHIS} satoshis`,
         );
     }
 
