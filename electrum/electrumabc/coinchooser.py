@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # Electrum ABC - lightweight eCash client
-# Copyright (C) 2020 The Electrum ABC developers
+# Copyright (C) 2020-2023 The Electrum ABC developers
 # Copyright (C) 2015 kyuupichan@gmail
 #
 # Permission is hereby granted, free of charge, to any person
@@ -23,9 +23,8 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from collections import defaultdict, namedtuple
 from math import floor, log10
-from typing import List
+from typing import Dict, List, Optional
 
 from .bitcoin import CASH, TYPE_ADDRESS, sha256
 from .printerror import PrintError
@@ -71,7 +70,32 @@ class PRNG:
             x[i], x[j] = x[j], x[i]
 
 
-Bucket = namedtuple("Bucket", ["desc", "size", "value", "coins", "min_height"])
+class Bucket:
+    """Coins with a same address are grouped in buckets. The coinchooser algorithm
+    then picks enough buckets to cover the required amount.
+    As a result, all coins belonging to a same address are always spent together.
+    """
+
+    def __init__(self, desc: str):
+        self.desc = desc
+        """A descriptor common to all coins in this bucket. Currently it is the address.
+        """
+
+        self.size: int = 0
+        self.value: int = 0
+        self.coins: List[TxInput] = []
+        self.min_height: Optional[int] = None
+
+    def add_coin(self, coin_dict: Dict, sign_schnorr=False):
+        coin = TxInput.from_coin_dict(coin_dict)
+        self.coins.append(coin)
+        self.value += coin.get_value()
+        self.size += coin.size(sign_schnorr)
+        self.min_height = (
+            min(self.min_height, coin_dict["height"])
+            if self.min_height is not None
+            else coin_dict["height"]
+        )
 
 
 def strip_unneeded(bkts, sufficient_funds):
@@ -85,24 +109,15 @@ def strip_unneeded(bkts, sufficient_funds):
 
 
 class CoinChooserBase(PrintError):
-    def keys(self, coins):
-        raise NotImplementedError()
-
     def bucketize_coins(self, coins, sign_schnorr=False):
-        keys = self.keys(coins)
-        buckets = defaultdict(list)
-        for key, coin in zip(keys, coins):
-            buckets[key].append(coin)
+        buckets: Dict[str, Bucket] = {}
+        for coin in coins:
+            address = coin["address"]
+            if address not in buckets:
+                buckets[address] = Bucket(address)
+            buckets[address].add_coin(coin, sign_schnorr)
 
-        def make_Bucket(desc, coins):
-            size = sum(
-                TxInput.from_coin_dict(coin).size(sign_schnorr) for coin in coins
-            )
-            value = sum(coin["value"] for coin in coins)
-            min_height = min(coin["height"] for coin in coins)
-            return Bucket(desc, size, value, coins, min_height)
-
-        return list(map(make_Bucket, buckets.keys(), buckets.values()))
+        return list(buckets.values())
 
     def penalty_func(self, tx):
         def penalty(candidate):
@@ -174,7 +189,7 @@ class CoinChooserBase(PrintError):
 
     def make_tx(
         self,
-        coins,
+        coins: List[Dict],
         outputs: List[TxOutput],
         change_addrs,
         fee_estimator,
@@ -206,9 +221,8 @@ class CoinChooserBase(PrintError):
         buckets = self.bucketize_coins(coins, sign_schnorr=sign_schnorr)
         buckets = self.choose_buckets(buckets, sufficient_funds, self.penalty_func(tx))
 
-        tx.add_inputs(
-            [TxInput.from_coin_dict(coin) for b in buckets for coin in b.coins]
-        )
+        for b in buckets:
+            tx.add_inputs(b.coins)
         tx_size = base_size + sum(bucket.size for bucket in buckets)
 
         # This takes a count of change outputs and returns a tx fee;
@@ -313,9 +327,6 @@ class CoinChooserPrivacy(CoinChooserRandom):
     would come from reusing that address' remaining UTXOs.  Second, it
     penalizes change that is quite different to the sent amount.
     Third, it penalizes change that is too big."""
-
-    def keys(self, coins):
-        return [coin["address"] for coin in coins]
 
     def penalty_func(self, tx: Transaction):
         min_change = min(o.value for o in tx.outputs()) * 0.75
