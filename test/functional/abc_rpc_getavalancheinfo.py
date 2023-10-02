@@ -98,8 +98,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": False,
-                    "verification_status": "pending",
-                    "sharing": False,
+                    "verification_status": "pending inbound connections",
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -132,8 +131,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": False,
-                    "verification_status": "pending",
-                    "sharing": True,
+                    "verification_status": "pending verification",
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -171,8 +169,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": False,
-                    "verification_status": "pending",
-                    "sharing": True,
+                    "verification_status": "pending verification",
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -212,8 +209,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": False,
-                    "verification_status": "pending",
-                    "sharing": False,
+                    "verification_status": "pending inbound connections",
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -250,7 +246,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "local": {
                     "verified": False,
                     "verification_status": "immature-proof",
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -283,7 +278,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -359,7 +353,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -398,7 +391,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -460,7 +452,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -546,7 +537,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -582,7 +572,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": False,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),
@@ -625,7 +614,6 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
                 "ready_to_poll": True,
                 "local": {
                     "verified": True,
-                    "sharing": True,
                     "proofid": uint256_hex(proof.proofid),
                     "limited_proofid": uint256_hex(proof.limited_proofid),
                     "master": privkey.get_pubkey().get_bytes().hex(),

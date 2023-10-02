@@ -659,8 +659,9 @@ static RPCHelpMan getavalancheinfo() {
                       "The proof verification status. Only available if the "
                       "\"verified\" flag is false."},
                      {RPCResult::Type::BOOL, "sharing",
-                      "Whether the node local proof is being advertised on the "
-                      "network or not."},
+                      "DEPRECATED: Whether the node local proof is being "
+                      "advertised on the network or not. Only displayed if the "
+                      "-deprecatedrpc=getavalancheinfo_sharing option is set."},
                      {RPCResult::Type::STR_HEX, "proofid",
                       "The node local proof id."},
                      {RPCResult::Type::STR_HEX, "limited_proofid",
@@ -753,16 +754,21 @@ static RPCHelpMan getavalancheinfo() {
                         return pm.isBoundToPeer(proofid);
                     });
                 local.pushKV("verified", verified);
+                const bool sharing = g_avalanche->canShareLocalProof();
                 if (!verified) {
                     avalanche::ProofRegistrationState state =
                         g_avalanche->getLocalProofRegistrationState();
                     // If the local proof is not registered but the state is
                     // valid, no registration attempt occurred yet.
                     local.pushKV("verification_status",
-                                 state.IsValid() ? "pending"
-                                                 : state.GetRejectReason());
+                                 state.IsValid()
+                                     ? (sharing ? "pending verification"
+                                                : "pending inbound connections")
+                                     : state.GetRejectReason());
                 }
-                local.pushKV("sharing", g_avalanche->canShareLocalProof());
+                if (IsDeprecatedRPCEnabled(gArgs, "getavalancheinfo_sharing")) {
+                    local.pushKV("sharing", sharing);
+                }
                 local.pushKV("proofid", localProof->getId().ToString());
                 local.pushKV("limited_proofid",
                              localProof->getLimitedId().ToString());
