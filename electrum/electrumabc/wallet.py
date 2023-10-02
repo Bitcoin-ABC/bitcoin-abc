@@ -176,7 +176,7 @@ def sweep_preparations(
             inputs.append(TxInput.from_coin_dict(item))
 
     def find_utxos_for_privkey(txin_type: bitcoin.ScriptType, privkey, compressed):
-        pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
+        pubkey = bitcoin.public_key_from_private_key(privkey, compressed).hex()
         append_utxos_to_inputs(inputs, pubkey, txin_type)
         keypairs[pubkey] = privkey, compressed
 

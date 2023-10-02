@@ -698,7 +698,7 @@ def regenerate_key(pk):
     return ECKey(pk)
 
 
-def GetPubKey(pubkey, compressed=False):
+def GetPubKey(pubkey, compressed=False) -> bytes:
     return i2o_ECPublicKey(pubkey, compressed)
 
 
@@ -708,10 +708,9 @@ def is_compressed(sec, *, net=None):
     return deserialize_privkey(sec, net=net)[2]
 
 
-def public_key_from_private_key(pk, compressed):
+def public_key_from_private_key(pk: bytes, compressed) -> bytes:
     pkey = regenerate_key(pk)
-    public_key = GetPubKey(pkey.pubkey, compressed)
-    return bh2u(public_key)
+    return GetPubKey(pkey.pubkey, compressed)
 
 
 def address_from_private_key(sec, *, net=None):
@@ -719,7 +718,7 @@ def address_from_private_key(sec, *, net=None):
         net = networks.net
     txin_type, privkey, compressed = deserialize_privkey(sec, net=net)
     public_key = public_key_from_private_key(privkey, compressed)
-    return pubkey_to_address(txin_type, bytes.fromhex(public_key), net=net)
+    return pubkey_to_address(txin_type, public_key, net=net)
 
 
 def is_private_key(key, *, net=None):
@@ -1731,7 +1730,7 @@ class Bip38Key:
                 "Only p2pkh WIF keys may be encrypted using BIP38 at this time."
             )
         public_key = public_key_from_private_key(key_bytes, compressed)
-        addr_str = pubkey_to_address(_type, bytes.fromhex(public_key), net=net)
+        addr_str = pubkey_to_address(_type, public_key, net=net)
         addr_hash = Hash(addr_str)[0:4]
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
         passphrase = cls._normalizeNFC(passphrase)

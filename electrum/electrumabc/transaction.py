@@ -70,7 +70,7 @@ from .serialize import (
     serialize_sequence,
 )
 from .uint256 import UInt256
-from .util import bfh, bh2u, profiler, to_bytes
+from .util import bh2u, profiler, to_bytes
 
 DUST_THRESHOLD: int = 546
 """
@@ -1537,8 +1537,7 @@ class Transaction:
         return sig
 
     @staticmethod
-    def _schnorr_sign(pubkey, sec, pre_hash):
-        pubkey = bytes.fromhex(pubkey)
+    def _schnorr_sign(pubkey: bytes, sec: bytes, pre_hash: bytes) -> bytes:
         sig = schnorr.sign(sec, pre_hash)
         assert schnorr.verify(pubkey, sig, pre_hash)  # verify what we just signed
         return sig
@@ -1582,7 +1581,7 @@ class Transaction:
         else:
             sig = self._ecdsa_sign(sec, pre_hash)
         reason = []
-        if not self.verify_signature(bfh(pubkey), sig, pre_hash, reason=reason):
+        if not self.verify_signature(pubkey, sig, pre_hash, reason=reason):
             print_error(
                 f"Signature verification failed for input#{i} sig#{j}, reason:"
                 f" {str(reason)}"
@@ -1590,7 +1589,7 @@ class Transaction:
             return None
         txin = self._inputs[i]
         txin.update_signature(sig + bytes((nHashType & 0xFF,)), j)
-        txin.update_pubkey(bytes.fromhex(pubkey), j)  # needed for fd keys
+        txin.update_pubkey(pubkey, j)  # needed for fd keys
         return txin
 
     def is_final(self):

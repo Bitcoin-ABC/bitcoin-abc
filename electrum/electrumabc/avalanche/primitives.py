@@ -115,5 +115,4 @@ class Key:
         return schnorr.sign(self.keydata, message_hash)
 
     def get_pubkey(self):
-        pubkey = public_key_from_private_key(self.keydata, self.compressed)
-        return PublicKey(bytes.fromhex(pubkey))
+        return PublicKey(public_key_from_private_key(self.keydata, self.compressed))

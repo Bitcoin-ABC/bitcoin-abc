@@ -439,7 +439,7 @@ class TestKeyImport(unittest.TestCase):
         for priv_details in self.priv_pub_addr:
             txin_type, privkey, compressed = deserialize_privkey(priv_details["priv"])
             result = public_key_from_private_key(privkey, compressed)
-            self.assertEqual(priv_details["pub"], result)
+            self.assertEqual(priv_details["pub"], result.hex())
             self.assertEqual(priv_details["txin_type"], txin_type.name)
             self.assertEqual(priv_details["compressed"], compressed)
 
