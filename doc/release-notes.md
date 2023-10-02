@@ -9,3 +9,6 @@ This release includes the following features and fixes:
    that better explains why a proof is not verified. As a consequence the
    `local.sharing` field is no longer needed and has been deprecated. You can
    set the `-deprecatedrpc=getavalancheinfo_sharing` option to keep using it.
+ - The `net` logging category has been split in 2 categories to reduce verbosity
+   when logging the `net` messages. To get the same log as previous versions,
+   please use both `-debug=net` and `-debug=netdebug`.

@@ -66,6 +66,7 @@ enum LogFlags : uint32_t {
     LOCK = (1 << 25),
 #endif
     BLOCKSTORE = (1 << 26),
+    NETDEBUG = (1 << 27),
     ALL = ~uint32_t(0),
 };
 
