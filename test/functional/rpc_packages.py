@@ -11,7 +11,7 @@ from test_framework.messages import CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, assert_fee_amount
+from test_framework.util import assert_equal, assert_fee_amount, assert_raises_rpc_error
 from test_framework.wallet import DEFAULT_FEE, MiniWallet
 
 
@@ -420,8 +420,9 @@ class RPCPackagesTest(BitcoinTestFramework):
         chain_hex = [
             t["hex"] for t in self.wallet.create_self_transfer_chain(chain_length=25)
         ]
-        res = node.submitpackage(chain_hex)
-        assert_equal(res["package_msg"], "package-not-child-with-parents")
+        assert_raises_rpc_error(
+            -25, "package topology disallowed", node.submitpackage, chain_hex
+        )
         assert_equal(legacy_pool, node.getrawmempool())
 
         # Create a transaction chain such as only the parent gets accepted (by
