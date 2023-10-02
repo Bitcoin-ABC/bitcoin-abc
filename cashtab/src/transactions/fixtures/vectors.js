@@ -192,7 +192,7 @@ export const sendingXecToSingleAddress = {
                 },
             ],
             feeRate: 1,
-            msg: 'too-long-mempool-chain, too many unconfirmed ancestors [limit: 25] (code 64)',
+            msg: 'txn-mempool-conflict (code 18)',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006a47304402202747b4da71786b3305b39d17531824ade98db589f032a59ddd8da7166df4f6b202200c6fb9fa6a9d5da69dbfff1c1ff64fd049371ca27e3c3984723d630190c2a22e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acde5c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
         },
     ],
