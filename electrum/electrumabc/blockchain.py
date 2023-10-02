@@ -29,6 +29,7 @@ from typing import Dict, Optional
 
 from . import asert_daa, bitcoin, networks, util
 from .printerror import PrintError
+from .uint256 import UInt256
 
 
 class VerifyError(Exception):
@@ -130,19 +131,18 @@ def bits_to_target(ncompact: int) -> int:
     return ret
 
 
-def serialize_header(res):
-    s = (
-        bitcoin.int_to_le_hex(res.get("version"), 4)
-        + bitcoin.rev_hex(res.get("prev_block_hash"))
-        + bitcoin.rev_hex(res.get("merkle_root"))
-        + bitcoin.int_to_le_hex(int(res.get("timestamp")), 4)
-        + bitcoin.int_to_le_hex(int(res.get("bits")), 4)
-        + bitcoin.int_to_le_hex(int(res.get("nonce")), 4)
+def serialize_header(res: Dict) -> bytes:
+    return (
+        res.get("version").to_bytes(4, "little")
+        + UInt256.from_hex(res.get("prev_block_hash")).serialize()
+        + UInt256.from_hex(res.get("merkle_root")).serialize()
+        + int(res.get("timestamp")).to_bytes(4, "little")
+        + int(res.get("bits")).to_bytes(4, "little")
+        + int(res.get("nonce")).to_bytes(4, "little")
     )
-    return s
 
 
-def deserialize_header(s, height):
+def deserialize_header(s: bytes, height: int) -> Dict:
     h = {}
     h["version"] = int.from_bytes(s[0:4], "little")
     h["prev_block_hash"] = bitcoin.hash_encode(s[4:36])
@@ -154,16 +154,12 @@ def deserialize_header(s, height):
     return h
 
 
-def hash_header_hex(header_hex):
-    return bitcoin.hash_encode(bitcoin.Hash(bytes.fromhex(header_hex)))
-
-
-def hash_header(header):
+def hash_header(header: Dict) -> str:
     if header is None:
         return NULL_HASH_HEX
     if header.get("prev_block_hash") is None:
         header["prev_block_hash"] = "00" * 32
-    return hash_header_hex(serialize_header(header))
+    return bitcoin.hash_encode(bitcoin.Hash(serialize_header(header)))
 
 
 blockchains = {}
@@ -452,7 +448,7 @@ class Blockchain(PrintError):
 
     def save_header(self, header):
         delta = header.get("block_height") - self.base_height
-        data = bytes.fromhex(serialize_header(header))
+        data = serialize_header(header)
         assert delta == self.size()
         assert len(data) == HEADER_SIZE
         self.write(data, delta * HEADER_SIZE)
