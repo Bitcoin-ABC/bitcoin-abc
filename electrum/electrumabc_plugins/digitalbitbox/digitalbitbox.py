@@ -641,7 +641,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                             index[0],
                             index[1],
                         )
-                        inputHash = Hash(binascii.unhexlify(tx.serialize_preimage(i)))
+                        inputHash = Hash(tx.serialize_preimage(i))
                         hasharray_i = {
                             "hash": to_hexstr(inputHash),
                             "keypath": inputPath,

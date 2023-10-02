@@ -1131,7 +1131,7 @@ class Transaction:
             if sig_final in txin.signatures:
                 # skip if we already have this signature
                 continue
-            pre_hash = bitcoin.Hash(bfh(self.serialize_preimage(i)))
+            pre_hash = bitcoin.Hash(self.serialize_preimage(i))
             added = False
             reason = []
             for j, pubkey in enumerate(pubkeys):
@@ -1149,7 +1149,7 @@ class Transaction:
                     "/",
                     sig,
                     "/",
-                    bh2u(pre_hash),
+                    pre_hash.hex(),
                 )
         # redo raw
         self.raw = self.serialize()
@@ -1239,12 +1239,6 @@ class Transaction:
     def is_txin_complete(cls, txin):
         return TxInput.from_coin_dict(txin).is_complete()
 
-    @classmethod
-    def serialize_outpoint(self, txin):
-        return bh2u(bfh(txin["prevout_hash"])[::-1]) + bitcoin.int_to_le_hex(
-            txin["prevout_n"], 4
-        )
-
     def shuffle_inputs(self):
         random.shuffle(self._inputs)
 
@@ -1326,40 +1320,30 @@ class Transaction:
         self._cached_sighash_tup = meta, res
         return res
 
-    def serialize_preimage(self, i, nHashType=0x00000041, use_cache=False):
+    def serialize_preimage(self, i, nHashType=0x00000041, use_cache=False) -> bytes:
         """See `.calc_common_sighash` for explanation of use_cache feature"""
         if (nHashType & 0xFF) != 0x41:
             raise ValueError("other hashtypes not supported; submit a PR to fix this!")
 
-        nVersion = bitcoin.int_to_le_hex(self.version, 4)
-        nHashType = bitcoin.int_to_le_hex(nHashType, 4)
-        nLocktime = bitcoin.int_to_le_hex(self.locktime, 4)
-
         txin: TxInput = self.txinputs()[i]
-        outpoint = txin.outpoint.to_hex()
-        scriptCode = serialize_blob(txin.get_preimage_script()).hex()
         if txin.get_value() is None:
             raise InputValueMissing
-        amount = bitcoin.int_to_le_hex(txin.get_value(), 8)
-        nSequence = bitcoin.int_to_le_hex(txin.sequence, 4)
-
         hashPrevouts, hashSequence, hashOutputs = self.calc_common_sighash(
             use_cache=use_cache
         )
 
-        preimage = (
-            nVersion
-            + bh2u(hashPrevouts)
-            + bh2u(hashSequence)
-            + outpoint
-            + scriptCode
-            + amount
-            + nSequence
-            + bh2u(hashOutputs)
-            + nLocktime
-            + nHashType
+        return (
+            self.version.to_bytes(4, "little")
+            + hashPrevouts
+            + hashSequence
+            + txin.outpoint.serialize()
+            + serialize_blob(txin.get_preimage_script())
+            + txin.get_value().to_bytes(8, "little")
+            + txin.sequence.to_bytes(4, "little")
+            + hashOutputs
+            + self.locktime.to_bytes(4, "little")
+            + nHashType.to_bytes(4, "little")
         )
-        return preimage
 
     def serialize(self, estimate_size=False) -> bytes:
         nVersion = self.version.to_bytes(4, "little")
@@ -1591,7 +1575,7 @@ class Transaction:
             0x00000041  # hardcoded, perhaps should be taken from unsigned input dict
         )
         pre_hash = bitcoin.Hash(
-            bfh(self.serialize_preimage(i, nHashType, use_cache=use_cache))
+            self.serialize_preimage(i, nHashType, use_cache=use_cache)
         )
         if self._sign_schnorr:
             sig = self._schnorr_sign(pubkey, sec, pre_hash)

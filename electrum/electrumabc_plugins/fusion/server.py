@@ -840,11 +840,7 @@ class FusionController(threading.Thread, PrintError):
             tx, input_indices = tx_from_components(all_components, session_hash)
 
             sighashes = [
-                sha256(
-                    sha256(
-                        bytes.fromhex(tx.serialize_preimage(i, 0x41, use_cache=True))
-                    )
-                )
+                sha256(sha256(tx.serialize_preimage(i, 0x41, use_cache=True)))
                 for i in range(len(tx.inputs()))
             ]
             pubkeys = [bytes.fromhex(inp["pubkeys"][0]) for inp in tx.inputs()]

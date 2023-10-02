@@ -22,7 +22,6 @@ from electrumabc.plugins import Device
 from electrumabc.printerror import PrintError, is_verbose, print_error
 from electrumabc.serialize import serialize_sequence
 from electrumabc.transaction import Transaction
-from electrumabc.util import bfh
 from electrumabc.wallet import StandardWallet
 from electrumabc_gui.qt.qrcodewidget import QRDialog
 
@@ -452,11 +451,9 @@ class SatochipKeyStore(HardwareKeyStore):
                     (key, chaincode) = client.cc.card_bip32_get_extendedkey(bytepath)
 
                     # parse tx
-                    pre_tx_hex = tx.serialize_preimage(i)
-                    pre_tx = bytes.fromhex(
-                        pre_tx_hex
-                    )  # hex representation => converted to bytes
-                    pre_hash = Hash(bfh(pre_tx_hex))
+                    pre_tx = tx.serialize_preimage(i)
+                    pre_tx_hex = pre_tx.hex()
+                    pre_hash = Hash(pre_tx_hex)
                     pre_hash_hex = pre_hash.hex()
                     self.print_error("sign_transaction(): pre_tx_hex=", pre_tx_hex)
                     self.print_error("sign_transaction(): pre_hash=", pre_hash_hex)

@@ -1147,11 +1147,7 @@ class Fusion(threading.Thread, PrintError):
                 except ValueError:
                     continue  # not my input
                 sec, compressed = self.keypairs[inp["pubkeys"][0]]
-                sighash = sha256(
-                    sha256(
-                        bytes.fromhex(tx.serialize_preimage(i, 0x41, use_cache=True))
-                    )
-                )
+                sighash = sha256(sha256(tx.serialize_preimage(i, 0x41, use_cache=True)))
                 sig = schnorr.sign(sec, sighash)
 
                 messages[mycomponentslots[mycompidx]] = pb.CovertTransactionSignature(
