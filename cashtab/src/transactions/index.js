@@ -46,24 +46,14 @@ export const signInputs = (txBuilder, accounts, inputs) => {
  * No OP_RETURN, no etokens, one destination address
  * @param {object} chronik initialized instance of chronik-client
  * @param {object} wallet Cashtab object that stores wallet information, see hooks/useWallet.js
+ * @param {array} targetOutputs Array of objects containing keys for value and address, e.g. [{value: <satsToSend>, address: <destinationAddress>}]
  * @param {number} feeRate satoshis per byte
- * @param {number} satsToSend
- * @param {string} destinationAddress
  * @throws {error} dust error, balance exceeded error, coinselect errors, and node broadcast errors
  * @returns {object} {hex: <rawTxInHex>, response: {txid: <broadcastTxid>}}
  */
-export const sendXecToOneAddress = async (
-    chronik,
-    wallet,
-    feeRate,
-    satsToSend,
-    destinationAddress,
-) => {
+export const sendXec = async (chronik, wallet, targetOutputs, feeRate) => {
     // Use only eCash utxos
     const utxos = wallet.state.nonSlpUtxos;
-
-    // Create target output in format expected by coinSelect
-    const targetOutputs = [{ address: destinationAddress, value: satsToSend }];
 
     let { inputs, outputs } = coinSelect(utxos, targetOutputs, feeRate);
 

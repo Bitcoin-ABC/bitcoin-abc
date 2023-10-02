@@ -1,7 +1,7 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-import { sendXecToOneAddress } from 'transactions';
+import { sendXec } from 'transactions';
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import { sendingXecToSingleAddress } from '../fixtures/vectors';
 
@@ -11,46 +11,24 @@ describe('Improved Cashtab transaction broadcasting functions', () => {
 
     // Successfully built and broadcast txs
     txs.forEach(async tx => {
-        const {
-            description,
-            wallet,
-            feeRate,
-            satsToSend,
-            destinationAddress,
-            txid,
-            hex,
-        } = tx;
-        it(`sendXecToOneAddress: ${description}`, async () => {
+        const { description, wallet, targetOutputs, feeRate, txid, hex } = tx;
+        it(`sendXec broadcasts one-to-one tx: ${description}`, async () => {
             const chronik = new MockChronikClient();
             chronik.setMock('broadcastTx', {
                 input: hex,
                 output: { txid },
             });
             expect(
-                await sendXecToOneAddress(
-                    chronik,
-                    wallet,
-                    feeRate,
-                    satsToSend,
-                    destinationAddress,
-                ),
+                await sendXec(chronik, wallet, targetOutputs, feeRate),
             ).toStrictEqual({ hex, response: { txid } });
         });
     });
 
     // Error cases
     errors.forEach(async error => {
-        const {
-            description,
-            wallet,
-            satsToSend,
-            feeRate,
-            destinationAddress,
-            msg,
-            hex,
-        } = error;
+        const { description, wallet, targetOutputs, feeRate, msg, hex } = error;
 
-        it(`sendXecToOneAddress throws on: ${description}`, async () => {
+        it(`sendXec throws on one-to-one transaction: ${description}`, async () => {
             const chronik = new MockChronikClient();
             // e.g. ('block', {input: '', output: ''})
             if (typeof hex !== 'undefined') {
@@ -63,13 +41,7 @@ describe('Improved Cashtab transaction broadcasting functions', () => {
             }
 
             await expect(
-                sendXecToOneAddress(
-                    chronik,
-                    wallet,
-                    feeRate,
-                    satsToSend,
-                    destinationAddress,
-                ),
+                sendXec(chronik, wallet, targetOutputs, feeRate),
             ).rejects.toThrow(msg);
         });
     });
