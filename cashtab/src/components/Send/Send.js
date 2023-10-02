@@ -156,8 +156,6 @@ const SendBCH = ({ passLoadingStatus }) => {
     // Modal settings
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
-    const [isEncryptedOptionalOpReturnMsg, setIsEncryptedOptionalOpReturnMsg] =
-        useState(false);
 
     // Get device window width
     // If this is less than 769, the page will open with QR scanner open
@@ -189,7 +187,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)
-    // hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.unencryptedMsgByteLimit
+    // hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.cashtabMsgByteLimit
     const pushDataByteCount = 1;
     const prefixByteCount = 4;
     const tokenIdByteCount = 32;
@@ -426,29 +424,18 @@ const SendBCH = ({ passLoadingStatus }) => {
                 bchValue = fiatToCrypto(value, fiatPrice);
             }
 
-            // encrypted message limit truncation
-            let optionalOpReturnMsg;
-            if (isEncryptedOptionalOpReturnMsg) {
-                optionalOpReturnMsg = opReturnMsg.substring(
-                    0,
-                    opreturnConfig.encryptedMsgByteLimit,
-                );
-            } else {
-                optionalOpReturnMsg = opReturnMsg;
-            }
-
             try {
                 const link = await sendXec(
                     chronik,
                     wallet,
                     nonSlpUtxos,
                     appConfig.defaultFee,
-                    optionalOpReturnMsg,
+                    opReturnMsg,
                     false, // sendToMany boolean flag
                     null, // address array not applicable for one to many tx
                     cleanAddress,
                     bchValue,
-                    isEncryptedOptionalOpReturnMsg,
+                    false,
                 );
                 sendXecNotification(link);
                 clearInputForms();
@@ -635,11 +622,8 @@ const SendBCH = ({ passLoadingStatus }) => {
 
         const maxSize =
             location && location.state && location.state.airdropTokenId
-                ? opreturnConfig.unencryptedMsgByteLimit -
-                  localAirdropTxAddedBytes
-                : isEncryptedOptionalOpReturnMsg
-                ? opreturnConfig.encryptedMsgByteLimit
-                : opreturnConfig.unencryptedMsgByteLimit;
+                ? opreturnConfig.cashtabMsgByteLimit - localAirdropTxAddedBytes
+                : opreturnConfig.cashtabMsgByteLimit;
         if (msgByteSize > maxSize) {
             msgError = `Message can not exceed ${maxSize} bytes`;
         }
@@ -800,9 +784,6 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         onChange={() => {
                                             setIsOneToManyXECSend(
                                                 !isOneToManyXECSend,
-                                            );
-                                            setIsEncryptedOptionalOpReturnMsg(
-                                                false,
                                             );
                                             // Do not persist multisend input to single send and vice versa
                                             clearInputForms();
@@ -1028,71 +1009,27 @@ const SendBCH = ({ passLoadingStatus }) => {
                                         marginBottom: '20px',
                                     }}
                                 >
-                                    <TextAreaLabel>
-                                        Message:&nbsp;&nbsp;
-                                        <Switch
-                                            disabled={isOneToManyXECSend}
-                                            style={{
-                                                marginBottom: '7px',
-                                            }}
-                                            checkedChildren="Private"
-                                            unCheckedChildren="Public"
-                                            defaultunchecked="true"
-                                            checked={
-                                                isEncryptedOptionalOpReturnMsg
-                                            }
-                                            onChange={() => {
-                                                setIsEncryptedOptionalOpReturnMsg(
-                                                    prev => !prev,
-                                                );
-                                                setIsOneToManyXECSend(false);
-                                            }}
-                                        />
-                                    </TextAreaLabel>
-                                    {isEncryptedOptionalOpReturnMsg ? (
-                                        <Alert
-                                            style={{
-                                                marginBottom: '10px',
-                                            }}
-                                            description="Please note encrypted messages can only be sent to wallets with at least 1 outgoing transaction."
-                                            type="warning"
-                                            showIcon
-                                        />
-                                    ) : (
-                                        <Alert
-                                            style={{
-                                                marginBottom: '10px',
-                                            }}
-                                            description="Please note this message will be public."
-                                            type="warning"
-                                            showIcon
-                                        />
-                                    )}
+                                    <Alert
+                                        style={{
+                                            marginBottom: '10px',
+                                        }}
+                                        description="Please note this message will be public."
+                                        type="warning"
+                                        showIcon
+                                    />
                                     <TextArea
                                         name="opReturnMsg"
                                         placeholder={
-                                            isEncryptedOptionalOpReturnMsg
-                                                ? `(max ${opreturnConfig.encryptedMsgByteLimit} bytes)`
-                                                : location &&
-                                                  location.state &&
-                                                  location.state.airdropTokenId
+                                            location &&
+                                            location.state &&
+                                            location.state.airdropTokenId
                                                 ? `(max ${
-                                                      opreturnConfig.unencryptedMsgByteLimit -
+                                                      opreturnConfig.cashtabMsgByteLimit -
                                                       localAirdropTxAddedBytes
                                                   } bytes)`
-                                                : `(max ${opreturnConfig.unencryptedMsgByteLimit} bytes)`
+                                                : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
                                         }
-                                        value={
-                                            opReturnMsg
-                                                ? isEncryptedOptionalOpReturnMsg
-                                                    ? opReturnMsg.substring(
-                                                          0,
-                                                          opreturnConfig.encryptedMsgByteLimit +
-                                                              1,
-                                                      )
-                                                    : opReturnMsg
-                                                : ''
-                                        }
+                                        value={opReturnMsg ? opReturnMsg : ''}
                                         onChange={e => handleMsgChange(e)}
                                         onKeyDown={e =>
                                             e.keyCode == 13
@@ -1109,14 +1046,6 @@ const SendBCH = ({ passLoadingStatus }) => {
                         </Form>
                     </Col>
                 </Row>
-                <Alert
-                    type="info"
-                    style={{
-                        marginBottom: '10px',
-                    }}
-                    showIcon
-                    description="Encrypted messages are deprecated. The feature will be removed in a future update."
-                />
             </SidePaddingCtn>
         </>
     );
