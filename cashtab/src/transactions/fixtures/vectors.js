@@ -11,7 +11,7 @@ import {
     allTheXecWallet,
 } from './mocks';
 
-export const sendingXecToSingleAddress = {
+export const sendXecVectors = {
     txs: [
         {
             description:
@@ -108,6 +108,66 @@ export const sendingXecToSingleAddress = {
             feeRate: 1,
             txid: '9452c8bf3ea076b08cc8e4406ad9e89931e8fd56a186c3748c89313672417fc6',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006a47304402201a818403a778080889838fb52eaac57a699c0c8b80759cf93e368358711b6afa02207b5c34613aed786ed0a86b7a09ca53f75b6a671c1abd6d5e99655f67feb3dfec4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac363b075af07507001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
+        },
+        {
+            description:
+                '15000 satoshis with 1 change output at 1 sat/byte to 5 p2pkh addresses',
+            wallet,
+            targetOutputs: [
+                {
+                    value: 1000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+                {
+                    value: 2000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+                {
+                    value: 3000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+                {
+                    value: 4000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+                {
+                    value: 5000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+            ],
+            feeRate: 1,
+            txid: '3d6bdd6a8046caf0cc9cbae83630c8aac3623bb880d32c868e95488fdbf91642',
+            hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006a47304402205ae8715032f7e8fde77411ba3483734809af011cd04787630742aa1dc1d7af5e0220583e536bceac18e9630b76cc2cbfd2c224009425f0d879dd5bc1bc3d755ab8e14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff06e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acd0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acb80b0000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88aca00f0000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac88130000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88aca6250000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
+        },
+        {
+            description:
+                '15000 satoshis with 1 change output at 1 sat/byte to 5 p2sh outputs',
+            wallet,
+            targetOutputs: [
+                {
+                    value: 1000,
+                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                },
+                {
+                    value: 2000,
+                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                },
+                {
+                    value: 3000,
+                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                },
+                {
+                    value: 4000,
+                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                },
+                {
+                    value: 5000,
+                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                },
+            ],
+            feeRate: 1,
+            txid: 'ab1e70e690cb084a96e00b56ca490fd9fc8ece07cc0572f12a2abbd836226897',
+            hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006a473044022014a4f31eded5abd7b4db4c6801e2570d3a84fbdd8de029b738bdae4f6e0a2f270220155ea2c523e000b388539d561d8ad3ed94eb2ba1c8a0cf97009dade106bb7cd84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff06e80300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087d00700000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087b80b00000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087a00f00000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087881300000000000017a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087a6250000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
         },
     ],
     errors: [

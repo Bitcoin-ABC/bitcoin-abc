@@ -3,16 +3,16 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import { sendXec } from 'transactions';
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
-import { sendingXecToSingleAddress } from '../fixtures/vectors';
+import { sendXecVectors } from '../fixtures/vectors';
 
 describe('Improved Cashtab transaction broadcasting functions', () => {
     // Unit test for each vector in fixtures for the sendingXecToSingleAddress case
-    const { txs, errors } = sendingXecToSingleAddress;
+    const { txs, errors } = sendXecVectors;
 
     // Successfully built and broadcast txs
     txs.forEach(async tx => {
         const { description, wallet, targetOutputs, feeRate, txid, hex } = tx;
-        it(`sendXec broadcasts one-to-one tx: ${description}`, async () => {
+        it(`sendXec: ${description}`, async () => {
             const chronik = new MockChronikClient();
             chronik.setMock('broadcastTx', {
                 input: hex,
@@ -28,7 +28,7 @@ describe('Improved Cashtab transaction broadcasting functions', () => {
     errors.forEach(async error => {
         const { description, wallet, targetOutputs, feeRate, msg, hex } = error;
 
-        it(`sendXec throws on one-to-one transaction: ${description}`, async () => {
+        it(`sendXec: ${description}`, async () => {
             const chronik = new MockChronikClient();
             // e.g. ('block', {input: '', output: ''})
             if (typeof hex !== 'undefined') {
