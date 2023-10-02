@@ -85,6 +85,10 @@ public:
             AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN};
         //! Whether this node has enabled avalanche preconsensus.
         bool avalanche_preconsensus{DEFAULT_AVALANCHE_PRECONSENSUS};
+
+        //! Whether or not the internal RNG behaves deterministically (this is
+        //! a test-only option).
+        bool deterministic_rng{false};
     };
 
     static std::unique_ptr<PeerManager>

@@ -25,8 +25,10 @@ static std::set<Amount> MakeFeeSet(const CFeeRate &min_incremental_fee,
     return fee_set;
 }
 
-FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee)
-    : m_fee_set{MakeFeeSet(minIncrementalFee, MAX_FEERATE, FEE_SPACING)} {}
+FeeFilterRounder::FeeFilterRounder(const CFeeRate &minIncrementalFee,
+                                   FastRandomContext &rng)
+    : m_fee_set{MakeFeeSet(minIncrementalFee, MAX_FEERATE, FEE_SPACING)},
+      insecure_rand{rng} {}
 
 Amount FeeFilterRounder::round(const Amount currentMinFee) {
     AssertLockNotHeld(m_insecure_rand_mutex);

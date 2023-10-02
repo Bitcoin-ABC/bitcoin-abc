@@ -17,7 +17,8 @@
 FUZZ_TARGET(fees) {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
     const CFeeRate minimal_incremental_fee{ConsumeMoney(fuzzed_data_provider)};
-    FeeFilterRounder fee_filter_rounder{minimal_incremental_fee};
+    FastRandomContext rng{/*fDeterministic=*/true};
+    FeeFilterRounder fee_filter_rounder{minimal_incremental_fee, rng};
     while (fuzzed_data_provider.ConsumeBool()) {
         const Amount current_minimum_fee = ConsumeMoney(fuzzed_data_provider);
         const Amount rounded_fee =

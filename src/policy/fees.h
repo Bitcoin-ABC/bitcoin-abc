@@ -29,7 +29,8 @@ static const double FEE_SPACING = 1.1;
 class FeeFilterRounder {
 public:
     /** Create new FeeFilterRounder */
-    explicit FeeFilterRounder(const CFeeRate &min_incremental_fee);
+    explicit FeeFilterRounder(const CFeeRate &min_incremental_fee,
+                              FastRandomContext &rng);
 
     /**
      * Quantize a minimum fee for privacy purpose before broadcast.
@@ -40,7 +41,7 @@ public:
 private:
     const std::set<Amount> m_fee_set;
     Mutex m_insecure_rand_mutex;
-    FastRandomContext insecure_rand GUARDED_BY(m_insecure_rand_mutex);
+    FastRandomContext &insecure_rand GUARDED_BY(m_insecure_rand_mutex);
 };
 
 #endif // BITCOIN_POLICY_FEES_H
