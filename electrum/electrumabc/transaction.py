@@ -1542,15 +1542,13 @@ class Transaction:
         assert schnorr.verify(pubkey, sig, pre_hash)  # verify what we just signed
         return sig
 
-    def sign(self, keypairs, *, use_cache=False):
+    def sign(self, keypairs: Dict[bytes, Tuple[bytes, bool]], *, use_cache=False):
         for i, txin in enumerate(self.txinputs()):
             pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for j, (pubkey, x_pubkey) in enumerate(zip(pubkeys, x_pubkeys)):
                 if txin.is_complete():
                     # txin is complete
                     break
-                pubkey = pubkey.hex()
-                x_pubkey = x_pubkey.hex()
                 if pubkey in keypairs:
                     _pubkey = pubkey
                 elif x_pubkey in keypairs:

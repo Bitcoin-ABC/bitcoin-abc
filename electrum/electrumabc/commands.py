@@ -428,10 +428,10 @@ class Commands:
             sec = txin.get("privkey")
             if sec:
                 txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
-                pubkey = bitcoin.public_key_from_private_key(privkey, compressed).hex()
+                pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
                 keypairs[pubkey] = privkey, compressed
                 txin["type"] = txin_type.name
-                txin["x_pubkeys"] = [pubkey]
+                txin["x_pubkeys"] = [pubkey.hex()]
                 txin["signatures"] = [None]
                 txin["num_sig"] = 1
 
@@ -458,7 +458,7 @@ class Commands:
         )
         if privkey:
             txin_type, privkey2, compressed = bitcoin.deserialize_privkey(privkey)
-            pubkey = bitcoin.public_key_from_private_key(privkey2, compressed).hex()
+            pubkey = bitcoin.public_key_from_private_key(privkey2, compressed)
             tx.sign({pubkey: (privkey2, compressed)})
         else:
             self.wallet.sign_transaction(tx, password)

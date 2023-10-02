@@ -231,7 +231,7 @@ class TestSweep(unittest.TestCase):
         self.assertEqual(inputs[1].type, ScriptType.p2pkh)
         self.assertEqual(inputs[2].type, ScriptType.p2pk)
 
-        self.assertEqual(keypairs, {PUBKEY1: (PRIVKEY1, True)})
+        self.assertEqual(keypairs, {bytes.fromhex(PUBKEY1): (PRIVKEY1, True)})
 
         fee = 2500
         expected_value = sum(inp.get_value() for inp in inputs) - fee

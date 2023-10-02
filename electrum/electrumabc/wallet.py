@@ -148,14 +148,14 @@ def sweep_preparations(
     privkeys,
     network,
     imax=100,
-) -> Tuple[List[TxInput], Dict[str, Tuple[bytes, bool]]]:
+) -> Tuple[List[TxInput], Dict[bytes, Tuple[bytes, bool]]]:
     """Returns (utxos, keypairs) for a list of WIF private keys, where utxos is a list
     of dictionaries, and keypairs is a {pubkey_hex: (privkey, is_compressed)} map."""
 
     class InputsMaxxed(Exception):
         pass
 
-    def append_utxos_to_inputs(inputs, pubkey, txin_type: bitcoin.ScriptType):
+    def append_utxos_to_inputs(inputs, pubkey: str, txin_type: bitcoin.ScriptType):
         if txin_type == txin_type.p2pkh:
             address = Address.from_pubkey(pubkey)
         else:
@@ -176,8 +176,8 @@ def sweep_preparations(
             inputs.append(TxInput.from_coin_dict(item))
 
     def find_utxos_for_privkey(txin_type: bitcoin.ScriptType, privkey, compressed):
-        pubkey = bitcoin.public_key_from_private_key(privkey, compressed).hex()
-        append_utxos_to_inputs(inputs, pubkey, txin_type)
+        pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
+        append_utxos_to_inputs(inputs, pubkey.hex(), txin_type)
         keypairs[pubkey] = privkey, compressed
 
     inputs = []

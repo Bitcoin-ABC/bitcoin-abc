@@ -37,7 +37,7 @@ import time
 import traceback
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import (
@@ -221,7 +221,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # (since it's really an app-global setting)
         self.addr_fmt_changed = self.gui_object.addr_fmt_changed
         self.tl_windows = []
-        self.tx_external_keypairs = {}
+        self.tx_external_keypairs: Dict[bytes, Tuple[bytes, bool]] = {}
         self._tx_dialogs = Weak.Set()
         # manages network callbacks for 'new_transaction' and 'verified2', and collates
         # GUI updates from said callbacks as a performance optimization
