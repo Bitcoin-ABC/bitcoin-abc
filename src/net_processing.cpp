@@ -1753,9 +1753,6 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     // Request avalanche addresses from our peers
     for (NodeId avanodeId : avanode_ids) {
         m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
-            LogPrint(BCLog::AVALANCHE,
-                     "Requesting more avalanche addresses from peer %d\n",
-                     avanodeId);
             m_connman.PushMessage(pavanode,
                                   CNetMsgMaker(pavanode->GetCommonVersion())
                                       .Make(NetMsgType::GETAVAADDR));
@@ -1786,11 +1783,8 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     }
 
     for (NodeId nodeid : avanode_ids) {
-        // Send a getavaproofs to one of our peers
+        // Send a getavaproofs to all of our peers
         m_connman.ForNode(nodeid, [&](CNode *pavanode) {
-            LogPrint(BCLog::AVALANCHE,
-                     "Requesting compact proofs from peer %d\n",
-                     pavanode->GetId());
             if (pavanode->m_proof_relay) {
                 m_connman.PushMessage(pavanode,
                                       CNetMsgMaker(pavanode->GetCommonVersion())
