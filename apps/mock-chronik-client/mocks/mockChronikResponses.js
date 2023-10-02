@@ -177,6 +177,42 @@ module.exports = {
       ],
       numPages: 1
     },
+    mockSimpleP2pkhUtxos: [
+      {
+        "outputScript": "76a914dc1147663948f0dcfb00cc407eda41b121713ad388ac",
+        "utxos": [
+          {
+            "outpoint": {
+              "txid": "245caf1b79dd547b73eb05fc52008ece339dfdae83ddb1ee330e687e43e4a5bd",
+              "outIdx": 2
+            },
+            "blockHeight": 812504,
+            "isCoinbase": false,
+            "value": "546",
+            "slpMeta": {
+              "tokenType": "FUNGIBLE",
+              "txType": "SEND",
+              "tokenId": "a65a53850f85e97b0e96d8e7d87ba734bf2e473992ea535f6cc0db509f8be164"
+            },
+            "slpToken": {
+              "amount": "100",
+              "isMintBaton": false
+            },
+            "network": "XEC"
+          },
+          {
+            "outpoint": {
+              "txid": "1fa8370451d8bc05fc74564436905a46c3f734555f9ec9e4434e7fc2dfab8d0c",
+              "outIdx": 0
+            },
+            "blockHeight": -1,
+            "isCoinbase": false,
+            "value": "5000",
+            "network": "XEC"
+          }
+        ]
+      }
+    ],
     mockP2pkhUtxos: [
       {
         "outputScript": "76a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac",
@@ -551,4 +587,6 @@ module.exports = {
       "tipHeight": 807382
     },
     mockRawTxHex: '0200000001076682ecbf1a38e08cd773d3da3c87cbfa30c296bf1a85edd791720f895ed2f3010000006b483045022100a4b774d4734df0909f73470dadc2f3c7edd179ee35ed1f42dcd05b60cf76efcb022042011b283795ebb2e8b27855404e6ef5ba0bdcc00ef598c0536357a92ade86a44121027388cc87347171e7dbd714ce6a06e74235b181a7e4e0700042cf0546d7717d7effffffff0288130000000000001976a9148dcf6103a371e2c7216cff3b0243c13f5cf63a5a88ac7327c905000000001976a914a46b94c091f0569a61a00a48e16beafbd4084b8f88ac00000000',
+    mockSendXecRawTxHex: '02000000010c8dabdfc27f4e43e4c99e5f5534f7c3465a9036445674fc05bcd8510437a81f000000006a473044022061f2900cc89145eabbb80e94780e2833631c5a99196094cc85190f91a759ea9902205354409761734992096006ebaefeafe6bd103b46a50037da1524124fb8ea8b11412102560c43edaa6a058c9096c90ce5d4a3bbbf70fd18b2030d26614bc32379151de9ffffffff023a020000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac6c100000000000001976a91457b07862d8c1a1ac4e8bccc5213443969c264ed988ac00000000',
+    mockSendXecNoChangeRawTxHex: '02000000010c8dabdfc27f4e43e4c99e5f5534f7c3465a9036445674fc05bcd8510437a81f000000006b4830450221008c86fe8d3fee5082c4429eef064a2063fcc1ea9216afd88cba1ff8cfe7b7083602204c1655728b1bbfc5ded78d46db00968a67e2f4c7c8072fe808feff4ccfd29d74412102560c43edaa6a058c9096c90ce5d4a3bbbf70fd18b2030d26614bc32379151de9ffffffff0194110000000000001976a9140b7d35fda03544a08e65464d54cfae4257eb6db788ac00000000',
 };

@@ -10,7 +10,11 @@ const {
 } = require('../scripts/sendXec');
 const ecashaddr = require('ecashaddrjs');
 const bip39 = require('bip39');
-const { mockUtxos, mockTxHex } = require('../mocks/chronikResponses');
+const {
+    mockSimpleP2pkhUtxos,
+    mockSendXecRawTxHex,
+    mockSendXecNoChangeRawTxHex,
+} = require('../../mock-chronik-client/mocks/mockChronikResponses');
 
 // Mock chronik
 const { MockChronikClient } = require('../../mock-chronik-client/index');
@@ -22,7 +26,7 @@ const throwAwayAddress = 'ecash:qptmq7rzmrq6rtzw30xv2gf5gwtfcfjwmys0tksgev';
 const derivationPath = "m/44'/1899'/0'/0/0";
 
 describe('App dev example code: sendXec.js', function () {
-    it('sendXec() successfully broadcasts an XEC transaction', async function () {
+    it('sendXec() successfully broadcasts a standard one to one XEC tx with change', async function () {
         // Initialize chronik mock with a mocked utxo set
         const mockedChronik = new MockChronikClient();
 
@@ -31,14 +35,14 @@ describe('App dev example code: sendXec.js', function () {
         mockedChronik.setScript(type, hash);
 
         // Set the mock utxos
-        mockedChronik.setUtxos(type, hash, mockUtxos);
+        mockedChronik.setUtxos(type, hash, mockSimpleP2pkhUtxos);
 
         // Tell mockedChronik what response we expect
-        const mockTxid =
-            'c41dc5172a7bbe01a41d587fd7f5445ada1f85d78e61389dc76fd3d66c45f59f';
+        const txid =
+            'b0838f03afc1d27ce747eab93262d3ed2f94504976eff9444c91f4885dbcb748';
         mockedChronik.setMock('broadcastTx', {
-            input: mockTxHex,
-            output: mockTxid,
+            input: mockSendXecRawTxHex,
+            output: { txid: txid },
         });
 
         // Generate mock send XEC parameters
@@ -57,7 +61,51 @@ describe('App dev example code: sendXec.js', function () {
             sendAmount,
             wallet,
         );
-        assert.strictEqual(broadcastTxResp, mockTxid);
+        assert.deepEqual(broadcastTxResp, {
+            hex: mockSendXecRawTxHex,
+            response: { txid },
+        });
+    });
+
+    it('sendXec() successfully broadcasts a standard one to one XEC tx with no change', async function () {
+        // Initialize chronik mock with a mocked utxo set
+        const mockedChronik = new MockChronikClient();
+
+        // Set the .script() call that preceedes the .utxo() call
+        const { type, hash } = ecashaddr.decode(throwAwayAddress, true);
+        mockedChronik.setScript(type, hash);
+
+        // Set the mock utxos
+        mockedChronik.setUtxos(type, hash, mockSimpleP2pkhUtxos);
+
+        // Tell mockedChronik what response we expect
+        const txid =
+            'b0838f03afc1d27ce747eab93262d3ed2f94504976eff9444c91f4885dbcb748';
+        mockedChronik.setMock('broadcastTx', {
+            input: mockSendXecNoChangeRawTxHex,
+            output: { txid: txid },
+        });
+
+        // Generate mock send XEC parameters
+        const destinationAddress =
+            'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx';
+        const sendAmount = 45; // 45 XEC
+        const wallet = await deriveWallet(
+            throwAwayMnemonic,
+            derivationPath,
+            throwAwayAddress,
+        );
+        // Execute mock broadcast of this send XEC tx
+        const broadcastTxResp = await sendXec(
+            mockedChronik,
+            destinationAddress,
+            sendAmount,
+            wallet,
+        );
+        assert.deepEqual(broadcastTxResp, {
+            hex: mockSendXecNoChangeRawTxHex,
+            response: { txid },
+        });
     });
 
     it('deriveWallet() creates a valid wallet object based on mnemonic', async function () {

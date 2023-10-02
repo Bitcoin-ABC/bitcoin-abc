@@ -3,7 +3,7 @@
         "@bitgo/utxo-lib": "^9.2.0",
         "bip39": "^3.1.0",
         "chronik-client": "^0.8.2",
-        "ecash-coinselect": "^1.0.0",
+        "ecash-coinselect": "^2.0.1",
         "ecashaddrjs": "^1.5.2",
         "mocha-suppress-logs": "^0.3.1",
         "randombytes": "^2.1.0"

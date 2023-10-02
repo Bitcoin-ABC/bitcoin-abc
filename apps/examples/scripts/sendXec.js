@@ -8,7 +8,7 @@ const utxolib = require('@bitgo/utxo-lib');
 const { getUtxosFromAddress } = require('./getUtxosFromAddress');
 const ecashaddr = require('ecashaddrjs');
 const bip39 = require('bip39');
-const coinselect = require('ecash-coinselect');
+const { coinSelect } = require('ecash-coinselect');
 
 // Currently hash types must be specified by the app developer
 // Integration of this into utxo-lib is pending as of July 3, 2023
@@ -62,41 +62,47 @@ async function sendXec(chronik, destinationAddress, sendAmountInXec, wallet) {
             wallet.address,
         );
 
+        // The eCash utxos are in the first element of the response (combinedUtxos) from Chronik
+        // This is due to chronik.script().utxos() returning:
+        // a) an empty array if there are no utxos at the address; or
+        // b) an array of one object with the key 'utxos' if there are utxos
+        const { utxos } = combinedUtxos[0];
+
         // ** Part 3. Collect enough XEC utxos (tx inputs) to pay for sendAmountInSats + fees **
 
-        // Separate the XEC utxos from combinedUtxos and collect enough for tx
-        const collectedXecUtxos = coinselect.getInputUtxos(
-            combinedUtxos,
-            sendAmountInSats,
-        );
+        // Define the recipients (i.e. outputs) of this tx and the amounts in sats
+        // In this case, we have only one targetOutput. coinSelect accepts an array input.
+        const targetOutputs = [
+            {
+                value: sendAmountInSats,
+                address: destinationAddress,
+            },
+        ];
 
+        // Call on ecash-coinselect to select enough XEC utxos and outputs inclusive of change
+        let { inputs, outputs } = coinSelect(utxos, targetOutputs);
         // Add the selected xec utxos to the tx builder as inputs
-        const xecInputs = collectedXecUtxos.inputs;
-        for (let i = 0; i < xecInputs.length; i++) {
-            const thisUtxo = xecInputs[i];
-            const vout = thisUtxo.outpoint.outIdx;
-            const txid = thisUtxo.outpoint.txid;
-            // Add input with txid and index of vout
-            txBuilder.addInput(txid, vout);
+        for (const input of inputs) {
+            txBuilder.addInput(input.outpoint.txid, input.outpoint.outIdx);
         }
 
         // ** Part 4. Generate the tx outputs **
 
-        // Add output w/ single address and amount to send
-        txBuilder.addOutput(
-            // bitgo library interacts with legacy address only
-            ecashaddr.toLegacy(destinationAddress),
-            sendAmountInSats,
-        );
+        for (const output of outputs) {
+            if (!output.address) {
+                // Note that you may now have a change output with no specified address
+                // This is expected behavior of coinSelect
+                // User provides target output, coinSelect adds change output if necessary (with no address key)
 
-        // If a remainder exists, return to change address as the final output
-        // Note: the ecash-coinselect library returns 0 remainder if it is
-        // less than dust to save the app dev from performing this check
-        const remainder = collectedXecUtxos.changeAmount;
-        if (remainder > 0) {
+                // Change address is wallet address
+                output.address = wallet.address;
+            }
+
             txBuilder.addOutput(
-                ecashaddr.toLegacy(wallet.address),
-                parseInt(remainder),
+                // utxo-lib's txBuilder currently only interacts with the legacy address
+                // TODO add cashaddr support for eCash to txBuilder in utxo-lib
+                ecashaddr.toLegacy(output.address),
+                output.value,
             );
         }
 
@@ -109,8 +115,8 @@ async function sendXec(chronik, destinationAddress, sendAmountInXec, wallet) {
         );
 
         // Loop through all the collected XEC input utxos
-        for (let i = 0; i < xecInputs.length; i++) {
-            const thisUtxo = xecInputs[i];
+        for (let i = 0; i < inputs.length; i++) {
+            const thisUtxo = inputs[i];
 
             // Sign this tx
             txBuilder.sign(
@@ -132,12 +138,12 @@ async function sendXec(chronik, destinationAddress, sendAmountInXec, wallet) {
 
         // Example successful chronik.broadcastTx() response:
         //    {"txid":"0075130c9ecb342b5162bb1a8a870e69c935ea0c9b2353a967cda404401acf19"}
-        const broadcastRes = await chronik.broadcastTx(hex);
-        if (!broadcastRes) {
+        const response = await chronik.broadcastTx(hex);
+        if (!response) {
             throw new Error('sendXec(): Empty chronik broadcast response');
         }
 
-        return broadcastRes;
+        return { hex, response };
     } catch (err) {
         console.log(`sendXec(): Error sending XEC transaction`, err);
         throw err;
