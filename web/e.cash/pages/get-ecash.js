@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Layout from '/components/layout';
+import Script from 'next/script';
 import Image from 'next/image';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
@@ -20,6 +21,7 @@ import {
     BlankTile,
     MiningSectionCtn,
     MiningImg,
+    SwapZoneCtn,
 } from '/styles/pages/get-ecash.js';
 import AnimateImage from '/components/animate-image';
 import { getScoreCardData } from '/data/scores.js';
@@ -90,6 +92,21 @@ function GetEcash(props) {
                     </ImgCtn>
                 </DescriptionBox>
                 <TileSection title="Exchanges" items={props.exchanges} />
+                <SwapZoneCtn id="swapzone">
+                    <p>
+                        Use the widget below to get eCash instantly with
+                        Swapzone, an instant exchange aggregator.
+                    </p>
+                    <div
+                        id="swapzoneExchangeWidget"
+                        data-logo="true"
+                        data-compact="true"
+                        data-size="full"
+                        data-refid="68y-3PwW6z"
+                        data-from="usdc"
+                        data-to="xec"
+                    />
+                </SwapZoneCtn>
                 <TileSection
                     title="Instant Exchanges"
                     items={props.instantExchanges}
@@ -123,6 +140,11 @@ function GetEcash(props) {
                     </MiningImg>
                 </MiningSectionCtn>
             </Container>
+            <Script
+                src="https://swapzone.io/script/exchange-widget.js"
+                id="swapzone"
+                strategy="lazyOnload"
+            />
         </Layout>
     );
 }

@@ -153,3 +153,17 @@ export const MiningImg = styled.div`
         position: relative;
     }
 `;
+
+export const SwapZoneCtn = styled.div`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 30px 0 100px;
+
+    p {
+        max-width: 483px;
+        text-align: center;
+    }
+`;
