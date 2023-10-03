@@ -200,7 +200,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             + [
                 f"-avaproof={proof.serialize().hex()}",
                 f"-avamasterkey={bytes_to_wif(privkey.get_bytes())}",
-                "-avaproofstakeutxoconfirmations=3",
+                "-avaproofstakeutxoconfirmations=4",
             ],
         )
 
@@ -238,6 +238,41 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
         node.add_p2p_connection(P2PInterface())
 
         self.log.info("Mine a block to trigger proof validation, check it is immature")
+        self.generate(node, 1, sync_fun=self.no_op)
+        self.wait_until(
+            lambda: node.getavalancheinfo()
+            == {
+                "ready_to_poll": False,
+                "local": {
+                    "verified": False,
+                    "verification_status": "immature-proof",
+                    "proofid": uint256_hex(proof.proofid),
+                    "limited_proofid": uint256_hex(proof.limited_proofid),
+                    "master": privkey.get_pubkey().get_bytes().hex(),
+                    "stake_amount": coinbase_amount,
+                    "payout_address": ADDRESS_ECREG_UNSPENDABLE,
+                },
+                "network": {
+                    "proof_count": 0,
+                    "connected_proof_count": 0,
+                    "dangling_proof_count": 0,
+                    "finalized_proof_count": 0,
+                    "conflicting_proof_count": 0,
+                    "immature_proof_count": 1,
+                    "total_stake_amount": Decimal("0.00"),
+                    "connected_stake_amount": Decimal("0.00"),
+                    "dangling_stake_amount": Decimal("0.00"),
+                    "immature_stake_amount": coinbase_amount,
+                    "node_count": 0,
+                    "connected_node_count": 0,
+                    "pending_node_count": 0,
+                },
+            }
+        )
+
+        self.log.info(
+            "Mine another block to check the local proof immature state remains"
+        )
         self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(
             lambda: node.getavalancheinfo()
@@ -328,7 +363,7 @@ class GetAvalancheInfoTest(BitcoinTestFramework):
             conflicting_proofs.append(conflicting_proof)
 
             # Make the proof and its conflicting proof mature
-            self.generate(node, 2, sync_fun=self.no_op)
+            self.generate(node, 3, sync_fun=self.no_op)
 
             n = AvaP2PInterface()
             n.proof = _proof

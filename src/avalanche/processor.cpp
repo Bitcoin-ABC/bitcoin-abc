@@ -872,6 +872,28 @@ void Processor::updatedBlockTip() {
                 registeredProofs.insert(peerData->proof);
             }
 
+            if (localProofState.GetResult() ==
+                ProofRegistrationResult::ALREADY_REGISTERED) {
+                // If our proof already exists, that's fine but we don't want to
+                // erase the state with a duplicated proof status, so let's
+                // retrieve the proper state. It also means we are able to
+                // update the status should the proof move from one pool to the
+                // other.
+                const ProofId &localProofId = peerData->proof->getId();
+                if (peerManager->isImmature(localProofId)) {
+                    localProofState.Invalid(ProofRegistrationResult::IMMATURE,
+                                            "immature-proof");
+                }
+                if (peerManager->isInConflictingPool(localProofId)) {
+                    localProofState.Invalid(
+                        ProofRegistrationResult::CONFLICTING,
+                        "conflicting-utxos");
+                }
+                if (peerManager->isBoundToPeer(localProofId)) {
+                    localProofState = ProofRegistrationState();
+                }
+            }
+
             WITH_LOCK(peerData->cs_proofState,
                       peerData->proofState = std::move(localProofState));
         }

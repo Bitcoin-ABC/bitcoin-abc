@@ -75,6 +75,12 @@ namespace {
             LOCK(p.cs_finalizationTip);
             p.finalizationTip = pindex;
         }
+
+        static void setLocalProofShareable(Processor &p, bool shareable) {
+            p.m_canShareLocalProof = shareable;
+        }
+
+        static void updatedBlockTip(Processor &p) { p.updatedBlockTip(); }
     };
 } // namespace
 
@@ -2343,6 +2349,94 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     BOOST_CHECK(!m_processor->getStakingRewardWinner(prevBlockHash, winner));
     BOOST_CHECK(
         !m_processor->getStakingRewardWinner(prevBlockHashHigh, winner));
+}
+
+BOOST_AUTO_TEST_CASE(local_proof_status) {
+    const CKey key = CKey::MakeCompressedKey();
+
+    const COutPoint outpoint{TxId(GetRandHash()), 0};
+    {
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+        LOCK(cs_main);
+        CCoinsViewCache &coins =
+            Assert(m_node.chainman)->ActiveChainstate().CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(PROOF_DUST_THRESHOLD, script), 100, false),
+                      false);
+    }
+
+    auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence,
+                          uint32_t height) {
+        ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+        BOOST_CHECK(
+            pb.addUTXO(outpoint, PROOF_DUST_THRESHOLD, height, false, key));
+        return pb.build();
+    };
+
+    auto localProof = buildProof(outpoint, 1, 100);
+
+    setArg("-avamasterkey", EncodeSecret(key));
+    setArg("-avaproof", localProof->ToHex());
+    setArg("-avalancheconflictingproofcooldown", "0");
+    setArg("-avalanchepeerreplacementcooldown", "0");
+    setArg("-avaproofstakeutxoconfirmations", "3");
+
+    bilingual_str error;
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    m_processor = Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
+        m_node.mempool.get(), *m_node.scheduler, error);
+
+    BOOST_CHECK_EQUAL(m_processor->getLocalProof()->getId(),
+                      localProof->getId());
+
+    auto checkLocalProofState =
+        [&](const bool boundToPeer,
+            const ProofRegistrationResult expectedResult) {
+            BOOST_CHECK_EQUAL(
+                m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+                    return pm.isBoundToPeer(localProof->getId());
+                }),
+                boundToPeer);
+            BOOST_CHECK_MESSAGE(
+                m_processor->getLocalProofRegistrationState().GetResult() ==
+                    expectedResult,
+                m_processor->getLocalProofRegistrationState().ToString());
+        };
+
+    checkLocalProofState(false, ProofRegistrationResult::NONE);
+
+    // Not ready to share, the local proof isn't registered
+    BOOST_CHECK(!m_processor->canShareLocalProof());
+    AvalancheTest::updatedBlockTip(*m_processor);
+    checkLocalProofState(false, ProofRegistrationResult::NONE);
+
+    // Ready to share, but the proof is immature
+    AvalancheTest::setLocalProofShareable(*m_processor, true);
+    BOOST_CHECK(m_processor->canShareLocalProof());
+    AvalancheTest::updatedBlockTip(*m_processor);
+    checkLocalProofState(false, ProofRegistrationResult::IMMATURE);
+
+    // Mine a block to re-evaluate the proof, it remains immature
+    mineBlocks(1);
+    AvalancheTest::updatedBlockTip(*m_processor);
+    checkLocalProofState(false, ProofRegistrationResult::IMMATURE);
+
+    // One more block and the proof turns mature
+    mineBlocks(1);
+    AvalancheTest::updatedBlockTip(*m_processor);
+    checkLocalProofState(true, ProofRegistrationResult::NONE);
+
+    // Build a conflicting proof and check the status is updated accordingly
+    auto conflictingProof = buildProof(outpoint, 2, 100);
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.registerProof(conflictingProof));
+        BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(localProof->getId()));
+    });
+    AvalancheTest::updatedBlockTip(*m_processor);
+    checkLocalProofState(false, ProofRegistrationResult::CONFLICTING);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
