@@ -297,7 +297,7 @@ def ensure_for(*, duration, f, check_interval=0.2):
         time.sleep(check_interval)
 
 
-def wait_until_helper(
+def wait_until_helper_internal(
     predicate,
     *,
     timeout=60,

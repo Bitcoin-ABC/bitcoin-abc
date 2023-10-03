@@ -36,7 +36,7 @@ from .util import (
     p2p_port,
     rpc_port,
     uint256_hex,
-    wait_until_helper,
+    wait_until_helper_internal,
 )
 
 
@@ -676,20 +676,25 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         def find_conn(node, peer_subversion, inbound):
             return next(
                 filter(
-                    lambda peer: peer["subver"] == peer_subversion
-                    and peer["inbound"] == inbound,
+                    lambda peer: (
+                        peer["subver"] == peer_subversion and peer["inbound"] == inbound
+                    ),
                     node.getpeerinfo(),
                 ),
                 None,
             )
 
         self.wait_until(
-            lambda: find_conn(from_connection, to_connection_subver, inbound=False)
-            is not None
+            lambda: (
+                find_conn(from_connection, to_connection_subver, inbound=False)
+                is not None
+            )
         )
         self.wait_until(
-            lambda: find_conn(to_connection, from_connection_subver, inbound=True)
-            is not None
+            lambda: (
+                find_conn(to_connection, from_connection_subver, inbound=True)
+                is not None
+            )
         )
 
         def check_bytesrecv(peer, msg_type, min_bytes_recv):
@@ -866,7 +871,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         self.sync_proofs(nodes)
 
     def wait_until(self, test_function, timeout=60):
-        return wait_until_helper(
+        return wait_until_helper_internal(
             test_function, timeout=timeout, timeout_factor=self.options.timeout_factor
         )
 

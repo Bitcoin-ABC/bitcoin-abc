@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from .test_framework import BitcoinTestFramework
 
 from .test_node import ADDRESS_ECREG_UNSPENDABLE, TestNode
-from .util import assert_equal, satoshi_round, uint256_hex, wait_until_helper
+from .util import assert_equal, satoshi_round, uint256_hex, wait_until_helper_internal
 from .wallet_util import bytes_to_wif
 
 
@@ -178,7 +178,7 @@ def wait_for_proof(node, proofid_hex, expect_status="boundToPeer", timeout=60):
         except JSONRPCException:
             return False
 
-    wait_until_helper(proof_found, timeout=timeout)
+    wait_until_helper_internal(proof_found, timeout=timeout)
     assert ret.get(expect_status, False) is True
 
 
@@ -413,7 +413,7 @@ def get_ava_p2p_interface(
 
         return n.nodeid in node_list
 
-    wait_until_helper(avapeer_connected, timeout=5)
+    wait_until_helper_internal(avapeer_connected, timeout=5)
 
     return n
 
