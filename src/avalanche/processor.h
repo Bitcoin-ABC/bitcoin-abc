@@ -361,6 +361,7 @@ public:
         LOCKS_EXCLUDED(cs_main);
 
 private:
+    void updatedBlockTip();
     void runEventLoop();
     void clearTimedoutRequests();
     std::vector<CInv> getInvsForNextPoll(bool forPoll = true);

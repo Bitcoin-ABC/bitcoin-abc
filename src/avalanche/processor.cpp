@@ -130,34 +130,7 @@ class Processor::NotificationsHandler
 public:
     NotificationsHandler(Processor *p) : m_processor(p) {}
 
-    void updatedBlockTip() override {
-        const bool registerLocalProof = m_processor->canShareLocalProof();
-        auto registerProofs = [&]() {
-            LOCK(m_processor->cs_peerManager);
-
-            auto registeredProofs = m_processor->peerManager->updatedBlockTip();
-
-            ProofRegistrationState localProofState;
-            if (m_processor->peerData && m_processor->peerData->proof &&
-                registerLocalProof) {
-                if (m_processor->peerManager->registerProof(
-                        m_processor->peerData->proof, localProofState)) {
-                    registeredProofs.insert(m_processor->peerData->proof);
-                }
-
-                WITH_LOCK(m_processor->peerData->cs_proofState,
-                          m_processor->peerData->proofState =
-                              std::move(localProofState));
-            }
-
-            return registeredProofs;
-        };
-
-        auto registeredProofs = registerProofs();
-        for (const auto &proof : registeredProofs) {
-            m_processor->addToReconcile(proof);
-        }
-    }
+    void updatedBlockTip() override { m_processor->updatedBlockTip(); }
 };
 
 Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
@@ -884,6 +857,32 @@ void Processor::FinalizeNode(const ::Config &config, const CNode &node) {
     const NodeId nodeid = node.GetId();
     WITH_LOCK(cs_peerManager, peerManager->removeNode(nodeid));
     WITH_LOCK(cs_delayedAvahelloNodeIds, delayedAvahelloNodeIds.erase(nodeid));
+}
+
+void Processor::updatedBlockTip() {
+    const bool registerLocalProof = canShareLocalProof();
+    auto registerProofs = [&]() {
+        LOCK(cs_peerManager);
+
+        auto registeredProofs = peerManager->updatedBlockTip();
+
+        ProofRegistrationState localProofState;
+        if (peerData && peerData->proof && registerLocalProof) {
+            if (peerManager->registerProof(peerData->proof, localProofState)) {
+                registeredProofs.insert(peerData->proof);
+            }
+
+            WITH_LOCK(peerData->cs_proofState,
+                      peerData->proofState = std::move(localProofState));
+        }
+
+        return registeredProofs;
+    };
+
+    auto registeredProofs = registerProofs();
+    for (const auto &proof : registeredProofs) {
+        addToReconcile(proof);
+    }
 }
 
 void Processor::runEventLoop() {
