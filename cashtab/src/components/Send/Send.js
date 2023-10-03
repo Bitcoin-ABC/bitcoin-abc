@@ -1108,6 +1108,14 @@ const SendBCH = ({ passLoadingStatus }) => {
                         </Form>
                     </Col>
                 </Row>
+                <Alert
+                    type="info"
+                    style={{
+                        marginBottom: '10px',
+                    }}
+                    showIcon
+                    description="Encrypted messages are deprecated. The feature will be removed in a future update."
+                />
             </SidePaddingCtn>
         </>
     );
