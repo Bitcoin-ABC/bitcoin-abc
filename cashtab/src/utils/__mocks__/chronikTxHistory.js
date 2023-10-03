@@ -10279,6 +10279,48 @@ export const mockParseTxWallet = {
     },
 };
 
+export const mockParseAliasTxWallet = {
+    mnemonic: 'string',
+    name: 'string',
+    Path245: {
+        publicKey: 'string',
+        hash160: '6f4f6d5b569b7696bc18593b8593f05bf3edd3d9',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    Path145: {
+        publicKey: 'string',
+        hash160: 'fcf21a34c255c067e24dfc183f294b50694600a6',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    Path1899: {
+        publicKey: 'string',
+        hash160: 'dc1147663948f0dcfb00cc407eda41b121713ad3',
+        cashAddress: 'string',
+        slpAddress: 'string',
+        fundingWif: 'string',
+        fundingAddress: 'string',
+        legacyAddress: 'string',
+    },
+    state: {
+        balances: {
+            totalBalanceInSatoshis: '55421422',
+            totalBalance: '554214.22',
+        },
+        tokens: [],
+        slpUtxos: [],
+        nonSlpUtxos: [],
+        parsedTxHistory: [],
+    },
+};
+
 export const anotherMockParseTxWallet = {
     mnemonic: 'string',
     name: 'string',
@@ -10387,33 +10429,48 @@ export const lambdaOutgoingXecTx = {
 };
 
 export const lambdaOutgoingAliasRegistrationTx = {
-    txid: 'b02d4ef6c54010f2fc27bc3d47786778a77c179b35c78a6d11157f52af44e638',
+    txid: 'f64608b13daf977008cfb96eb97082014c11cad5575956591a7ac9832d4fca9c',
     version: 2,
     inputs: [
         {
-            prevOut: {
-                txid: 'bb161d20f884ce45374fa3f9f1452290a2e52e93c8b552f559fad8ccd1ca33cc',
-                outIdx: 5,
-            },
+            prevOut: [Object],
             inputScript:
-                '473044022054a6b2065a0b0bbe70048e782aa9be048cc8bee0a241d08d0b98fcd74505a90202201ed5224f34c9ff73dc0c581390247686af521476a977a58e55ed33c4afd177c2412102c237f49dd4c812f27b09d69d4c8a4da12744fda8ad63ce151fed2a3f41fd8795',
-            outputScript: '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
-            value: '4400000',
+                '48304502210087cd61371447a4e8426b86ea9c8643a94a378701c436e7d88b46eb64886a2c9d02201943c4b17eed65e37153659edff07aede69c1695254fe811180d616809daacf74121028bd858b877988795ed097c6e6230363450a3ceda58b15b0a76f0113d933c10a6',
+            outputScript: '76a914dc1147663948f0dcfb00cc407eda41b121713ad388ac',
+            value: '20105',
             sequenceNo: 4294967295,
+            slpBurn: undefined,
+            slpToken: undefined,
         },
     ],
     outputs: [
         {
             value: '0',
-            outputScript: '6a042e7865630466616465',
+            outputScript:
+                '6a042e7865630004627567321500dc1147663948f0dcfb00cc407eda41b121713ad3',
+            slpToken: undefined,
+            spentBy: undefined,
         },
         {
             value: '555',
-            outputScript: '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
+            outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+            slpToken: undefined,
+            spentBy: undefined,
+        },
+        {
+            value: '19095',
+            outputScript: '76a914dc1147663948f0dcfb00cc407eda41b121713ad388ac',
+            slpToken: undefined,
+            spentBy: undefined,
         },
     ],
     lockTime: 0,
-    timeFirstSeen: '1652823464',
+    slpTxData: undefined,
+    slpErrorMsg: undefined,
+    block: undefined,
+    timeFirstSeen: '1696335229',
+    size: 267,
+    isCoinbase: false,
     network: 'XEC',
 };
 export const lambdaIncomingEtokenTx = {

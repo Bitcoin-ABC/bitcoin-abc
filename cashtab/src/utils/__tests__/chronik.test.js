@@ -37,6 +37,7 @@ import {
     mockFlatTxHistoryWithAllUnconfirmed,
     mockSortedFlatTxHistoryWithAllUnconfirmed,
     mockParseTxWallet,
+    mockParseAliasTxWallet,
     lambdaIncomingXecTx,
     lambdaOutgoingXecTx,
     lambdaIncomingEtokenTx,
@@ -279,7 +280,7 @@ it(`Successfully parses an outgoing Alias Registration tx`, () => {
     expect(
         parseChronikTx(
             lambdaOutgoingAliasRegistrationTx,
-            mockParseTxWallet,
+            mockParseAliasTxWallet,
             txHistoryTokenInfoById,
         ),
     ).toStrictEqual({
@@ -292,8 +293,8 @@ it(`Successfully parses an outgoing Alias Registration tx`, () => {
         decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        opReturnMessage: 'fade',
-        replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+        opReturnMessage: 'bug2',
+        replyAddress: 'ecash:qrwpz3mx89y0ph8mqrxyqlk6gxcjzuf66vc4ajscad',
     });
 });
 it(`Successfully parses an incoming eToken tx`, () => {

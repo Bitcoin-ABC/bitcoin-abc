@@ -684,7 +684,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             ) {
                 // if this is an alias registration transaction
                 aliasFlag = true;
-                opReturnMessage = Buffer.from(parsedOpReturnArray[1], 'hex');
+                opReturnMessage = Buffer.from(parsedOpReturnArray[2], 'hex');
             } else {
                 // this is an externally generated message
                 message = txType; // index 0 is the message content in this instance
