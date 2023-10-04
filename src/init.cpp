@@ -2576,7 +2576,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     assert(!node.peerman);
     node.peerman = PeerManager::make(
-        chainparams, *node.connman, *node.addrman, node.banman.get(), chainman,
+        *node.connman, *node.addrman, node.banman.get(), chainman,
         *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
     RegisterValidationInterface(node.peerman.get());
 

@@ -215,7 +215,6 @@ TestingSetup::TestingSetup(const std::string &chainName,
                            const std::vector<const char *> &extra_args)
     : ChainTestingSetup(chainName, extra_args) {
     const Config &config = GetConfig();
-    const CChainParams &chainparams = config.GetChainParams();
 
     // Ideally we'd move all the RPC tests to the functional testing framework
     // instead of unit tests, but for now we need these here.
@@ -257,14 +256,14 @@ TestingSetup::TestingSetup(const std::string &chainName,
     m_node.addrman = std::make_unique<AddrMan>(
         /* asmap= */ std::vector<bool>(), /* consistency_check_ratio= */ 0);
     m_node.banman = std::make_unique<BanMan>(
-        m_args.GetDataDirBase() / "banlist.dat", chainparams, nullptr,
-        DEFAULT_MISBEHAVING_BANTIME);
+        m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
+        nullptr, DEFAULT_MISBEHAVING_BANTIME);
     // Deterministic randomness for tests.
     m_node.connman =
         std::make_unique<CConnman>(config, 0x1337, 0x1337, *m_node.addrman);
-    m_node.peerman = PeerManager::make(
-        chainparams, *m_node.connman, *m_node.addrman, m_node.banman.get(),
-        *m_node.chainman, *m_node.mempool, false);
+    m_node.peerman =
+        PeerManager::make(*m_node.connman, *m_node.addrman, m_node.banman.get(),
+                          *m_node.chainman, *m_node.mempool, false);
     {
         CConnman::Options options;
         options.m_msgproc.push_back(m_node.peerman.get());

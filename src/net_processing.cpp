@@ -467,8 +467,7 @@ using PeerRef = std::shared_ptr<Peer>;
 
 class PeerManagerImpl final : public PeerManager {
 public:
-    PeerManagerImpl(const CChainParams &chainparams, CConnman &connman,
-                    AddrMan &addrman, BanMan *banman,
+    PeerManagerImpl(CConnman &connman, AddrMan &addrman, BanMan *banman,
                     ChainstateManager &chainman, CTxMemPool &pool,
                     bool ignore_incoming_txs);
 
@@ -2118,22 +2117,21 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId peer_id,
     return std::nullopt;
 }
 
-std::unique_ptr<PeerManager>
-PeerManager::make(const CChainParams &chainparams, CConnman &connman,
-                  AddrMan &addrman, BanMan *banman, ChainstateManager &chainman,
-                  CTxMemPool &pool, bool ignore_incoming_txs) {
-    return std::make_unique<PeerManagerImpl>(chainparams, connman, addrman,
-                                             banman, chainman, pool,
-                                             ignore_incoming_txs);
+std::unique_ptr<PeerManager> PeerManager::make(CConnman &connman,
+                                               AddrMan &addrman, BanMan *banman,
+                                               ChainstateManager &chainman,
+                                               CTxMemPool &pool,
+                                               bool ignore_incoming_txs) {
+    return std::make_unique<PeerManagerImpl>(connman, addrman, banman, chainman,
+                                             pool, ignore_incoming_txs);
 }
 
-PeerManagerImpl::PeerManagerImpl(const CChainParams &chainparams,
-                                 CConnman &connman, AddrMan &addrman,
+PeerManagerImpl::PeerManagerImpl(CConnman &connman, AddrMan &addrman,
                                  BanMan *banman, ChainstateManager &chainman,
                                  CTxMemPool &pool, bool ignore_incoming_txs)
-    : m_chainparams(chainparams), m_connman(connman), m_addrman(addrman),
-      m_banman(banman), m_chainman(chainman), m_mempool(pool),
-      m_ignore_incoming_txs(ignore_incoming_txs) {
+    : m_chainparams(chainman.GetParams()), m_connman(connman),
+      m_addrman(addrman), m_banman(banman), m_chainman(chainman),
+      m_mempool(pool), m_ignore_incoming_txs(ignore_incoming_txs) {
     {
         LOCK(cs_invalidProofs);
         invalidProofs = std::make_unique<CRollingBloomFilter>(100000, 0.000001);

@@ -47,10 +47,11 @@ struct CNodeStateStats {
 
 class PeerManager : public CValidationInterface, public NetEventsInterface {
 public:
-    static std::unique_ptr<PeerManager>
-    make(const CChainParams &chainparams, CConnman &connman, AddrMan &addrman,
-         BanMan *banman, ChainstateManager &chainman, CTxMemPool &pool,
-         bool ignore_incoming_txs);
+    static std::unique_ptr<PeerManager> make(CConnman &connman,
+                                             AddrMan &addrman, BanMan *banman,
+                                             ChainstateManager &chainman,
+                                             CTxMemPool &pool,
+                                             bool ignore_incoming_txs);
     virtual ~PeerManager() {}
 
     /**
