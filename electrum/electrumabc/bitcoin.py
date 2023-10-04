@@ -344,41 +344,6 @@ def pw_decode(s, password):
         return s
 
 
-def rev_hex(s: str) -> str:
-    """Reverse the byte order for a string representation of a hexadecimal
-    number. The input string must only contain hexadecimal characters, and
-    its length must be a multiple of two.
-
-    ::
-
-        >>> rev_hex("a2b3")
-        'b3a2'
-    """
-    return bytes.fromhex(s)[::-1].hex()
-
-
-def int_to_le_hex(i: int, length: int = 1) -> str:
-    """Return a little-endian hexadecimal representation of an integer.
-
-    ::
-
-        >>> int_to_le_hex(8, 1)
-        '08'
-        >>> int_to_le_hex(8, 2)
-        '0800'
-        >>> int_to_le_hex(32001, 3)
-        '017d00'
-        >>> int_to_le_hex(0xdeadbeefc0ffee11, 8)
-        '11eeffc0efbeadde'
-
-    :param i: Integer to be represented.
-    :param length: Length in bytes of the hexadecimal number to be
-        represented. Each byte is represented as two characters.
-    """
-    le_bytes = i.to_bytes(length, "little")
-    return le_bytes.hex()
-
-
 def op_push_bytes(data_len: int) -> bytes:
     assert isinstance(data_len, int) and data_len >= 0
     if data_len < OpCodes.OP_PUSHDATA1:
@@ -1916,9 +1881,3 @@ class Bip38Key:
 
     def __str__(self):
         return self.enc
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

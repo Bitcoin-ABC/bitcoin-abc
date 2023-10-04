@@ -9,7 +9,7 @@ from typing import Optional, Tuple
 
 from electrumabc import bitcoin
 from electrumabc.address import Address
-from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, SignatureType, int_to_le_hex
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, SignatureType
 from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
@@ -583,11 +583,11 @@ class LedgerKeyStore(HardwareKeyStore):
                     _("Preparing transaction inputs...")
                     + f" (phase1, {input_idx}/{len(inputs)})"
                 )
-                sequence = int_to_le_hex(utxo[5], 4)
+                sequence = utxo[5].to_bytes(4, "little").hex()
                 if not client_electrum.requires_trusted_inputs():
                     txtmp = bitcoinTransaction(bfh(utxo[0]))
                     tmp = bfh(utxo[3])[::-1]
-                    tmp += bfh(int_to_le_hex(utxo[1], 4))
+                    tmp += utxo[1].to_bytes(4, "little")
                     tmp += txtmp.outputs[utxo[1]].amount
                     chipInputs.append(
                         {"value": tmp, "witness": True, "sequence": sequence}
