@@ -173,7 +173,7 @@ static UniValue generateBlocks(const Config &config,
     UniValue blockHashes(UniValue::VARR);
     while (nGenerate > 0 && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler(config, chainman.ActiveChainstate(), mempool)
+            BlockAssembler{config, chainman.ActiveChainstate(), mempool}
                 .CreateNewBlock(coinbase_script));
 
         if (!pblocktemplate.get()) {
@@ -439,8 +439,8 @@ static RPCHelpMan generateblock() {
 
                 CTxMemPool empty_mempool;
                 std::unique_ptr<CBlockTemplate> blocktemplate(
-                    BlockAssembler(config, chainman.ActiveChainstate(),
-                                   empty_mempool)
+                    BlockAssembler{config, chainman.ActiveChainstate(),
+                                   empty_mempool}
                         .CreateNewBlock(coinbase_script));
                 if (!blocktemplate) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
@@ -974,7 +974,7 @@ static RPCHelpMan getblocktemplate() {
                 // Create new block
                 CScript scriptDummy = CScript() << OP_TRUE;
                 pblocktemplate =
-                    BlockAssembler(config, active_chainstate, mempool)
+                    BlockAssembler{config, active_chainstate, mempool}
                         .CreateNewBlock(scriptDummy);
                 if (!pblocktemplate) {
                     throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");

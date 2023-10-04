@@ -67,8 +67,8 @@ static CFeeRate blockMinFeeRate = CFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB);
 BlockAssembler MinerTestingSetup::AssemblerForTest(const CChainParams &params) {
     BlockAssembler::Options options;
     options.blockMinFeeRate = blockMinFeeRate;
-    return BlockAssembler(m_node.chainman->ActiveChainstate(), params,
-                          *m_node.mempool, options);
+    return BlockAssembler{m_node.chainman->ActiveChainstate(), *m_node.mempool,
+                          options};
 }
 
 constexpr static struct {
@@ -203,7 +203,7 @@ static void TestCoinbaseMessageEB(uint64_t eb, std::string cbmsg,
                   << OP_CHECKSIG;
 
     std::unique_ptr<CBlockTemplate> pblocktemplate =
-        BlockAssembler(config, chainman.ActiveChainstate(), mempool)
+        BlockAssembler{config, chainman.ActiveChainstate(), mempool}
             .CreateNewBlock(scriptPubKey);
 
     CBlock *pblock = &pblocktemplate->block;
@@ -785,7 +785,7 @@ static void CheckBlockMaxSize(const Config &config, const CTxMemPool &mempool,
                               uint64_t expected) {
     gArgs.ForceSetArg("-blockmaxsize", ToString(size));
 
-    BlockAssembler ba(config, active_chainstate, mempool);
+    BlockAssembler ba{config, active_chainstate, mempool};
     BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(), expected);
 }
 
@@ -834,8 +834,8 @@ BOOST_AUTO_TEST_CASE(BlockAssembler_construction) {
     // DEFAULT_MAX_GENERATED_BLOCK_SIZE
     {
         gArgs.ClearForcedArg("-blockmaxsize");
-        BlockAssembler ba(config, m_node.chainman->ActiveChainstate(),
-                          *m_node.mempool);
+        BlockAssembler ba{config, m_node.chainman->ActiveChainstate(),
+                          *m_node.mempool};
         BOOST_CHECK_EQUAL(ba.GetMaxGeneratedBlockSize(),
                           DEFAULT_MAX_GENERATED_BLOCK_SIZE);
     }

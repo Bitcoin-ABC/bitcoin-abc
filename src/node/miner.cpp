@@ -59,12 +59,11 @@ BlockAssembler::Options::Options()
       blockMinFeeRate(DEFAULT_BLOCK_MIN_TX_FEE_PER_KB) {}
 
 BlockAssembler::BlockAssembler(Chainstate &chainstate,
-                               const CChainParams &params,
                                const CTxMemPool &mempool,
                                const Options &options)
-    : chainParams(params), m_mempool(mempool), m_chainstate(chainstate),
-      fPrintPriority(
-          gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY)) {
+    : chainParams(chainstate.m_chainman.GetParams()), m_mempool(mempool),
+      m_chainstate(chainstate), fPrintPriority(gArgs.GetBoolArg(
+                                    "-printpriority", DEFAULT_PRINTPRIORITY)) {
     blockMinFeeRate = options.blockMinFeeRate;
     // Limit size to between 1K and options.nExcessiveBlockSize -1K for sanity:
     nMaxGeneratedBlockSize = std::max<uint64_t>(
@@ -104,8 +103,7 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
 
 BlockAssembler::BlockAssembler(const Config &config, Chainstate &chainstate,
                                const CTxMemPool &mempool)
-    : BlockAssembler(chainstate, config.GetChainParams(), mempool,
-                     DefaultOptions(config)) {}
+    : BlockAssembler(chainstate, mempool, DefaultOptions(config)) {}
 
 void BlockAssembler::resetBlock() {
     // Reserve space for coinbase tx.
