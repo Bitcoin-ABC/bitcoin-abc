@@ -63,7 +63,7 @@ class TestConsolidateCoinSelection(unittest.TestCase):
 
         self.mock_wallet.get_address_index.return_value = True, 0
 
-        self.mock_wallet.keystore.get_xpubkey.return_value = "dummy"
+        self.mock_wallet.keystore.get_xpubkey.return_value = b"dummy"
 
     def test_coin_selection(self) -> None:
         for incl_coinbase in (True, False):

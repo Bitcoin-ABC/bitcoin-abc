@@ -84,7 +84,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         self.assertTrue(isinstance(ks, keystore.OldKeyStore))
 
         self.assertEqual(
-            ks.mpk,
+            ks.mpk.hex(),
             "e9d4b7866dd1e91c862aebf62a49548c7dbf7bcc6e4b7b8c9da820c7737968df9c09d5a3e271dc814a29981f81b3faaf2737b551ef5dcc6189cf0f8252c442b3",
         )
 
@@ -118,16 +118,18 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             "xpub6DFh1smUsyqmYD4obDX6ngaxhd53Zx7aeFjoobebm7vbkT6f9awJWFuGzBT9FQJEWFBL7UyhMXtYzRcwDuVbcxtv9Ce2W9eMm4KXLdvdbjv",
         )
 
-        xpub_hex = bitcoin.DecodeBase58Check(ks.xpub).hex()
+        xpub = bitcoin.DecodeBase58Check(ks.xpub)
         self.assertEqual(
-            xpub_hex,
+            xpub.hex(),
             "0488b21e03d9f7b304800000009c2b93d3a7373404c170ce411dec483ef3aed3cbcecd41f73bf27e6f21756f0d03a324474fa7a63b0507cbdfa68cf26386d38885ec9eb84c0ebaa0263f7aee0e0a",
         )
         # first change address
-        xpub_and_derivation_hex = ks.get_xpubkey(1, 0)
-        self.assertEqual(xpub_and_derivation_hex, "ff" + xpub_hex + "0100" + "0000")
+        xpub_and_derivation = ks.get_xpubkey(1, 0)
         self.assertEqual(
-            ks.get_pubkey_derivation(bytes.fromhex(xpub_and_derivation_hex)),
+            xpub_and_derivation, b"\xff" + xpub + b"\x01\x00" + b"\x00\x00"
+        )
+        self.assertEqual(
+            ks.get_pubkey_derivation(xpub_and_derivation),
             [1, 0],
         )
 
@@ -137,13 +139,13 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
                     {
                         "num_sig": 1,
                         "signatures": [None],
-                        "x_pubkeys": [xpub_and_derivation_hex],
+                        "x_pubkeys": [xpub_and_derivation.hex()],
                     }
                 ]
 
         self.assertEqual(
             ks.get_tx_derivations(MockTx()),
-            {bytes.fromhex(xpub_and_derivation_hex): [1, 0]},
+            {xpub_and_derivation: [1, 0]},
         )
 
         w = self._create_standard_wallet(ks)

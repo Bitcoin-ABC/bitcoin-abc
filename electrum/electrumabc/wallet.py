@@ -3541,7 +3541,7 @@ class SimpleDeterministicWallet(SimpleWallet, DeterministicWallet):
     def add_input_sig_info(self, txin, address):
         derivation = self.get_address_index(address)
         x_pubkey = self.keystore.get_xpubkey(*derivation)
-        txin["x_pubkeys"] = [x_pubkey]
+        txin["x_pubkeys"] = [x_pubkey.hex()]
         txin["signatures"] = [None]
         txin["num_sig"] = 1
 
@@ -3549,7 +3549,7 @@ class SimpleDeterministicWallet(SimpleWallet, DeterministicWallet):
         return self.keystore.get_master_public_key()
 
     def derive_pubkeys(self, c, i) -> str:
-        return self.keystore.derive_pubkey(c, i)
+        return self.keystore.derive_pubkey(c, i).hex()
 
 
 class StandardWallet(SimpleDeterministicWallet):
@@ -3584,7 +3584,7 @@ class MultisigWallet(DeterministicWallet):
         return Script.multisig_script(self.m, sorted(pubkeys))
 
     def derive_pubkeys(self, c, i):
-        return [k.derive_pubkey(c, i) for k in self.get_keystores()]
+        return [k.derive_pubkey(c, i).hex() for k in self.get_keystores()]
 
     def load_keystore(self):
         self.keystores = {}

@@ -307,27 +307,27 @@ class Xpub:
         return self.get_pubkey_from_xpub(xpub, (n,))
 
     @classmethod
-    def get_pubkey_from_xpub(self, xpub, sequence):
+    def get_pubkey_from_xpub(self, xpub, sequence) -> bytes:
         _, _, _, _, c, cK = bitcoin.deserialize_xpub(xpub)
         for i in sequence:
             cK, c = bitcoin.CKD_pub(cK, c, i)
-        return bh2u(cK)
+        return cK
 
-    def get_xpubkey(self, c: int, i: int) -> str:
+    def get_xpubkey(self, c: int, i: int) -> bytes:
         """Get the xpub key for a derivation path (change_index, key_index) in the
         internal format:
-        prefix "ff" + hex encoded xpub + hex encoded (little-endian) indexes.
+        prefix "ff" + bytes encoded xpub + bytes encoded (little-endian) indexes.
         """
 
-        def encode_path_int(path_int) -> str:
+        def encode_path_int(path_int) -> bytes:
             if path_int < 0xFFFF:
-                hexstr = bitcoin.int_to_le_hex(path_int, 2)
+                encodes = path_int.to_bytes(2, "little")
             else:
-                hexstr = "ffff" + bitcoin.int_to_le_hex(path_int, 4)
-            return hexstr
+                encodes = b"\xff\xff" + path_int.to_bytes(4, "little")
+            return encodes
 
-        s = "".join(map(encode_path_int, (c, i)))
-        return "ff" + bh2u(bitcoin.DecodeBase58Check(self.xpub)) + s
+        s = b"".join(map(encode_path_int, (c, i)))
+        return b"\xff" + bitcoin.DecodeBase58Check(self.xpub) + s
 
     @classmethod
     def parse_xpubkey(self, pubkey: bytes):
@@ -439,14 +439,14 @@ class BIP32KeyStore(DeterministicKeyStore, Xpub):
 class OldKeyStore(DeterministicKeyStore):
     def __init__(self, d):
         DeterministicKeyStore.__init__(self, d)
-        self.mpk = d.get("mpk")
+        self.mpk = bytes.fromhex(d.get("mpk", ""))
 
     def get_hex_seed(self, password):
         return bitcoin.pw_decode(self.seed, password).encode("utf8")
 
     def dump(self):
         d = DeterministicKeyStore.dump(self)
-        d["mpk"] = self.mpk
+        d["mpk"] = self.mpk.hex()
         d["type"] = "old"
         return d
 
@@ -455,7 +455,7 @@ class OldKeyStore(DeterministicKeyStore):
         s = self.get_hex_seed(None)
         self.mpk = self.mpk_from_seed(s)
 
-    def add_master_public_key(self, mpk):
+    def add_master_public_key(self, mpk: bytes):
         self.mpk = mpk
 
     def format_seed(self, seed):
@@ -482,13 +482,13 @@ class OldKeyStore(DeterministicKeyStore):
         return " ".join(old_mnemonic.mn_encode(s))
 
     @classmethod
-    def mpk_from_seed(klass, seed):
+    def mpk_from_seed(klass, seed) -> bytes:
         secexp = klass.stretch_key(seed)
         master_private_key = ecdsa.SigningKey.from_secret_exponent(
             secexp, curve=SECP256k1
         )
         master_public_key = master_private_key.get_verifying_key().to_string()
-        return bh2u(master_public_key)
+        return master_public_key
 
     @classmethod
     def stretch_key(self, seed):
@@ -498,24 +498,23 @@ class OldKeyStore(DeterministicKeyStore):
         return ecdsa.util.string_to_number(x)
 
     @classmethod
-    def get_sequence(self, mpk, for_change: Union[int, bool], n: int):
+    def get_sequence(self, mpk: bytes, for_change: Union[int, bool], n: int):
         return ecdsa.util.string_to_number(
-            bitcoin.Hash(f"{n:d}:{for_change:d}:".encode("ascii") + bytes.fromhex(mpk))
+            bitcoin.Hash(f"{n:d}:{for_change:d}:".encode("ascii") + mpk)
         )
 
     @classmethod
-    def get_pubkey_from_mpk(self, mpk, for_change, n) -> str:
+    def get_pubkey_from_mpk(self, mpk: bytes, for_change, n) -> bytes:
         z = self.get_sequence(mpk, for_change, n)
-        master_public_key = ecdsa.VerifyingKey.from_string(
-            bytes.fromhex(mpk), curve=SECP256k1
-        )
+        master_public_key = ecdsa.VerifyingKey.from_string(mpk, curve=SECP256k1)
         pubkey_point = master_public_key.pubkey.point + z * SECP256k1.generator
         public_key2 = ecdsa.VerifyingKey.from_public_point(
             pubkey_point, curve=SECP256k1
         )
-        return "04" + bh2u(public_key2.to_string())
+        # here to_string() is a misnomer dating back to Python 2. It returns bytes.
+        return b"\x04" + public_key2.to_string()
 
-    def derive_pubkey(self, for_change, n) -> str:
+    def derive_pubkey(self, for_change, n) -> bytes:
         return self.get_pubkey_from_mpk(self.mpk, for_change, n)
 
     def get_private_key_from_stretched_exponent(self, for_change, n, secexp):
@@ -541,8 +540,10 @@ class OldKeyStore(DeterministicKeyStore):
             secexp, curve=SECP256k1
         )
         master_public_key = master_private_key.get_verifying_key().to_string()
-        if master_public_key != bytes.fromhex(self.mpk):
-            print_error("invalid password (mpk)", self.mpk, bh2u(master_public_key))
+        if master_public_key != self.mpk:
+            print_error(
+                "invalid password (mpk)", self.mpk.hex(), bh2u(master_public_key)
+            )
             raise InvalidPassword()
         return secexp
 
@@ -550,15 +551,15 @@ class OldKeyStore(DeterministicKeyStore):
         seed = self.get_hex_seed(password)
         self.check_seed(seed)
 
-    def get_master_public_key(self):
+    def get_master_public_key(self) -> bytes:
         return self.mpk
 
-    def get_xpubkey(self, for_change, n):
-        s = bitcoin.int_to_le_hex(for_change, 2) + bitcoin.int_to_le_hex(n, 2)
-        return "fe" + self.mpk + s
+    def get_xpubkey(self, for_change: int, n: int) -> bytes:
+        s = for_change.to_bytes(2, "little") + n.to_bytes(2, "little")
+        return b"\xfe" + self.mpk + s
 
     @classmethod
-    def parse_xpubkey(self, x_pubkey: bytes):
+    def parse_xpubkey(self, x_pubkey: bytes) -> Tuple[bytes, List[int]]:
         assert x_pubkey[0] == 0xFE
         pk = x_pubkey[1:]
         mpk = pk[0:64]
@@ -569,7 +570,7 @@ class OldKeyStore(DeterministicKeyStore):
             dd = dd[2:]
             s.append(n)
         assert len(s) == 2
-        return mpk.hex(), s
+        return mpk, s
 
     def get_pubkey_derivation(self, x_pubkey: bytes):
         if x_pubkey[0] != 0xFE:
@@ -662,7 +663,7 @@ class HardwareKeyStore(KeyStore, Xpub):
         derivation = get_derivation_used_for_hw_device_encryption()
         xpub = client.get_xpub(derivation, "standard")
         password = self.get_pubkey_from_xpub(xpub, ())
-        return password
+        return password.hex()
 
 
 # extended pubkeys
@@ -685,10 +686,10 @@ def xpubkey_to_address(x_pubkey: bytes) -> Tuple[bytes, Address]:
         pubkey = x_pubkey
     elif x_pubkey[0] == 0xFF:
         xpub, s = BIP32KeyStore.parse_xpubkey(x_pubkey)
-        pubkey = bytes.fromhex(BIP32KeyStore.get_pubkey_from_xpub(xpub, s))
+        pubkey = BIP32KeyStore.get_pubkey_from_xpub(xpub, s)
     elif x_pubkey[0] == 0xFE:
         mpk, s = OldKeyStore.parse_xpubkey(x_pubkey)
-        pubkey = bytes.fromhex(OldKeyStore.get_pubkey_from_mpk(mpk, s[0], s[1]))
+        pubkey = OldKeyStore.get_pubkey_from_mpk(mpk, s[0], s[1])
     else:
         raise BitcoinException(f"Cannot parse pubkey. prefix: {hex(x_pubkey[0])}")
     if pubkey:
