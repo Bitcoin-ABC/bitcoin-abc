@@ -6,6 +6,7 @@
 #ifndef BITCOIN_SERIALIZE_H
 #define BITCOIN_SERIALIZE_H
 
+#include <compat/assumptions.h>
 #include <compat/endian.h>
 #include <prevector.h>
 #include <rcu.h>

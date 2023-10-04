@@ -46,7 +46,7 @@
 #include <tinyformat.h>
 #include <txmempool.h>
 #include <txorphanage.h>
-#include <util/check.h> // For NDEBUG compile time check
+#include <util/check.h>
 #include <util/strencodings.h>
 #include <util/trace.h>
 #include <validation.h>
