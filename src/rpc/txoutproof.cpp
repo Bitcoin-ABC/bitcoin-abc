@@ -112,7 +112,7 @@ static RPCHelpMan gettxoutproof() {
             if (pblockindex == nullptr) {
                 const CTransactionRef tx = GetTransaction(
                     /* block_index */ nullptr,
-                    /* mempool */ nullptr, oneTxId, Params().GetConsensus(),
+                    /* mempool */ nullptr, oneTxId, chainman.GetConsensus(),
                     hashBlock);
                 if (!tx || hashBlock.IsNull()) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,

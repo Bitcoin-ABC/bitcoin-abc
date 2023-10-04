@@ -251,7 +251,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
         ::cs_main, return !chainman.ActiveChain().Genesis()->IsAssumedValid()));
 
     const AssumeutxoData &au_data =
-        *ExpectedAssumeutxo(snapshot_height, ::Params());
+        *ExpectedAssumeutxo(snapshot_height, chainman.GetParams());
     const CBlockIndex *tip = chainman.ActiveTip();
 
     BOOST_CHECK_EQUAL(tip->nChainTx, au_data.nChainTx);

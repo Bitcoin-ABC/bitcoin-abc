@@ -1707,8 +1707,9 @@ RPCHelpMan getblockchaininfo() {
             obj.pushKV("difficulty", GetDifficulty(&tip));
             obj.pushKV("time", tip.GetBlockTime());
             obj.pushKV("mediantime", tip.GetMedianTimePast());
-            obj.pushKV("verificationprogress",
-                       GuessVerificationProgress(Params().TxData(), &tip));
+            obj.pushKV(
+                "verificationprogress",
+                GuessVerificationProgress(chainman.GetParams().TxData(), &tip));
             obj.pushKV("initialblockdownload",
                        active_chainstate.IsInitialBlockDownload());
             obj.pushKV("chainwork", tip.nChainWork.GetHex());
@@ -2566,7 +2567,7 @@ static RPCHelpMan getblockstats() {
                            mintxsize == blockMaxSize ? 0 : mintxsize);
             ret_all.pushKV("outs", outputs);
             ret_all.pushKV("subsidy", GetBlockSubsidy(pindex.nHeight,
-                                                      Params().GetConsensus()));
+                                                      chainman.GetConsensus()));
             ret_all.pushKV("time", pindex.GetBlockTime());
             ret_all.pushKV("total_out", total_out);
             ret_all.pushKV("total_size", total_size);
