@@ -27,10 +27,11 @@ import AnimateImage from '/components/animate-image';
 import { getScoreCardData } from '/data/scores.js';
 import Button from '/components/button';
 
-function TileSection({ title, items }) {
+function TileSection({ title, items, children }) {
     return (
         <>
             <TitleBox>{title}</TitleBox>
+            {children}
             <TilesOuterCtn>
                 {items.map((item, index) => {
                     if (item === '') {
@@ -92,25 +93,26 @@ function GetEcash(props) {
                     </ImgCtn>
                 </DescriptionBox>
                 <TileSection title="Exchanges" items={props.exchanges} />
-                <SwapZoneCtn id="swapzone">
-                    <p>
-                        Use the widget below to get eCash instantly with
-                        Swapzone, an instant exchange aggregator.
-                    </p>
-                    <div
-                        id="swapzoneExchangeWidget"
-                        data-logo="true"
-                        data-compact="true"
-                        data-size="full"
-                        data-refid="68y-3PwW6z"
-                        data-from="usdc"
-                        data-to="xec"
-                    />
-                </SwapZoneCtn>
                 <TileSection
                     title="Instant Exchanges"
                     items={props.instantExchanges}
-                />
+                >
+                    <SwapZoneCtn id="swapzone">
+                        <p>
+                            Swap your crypto into XEC quickly with the Swapzone
+                            aggregator or chose your preferred instant exchange
+                            from the list below.
+                        </p>
+                        <div
+                            id="swapzoneExchangeWidget"
+                            data-logo="true"
+                            data-size="full"
+                            data-refid="68y-3PwW6z"
+                            data-from="eth"
+                            data-to="xec"
+                        />
+                    </SwapZoneCtn>
+                </TileSection>
                 <DescriptionBox>
                     <div>
                         <H3 text="Services" id="services" />

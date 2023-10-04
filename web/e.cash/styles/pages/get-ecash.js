@@ -160,10 +160,5 @@ export const SwapZoneCtn = styled.div`
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    margin: 30px 0 100px;
-
-    p {
-        max-width: 483px;
-        text-align: center;
-    }
+    margin: 30px 0 50px;
 `;
