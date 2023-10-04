@@ -1,7 +1,7 @@
 import unittest
 
 from ..address import Address, PublicKey
-from ..keystore import BIP32KeyStore, ImportedKeyStore
+from ..keystore import BIP32KeyStore, ImportedKeyStore, OldKeyStore, from_seed
 from ..transaction import Transaction
 
 
@@ -75,6 +75,27 @@ class TestBip32KeyStore(unittest.TestCase):
         self.keystore.sign_transaction(tx, password=None)
         self.assertTrue(tx.is_complete())
         # the signature is verified in Transaction._sign_txin
+
+
+class TestOldKeyStore(unittest.TestCase):
+    def setUp(self) -> None:
+        self.keystore = from_seed(
+            "powerful random nobody notice nothing important anyway look away hidden message over",
+            passphrase="",
+        )
+        assert isinstance(self.keystore, OldKeyStore)
+
+    def test_sign(self):
+        tx = Transaction(
+            bytes.fromhex(
+                "02000000013ccfd87a660004056c0997709b4e3fd0a3925d4d1cea710ce2e2f16eb3ba940c000000004801ff45fee9d4b7866dd1e91c862aebf62a49548c7dbf7bcc6e4b7b8c9da820c7737968df9c09d5a3e271dc814a29981f81b3faaf2737b551ef5dcc6189cf0f8252c442b300000000feffffffe8b6010000000000010fb60100000000001976a9148991f839e9249458800aa2ccf013eeb7171c1d3788ac00000000"
+            )
+        )
+        self.assertFalse(tx.is_complete())
+        self.assertTrue(self.keystore.can_sign(tx))
+
+        self.keystore.sign_transaction(tx, password=None)
+        self.assertTrue(tx.is_complete())
 
 
 if __name__ == "__main__":

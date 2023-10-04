@@ -558,21 +558,21 @@ class OldKeyStore(DeterministicKeyStore):
         return "fe" + self.mpk + s
 
     @classmethod
-    def parse_xpubkey(self, x_pubkey):
-        assert x_pubkey[0:2] == "fe"
-        pk = x_pubkey[2:]
-        mpk = pk[0:128]
-        dd = pk[128:]
+    def parse_xpubkey(self, x_pubkey: bytes):
+        assert x_pubkey[0] == 0xFE
+        pk = x_pubkey[1:]
+        mpk = pk[0:64]
+        dd = pk[64:]
         s = []
         while dd:
-            n = int(bitcoin.rev_hex(dd[0:4]), 16)
-            dd = dd[4:]
+            n = int.from_bytes(dd[0:2], "little")
+            dd = dd[2:]
             s.append(n)
         assert len(s) == 2
-        return mpk, s
+        return mpk.hex(), s
 
-    def get_pubkey_derivation(self, x_pubkey):
-        if x_pubkey[0:2] != "fe":
+    def get_pubkey_derivation(self, x_pubkey: bytes):
+        if x_pubkey[0] != 0xFE:
             return
         mpk, derivation = self.parse_xpubkey(x_pubkey)
         if self.mpk != mpk:
@@ -687,7 +687,7 @@ def xpubkey_to_address(x_pubkey: bytes) -> Tuple[bytes, Address]:
         xpub, s = BIP32KeyStore.parse_xpubkey(x_pubkey)
         pubkey = bytes.fromhex(BIP32KeyStore.get_pubkey_from_xpub(xpub, s))
     elif x_pubkey[0] == 0xFE:
-        mpk, s = OldKeyStore.parse_xpubkey(x_pubkey.hex())
+        mpk, s = OldKeyStore.parse_xpubkey(x_pubkey)
         pubkey = bytes.fromhex(OldKeyStore.get_pubkey_from_mpk(mpk, s[0], s[1]))
     else:
         raise BitcoinException(f"Cannot parse pubkey. prefix: {hex(x_pubkey[0])}")
