@@ -45,6 +45,8 @@ if TYPE_CHECKING:
     from electrumabc_gui.qt.util import TaskThread
     from electrumabc_plugins.hw_wallet import HardwareHandlerBase, HWPluginBase
 
+    from .transaction import Transaction
+
 
 class KeyStore(PrintError):
     type: str
@@ -70,7 +72,7 @@ class KeyStore(PrintError):
         """Returns whether the keystore can be encrypted with a password."""
         raise NotImplementedError()
 
-    def get_tx_derivations(self, tx) -> Dict[str, List[int]]:
+    def get_tx_derivations(self, tx: Transaction) -> Dict[bytes, List[int]]:
         """Return a map of {xpubkey: derivation}
         where xpubkey is a hex string in the format described in Xpub.get_xpubkey
         and derivation is a [change_index, address_index] list."""
@@ -85,13 +87,14 @@ class KeyStore(PrintError):
                 # input is complete
                 continue
             for k, x_pubkey in enumerate(txin["x_pubkeys"]):
+                xpubk = bytes.fromhex(x_pubkey)
                 if x_signatures[k] is not None:
                     # this pubkey already signed
                     continue
-                derivation = self.get_pubkey_derivation(bytes.fromhex(x_pubkey))
+                derivation = self.get_pubkey_derivation(xpubk)
                 if not derivation:
                     continue
-                keypairs[x_pubkey] = derivation
+                keypairs[xpubk] = derivation
         return keypairs
 
     def can_sign(self, tx) -> bool:
@@ -121,7 +124,7 @@ class SoftwareKeyStore(KeyStore):
         decrypted = ec.decrypt_message(message)
         return decrypted
 
-    def sign_transaction(self, tx, password, *, use_cache=False):
+    def sign_transaction(self, tx: Transaction, password, *, use_cache=False):
         if self.is_watching_only():
             return
         # Raise if password is not correct.
@@ -212,13 +215,13 @@ class ImportedKeyStore(SoftwareKeyStore):
         WIF_privkey = self.export_private_key(pubkey, password)
         return PublicKey.privkey_from_WIF_privkey(WIF_privkey)
 
-    def get_pubkey_derivation(self, x_pubkey):
-        if x_pubkey[0:2] in ["02", "03", "04"]:
-            pubkey = PublicKey.from_string(x_pubkey)
+    def get_pubkey_derivation(self, x_pubkey: bytes):
+        if x_pubkey[0] in [0x02, 0x03, 0x04]:
+            pubkey = PublicKey.from_pubkey(x_pubkey)
             if pubkey in self.keypairs:
                 return pubkey
-        elif x_pubkey[0:2] == "fd":
-            addr = bitcoin.script_to_address(bytes.fromhex(x_pubkey[2:]))
+        elif x_pubkey[0] == 0xFD:
+            addr = bitcoin.script_to_address(x_pubkey[1:])
             return self.address_to_pubkey(addr)
 
     def update_password(self, old_password, new_password):

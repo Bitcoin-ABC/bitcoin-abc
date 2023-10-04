@@ -143,7 +143,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
 
         self.assertEqual(
             ks.get_tx_derivations(MockTx()),
-            {xpub_and_derivation_hex: [1, 0]},
+            {bytes.fromhex(xpub_and_derivation_hex): [1, 0]},
         )
 
         w = self._create_standard_wallet(ks)
