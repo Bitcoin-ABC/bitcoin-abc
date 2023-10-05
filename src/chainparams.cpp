@@ -103,6 +103,9 @@ public:
         // The miner fund is enabled by default on mainnet.
         consensus.enableMinerFund = true;
 
+        // The staking rewards are enabled by default on mainnet.
+        consensus.enableStakingRewards = true;
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
             ChainParamsConstants::MAINNET_MINIMUM_CHAIN_WORK;
@@ -252,6 +255,9 @@ public:
         // The miner fund is disabled by default on testnet.
         consensus.enableMinerFund = false;
 
+        // The staking rewards are disabled by default on testnet.
+        consensus.enableStakingRewards = false;
+
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork =
             ChainParamsConstants::TESTNET_MINIMUM_CHAIN_WORK;
@@ -381,8 +387,11 @@ public:
         // two days
         consensus.nDAAHalfLife = 2 * 24 * 60 * 60;
 
-        // The miner fund is disabled by default on regnet.
+        // The miner fund is disabled by default on regtest.
         consensus.enableMinerFund = false;
+
+        // The staking rewards are disabled by default on regtest.
+        consensus.enableStakingRewards = false;
 
         // The best chain should have at least this much work.
         consensus.nMinimumChainWork = uint256S("0x00");

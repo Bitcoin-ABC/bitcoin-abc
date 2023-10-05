@@ -32,7 +32,7 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
     CScript winner;
     if (!g_avalanche || !isAvalancheEnabled(gArgs) ||
         !gArgs.GetBoolArg("-avalanchestakingrewards",
-                          AVALANCHE_DEFAULT_STAKING_REWARDS) ||
+                          m_consensusParams.enableStakingRewards) ||
         !g_avalanche->getStakingRewardWinner(m_blockIndex.pprev->GetBlockHash(),
                                              winner)) {
         LogPrint(BCLog::AVALANCHE,

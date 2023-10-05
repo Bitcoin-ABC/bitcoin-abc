@@ -64,6 +64,9 @@ struct Params {
     /** Enable or disable the miner fund by default */
     bool enableMinerFund;
 
+    /** Enable or disable the staking rewards by default */
+    bool enableStakingRewards;
+
     /** Proof of work parameters */
     uint256 powLimit;
     bool fPowAllowMinDifficultyBlocks;

@@ -1062,7 +1062,7 @@ static RPCHelpMan getblocktemplate() {
             if (IsCowperthwaiteEnabled(consensusParams, pindexPrev) &&
                 g_avalanche && isAvalancheEnabled(gArgs) &&
                 gArgs.GetBoolArg("-avalanchestakingrewards",
-                                 AVALANCHE_DEFAULT_STAKING_REWARDS) &&
+                                 consensusParams.enableStakingRewards) &&
                 g_avalanche->getStakingRewardWinner(
                     pindexPrev->GetBlockHash(), stakingRewardsPayoutScript)) {
                 UniValue stakingRewards(UniValue::VOBJ);
