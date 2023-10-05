@@ -154,9 +154,21 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             w.get_receiving_addresses()[0],
             Address.from_string("16j7Dqk3Z9DdTdBtHcCVLaNQy9MTgywUUo"),
         )
+        change_addr0 = w.get_change_addresses()[0]
         self.assertEqual(
-            w.get_change_addresses()[0],
+            change_addr0,
             Address.from_string("1GG5bVeWgAp5XW7JLCphse14QaC4qiHyWn"),
+        )
+
+        coin = {}
+        w.add_input_sig_info(coin, change_addr0)
+        self.assertEqual(coin["num_sig"], 1)
+        self.assertEqual(coin["signatures"], [None])
+        self.assertEqual(
+            coin["x_pubkeys"],
+            [
+                "ff" + bitcoin.DecodeBase58Check(ks.xpub).hex() + "01000000",
+            ],
         )
 
         expected_auxiliary_keys = [
@@ -237,9 +249,25 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             w.get_receiving_addresses()[0],
             Address.from_string("3H3iyACDTLJGD2RMjwKZcCwpdYZLwEZzKb"),
         )
+        change_addr0 = w.get_change_addresses()[0]
         self.assertEqual(
-            w.get_change_addresses()[0],
+            change_addr0,
             Address.from_string("31hyfHrkhNjiPZp1t7oky5CGNYqSqDAVM9"),
+        )
+
+        coin = {}
+        w.add_input_sig_info(coin, change_addr0)
+        # n=2 (n-of-m multisig)
+        self.assertEqual(coin["num_sig"], 2)
+        # m=2
+        self.assertEqual(coin["signatures"], [None] * 2)
+        self.assertIsNone(coin["pubkeys"])
+        self.assertEqual(
+            coin["x_pubkeys"],
+            [
+                "ff" + bitcoin.DecodeBase58Check(ks1.xpub).hex() + "01000000",
+                "ff" + bitcoin.DecodeBase58Check(ks2.xpub).hex() + "01000000",
+            ],
         )
 
 
