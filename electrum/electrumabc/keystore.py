@@ -48,6 +48,10 @@ if TYPE_CHECKING:
     from .transaction import Transaction
 
 
+# as per bip-0032
+MAXIMUM_INDEX_DERIVATION_PATH = 2**31 - 1
+
+
 class KeyStore(PrintError):
     type: str
 

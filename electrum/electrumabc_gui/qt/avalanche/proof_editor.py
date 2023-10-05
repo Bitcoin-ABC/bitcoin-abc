@@ -13,6 +13,7 @@ from electrumabc.avalanche.proof import Proof, ProofBuilder, SignedStake, Stake
 from electrumabc.bitcoin import is_private_key
 from electrumabc.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electrumabc.i18n import _
+from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.serialize import DeserializationError, compact_size, serialize_blob
 from electrumabc.transaction import OutPoint, get_address_from_output_script
 from electrumabc.uint256 import UInt256
@@ -21,8 +22,6 @@ from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
 
 from .delegation_editor import AvaDelegationDialog
 from .util import ButtonsLineEdit, CachedWalletPasswordWidget, get_auxiliary_privkey
-
-PROOF_MASTER_KEY_INDEX = 0
 
 
 @dataclass
@@ -408,8 +407,13 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             return ""
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
+            auxiliary_key_index = self.wallet.storage.get("auxiliary_key_index", 0)
             wif_pk = get_auxiliary_privkey(
-                self.wallet, key_index=PROOF_MASTER_KEY_INDEX, pwd=self.pwd
+                self.wallet, key_index=auxiliary_key_index, pwd=self.pwd
+            )
+            self.wallet.storage.put(
+                "auxiliary_key_index",
+                min(auxiliary_key_index + 1, MAXIMUM_INDEX_DERIVATION_PATH),
             )
         return wif_pk
 

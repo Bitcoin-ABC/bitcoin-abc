@@ -149,7 +149,6 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
             "a Bitcoin ABC node."
         )
         d = AuxiliaryKeysDialog(self.wallet, self.pwd, self, additional_info)
-        d.set_index(1)
         d.exec_()
 
         self.pubkey_edit.setText(d.get_hex_public_key())

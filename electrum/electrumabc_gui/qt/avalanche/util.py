@@ -6,6 +6,7 @@ from PyQt5 import QtWidgets
 
 from electrumabc.address import PublicKey
 from electrumabc.bitcoin import is_private_key
+from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.wallet import DeterministicWallet
 
 from ..password_dialog import PasswordDialog
@@ -138,17 +139,30 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
 
         index_layout.addWidget(QtWidgets.QLabel("Key index"))
         self.index_spinbox = QtWidgets.QSpinBox()
-        self.index_spinbox.setRange(0, 1000)
+        self.index_spinbox.setRange(0, MAXIMUM_INDEX_DERIVATION_PATH)
         index_layout.addWidget(self.index_spinbox)
         index_layout.addStretch(1)
 
         self.key_widget = KeyWidget()
         layout.addWidget(self.key_widget)
 
-        self.set_index(self.index_spinbox.value())
-        self.index_spinbox.valueChanged.connect(self.set_index)
+        self.max_shown_index = self.wallet.storage.get("auxiliary_key_index", 0)
+        # increment for the next time
+        self.wallet.storage.put(
+            "auxiliary_key_index",
+            min(MAXIMUM_INDEX_DERIVATION_PATH, self.max_shown_index + 1),
+        )
+        self.index_spinbox.valueChanged.connect(self.on_index_changed)
+        self.index_spinbox.setValue(self.max_shown_index)
 
-    def set_index(self, index: int):
+    def on_index_changed(self, index: int):
+        if index > self.max_shown_index:
+            self.max_shown_index = index
+            self.wallet.storage.put(
+                "auxiliary_key_index",
+                min(MAXIMUM_INDEX_DERIVATION_PATH, self.max_shown_index + 1),
+            )
+
         wif_key = get_auxiliary_privkey(self.wallet, index, self.pwd)
         self.key_widget.setPrivkey(wif_key)
 
@@ -185,9 +199,6 @@ class AuxiliaryKeysDialog(QtWidgets.QDialog):
         layout.addWidget(self.ok_button)
 
         self.ok_button.clicked.connect(self.accept)
-
-    def set_index(self, index: int):
-        self.aux_keys_widget.set_index(index)
 
     def get_hex_public_key(self) -> str:
         return self.aux_keys_widget.get_hex_public_key()
