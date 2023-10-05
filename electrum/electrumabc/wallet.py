@@ -3641,7 +3641,8 @@ class MultisigWallet(DeterministicWallet):
 
     def add_input_sig_info(self, txin, address):
         # x_pubkeys are not sorted here because it would be too slow
-        # they are sorted in transaction.get_sorted_pubkeys
+        # They must be sorted by the code in charge of signing or serializing the
+        # transaction.
         derivation = self.get_address_index(address)
         txin["x_pubkeys"] = [
             k.get_xpubkey(*derivation).hex() for k in self.get_keystores()

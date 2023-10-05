@@ -3,6 +3,8 @@ from unittest import mock
 
 from .. import bitcoin, keystore, mnemo, storage, wallet
 from ..address import Address, PublicKey
+from ..bitcoin import ScriptType
+from ..transaction import OutPoint, Transaction, TxInput, TxOutput
 
 
 class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
@@ -133,15 +135,20 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
             [1, 0],
         )
 
+        class MockTxInput:
+            def __init__(self):
+                self.num_sig = 1
+                self.signatures = [None]
+
+            def is_complete(self):
+                return False
+
+            def get_sorted_pubkeys(self):
+                return [b"dummypubk"], [xpub_and_derivation]
+
         class MockTx:
-            def inputs(self):
-                return [
-                    {
-                        "num_sig": 1,
-                        "signatures": [None],
-                        "x_pubkeys": [xpub_and_derivation.hex()],
-                    }
-                ]
+            def txinputs(self):
+                return [MockTxInput()]
 
         self.assertEqual(
             ks.get_tx_derivations(MockTx()),
@@ -269,6 +276,77 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
                 "ff" + bitcoin.DecodeBase58Check(ks2.xpub).hex() + "01000000",
             ],
         )
+
+        # Test sorting of pubkeys when signing a multisig transaction
+        # Pubkey for first receiving address of the wallet:
+        unsorted_pubkeys = [
+            # intentionally specified in the wrong sorting order
+            # ks2
+            bytes.fromhex(
+                "03d61fd74d613ee82cd74f712fb2c439cc546e5ef0916251f7b79cf17f14e19dcd"
+            ),
+            # ks1
+            bytes.fromhex(
+                "026353c6eee40138bae75d4fad7717b077a494baa51b5749bc15c13099ab6a7b41"
+            ),
+        ]
+        sorted_pubkeys = sorted(unsorted_pubkeys)
+        self.assertEqual(unsorted_pubkeys[::-1], sorted_pubkeys)
+        x_pubkeys = [
+            bytes.fromhex(
+                "ff0488b21e02fb5fa30400000000de36f0f242b6fa74a7d9678c205344077bbcba9cf225ddbe7d4753af0bb0b59002c6e7e9875359b1e31d0b1a4fda1284016beab16ca2516b40809ee0ef2f9881fe00000000"
+            ),
+            bytes.fromhex(
+                "ff0488b21e0219ae320200000000842dee0460cb195ef810fc974a0def463f0c73a5dc935400815f1f42e2432563029a6d5ecd48f6790f79c2082a4a6f4eaef7497fadc3c4731b9701f32e839d25b300000000"
+            ),
+        ]
+        txin = TxInput.from_keys(
+            outpoint=OutPoint.from_str(
+                "a4a7d59b955162392153112e8a402be37979f4f6796b3e3860c504a6924d32bb:0"
+            ),
+            sequence=4294967294,
+            script_type=ScriptType.p2sh,
+            num_required_sigs=2,
+            pubkeys=unsorted_pubkeys,
+            x_pubkeys=x_pubkeys,
+            signatures=[None] * 2,
+            address=Address.from_string(
+                "ecash:pz58galajk68f635d45zejaerl35mqd055qy5jk6st"
+            ),
+            value=11817,
+        )
+        tx = Transaction.from_io(
+            [txin],
+            [
+                TxOutput(
+                    0,
+                    Address.from_string(
+                        "ecash:ppw2wvxtzx0lwmleuyjqfdjskqqz56nt3qhxj0mx5m"
+                    ),
+                    value=11515,
+                )
+            ],
+        )
+        self.assertIs(
+            tx.txinputs()[0],
+            txin,
+            "The following tests assume txin vs tx.txinputs()[0] identity",
+        )
+        self.assertEqual(txin.pubkeys, unsorted_pubkeys)
+        self.assertEqual(txin.get_sorted_pubkeys()[0], sorted_pubkeys)
+        keypairs = {
+            x_pubkeys[1]: (
+                bytes.fromhex(
+                    "b85ba308a2378fb7d6599cd542906901a4906f223f32b8f845ec07bb1f69eed2"
+                ),
+                True,
+            )
+        }
+        tx.sign(keypairs)
+        # With these particular pubkeys, the order of the signatures must be (ks1, ks2).
+        # The provided private key belongs to ks1, so the first signature is set.
+        self.assertIsNotNone(txin.signatures[0])
+        self.assertIsNone(txin.signatures[1])
 
 
 if __name__ == "__main__":

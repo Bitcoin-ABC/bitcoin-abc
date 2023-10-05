@@ -406,6 +406,10 @@ class TxInput:
         return self._pubkeys
 
     def update_pubkey(self, pubkey: bytes, index: int):
+        """Update pubkey at given index.
+        This method ensures the pubkeys are sorted in the correct order for
+        multisig transactions before accessing the pubkey at the given index.
+        """
         assert self._pubkeys is not None and len(self._pubkeys) > index
         self._pubkeys[index] = pubkey
 
@@ -419,12 +423,18 @@ class TxInput:
         For an unsigned or partially signed transaction, one or more signatures are
         None. The number of signatures is equal to the number of pubkeys: N for an
         M-of-N multisig.
+
+        Note that the position of signatures needs to match with the position of pubkeys
+        as they are returned by get_sorted_pubkeys().
         """
         if self._signatures is None and self._type != ScriptType.coinbase:
             self.parse_scriptsig()
         return self._signatures
 
     def update_signature(self, sig: bytes, index: int):
+        """Set or update the signature at given index.
+        The index must match the corresponding sorted pubkeys index.
+        """
         assert self._signatures is not None and len(self._signatures) > index
         self._signatures[index] = sig
 
@@ -450,14 +460,16 @@ class TxInput:
             self.parse_scriptsig()
         return self._num_required_sigs
 
-    def get_sorted_pubkeys(self):
+    def get_sorted_pubkeys(self) -> Tuple[List[bytes], List[bytes]]:
+        """Return sorted pubkeys and xpubkeys, using the order of pubkeys.
+
+        Note: this function is CRITICAL to get the correct order of pubkeys in
+            multisignatures; avoid changing.
+        """
         if self.pubkeys is None:
             return [], []
-        # sort pubkeys and x_pubkeys, using the order of pubkeys
-        # Note: this function is CRITICAL to get the correct order of pubkeys in
-        #     multisignatures; avoid changing.
         pubkeys, x_pubkeys = zip(*sorted(zip(self.pubkeys, self.x_pubkeys)))
-        return pubkeys, x_pubkeys
+        return list(pubkeys), list(x_pubkeys)
 
     @property
     def address(self) -> Optional[Address]:
@@ -522,8 +534,13 @@ class TxInput:
             d["x_pubkeys"] = ["(pubkey)"]
             d["pubkeys"] = ["(pubkey)"]
         else:
-            d["x_pubkeys"] = [xpub.hex() for xpub in self.x_pubkeys]
-            d["pubkeys"] = [pub.hex() for pub in self.pubkeys]
+            # The legacy code used to sort pubkeys in place in the coin dicts, so we
+            # should assume that some users of coin dicts require them to be sorted.
+            # I cannot think of a use case that would require the original unsorted
+            # order to be preserved,
+            pubkeys, x_pubkeys = self.get_sorted_pubkeys()
+            d["x_pubkeys"] = [xpub.hex() for xpub in x_pubkeys]
+            d["pubkeys"] = [pub.hex() for pub in pubkeys]
             d["address"] = self.address
         if self.type == ScriptType.p2sh:
             d["redeemScript"] = self.scriptsig
@@ -1587,7 +1604,19 @@ class Transaction:
             return None
         txin = self._inputs[i]
         txin.update_signature(sig + bytes((nHashType & 0xFF,)), j)
-        txin.update_pubkey(pubkey, j)  # needed for fd keys
+
+        if j == 1 and len(txin.pubkeys) == 1 and txin.pubkeys[0].startswith(b"\xfd"):
+            # See https://github.com/spesmilo/electrum/issues/2566 :
+            # ImportedAddressWallet cannot know the pubkey associated with coins, so
+            # it puts an address prefixed with "fd" instead to tell the signing
+            # wallet to use the "pubkey that belongs to this address".
+            # This code is executed by the signing wallet, that has the key to derive
+            # and update the pubkey.
+            # Other wallet type should not be doing this, especially not multisig
+            # wallets, as the pubkeys should already be set correctly and may not be in
+            # the same order as the signatures in the internal date structures of a
+            # TxInput.
+            txin.update_pubkey(pubkey, j)
         return txin
 
     def is_final(self):

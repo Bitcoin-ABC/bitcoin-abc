@@ -898,8 +898,8 @@ class TestTxInput(unittest.TestCase):
             self.assertEqual(
                 txinput.get_sorted_pubkeys(),
                 (
-                    tuple(bytes.fromhex(pub) for pub in pubkeys_hex),
-                    tuple(bytes.fromhex(xpub) for xpub in xpubkeys_hex),
+                    [bytes.fromhex(pub) for pub in pubkeys_hex],
+                    [bytes.fromhex(xpub) for xpub in xpubkeys_hex],
                 ),
             )
 

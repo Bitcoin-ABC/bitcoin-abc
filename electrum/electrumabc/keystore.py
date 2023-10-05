@@ -81,17 +81,12 @@ class KeyStore(PrintError):
         where xpubkey is a hex string in the format described in Xpub.get_xpubkey
         and derivation is a [change_index, address_index] list."""
         keypairs = {}
-        for txin in tx.inputs():
-            num_sig = txin.get("num_sig")
-            if num_sig is None:
+        for txin in tx.txinputs():
+            if txin.is_complete():
                 continue
-            x_signatures = txin["signatures"]
-            signatures = [sig for sig in x_signatures if sig]
-            if len(signatures) == num_sig:
-                # input is complete
-                continue
-            for k, x_pubkey in enumerate(txin["x_pubkeys"]):
-                xpubk = bytes.fromhex(x_pubkey)
+            x_signatures = txin.signatures
+            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
+            for k, xpubk in enumerate(x_pubkeys):
                 if x_signatures[k] is not None:
                     # this pubkey already signed
                     continue
