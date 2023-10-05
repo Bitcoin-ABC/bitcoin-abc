@@ -20,7 +20,7 @@ from electrumabc.util import format_satoshis
 from electrumabc.wallet import AddressNotFoundError, DeterministicWallet
 
 from .delegation_editor import AvaDelegationDialog
-from .util import CachedWalletPasswordWidget, get_auxiliary_privkey
+from .util import ButtonsLineEdit, CachedWalletPasswordWidget, get_auxiliary_privkey
 
 PROOF_MASTER_KEY_INDEX = 0
 
@@ -91,7 +91,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
-        layout.addWidget(QtWidgets.QLabel("Proof sequence"))
+        layout.addWidget(QtWidgets.QLabel("Proof Sequence"))
         self.sequence_sb = QtWidgets.QSpinBox()
         self.sequence_sb.setMinimum(0)
         layout.addWidget(self.sequence_sb)
@@ -129,30 +129,35 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         expiration_timestamp_sublayout.addWidget(self.timestamp_widget)
         layout.addSpacing(10)
 
-        layout.addWidget(QtWidgets.QLabel("Master private key (WIF)"))
-        self.master_key_edit = QtWidgets.QLineEdit()
+        layout.addWidget(QtWidgets.QLabel("Avalanche Master Private Key (WIF)"))
+        self.master_key_edit = ButtonsLineEdit()
+        self.master_key_edit.addCopyButton()
         self.master_key_edit.setToolTip(
             "Private key that controls the proof. This is the key that signs the "
-            "delegation or signs the avalanche votes. The suggested key (if any) is "
-            "derived from the wallet's seed, on the (change_index, key_index) = (2, 0) "
-            "index."
+            "delegation and authenticates the avalanche votes.\n\n"
+            "This key is avalanche specific, unrelated to your coins and cannot be "
+            "used to spend them. Never reuse a key, always generate a fresh new one."
         )
         layout.addWidget(self.master_key_edit)
         layout.addSpacing(10)
 
-        layout.addWidget(
-            QtWidgets.QLabel("Master public key (computed from master private key)")
-        )
-        self.master_pubkey_view = QtWidgets.QLineEdit()
+        layout.addWidget(QtWidgets.QLabel("Avalanche Master Public Key"))
+        self.master_pubkey_view = ButtonsLineEdit()
+        self.master_pubkey_view.addCopyButton()
         self.master_pubkey_view.setReadOnly(True)
+        # setReadOnly does not change the style of the widget to indicate it is not
+        # editable. setEnabled(False) would prevent selecting and copying the key.
+        # Manually change the background color.
+        self.master_pubkey_view.setStyleSheet(
+            "QLineEdit {background-color: lightGray;}"
+        )
+        self.master_pubkey_view.setToolTip("Computed from Master private key")
         layout.addWidget(self.master_pubkey_view)
         layout.addSpacing(10)
 
-        layout.addWidget(QtWidgets.QLabel("Payout address"))
+        layout.addWidget(QtWidgets.QLabel("Payout Address"))
         self.payout_addr_edit = QtWidgets.QLineEdit()
-        self.payout_addr_edit.setToolTip(
-            "Address to which staking rewards could be sent, in the future"
-        )
+        self.payout_addr_edit.setToolTip("Address for receiving staking rewards")
         layout.addWidget(self.payout_addr_edit)
         layout.addSpacing(10)
 
@@ -262,7 +267,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
         self.master_pubkey_view.setText("")
         # Suggest a private key to the user. He can change it if he wants.
-        self.master_key_edit.setText(self._get_privkey_suggestion())
+        master_key_suggestion = self._get_privkey_suggestion()
+        self.master_key_edit.setText(master_key_suggestion)
 
         if self.receive_address is not None:
             self.payout_addr_edit.setText(self.receive_address.to_ui_string())
