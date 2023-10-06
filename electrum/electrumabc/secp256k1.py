@@ -58,15 +58,21 @@ def _load_library():
         )
 
     secp256k1 = None
+    secp256k1_exceptions = {}
     for lp in library_paths:
         try:
             secp256k1 = ctypes.cdll.LoadLibrary(lp)
-        except Exception:
+        except Exception as e:
+            secp256k1_exceptions[lp] = e
             continue
         if secp256k1:
             break
     if not secp256k1:
         print_stderr("[secp256k1] warning: libsecp256k1 library failed to load")
+        for path, exception in secp256k1_exceptions.items():
+            print_stderr(
+                f"[secp256k1] warning: loading from {path} failed with: {exception}"
+            )
         return None
 
     try:
