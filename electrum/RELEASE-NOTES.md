@@ -1,5 +1,27 @@
 # Release notes
 
+## Release 5.2.8
+
+- Fix a bug affecting the expected number of signatures by multisig wallets:
+  a change in the previous release caused the wallet to expect N signatures
+  instead of M signatures for a M-of-N multisig (D14483).
+- Fix a bug when running from source if gmpy is installed and causes the
+  ecdsa library to use gmpy.mpz objects instead of python integers for curve
+  points (D14490).
+- Make the coin consolidation tool use Schnorr signatures (D14491) and
+  speed-up the process by avoiding unnecessary serializations for estimating
+  the size of transactions (D14492).
+- Slightly improve the performance of some serialization operations and reduce
+  the memory footprint of transactions, keys and block headers, by using
+  bytes rather than hex strings (D14503, D14509, D14472, D14524, D14567,
+  D14568, D14569, D14570).
+- Improve UX when using open-aliases in the Pay To form, support the oa1:xec
+  prefix, drop support for the oa1:bch prefix (D14532, D14550).
+- Minor improvements to UX in the Proof Editor (D14602).
+- Stop incentivizing private key reuse for Avalanche Proofs and
+  Avalanche Delegations (D14603).
+
+
 ## Release 5.2.7
 
 - Fix a bug in the command line argument processing preventing the application
@@ -7,7 +29,7 @@
   fixes the `ecash:` MIME type association with Electrum ABC (D14382).
 - Speed up the size estimation for freshly generated transactions by removing
   the need to serialize them first (D14434, D14448).
-- Slightly improve the performance of some serialization operations for by reducing
+- Slightly improve the performance of some serialization operations by reducing
   the number of unnecessary bytes-to-hex conversions (D14455, D14462, D14463, D14464).
 - Support Python 3.12 (D14440).
 
