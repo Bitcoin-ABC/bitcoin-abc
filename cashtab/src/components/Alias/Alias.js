@@ -161,6 +161,14 @@ const Alias = ({ passLoadingStatus }) => {
         passLoadingStatus(false);
     }, [wallet.name]);
 
+    const clearInputForms = () => {
+        setFormData(p => ({
+            ...p,
+            aliasName: '',
+        }));
+        setIsValidAliasInput(false);
+    };
+
     const preparePreviewModal = async () => {
         passLoadingStatus(true);
 
@@ -264,6 +272,7 @@ const Alias = ({ passLoadingStatus }) => {
                     aliasAddress,
                     aliasDetails.registrationFeeSats,
                 );
+                clearInputForms();
                 registerAliasNotification(result.explorerLink, aliasInput);
             } catch (err) {
                 errorNotification(err, err.message, 'Registering Alias');
@@ -455,6 +464,7 @@ const Alias = ({ passLoadingStatus }) => {
                                                 addonAfter: ' . xec',
                                                 placeholder:
                                                     'Enter a desired alias',
+                                                value: formData.aliasName,
                                                 name: 'aliasName',
                                                 onChange: e =>
                                                     handleAliasNameInput(e),
