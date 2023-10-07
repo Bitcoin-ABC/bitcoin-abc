@@ -20,11 +20,7 @@ import { SmartButton } from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { Row, Col } from 'antd';
-import {
-    getWalletState,
-    fromSatoshisToXec,
-    convertToEcashPrefix,
-} from 'utils/cashMethods';
+import { getWalletState, fromSatoshisToXec } from 'utils/cashMethods';
 import { registerNewAlias } from 'utils/transactions';
 import {
     errorNotification,
@@ -81,6 +77,11 @@ const Alias = ({ passLoadingStatus }) => {
         chronik,
         changeCashtabSettings,
         cashtabCache,
+        refreshAliases,
+        aliases,
+        setAliases,
+        aliasServerError,
+        setAliasServerError,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -95,9 +96,9 @@ const Alias = ({ passLoadingStatus }) => {
     const [aliasValidationError, setAliasValidationError] = useState(false);
     const [aliasAddressValidationError, setAliasAddressValidationError] =
         useState(false);
-    const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
-    const [aliasServerError, setAliasServerError] = useState(false);
     const [aliasDetails, setAliasDetails] = useState(false); // stores the /alias/<alias> endpoint response object
+    // Stores a conditional warning to the registration confirmation modal
+    const [aliasWarningMsg, setAliasWarningMsg] = useState(false);
 
     // Show a confirmation modal on alias registrations
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -124,38 +125,8 @@ const Alias = ({ passLoadingStatus }) => {
         // Call with this function to ensure that checkbox state and checkbox are updated
         handleDefaultAddressCheckboxChange({ target: { checked: true } });
 
-        const thisAddress = convertToEcashPrefix(wallet.Path1899.cashAddress);
-
-        // Retrieve aliases for this active wallet from alias-server
-        try {
-            const aliasesForThisAddress = await queryAliasServer(
-                'address',
-                thisAddress,
-            );
-            if (aliasesForThisAddress.error) {
-                // If an error is returned from the address endpoint
-                errorNotification(null, aliasesForThisAddress.error);
-                setIsValidAliasInput(false);
-                setAliasServerError(aliasesForThisAddress.error);
-            }
-            // If this active wallet has registered aliases, set to state variable for rendering under registered aliases list
-            // If no aliases are registered an empty array is returned, in which case no need to update state variable
-            if (aliasesForThisAddress.length > 0) {
-                setActiveWalletAliases(
-                    // sort in ascending order based on the `alias` property
-                    aliasesForThisAddress.sort((a, b) =>
-                        a.alias.localeCompare(b.alias),
-                    ),
-                );
-            }
-            passLoadingStatus(false);
-        } catch (err) {
-            const errorMsg = 'Error: Unable to retrieve registered aliases';
-            console.log(`useEffect(): ${errorMsg}`, err);
-            errorNotification(null, errorMsg);
-            passLoadingStatus(false);
-            setIsValidAliasInput(false);
-            setAliasServerError(errorMsg);
+        if (wallet.Path1899.cashAddress) {
+            await refreshAliases(wallet.Path1899.cashAddress);
         }
 
         passLoadingStatus(false);
@@ -166,6 +137,7 @@ const Alias = ({ passLoadingStatus }) => {
             ...p,
             aliasName: '',
         }));
+        setAliasWarningMsg(false);
         setIsValidAliasInput(false);
     };
 
@@ -179,13 +151,30 @@ const Alias = ({ passLoadingStatus }) => {
                 'alias',
                 formData.aliasName,
             );
+            if (
+                aliasDetailsResp.pending &&
+                aliasDetailsResp.pending.length > 0
+            ) {
+                const thisWalletThisAliasPendingCount = aliases.pending.filter(
+                    pendingAliasObj =>
+                        pendingAliasObj.alias === formData.aliasName,
+                ).length;
+                const pendingMsgForThisAddress =
+                    thisWalletThisAliasPendingCount > 0
+                        ? `, including ${thisWalletThisAliasPendingCount} for this wallet address`
+                        : '';
+                setAliasWarningMsg(
+                    ` There are currently ${aliasDetailsResp.pending.length} pending registration(s) for this alias${pendingMsgForThisAddress}.`,
+                );
+            } else {
+                setAliasWarningMsg(false);
+            }
         } catch (err) {
             const errorMsg = 'Error retrieving alias details';
             console.log(`preparePreviewModal(): ${errorMsg}`, err);
             errorNotification(null, errorMsg);
             setIsValidAliasInput(false);
             setAliasServerError(errorMsg);
-            setActiveWalletAliases([]);
             passLoadingStatus(false);
             return;
         }
@@ -212,7 +201,6 @@ const Alias = ({ passLoadingStatus }) => {
         } else {
             const errorMsg =
                 'Unable to retrieve alias info, please try again later';
-            setActiveWalletAliases([]);
             setAliasServerError(errorMsg);
             errorNotification(null, errorMsg);
             setAliasDetails(false);
@@ -274,6 +262,18 @@ const Alias = ({ passLoadingStatus }) => {
                 );
                 clearInputForms();
                 registerAliasNotification(result.explorerLink, aliasInput);
+                // Append the newly broadcasted alias registration to pending list to
+                // ensure the alias refresh interval is running in useWallet.js
+                setAliases(previousAliases => ({
+                    ...previousAliases,
+                    pending: [
+                        ...previousAliases.pending,
+                        {
+                            alias: aliasInput,
+                            address: wallet.Path1899.cashAddress,
+                        },
+                    ],
+                }));
             } catch (err) {
                 errorNotification(err, err.message, 'Registering Alias');
             }
@@ -406,6 +406,10 @@ const Alias = ({ passLoadingStatus }) => {
                     }' for ${fromSatoshisToXec(
                         aliasDetails.registrationFeeSats,
                     )} XEC?`}
+                    {aliasWarningMsg !== false && aliasWarningMsg}
+                    {!useThisAddressChecked &&
+                        !aliasAddressValidationError &&
+                        ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${wallet.Path1899?.cashAddress}.`}
                 </p>
             </Modal>
             <WalletInfoCtn>
@@ -541,33 +545,34 @@ const Alias = ({ passLoadingStatus }) => {
                                     optionalKey="1"
                                 >
                                     <Space size={[0, 8]} wrap>
-                                        {activeWalletAliases &&
-                                        activeWalletAliases.length > 0
-                                            ? activeWalletAliases.map(alias => (
-                                                  <CopyToClipboard
-                                                      data={
-                                                          alias.alias + '.xec'
-                                                      }
-                                                      optionalOnCopyNotification={{
-                                                          title: 'Copied',
-                                                          msg: `${alias.alias}.xec copied to clipboard`,
-                                                      }}
-                                                      key={alias.alias}
-                                                  >
-                                                      <Tag
-                                                          color={'#0074C2'}
-                                                          key={
-                                                              'Tag: ' +
-                                                              alias.alias
+                                        {aliases &&
+                                        aliases.registered &&
+                                        aliases.registered.length > 0
+                                            ? aliases.registered.map(
+                                                  (alias, index) => (
+                                                      <CopyToClipboard
+                                                          data={
+                                                              alias.alias +
+                                                              '.xec'
                                                           }
+                                                          optionalOnCopyNotification={{
+                                                              title: 'Copied',
+                                                              msg: `${alias.alias}.xec copied to clipboard`,
+                                                          }}
+                                                          key={index}
                                                       >
-                                                          <AliasLabel>
-                                                              {alias.alias +
-                                                                  '.xec'}
-                                                          </AliasLabel>
-                                                      </Tag>
-                                                  </CopyToClipboard>
-                                              ))
+                                                          <Tag
+                                                              color={'#0074C2'}
+                                                              key={index}
+                                                          >
+                                                              <AliasLabel>
+                                                                  {alias.alias +
+                                                                      '.xec'}
+                                                              </AliasLabel>
+                                                          </Tag>
+                                                      </CopyToClipboard>
+                                                  ),
+                                              )
                                             : !aliasServerError && (
                                                   <h3>
                                                       {'No registered aliases'}
@@ -577,7 +582,42 @@ const Alias = ({ passLoadingStatus }) => {
                                     <AlertMsg>{aliasServerError}</AlertMsg>
                                 </CustomCollapseCtn>
                                 <CustomCollapseCtn panelHeader="Pending Aliases">
-                                    <h3>WIP</h3>
+                                    <Space size={[0, 8]} wrap>
+                                        {aliases &&
+                                        aliases.pending &&
+                                        aliases.pending.length > 0
+                                            ? aliases.pending.map(
+                                                  (pendingAlias, index) => (
+                                                      <CopyToClipboard
+                                                          data={
+                                                              pendingAlias.alias +
+                                                              '.xec'
+                                                          }
+                                                          optionalOnCopyNotification={{
+                                                              title: 'Copied',
+                                                              msg: `${pendingAlias.alias}.xec copied to clipboard`,
+                                                          }}
+                                                          key={index}
+                                                      >
+                                                          <Tag
+                                                              color={'#0074C2'}
+                                                              key={index}
+                                                          >
+                                                              <AliasLabel>
+                                                                  {pendingAlias.alias +
+                                                                      '.xec'}
+                                                              </AliasLabel>
+                                                          </Tag>
+                                                      </CopyToClipboard>
+                                                  ),
+                                              )
+                                            : !aliasServerError && (
+                                                  <h3>
+                                                      {'No pending aliases'}
+                                                  </h3>
+                                              )}
+                                    </Space>
+                                    <AlertMsg>{aliasServerError}</AlertMsg>
                                 </CustomCollapseCtn>
                             </NamespaceCtn>
                         </SidePaddingCtn>

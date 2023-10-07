@@ -33,6 +33,7 @@ import {
     getTxHistoryChronik,
     parseChronikTx,
 } from 'utils/chronik';
+import { queryAliasServer } from 'utils/aliasUtils';
 import { ChronikClient } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';
 import cashaddr from 'ecashaddrjs';
@@ -46,6 +47,7 @@ import {
 } from 'config/cashtabSettings';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
+import aliasSettings from 'config/alias';
 
 const useWallet = () => {
     const [chronik, setChronik] = useState(
@@ -66,6 +68,12 @@ const useWallet = () => {
     const [hasUpdated, setHasUpdated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [chronikIndex, setChronikIndex] = useState(0);
+    const [aliases, setAliases] = useState({
+        registered: [],
+        pending: [],
+    });
+    const [aliasServerError, setAliasServerError] = useState(false);
+    const [aliasIntervalId, setAliasIntervalId] = useState(null);
     const { balances, tokens } = isValidStoredWallet(wallet)
         ? wallet.state
         : {
@@ -1401,6 +1409,44 @@ const useWallet = () => {
         }
     };
 
+    /**
+     * Retrieve registered and pending aliases for this active wallet from alias-server
+     * and stores them in the aliases state var for other components to access
+     * @param {string} thisAddress the address to be queried for attached aliases
+     */
+    const refreshAliases = async thisAddress => {
+        try {
+            const aliasesForThisAddress = await queryAliasServer(
+                'address',
+                thisAddress,
+            );
+            if (aliasesForThisAddress.error) {
+                // If an error is returned from the address endpoint
+                throw new Error(aliasesForThisAddress.error);
+            }
+            setAliases({
+                registered: aliasesForThisAddress.registered.sort((a, b) =>
+                    a.alias.localeCompare(b.alias),
+                ),
+                pending: aliasesForThisAddress.pending.sort((a, b) =>
+                    a.alias.localeCompare(b.alias),
+                ),
+            });
+            setAliasServerError(false);
+            // Clear interval if there are no pending aliases
+            if (aliasesForThisAddress.pending.length === 0 && aliasIntervalId) {
+                console.log(
+                    `refreshAliases(): No pending aliases, clearing interval ${aliasIntervalId}`,
+                );
+                clearInterval(aliasIntervalId);
+            }
+        } catch (err) {
+            const errorMsg = 'Error: Unable to retrieve aliases';
+            console.log(`refreshAliases(): ${errorMsg}`, err);
+            setAliasServerError(errorMsg);
+        }
+    };
+
     useEffect(async () => {
         handleUpdateWallet(setWallet);
         await loadContactList();
@@ -1420,6 +1466,35 @@ const useWallet = () => {
         await initializeWebsocket(chronik, wallet, fiatPrice);
     }, [chronik, wallet.mnemonic, fiatPrice]);
 
+    useEffect(async () => {
+        // Initialize a new periodic refresh of aliases which ONLY calls the API if
+        // there are pending aliases since confirmed aliases would not change over time
+        // The interval is also only initialized if there are no other intervals present.
+        if (aliasSettings.aliasEnabled) {
+            if (
+                wallet &&
+                wallet.Path1899 &&
+                wallet.Path1899.cashAddress &&
+                aliasIntervalId === null
+            ) {
+                // Initial refresh to ensure `aliases` state var is up to date
+                await refreshAliases(wallet.Path1899.cashAddress);
+                const aliasRefreshInterval = 30000;
+                const intervalId = setInterval(async function () {
+                    if (aliases?.pending?.length > 0) {
+                        console.log(
+                            'useEffect(): Refreshing registered and pending aliases',
+                        );
+                        await refreshAliases(wallet.Path1899.cashAddress);
+                    }
+                }, aliasRefreshInterval);
+                setAliasIntervalId(intervalId);
+                // Clear the interval when useWallet unmounts
+                return () => clearInterval(intervalId);
+            }
+        }
+    }, [aliases?.pending?.length]);
+
     return {
         chronik,
         wallet,
@@ -1431,6 +1506,11 @@ const useWallet = () => {
         loadCashtabSettings,
         cashtabCache,
         changeCashtabSettings,
+        refreshAliases,
+        aliases,
+        setAliases,
+        aliasServerError,
+        setAliasServerError,
         getActiveWalletFromLocalForage,
         getWallet,
         getWalletDetails,

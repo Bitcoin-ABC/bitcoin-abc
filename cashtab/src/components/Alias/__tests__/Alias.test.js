@@ -96,6 +96,9 @@ test('Without wallet defined', () => {
         cashtabCache: {
             tokenInfoById: {},
         },
+        refreshAliases: async () => {
+            return { registered: [], pending: [] };
+        },
     };
     const component = renderer.create(
         <WalletContext.Provider value={withoutWalletDefinedMock}>
