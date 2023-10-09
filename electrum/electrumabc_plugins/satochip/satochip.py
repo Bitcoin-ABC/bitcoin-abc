@@ -8,7 +8,13 @@ import mnemonic
 
 # electrumabc
 from electrumabc import networks
-from electrumabc.bitcoin import Hash, SignatureType, hash_160, serialize_xpub
+from electrumabc.bitcoin import (
+    Hash,
+    ScriptType,
+    SignatureType,
+    hash_160,
+    serialize_xpub,
+)
 from electrumabc.constants import PROJECT_NAME
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
@@ -430,16 +436,17 @@ class SatochipKeyStore(HardwareKeyStore):
 
         # Fetch inputs of the transaction to sign
         derivations = self.get_tx_derivations(tx)
-        for i, txin in enumerate(tx.inputs()):
+        for i, txin in enumerate(tx.txinputs()):
             self.print_error("sign_transaction(): input =", i)
-            self.print_error("sign_transaction(): input[type]:", txin["type"])
-            if txin["type"] == "coinbase":
-                self.give_error("Coinbase not supported")  # should never happen
+            self.print_error("sign_transaction(): input[type]:", txin.type)
+            if txin.type == ScriptType.coinbase:
+                # should never happen
+                self.give_error("Coinbase not supported")
 
-            pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
+            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for j, x_pubkey in enumerate(x_pubkeys):
                 self.print_error("sign_transaction(): forforloop: j=", j)
-                if tx.is_txin_complete(txin):
+                if txin.is_complete():
                     break
 
                 if x_pubkey in derivations:
@@ -453,7 +460,7 @@ class SatochipKeyStore(HardwareKeyStore):
                     # parse tx
                     pre_tx = tx.serialize_preimage(i)
                     pre_tx_hex = pre_tx.hex()
-                    pre_hash = Hash(pre_tx_hex)
+                    pre_hash = Hash(pre_tx)
                     pre_hash_hex = pre_hash.hex()
                     self.print_error("sign_transaction(): pre_tx_hex=", pre_tx_hex)
                     self.print_error("sign_transaction(): pre_hash=", pre_hash_hex)
@@ -491,7 +498,7 @@ class SatochipKeyStore(HardwareKeyStore):
                             "sw": True,
                             "tn": test_net,
                             "txo": txOutputs,
-                            "ty": txin["type"],
+                            "ty": txin.type.name,
                         }
                         msg = json.dumps(msg)
                         (id_2FA, msg_out) = client.cc.card_crypt_transaction_2FA(
@@ -560,9 +567,8 @@ class SatochipKeyStore(HardwareKeyStore):
                         s = CURVE_ORDER - s
                     tx_sig = der_sig_from_r_and_s(r, s)
                     # update tx with signature
-                    tx_sig = tx_sig.hex() + "41"
-                    # tx.add_signature_to_txin(i,j,tx_sig)
-                    txin["signatures"][j] = tx_sig
+                    tx_sig = tx_sig + b"\x41"
+                    txin.update_signature(tx_sig, j)
                     break
             else:
                 self.give_error(

@@ -9,15 +9,14 @@ from typing import Optional, Tuple
 
 from electrumabc import bitcoin
 from electrumabc.address import Address
-from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, SignatureType
-from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType, SignatureType
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
 from electrumabc.plugins import Device
 from electrumabc.printerror import is_verbose, print_error
 from electrumabc.serialize import serialize_sequence
 from electrumabc.transaction import Transaction
-from electrumabc.util import bfh, bh2u, versiontuple
+from electrumabc.util import bfh, versiontuple
 
 from ..hw_wallet import HardwareClientBase, HWPluginBase
 from ..hw_wallet.plugin import (
@@ -463,14 +462,15 @@ class LedgerKeyStore(HardwareKeyStore):
 
         # Fetch inputs of the transaction to sign
         derivations = self.get_tx_derivations(tx)
-        for txin in tx.inputs():
-            if txin["type"] == "coinbase":
-                self.give_error(_("Coinbase not supported"))  # should never happen
+        for txin in tx.txinputs():
+            if txin.type == ScriptType.coinbase:
+                # should never happen
+                self.give_error(_("Coinbase not supported"))
 
-            if txin["type"] in ["p2sh"]:
+            if txin.type == ScriptType.p2sh:
                 p2shTransaction = True
 
-            pubkeys, x_pubkeys = tx.get_sorted_pubkeys(txin)
+            pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
             for i, x_pubkey in enumerate(x_pubkeys):
                 if x_pubkey in derivations:
                     signingPos = i
@@ -484,15 +484,15 @@ class LedgerKeyStore(HardwareKeyStore):
                     _("No matching x_key for sign_transaction")
                 )  # should never happen
 
-            redeemScript = Transaction.get_preimage_script(txin)
+            redeemScript = txin.get_preimage_script()
             inputs.append(
                 [
-                    txin["prev_tx"].raw.hex(),
-                    txin["prevout_n"],
-                    redeemScript,
-                    txin["prevout_hash"],
+                    txin.get_prev_tx().raw.hex(),
+                    txin.outpoint.n,
+                    redeemScript.hex(),
+                    txin.outpoint.txid.to_string(),
                     signingPos,
-                    txin.get("sequence", DEFAULT_TXIN_SEQUENCE),
+                    txin.sequence,
                 ]
             )
             inputsPaths.append(hwAddress)
@@ -500,8 +500,8 @@ class LedgerKeyStore(HardwareKeyStore):
 
         # Sanity check
         if p2shTransaction:
-            for txin in tx.inputs():
-                if txin["type"] != "p2sh":
+            for txin in tx.txinputs():
+                if txin.type != ScriptType.p2sh:
                     self.give_error(
                         _(
                             "P2SH / regular input mixed in same transaction not"
@@ -688,9 +688,9 @@ class LedgerKeyStore(HardwareKeyStore):
         finally:
             self.handler.finished()
 
-        for i, txin in enumerate(tx.inputs()):
+        for i, txin in enumerate(tx.txinputs()):
             signingPos = inputs[i][4]
-            txin["signatures"][signingPos] = bh2u(signatures[i])
+            txin.update_signature(signatures[i], signingPos)
         tx.raw = tx.serialize()
 
     @test_pin_unlocked

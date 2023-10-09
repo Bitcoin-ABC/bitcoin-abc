@@ -29,6 +29,7 @@ try:
         EncodeAES_bytes,
         Hash,
         MyVerifyingKey,
+        ScriptType,
         SignatureType,
         hmac_oneshot,
         msg_magic,
@@ -41,7 +42,7 @@ try:
     from electrumabc.i18n import _
     from electrumabc.keystore import HardwareKeyStore
     from electrumabc.printerror import print_error
-    from electrumabc.transaction import Transaction, TxInput
+    from electrumabc.transaction import Transaction
     from electrumabc.util import UserCancelled, to_string
 
     from ..hw_wallet import HardwareClientBase, HWPluginBase
@@ -626,14 +627,15 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
             pubkeyarray = []
 
             # Build hasharray from inputs
-            for i, txin in enumerate(tx.inputs()):
-                if txin["type"] == "coinbase":
-                    self.give_error("Coinbase not supported")  # should never happen
+            for i, txin in enumerate(tx.txinputs()):
+                if txin.type == ScriptType.coinbase:
+                    # should never happen
+                    self.give_error("Coinbase not supported")
 
-                if txin["type"] != "p2pkh":
+                if txin.type != ScriptType.p2pkh:
                     p2pkhTransaction = False
 
-                for x_pubkey in txin["x_pubkeys"]:
+                for x_pubkey in txin.x_pubkeys:
                     if x_pubkey in derivations:
                         index = derivations.get(x_pubkey)
                         inputPath = "%s/%d/%d" % (
@@ -777,13 +779,11 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                 raise Exception(
                     "Incorrect number of transactions signed."
                 )  # Should never occur
-            for i, txin in enumerate(tx.inputs()):
-                num = txin["num_sig"]
-                for pubkey in txin["pubkeys"]:
-                    signatures = list(filter(None, txin["signatures"]))
-                    if len(signatures) == num:
-                        break  # txin is complete
-                    ii = txin["pubkeys"].index(pubkey)
+            for i, txin in enumerate(tx.txinputs()):
+                if txin.is_complete():
+                    break
+                pubkeys, x_pubkeys = txin.get_sorted_pubkeys()
+                for ii, pubkey in enumerate(pubkeys):
                     signed = dbb_signatures[i]
                     if "recid" in signed:
                         # firmware > v2.1.1
@@ -800,8 +800,8 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                     sig_r = int(signed["sig"][:64], 16)
                     sig_s = int(signed["sig"][64:], 16)
                     sig = sigencode_der(sig_r, sig_s, generator_secp256k1.order())
-                    txin["signatures"][ii] = to_hexstr(sig) + "41"
-                    tx.update_input(i, TxInput.from_coin_dict(txin))
+                    txin.update_signature(sig + b"\x41", ii)
+                    tx.update_input(i, txin)
         except UserCancelled:
             raise
         except Exception as e:
