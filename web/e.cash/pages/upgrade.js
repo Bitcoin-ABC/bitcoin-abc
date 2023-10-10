@@ -75,8 +75,7 @@ function Upgrade(props) {
                 <p>
                     eCash miners must ensure that their mining setup is properly
                     configured to use the proper miner fund amount. This
-                    information is available via the `getblocktemplate` RPC. the
-                    coinbase outputs
+                    information is available via the `getblocktemplate` RPC.
                 </p>
                 <H3 text="Do I need to upgrade my wallet?" id="wallet" />
                 <p>
