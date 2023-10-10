@@ -1,3 +1,4 @@
+import socket
 import ssl
 import unittest
 
@@ -18,8 +19,14 @@ class TestInterface(unittest.TestCase):
                 else:
                     self.skipTest("This test requires an internet connection.")
                 return bool(s)
-            except TimeoutError:
+            except (TimeoutError, socket.timeout):
+                # In Python >= 3.10, socket.timeout is an alias for TimeoutError.
+                # For lower versions of python we need to catch both.
+                # socket.timeout is deprecated, so when support for Python 3.9 is
+                # dropped it should be removed.
                 retries += 1
+        # if we are here, it means the request keeps timing out
+        self.skipTest(f"Skipping test after 5 timeouts. {server} must be down.")
 
     def test_verify_good_ca_cert(self):
         # These are also a wildcard certificate
