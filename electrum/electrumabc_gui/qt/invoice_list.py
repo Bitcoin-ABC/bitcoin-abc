@@ -97,7 +97,7 @@ class InvoiceList(MyTreeWidget):
     def import_invoices(self):
         wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
         filename, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self.main_window, "Select your wallet file", wallet_folder
+            self.main_window, _("Select your invoice file"), wallet_folder
         )
         if not filename:
             return

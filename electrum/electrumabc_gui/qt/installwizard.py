@@ -240,7 +240,7 @@ class InstallWizard(QtWidgets.QDialog, MessageBoxMixin, BaseWizard):
 
         def on_choose():
             path, __ = QtWidgets.QFileDialog.getOpenFileName(
-                self, "Select your wallet file", wallet_folder
+                self, _("Select your wallet file"), wallet_folder
             )
             if path:
                 self.name_e.setText(path)

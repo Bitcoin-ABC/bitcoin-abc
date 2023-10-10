@@ -146,7 +146,7 @@ class ContactList(PrintError, MessageBoxMixin, MyTreeWidget):
     def import_contacts(self):
         wallet_folder = os.path.dirname(os.path.abspath(self.config.get_wallet_path()))
         filename, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Select your wallet file", wallet_folder
+            self, _("Select your contacts file"), wallet_folder
         )
         if not filename:
             return

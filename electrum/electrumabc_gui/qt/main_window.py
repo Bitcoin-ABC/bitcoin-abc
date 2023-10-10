@@ -697,7 +697,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if not os.path.exists(wallet_folder):
             wallet_folder = None
         filename, __ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Select your wallet file", wallet_folder
+            self, _("Select your wallet file"), wallet_folder
         )
         if not filename:
             return
