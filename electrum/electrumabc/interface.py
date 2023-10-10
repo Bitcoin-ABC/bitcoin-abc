@@ -89,6 +89,10 @@ def Connection(
 class TcpConnection(threading.Thread, PrintError):
     bad_certificate = Event()
 
+    # Overrides for testing, None in production
+    override_ca_certs: str | None = None
+    override_host: str | None = None
+
     def __init__(self, server, queue, config_path):
         threading.Thread.__init__(self)
         self.config_path: str = config_path
@@ -105,8 +109,9 @@ class TcpConnection(threading.Thread, PrintError):
 
     def get_simple_socket(self):
         try:
+            host = self.override_host if self.override_host else self.host
             addr_info = socket.getaddrinfo(
-                self.host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM
+                host, self.port, socket.AF_UNSPEC, socket.SOCK_STREAM
             )
         except OverflowError:
             # This can happen if user specifies a huge port out of 32-bit range. See #985
@@ -153,8 +158,9 @@ class TcpConnection(threading.Thread, PrintError):
         if s is None:
             return None
 
+        ca_certs = self.override_ca_certs if self.override_ca_certs else ca_path
         context = self.get_ssl_context(
-            cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_path, check_hostname=True
+            cert_reqs=ssl.CERT_REQUIRED, ca_certs=ca_certs, check_hostname=True
         )
         return context.wrap_socket(
             s, do_handshake_on_connect=True, server_hostname=self.host

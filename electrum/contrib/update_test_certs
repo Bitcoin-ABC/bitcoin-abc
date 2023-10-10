@@ -1,0 +1,75 @@
+#!/bin/sh
+
+set -e
+set -x
+
+here=$(dirname "$(realpath "$0" 2> /dev/null || grealpath "$0")")
+
+OUTDIR="$here/../electrumabc/tests/data/testcerts"
+
+test -d "$OUTDIR" || mkdir -p "$OUTDIR"
+
+ROOT_FILENAME="$OUTDIR/rootCA"
+ROOT_NAME="ElectrumABC Tests Root CA"
+
+UNTRUSTED_ROOT_FILENAME="$OUTDIR/untrusted-rootCA"
+UNTRUSTED_ROOT_NAME="ElectrumABC Tests Untrusted Root CA"
+
+BASEDOMAIN="tests.electrumabc.org"
+
+CERT_VALIDITY=3650
+
+# This script fails when run in MSYS2/MINGW, see
+# https://github.com/openssl/openssl/issues/8795
+
+# Create a root CA key and self-signed certificate
+openssl genpkey -algorithm RSA -out "$ROOT_FILENAME.key"
+openssl req -x509 -new -key "$ROOT_FILENAME.key" -out "$ROOT_FILENAME.crt" -subj "/CN=$ROOT_NAME" -days $CERT_VALIDITY -addext "keyUsage = keyCertSign"
+
+# Create an untrused root CA key and self-signed certificate
+openssl genpkey -algorithm RSA -out "$UNTRUSTED_ROOT_FILENAME.key"
+openssl req -x509 -new -key "$UNTRUSTED_ROOT_FILENAME.key" -out "$UNTRUSTED_ROOT_FILENAME.crt" -subj "/CN=$UNTRUSTED_ROOT_NAME" -days $CERT_VALIDITY -addext "keyUsage = keyCertSign"
+
+# Generate a certificate for a specific domain
+FILENAME="$OUTDIR/valid.$BASEDOMAIN"
+DOMAINNAME="valid.$BASEDOMAIN"
+openssl genpkey -algorithm RSA -out "$FILENAME.key"
+openssl req -new -key "$FILENAME.key" -out "$FILENAME.csr" -subj "/CN=$DOMAINNAME"
+openssl x509 -req -in "$FILENAME.csr" -CA "$ROOT_FILENAME.crt" -CAkey "$ROOT_FILENAME.key" -CAcreateserial -sha256 -out "$FILENAME.crt" -days $CERT_VALIDITY
+
+# Generate a certificate for a wildcard domain (e.g., *.example.com)
+FILENAME="$OUTDIR/wildcard.$BASEDOMAIN"
+DOMAINNAME="*.$BASEDOMAIN"
+openssl genpkey -algorithm RSA -out "$FILENAME.key"
+openssl req -new -key "$FILENAME.key" -out "$FILENAME.csr" -subj "/CN=$DOMAINNAME"
+openssl x509 -req -in "$FILENAME.csr" -CA "$ROOT_FILENAME.crt" -CAkey "$ROOT_FILENAME.key" -CAcreateserial -sha256 -out "$FILENAME.crt" -days $CERT_VALIDITY
+
+# Generate an expired certificate (valid for 0 days) / X509_V_ERR_CERT_HAS_EXPIRED
+FILENAME="$OUTDIR/expired.$BASEDOMAIN"
+DOMAINNAME="expired.$BASEDOMAIN"
+openssl genpkey -algorithm RSA -out "$FILENAME.key"
+openssl req -new -key "$FILENAME.key" -out "$FILENAME.csr" -subj "/CN=$DOMAINNAME"
+openssl x509 -req -in "$FILENAME.csr" -CA "$ROOT_FILENAME.crt" -CAkey "$ROOT_FILENAME.key" -CAcreateserial -sha256 -out "$FILENAME.crt" -days 0
+
+# Create a self-signed certificate / X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT
+FILENAME="$OUTDIR/selfsigned.$BASEDOMAIN"
+DOMAINNAME="selfsigned.$BASEDOMAIN"
+openssl genpkey -algorithm RSA -out "$FILENAME.key"
+openssl req -x509 -new -key "$FILENAME.key" -sha256 -out "$FILENAME.crt" -subj "/CN=$DOMAINNAME" -days $CERT_VALIDITY
+
+# Create a certificate signed by the untrusted root and include the root in the bundle / X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN
+FILENAME="$OUTDIR/badchain.$BASEDOMAIN"
+DOMAINNAME="badchain.$BASEDOMAIN"
+openssl genpkey -algorithm RSA -out "$FILENAME.key"
+openssl req -new -key "$FILENAME.key" -out "$FILENAME.csr" -subj "/CN=$DOMAINNAME"
+openssl x509 -req -in "$FILENAME.csr" -CA "$UNTRUSTED_ROOT_FILENAME.crt" -CAkey "$UNTRUSTED_ROOT_FILENAME.key" -CAcreateserial -sha256 -out "$FILENAME.crt" -days $CERT_VALIDITY
+cat "$UNTRUSTED_ROOT_FILENAME.crt" >> "$FILENAME.crt"
+
+# Create a certificate signed by the untrusted root / X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY
+FILENAME="$OUTDIR/badroot.$BASEDOMAIN"
+DOMAINNAME="badroot.$BASEDOMAIN"
+openssl genpkey -algorithm RSA -out "$FILENAME.key"
+openssl req -new -key "$FILENAME.key" -out "$FILENAME.csr" -subj "/CN=$DOMAINNAME"
+openssl x509 -req -in "$FILENAME.csr" -CA "$UNTRUSTED_ROOT_FILENAME.crt" -CAkey "$UNTRUSTED_ROOT_FILENAME.key" -CAcreateserial -sha256 -out "$FILENAME.crt" -days $CERT_VALIDITY
+
+find "$OUTDIR" -name '*.csr' -delete
