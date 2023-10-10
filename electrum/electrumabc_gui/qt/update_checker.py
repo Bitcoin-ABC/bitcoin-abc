@@ -117,7 +117,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
         current_version_message = (
             _(f"Current version: {version.PACKAGE_VERSION}")
             if not self.is_test_run
-            else "Test run"
+            else "Testing release notification"
         )
         versions.addWidget(QtWidgets.QLabel(current_version_message))
         self.latest_version_label = QtWidgets.QLabel(_(f"Latest version: {' '}"))
