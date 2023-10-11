@@ -337,6 +337,10 @@ class AvalancheTest(BitcoinTestFramework):
 
         self.log.info("Check the node is discouraging unexpected avaresponses.")
 
+        self.restart_node(0)
+
+        poll_node = get_ava_p2p_interface(self, node)
+
         now = int(time.time())
         node.setmocktime(now)
 
@@ -363,8 +367,16 @@ class AvalancheTest(BitcoinTestFramework):
         now += 60 * 60 + 1  # 1h + 1s
         node.setmocktime(now)
 
-        tip = self.generate(node, 1, sync_fun=self.no_op)[-1]
-        self.wait_until(lambda: has_finalized_tip(tip))
+        quorum = [poll_node] + get_quorum()
+        assert node.getavalancheinfo()["ready_to_poll"] is True
+
+        for peer in quorum:
+            self.wait_until(lambda: has_finalized_proof(peer.proof.proofid))
+
+        # Make sure our poll node got a poll so the counter has reset
+        while len(poll_node.avapolls) == 0:
+            tip = self.generate(node, 1, sync_fun=self.no_op)[-1]
+            self.wait_until(lambda: has_finalized_tip(tip))
 
         # Counter has reset
         for _ in range(12):
