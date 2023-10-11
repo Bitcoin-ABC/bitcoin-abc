@@ -6,6 +6,7 @@ import styled from 'styled-components';
 export const AnnouncementBarCtn = styled.div`
     a,
     div {
+        --barHeight: 44px;
         width: 100%;
         background-color: ${props => props.theme.colors.black};
         padding: 0px 24px;
@@ -15,12 +16,13 @@ export const AnnouncementBarCtn = styled.div`
         letter-spacing: 1px;
         text-transform: uppercase;
         font-size: 14px;
-        height: 34px;
+        height: var(--barHeight);
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 200ms ease-in-out;
-        margin-top: ${props => (props.navBackground ? '-34px' : '0')};
+        margin-top: ${props =>
+            props.navBackground ? `calc(var(--barHeight) * -1)` : '0'};
     }
     a {
         :hover {
@@ -34,7 +36,26 @@ export const AnnouncementBarCtn = styled.div`
         div {
             padding: 0px 10px;
             font-size: 12px;
-            height: 30px;
+            --barHeight: 40px;
         }
+    }
+
+    a > span {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    a > span span {
+        line-height: 1em;
+    }
+`;
+
+export const Timer = styled.span`
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 600;
+    ${props => props.theme.breakpoint.medium} {
+        font-size: 14px;
     }
 `;

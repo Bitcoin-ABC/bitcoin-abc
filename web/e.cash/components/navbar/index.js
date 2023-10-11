@@ -63,7 +63,8 @@ export default function Navbar({ announcementbar }) {
     return (
         <NavbarOuter navBackground={navBackground}>
             <AnnouncementBar
-                text="Stealth Mode Activated"
+                href="/upgrade"
+                text="Prepare for the eCash network upgrade!"
                 navBackground={navBackground}
             />
             {!process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
