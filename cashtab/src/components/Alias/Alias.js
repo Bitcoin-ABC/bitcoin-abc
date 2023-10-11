@@ -96,9 +96,7 @@ const Alias = ({ passLoadingStatus }) => {
     const [aliasAddressValidationError, setAliasAddressValidationError] =
         useState(false);
     const [activeWalletAliases, setActiveWalletAliases] = useState([]); // stores the list of aliases registered to this active wallet
-    const [aliasLength, setAliasLength] = useState(false); // real time tracking of alias char length
     const [aliasServerError, setAliasServerError] = useState(false);
-    const [aliasToRegister, setAliasToRegister] = useState(false); // real time tracking of the alias input
     const [aliasDetails, setAliasDetails] = useState(false); // stores the /alias/<alias> endpoint response object
 
     // Show a confirmation modal on alias registrations
@@ -169,7 +167,10 @@ const Alias = ({ passLoadingStatus }) => {
         // Retrieve alias details
         let aliasDetailsResp;
         try {
-            aliasDetailsResp = await queryAliasServer('alias', aliasToRegister);
+            aliasDetailsResp = await queryAliasServer(
+                'alias',
+                formData.aliasName,
+            );
         } catch (err) {
             const errorMsg = 'Error retrieving alias details';
             console.log(`preparePreviewModal(): ${errorMsg}`, err);
@@ -195,7 +196,7 @@ const Alias = ({ passLoadingStatus }) => {
             errorNotification(
                 null,
                 'This alias [' +
-                    aliasToRegister +
+                    formData.aliasName +
                     `] is already owned by ${aliasDetailsResp.address}, please try another alias`,
                 'Alias availability check',
             );
@@ -292,16 +293,12 @@ const Alias = ({ passLoadingStatus }) => {
             validAliasInput
         ) {
             setIsValidAliasInput(true);
-            setAliasLength(aliasInputByteSize);
-            setAliasToRegister(value);
             setAliasValidationError(false);
         } else {
             setAliasValidationError(
                 'Please enter an alias (lowercase a-z, 0-9) between 1 and 21 bytes',
             );
             setIsValidAliasInput(false);
-            setAliasToRegister(false);
-            setAliasLength(false);
         }
 
         setFormData(p => ({
@@ -501,8 +498,14 @@ const Alias = ({ passLoadingStatus }) => {
                                                 }}
                                             />
                                         )}
-                                        {aliasLength &&
-                                            `This alias is ${aliasLength} bytes in length`}
+                                        {(() => {
+                                            let aliasLength = getAliasByteSize(
+                                                formData.aliasName,
+                                            );
+                                            if (aliasLength > 0) {
+                                                return `This alias is ${aliasLength} bytes in length`;
+                                            }
+                                        })()}
                                     </Form.Item>
                                     <Form.Item>
                                         <SmartButton
