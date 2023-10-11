@@ -86,6 +86,61 @@ function Upgrade(props) {
                     </Link>{' '}
                     are not affected by the network upgrade.
                 </p>
+                <H3 text="How do I upgrade?" id="instructions" />
+                <p>
+                    The process of upgrading your node is straightforward:
+                    simply stop the currently running node, download the new
+                    version, and start the new version. Here are some example
+                    instructions for upgrading from version 0.27.15 to version
+                    0.28.0 on Linux:
+                </p>
+                <ol>
+                    <li>
+                        Shut down the node:
+                        <br />
+                        <code>./bitcoin-abc-0.27.15/bin/bitcoin-cli stop</code>
+                    </li>
+                    <li>
+                        Download the new version archive from the website:{' '}
+                        <br />
+                        <code>
+                            wget
+                            https://download.bitcoinabc.org/0.28.0/linux/bitcoin-abc-0.28.0-x86_64-linux-gnu.tar.gz
+                        </code>
+                    </li>
+                    <li>
+                        Extract the archive:
+                        <br />
+                        <code>
+                            tar xzf bitcoin-abc-0.28.0-x86_64-linux-gnu.tar.gz
+                        </code>
+                    </li>
+                    <li>
+                        Restart the node with the new version:
+                        <br />
+                        <code>./bitcoin-abc-0.28.0/bin/bitcoind -daemon</code>
+                    </li>
+                    <li>
+                        Clean up old version and archives (optional):
+                        <ul>
+                            <li>
+                                <code>rm -rf bitcoin-abc-0.27.15</code>
+                            </li>
+                            <li>
+                                <code>
+                                    rm -f
+                                    bitcoin-abc-0.27.15-x86_64-linux-gnu.tar.gz
+                                </code>
+                            </li>
+                            <li>
+                                <code>
+                                    rm -f
+                                    bitcoin-abc-0.28.0-x86_64-linux-gnu.tar.gz
+                                </code>
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
             </Container>
         </Layout>
     );
