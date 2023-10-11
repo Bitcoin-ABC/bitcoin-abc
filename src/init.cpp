@@ -428,7 +428,7 @@ void SetupServerArgs(NodeContext &node) {
     std::vector<std::string> hidden_args = {
         "-dbcrashratio", "-forcecompactdb", "-maxaddrtosend", "-parkdeepreorg",
         "-automaticunparking", "-replayprotectionactivationtime",
-        "-enableminerfund", "-chronikallowpause", "-avalanchestakingrewards",
+        "-enableminerfund", "-chronikallowpause",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
         "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
         "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",
@@ -1273,6 +1273,14 @@ void SetupServerArgs(NodeContext &node) {
                    strprintf("Enable the avalanche feature (default: %u)",
                              AVALANCHE_DEFAULT_ENABLED),
                    ArgsManager::ALLOW_ANY, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-avalanchestakingrewards",
+        strprintf("Enable the avalanche staking rewards feature (default: %u, "
+                  "testnet: %u, regtest: %u)",
+                  defaultChainParams->GetConsensus().enableStakingRewards,
+                  testnetChainParams->GetConsensus().enableStakingRewards,
+                  regtestChainParams->GetConsensus().enableStakingRewards),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
     argsman.AddArg("-avalancheconflictingproofcooldown",
                    strprintf("Mandatory cooldown before a proof conflicting "
                              "with an already registered one can be considered "
