@@ -116,15 +116,23 @@ export default createGlobalStyle`
 
     body .wg-drop.country-selector .wgcurrent a,
     body .wg-default .wg-drop.country-selector a {
-        padding: 0;
-        width: 50px;
-        height: 50px;
+        padding: 0 !important;
+        width: 50px !important;
+        height: 50px !important;
         display: flex;
         align-items: center;
         justify-content: center;
         border: 1px solid ${props => props.theme.colors.primaryLight};
         background-color: ${props => props.theme.colors.darkBackground};
         color: ${props => props.theme.colors.contrast}
+    }
+
+    body aside #weglot-listbox {
+        bottom: 43px !important;
+    }
+
+    body aside #weglot-listbox li a:hover {
+       background-color: ${props => props.theme.colors.primaryLight} !important;
     }
 
     body .wg-drop.country-selector .wgcurrent:after {
