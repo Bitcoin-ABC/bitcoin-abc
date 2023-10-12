@@ -180,11 +180,8 @@ public:
         // possible.
         // Bitcoin ABC seeder
         vSeeds.emplace_back("seed.bitcoinabc.org");
-        // Amaury SÉCHET
-        vSeeds.emplace_back("seed.deadalnix.me");
         // Fabien
         vSeeds.emplace_back("seeder.fabien.cash");
-        vSeeds.emplace_back("seeder2.fabien.cash");
         // status.cash
         vSeeds.emplace_back("seeder.status.cash");
 
@@ -327,8 +324,6 @@ public:
         // nodes with support for servicebits filtering should be at the top
         // Bitcoin ABC seeder
         vSeeds.emplace_back("testnet-seed.bitcoinabc.org");
-        // Amaury SÉCHET
-        vSeeds.emplace_back("testnet-seed.deadalnix.me");
         // Fabien
         vSeeds.emplace_back("testnet-seeder.fabien.cash");
         // status.cash
