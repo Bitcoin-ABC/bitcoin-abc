@@ -15,6 +15,8 @@ const switchTime = activationTime + 3 * 3600000;
 
 /**
  * CountdownClock renderer
+ * The weglot-ignore classname here is used to tell weglot not to transalate that element.
+ * It is configured in the weglot portal.
  * @param {number} days, hours, minutes, seconds - values from the Countdown package
  * @param {string} text - text to display
  * @param {boolean} completed - boolean based on the time left in the countdown
@@ -24,7 +26,10 @@ const CountdownClock = ({ days, hours, minutes, seconds, completed, text }) => {
         <span suppressHydrationWarning>
             <span>{completed ? 'eCash network upgrade complete!' : text}</span>
             {!completed && (
-                <Timer suppressHydrationWarning={true}>
+                <Timer
+                    className="weglot-ignore"
+                    suppressHydrationWarning={true}
+                >
                     {zeroPad(days, 2)} Days {zeroPad(hours, 2)}:
                     {zeroPad(minutes, 2)}:{zeroPad(seconds, 2)}
                 </Timer>
