@@ -28,6 +28,7 @@
         "ecash-script": "^2.0.0",
         "ecashaddrjs": "^1.5.0",
         "express": "^4.18.2",
+        "helmet": "^7.0.0",
         "mongodb": "^5.0.1",
         "node-cache": "^5.1.2",
         "node-telegram-bot-api": "^0.61.0",

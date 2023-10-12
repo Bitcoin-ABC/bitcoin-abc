@@ -15,11 +15,13 @@ const {
 const { getAliasPrice } = require('./utils');
 const aliasConstants = require('../constants/alias');
 const cashaddr = require('ecashaddrjs');
+const helmet = require('helmet');
 
 module.exports = {
     startServer: function (db, port) {
         // Set up your API endpoints
         const app = express();
+        app.use(helmet());
         app.use(express.json());
         app.use(requestIp.mw());
         app.use(cors());
