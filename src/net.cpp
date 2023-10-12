@@ -2942,7 +2942,7 @@ bool CConnman::Start(CScheduler &scheduler, const Options &connOptions) {
 
     if (m_client_interface) {
         m_client_interface->InitMessage(
-            _("Starting network threads…").translated);
+            _("Starting network threads...").translated);
     }
 
     fAddressesInitialized = true;

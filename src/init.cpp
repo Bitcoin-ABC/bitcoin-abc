@@ -2459,7 +2459,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         auto [status, error] = catch_exceptions(
             [&] { return LoadChainstate(chainman, cache_sizes, options); });
         if (status == node::ChainstateLoadStatus::SUCCESS) {
-            uiInterface.InitMessage(_("Verifying blocks…").translated);
+            uiInterface.InitMessage(_("Verifying blocks...").translated);
             if (chainman.m_blockman.m_have_pruned &&
                 options.check_blocks > MIN_BLOCKS_TO_KEEP) {
                 LogPrintf("Prune: pruned datadir may not have more than %d "
