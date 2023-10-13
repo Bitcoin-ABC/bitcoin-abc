@@ -265,7 +265,7 @@ const Alias = ({ passLoadingStatus }) => {
                 );
                 registerAliasNotification(result.explorerLink, aliasInput);
             } catch (err) {
-                handleAliasRegistrationError(err);
+                errorNotification(err, err.message, 'Registering Alias');
             }
             setIsValidAliasInput(true);
         } else {
@@ -385,25 +385,6 @@ const Alias = ({ passLoadingStatus }) => {
             [name]: value,
         }));
     };
-
-    function handleAliasRegistrationError(errorObj) {
-        // Set loading to false here as well, as balance may not change depending on where error occured in try loop
-        passLoadingStatus(false);
-        let message;
-        if (
-            errorObj.error &&
-            errorObj.error.includes(
-                'too-long-mempool-chain, too many unconfirmed ancestors [limit: 50] (code 64)',
-            )
-        ) {
-            message = `The address you are trying to register has too many unconfirmed ancestors (limit 50). Registration will be possible after a block confirmation. Try again in about 10 minutes.`;
-        } else {
-            message =
-                errorObj.message || errorObj.error || JSON.stringify(errorObj);
-        }
-
-        errorNotification(errorObj, message, 'Registering Alias');
-    }
 
     return (
         <>
