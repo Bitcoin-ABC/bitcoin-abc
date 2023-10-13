@@ -132,7 +132,7 @@ function GetEcash(props) {
                         </p>
                         <Button
                             text="Get Started"
-                            link="https://e.cash/blog/xec-ecash-mining"
+                            link="/mining"
                             corner="bottomRight"
                             color="accent"
                         />

@@ -76,7 +76,7 @@ export const navitems = [
             },
             {
                 title: 'Mining',
-                link: '/get-ecash#mining',
+                link: '/mining',
                 icon: '/images/mining-icon.svg',
             },
         ],
