@@ -1519,28 +1519,33 @@ class AbstractWallet(PrintError, SPVDelegate):
             # self.transactions, but instead rely on the unreferenced tx being
             # removed the next time the wallet is loaded in self.load_transactions()
 
-            for ser, hh in list(self.pruned_txo.items()):
+            to_pop = []
+            for ser, hh in self.pruned_txo.items():
                 if hh == tx_hash:
-                    self.pruned_txo.pop(ser)
+                    to_pop.append(ser)
                     self.pruned_txo_values.discard(hh)
+            for ser in to_pop:
+                self.pruned_txo.pop(ser, None)
             # add tx to pruned_txo, and undo the txi addition
             for next_tx, dd in self.txi.items():
-                for addr, txis_for_addr in list(dd.items()):
-                    ll = txis_for_addr[:]
-                    for item in ll:
-                        ser, v = item
+                to_pop = []
+                for addr, txis_for_addr in dd.items():
+                    del_idx = []
+                    for idx, (ser, v) in enumerate(txis_for_addr):
                         prev_hash, prev_n = ser.split(":")
                         if prev_hash == tx_hash:
                             self._addr_bal_cache.pop(
                                 addr, None
                             )  # invalidate cache entry
-                            txis_for_addr.remove(item)
+                            del_idx.append(idx)
                             self.pruned_txo[ser] = next_tx
                             self.pruned_txo_values.add(next_tx)
-                    if not txis_for_addr:
-                        dd.pop(addr)
-                    else:
-                        dd[addr] = txis_for_addr
+                    for ctr, idx in enumerate(del_idx):
+                        del txis_for_addr[idx - ctr]
+                    if len(txis_for_addr) == 0:
+                        to_pop.append(addr)
+                for addr in to_pop:
+                    dd.pop(addr, None)
 
             # invalidate addr_bal_cache for outputs involving this tx
             d = self.txo.get(tx_hash, {})
@@ -1640,6 +1645,7 @@ class AbstractWallet(PrintError, SPVDelegate):
         "TxHistory", "tx_hash, height, conf, timestamp, amount, balance"
     )
 
+    @profiler
     def get_history(self, domain=None, *, reverse=False) -> List[TxHistory]:
         # get domain
         if domain is None:
@@ -2307,6 +2313,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 self.storage.put("frozen_coins", list(self.frozen_coins))
             return ok
 
+    @profiler
     def prepare_for_verifier(self):
         # review transactions that are in the history
         for addr, hist in self._history.items():
@@ -2316,11 +2323,14 @@ class AbstractWallet(PrintError, SPVDelegate):
 
         # if we are on a pruning server, remove unverified transactions
         with self.lock:
-            vr = list(self.verified_tx.keys()) + list(self.unverified_tx.keys())
-        for tx_hash in list(self.transactions):
+            vr = set(self.verified_tx.keys()) | set(self.unverified_tx.keys())
+        to_pop = []
+        for tx_hash in self.transactions.keys():
             if tx_hash not in vr:
-                self.print_error("removing transaction", tx_hash)
-                self.transactions.pop(tx_hash)
+                to_pop.append(tx_hash)
+        for tx_hash in to_pop:
+            self.print_error("removing transaction", tx_hash)
+            self.transactions.pop(tx_hash)
 
     def start_threads(self, network):
         self.network = network
