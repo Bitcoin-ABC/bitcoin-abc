@@ -342,9 +342,6 @@ public:
     void cleanupStakingRewards(const int minHeight);
     bool getStakingRewardWinner(const BlockHash &prevBlockHash,
                                 CScript &winner) const;
-    bool getStakingRewardAcceptableWinners(
-        const BlockHash &prevBlockHash,
-        std::vector<CScript> &acceptableWinners) const;
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode *pnode) override {}

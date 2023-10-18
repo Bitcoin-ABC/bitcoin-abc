@@ -452,12 +452,6 @@ public:
      * and the previous block hash.
      */
     bool selectStakingRewardWinner(const CBlockIndex *pprev, CScript &winner);
-    /**
-     * Deterministically select a unique payout script and a range of payout
-     * scripts based on the proof set and the previous block hash.
-     */
-    bool selectPayoutScriptPubKey(const CBlockIndex *pprev, CScript &winner,
-                                  std::vector<CScript> &acceptableWinners);
 
 private:
     template <typename ProofContainer>
