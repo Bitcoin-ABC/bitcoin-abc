@@ -827,6 +827,11 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     return false;
 }
 
+bool Processor::eraseStakingRewardWinner(const BlockHash &prevBlockHash) {
+    LOCK(cs_stakingRewards);
+    return stakingRewards.erase(prevBlockHash) > 0;
+}
+
 void Processor::cleanupStakingRewards(const int minHeight) {
     LOCK(cs_stakingRewards);
     // std::erase_if is only defined since C++20
@@ -849,6 +854,19 @@ bool Processor::getStakingRewardWinner(const BlockHash &prevBlockHash,
 
     winner = it->second.winner;
     return true;
+}
+
+bool Processor::setStakingRewardWinner(const CBlockIndex *pprev,
+                                       const CScript &winner) {
+    assert(pprev);
+
+    StakingReward stakingReward;
+    stakingReward.blockheight = pprev->nHeight;
+    stakingReward.winner = winner;
+
+    LOCK(cs_stakingRewards);
+    return stakingRewards.insert_or_assign(pprev->GetBlockHash(), stakingReward)
+        .second;
 }
 
 void Processor::FinalizeNode(const ::Config &config, const CNode &node) {

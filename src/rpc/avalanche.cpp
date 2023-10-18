@@ -16,6 +16,7 @@
 #include <key_io.h>
 #include <net_processing.h>
 #include <node/context.h>
+#include <policy/block/stakingrewards.h>
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <rpc/server_util.h>
@@ -1019,6 +1020,150 @@ static RPCHelpMan getavalancheproofs() {
     };
 }
 
+static RPCHelpMan getstakingreward() {
+    return RPCHelpMan{
+        "getstakingreward",
+        "Return the staking reward winner based on the previous block hash.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The previous block hash, hex encoded."},
+            {"recompute", RPCArg::Type::BOOL, RPCArg::Default{false},
+             "Whether to recompute the staking reward winner if there is a "
+             "cached value."},
+        },
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "payoutscript",
+            "The winning proof payout script",
+            {
+                {RPCResult::Type::STR, "asm", "Decoded payout script"},
+                {RPCResult::Type::STR_HEX, "hex",
+                 "Raw payout script in hex format"},
+                {RPCResult::Type::STR, "type",
+                 "The output type (e.g. " + GetAllOutputTypes() + ")"},
+                {RPCResult::Type::NUM, "reqSigs", "The required signatures"},
+                {RPCResult::Type::ARR,
+                 "addresses",
+                 "",
+                 {
+                     {RPCResult::Type::STR, "address", "eCash address"},
+                 }},
+            }},
+        RPCExamples{HelpExampleRpc("getstakingreward", "<blockhash>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
+
+            const BlockHash blockhash(
+                ParseHashV(request.params[0], "blockhash"));
+
+            const CBlockIndex *pprev;
+            {
+                LOCK(cs_main);
+                pprev = chainman.m_blockman.LookupBlockIndex(blockhash);
+            }
+
+            if (!pprev) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    strprintf("Block not found: %s\n", blockhash.ToString()));
+            }
+
+            if (!IsStakingRewardsActivated(
+                    config.GetChainParams().GetConsensus(), pprev)) {
+                throw JSONRPCError(
+                    RPC_INTERNAL_ERROR,
+                    strprintf(
+                        "Staking rewards are not activated for block %s\n",
+                        blockhash.ToString()));
+            }
+
+            if (!request.params[1].isNull() && request.params[1].get_bool()) {
+                // Force recompute the staking reward winner by first erasing
+                // the cached entry if any
+                g_avalanche->eraseStakingRewardWinner(blockhash);
+            }
+
+            if (!g_avalanche->computeStakingReward(pprev)) {
+                throw JSONRPCError(
+                    RPC_INTERNAL_ERROR,
+                    strprintf("Unable to determine a staking reward winner "
+                              "for block %s\n",
+                              blockhash.ToString()));
+            }
+
+            CScript winnerPayoutScript;
+            if (!g_avalanche->getStakingRewardWinner(blockhash,
+                                                     winnerPayoutScript)) {
+                throw JSONRPCError(
+                    RPC_INTERNAL_ERROR,
+                    strprintf("Unable to retrieve the staking reward winner "
+                              "for block %s\n",
+                              blockhash.ToString()));
+            }
+
+            UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
+            ScriptPubKeyToUniv(winnerPayoutScript,
+                               stakingRewardsPayoutScriptObj,
+                               /*fIncludeHex=*/true);
+            return stakingRewardsPayoutScriptObj;
+        },
+    };
+}
+
+static RPCHelpMan setstakingreward() {
+    return RPCHelpMan{
+        "setstakingreward",
+        "Set the staking reward winner for the given previous block hash.\n",
+        {
+            {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The previous block hash, hex encoded."},
+            {"payoutscript", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The payout script for the staking reward, hex encoded."},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the payout script was set or not"},
+        RPCExamples{
+            HelpExampleRpc("setstakingreward", "<blockhash> <payout script>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
+
+            const BlockHash blockhash(
+                ParseHashV(request.params[0], "blockhash"));
+
+            const CBlockIndex *pprev;
+            {
+                LOCK(cs_main);
+                pprev = chainman.m_blockman.LookupBlockIndex(blockhash);
+            }
+
+            if (!pprev) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    strprintf("Block not found: %s\n", blockhash.ToString()));
+            }
+
+            if (!IsStakingRewardsActivated(
+                    config.GetChainParams().GetConsensus(), pprev)) {
+                throw JSONRPCError(
+                    RPC_INTERNAL_ERROR,
+                    strprintf(
+                        "Staking rewards are not activated for block %s\n",
+                        blockhash.ToString()));
+            }
+
+            const std::vector<uint8_t> data =
+                ParseHex(request.params[1].get_str());
+            const CScript payoutScript(data.begin(), data.end());
+
+            return g_avalanche->setStakingRewardWinner(pprev, payoutScript);
+        },
+    };
+}
+
 static RPCHelpMan getrawavalancheproof() {
     return RPCHelpMan{
         "getrawavalancheproof",
@@ -1342,6 +1487,8 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         getavalancheinfo,          },
         { "avalanche",         getavalanchepeerinfo,      },
         { "avalanche",         getavalancheproofs,        },
+        { "avalanche",         getstakingreward,          },
+        { "avalanche",         setstakingreward,          },
         { "avalanche",         getrawavalancheproof,      },
         { "avalanche",         isfinalblock,              },
         { "avalanche",         isfinaltransaction,        },

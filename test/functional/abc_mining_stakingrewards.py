@@ -12,7 +12,12 @@ from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.messages import XEC, AvalancheProofVoteResponse
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_greater_than_or_equal, uint256_hex
+from test_framework.util import (
+    assert_equal,
+    assert_greater_than_or_equal,
+    assert_raises_rpc_error,
+    uint256_hex,
+)
 
 QUORUM_NODE_COUNT = 16
 STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
@@ -48,6 +53,36 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         now += 60 * 60
         node.setmocktime(now)
 
+        invalid_block_hash = "0" * 63
+        assert_raises_rpc_error(
+            -8,
+            f"blockhash must be of length 64 (not 63, for '{invalid_block_hash}')",
+            node.getstakingreward,
+            invalid_block_hash,
+        )
+        assert_raises_rpc_error(
+            -8,
+            f"blockhash must be of length 64 (not 63, for '{invalid_block_hash}')",
+            node.setstakingreward,
+            invalid_block_hash,
+            "76a914000000000000000000000000000000000000000088ac",
+        )
+
+        invalid_block_hash = "0" * 64
+        assert_raises_rpc_error(
+            -8,
+            f"Block not found: {invalid_block_hash}",
+            node.getstakingreward,
+            invalid_block_hash,
+        )
+        assert_raises_rpc_error(
+            -8,
+            f"Block not found: {invalid_block_hash}",
+            node.setstakingreward,
+            invalid_block_hash,
+            "76a914000000000000000000000000000000000000000088ac",
+        )
+
         def get_coinbase(blockhash):
             return node.getblock(blockhash, 2)["tx"][0]
 
@@ -57,6 +92,13 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
         self.log.info(
             "Staking rewards not ready yet, check getblocktemplate lacks the staking rewards data"
+        )
+
+        assert_raises_rpc_error(
+            -32603,
+            f"Staking rewards are not activated for block {tiphash}",
+            node.getstakingreward,
+            tiphash,
         )
 
         gbt = node.getblocktemplate()
@@ -71,6 +113,13 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         tiphash = self.generate(node, 1)[-1]
         coinbase = get_coinbase(tiphash)
         assert_equal(len(coinbase["vout"]), 1)
+
+        assert_raises_rpc_error(
+            -32603,
+            f"Staking rewards are not activated for block {tiphash}",
+            node.getstakingreward,
+            tiphash,
+        )
 
         self.log.info(
             "Staking rewards are computed, check the block template returns the staking rewards data"
@@ -93,12 +142,19 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         now = COWPERTHWAITE_ACTIVATION - 5
         for _ in range(10):
             node.setmocktime(now)
-            tiphash = tiphash = self.generate(node, 1)[-1]
+            tiphash = self.generate(node, 1)[-1]
 
             gbt = node.getblocktemplate()
             assert_equal(gbt["previousblockhash"], tiphash)
             assert "coinbasetxn" in gbt
             assert "stakingrewards" not in gbt["coinbasetxn"]
+
+            assert_raises_rpc_error(
+                -32603,
+                f"Staking rewards are not activated for block {tiphash}",
+                node.getstakingreward,
+                tiphash,
+            )
 
             now += 1
 
@@ -123,6 +179,17 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                 "minimumvalue": Decimal(
                     block_reward * STAKING_REWARDS_COINBASE_RATIO_PERCENT // 100 * XEC
                 ),
+            },
+        )
+
+        assert_equal(
+            node.getstakingreward(activation_hash),
+            {
+                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                "hex": "76a914000000000000000000000000000000000000000088ac",
+                "reqSigs": 1,
+                "type": "pubkeyhash",
+                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
             },
         )
 
@@ -176,6 +243,17 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             },
         )
 
+        assert_equal(
+            node.getstakingreward(tiphash),
+            {
+                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                "hex": "76a914000000000000000000000000000000000000000088ac",
+                "reqSigs": 1,
+                "type": "pubkeyhash",
+                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+            },
+        )
+
         self.log.info(
             "Staking rewards are computed, check the miner produces the staking rewards output"
         )
@@ -190,6 +268,92 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         assert_equal(
             coinbase["vout"][-1]["scriptPubKey"]["hex"],
             "76a914000000000000000000000000000000000000000088ac",
+        )
+
+        assert_equal(
+            node.getstakingreward(tiphash),
+            {
+                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                "hex": "76a914000000000000000000000000000000000000000088ac",
+                "reqSigs": 1,
+                "type": "pubkeyhash",
+                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+            },
+        )
+
+        self.log.info("Override the staking reward via RPC")
+
+        node.setstakingreward(
+            tiphash, "76a914000000000000000000000000000000000000000188ac"
+        )
+        assert_equal(
+            node.getstakingreward(tiphash),
+            {
+                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
+                "hex": "76a914000000000000000000000000000000000000000188ac",
+                "reqSigs": 1,
+                "type": "pubkeyhash",
+                "addresses": ["ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqyx0q3yvg0"],
+            },
+        )
+
+        gbt = node.getblocktemplate()
+        assert_equal(gbt["previousblockhash"], tiphash)
+        assert_equal(
+            gbt["coinbasetxn"]["stakingrewards"],
+            {
+                "payoutscript": {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000188ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [
+                        "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqyx0q3yvg0"
+                    ],
+                },
+                "minimumvalue": Decimal(
+                    block_reward * STAKING_REWARDS_COINBASE_RATIO_PERCENT // 100 * XEC
+                ),
+            },
+        )
+
+        for i in range(2, 10):
+            script_hex = f"76a914{i:0{40}x}88ac"
+            node.setstakingreward(tiphash, script_hex)
+            assert_equal(node.getstakingreward(tiphash)["hex"], script_hex)
+            gbt = node.getblocktemplate()
+            assert_equal(
+                gbt["coinbasetxn"]["stakingrewards"]["payoutscript"]["hex"], script_hex
+            )
+
+        self.log.info("Recompute the staking reward")
+        assert_equal(
+            node.getstakingreward(blockhash=tiphash, recompute=True),
+            {
+                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                "hex": "76a914000000000000000000000000000000000000000088ac",
+                "reqSigs": 1,
+                "type": "pubkeyhash",
+                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+            },
+        )
+
+        gbt = node.getblocktemplate()
+        assert_equal(gbt["previousblockhash"], tiphash)
+        assert_equal(
+            gbt["coinbasetxn"]["stakingrewards"],
+            {
+                "payoutscript": {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000088ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+                },
+                "minimumvalue": Decimal(
+                    block_reward * STAKING_REWARDS_COINBASE_RATIO_PERCENT // 100 * XEC
+                ),
+            },
         )
 
 

@@ -339,9 +339,12 @@ public:
     bool canShareLocalProof();
 
     bool computeStakingReward(const CBlockIndex *pindex);
+    bool eraseStakingRewardWinner(const BlockHash &prevBlockHash);
     void cleanupStakingRewards(const int minHeight);
     bool getStakingRewardWinner(const BlockHash &prevBlockHash,
                                 CScript &winner) const;
+    bool setStakingRewardWinner(const CBlockIndex *pprev,
+                                const CScript &winner);
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode *pnode) override {}
