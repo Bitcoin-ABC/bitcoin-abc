@@ -33,5 +33,7 @@ public:
 };
 
 Amount GetStakingRewardsAmount(const Amount &coinbaseValue);
+bool IsStakingRewardsActivated(const Consensus::Params &params,
+                               const CBlockIndex *pprev);
 
 #endif // BITCOIN_POLICY_BLOCK_STAKINGREWARDS_H

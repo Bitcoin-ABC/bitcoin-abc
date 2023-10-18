@@ -200,10 +200,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     CScript stakingRewardsPayoutScript;
-    if (IsCowperthwaiteEnabled(consensusParams, pindexPrev) && g_avalanche &&
-        isAvalancheEnabled(gArgs) &&
-        gArgs.GetBoolArg("-avalanchestakingrewards",
-                         consensusParams.enableStakingRewards) &&
+    if (IsStakingRewardsActivated(consensusParams, pindexPrev) &&
         g_avalanche->getStakingRewardWinner(pindexPrev->GetBlockHash(),
                                             stakingRewardsPayoutScript)) {
         const Amount stakingRewards = GetStakingRewardsAmount(blockReward);

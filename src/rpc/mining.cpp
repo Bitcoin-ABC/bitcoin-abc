@@ -1059,10 +1059,7 @@ static RPCHelpMan getblocktemplate() {
             coinbasetxn.pushKV("minerfund", minerFund);
 
             CScript stakingRewardsPayoutScript;
-            if (IsCowperthwaiteEnabled(consensusParams, pindexPrev) &&
-                g_avalanche && isAvalancheEnabled(gArgs) &&
-                gArgs.GetBoolArg("-avalanchestakingrewards",
-                                 consensusParams.enableStakingRewards) &&
+            if (IsStakingRewardsActivated(consensusParams, pindexPrev) &&
                 g_avalanche->getStakingRewardWinner(
                     pindexPrev->GetBlockHash(), stakingRewardsPayoutScript)) {
                 UniValue stakingRewards(UniValue::VOBJ);

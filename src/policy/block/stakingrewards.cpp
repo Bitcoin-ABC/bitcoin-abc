@@ -30,9 +30,7 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
     const BlockHash blockhash = m_blockIndex.GetBlockHash();
 
     CScript winner;
-    if (!g_avalanche || !isAvalancheEnabled(gArgs) ||
-        !gArgs.GetBoolArg("-avalanchestakingrewards",
-                          m_consensusParams.enableStakingRewards) ||
+    if (!IsStakingRewardsActivated(m_consensusParams, m_blockIndex.pprev) ||
         !g_avalanche->getStakingRewardWinner(m_blockIndex.pprev->GetBlockHash(),
                                              winner)) {
         LogPrint(BCLog::AVALANCHE,
@@ -65,4 +63,12 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
 
 Amount GetStakingRewardsAmount(const Amount &coinbaseValue) {
     return STAKING_REWARD_RATIO * coinbaseValue / 100;
+}
+
+bool IsStakingRewardsActivated(const Consensus::Params &params,
+                               const CBlockIndex *pprev) {
+    return IsCowperthwaiteEnabled(params, pprev) && g_avalanche &&
+           isAvalancheEnabled(gArgs) &&
+           gArgs.GetBoolArg("-avalanchestakingrewards",
+                            params.enableStakingRewards);
 }
