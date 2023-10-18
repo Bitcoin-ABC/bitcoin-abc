@@ -259,7 +259,7 @@ class Daemon(DaemonThread):
             )
         return response
 
-    def load_wallet(self, path, password):
+    def load_wallet(self, path, password: str):
         path = standardize_path(path)
         # wizard will be launched if we return
         if path in self.wallets:

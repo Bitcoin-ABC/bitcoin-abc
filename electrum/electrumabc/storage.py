@@ -163,7 +163,7 @@ class WalletStorage(PrintError):
         except Exception:
             return STO_EV_PLAINTEXT
 
-    def get_key(self, password):
+    def get_key(self, password: str) -> bitcoin.ECKey:
         secret = hashlib.pbkdf2_hmac(
             "sha512", password.encode("utf-8"), b"", iterations=1024
         )
@@ -179,7 +179,7 @@ class WalletStorage(PrintError):
         else:
             raise WalletFileException("no encryption magic for version: %s" % v)
 
-    def decrypt(self, password):
+    def decrypt(self, password: str):
         ec_key = self.get_key(password)
         if self.raw:
             enc_magic = self._get_encryption_magic()

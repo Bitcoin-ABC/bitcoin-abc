@@ -456,7 +456,7 @@ class BaseWizard(PrintError):
             xpub = self.plugin.get_xpub(
                 device_info.device.id_, derivation, "standard", self
             )
-            password = keystore.Xpub.get_pubkey_from_xpub(xpub, ())
+            password = keystore.Xpub.get_pubkey_from_xpub(xpub, ()).hex()
             try:
                 storage.decrypt(password)
             except util.InvalidPassword:
