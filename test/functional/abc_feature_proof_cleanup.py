@@ -94,7 +94,7 @@ class ProofsCleanupTest(BitcoinTestFramework):
         # local proof
         with node.assert_debug_log(
             [
-                "Proof dropped for dangling too long (no connected node):"
+                "Proof dangling for too long (no connected node):"
                 f" {uint256_hex(p.proofid)}"
                 for p in proofs[6:]
             ]

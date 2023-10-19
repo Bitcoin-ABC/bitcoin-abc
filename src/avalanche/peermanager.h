@@ -178,6 +178,7 @@ class PeerManager {
     ProofPool validProofPool;
     ProofPool conflictingProofPool;
     ProofPool immatureProofPool;
+    ProofPool danglingProofPool;
 
     using ProofRadixTree = RadixTree<const Proof, ProofRadixTreeAdapter>;
     ProofRadixTree shareableProofs;
@@ -223,15 +224,6 @@ class PeerManager {
      * Track proof ids to broadcast
      */
     ProofIdSet m_unbroadcast_proofids;
-
-    /**
-     * Remember the last proofs that have been evicted because they had no node
-     * attached.
-     * A false positive would cause the proof to fail to register if there is
-     * no previously known node that is claiming it, which is acceptable
-     * intended the low expected false positive rate.
-     */
-    CRollingBloomFilter danglingProofIds{10000, 0.00001};
 
     /**
      * Quorum management.
@@ -438,6 +430,7 @@ public:
     bool isBoundToPeer(const ProofId &proofid) const;
     bool isImmature(const ProofId &proofid) const;
     bool isInConflictingPool(const ProofId &proofid) const;
+    bool isDangling(const ProofId &proofid) const;
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;

@@ -66,6 +66,12 @@ bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid) {
     // If the added node was in the pending set, remove it
     pendingNodes.get<by_nodeid>().erase(nodeid);
 
+    // If the proof was in the dangling pool, remove it
+    const ProofId &proofid = it->getProofId();
+    if (danglingProofPool.getProof(proofid)) {
+        danglingProofPool.removeProof(proofid);
+    }
+
     return true;
 }
 
@@ -242,7 +248,7 @@ bool PeerManager::registerProof(const ProofRef &proof,
                           "proof-already-registered");
     }
 
-    if (danglingProofIds.contains(proofid) &&
+    if (danglingProofPool.getProof(proofid) &&
         pendingNodes.count(proofid) == 0) {
         // Don't attempt to register a proof that we already evicted because it
         // was dangling, but rather attempt to retrieve an associated node.
@@ -387,6 +393,11 @@ bool PeerManager::registerProof(const ProofRef &proof,
 }
 
 bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
+    if (isDangling(proofid) && mode == RejectionMode::INVALIDATE) {
+        danglingProofPool.removeProof(proofid);
+        return true;
+    }
+
     if (!exists(proofid)) {
         return false;
     }
@@ -439,29 +450,32 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
 void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
     const auto now = GetTime<std::chrono::seconds>();
 
-    std::vector<ProofId> newlyDanglingProofIds;
+    std::vector<ProofRef> newlyDanglingProofs;
     for (const Peer &peer : peers) {
         // If the peer is not our local proof, has been registered for some
         // time and has no node attached, discard it.
         if ((!localProof || peer.getProofId() != localProof->getId()) &&
             peer.node_count == 0 &&
             (peer.registration_time + Peer::DANGLING_TIMEOUT) <= now) {
-            newlyDanglingProofIds.push_back(peer.getProofId());
+            newlyDanglingProofs.push_back(peer.proof);
         }
     }
 
-    for (const ProofId &proofid : newlyDanglingProofIds) {
-        rejectProof(proofid, RejectionMode::INVALIDATE);
-        danglingProofIds.insert(proofid);
-        LogPrint(
-            BCLog::AVALANCHE,
-            "Proof dropped for dangling too long (no connected node): %s\n",
-            proofid.GetHex());
+    for (const ProofRef &proof : newlyDanglingProofs) {
+        rejectProof(proof->getId(), RejectionMode::INVALIDATE);
+        if (danglingProofPool.addProofIfPreferred(proof)) {
+            // If the proof is added, it means there is no better conflicting
+            // dangling proof and this is not a duplicated, so it's worth
+            // printing a message to the log.
+            LogPrint(BCLog::AVALANCHE,
+                     "Proof dangling for too long (no connected node): %s\n",
+                     proof->getId().GetHex());
+        }
     }
 
     // If we have dangling proof, this is a good indicator that we need to
     // request more nodes from our peers.
-    needMoreNodes = !newlyDanglingProofIds.empty();
+    needMoreNodes = !newlyDanglingProofs.empty();
 }
 
 NodeId PeerManager::selectNode() {
@@ -558,6 +572,10 @@ bool PeerManager::isImmature(const ProofId &proofid) const {
 
 bool PeerManager::isInConflictingPool(const ProofId &proofid) const {
     return conflictingProofPool.getProof(proofid) != nullptr;
+}
+
+bool PeerManager::isDangling(const ProofId &proofid) const {
+    return danglingProofPool.getProof(proofid) != nullptr;
 }
 
 bool PeerManager::removePeer(const PeerId peerid) {

@@ -1438,6 +1438,9 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     auto proof =
         buildRandomProof(chainman.ActiveChainstate(), MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof));
+    // Not dangling yet, the proof will remain active for some time before it
+    // turns dangling if no node is connecting in the meantime.
+    BOOST_CHECK(!pm.isDangling(proof->getId()));
 
     // We have no nodes, so select node will fail and flag that we need more
     // nodes
@@ -1454,6 +1457,8 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     for (size_t i = 0; i < 10; i++) {
         BOOST_CHECK(pm.addNode(i, proofid));
     }
+
+    BOOST_CHECK(!pm.isDangling(proof->getId()));
 
     auto cooldownTimepoint = Now<SteadyMilliseconds>() + 10s;
 
@@ -1484,16 +1489,20 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     auto proof2 =
         buildRandomProof(chainman.ActiveChainstate(), MIN_VALID_PROOF_SCORE);
     BOOST_CHECK(pm.registerProof(proof2));
+    BOOST_CHECK(!pm.isDangling(proof2->getId()));
     pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(!pm.isDangling(proof2->getId()));
     BOOST_CHECK(!pm.shouldRequestMoreNodes());
 
     // After some time the proof will be considered dangling and more nodes will
     // be requested.
     SetMockTime(GetTime() + 15 * 60);
     pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(pm.isDangling(proof2->getId()));
     BOOST_CHECK(pm.shouldRequestMoreNodes());
 
     for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.isDangling(proof2->getId()));
         // The flag will not trigger again until the condition is met again
         BOOST_CHECK(!pm.shouldRequestMoreNodes());
     }
@@ -1503,9 +1512,11 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     ProofRegistrationState state;
     BOOST_CHECK(!pm.registerProof(proof2, state));
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::DANGLING);
+    BOOST_CHECK(pm.isDangling(proof2->getId()));
     BOOST_CHECK(pm.shouldRequestMoreNodes());
 
     for (size_t i = 0; i < 10; i++) {
+        BOOST_CHECK(pm.isDangling(proof2->getId()));
         // The flag will not trigger again until the condition is met again
         BOOST_CHECK(!pm.shouldRequestMoreNodes());
     }
@@ -1515,12 +1526,23 @@ BOOST_AUTO_TEST_CASE(should_request_more_nodes) {
     BOOST_CHECK(pm.registerProof(proof2));
     SetMockTime(GetTime() + 15 * 60);
     pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(!pm.isDangling(proof2->getId()));
     BOOST_CHECK(!pm.shouldRequestMoreNodes());
 
     // Disconnect the node, the proof is dangling again
     BOOST_CHECK(pm.removeNode(11));
     pm.cleanupDanglingProofs(ProofRef());
+    BOOST_CHECK(pm.isDangling(proof2->getId()));
     BOOST_CHECK(pm.shouldRequestMoreNodes());
+
+    // Invalidating the proof, removes the proof from the dangling pool but not
+    // a simple rejection.
+    BOOST_CHECK(!pm.rejectProof(
+        proof2->getId(), avalanche::PeerManager::RejectionMode::DEFAULT));
+    BOOST_CHECK(pm.isDangling(proof2->getId()));
+    BOOST_CHECK(pm.rejectProof(
+        proof2->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
+    BOOST_CHECK(!pm.isDangling(proof2->getId()));
 }
 
 BOOST_AUTO_TEST_CASE(score_ordering) {
