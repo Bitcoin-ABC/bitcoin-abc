@@ -578,6 +578,19 @@ bool PeerManager::isDangling(const ProofId &proofid) const {
     return danglingProofPool.getProof(proofid) != nullptr;
 }
 
+bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
+                                  const bool present) {
+    auto it = remoteProofs.find(boost::make_tuple(proofid, nodeid));
+    if (it != remoteProofs.end()) {
+        remoteProofs.erase(it);
+    }
+
+    return remoteProofs
+        .emplace(RemoteProof{proofid, nodeid, GetTime<std::chrono::seconds>(),
+                             present})
+        .second;
+}
+
 bool PeerManager::removePeer(const PeerId peerid) {
     auto it = peers.find(peerid);
     if (it == peers.end()) {

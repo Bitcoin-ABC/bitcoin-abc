@@ -23,6 +23,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <limits>
+#include <optional>
 #include <unordered_map>
 
 using namespace avalanche;
@@ -70,6 +71,16 @@ namespace {
         cleanupDanglingProofs(PeerManager &pm,
                               const ProofRef &localProof = ProofRef()) {
             pm.cleanupDanglingProofs(localProof);
+        }
+
+        static std::optional<RemoteProof> getRemoteProof(const PeerManager &pm,
+                                                         const ProofId &proofid,
+                                                         NodeId nodeid) {
+            auto it = pm.remoteProofs.find(boost::make_tuple(proofid, nodeid));
+            if (it == pm.remoteProofs.end()) {
+                return std::nullopt;
+            }
+            return std::make_optional(*it);
         }
     };
 
@@ -2387,6 +2398,52 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         // With a single proof, it's easy to determine the winner
         BOOST_CHECK_EQUAL(FormatScript(winner), FormatScript(payoutScript));
     }
+}
+
+BOOST_AUTO_TEST_CASE(remote_proof) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+
+    auto mockTime = GetTime<std::chrono::seconds>();
+    SetMockTime(mockTime);
+
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ONE), 0, false));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 1, true));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ONE), 1, false));
+
+    auto checkRemoteProof =
+        [&](const ProofId &proofid, const NodeId nodeid,
+            const bool expectedPresent,
+            const std::chrono::seconds &expectedlastUpdate) {
+            auto remoteProof =
+                TestPeerManager::getRemoteProof(pm, proofid, nodeid);
+            BOOST_CHECK(remoteProof.has_value());
+            BOOST_CHECK_EQUAL(remoteProof->proofid, proofid);
+            BOOST_CHECK_EQUAL(remoteProof->nodeid, nodeid);
+            BOOST_CHECK_EQUAL(remoteProof->present, expectedPresent);
+            BOOST_CHECK_EQUAL(remoteProof->lastUpdate.count(),
+                              expectedlastUpdate.count());
+        };
+
+    checkRemoteProof(ProofId(uint256::ZERO), 0, true, mockTime);
+    checkRemoteProof(ProofId(uint256::ONE), 0, false, mockTime);
+    checkRemoteProof(ProofId(uint256::ZERO), 1, true, mockTime);
+    checkRemoteProof(ProofId(uint256::ONE), 1, false, mockTime);
+
+    mockTime += 1s;
+    SetMockTime(mockTime);
+
+    // Reverse the state
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ONE), 0, true));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 1, false));
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ONE), 1, true));
+
+    checkRemoteProof(ProofId(uint256::ZERO), 0, false, mockTime);
+    checkRemoteProof(ProofId(uint256::ONE), 0, true, mockTime);
+    checkRemoteProof(ProofId(uint256::ZERO), 1, false, mockTime);
+    checkRemoteProof(ProofId(uint256::ONE), 1, true, mockTime);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
