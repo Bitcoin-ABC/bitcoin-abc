@@ -242,6 +242,8 @@ class PeerManager {
 
     ChainstateManager &chainman;
 
+    struct by_lastUpdate;
+
     using RemoteProofSet = boost::multi_index_container<
         RemoteProof,
         bmi::indexed_by<
@@ -261,7 +263,14 @@ class PeerManager {
             // index by nodeid
             bmi::hashed_non_unique<
                 bmi::tag<by_nodeid>,
-                bmi::member<RemoteProof, NodeId, &RemoteProof::nodeid>>>>;
+                bmi::member<RemoteProof, NodeId, &RemoteProof::nodeid>>,
+            bmi::ordered_non_unique<
+                bmi::tag<by_lastUpdate>,
+                bmi::composite_key<
+                    RemoteProof,
+                    bmi::member<RemoteProof, NodeId, &RemoteProof::nodeid>,
+                    bmi::member<RemoteProof, std::chrono::seconds,
+                                &RemoteProof::lastUpdate>>>>>;
 
     /**
      * Remember which node sent which proof so we have an image of the proof set
@@ -270,6 +279,8 @@ class PeerManager {
     RemoteProofSet remoteProofs;
 
 public:
+    static constexpr size_t MAX_REMOTE_PROOFS{100};
+
     PeerManager(const Amount &stakeUtxoDustThresholdIn,
                 ChainstateManager &chainmanIn)
         : stakeUtxoDustThreshold(stakeUtxoDustThresholdIn),

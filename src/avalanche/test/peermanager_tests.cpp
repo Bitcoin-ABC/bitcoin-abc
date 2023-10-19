@@ -82,6 +82,10 @@ namespace {
             }
             return std::make_optional(*it);
         }
+
+        static size_t getPeerCount(const PeerManager &pm) {
+            return pm.peers.size();
+        }
     };
 
     static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
@@ -2471,6 +2475,81 @@ BOOST_AUTO_TEST_CASE(remote_proof) {
     BOOST_CHECK(
         !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 1));
     BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 1));
+
+    for (size_t i = 0; i < avalanche::PeerManager::MAX_REMOTE_PROOFS; i++) {
+        mockTime += 1s;
+        SetMockTime(mockTime);
+
+        const ProofId proofid{uint256(i)};
+
+        BOOST_CHECK(pm.saveRemoteProof(proofid, 0, true));
+        checkRemoteProof(proofid, 0, true, mockTime);
+    }
+
+    // The last updated proof is still there
+    checkRemoteProof(ProofId(uint256::ZERO), 0, true,
+                     mockTime -
+                         (avalanche::PeerManager::MAX_REMOTE_PROOFS - 1) * 1s);
+
+    // If we add one more it gets evicted
+    mockTime += 1s;
+    SetMockTime(mockTime);
+
+    ProofId proofid{
+        uint256(uint8_t(avalanche::PeerManager::MAX_REMOTE_PROOFS))};
+
+    BOOST_CHECK(pm.saveRemoteProof(proofid, 0, true));
+    checkRemoteProof(proofid, 0, true, mockTime);
+    // Proof id 0 has been evicted
+    BOOST_CHECK(
+        !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 0));
+
+    // Proof id 1 is still there
+    BOOST_CHECK(TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 0));
+
+    // Add MAX_REMOTE_PROOFS / 2 + 1 proofs to our node to bump the limit
+    // Note that we already have proofs from the beginning of the test.
+    std::vector<ProofRef> proofs;
+    for (size_t i = 0; i < avalanche::PeerManager::MAX_REMOTE_PROOFS / 2 - 1;
+         i++) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(pm.registerProof(proof));
+        proofs.push_back(proof);
+    }
+    BOOST_CHECK_EQUAL(TestPeerManager::getPeerCount(pm),
+                      avalanche::PeerManager::MAX_REMOTE_PROOFS / 2 + 1);
+
+    // We can now add one more without eviction
+    mockTime += 1s;
+    SetMockTime(mockTime);
+
+    proofid = ProofId{
+        uint256(uint8_t(avalanche::PeerManager::MAX_REMOTE_PROOFS + 1))};
+
+    BOOST_CHECK(pm.saveRemoteProof(proofid, 0, true));
+    checkRemoteProof(proofid, 0, true, mockTime);
+    // Proof id 1 is still there
+    BOOST_CHECK(TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 0));
+
+    // Shrink our proofs to MAX_REMOTE_PROOFS / 2 - 1
+    BOOST_CHECK(pm.rejectProof(
+        proofs[0]->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
+    BOOST_CHECK(pm.rejectProof(
+        proofs[1]->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
+
+    BOOST_CHECK_EQUAL(TestPeerManager::getPeerCount(pm),
+                      avalanche::PeerManager::MAX_REMOTE_PROOFS / 2 - 1);
+
+    // Upon update the first proof got evicted
+    proofid = ProofId{
+        uint256(uint8_t(avalanche::PeerManager::MAX_REMOTE_PROOFS + 2))};
+    BOOST_CHECK(pm.saveRemoteProof(proofid, 0, true));
+    // Proof id 1 is evicted
+    BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 0));
+    // So is proof id 2
+    BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256(2)), 0));
+    // But proof id 3 is still here
+    BOOST_CHECK(TestPeerManager::getRemoteProof(pm, ProofId(uint256(3)), 0));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

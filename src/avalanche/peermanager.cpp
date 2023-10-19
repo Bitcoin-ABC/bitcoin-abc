@@ -585,6 +585,21 @@ bool PeerManager::isDangling(const ProofId &proofid) const {
 
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
+    // Get how many proofs this node has announced
+    auto &remoteProofsByLastUpdate = remoteProofs.get<by_lastUpdate>();
+    auto [begin, end] = remoteProofsByLastUpdate.equal_range(nodeid);
+
+    // Limit the number of proofs a single node can save:
+    //  - At least MAX_REMOTE_PROOFS
+    //  - Up to 2x as much as we have
+    // The MAX_REMOTE_PROOFS minimum is there to ensure we don't overlimit at
+    // startup when we don't have proofs yet.
+    while (size_t(std::distance(begin, end)) >=
+           std::max(MAX_REMOTE_PROOFS, 2 * peers.size())) {
+        // Remove the proof with the oldest update time
+        begin = remoteProofsByLastUpdate.erase(begin);
+    }
+
     auto it = remoteProofs.find(boost::make_tuple(proofid, nodeid));
     if (it != remoteProofs.end()) {
         remoteProofs.erase(it);
