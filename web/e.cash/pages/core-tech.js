@@ -140,6 +140,14 @@ export default function CoreTech() {
                             will be a critical part of eCash governance and user
                             incentivization.
                         </p>
+                        <ButtonRow>
+                            <Button
+                                text="eCash Staking"
+                                link="/staking/"
+                                corner="bottomRight"
+                                color="accent"
+                            />
+                        </ButtonRow>
                     </TextImageBlock>
 
                     <TextImageBlock

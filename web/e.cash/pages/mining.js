@@ -4,6 +4,7 @@
 import Layout from '/components/layout';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
+import Link from 'next/link';
 import ExternalLink from '/components/external-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import CodeBlock from '/components/code-block';
@@ -165,8 +166,9 @@ function Mining(props) {
                         avalanche enabled (it is enabled by default).
                     </li>
                     <li>
-                        In order to maximize profit, a mining node can also be
-                        staking and benefit from the staking rewards.
+                        In order to maximize profit, a mining node can also be{' '}
+                        <Link href="/staking/">staking</Link> and benefit from
+                        the staking rewards.
                     </li>
                     <li>
                         Ensure the node has good connectivity. It should accept

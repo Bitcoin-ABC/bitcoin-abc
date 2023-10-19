@@ -79,6 +79,11 @@ export const navitems = [
                 link: '/mining',
                 icon: '/images/mining-icon.svg',
             },
+            {
+                title: 'Staking',
+                link: '/staking',
+                icon: '/images/hand-logo-icon.svg',
+            },
         ],
     },
     {

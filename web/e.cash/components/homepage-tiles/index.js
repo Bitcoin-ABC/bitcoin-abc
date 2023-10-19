@@ -16,7 +16,7 @@ const tiles = [
     {
         title: 'Staking',
         text: 'Decentralized governance by incentivized stakeholders.',
-        link: '/core-tech#staking',
+        link: '/staking',
         image: '/images/tile2.png',
     },
     {
