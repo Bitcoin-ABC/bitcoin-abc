@@ -96,6 +96,11 @@ bool PeerManager::addNodeToPeer(const PeerSet::iterator &it) {
 }
 
 bool PeerManager::removeNode(NodeId nodeid) {
+    // Remove all the remote proofs from this node
+    auto &remoteProofsView = remoteProofs.get<by_nodeid>();
+    auto [begin, end] = remoteProofsView.equal_range(nodeid);
+    remoteProofsView.erase(begin, end);
+
     if (pendingNodes.get<by_nodeid>().erase(nodeid) > 0) {
         // If this was a pending node, there is nothing else to do.
         return true;

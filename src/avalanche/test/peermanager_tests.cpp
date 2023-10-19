@@ -2444,6 +2444,33 @@ BOOST_AUTO_TEST_CASE(remote_proof) {
     checkRemoteProof(ProofId(uint256::ONE), 0, true, mockTime);
     checkRemoteProof(ProofId(uint256::ZERO), 1, false, mockTime);
     checkRemoteProof(ProofId(uint256::ONE), 1, true, mockTime);
+
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    // Actually register the nodes
+    auto proof0 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proof0));
+    BOOST_CHECK(pm.addNode(0, proof0->getId()));
+    auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proof1));
+    BOOST_CHECK(pm.addNode(1, proof1->getId()));
+
+    // Removing the node removes all the associated remote proofs
+    BOOST_CHECK(pm.removeNode(0));
+    BOOST_CHECK(
+        !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 0));
+    BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 0));
+    // Other nodes are left untouched
+    checkRemoteProof(ProofId(uint256::ZERO), 1, false, mockTime);
+    checkRemoteProof(ProofId(uint256::ONE), 1, true, mockTime);
+
+    BOOST_CHECK(pm.removeNode(1));
+    BOOST_CHECK(
+        !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 0));
+    BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 0));
+    BOOST_CHECK(
+        !TestPeerManager::getRemoteProof(pm, ProofId(uint256::ZERO), 1));
+    BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256::ONE), 1));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
