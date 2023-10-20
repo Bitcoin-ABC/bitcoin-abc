@@ -462,8 +462,27 @@ void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
         if ((!localProof || peer.getProofId() != localProof->getId()) &&
             peer.node_count == 0 &&
             (peer.registration_time + Peer::DANGLING_TIMEOUT) <= now) {
-            newlyDanglingProofs.push_back(peer.proof);
+            // Check the remotes status to determine if we should set the proof
+            // as dangling. This prevents from dropping a proof on our own due
+            // to a network issue. If the remote presence status is inconclusive
+            // we assume our own position (missing = false).
+            if (!getRemotePresenceStatus(peer.getProofId()).value_or(false)) {
+                newlyDanglingProofs.push_back(peer.proof);
+            }
         }
+    }
+
+    // Similarly, check if we have dangling proofs that could be pulled back
+    // because the network says so.
+    std::vector<ProofRef> previouslyDanglingProofs;
+    danglingProofPool.forEachProof([&](const ProofRef &proof) {
+        if (getRemotePresenceStatus(proof->getId()).value_or(false)) {
+            previouslyDanglingProofs.push_back(proof);
+        }
+    });
+    for (const ProofRef &proof : previouslyDanglingProofs) {
+        danglingProofPool.removeProof(proof->getId());
+        registerProof(proof);
     }
 
     for (const ProofRef &proof : newlyDanglingProofs) {

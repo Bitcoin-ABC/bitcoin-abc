@@ -2665,4 +2665,108 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
              .has_value());
 }
 
+BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    auto mockTime = GetTime<std::chrono::seconds>();
+    SetMockTime(mockTime);
+
+    // Add a few proofs with no node attached
+    std::vector<ProofRef> proofs;
+    for (size_t i = 0; i < 10; i++) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(pm.registerProof(proof));
+        proofs.push_back(proof);
+    }
+
+    // The proofs are recent enough, the cleanup won't make them dangling
+    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(!pm.isDangling(proof->getId()));
+    }
+
+    // Elapse enough time so we get the proofs dangling
+    mockTime += avalanche::Peer::DANGLING_TIMEOUT + 1s;
+    SetMockTime(mockTime);
+
+    // The proofs are now dangling
+    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(pm.isDangling(proof->getId()));
+    }
+
+    // Add some remotes having this proof
+    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+        auto localProof =
+            buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(pm.registerProof(localProof));
+        BOOST_CHECK(pm.addNode(nodeid, localProof->getId()));
+
+        for (const auto &proof : proofs) {
+            BOOST_CHECK(pm.saveRemoteProof(proof->getId(), nodeid, true));
+        }
+    }
+
+    // The proofs are all present according to the remote status
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(TestPeerManager::getRemotePresenceStatus(pm, proof->getId())
+                        .value());
+    }
+
+    // The proofs should be added back as a peer
+    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(!pm.isDangling(proof->getId()));
+    }
+
+    // Remove the proofs from the remotes
+    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+        for (const auto &proof : proofs) {
+            BOOST_CHECK(pm.saveRemoteProof(proof->getId(), nodeid, false));
+        }
+    }
+
+    // The proofs are now all absent according to the remotes
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(
+            !TestPeerManager::getRemotePresenceStatus(pm, proof->getId())
+                 .value());
+    }
+
+    // The proofs are not dangling yet as they have been registered recently
+    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(!pm.isDangling(proof->getId()));
+    }
+
+    // Wait some time then run the cleanup again, the proofs will be dangling
+    mockTime += avalanche::Peer::DANGLING_TIMEOUT + 1s;
+    SetMockTime(mockTime);
+
+    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(pm.isDangling(proof->getId()));
+    }
+
+    // Pull them back one more time
+    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+        for (const auto &proof : proofs) {
+            BOOST_CHECK(pm.saveRemoteProof(proof->getId(), nodeid, true));
+        }
+    }
+
+    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(!pm.isDangling(proof->getId()));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
