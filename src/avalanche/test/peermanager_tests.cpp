@@ -86,6 +86,17 @@ namespace {
         static size_t getPeerCount(const PeerManager &pm) {
             return pm.peers.size();
         }
+
+        static uint32_t getPeerScoreFromNodeId(const PeerManager &pm,
+                                               const NodeId nodeid,
+                                               uint32_t &score) {
+            return pm.getPeerScoreFromNodeId(nodeid, score);
+        }
+
+        static std::optional<bool>
+        getRemotePresenceStatus(const PeerManager &pm, const ProofId &proofid) {
+            return pm.getRemotePresenceStatus(proofid);
+        }
     };
 
     static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
@@ -2550,6 +2561,108 @@ BOOST_AUTO_TEST_CASE(remote_proof) {
     BOOST_CHECK(!TestPeerManager::getRemoteProof(pm, ProofId(uint256(2)), 0));
     // But proof id 3 is still here
     BOOST_CHECK(TestPeerManager::getRemoteProof(pm, ProofId(uint256(3)), 0));
+}
+
+BOOST_AUTO_TEST_CASE(get_score_from_nodeid) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    for (int i = 0; i < 10; i++) {
+        auto proof = buildRandomProof(active_chainstate,
+                                      MIN_VALID_PROOF_SCORE * (i + 1));
+        BOOST_CHECK(pm.registerProof(proof));
+        BOOST_CHECK(pm.addNode(NodeId(i), proof->getId()));
+    }
+
+    for (int i = 0; i < 10; i++) {
+        uint32_t score;
+        BOOST_CHECK(
+            TestPeerManager::getPeerScoreFromNodeId(pm, NodeId(i), score));
+        BOOST_CHECK_EQUAL(score, MIN_VALID_PROOF_SCORE * (i + 1));
+    }
+
+    uint32_t dummy;
+    // Node doesn't exist
+    BOOST_CHECK(!TestPeerManager::getPeerScoreFromNodeId(pm, 10, dummy));
+
+    // Add a pending node
+    auto proof =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE * 11);
+    BOOST_CHECK(!pm.addNode(10, proof->getId()));
+
+    // Peer doesn't exist
+    BOOST_CHECK(!TestPeerManager::getPeerScoreFromNodeId(pm, 10, dummy));
+}
+
+BOOST_AUTO_TEST_CASE(get_remote_status) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    auto mockTime = GetTime<std::chrono::seconds>();
+    SetMockTime(mockTime);
+
+    // No remote proof yet
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .has_value());
+
+    // 50/50 on the remotes
+    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        BOOST_CHECK(pm.registerProof(proof));
+        BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid,
+                                       nodeid % 2 == 0));
+    }
+
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .has_value());
+
+    // 90% on the remotes
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
+    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
+    }
+    BOOST_CHECK(
+        TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+            .value());
+
+    // 10% on the remotes
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
+    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
+    }
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .value());
+
+    // Most nodes agree but not enough of the stakes
+    auto bigProof =
+        buildRandomProof(active_chainstate, 100 * MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(bigProof));
+    // Update the node's proof
+    BOOST_CHECK(pm.addNode(0, bigProof->getId()));
+
+    // 90% on the remotes, but not enough stakes => inconclusive
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
+    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
+    }
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .has_value());
+
+    // 10% on the remotes, but not enough stakes => inconclusive
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
+    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
+    }
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .has_value());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

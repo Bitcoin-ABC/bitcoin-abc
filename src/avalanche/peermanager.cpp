@@ -998,4 +998,70 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
     return true;
 }
 
+bool PeerManager::getPeerScoreFromNodeId(const NodeId nodeid,
+                                         uint32_t &score) const {
+    auto nit = nodes.find(nodeid);
+    if (nit == nodes.end()) {
+        // No such node
+        return false;
+    }
+
+    const PeerId peerid = nit->peerid;
+
+    auto pit = peers.find(peerid);
+    if (pit == peers.end()) {
+        // Peer not found
+        return false;
+    }
+
+    score = pit->getScore();
+    return true;
+}
+
+std::optional<bool>
+PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
+    auto &remoteProofsView = remoteProofs.get<by_proofid>();
+    auto [begin, end] = remoteProofsView.equal_range(proofid);
+
+    if (begin == end) {
+        // No remote registered anything yet, we are on our own
+        return std::nullopt;
+    }
+
+    size_t total_remotes{0};
+    uint32_t total_score{0};
+    size_t present_remotes{0};
+    uint32_t present_score{0};
+    size_t missing_remotes{0};
+    uint32_t missing_score{0};
+    for (auto it = begin; it != end; it++) {
+        uint32_t score;
+        if (!getPeerScoreFromNodeId(it->nodeid, score)) {
+            // Should never happen
+            continue;
+        }
+
+        ++total_remotes;
+        total_score += score;
+        if (it->present) {
+            ++present_remotes;
+            present_score += score;
+        } else {
+            ++missing_remotes;
+            missing_score += score;
+        }
+    }
+
+    if ((double(present_remotes) / total_remotes > 0.8) &&
+        (double(present_score) / total_score > 0.8)) {
+        return std::make_optional(true);
+    }
+
+    if ((double(missing_remotes) / total_remotes > 0.8) &&
+        (double(missing_score) / total_score > 0.8)) {
+        return std::make_optional(false);
+    }
+
+    return std::nullopt;
+}
 } // namespace avalanche

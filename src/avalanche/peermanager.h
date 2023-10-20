@@ -503,6 +503,16 @@ private:
     bool addNodeToPeer(const PeerSet::iterator &it);
     bool removeNodeFromPeer(const PeerSet::iterator &it, uint32_t count = 1);
 
+    bool getPeerScoreFromNodeId(const NodeId nodeid, uint32_t &score) const;
+    /**
+     * @brief Get the presence remote status of a proof
+     *
+     * @param proofid The target proof id
+     * @return true if it's likely present, false if likely missing, nullopt if
+     *         uncertain.
+     */
+    std::optional<bool> getRemotePresenceStatus(const ProofId &proofid) const;
+
     friend struct ::avalanche::TestPeerManager;
 };
 
