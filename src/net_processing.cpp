@@ -5423,15 +5423,25 @@ void PeerManagerImpl::ProcessMessage(
             });
 
         size_t proofCount = 0;
+        std::vector<std::pair<avalanche::ProofId, bool>> remoteProofsStatus;
         proofs.forEachLeaf([&](const avalanche::ProofRef &proof) {
             uint64_t shortid = compactProofs.getShortID(proof->getId());
 
-            proofCount += shortIdProcessor.matchKnownItem(shortid, proof);
+            int added = shortIdProcessor.matchKnownItem(shortid, proof);
 
-            // Though ideally we'd continue scanning for the
-            // two-proofs-match-shortid case, the performance win of an early
-            // exit here is too good to pass up and worth the extra risk.
-            return proofCount != shortIdProcessor.getShortIdCount();
+            // No collision
+            if (added >= 0) {
+                // Because we know the proof, we can determine if our peer has
+                // it (added = 1) or not (added = 0) and update the remote proof
+                // status accordingly.
+                remoteProofsStatus.emplace_back(proof->getId(), added > 0);
+            }
+
+            proofCount += added;
+
+            // In order to properly determine which proof is missing, we need to
+            // keep scanning for all our proofs.
+            return true;
         });
 
         avalanche::ProofsRequest req;
@@ -5444,10 +5454,21 @@ void PeerManagerImpl::ProcessMessage(
         m_connman.PushMessage(&pfrom,
                               msgMaker.Make(NetMsgType::AVAPROOFSREQ, req));
 
+        const NodeId nodeid = pfrom.GetId();
+
         // We want to keep a count of how many nodes we successfully requested
         // avaproofs from as this is used to determine when we are confident our
         // quorum is close enough to the other participants.
-        g_avalanche->avaproofsSent(pfrom.GetId());
+        g_avalanche->avaproofsSent(nodeid);
+
+        if (pfrom.IsAvalancheOutboundConnection()) {
+            g_avalanche->withPeerManager(
+                [&remoteProofsStatus, nodeid](avalanche::PeerManager &pm) {
+                    for (const auto &[proofid, present] : remoteProofsStatus) {
+                        pm.saveRemoteProof(proofid, nodeid, present);
+                    }
+                });
+        }
 
         return;
     }
