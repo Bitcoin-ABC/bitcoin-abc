@@ -611,6 +611,20 @@ bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
         .second;
 }
 
+std::vector<RemoteProof>
+PeerManager::getRemoteProofs(const NodeId nodeid) const {
+    std::vector<RemoteProof> nodeRemoteProofs;
+
+    auto &remoteProofsByLastUpdate = remoteProofs.get<by_lastUpdate>();
+    auto [begin, end] = remoteProofsByLastUpdate.equal_range(nodeid);
+
+    for (auto &it = begin; it != end; it++) {
+        nodeRemoteProofs.emplace_back(*it);
+    }
+
+    return nodeRemoteProofs;
+}
+
 bool PeerManager::removePeer(const PeerId peerid) {
     auto it = peers.find(peerid);
     if (it == peers.end()) {

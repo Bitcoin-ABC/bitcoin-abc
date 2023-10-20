@@ -7206,12 +7206,28 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
 
     const NodeId nodeid = peer.GetId();
 
+    auto saveProofIfOutbound = [](const CNode &peer,
+                                  const avalanche::ProofId &proofid,
+                                  const NodeId nodeid) -> bool {
+        if (peer.IsAvalancheOutboundConnection()) {
+            LogPrint(BCLog::AVALANCHE, "Saving remote proof %s\n",
+                     proofid.ToString());
+            return g_avalanche->withPeerManager(
+                [&](avalanche::PeerManager &pm) {
+                    return pm.saveRemoteProof(proofid, nodeid, true);
+                });
+        }
+
+        return false;
+    };
+
     {
         LOCK(cs_proofrequest);
         m_proofrequest.ReceivedResponse(nodeid, proofid);
 
         if (AlreadyHaveProof(proofid)) {
             m_proofrequest.ForgetInvId(proofid);
+            saveProofIfOutbound(peer, proofid, nodeid);
             return true;
         }
     }
@@ -7261,6 +7277,8 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
             });
         });
     }
+
+    saveProofIfOutbound(peer, proofid, nodeid);
 
     return true;
 }

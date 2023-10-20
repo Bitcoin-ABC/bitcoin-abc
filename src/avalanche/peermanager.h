@@ -419,6 +419,7 @@ public:
 
     bool saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                          const bool present);
+    std::vector<RemoteProof> getRemoteProofs(const NodeId nodeid) const;
 
     template <typename Callable>
     void updateAvailabilityScores(const double decayFactor,

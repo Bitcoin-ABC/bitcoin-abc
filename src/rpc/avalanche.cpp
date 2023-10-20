@@ -1164,6 +1164,62 @@ static RPCHelpMan setstakingreward() {
     };
 }
 
+static RPCHelpMan getremoteproofs() {
+    return RPCHelpMan{
+        "getremoteproofs",
+        "Get the list of remote proofs for the given node id.\n",
+        {
+            {"nodeid", RPCArg::Type::NUM, RPCArg::Optional::NO,
+             "The node identifier."},
+        },
+        RPCResult{
+            RPCResult::Type::ARR,
+            "proofs",
+            "",
+            {{
+                RPCResult::Type::OBJ,
+                "proof",
+                "",
+                {{
+                    {RPCResult::Type::STR_HEX, "proofid",
+                     "The hex encoded proof identifier."},
+                    {RPCResult::Type::BOOL, "present",
+                     "Whether the node has the proof."},
+                    {RPCResult::Type::NUM, "last_update",
+                     "The last time this proof status was updated."},
+                }},
+            }},
+        },
+        RPCExamples{HelpExampleRpc("getremoteproofs", "<nodeid>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            const NodeId nodeid = request.params[0].get_int64();
+            auto remoteProofs = g_avalanche->withPeerManager(
+                [nodeid](const avalanche::PeerManager &pm) {
+                    return pm.getRemoteProofs(nodeid);
+                });
+
+            UniValue arrOut(UniValue::VARR);
+
+            for (const auto &remoteProof : remoteProofs) {
+                UniValue obj(UniValue::VOBJ);
+                obj.pushKV("proofid", remoteProof.proofid.ToString());
+                obj.pushKV("present", remoteProof.present);
+                obj.pushKV("last_update", remoteProof.lastUpdate.count());
+
+                arrOut.push_back(obj);
+            }
+
+            return arrOut;
+        },
+    };
+}
+
 static RPCHelpMan getrawavalancheproof() {
     return RPCHelpMan{
         "getrawavalancheproof",
@@ -1489,6 +1545,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         getavalancheproofs,        },
         { "avalanche",         getstakingreward,          },
         { "avalanche",         setstakingreward,          },
+        { "avalanche",         getremoteproofs,           },
         { "avalanche",         getrawavalancheproof,      },
         { "avalanche",         isfinalblock,              },
         { "avalanche",         isfinaltransaction,        },

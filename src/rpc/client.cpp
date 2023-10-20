@@ -176,6 +176,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"buildavalancheproof", 0, "sequence"},
     {"buildavalancheproof", 1, "expiration"},
     {"buildavalancheproof", 3, "stakes"},
+    {"getremoteproofs", 0, "nodeid"},
     {"getstakingreward", 1, "recompute"},
 };
 
