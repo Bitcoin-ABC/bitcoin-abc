@@ -5,8 +5,8 @@
 
 #include <script/script.h>
 
+#include <crypto/hex_base.h>
 #include <script/script_flags.h>
-#include <util/strencodings.h>
 
 #include <algorithm>
 #include <string>

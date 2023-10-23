@@ -9,6 +9,7 @@
 #ifndef BITCOIN_UTIL_STRENCODINGS_H
 #define BITCOIN_UTIL_STRENCODINGS_H
 
+#include <crypto/hex_base.h> // IWYU pragma: export
 #include <span.h>
 #include <util/string.h>
 
@@ -52,7 +53,6 @@ template <typename Byte = uint8_t>
 std::vector<Byte> ParseHex(std::string_view hex_str) {
     return TryParseHex<Byte>(hex_str).value_or(std::vector<Byte>{});
 }
-signed char HexDigit(char c);
 /**
  * Returns true if each character in str is a hex character, and has an even
  * number of hex digits.
@@ -218,17 +218,6 @@ template <typename T> std::optional<T> ToIntegral(std::string_view str) {
  * not the entire string could be parsed or when overflow or underflow occurred.
  */
 [[nodiscard]] bool ParseUInt64(std::string_view str, uint64_t *out);
-
-/**
- * Convert a span of bytes to a lower-case hexadecimal string.
- */
-std::string HexStr(const Span<const uint8_t> s);
-inline std::string HexStr(const Span<const char> s) {
-    return HexStr(MakeUCharSpan(s));
-}
-inline std::string HexStr(const Span<const std::byte> s) {
-    return HexStr(MakeUCharSpan(s));
-}
 
 /**
  * Format a paragraph of text to a fixed width, adding spaces for indentation to

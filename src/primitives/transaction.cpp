@@ -6,9 +6,9 @@
 #include <primitives/transaction.h>
 
 #include <consensus/amount.h>
+#include <crypto/hex_base.h>
 #include <hash.h>
 #include <tinyformat.h>
-#include <util/strencodings.h>
 
 #include <cassert>
 

@@ -7,6 +7,7 @@ add_library(crypto
 	aes.cpp
 	chacha20.cpp
 	chacha20poly1305.cpp
+	hex_base.cpp
 	hkdf_sha256_32.cpp
 	hmac_sha256.cpp
 	hmac_sha512.cpp

@@ -580,7 +580,6 @@ add_library(bitcoinconsensus
 	primitives/transaction.cpp
 	pubkey.cpp
 	uint256.cpp
-	util/strencodings.cpp
 	consensus/amount.cpp
 	consensus/tx_check.cpp
 )
