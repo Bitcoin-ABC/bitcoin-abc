@@ -326,7 +326,8 @@
                 "(apps/alias-server/.*\\.js$)",
                 "(modules/ecashaddrjs/.*\\.js$)",
                 "(apps/ecash-herald/.*\\.js$)",
-                "(modules/chronik-client/.*\\.(js|jsx|ts|tsx)$)"
+                "(modules/chronik-client/.*\\.(js|jsx|ts|tsx)$)",
+                "(^web/e.cash/.*\\.js$)"
             ]
         },
         "lint-python-flynt": {
