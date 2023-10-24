@@ -410,7 +410,13 @@ class _Req(threading.Thread, PrintError):
         self.aborted = False
         self.json = None
         self.is_test_run = is_test_run
-        self.start()
+        try:
+            self.start()
+        except RuntimeError:
+            # If the user hits a system limitation on the number of threads,
+            # ignore the error.
+            self.aborted = True
+            self.checker._req_finished.emit(self)
 
     def abort(self):
         self.aborted = True
