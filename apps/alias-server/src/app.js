@@ -86,6 +86,15 @@ module.exports = {
                 response = await getAliasInfoFromAlias(db, alias);
                 if (response === null) {
                     // Custom msg if alias has not yet been registered
+
+                    // Check for pending registrations of this alias if it is not confirmed
+                    const pending = await getPendingAliases(
+                        db,
+                        { alias },
+                        // Get the registering txid and address of pending registrations for this alias
+                        { _id: 0, address: 1, txid: 1 },
+                    );
+
                     response = { alias, isRegistered: false };
                     // Also include the price, since implementing wallet already has to make
                     // API call to check availability
@@ -101,6 +110,7 @@ module.exports = {
                     response = {
                         alias,
                         isRegistered: false,
+                        pending,
                         registrationFeeSats,
                         processedBlockheight,
                     };

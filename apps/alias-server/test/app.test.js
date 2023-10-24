@@ -84,7 +84,7 @@ describe('alias-server app.js', async function () {
             .expect('Content-Type', /json/)
             .expect(generated.validAliasRegistrations);
     });
-    it('/alias/<alias> returns object with isRegistered:false and pricing info for an alias not in the database', async function () {
+    it('/alias/<alias> returns expected object for an alias not in the database and with no pending registrations', async function () {
         const testedAlias = 'test';
 
         // Set serverState
@@ -100,11 +100,51 @@ describe('alias-server app.js', async function () {
             .expect({
                 alias: testedAlias,
                 isRegistered: false,
+                pending: [],
                 registrationFeeSats: 555,
                 processedBlockheight: 800000,
             });
     });
-    it('/alias/<alias> returns object for an alias in the database', async function () {
+    it('/alias/<alias> returns expected object for an alias not in the database with pending registrations', async function () {
+        const testedAlias = 'test';
+
+        // Set serverState
+        updateServerState(testDb, {
+            processedConfirmedTxs: 45587,
+            processedBlockheight: 800000,
+        });
+
+        // Set pending registrations for test
+        const testPendingAlias = {
+            alias: 'test',
+            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+            txid: '218a1e058ed0fda76573eabf43ad3ded7e7192e42621893a60aaa152ba7f66fe',
+        };
+        // Add a clone so you can still check against pendingAliases
+        await addOneAliasToPending(
+            testDb,
+            JSON.parse(JSON.stringify(testPendingAlias)),
+        );
+
+        return request(app)
+            .get(`/alias/${testedAlias}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                alias: testedAlias,
+                isRegistered: false,
+                pending: [
+                    {
+                        address:
+                            'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                        txid: '218a1e058ed0fda76573eabf43ad3ded7e7192e42621893a60aaa152ba7f66fe',
+                    },
+                ],
+                registrationFeeSats: 555,
+                processedBlockheight: 800000,
+            });
+    });
+    it('/alias/<alias> returns expected object for an alias in the database', async function () {
         // newValidAliases needs to be a clone of the mock because
         // each object gets an _id field when added to the database
         const newValidAliases = JSON.parse(
