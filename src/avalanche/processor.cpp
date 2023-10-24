@@ -159,8 +159,12 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
 
     scheduler.scheduleEvery(
         [this]() -> bool {
-            WITH_LOCK(cs_peerManager,
-                      peerManager->cleanupDanglingProofs(getLocalProof()));
+            std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
+            WITH_LOCK(cs_peerManager, peerManager->cleanupDanglingProofs(
+                                          getLocalProof(), registeredProofs));
+            for (const auto &proof : registeredProofs) {
+                addToReconcile(proof);
+            }
             return true;
         },
         5min);

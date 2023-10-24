@@ -452,7 +452,10 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
     return true;
 }
 
-void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
+void PeerManager::cleanupDanglingProofs(
+    const ProofRef &localProof,
+    std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs) {
+    registeredProofs.clear();
     const auto now = GetTime<std::chrono::seconds>();
 
     std::vector<ProofRef> newlyDanglingProofs;
@@ -482,7 +485,9 @@ void PeerManager::cleanupDanglingProofs(const ProofRef &localProof) {
     });
     for (const ProofRef &proof : previouslyDanglingProofs) {
         danglingProofPool.removeProof(proof->getId());
-        registerProof(proof);
+        if (registerProof(proof)) {
+            registeredProofs.insert(proof);
+        }
     }
 
     for (const ProofRef &proof : newlyDanglingProofs) {

@@ -384,7 +384,9 @@ public:
         return getProof(proofid) != nullptr;
     }
 
-    void cleanupDanglingProofs(const ProofRef &localProof);
+    void cleanupDanglingProofs(
+        const ProofRef &localProof,
+        std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs);
 
     template <typename Callable>
     bool forPeer(const ProofId &proofid, Callable &&func) const {
