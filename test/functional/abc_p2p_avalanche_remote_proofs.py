@@ -9,6 +9,7 @@ import time
 from test_framework.avatools import (
     AvaP2PInterface,
     build_msg_avaproofs,
+    can_find_inv_in_poll,
     gen_proof,
     get_ava_p2p_interface,
 )
@@ -16,26 +17,33 @@ from test_framework.messages import (
     NODE_AVALANCHE,
     NODE_NETWORK,
     AvalanchePrefilledProof,
+    AvalancheProofVoteResponse,
     calculate_shortid,
 )
 from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
+from test_framework.wallet_util import bytes_to_wif
 
 AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
 
 
 class AvalancheRemoteProofsTest(BitcoinTestFramework):
     def set_test_params(self):
-        self.num_nodes = 1
+        self.num_nodes = 2
         self.extra_args = [
             [
                 "-avaproofstakeutxodustthreshold=10000",
                 "-avaproofstakeutxoconfirmations=1",
+                "-avaminquorumstake=1000000",
+                "-avaminavaproofsnodecount=0",
+                "-avacooldown=0",
+                "-whitelist=noban@127.0.0.1",
             ]
-        ]
+        ] * self.num_nodes
 
     def run_test(self):
+        self.disconnect_nodes(0, 1)
         node = self.nodes[0]
 
         inbound = get_ava_p2p_interface(self, node)
@@ -62,9 +70,13 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
                 "last_update": now,
             }
 
-        def assert_remote_proofs(nodeid, remote_proofs):
-            lhs = sorted(node.getremoteproofs(nodeid), key=lambda p: p["proofid"])
+        def check_remote_proofs(_node, nodeid, remote_proofs):
+            lhs = sorted(_node.getremoteproofs(nodeid), key=lambda p: p["proofid"])
             rhs = sorted(remote_proofs, key=lambda p: p["proofid"])
+            return lhs, rhs
+
+        def assert_remote_proofs(nodeid, remote_proofs):
+            lhs, rhs = check_remote_proofs(node, nodeid, remote_proofs)
             assert_equal(lhs, rhs)
 
         assert_remote_proofs(inbound.nodeid, [])
@@ -213,6 +225,75 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
                 remoteFromProof(proof, present=(proof not in proofs_absent))
                 for proof in [outbound.proof] + [prefilled_proof] + proofs
             ],
+        )
+
+        node0_privkey, node0_proof = gen_proof(self, node)
+
+        self.restart_node(
+            0,
+            extra_args=self.extra_args[0]
+            + [
+                f"-avamasterkey={bytes_to_wif(node0_privkey.get_bytes())}",
+                f"-avaproof={node0_proof.serialize().hex()}",
+            ],
+        )
+
+        quorum = [get_ava_p2p_interface(self, node) for _ in range(10)]
+        proofs = [node0_proof] + [peer.proof for peer in quorum]
+
+        self.wait_until(lambda: node.getavalancheinfo()["ready_to_poll"] is True)
+
+        def wait_for_finalized_proof(proofid):
+            def finalize_proof(proofid):
+                can_find_inv_in_poll(
+                    quorum, proofid, response=AvalancheProofVoteResponse.ACTIVE
+                )
+                return node.getrawavalancheproof(uint256_hex(proofid)).get(
+                    "finalized", False
+                )
+
+            self.wait_until(lambda: finalize_proof(proofid))
+
+        for proof in proofs:
+            wait_for_finalized_proof(proof.proofid)
+
+        node1 = self.nodes[1]
+
+        self.connect_nodes(1, 0)
+        self.sync_blocks()
+
+        [node1.sendavalancheproof(proof.serialize().hex()) for proof in proofs]
+
+        node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+
+        def wait_for_remote_proofs(remote_proofs, **kwargs):
+            def expected_remote_proofs():
+                lhs, rhs = check_remote_proofs(node1, 1, remote_proofs)
+                # We don't care about update time
+                lhs = [{k: v for k, v in d.items() if k != "last_update"} for d in lhs]
+                rhs = [{k: v for k, v in d.items() if k != "last_update"} for d in rhs]
+                return lhs == rhs
+
+            self.wait_until(expected_remote_proofs, **kwargs)
+
+        wait_for_remote_proofs([remoteFromProof(proof) for proof in proofs])
+
+        # Disconnect some nodes and check the remote status updates
+        for peer in quorum[:5]:
+            peer.peer_disconnect()
+            peer.wait_for_disconnect()
+        assert_equal(len(node.getpeerinfo()), 6)
+
+        proofs_absent = [peer.proof for peer in quorum[:5]]
+
+        node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+
+        wait_for_remote_proofs(
+            [
+                remoteFromProof(proof, present=(proof not in proofs_absent))
+                for proof in proofs
+            ],
+            timeout=5,
         )
 
 

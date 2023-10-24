@@ -60,6 +60,7 @@ bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid) {
         assert(success);
     }
 
+    // Then increase the node counter, and create the slot if needed
     bool success = addNodeToPeer(it);
     assert(success);
 
@@ -71,6 +72,10 @@ bool PeerManager::addOrUpdateNode(const PeerSet::iterator &it, NodeId nodeid) {
     if (danglingProofPool.getProof(proofid)) {
         danglingProofPool.removeProof(proofid);
     }
+
+    // We know for sure there is at least 1 node. Note that this can fail if
+    // there is more than 1, in this case it's a no-op.
+    shareableProofs.insert(it->proof);
 
     return true;
 }
@@ -146,8 +151,14 @@ bool PeerManager::removeNodeFromPeer(const PeerSet::iterator &it,
         return true;
     }
 
-    // There are no more nodes left, we need to clean up. Subtract allocated
-    // score and remove from slots.
+    // There are no more nodes left, we need to clean up. Remove from the radix
+    // tree (unless it's our local proof), subtract allocated score and remove
+    // from slots.
+    if (!localProof || it->getProofId() != localProof->getId()) {
+        const auto removed = shareableProofs.remove(it->getProofId());
+        assert(removed);
+    }
+
     const size_t i = it->index;
     assert(i < slots.size());
     assert(connectedPeersScore >= slots[i].getScore());
@@ -372,8 +383,12 @@ bool PeerManager::registerProof(const ProofRef &proof,
     auto inserted = peers.emplace(peerid, proof, nextCooldownTimePoint);
     assert(inserted.second);
 
-    auto insertedRadixTree = shareableProofs.insert(proof);
-    assert(insertedRadixTree);
+    if (localProof && proof->getId() == localProof->getId()) {
+        // Add it to the shareable proofs even if there is no node, we are the
+        // node. Otherwise it will be inserted after a node is attached to the
+        // proof.
+        shareableProofs.insert(proof);
+    }
 
     // Add to our registered score when adding to the peer list
     totalPeersScore += proof->getScore();
@@ -676,8 +691,8 @@ bool PeerManager::removePeer(const PeerId peerid) {
     // Release UTXOs attached to this proof.
     validProofPool.removeProof(it->getProofId());
 
+    // If there were nodes attached, remove from the radix tree as well
     auto removed = shareableProofs.remove(Uint256RadixKey(it->getProofId()));
-    assert(removed != nullptr);
 
     m_unbroadcast_proofids.erase(it->getProofId());
 
@@ -839,8 +854,14 @@ bool PeerManager::verify() const {
             return false;
         }
 
-        // Check the proof is in the radix tree
-        if (shareableProofs.get(p.getProofId()) == nullptr) {
+        // Check the proof is in the radix tree only if there are nodes attached
+        if (((localProof && p.getProofId() == localProof->getId()) ||
+             p.node_count > 0) &&
+            shareableProofs.get(p.getProofId()) == nullptr) {
+            return false;
+        }
+        if (p.node_count == 0 &&
+            shareableProofs.get(p.getProofId()) != nullptr) {
             return false;
         }
     }

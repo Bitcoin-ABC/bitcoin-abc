@@ -5417,31 +5417,31 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        const auto &proofs =
-            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
-                return pm.getShareableProofsSnapshot();
-            });
-
         size_t proofCount = 0;
         std::vector<std::pair<avalanche::ProofId, bool>> remoteProofsStatus;
-        proofs.forEachLeaf([&](const avalanche::ProofRef &proof) {
-            uint64_t shortid = compactProofs.getShortID(proof->getId());
+        g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+            pm.forEachPeer([&](const avalanche::Peer &peer) {
+                assert(peer.proof);
+                uint64_t shortid = compactProofs.getShortID(peer.getProofId());
 
-            int added = shortIdProcessor.matchKnownItem(shortid, proof);
+                int added =
+                    shortIdProcessor.matchKnownItem(shortid, peer.proof);
 
-            // No collision
-            if (added >= 0) {
-                // Because we know the proof, we can determine if our peer has
-                // it (added = 1) or not (added = 0) and update the remote proof
-                // status accordingly.
-                remoteProofsStatus.emplace_back(proof->getId(), added > 0);
-            }
+                // No collision
+                if (added >= 0) {
+                    // Because we know the proof, we can determine if our peer
+                    // has it (added = 1) or not (added = 0) and update the
+                    // remote proof status accordingly.
+                    remoteProofsStatus.emplace_back(peer.getProofId(),
+                                                    added > 0);
+                }
 
-            proofCount += added;
+                proofCount += added;
 
-            // In order to properly determine which proof is missing, we need to
-            // keep scanning for all our proofs.
-            return true;
+                // In order to properly determine which proof is missing, we
+                // need to keep scanning for all our proofs.
+                return true;
+            });
         });
 
         avalanche::ProofsRequest req;
@@ -5461,7 +5461,7 @@ void PeerManagerImpl::ProcessMessage(
         // quorum is close enough to the other participants.
         g_avalanche->avaproofsSent(nodeid);
 
-        if (pfrom.IsAvalancheOutboundConnection()) {
+        if (pfrom.IsAvalancheOutboundConnection() || pfrom.IsManualConn()) {
             g_avalanche->withPeerManager(
                 [&remoteProofsStatus, nodeid](avalanche::PeerManager &pm) {
                     for (const auto &[proofid, present] : remoteProofsStatus) {
@@ -7230,7 +7230,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &peer,
     auto saveProofIfOutbound = [](const CNode &peer,
                                   const avalanche::ProofId &proofid,
                                   const NodeId nodeid) -> bool {
-        if (peer.IsAvalancheOutboundConnection()) {
+        if (peer.IsAvalancheOutboundConnection() || peer.IsManualConn()) {
             LogPrint(BCLog::AVALANCHE, "Saving remote proof %s\n",
                      proofid.ToString());
             return g_avalanche->withPeerManager(
