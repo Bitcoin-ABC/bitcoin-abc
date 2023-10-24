@@ -146,7 +146,8 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
       chainman(chainmanIn), mempool(mempoolIn),
       voteRecords(RWCollection<VoteMap>(VoteMap(VoteMapComparator(mempool)))),
       round(0), peerManager(std::make_unique<PeerManager>(
-                    stakeUtxoDustThreshold, chainman)),
+                    stakeUtxoDustThreshold, chainman,
+                    peerDataIn ? peerDataIn->proof : ProofRef())),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -160,8 +161,8 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
     scheduler.scheduleEvery(
         [this]() -> bool {
             std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
-            WITH_LOCK(cs_peerManager, peerManager->cleanupDanglingProofs(
-                                          getLocalProof(), registeredProofs));
+            WITH_LOCK(cs_peerManager,
+                      peerManager->cleanupDanglingProofs(registeredProofs));
             for (const auto &proof : registeredProofs) {
                 addToReconcile(proof);
             }

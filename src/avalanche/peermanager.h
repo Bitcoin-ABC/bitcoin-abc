@@ -242,6 +242,8 @@ class PeerManager {
 
     ChainstateManager &chainman;
 
+    ProofRef localProof;
+
     struct by_lastUpdate;
 
     using RemoteProofSet = boost::multi_index_container<
@@ -282,9 +284,10 @@ public:
     static constexpr size_t MAX_REMOTE_PROOFS{100};
 
     PeerManager(const Amount &stakeUtxoDustThresholdIn,
-                ChainstateManager &chainmanIn)
+                ChainstateManager &chainmanIn,
+                const ProofRef &localProofIn = ProofRef())
         : stakeUtxoDustThreshold(stakeUtxoDustThresholdIn),
-          chainman(chainmanIn){};
+          chainman(chainmanIn), localProof(localProofIn){};
 
     /**
      * Node API.
@@ -385,7 +388,6 @@ public:
     }
 
     void cleanupDanglingProofs(
-        const ProofRef &localProof,
         std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs);
 
     template <typename Callable>

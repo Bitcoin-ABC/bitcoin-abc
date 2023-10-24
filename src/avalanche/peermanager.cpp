@@ -453,7 +453,6 @@ bool PeerManager::rejectProof(const ProofId &proofid, RejectionMode mode) {
 }
 
 void PeerManager::cleanupDanglingProofs(
-    const ProofRef &localProof,
     std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs) {
     registeredProofs.clear();
     const auto now = GetTime<std::chrono::seconds>();

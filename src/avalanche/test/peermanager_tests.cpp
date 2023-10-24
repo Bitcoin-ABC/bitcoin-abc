@@ -69,16 +69,13 @@ namespace {
 
         static void cleanupDanglingProofs(
             PeerManager &pm,
-            std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs,
-            const ProofRef &localProof = ProofRef()) {
-            pm.cleanupDanglingProofs(localProof, registeredProofs);
+            std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs) {
+            pm.cleanupDanglingProofs(registeredProofs);
         }
 
-        static void
-        cleanupDanglingProofs(PeerManager &pm,
-                              const ProofRef &localProof = ProofRef()) {
+        static void cleanupDanglingProofs(PeerManager &pm) {
             std::unordered_set<ProofRef, SaltedProofHasher> dummy;
-            pm.cleanupDanglingProofs(localProof, dummy);
+            pm.cleanupDanglingProofs(dummy);
         }
 
         static std::optional<RemoteProof> getRemoteProof(const PeerManager &pm,
@@ -2079,16 +2076,7 @@ BOOST_FIXTURE_TEST_CASE(cleanup_dangling_proof, NoCoolDownFixture) {
     // Elapse the timeout for the newly promoted conflicting proofs
     elapseTime(avalanche::Peer::DANGLING_TIMEOUT);
 
-    // Use the first conflicting proof as our local proof
-    TestPeerManager::cleanupDanglingProofs(pm, conflictingProofs[1]);
-
-    for (size_t i = 0; i < numProofs; i++) {
-        // All other proofs have now been discarded
-        BOOST_CHECK(!pm.exists(proofs[i]->getId()));
-        BOOST_CHECK_EQUAL(!pm.exists(conflictingProofs[i]->getId()), i != 1);
-    }
-
-    // Cleanup one more time with no local proof
+    // All other proofs have now been discarded
     TestPeerManager::cleanupDanglingProofs(pm);
 
     for (size_t i = 0; i < numProofs; i++) {
@@ -2690,7 +2678,7 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
     }
 
     // The proofs are recent enough, the cleanup won't make them dangling
-    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    TestPeerManager::cleanupDanglingProofs(pm);
     for (const auto &proof : proofs) {
         BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
         BOOST_CHECK(!pm.isDangling(proof->getId()));
@@ -2701,7 +2689,7 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
     SetMockTime(mockTime);
 
     // The proofs are now dangling
-    TestPeerManager::cleanupDanglingProofs(pm, ProofRef());
+    TestPeerManager::cleanupDanglingProofs(pm);
     for (const auto &proof : proofs) {
         BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
         BOOST_CHECK(pm.isDangling(proof->getId()));
@@ -2727,7 +2715,7 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
 
     // The proofs should be added back as a peer
     std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
-    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs, ProofRef());
+    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs);
     for (const auto &proof : proofs) {
         BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
         BOOST_CHECK(!pm.isDangling(proof->getId()));
@@ -2750,7 +2738,7 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
     }
 
     // The proofs are not dangling yet as they have been registered recently
-    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs, ProofRef());
+    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs);
     BOOST_CHECK(registeredProofs.empty());
     for (const auto &proof : proofs) {
         BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
@@ -2761,7 +2749,7 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
     mockTime += avalanche::Peer::DANGLING_TIMEOUT + 1s;
     SetMockTime(mockTime);
 
-    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs, ProofRef());
+    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs);
     BOOST_CHECK(registeredProofs.empty());
     for (const auto &proof : proofs) {
         BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
@@ -2775,7 +2763,7 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
         }
     }
 
-    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs, ProofRef());
+    TestPeerManager::cleanupDanglingProofs(pm, registeredProofs);
     for (const auto &proof : proofs) {
         BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
         BOOST_CHECK(!pm.isDangling(proof->getId()));
