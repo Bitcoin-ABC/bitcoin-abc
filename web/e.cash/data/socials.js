@@ -7,7 +7,7 @@ export const socials = [
         link: 'https://www.facebook.com/ecashofficial',
     },
     {
-        name: 'twitter',
+        name: 'x',
         link: 'https://twitter.com/ecashofficial',
     },
     {
