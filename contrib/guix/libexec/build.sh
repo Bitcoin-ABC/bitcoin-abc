@@ -318,9 +318,6 @@ HOST_CXXFLAGS="$HOST_CFLAGS"
 case "$HOST" in
     *linux*)  HOST_LDFLAGS="-Wl,--as-needed -Wl,--dynamic-linker=$glibc_dynamic_linker" ;;
     *mingw*)  HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
-    # False-positive warning is fixed with clang 17, remove this when that
-    # version can be used.
-    *darwin*)  HOST_LDFLAGS="-Wno-error=unused-command-line-argument" ;;
 esac
 
 # CMake flags
