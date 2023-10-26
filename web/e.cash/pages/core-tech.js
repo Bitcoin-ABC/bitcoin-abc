@@ -171,8 +171,8 @@ export default function CoreTech() {
                     </TextImageBlock>
 
                     <TextImageBlock
-                        id="bits"
-                        title="Small, Convenient Denomination (Bits)"
+                        id="denomination"
+                        title="Small, Convenient Denomination"
                         image={calculate}
                     >
                         <p>

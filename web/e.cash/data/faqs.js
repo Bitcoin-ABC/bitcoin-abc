@@ -137,11 +137,11 @@ export const faqs = [
         question: 'What is the base unit of eCash?',
         answer: (
             <p>
-                <strong>eCash</strong> uses ”bits” which make it easy to send
-                small payments because you no longer have to handle unwieldy
-                decimal places. For instance, instead of sending 0.00001000
-                bitcoins (which was the base unit used by BCHA), you’ll simply
-                send 10 bits!
+                <strong>eCash</strong> (XEC) uses a base unit of 100 satoshis,
+                which makes it easy to send small payments because you no longer
+                have to handle unwieldy decimal places. For instance, instead of
+                sending 0.00001000 bitcoins (which was the base unit used by
+                BCHA), you’ll simply send 10 XEC!
             </p>
         ),
     },

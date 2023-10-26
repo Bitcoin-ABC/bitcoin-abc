@@ -26,9 +26,9 @@ const tiles = [
         image: '/images/tile3.png',
     },
     {
-        title: 'Small, convenient denomination (bits)',
+        title: 'Small, convenient denomination',
         text: 'Because money shouldn’t have 8 decimal places.',
-        link: '/core-tech#bits',
+        link: '/core-tech#denomination',
         image: '/images/tile4.png',
     },
     {
