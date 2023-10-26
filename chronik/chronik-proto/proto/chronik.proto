@@ -26,6 +26,12 @@ message BlockchainInfo {
     int32 tip_height = 2;
 }
 
+// Info about the chronik software this server is running
+message ChronikInfo {
+    // chronik server version from chronik-http/Cargo.toml
+    string version = 1;
+}
+
 // Info about a block
 message BlockInfo {
     // Hash (little-endian)

@@ -160,6 +160,9 @@ class ChronikClient:
     def blocks(self, start_height: int, end_height: int) -> ChronikResponse:
         return self._request_get(f"/blocks/{start_height}/{end_height}", pb.Blocks)
 
+    def chronik_info(self) -> ChronikResponse:
+        return self._request_get("/chronik-info", pb.ChronikInfo)
+
     def tx(self, txid: str) -> ChronikResponse:
         return self._request_get(f"/tx/{txid}", pb.Tx)
 
