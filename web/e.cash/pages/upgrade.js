@@ -92,7 +92,7 @@ function Upgrade(props) {
                     simply stop the currently running node, download the new
                     version, and start the new version. Here are some example
                     instructions for upgrading from version 0.27.15 to version
-                    0.28.0 on Linux:
+                    0.28.1 on Linux:
                 </p>
                 <ol>
                     <li>
@@ -105,20 +105,20 @@ function Upgrade(props) {
                         <br />
                         <code>
                             wget
-                            https://download.bitcoinabc.org/0.28.0/linux/bitcoin-abc-0.28.0-x86_64-linux-gnu.tar.gz
+                            https://download.bitcoinabc.org/0.28.1/linux/bitcoin-abc-0.28.1-x86_64-linux-gnu.tar.gz
                         </code>
                     </li>
                     <li>
                         Extract the archive:
                         <br />
                         <code>
-                            tar xzf bitcoin-abc-0.28.0-x86_64-linux-gnu.tar.gz
+                            tar xzf bitcoin-abc-0.28.1-x86_64-linux-gnu.tar.gz
                         </code>
                     </li>
                     <li>
                         Restart the node with the new version:
                         <br />
-                        <code>./bitcoin-abc-0.28.0/bin/bitcoind -daemon</code>
+                        <code>./bitcoin-abc-0.28.1/bin/bitcoind -daemon</code>
                     </li>
                     <li>
                         Clean up old version and archives (optional):
@@ -135,7 +135,7 @@ function Upgrade(props) {
                             <li>
                                 <code>
                                     rm -f
-                                    bitcoin-abc-0.28.0-x86_64-linux-gnu.tar.gz
+                                    bitcoin-abc-0.28.1-x86_64-linux-gnu.tar.gz
                                 </code>
                             </li>
                         </ul>
