@@ -2,6 +2,8 @@ const extension = require('extensionizer');
 
 const NOTIFICATION_HEIGHT = 600;
 const NOTIFICATION_WIDTH = 400;
+const EXTENSION_DEV_ID = 'aleabaopoakgpbijdnicepefdiglggfl';
+const EXTENSION_PROD_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
 
 // This starts listening to the port created with `extension.runtime.connect` in contentscript.js
 extension.runtime.onConnect.addListener(function (port) {
@@ -154,7 +156,27 @@ async function openSendXec(txInfo) {
     });
 }
 
+function isCashtabWindow(window) {
+    return (
+        window &&
+        window.tabs &&
+        window.tabs.length === 1 &&
+        window.height === NOTIFICATION_HEIGHT &&
+        window.width === NOTIFICATION_WIDTH &&
+        (window.tabs[0].url.includes(EXTENSION_DEV_ID) ||
+            window.tabs[0].url.includes(EXTENSION_PROD_ID))
+    );
+}
+
 async function openWindow(options) {
+    // Close existing windows before opening a new window
+    const windows = await extension.windows.getAll({ populate: true });
+    for (let window of windows) {
+        if (isCashtabWindow(window)) {
+            await extension.windows.remove(window.id);
+        }
+    }
+
     return new Promise((resolve, reject) => {
         extension.windows.create(options, newWindow => {
             const error = checkForError();
