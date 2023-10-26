@@ -7,7 +7,6 @@ coverage
 # production
 build
 dist
-extension
 
 # misc
 .DS_Store
