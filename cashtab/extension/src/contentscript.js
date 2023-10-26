@@ -3,9 +3,12 @@ const extension = require('extensionizer');
 // Insert flag into window object to denote Cashtab is available and active as a browser extension
 // Could use a div or other approach for now, but emulate MetaMask this way so it is extensible to other items
 // Try window object approach
-var cashTabInject = document.createElement('script');
-cashTabInject.innerHTML = `window.bitcoinAbc = 'cashtab'`;
-document.head.appendChild(cashTabInject);
+let cashTabInject = document.createElement('script');
+cashTabInject.src = extension.runtime.getURL('script.js');
+cashTabInject.onload = function () {
+    this.remove();
+};
+(document.head || document.documentElement).appendChild(cashTabInject);
 
 // Process page messages
 // Chrome extensions communicate with web pages through the DOM

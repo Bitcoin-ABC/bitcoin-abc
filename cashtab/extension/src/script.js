@@ -1,0 +1,1 @@
+window.bitcoinAbc = 'cashtab';
