@@ -6,6 +6,7 @@ import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
 import Link from 'next/link';
 import { Container, GradientSpacer } from '/components/atoms';
+import CodeBlock from '/components/code-block';
 import mining from '/public/animations/mining.json';
 
 const getblocktemplateexample = `"coinbasetxn": {
@@ -171,16 +172,7 @@ function Mining(props) {
                         to use the values from the &ldquo;coinbasetxn&rdquo;
                         field returned by <code>getblocktemplate</code>. For
                         example:
-                        <pre
-                            style={{
-                                background: '#000',
-                                width: '100%',
-                                overflowX: 'scroll',
-                                padding: '20px',
-                            }}
-                        >
-                            <code>{getblocktemplateexample}</code>
-                        </pre>
+                        <CodeBlock code={getblocktemplateexample} />
                     </li>
                 </ul>
             </Container>
