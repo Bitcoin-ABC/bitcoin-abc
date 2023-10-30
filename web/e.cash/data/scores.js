@@ -124,6 +124,7 @@ export const getScores = (data, scoringCriteria) => {
             } else if (
                 criteria.min >= 0 &&
                 criteria.max &&
+                item[criteria.attribute] !== null &&
                 item[criteria.attribute] >= criteria.min &&
                 item[criteria.attribute] <= criteria.max
             ) {
