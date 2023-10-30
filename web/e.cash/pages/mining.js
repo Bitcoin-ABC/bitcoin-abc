@@ -4,7 +4,7 @@
 import Layout from '/components/layout';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
-import Link from 'next/link';
+import CustomLink from '/components/custom-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import CodeBlock from '/components/code-block';
 import mining from '/public/animations/mining.json';
@@ -85,10 +85,14 @@ function Mining(props) {
                 </p>
                 <ul>
                     <li>
-                        <Link href="https://xec.solopool.org/">Solopool</Link>
+                        <CustomLink href="https://xec.solopool.org/">
+                            Solopool
+                        </CustomLink>
                     </li>
                     <li>
-                        <Link href="https://xec.molepool.com/">Molepool</Link>
+                        <CustomLink href="https://xec.molepool.com/">
+                            Molepool
+                        </CustomLink>
                     </li>
                 </ul>
                 <h4>Using a mining pool</h4>
@@ -100,25 +104,27 @@ function Mining(props) {
                 </p>
                 <ul>
                     <li>
-                        <Link href="https://support.viabtc.com/hc/en-us/articles/7207444931599">
+                        <CustomLink href="https://support.viabtc.com/hc/en-us/articles/7207444931599">
                             ViaBTC
-                        </Link>
+                        </CustomLink>
                     </li>
                     <li>
-                        <Link href="https://www.mining-dutch.nl/pools/ecash.php?page=dashboard">
+                        <CustomLink href="https://www.mining-dutch.nl/pools/ecash.php?page=dashboard">
                             Mining Dutch
-                        </Link>
+                        </CustomLink>
                     </li>
                     <li>
-                        <Link href="https://beta.zulupool.com/">Zulupool</Link>
+                        <CustomLink href="https://beta.zulupool.com/">
+                            Zulupool
+                        </CustomLink>
                     </li>
                     <li>
-                        <Link href="https://zergpool.com/site/block?coin=XEC">
+                        <CustomLink href="https://zergpool.com/site/block?coin=XEC">
                             Zergpool
-                        </Link>
+                        </CustomLink>
                     </li>
                     <li>
-                        <Link href="https://zpool.ca/">Zpool</Link>
+                        <CustomLink href="https://zpool.ca/">Zpool</CustomLink>
                     </li>
                 </ul>
 
@@ -134,10 +140,10 @@ function Mining(props) {
                     Solo mining requires running an eCash node along with
                     specialized mining software. Such mining software is
                     available{' '}
-                    <Link href="https://github.com/Bitcoin-ABC/ecash-ckpool-solo">
+                    <CustomLink href="https://github.com/Bitcoin-ABC/ecash-ckpool-solo">
                         {' '}
                         here
-                    </Link>
+                    </CustomLink>
                     .
                 </p>
                 <h4>Operating a mining pool</h4>
