@@ -12,6 +12,7 @@ from test_framework.avatools import (
     can_find_inv_in_poll,
     gen_proof,
     get_ava_p2p_interface,
+    wait_for_proof,
 )
 from test_framework.messages import (
     NODE_AVALANCHE,
@@ -26,6 +27,7 @@ from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet_util import bytes_to_wif
 
 AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL = 5 * 60
+AVALANCHE_DANGLING_PROOF_TIMEOUT = 15 * 60
 
 
 class AvalancheRemoteProofsTest(BitcoinTestFramework):
@@ -243,19 +245,19 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
 
         self.wait_until(lambda: node.getavalancheinfo()["ready_to_poll"] is True)
 
-        def wait_for_finalized_proof(proofid):
+        def wait_for_finalized_proof(_node, _quorum, proofid, **kwargs):
             def finalize_proof(proofid):
                 can_find_inv_in_poll(
-                    quorum, proofid, response=AvalancheProofVoteResponse.ACTIVE
+                    _quorum, proofid, response=AvalancheProofVoteResponse.ACTIVE
                 )
-                return node.getrawavalancheproof(uint256_hex(proofid)).get(
+                return _node.getrawavalancheproof(uint256_hex(proofid)).get(
                     "finalized", False
                 )
 
-            self.wait_until(lambda: finalize_proof(proofid))
+            self.wait_until(lambda: finalize_proof(proofid), **kwargs)
 
         for proof in proofs:
-            wait_for_finalized_proof(proof.proofid)
+            wait_for_finalized_proof(node, quorum, proof.proofid)
 
         node1 = self.nodes[1]
 
@@ -263,12 +265,15 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         self.sync_blocks()
 
         [node1.sendavalancheproof(proof.serialize().hex()) for proof in proofs]
+        assert all(
+            node1.verifyavalancheproof(proof.serialize().hex()) for proof in proofs
+        )
 
         node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
 
-        def wait_for_remote_proofs(remote_proofs, **kwargs):
+        def wait_for_remote_proofs(remote_proofs, nodeid=1, **kwargs):
             def expected_remote_proofs():
-                lhs, rhs = check_remote_proofs(node1, 1, remote_proofs)
+                lhs, rhs = check_remote_proofs(node1, nodeid, remote_proofs)
                 # We don't care about update time
                 lhs = [{k: v for k, v in d.items() if k != "last_update"} for d in lhs]
                 rhs = [{k: v for k, v in d.items() if k != "last_update"} for d in rhs]
@@ -293,7 +298,71 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
                 remoteFromProof(proof, present=(proof not in proofs_absent))
                 for proof in proofs
             ],
-            timeout=5,
+        )
+
+        self.log.info(
+            "Check the finalization status is sticky when pulling back a previously dangling proof"
+        )
+
+        self.restart_node(1, extra_args=self.extra_args[1])
+
+        node1_quorum = [get_ava_p2p_interface(self, node1) for _ in range(10)]
+        node1_proofs = [peer.proof for peer in node1_quorum]
+
+        self.wait_until(lambda: node1.getavalancheinfo()["ready_to_poll"] is True)
+
+        for proof in proofs:
+            node1_quorum[0].send_avaproof(proof)
+            wait_for_proof(node1, uint256_hex(proof.proofid))
+            wait_for_finalized_proof(node1, node1_quorum, proof.proofid)
+
+        def check_count(proof_count, dangling_proof_count, finalized_proof_count):
+            info = node1.getavalancheinfo()["network"]
+            return (
+                info["proof_count"] == proof_count
+                and info["dangling_proof_count"] == dangling_proof_count
+                and info["finalized_proof_count"] == finalized_proof_count
+            )
+
+        # At this stage all proofs are finalized, and the 11 from node 0 are
+        # dangling
+        assert check_count(
+            proof_count=21, dangling_proof_count=11, finalized_proof_count=21
+        )
+
+        now = int(time.time()) + AVALANCHE_DANGLING_PROOF_TIMEOUT
+        node1.setmocktime(now)
+        node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+
+        # The dangling proofs are cleaned up
+        self.wait_until(
+            lambda: check_count(
+                proof_count=10, dangling_proof_count=0, finalized_proof_count=10
+            )
+        )
+
+        self.connect_nodes(1, 0)
+        self.sync_blocks()
+
+        nodeid = node1.getpeerinfo()[-1]["id"]
+        proofs_present = [node0_proof] + [peer.proof for peer in quorum[5:]]
+
+        wait_for_remote_proofs(
+            [
+                remoteFromProof(proof, present=(proof in proofs_present))
+                for proof in proofs_present + node1_proofs
+            ],
+            nodeid=nodeid,
+        )
+
+        # One more dangling proof processing and we will reconsider the 6 proofs
+        # (5 from quorum + node 0 proof) from our peer thanks to remote proofs.
+        # We also make sure the proofs remain finalized!
+        node1.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+        self.wait_until(
+            lambda: check_count(
+                proof_count=16, dangling_proof_count=5, finalized_proof_count=16
+            )
         )
 
 

@@ -164,7 +164,20 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
             WITH_LOCK(cs_peerManager,
                       peerManager->cleanupDanglingProofs(registeredProofs));
             for (const auto &proof : registeredProofs) {
-                addToReconcile(proof);
+                LogPrint(BCLog::AVALANCHE,
+                         "Promoting previously dangling proof %s\n",
+                         proof->getId().ToString());
+                if (g_avalanche->isRecentlyFinalized(proof)) {
+                    g_avalanche->withPeerManager(
+                        [&](avalanche::PeerManager &pm) {
+                            pm.forPeer(proof->getId(),
+                                       [&](const avalanche::Peer &peer) {
+                                           return pm.setFinalized(peer.peerid);
+                                       });
+                        });
+                } else {
+                    addToReconcile(proof);
+                }
             }
             return true;
         },
