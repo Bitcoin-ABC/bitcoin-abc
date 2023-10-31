@@ -11,6 +11,7 @@ import {
     AirdropIcon,
     ThemedSignAndVerifyMsg,
     ThemedUserProfileIcon,
+    SwapIcon,
 } from 'components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
@@ -24,6 +25,7 @@ import Airdrop from 'components/Airdrop/Airdrop';
 import Alias from 'components/Alias/Alias';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
+import Swap from 'components/Swap/Swap';
 import NotFound from 'components/NotFound';
 import CashTab from 'assets/cashtab_xec.png';
 import './App.css';
@@ -557,6 +559,13 @@ const App = () => {
                                         <ThemedSignAndVerifyMsg />
                                     </NavHeader>
                                 )}
+                                {selectedKey === 'swap' && (
+                                    <NavHeader>
+                                        {' '}
+                                        Swap
+                                        <SwapIcon />
+                                    </NavHeader>
+                                )}
                                 {/*Begin component not included in extension as desktop only*/}
                                 {hasTab && (
                                     <EasterEgg src={TabCash} alt="tabcash" />
@@ -625,6 +634,9 @@ const App = () => {
                                         }
                                     />
                                 </Route>
+                                <Route path="/swap">
+                                    <Swap />
+                                </Route>
                                 <Redirect exact from="/" to="/wallet" />
                                 <Route component={NotFound} />
                             </Switch>
@@ -666,6 +678,16 @@ const App = () => {
                                             {' '}
                                             <p>Airdrop</p>
                                             <AirdropIcon />
+                                        </NavItem>
+                                        <NavItem
+                                            active={selectedKey === 'swap'}
+                                            onClick={() =>
+                                                history.push('/swap')
+                                            }
+                                        >
+                                            {' '}
+                                            <p>Swap</p>
+                                            <SwapIcon />
                                         </NavItem>
                                         <NavItem
                                             active={

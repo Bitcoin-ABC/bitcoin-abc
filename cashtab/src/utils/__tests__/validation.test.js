@@ -25,6 +25,7 @@ import {
     isValidAliasString,
     isProbablyNotAScam,
     isValidRecipient,
+    isValidSideshiftObj,
 } from '../validation';
 import aliasSettings from 'config/alias';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -51,6 +52,35 @@ import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 
 describe('Validation utils', () => {
+    it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
+        const mockSideshift = {
+            show: () => {
+                return true;
+            },
+            hide: () => {
+                return true;
+            },
+            addEventListener: () => {
+                return true;
+            },
+        };
+        expect(isValidSideshiftObj(mockSideshift)).toBe(true);
+    });
+    it(`isValidSideshiftObj() returns false if the sideshift library object failed to instantiate`, () => {
+        expect(isValidSideshiftObj(null)).toBe(false);
+    });
+    it(`isValidSideshiftObj() returns false for an invalid sideshift library object`, () => {
+        const mockSideshift = {
+            show: () => {
+                return true;
+            },
+            hide: () => {
+                return true;
+            },
+            addEvenListener: 'not-a-function',
+        };
+        expect(isValidSideshiftObj(mockSideshift)).toBe(false);
+    });
     it(`isValidRecipient() returns true for a valid and registered alias input`, async () => {
         const mockRegisteredAliasResponse = {
             alias: 'cbdc',

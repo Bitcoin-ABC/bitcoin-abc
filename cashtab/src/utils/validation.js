@@ -11,6 +11,23 @@ import { queryAliasServer } from 'utils/aliasUtils';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 
+/**
+ * Checks whether the instantiated sideshift library object has loaded
+ * correctly with the expected API.
+ *
+ * @param {Object} sideshiftObj the instantiated sideshift library object
+ * @returns {boolean} whether or not this sideshift object is valid
+ */
+export const isValidSideshiftObj = sideshiftObj => {
+    return (
+        sideshiftObj !== null &&
+        typeof sideshiftObj === 'object' &&
+        typeof sideshiftObj.show === 'function' &&
+        typeof sideshiftObj.hide === 'function' &&
+        typeof sideshiftObj.addEventListener === 'function'
+    );
+};
+
 // Parses whether the value is a valid eCash address
 // or a valid and registered alias
 export const isValidRecipient = async value => {

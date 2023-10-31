@@ -13,6 +13,7 @@ import {
     SearchOutlined,
     UserAddOutlined,
     WarningOutlined,
+    SwapOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { ReactComponent as Send } from 'assets/send.svg';
@@ -210,7 +211,7 @@ export const PendingAliasWarningIcon = () => (
 
 export const WarningIcon = () => <WarningOutlined style={{ fontSize: 45 }} />;
 export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;
-
+export const SwapIcon = () => <SwapOutlined style={{ fontSize: 24 }} />;
 export const SendIcon = styled(Send)`
     transform: rotate(-35deg);
 `;

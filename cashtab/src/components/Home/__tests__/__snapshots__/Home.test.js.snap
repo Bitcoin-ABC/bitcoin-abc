@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 Array [
@@ -109,6 +109,8 @@ Array [
        
       XEC
        to send to others
+      <br />
+      <br />
     </div>
     <div
       className="sc-hrWEMg dMhHRa"
@@ -239,6 +241,8 @@ Array [
        
       XEC
        to send to others
+      <br />
+      <br />
     </div>
     <div
       className="sc-hrWEMg dMhHRa"
@@ -369,6 +373,8 @@ Array [
        
       XEC
        to send to others
+      <br />
+      <br />
     </div>
     <div
       className="sc-hrWEMg dMhHRa"
@@ -518,6 +524,8 @@ Array [
        
       XEC
        to send to others
+      <br />
+      <br />
     </div>
     <div
       className="sc-hrWEMg dMhHRa"

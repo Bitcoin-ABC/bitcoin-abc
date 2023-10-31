@@ -15,6 +15,9 @@ import {
 } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
 import WalletLabel from 'components/Common/WalletLabel.js';
+import { SmartButton } from 'components/Common/PrimaryButton';
+import { isValidSideshiftObj } from 'utils/validation';
+
 import appConfig from 'config/app';
 
 export const Tabs = styled.div`
@@ -153,7 +156,7 @@ const WalletInfo = () => {
     const walletState = getWalletState(wallet);
     const { balances, parsedTxHistory, tokens } = walletState;
     const [activeTab, setActiveTab] = React.useState('txHistory');
-
+    const sideshift = window.sideshift;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     return (
@@ -223,6 +226,13 @@ const WalletInfo = () => {
                             <br /> Start using the wallet immediately to receive{' '}
                             {appConfig.ticker} payments, or load it up with{' '}
                             {appConfig.ticker} to send to others
+                            <br />
+                            <br />
+                            {isValidSideshiftObj(sideshift) && (
+                                <SmartButton onClick={() => sideshift.show()}>
+                                    Exchange to XEC via SideShift
+                                </SmartButton>
+                            )}
                         </>
                     )}
                 </TabPane>
