@@ -283,7 +283,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
         self.log.info("Override the staking reward via RPC")
 
-        node.setstakingreward(
+        assert node.setstakingreward(
             tiphash, "76a914000000000000000000000000000000000000000188ac"
         )
         assert_equal(
@@ -319,7 +319,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
         for i in range(2, 10):
             script_hex = f"76a914{i:0{40}x}88ac"
-            node.setstakingreward(tiphash, script_hex)
+            assert node.setstakingreward(tiphash, script_hex)
             assert_equal(node.getstakingreward(tiphash)["hex"], script_hex)
             gbt = node.getblocktemplate()
             assert_equal(

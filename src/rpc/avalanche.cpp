@@ -1159,7 +1159,11 @@ static RPCHelpMan setstakingreward() {
                 ParseHex(request.params[1].get_str());
             const CScript payoutScript(data.begin(), data.end());
 
-            return g_avalanche->setStakingRewardWinner(pprev, payoutScript);
+            // This will return true upon insertion or false upon replacement.
+            // We want to convey the success of the RPC, so we always return
+            // true.
+            g_avalanche->setStakingRewardWinner(pprev, payoutScript);
+            return true;
         },
     };
 }
