@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cWfujV"
+    className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -51,7 +51,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-fMiknA cBqCEa"
+      className="sc-dVhcbM fsXPIU"
     >
       You currently have 0 
       XEC
@@ -61,7 +61,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-Rmtcm fuvBvM"
+    className="sc-bRBYWo iVNlSX"
   >
     <div
       className="ant-row"
@@ -143,13 +143,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cWfujV"
+    className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -191,7 +191,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-fMiknA cBqCEa"
+      className="sc-dVhcbM fsXPIU"
     >
       You currently have 0 
       XEC
@@ -201,7 +201,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-Rmtcm fuvBvM"
+    className="sc-bRBYWo iVNlSX"
   >
     <div
       className="ant-row"
@@ -283,13 +283,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cWfujV"
+    className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -331,10 +331,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-fBuWsC gFiHLB"
+      className="sc-fMiknA hHCiKT"
     >
       <span
-        className="sc-cHGsZl fLODmv"
+        className="sc-TOsTZ doeNJZ"
       >
          
         0.06
@@ -346,7 +346,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-Rmtcm fuvBvM"
+    className="sc-bRBYWo iVNlSX"
   >
     <div
       className="ant-row"
@@ -428,13 +428,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cWfujV"
+    className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <h4
-        className="sc-ksYbfQ gwupkP"
+        className="sc-hmzhuo laWxZt"
       >
         MigrationTestAlpha
       </h4>
@@ -476,7 +476,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-fMiknA cBqCEa"
+      className="sc-dVhcbM fsXPIU"
     >
       You currently have 0 
       XEC
@@ -486,7 +486,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-Rmtcm fuvBvM"
+    className="sc-bRBYWo iVNlSX"
   >
     <div
       className="ant-row"
@@ -568,10 +568,10 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-hzDkRC cWfujV"
+    className="sc-jhAzac kJIUSz"
   >
     <div
-      className="sc-cJSrbW eFiKNs"
+      className="sc-ksYbfQ lbumgR"
     >
       <a
         href="/configure"
@@ -611,7 +611,7 @@ Array [
       </div>
     </div>
     <div
-      className="sc-fMiknA cBqCEa"
+      className="sc-dVhcbM fsXPIU"
     >
       You currently have 0 
       XEC
@@ -621,7 +621,7 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-Rmtcm fuvBvM"
+    className="sc-bRBYWo iVNlSX"
   >
     <div
       className="ant-row"

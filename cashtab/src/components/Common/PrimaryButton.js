@@ -121,5 +121,43 @@ const SmartButton = styled.button`
     }
 `;
 
+const SmartButtonLookupOnly = styled.button`
+    ${({ disabled = false, ...props }) =>
+        disabled === true
+            ? `
+                background-image: 'none';
+                color: ${props.theme.buttons.alternateSecondary.color};
+                background: ${props.theme.buttons.alternateSecondary.background};
+                opacity: 0.3;
+                svg {
+                    fill: ${props.theme.buttons.alternateSecondary.color};
+                }
+            `
+            : `
+                opacity: 1;
+                background-image: 'none';
+                color: ${props.theme.buttons.alternateSecondary.color};
+                background: ${props.theme.buttons.alternateSecondary.background};
+                svg {
+                    fill: ${props.theme.buttons.alternateSecondary.color};
+                }
+            `}
+
+    border: none;
+    transition: all 0.5s ease;
+    font-size: 18px;
+    width: 100%;
+    padding: 15px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+    margin-bottom: 20px;
+
+    @media (max-width: 768px) {
+        font-size: 16px;
+        padding: 12px 0;
+    }
+`;
+
 export default PrimaryButton;
-export { SecondaryButton, SmartButton, DisabledButton };
+export { SecondaryButton, SmartButton, DisabledButton, SmartButtonLookupOnly };

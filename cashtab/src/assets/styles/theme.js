@@ -55,6 +55,11 @@ export const theme = {
             color: '#fff',
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
         },
+        alternateSecondary: {
+            background: '#255173',
+            color: '#fff',
+            hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
+        },
         styledLink: '#ffffff',
     },
     collapses: {

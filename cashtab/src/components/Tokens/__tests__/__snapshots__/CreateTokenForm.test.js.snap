@@ -2,7 +2,7 @@
 
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 <div
-  className="sc-gisBJw hfDtmk"
+  className="sc-kjoXOD ikvdjf"
 >
   <h3>
     Create a Token
@@ -21,7 +21,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       }
     >
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-Rmtcm kvsZVG"
       >
         Token Name
       </label>
@@ -59,7 +59,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-Rmtcm kvsZVG"
       >
         Ticker
       </label>
@@ -97,7 +97,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-Rmtcm kvsZVG"
       >
         Decimals
       </label>
@@ -135,7 +135,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-Rmtcm kvsZVG"
       >
         Supply
       </label>
@@ -173,7 +173,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-Rmtcm kvsZVG"
       >
         Document URL
       </label>
@@ -211,7 +211,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-Rmtcm kvsZVG"
       >
         Add Image
       </label>

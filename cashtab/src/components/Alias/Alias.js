@@ -16,8 +16,15 @@ import {
     AliasAddressInput,
     CashtabCheckbox,
 } from 'components/Common/EnhancedInputs';
+import {
+    AliasSearchIcon,
+    AliasRegisterIcon,
+} from 'components/Common/CustomIcons';
 import { Form, Modal } from 'antd';
-import { SmartButton } from 'components/Common/PrimaryButton';
+import {
+    SmartButton,
+    SmartButtonLookupOnly,
+} from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { Row, Col } from 'antd';
@@ -26,6 +33,7 @@ import { registerNewAlias } from 'utils/transactions';
 import {
     errorNotification,
     registerAliasNotification,
+    generalNotification,
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAliasString } from 'utils/validation';
 import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
@@ -401,6 +409,38 @@ const Alias = ({ passLoadingStatus }) => {
         }));
     };
 
+    /**
+     * Calls upon alias-server to render the details of an alias
+     */
+    const lookupAliasDetails = async () => {
+        passLoadingStatus(true);
+
+        // Retrieve alias details
+        let aliasDetailsResp;
+        try {
+            aliasDetailsResp = await queryAliasServer(
+                'alias',
+                formData.aliasName,
+            );
+        } catch (err) {
+            errorNotification(err, 'Error retrieving alias details');
+            passLoadingStatus(false);
+            return;
+        }
+
+        let message;
+        if (aliasDetailsResp && aliasDetailsResp.address) {
+            message = `${aliasDetailsResp.alias}.xec is registered to ${aliasDetailsResp.address} at blockheight ${aliasDetailsResp.blockheight}`;
+        } else if (aliasDetailsResp.pending.length > 0) {
+            message = `${formData.aliasName}.xec has ${aliasDetailsResp.pending.length} pending registration(s) awaiting 1 confirmation`;
+        } else {
+            message = `${formData.aliasName}.xec is unregistered`;
+        }
+        generalNotification(message);
+
+        passLoadingStatus(false);
+    };
+
     return (
         <>
             <Modal
@@ -513,6 +553,25 @@ const Alias = ({ passLoadingStatus }) => {
                                                 required: true,
                                             }}
                                         />
+                                        {(() => {
+                                            let aliasLength = getAliasByteSize(
+                                                formData.aliasName,
+                                            );
+                                            if (aliasLength > 0) {
+                                                return `This alias is ${aliasLength} bytes in length`;
+                                            }
+                                        })()}
+                                        <p />
+                                        <SmartButtonLookupOnly
+                                            disabled={
+                                                !isValidAliasInput ||
+                                                !isValidAliasAddressInput ||
+                                                aliasServerError !== false
+                                            }
+                                            onClick={() => lookupAliasDetails()}
+                                        >
+                                            <AliasSearchIcon /> Check Alias
+                                        </SmartButtonLookupOnly>
                                         <CheckboxContainer>
                                             <CashtabCheckbox
                                                 checked={useThisAddressChecked}
@@ -520,7 +579,8 @@ const Alias = ({ passLoadingStatus }) => {
                                                     handleDefaultAddressCheckboxChange
                                                 }
                                             >
-                                                Register active wallet address
+                                                Register to the active wallet
+                                                address
                                             </CashtabCheckbox>
                                         </CheckboxContainer>
                                         {!useThisAddressChecked && (
@@ -550,16 +610,6 @@ const Alias = ({ passLoadingStatus }) => {
                                                 }}
                                             />
                                         )}
-                                        {(() => {
-                                            let aliasLength = getAliasByteSize(
-                                                formData.aliasName,
-                                            );
-                                            if (aliasLength > 0) {
-                                                return `This alias is ${aliasLength} bytes in length`;
-                                            }
-                                        })()}
-                                    </Form.Item>
-                                    <Form.Item>
                                         <SmartButton
                                             disabled={
                                                 !isValidAliasInput ||
@@ -570,7 +620,7 @@ const Alias = ({ passLoadingStatus }) => {
                                                 preparePreviewModal()
                                             }
                                         >
-                                            Register Alias
+                                            <AliasRegisterIcon /> Register Alias
                                         </SmartButton>
                                     </Form.Item>
                                 </Form>

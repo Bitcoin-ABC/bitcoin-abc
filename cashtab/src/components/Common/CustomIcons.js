@@ -10,6 +10,8 @@ import {
     LockOutlined,
     ContactsOutlined,
     FireOutlined,
+    SearchOutlined,
+    UserAddOutlined,
     WarningOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
@@ -212,5 +214,11 @@ export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;
 export const SendIcon = styled(Send)`
     transform: rotate(-35deg);
 `;
+export const AliasSearchIcon = () => (
+    <SearchOutlined style={{ fontSize: 20 }} />
+);
+export const AliasRegisterIcon = () => (
+    <UserAddOutlined style={{ fontSize: 20 }} />
+);
 export const AliasIcon = styled(User)``;
 export const CustomSpinner = <LoadingOutlined style={{ fontSize: 24 }} spin />;
