@@ -533,7 +533,7 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                 candidate.m_last_block_time =
                     std::chrono::seconds{number_of_nodes - candidate.id};
                 if (candidate.id <= 7) {
-                    candidate.fRelayTxes = false;
+                    candidate.m_relay_txs = false;
                     candidate.fRelevantServices = true;
                 }
             },
@@ -556,7 +556,7 @@ BOOST_AUTO_TEST_CASE(node_eviction_test) {
                 candidate.m_last_block_time =
                     std::chrono::seconds{number_of_nodes - candidate.id};
                 if (candidate.id <= 7) {
-                    candidate.fRelayTxes = false;
+                    candidate.m_relay_txs = false;
                     candidate.fRelevantServices = true;
                 }
             },

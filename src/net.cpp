@@ -930,8 +930,8 @@ static bool CompareNodeTXTime(const NodeEvictionCandidate &a,
         return a.m_last_tx_time < b.m_last_tx_time;
     }
 
-    if (a.fRelayTxes != b.fRelayTxes) {
-        return b.fRelayTxes;
+    if (a.m_relay_txs != b.m_relay_txs) {
+        return b.m_relay_txs;
     }
 
     if (a.fBloomFilter != b.fBloomFilter) {
@@ -957,8 +957,8 @@ static bool CompareNodeProofTime(const NodeEvictionCandidate &a,
 // time.
 static bool CompareNodeBlockRelayOnlyTime(const NodeEvictionCandidate &a,
                                           const NodeEvictionCandidate &b) {
-    if (a.fRelayTxes != b.fRelayTxes) {
-        return a.fRelayTxes;
+    if (a.m_relay_txs != b.m_relay_txs) {
+        return a.m_relay_txs;
     }
 
     if (a.m_last_block_time != b.m_last_block_time) {
@@ -1142,7 +1142,7 @@ SelectNodeToEvict(std::vector<NodeEvictionCandidate> &&vEvictionCandidates) {
     // Protect up to 8 non-tx-relay peers that have sent us novel blocks.
     EraseLastKElements(vEvictionCandidates, CompareNodeBlockRelayOnlyTime, 8,
                        [](const NodeEvictionCandidate &n) {
-                           return !n.fRelayTxes && n.fRelevantServices;
+                           return !n.m_relay_txs && n.fRelevantServices;
                        });
 
     // Protect 4 nodes that most recently sent us novel blocks.

@@ -37,7 +37,7 @@ class ResendWalletTransactionsTest(BitcoinTestFramework):
         peer_first.wait_for_broadcast([txid])
 
         # Add a second peer since txs aren't rebroadcast to the same peer (see
-        # filterInventoryKnown)
+        # m_tx_inventory_known_filter)
         peer_second = node.add_p2p_connection(P2PTxInvStore())
 
         self.log.info("Create a block")

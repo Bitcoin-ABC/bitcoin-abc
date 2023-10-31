@@ -1348,8 +1348,8 @@ void RPCConsole::updateDetailWidget() {
             QString::number(stats->nodeStateStats.m_starting_height));
         ui->peerPingWait->setText(
             GUIUtil::formatPingTime(stats->nodeStateStats.m_ping_wait));
-        ui->peerRelayTxes->setText(stats->nodeStateStats.fRelayTxes ? "Yes"
-                                                                    : "No");
+        ui->peerRelayTxes->setText(stats->nodeStateStats.m_relay_txs ? "Yes"
+                                                                     : "No");
     }
 
     ui->detailWidget->show();

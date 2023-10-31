@@ -63,7 +63,7 @@ GetRandomNodeEvictionCandidates(const int n_candidates,
             /* m_last_tx_time */
             std::chrono::seconds{random_context.randrange(100)},
             /* fRelevantServices */ random_context.randbool(),
-            /* fRelayTxes */ random_context.randbool(),
+            /* m_relay_txs */ random_context.randbool(),
             /* fBloomFilter */ random_context.randbool(),
             /* nKeyedNetGroup */ random_context.randrange(100),
             /* prefer_evict */ random_context.randbool(),

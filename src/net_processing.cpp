@@ -383,32 +383,33 @@ struct Peer {
     std::atomic<bool> m_ping_queued{false};
 
     struct TxRelay {
-        mutable RecursiveMutex cs_filter;
-        // We use fRelayTxes for two purposes -
+        mutable RecursiveMutex m_bloom_filter_mutex;
+        // We use m_relay_txs for two purposes -
         // a) it allows us to not relay tx invs before receiving the peer's
         //    version message.
         // b) the peer may tell us in its version message that we should not
         //    relay tx invs unless it loads a bloom filter.
-        bool fRelayTxes GUARDED_BY(cs_filter){false};
-        std::unique_ptr<CBloomFilter> pfilter PT_GUARDED_BY(cs_filter)
-            GUARDED_BY(cs_filter){nullptr};
+        bool m_relay_txs GUARDED_BY(m_bloom_filter_mutex){false};
+        std::unique_ptr<CBloomFilter>
+            m_bloom_filter PT_GUARDED_BY(m_bloom_filter_mutex)
+                GUARDED_BY(m_bloom_filter_mutex){nullptr};
 
-        mutable RecursiveMutex cs_tx_inventory;
-        CRollingBloomFilter filterInventoryKnown GUARDED_BY(cs_tx_inventory){
-            50000, 0.000001};
+        mutable RecursiveMutex m_tx_inventory_mutex;
+        CRollingBloomFilter m_tx_inventory_known_filter
+            GUARDED_BY(m_tx_inventory_mutex){50000, 0.000001};
         // Set of transaction ids we still have to announce.
         // They are sorted by the mempool before relay, so the order is not
         // important.
-        std::set<TxId> setInventoryTxToSend GUARDED_BY(cs_tx_inventory);
+        std::set<TxId> m_tx_inventory_to_send GUARDED_BY(m_tx_inventory_mutex);
         // Used for BIP35 mempool sending
-        bool fSendMempool GUARDED_BY(cs_tx_inventory){false};
+        bool m_send_mempool GUARDED_BY(m_tx_inventory_mutex){false};
         // Last time a "MEMPOOL" request was serviced.
         std::atomic<std::chrono::seconds> m_last_mempool_req{0s};
-        std::chrono::microseconds nNextInvSend{0};
+        std::chrono::microseconds m_next_inv_send_time{0};
 
         /** Minimum fee rate with which to filter inv's to this node */
-        std::atomic<Amount> minFeeFilter{Amount::zero()};
-        Amount lastSentFeeFilter{Amount::zero()};
+        std::atomic<Amount> m_fee_filter_received{Amount::zero()};
+        Amount m_fee_filter_sent{Amount::zero()};
         std::chrono::microseconds m_next_send_feefilter{0};
     };
 
@@ -419,13 +420,13 @@ struct Peer {
     const std::unique_ptr<TxRelay> m_tx_relay;
 
     struct ProofRelay {
-        mutable RecursiveMutex cs_proof_inventory;
+        mutable RecursiveMutex m_proof_inventory_mutex;
         std::set<avalanche::ProofId>
-            setInventoryProofToSend GUARDED_BY(cs_proof_inventory);
+            m_proof_inventory_to_send GUARDED_BY(m_proof_inventory_mutex);
         // Prevent sending proof invs if the peer already knows about them
-        CRollingBloomFilter filterProofKnown GUARDED_BY(cs_proof_inventory){
-            10000, 0.000001};
-        std::chrono::microseconds nextInvSend{0};
+        CRollingBloomFilter m_proof_inventory_known_filter
+            GUARDED_BY(m_proof_inventory_mutex){10000, 0.000001};
+        std::chrono::microseconds m_next_inv_send_time{0};
 
         RadixTree<const avalanche::Proof, avalanche::ProofRadixTreeAdapter>
             sharedProofs;
@@ -1206,15 +1207,15 @@ static void PushAddress(Peer &peer, const CAddress &addr,
 
 static void AddKnownTx(Peer &peer, const TxId &txid) {
     if (peer.m_tx_relay != nullptr) {
-        LOCK(peer.m_tx_relay->cs_tx_inventory);
-        peer.m_tx_relay->filterInventoryKnown.insert(txid);
+        LOCK(peer.m_tx_relay->m_tx_inventory_mutex);
+        peer.m_tx_relay->m_tx_inventory_known_filter.insert(txid);
     }
 }
 
 static void AddKnownProof(Peer &peer, const avalanche::ProofId &proofid) {
     if (peer.m_proof_relay != nullptr) {
-        LOCK(peer.m_proof_relay->cs_proof_inventory);
-        peer.m_proof_relay->filterProofKnown.insert(proofid);
+        LOCK(peer.m_proof_relay->m_proof_inventory_mutex);
+        peer.m_proof_relay->m_proof_inventory_known_filter.insert(proofid);
     }
 }
 
@@ -2009,12 +2010,13 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
     }
 
     if (peer->m_tx_relay != nullptr) {
-        stats.fRelayTxes = WITH_LOCK(peer->m_tx_relay->cs_filter,
-                                     return peer->m_tx_relay->fRelayTxes);
-        stats.minFeeFilter = peer->m_tx_relay->minFeeFilter.load();
+        stats.m_relay_txs = WITH_LOCK(peer->m_tx_relay->m_bloom_filter_mutex,
+                                      return peer->m_tx_relay->m_relay_txs);
+        stats.m_fee_filter_received =
+            peer->m_tx_relay->m_fee_filter_received.load();
     } else {
-        stats.fRelayTxes = false;
-        stats.minFeeFilter = Amount::zero();
+        stats.m_relay_txs = false;
+        stats.m_fee_filter_received = Amount::zero();
     }
 
     stats.m_ping_wait = ping_wait;
@@ -2512,9 +2514,9 @@ void PeerManagerImpl::RelayTransaction(const TxId &txid) {
         if (!peer.m_tx_relay) {
             continue;
         }
-        LOCK(peer.m_tx_relay->cs_tx_inventory);
-        if (!peer.m_tx_relay->filterInventoryKnown.contains(txid)) {
-            peer.m_tx_relay->setInventoryTxToSend.insert(txid);
+        LOCK(peer.m_tx_relay->m_tx_inventory_mutex);
+        if (!peer.m_tx_relay->m_tx_inventory_known_filter.contains(txid)) {
+            peer.m_tx_relay->m_tx_inventory_to_send.insert(txid);
         }
     }
 }
@@ -2527,9 +2529,10 @@ void PeerManagerImpl::RelayProof(const avalanche::ProofId &proofid) {
         if (!peer.m_proof_relay) {
             continue;
         }
-        LOCK(peer.m_proof_relay->cs_proof_inventory);
-        if (!peer.m_proof_relay->filterProofKnown.contains(proofid)) {
-            peer.m_proof_relay->setInventoryProofToSend.insert(proofid);
+        LOCK(peer.m_proof_relay->m_proof_inventory_mutex);
+        if (!peer.m_proof_relay->m_proof_inventory_known_filter.contains(
+                proofid)) {
+            peer.m_proof_relay->m_proof_inventory_to_send.insert(proofid);
         }
     }
 }
@@ -2695,10 +2698,11 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
         bool sendMerkleBlock = false;
         CMerkleBlock merkleBlock;
         if (peer.m_tx_relay != nullptr) {
-            LOCK(peer.m_tx_relay->cs_filter);
-            if (peer.m_tx_relay->pfilter) {
+            LOCK(peer.m_tx_relay->m_bloom_filter_mutex);
+            if (peer.m_tx_relay->m_bloom_filter) {
                 sendMerkleBlock = true;
-                merkleBlock = CMerkleBlock(*pblock, *peer.m_tx_relay->pfilter);
+                merkleBlock =
+                    CMerkleBlock(*pblock, *peer.m_tx_relay->m_bloom_filter);
             }
         }
         if (sendMerkleBlock) {
@@ -2923,9 +2927,10 @@ void PeerManagerImpl::ProcessGetData(
                 for (const TxId &parent_txid : parent_ids_to_add) {
                     // Relaying a transaction with a recent but unconfirmed
                     // parent.
-                    if (WITH_LOCK(peer.m_tx_relay->cs_tx_inventory,
-                                  return !peer.m_tx_relay->filterInventoryKnown
-                                              .contains(parent_txid))) {
+                    if (WITH_LOCK(
+                            peer.m_tx_relay->m_tx_inventory_mutex,
+                            return !peer.m_tx_relay->m_tx_inventory_known_filter
+                                        .contains(parent_txid))) {
                         LOCK(cs_main);
                         State(pfrom.GetId())
                             ->m_recently_announced_invs.insert(parent_txid);
@@ -3745,9 +3750,9 @@ void PeerManagerImpl::ProcessMessage(
             (!(nServices & NODE_NETWORK) && (nServices & NODE_NETWORK_LIMITED));
 
         if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->cs_filter);
+            LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
             // set to true after we get the first filter* message
-            peer->m_tx_relay->fRelayTxes = fRelay;
+            peer->m_tx_relay->m_relay_txs = fRelay;
             if (fRelay) {
                 pfrom.m_relays_txs = true;
             }
@@ -5753,8 +5758,8 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->cs_tx_inventory);
-            peer->m_tx_relay->fSendMempool = true;
+            LOCK(peer->m_tx_relay->m_tx_inventory_mutex);
+            peer->m_tx_relay->m_send_mempool = true;
         }
         return;
     }
@@ -5856,10 +5861,10 @@ void PeerManagerImpl::ProcessMessage(
             // There is no excuse for sending a too-large filter
             Misbehaving(pfrom, 100, "too-large bloom filter");
         } else if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->cs_filter);
-            peer->m_tx_relay->pfilter.reset(new CBloomFilter(filter));
+            LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+            peer->m_tx_relay->m_bloom_filter.reset(new CBloomFilter(filter));
             pfrom.m_bloom_filter_loaded = true;
-            peer->m_tx_relay->fRelayTxes = true;
+            peer->m_tx_relay->m_relay_txs = true;
             pfrom.m_relays_txs = true;
         }
         return;
@@ -5884,9 +5889,9 @@ void PeerManagerImpl::ProcessMessage(
         if (vData.size() > MAX_SCRIPT_ELEMENT_SIZE) {
             bad = true;
         } else if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->cs_filter);
-            if (peer->m_tx_relay->pfilter) {
-                peer->m_tx_relay->pfilter->insert(vData);
+            LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+            if (peer->m_tx_relay->m_bloom_filter) {
+                peer->m_tx_relay->m_bloom_filter->insert(vData);
             } else {
                 bad = true;
             }
@@ -5911,10 +5916,10 @@ void PeerManagerImpl::ProcessMessage(
         if (peer->m_tx_relay == nullptr) {
             return;
         }
-        LOCK(peer->m_tx_relay->cs_filter);
-        peer->m_tx_relay->pfilter = nullptr;
+        LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+        peer->m_tx_relay->m_bloom_filter = nullptr;
         pfrom.m_bloom_filter_loaded = false;
-        peer->m_tx_relay->fRelayTxes = true;
+        peer->m_tx_relay->m_relay_txs = true;
         pfrom.m_relays_txs = true;
         return;
     }
@@ -5924,7 +5929,7 @@ void PeerManagerImpl::ProcessMessage(
         vRecv >> newFeeFilter;
         if (MoneyRange(newFeeFilter)) {
             if (peer->m_tx_relay != nullptr) {
-                peer->m_tx_relay->minFeeFilter = newFeeFilter;
+                peer->m_tx_relay->m_fee_filter_received = newFeeFilter;
             }
             LogPrint(BCLog::NET, "received: feefilter of %s from peer=%d\n",
                      CFeeRate(newFeeFilter).ToString(), pfrom.GetId());
@@ -6589,7 +6594,7 @@ void PeerManagerImpl::MaybeSendFeefilter(
         currentFilter = MAX_MONEY;
     } else {
         static const Amount MAX_FILTER{g_filter_rounder.round(MAX_MONEY)};
-        if (peer.m_tx_relay->lastSentFeeFilter == MAX_FILTER) {
+        if (peer.m_tx_relay->m_fee_filter_sent == MAX_FILTER) {
             // Send the current filter if we sent MAX_FILTER previously
             // and made it out of IBD.
             peer.m_tx_relay->m_next_send_feefilter = 0us;
@@ -6599,11 +6604,11 @@ void PeerManagerImpl::MaybeSendFeefilter(
         Amount filterToSend = g_filter_rounder.round(currentFilter);
         // We always have a fee filter of at least minRelayTxFee
         filterToSend = std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
-        if (filterToSend != peer.m_tx_relay->lastSentFeeFilter) {
+        if (filterToSend != peer.m_tx_relay->m_fee_filter_sent) {
             m_connman.PushMessage(
                 &pto, CNetMsgMaker(pto.GetCommonVersion())
                           .Make(NetMsgType::FEEFILTER, filterToSend));
-            peer.m_tx_relay->lastSentFeeFilter = filterToSend;
+            peer.m_tx_relay->m_fee_filter_sent = filterToSend;
         }
         peer.m_tx_relay->m_next_send_feefilter =
             PoissonNextSend(current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
@@ -6613,8 +6618,8 @@ void PeerManagerImpl::MaybeSendFeefilter(
     // broadcast to within MAX_FEEFILTER_CHANGE_DELAY.
     else if (current_time + MAX_FEEFILTER_CHANGE_DELAY <
                  peer.m_tx_relay->m_next_send_feefilter &&
-             (currentFilter < 3 * peer.m_tx_relay->lastSentFeeFilter / 4 ||
-              currentFilter > 4 * peer.m_tx_relay->lastSentFeeFilter / 3)) {
+             (currentFilter < 3 * peer.m_tx_relay->m_fee_filter_sent / 4 ||
+              currentFilter > 4 * peer.m_tx_relay->m_fee_filter_sent / 3)) {
         peer.m_tx_relay->m_next_send_feefilter =
             current_time + GetRandomDuration<std::chrono::microseconds>(
                                MAX_FEEFILTER_CHANGE_DELAY);
@@ -6981,22 +6986,26 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
         // Add proofs to inventory
         if (peer->m_proof_relay != nullptr) {
-            LOCK(peer->m_proof_relay->cs_proof_inventory);
+            LOCK(peer->m_proof_relay->m_proof_inventory_mutex);
 
-            if (computeNextInvSendTime(peer->m_proof_relay->nextInvSend)) {
-                auto it = peer->m_proof_relay->setInventoryProofToSend.begin();
+            if (computeNextInvSendTime(
+                    peer->m_proof_relay->m_next_inv_send_time)) {
+                auto it =
+                    peer->m_proof_relay->m_proof_inventory_to_send.begin();
                 while (it !=
-                       peer->m_proof_relay->setInventoryProofToSend.end()) {
+                       peer->m_proof_relay->m_proof_inventory_to_send.end()) {
                     const avalanche::ProofId proofid = *it;
 
-                    it = peer->m_proof_relay->setInventoryProofToSend.erase(it);
+                    it = peer->m_proof_relay->m_proof_inventory_to_send.erase(
+                        it);
 
-                    if (peer->m_proof_relay->filterProofKnown.contains(
-                            proofid)) {
+                    if (peer->m_proof_relay->m_proof_inventory_known_filter
+                            .contains(proofid)) {
                         continue;
                     }
 
-                    peer->m_proof_relay->filterProofKnown.insert(proofid);
+                    peer->m_proof_relay->m_proof_inventory_known_filter.insert(
+                        proofid);
                     addInvAndMaybeFlush(MSG_AVA_PROOF, proofid);
                     State(pto->GetId())
                         ->m_recently_announced_proofs.insert(proofid);
@@ -7005,43 +7014,43 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         }
 
         if (peer->m_tx_relay != nullptr) {
-            LOCK(peer->m_tx_relay->cs_tx_inventory);
+            LOCK(peer->m_tx_relay->m_tx_inventory_mutex);
             // Check whether periodic sends should happen
             const bool fSendTrickle =
-                computeNextInvSendTime(peer->m_tx_relay->nNextInvSend);
+                computeNextInvSendTime(peer->m_tx_relay->m_next_inv_send_time);
 
             // Time to send but the peer has requested we not relay
             // transactions.
             if (fSendTrickle) {
-                LOCK(peer->m_tx_relay->cs_filter);
-                if (!peer->m_tx_relay->fRelayTxes) {
-                    peer->m_tx_relay->setInventoryTxToSend.clear();
+                LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
+                if (!peer->m_tx_relay->m_relay_txs) {
+                    peer->m_tx_relay->m_tx_inventory_to_send.clear();
                 }
             }
 
             // Respond to BIP35 mempool requests
-            if (fSendTrickle && peer->m_tx_relay->fSendMempool) {
+            if (fSendTrickle && peer->m_tx_relay->m_send_mempool) {
                 auto vtxinfo = m_mempool.infoAll();
-                peer->m_tx_relay->fSendMempool = false;
+                peer->m_tx_relay->m_send_mempool = false;
                 const CFeeRate filterrate{
-                    peer->m_tx_relay->minFeeFilter.load()};
+                    peer->m_tx_relay->m_fee_filter_received.load()};
 
-                LOCK(peer->m_tx_relay->cs_filter);
+                LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
 
                 for (const auto &txinfo : vtxinfo) {
                     const TxId &txid = txinfo.tx->GetId();
-                    peer->m_tx_relay->setInventoryTxToSend.erase(txid);
+                    peer->m_tx_relay->m_tx_inventory_to_send.erase(txid);
                     // Don't send transactions that peers will not put into
                     // their mempool
                     if (txinfo.fee < filterrate.GetFee(txinfo.vsize)) {
                         continue;
                     }
-                    if (peer->m_tx_relay->pfilter &&
-                        !peer->m_tx_relay->pfilter->IsRelevantAndUpdate(
+                    if (peer->m_tx_relay->m_bloom_filter &&
+                        !peer->m_tx_relay->m_bloom_filter->IsRelevantAndUpdate(
                             *txinfo.tx)) {
                         continue;
                     }
-                    peer->m_tx_relay->filterInventoryKnown.insert(txid);
+                    peer->m_tx_relay->m_tx_inventory_known_filter.insert(txid);
                     // Responses to MEMPOOL requests bypass the
                     // m_recently_announced_invs filter.
                     addInvAndMaybeFlush(MSG_TX, txid);
@@ -7055,14 +7064,15 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             if (fSendTrickle) {
                 // Produce a vector with all candidates for sending
                 std::vector<std::set<TxId>::iterator> vInvTx;
-                vInvTx.reserve(peer->m_tx_relay->setInventoryTxToSend.size());
+                vInvTx.reserve(peer->m_tx_relay->m_tx_inventory_to_send.size());
                 for (std::set<TxId>::iterator it =
-                         peer->m_tx_relay->setInventoryTxToSend.begin();
-                     it != peer->m_tx_relay->setInventoryTxToSend.end(); it++) {
+                         peer->m_tx_relay->m_tx_inventory_to_send.begin();
+                     it != peer->m_tx_relay->m_tx_inventory_to_send.end();
+                     it++) {
                     vInvTx.push_back(it);
                 }
                 const CFeeRate filterrate{
-                    peer->m_tx_relay->minFeeFilter.load()};
+                    peer->m_tx_relay->m_fee_filter_received.load()};
                 // Send out the inventory in the order of admission to our
                 // mempool, which is guaranteed to be a topological sort order.
                 // A heap is used so that not all items need sorting if only a
@@ -7074,7 +7084,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 // capacity, especially since we have many peers and some
                 // will draw much shorter delays.
                 unsigned int nRelayedTransactions = 0;
-                LOCK(peer->m_tx_relay->cs_filter);
+                LOCK(peer->m_tx_relay->m_bloom_filter_mutex);
                 while (!vInvTx.empty() &&
                        nRelayedTransactions < INVENTORY_BROADCAST_MAX_PER_MB *
                                                   config.GetMaxBlockSize() /
@@ -7086,9 +7096,10 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     vInvTx.pop_back();
                     const TxId txid = *it;
                     // Remove it from the to-be-sent set
-                    peer->m_tx_relay->setInventoryTxToSend.erase(it);
+                    peer->m_tx_relay->m_tx_inventory_to_send.erase(it);
                     // Check if not in the filter already
-                    if (peer->m_tx_relay->filterInventoryKnown.contains(txid)) {
+                    if (peer->m_tx_relay->m_tx_inventory_known_filter.contains(
+                            txid)) {
                         continue;
                     }
                     // Not in the mempool anymore? don't bother sending it.
@@ -7101,8 +7112,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                     if (txinfo.fee < filterrate.GetFee(txinfo.vsize)) {
                         continue;
                     }
-                    if (peer->m_tx_relay->pfilter &&
-                        !peer->m_tx_relay->pfilter->IsRelevantAndUpdate(
+                    if (peer->m_tx_relay->m_bloom_filter &&
+                        !peer->m_tx_relay->m_bloom_filter->IsRelevantAndUpdate(
                             *txinfo.tx)) {
                         continue;
                     }
@@ -7126,7 +7137,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                                 current_time + RELAY_TX_CACHE_TIME, ret.first));
                         }
                     }
-                    peer->m_tx_relay->filterInventoryKnown.insert(txid);
+                    peer->m_tx_relay->m_tx_inventory_known_filter.insert(txid);
                 }
             }
         }

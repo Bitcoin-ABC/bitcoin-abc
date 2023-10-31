@@ -40,8 +40,8 @@ struct CNodeStateStats {
     int m_starting_height = -1;
     std::chrono::microseconds m_ping_wait;
     std::vector<int> vHeightInFlight;
-    bool fRelayTxes;
-    Amount minFeeFilter;
+    bool m_relay_txs;
+    Amount m_fee_filter_received;
     uint64_t m_addr_processed = 0;
     uint64_t m_addr_rate_limited = 0;
     bool m_addr_relay_enabled{false};
