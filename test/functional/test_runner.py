@@ -103,6 +103,8 @@ EXTRA_PRIVILEGES_TESTS = [
     "interface_usdt_net.py",
     "interface_usdt_utxocache.py",
     "interface_usdt_validation.py",
+    "feature_bind_port_externalip.py",
+    "feature_bind_port_discover.py",
 ]
 
 TEST_PARAMS = {
