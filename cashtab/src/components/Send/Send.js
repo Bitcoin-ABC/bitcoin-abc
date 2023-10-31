@@ -188,7 +188,8 @@ const SendBCH = ({ passLoadingStatus }) => {
     // Show a confirmation modal on transactions created by populating form from web page button
     const [isModalVisible, setIsModalVisible] = useState(false);
 
-    // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)// hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.unencryptedMsgByteLimit
+    // Airdrop transactions embed the additional tokenId (32 bytes), along with prefix (4 bytes) and two pushdata (2 bytes)
+    // hence setting airdrop tx message limit to 38 bytes less than opreturnConfig.unencryptedMsgByteLimit
     const pushDataByteCount = 1;
     const prefixByteCount = 4;
     const tokenIdByteCount = 32;
