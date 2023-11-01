@@ -130,7 +130,7 @@ ReadStatus PartiallyDownloadedBlock::InitData(
              "Initialized PartiallyDownloadedBlock for block %s using a "
              "cmpctblock of size %lu\n",
              cmpctblock.header.GetHash().ToString(),
-             GetSerializeSize(cmpctblock, PROTOCOL_VERSION));
+             GetSerializeSize(cmpctblock));
 
     return READ_STATUS_OK;
 }

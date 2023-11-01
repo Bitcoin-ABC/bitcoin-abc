@@ -92,7 +92,7 @@ static int verify_script(const uint8_t *scriptPubKey,
             return set_error(err, bitcoinconsensus_ERR_TX_INDEX);
         }
 
-        if (GetSerializeSize(tx, PROTOCOL_VERSION) != txToLen) {
+        if (GetSerializeSize(tx) != txToLen) {
             return set_error(err, bitcoinconsensus_ERR_TX_SIZE_MISMATCH);
         }
 

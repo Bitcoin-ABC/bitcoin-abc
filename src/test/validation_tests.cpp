@@ -116,15 +116,15 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     BOOST_CHECK_EQUAL(nwritten, 1UL);
 
     CTransaction empty_tx;
-    size_t empty_tx_size = GetSerializeSize(empty_tx, CLIENT_VERSION);
+    size_t empty_tx_size = GetSerializeSize(empty_tx);
 
     size_t num_tx = (10 * MAX_TX_SIZE) / empty_tx_size;
 
     CBlock block = makeLargeDummyBlock(num_tx);
 
-    BOOST_CHECK(GetSerializeSize(block, CLIENT_VERSION) > 2 * MAX_TX_SIZE);
+    BOOST_CHECK(GetSerializeSize(block) > 2 * MAX_TX_SIZE);
 
-    unsigned int size = GetSerializeSize(block, CLIENT_VERSION);
+    unsigned int size = GetSerializeSize(block);
     CAutoFile outs{fp, CLIENT_VERSION};
     outs << size;
     outs << block;
@@ -241,7 +241,7 @@ BOOST_AUTO_TEST_CASE(block_malleation) {
             block.vtx.push_back(MakeTransactionRef(mtx));
             block.hashMerkleRoot = block.vtx.back()->GetHash();
             assert(block.vtx.back()->IsCoinBase());
-            assert(GetSerializeSize(block.vtx.back(), PROTOCOL_VERSION) == 64);
+            assert(GetSerializeSize(block.vtx.back()) == 64);
         }
         BOOST_CHECK(is_not_mutated(block));
     }
@@ -281,7 +281,7 @@ BOOST_AUTO_TEST_CASE(block_malleation) {
             hasher << tx2.GetId();
             assert(hasher.GetHash() == tx3.GetHash());
             // Verify that tx3 is 64 bytes in size.
-            assert(GetSerializeSize(tx3, PROTOCOL_VERSION) == 64);
+            assert(GetSerializeSize(tx3) == 64);
         }
 
         CBlock block;

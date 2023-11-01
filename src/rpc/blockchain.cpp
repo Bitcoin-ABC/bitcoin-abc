@@ -182,7 +182,7 @@ UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
                      TxVerbosity verbosity) {
     UniValue result = blockheaderToJSON(tip, blockindex);
 
-    result.pushKV("size", (int)::GetSerializeSize(block, PROTOCOL_VERSION));
+    result.pushKV("size", (int)::GetSerializeSize(block));
     UniValue txs(UniValue::VARR);
     switch (verbosity) {
         case TxVerbosity::SHOW_TXID:
@@ -2173,8 +2173,7 @@ static RPCHelpMan getblockstats() {
                     for (const CTxOut &out : tx->vout) {
                         tx_total_out += out.nValue;
                         utxo_size_inc +=
-                            GetSerializeSize(out, PROTOCOL_VERSION) +
-                            PER_UTXO_OVERHEAD;
+                            GetSerializeSize(out) + PER_UTXO_OVERHEAD;
                     }
                 }
 
@@ -2206,8 +2205,7 @@ static RPCHelpMan getblockstats() {
 
                         tx_total_in += prevoutput.nValue;
                         utxo_size_inc -=
-                            GetSerializeSize(prevoutput, PROTOCOL_VERSION) +
-                            PER_UTXO_OVERHEAD;
+                            GetSerializeSize(prevoutput) + PER_UTXO_OVERHEAD;
                     }
 
                     Amount txfee = tx_total_in - tx_total_out;

@@ -4269,7 +4269,7 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
                   prev_tx_sum(*pindexNew), PACKAGE_BUGREPORT);
         pindexNew->nChainTx = 0;
     }
-    pindexNew->nSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
+    pindexNew->nSize = ::GetSerializeSize(block);
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
@@ -4420,7 +4420,7 @@ bool CheckBlock(const CBlock &block, BlockValidationState &state,
                              "bad-blk-length", "size limits failed");
     }
 
-    auto currentBlockSize = ::GetSerializeSize(block, PROTOCOL_VERSION);
+    auto currentBlockSize = ::GetSerializeSize(block);
     if (currentBlockSize > nMaxBlockSize) {
         return state.Invalid(BlockValidationResult::BLOCK_CONSENSUS,
                              "bad-blk-length", "size limits failed");
@@ -4482,9 +4482,8 @@ bool IsBlockMutated(const CBlock &block) {
         // Note: This is not a consensus change as this only applies to blocks
         // that don't have a coinbase transaction and would therefore already be
         // invalid.
-        return std::any_of(block.vtx.begin(), block.vtx.end(), [](auto &tx) {
-            return GetSerializeSize(tx, PROTOCOL_VERSION) == 64;
-        });
+        return std::any_of(block.vtx.begin(), block.vtx.end(),
+                           [](auto &tx) { return GetSerializeSize(tx) == 64; });
     } else {
         // Theoretically it is still possible for a block with a 64 byte
         // coinbase transaction to be mutated but we neglect that possibility

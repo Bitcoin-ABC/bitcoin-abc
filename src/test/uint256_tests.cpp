@@ -206,8 +206,8 @@ BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK_EQUAL(OneL.begin() + 32, OneL.end());
     BOOST_CHECK_EQUAL(MaxL.begin() + 32, MaxL.end());
     BOOST_CHECK_EQUAL(TmpL.begin() + 32, TmpL.end());
-    BOOST_CHECK_EQUAL(GetSerializeSize(R1L, PROTOCOL_VERSION), 32);
-    BOOST_CHECK_EQUAL(GetSerializeSize(ZeroL, PROTOCOL_VERSION), 32);
+    BOOST_CHECK_EQUAL(GetSerializeSize(R1L), 32);
+    BOOST_CHECK_EQUAL(GetSerializeSize(ZeroL), 32);
 
     DataStream ss{};
     ss << R1L;
@@ -254,8 +254,8 @@ BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK_EQUAL(OneS.begin() + 20, OneS.end());
     BOOST_CHECK_EQUAL(MaxS.begin() + 20, MaxS.end());
     BOOST_CHECK_EQUAL(TmpS.begin() + 20, TmpS.end());
-    BOOST_CHECK_EQUAL(GetSerializeSize(R1S, PROTOCOL_VERSION), 20);
-    BOOST_CHECK_EQUAL(GetSerializeSize(ZeroS, PROTOCOL_VERSION), 20);
+    BOOST_CHECK_EQUAL(GetSerializeSize(R1S), 20);
+    BOOST_CHECK_EQUAL(GetSerializeSize(ZeroS), 20);
 
     ss << R1S;
     BOOST_CHECK_EQUAL(ss.str(), std::string(R1Array, R1Array + 20));

@@ -194,8 +194,7 @@ bool CSeederNode::ProcessMessages() {
     do {
         CDataStream::iterator pstart = std::search(
             vRecv.begin(), vRecv.end(), BEGIN(netMagic), END(netMagic));
-        uint32_t nHeaderSize =
-            GetSerializeSize(CMessageHeader(netMagic), vRecv.GetVersion());
+        uint32_t nHeaderSize = GetSerializeSize(CMessageHeader(netMagic));
         if (vRecv.end() - pstart < nHeaderSize) {
             if (vRecv.size() > nHeaderSize) {
                 vRecv.erase(vRecv.begin(), vRecv.end() - nHeaderSize);

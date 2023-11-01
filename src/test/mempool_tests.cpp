@@ -509,11 +509,10 @@ BOOST_AUTO_TEST_CASE(GetModifiedFeeRateTest) {
 
     // Make tx exactly 1000 bytes.
     const size_t dummyDataSize =
-        1000 -
-        (GetSerializeSize(tx, PROTOCOL_VERSION) + 5 /* OP_PUSHDATA2 and ?? */);
+        1000 - (GetSerializeSize(tx) + 5 /* OP_PUSHDATA2 and ?? */);
 
     tx.vin[0].scriptSig << std::vector<uint8_t>(dummyDataSize);
-    assert(GetSerializeSize(tx, PROTOCOL_VERSION) == 1000);
+    assert(GetSerializeSize(tx) == 1000);
 
     TestMemPoolEntryHelper entry;
 

@@ -228,7 +228,7 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
     // signed in memory, so cast to unsigned before giving it to the user.
     entry.pushKV("version",
                  static_cast<int64_t>(static_cast<uint32_t>(tx.nVersion)));
-    entry.pushKV("size", (int)::GetSerializeSize(tx, PROTOCOL_VERSION));
+    entry.pushKV("size", (int)::GetSerializeSize(tx));
     entry.pushKV("locktime", (int64_t)tx.nLockTime);
 
     UniValue vin{UniValue::VARR};

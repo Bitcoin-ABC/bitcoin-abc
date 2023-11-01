@@ -52,11 +52,10 @@ BOOST_AUTO_TEST_CASE(blockmanager_find_block_pos) {
     // another 8 bytes for the second block's serialization header and we get
     // 293 + 8 = 301
     FlatFilePos actual{blockman.SaveBlockToDisk(params->GenesisBlock(), 1)};
-    BOOST_CHECK_EQUAL(
-        actual.nPos,
-        BLOCK_SERIALIZATION_HEADER_SIZE +
-            ::GetSerializeSize(params->GenesisBlock(), CLIENT_VERSION) +
-            BLOCK_SERIALIZATION_HEADER_SIZE);
+    BOOST_CHECK_EQUAL(actual.nPos,
+                      BLOCK_SERIALIZATION_HEADER_SIZE +
+                          ::GetSerializeSize(params->GenesisBlock()) +
+                          BLOCK_SERIALIZATION_HEADER_SIZE);
 }
 
 BOOST_FIXTURE_TEST_CASE(blockmanager_scan_unlink_already_pruned_files,

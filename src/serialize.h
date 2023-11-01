@@ -1266,7 +1266,7 @@ inline void WriteCompactSize(SizeComputer &s, uint64_t nSize) {
     s.seek(GetSizeOfCompactSize(nSize));
 }
 
-template <typename T> size_t GetSerializeSize(const T &t, int nVersion = 0) {
+template <typename T> size_t GetSerializeSize(const T &t) {
     return (SizeComputer{} << t).size();
 }
 

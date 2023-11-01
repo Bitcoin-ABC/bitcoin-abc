@@ -52,7 +52,7 @@ bool ContextualCheckTransaction(const Consensus::Params &params,
 
     if (IsMagneticAnomalyEnabled(params, nHeight)) {
         // Size limit
-        if (::GetSerializeSize(tx, PROTOCOL_VERSION) < MIN_TX_SIZE) {
+        if (::GetSerializeSize(tx) < MIN_TX_SIZE) {
             return state.Invalid(TxValidationResult::TX_CONSENSUS,
                                  "bad-txns-undersize");
         }

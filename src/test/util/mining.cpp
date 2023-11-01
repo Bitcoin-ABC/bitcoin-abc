@@ -94,14 +94,14 @@ void createCoinbaseAndMerkleRoot(CBlock *pblock, const CBlockIndex *pindexPrev,
                   << getExcessiveBlockSizeSig(nExcessiveBlockSize);
 
     // Make sure the coinbase is big enough.
-    uint64_t coinbaseSize = ::GetSerializeSize(tx_coinbase, PROTOCOL_VERSION);
+    uint64_t coinbaseSize = ::GetSerializeSize(tx_coinbase);
     if (coinbaseSize < MIN_TX_SIZE) {
         tx_coinbase.vin[0].scriptSig
             << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
     }
 
     assert(tx_coinbase.vin[0].scriptSig.size() <= MAX_COINBASE_SCRIPTSIG_SIZE);
-    assert(::GetSerializeSize(tx_coinbase, PROTOCOL_VERSION) >= MIN_TX_SIZE);
+    assert(::GetSerializeSize(tx_coinbase) >= MIN_TX_SIZE);
 
     pblock->vtx[0] = MakeTransactionRef(std::move(tx_coinbase));
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);

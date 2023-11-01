@@ -38,7 +38,7 @@ int CalculateMaximumSignedInputSize(const CTxOut &txout, const CWallet *wallet,
     if (!wallet->DummySignInput(txn.vin[0], txout, use_max_sig)) {
         return -1;
     }
-    return GetSerializeSize(txn.vin[0], PROTOCOL_VERSION);
+    return GetSerializeSize(txn.vin[0]);
 }
 
 // txouts needs to be in the order of tx.vin
@@ -50,7 +50,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
     if (!wallet->DummySignTx(txNew, txouts, use_max_sig)) {
         return -1;
     }
-    return GetSerializeSize(txNew, PROTOCOL_VERSION);
+    return GetSerializeSize(txNew);
 }
 
 int64_t CalculateMaximumSignedTxSize(const CTransaction &tx,
@@ -762,7 +762,7 @@ static util::Result<CreatedTransactionResult> CreateTransactionInternal(
                 // BnB right now
                 if (!coin_selection_params.m_subtract_fee_outputs) {
                     coin_selection_params.tx_noinputs_size +=
-                        ::GetSerializeSize(txout, PROTOCOL_VERSION);
+                        ::GetSerializeSize(txout);
                 }
 
                 if (IsDust(txout, wallet.chain().relayDustFee())) {

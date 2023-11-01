@@ -90,7 +90,7 @@ Amount CTransaction::GetValueOut() const {
 }
 
 unsigned int CTransaction::GetTotalSize() const {
-    return ::GetSerializeSize(*this, PROTOCOL_VERSION);
+    return ::GetSerializeSize(*this);
 }
 
 std::string CTransaction::ToString() const {

@@ -83,8 +83,7 @@ namespace util {
 class SignalInterrupt;
 } // namespace util
 
-#define MIN_TRANSACTION_SIZE                                                   \
-    (::GetSerializeSize(CTransaction(), PROTOCOL_VERSION))
+#define MIN_TRANSACTION_SIZE (::GetSerializeSize(CTransaction{}))
 
 /** Maximum number of dedicated script-checking threads allowed */
 static const int MAX_SCRIPTCHECK_THREADS = 15;

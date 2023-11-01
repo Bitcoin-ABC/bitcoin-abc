@@ -194,7 +194,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     // Make sure the coinbase is big enough.
-    uint64_t coinbaseSize = ::GetSerializeSize(coinbaseTx, PROTOCOL_VERSION);
+    uint64_t coinbaseSize = ::GetSerializeSize(coinbaseTx);
     if (coinbaseSize < MIN_TX_SIZE) {
         coinbaseTx.vin[0].scriptSig
             << std::vector<uint8_t>(MIN_TX_SIZE - coinbaseSize - 1);
@@ -204,7 +204,7 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     pblocktemplate->entries[0].fees = -1 * blockFitter.nFees;
     pblock->vtx[0] = pblocktemplate->entries[0].tx;
 
-    uint64_t nSerializeSize = GetSerializeSize(*pblock, PROTOCOL_VERSION);
+    uint64_t nSerializeSize = GetSerializeSize(*pblock);
 
     LogPrintf(
         "CreateNewBlock(): total size: %u txs: %u fees: %ld sigChecks %d\n",

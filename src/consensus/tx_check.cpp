@@ -25,7 +25,7 @@ static bool CheckTransactionCommon(const CTransaction &tx,
     }
 
     // Size limit
-    if (::GetSerializeSize(tx, PROTOCOL_VERSION) > MAX_TX_SIZE) {
+    if (::GetSerializeSize(tx) > MAX_TX_SIZE) {
         return state.Invalid(TxValidationResult::TX_CONSENSUS,
                              "bad-txns-oversize");
     }

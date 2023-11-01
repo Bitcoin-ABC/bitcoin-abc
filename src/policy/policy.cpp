@@ -169,12 +169,12 @@ int64_t GetVirtualTransactionSize(int64_t nSize, int64_t nSigChecks,
 
 int64_t GetVirtualTransactionSize(const CTransaction &tx, int64_t nSigChecks,
                                   unsigned int bytes_per_sigCheck) {
-    return GetVirtualTransactionSize(::GetSerializeSize(tx, PROTOCOL_VERSION),
-                                     nSigChecks, bytes_per_sigCheck);
+    return GetVirtualTransactionSize(::GetSerializeSize(tx), nSigChecks,
+                                     bytes_per_sigCheck);
 }
 
 int64_t GetVirtualTransactionInputSize(const CTxIn &txin, int64_t nSigChecks,
                                        unsigned int bytes_per_sigCheck) {
-    return GetVirtualTransactionSize(::GetSerializeSize(txin, PROTOCOL_VERSION),
-                                     nSigChecks, bytes_per_sigCheck);
+    return GetVirtualTransactionSize(::GetSerializeSize(txin), nSigChecks,
+                                     bytes_per_sigCheck);
 }

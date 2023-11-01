@@ -406,7 +406,7 @@ void CCoinsViewCache::SanityCheck() const {
 
 // TODO: merge with similar definition in undo.h.
 static const size_t MAX_OUTPUTS_PER_TX =
-    MAX_TX_SIZE / ::GetSerializeSize(CTxOut(), PROTOCOL_VERSION);
+    MAX_TX_SIZE / ::GetSerializeSize(CTxOut{});
 
 const Coin &AccessByTxid(const CCoinsViewCache &view, const TxId &txid) {
     for (uint32_t n = 0; n < MAX_OUTPUTS_PER_TX; n++) {

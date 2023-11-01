@@ -568,7 +568,7 @@ bool BlockManager::UndoWriteToDisk(
     }
 
     // Write index header
-    unsigned int nSize = GetSerializeSize(blockundo, CLIENT_VERSION);
+    unsigned int nSize = GetSerializeSize(blockundo);
     fileout << messageStart << nSize;
 
     // Write undo data
@@ -866,7 +866,7 @@ void BlockManager::UpdateBlockInfo(const CBlock &block, unsigned int nHeight,
     }
 
     // Update the file information with the current block.
-    const unsigned int added_size = ::GetSerializeSize(block, CLIENT_VERSION);
+    const unsigned int added_size = ::GetSerializeSize(block);
     const int nFile = pos.nFile;
     if (static_cast<int>(m_blockfile_info.size()) <= nFile) {
         m_blockfile_info.resize(nFile + 1);
@@ -912,7 +912,7 @@ bool BlockManager::WriteBlockToDisk(
     }
 
     // Write index header
-    unsigned int nSize = GetSerializeSize(block, fileout.GetVersion());
+    unsigned int nSize = GetSerializeSize(block);
     fileout << messageStart << nSize;
 
     // Write block
@@ -940,7 +940,7 @@ bool BlockManager::WriteUndoDataForBlock(const CBlockUndo &blockundo,
     if (block.GetUndoPos().IsNull()) {
         FlatFilePos _pos;
         if (!FindUndoPos(state, block.nFile, _pos,
-                         ::GetSerializeSize(blockundo, CLIENT_VERSION) + 40)) {
+                         ::GetSerializeSize(blockundo) + 40)) {
             LogError("ConnectBlock(): FindUndoPos failed\n");
             return false;
         }
@@ -1123,7 +1123,7 @@ bool BlockManager::ReadTxUndoFromDisk(CTxUndo &tx_undo,
 }
 
 FlatFilePos BlockManager::SaveBlockToDisk(const CBlock &block, int nHeight) {
-    unsigned int nBlockSize = ::GetSerializeSize(block, CLIENT_VERSION);
+    unsigned int nBlockSize = ::GetSerializeSize(block);
     // Account for the 4 magic message start bytes + the 4 length bytes (8 bytes
     // total, defined as BLOCK_SERIALIZATION_HEADER_SIZE)
     nBlockSize += static_cast<unsigned int>(BLOCK_SERIALIZATION_HEADER_SIZE);
