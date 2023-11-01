@@ -148,7 +148,7 @@ inline float ser_uint32_to_float(uint32_t y) {
 // i.e. anything that supports .read(Span<std::byte>) and .write(Span<const
 // std::byte>)
 //
-class CSizeComputer;
+class SizeComputer;
 
 enum {
     // primary actions
@@ -447,7 +447,7 @@ inline uint32_t GetSizeOfCompactSize(uint64_t nSize) {
     return sizeof(uint8_t) + sizeof(uint64_t);
 }
 
-inline void WriteCompactSize(CSizeComputer &os, uint64_t nSize);
+inline void WriteCompactSize(SizeComputer &os, uint64_t nSize);
 
 template <typename Stream> void WriteCompactSize(Stream &os, uint64_t nSize) {
     if (nSize < 253) {
@@ -559,7 +559,7 @@ inline unsigned int GetSizeOfVarInt(I n) {
     }
 }
 
-template <typename I> inline void WriteVarInt(CSizeComputer &os, I n);
+template <typename I> inline void WriteVarInt(SizeComputer &os, I n);
 
 template <typename Stream, VarIntMode Mode, typename I>
 void WriteVarInt(Stream &os, I n) {
@@ -1190,36 +1190,32 @@ struct ActionUnserialize {
  * ::GetSerializeSize implementations
  *
  * Computing the serialized size of objects is done through a special stream
- * object of type CSizeComputer, which only records the number of bytes written
+ * object of type SizeComputer, which only records the number of bytes written
  * to it.
  *
  * If your Serialize or SerializationOp method has non-trivial overhead for
  * serialization, it may be worthwhile to implement a specialized version for
- * CSizeComputer, which uses the s.seek() method to record bytes that would
+ * SizeComputer, which uses the s.seek() method to record bytes that would
  * be written instead.
  */
-class CSizeComputer {
+class SizeComputer {
 protected:
-    size_t nSize;
-
-    const int nVersion;
+    size_t nSize{0};
 
 public:
-    explicit CSizeComputer(int nVersionIn) : nSize(0), nVersion(nVersionIn) {}
+    SizeComputer() {}
 
     void write(Span<const std::byte> src) { this->nSize += src.size(); }
 
     /** Pretend _nSize bytes are written, without specifying them. */
     void seek(size_t _nSize) { this->nSize += _nSize; }
 
-    template <typename T> CSizeComputer &operator<<(const T &obj) {
+    template <typename T> SizeComputer &operator<<(const T &obj) {
         ::Serialize(*this, obj);
         return (*this);
     }
 
     size_t size() const { return nSize; }
-
-    int GetVersion() const { return nVersion; }
 };
 
 template <typename Stream, typename... Args>
@@ -1262,21 +1258,21 @@ inline void SerWrite(Stream &s, ActionSerialize ser_action, Type &&obj,
 template <typename Stream, typename Type, typename Fn>
 inline void SerWrite(Stream &s, ActionUnserialize ser_action, Type &&, Fn &&) {}
 
-template <typename I> inline void WriteVarInt(CSizeComputer &s, I n) {
+template <typename I> inline void WriteVarInt(SizeComputer &s, I n) {
     s.seek(GetSizeOfVarInt<I>(n));
 }
 
-inline void WriteCompactSize(CSizeComputer &s, uint64_t nSize) {
+inline void WriteCompactSize(SizeComputer &s, uint64_t nSize) {
     s.seek(GetSizeOfCompactSize(nSize));
 }
 
 template <typename T> size_t GetSerializeSize(const T &t, int nVersion = 0) {
-    return (CSizeComputer(nVersion) << t).size();
+    return (SizeComputer{} << t).size();
 }
 
 template <typename... T>
 size_t GetSerializeSizeMany(int nVersion, const T &...t) {
-    CSizeComputer sc(nVersion);
+    SizeComputer sc{};
     SerializeMany(sc, t...);
     return sc.size();
 }
