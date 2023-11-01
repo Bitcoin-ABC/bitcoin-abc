@@ -6,7 +6,16 @@ import {
     errorNotification,
     generalNotification,
 } from 'components/Common/Notifications';
-import { Collapse, Form, Input, Modal, Alert, Switch, Tooltip } from 'antd';
+import {
+    Collapse,
+    Form,
+    Input,
+    Modal,
+    Alert,
+    Switch,
+    Tooltip,
+    Checkbox,
+} from 'antd';
 import { Row, Col } from 'antd';
 import {
     PlusSquareOutlined,
@@ -40,6 +49,7 @@ import {
     ThemedCopySolid,
     ThemedTrashcanOutlined,
     ThemedEditOutlined,
+    WarningIcon,
 } from 'components/Common/CustomIcons';
 import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
@@ -479,6 +489,7 @@ const Configure = ({ passLoadingStatus }) => {
     const [newWalletNameIsValid, setNewWalletNameIsValid] = useState(null);
     const [walletDeleteValid, setWalletDeleteValid] = useState(null);
     const [seedInput, openSeedInput] = useState(false);
+    const [revealSeed, setRevealSeed] = useState(false);
     const [showTranslationWarning, setShowTranslationWarning] = useState(false);
     const [savedWalletContactModal, setSavedWalletContactModal] =
         useState(false);
@@ -1486,9 +1497,35 @@ const Configure = ({ passLoadingStatus }) => {
                                 className="notranslate"
                                 style={{ userSelect: 'text' }}
                             >
-                                {wallet && wallet.mnemonic
-                                    ? wallet.mnemonic
-                                    : ''}
+                                {
+                                    <>
+                                        <WarningIcon />
+                                        <br />
+                                        <b>NEVER</b> share your seed phrase.
+                                        <br />
+                                        <b>DO NOT</b> enter it into 3rd party
+                                        websites.
+                                        <br />
+                                        <br />
+                                        <Checkbox
+                                            onChange={() => {
+                                                setRevealSeed(!revealSeed);
+                                            }}
+                                        >
+                                            I understand, show me my seed
+                                            phrase.
+                                        </Checkbox>
+                                        <br />
+                                    </>
+                                }
+                                {wallet && wallet.mnemonic && revealSeed ? (
+                                    <>
+                                        <br />
+                                        {wallet.mnemonic}
+                                    </>
+                                ) : (
+                                    ''
+                                )}
                             </p>
                         </Panel>
                     </StyledCollapse>
