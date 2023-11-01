@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
+const latestVersion = `0.28.2`;
+
 function Upgrade(props) {
     return (
         <Layout>
@@ -91,8 +93,8 @@ function Upgrade(props) {
                     The process of upgrading your node is straightforward:
                     simply stop the currently running node, download the new
                     version, and start the new version. Here are some example
-                    instructions for upgrading from version 0.27.15 to version
-                    0.28.2 on Linux:
+                    instructions for upgrading from version 0.27.15 to version{' '}
+                    {latestVersion} on Linux:
                 </p>
                 <ol>
                     <li>
@@ -104,21 +106,25 @@ function Upgrade(props) {
                         Download the new version archive from the website:{' '}
                         <br />
                         <code>
-                            wget
-                            https://download.bitcoinabc.org/0.28.2/linux/bitcoin-abc-0.28.2-x86_64-linux-gnu.tar.gz
+                            wget https://download.bitcoinabc.org/{latestVersion}
+                            /linux/bitcoin-abc-{latestVersion}
+                            -x86_64-linux-gnu.tar.gz
                         </code>
                     </li>
                     <li>
                         Extract the archive:
                         <br />
                         <code>
-                            tar xzf bitcoin-abc-0.28.2-x86_64-linux-gnu.tar.gz
+                            tar xzf bitcoin-abc-{latestVersion}
+                            -x86_64-linux-gnu.tar.gz
                         </code>
                     </li>
                     <li>
                         Restart the node with the new version:
                         <br />
-                        <code>./bitcoin-abc-0.28.2/bin/bitcoind -daemon</code>
+                        <code>
+                            ./bitcoin-abc-{latestVersion}/bin/bitcoind -daemon
+                        </code>
                     </li>
                     <li>
                         Clean up old version and archives (optional):
@@ -134,8 +140,8 @@ function Upgrade(props) {
                             </li>
                             <li>
                                 <code>
-                                    rm -f
-                                    bitcoin-abc-0.28.2-x86_64-linux-gnu.tar.gz
+                                    rm -f bitcoin-abc-{latestVersion}
+                                    -x86_64-linux-gnu.tar.gz
                                 </code>
                             </li>
                         </ul>
