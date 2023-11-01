@@ -9,7 +9,7 @@ import { Container, GradientSpacer } from '/components/atoms';
 import CodeBlock from '/components/code-block';
 import mining from '/public/animations/mining.json';
 
-const getblocktemplateexample = `"coinbasetxn": {
+const getblocktemplateExample = `"coinbasetxn": {
     "minerfund": {
       "addresses": [
         "ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07"
@@ -178,7 +178,7 @@ function Mining(props) {
                         to use the values from the &ldquo;coinbasetxn&rdquo;
                         field returned by <code>getblocktemplate</code>. For
                         example:
-                        <CodeBlock code={getblocktemplateexample} />
+                        <CodeBlock code={getblocktemplateExample} />
                     </li>
                 </ul>
             </Container>
