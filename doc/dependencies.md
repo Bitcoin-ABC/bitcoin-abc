@@ -25,7 +25,7 @@ These are the dependencies currently used by Bitcoin ABC. You can find instructi
 | protobuf | [21.12](https://github.com/protocolbuffers/protobuf/releases/tag/v21.12) |  | No |  |  |
 | Python (tests) |  | [3.9](https://www.python.org/downloads) |  |  |  |
 | qrencode | [3.4.4](https://fukuchi.org/works/qrencode) |  | No |  |  |
-| Qt | [5.15.10](https://download.qt.io/official_releases/qt/) | 5.9.5 | No |  |  |
+| Qt | [5.15.11](https://download.qt.io/official_releases/qt/) | 5.9.5 | No |  |  |
 | SQLite | [3.32.1](https://sqlite.org/download.html) | 3.7.17 |  |  |  |
 | systemtap ([tracing](tracing.md))| | | | | |
 | XCB |  |  |  |  | Yes (Linux only) |
