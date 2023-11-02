@@ -3302,8 +3302,10 @@ void CWallet::SetupLegacyScriptPubKeyMan() {
     m_spk_managers[spk_manager->GetID()] = std::move(spk_manager);
 }
 
-const CKeyingMaterial &CWallet::GetEncryptionKey() const {
-    return vMasterKey;
+bool CWallet::WithEncryptionKey(
+    const std::function<bool(const CKeyingMaterial &)> &cb) const {
+    LOCK(cs_wallet);
+    return cb(vMasterKey);
 }
 
 bool CWallet::HasEncryptionKeys() const {

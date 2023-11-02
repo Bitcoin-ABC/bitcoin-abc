@@ -1014,7 +1014,9 @@ public:
     //! external.
     void SetupLegacyScriptPubKeyMan();
 
-    const CKeyingMaterial &GetEncryptionKey() const override;
+    bool WithEncryptionKey(
+        const std::function<bool(const CKeyingMaterial &)> &cb) const override;
+
     bool HasEncryptionKeys() const override;
 
     /** Get last block processed height */

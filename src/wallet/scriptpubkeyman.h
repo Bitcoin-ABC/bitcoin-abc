@@ -19,6 +19,7 @@
 
 #include <boost/signals2/signal.hpp>
 
+#include <functional>
 #include <unordered_map>
 
 enum class OutputType;
@@ -43,7 +44,9 @@ public:
     virtual bool CanSupportFeature(enum WalletFeature) const = 0;
     virtual void SetMinVersion(enum WalletFeature, WalletBatch * = nullptr,
                                bool = false) = 0;
-    virtual const CKeyingMaterial &GetEncryptionKey() const = 0;
+    //! Pass the encryption key to cb().
+    virtual bool WithEncryptionKey(
+        const std::function<bool(const CKeyingMaterial &)> &cb) const = 0;
     virtual bool HasEncryptionKeys() const = 0;
     virtual bool IsLocked() const = 0;
 };
