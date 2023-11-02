@@ -4,6 +4,7 @@ from unittest import mock
 from .. import bitcoin, keystore, mnemo, storage, wallet
 from ..address import Address, PublicKey
 from ..bitcoin import ScriptType
+from ..storage import StorageKeys
 from ..transaction import OutPoint, Transaction, TxInput, TxOutput
 
 
@@ -27,7 +28,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
     def _create_standard_wallet(self, ks):
         store = storage.WalletStorage("if_this_exists_mocking_failed_648151893")
         store.put("keystore", ks.dump())
-        store.put("gap_limit", self.gap_limit)
+        store.put(StorageKeys.GAP_LIMIT, self.gap_limit)
         w = wallet.StandardWallet(store)
         w.synchronize()
         return w
@@ -38,7 +39,7 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         store.put("wallet_type", multisig_type)
         store.put("x1/", ks1.dump())
         store.put("x2/", ks2.dump())
-        store.put("gap_limit", self.gap_limit)
+        store.put(StorageKeys.GAP_LIMIT, self.gap_limit)
         w = wallet.MultisigWallet(store)
         w.synchronize()
         return w

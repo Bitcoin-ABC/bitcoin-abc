@@ -91,7 +91,13 @@ from .paymentrequest import (
 )
 from .plugins import plugin_loaders, run_hook
 from .printerror import PrintError
-from .storage import STO_EV_PLAINTEXT, STO_EV_USER_PW, STO_EV_XPUB_PW, WalletStorage
+from .storage import (
+    STO_EV_PLAINTEXT,
+    STO_EV_USER_PW,
+    STO_EV_XPUB_PW,
+    StorageKeys,
+    WalletStorage,
+)
 from .synchronizer import Synchronizer
 from .transaction import (
     DUST_THRESHOLD,
@@ -3355,7 +3361,7 @@ class DeterministicWallet(AbstractWallet):
     def __init__(self, storage):
         self.keystore: Optional[DeterministicKeyStore] = None
         AbstractWallet.__init__(self, storage)
-        self.gap_limit = storage.get("gap_limit", 20)
+        self.gap_limit = storage.get(StorageKeys.GAP_LIMIT)
 
     def has_seed(self):
         return self.keystore.has_seed()
@@ -3379,7 +3385,7 @@ class DeterministicWallet(AbstractWallet):
         with self.lock:
             if value >= self.gap_limit:
                 self.gap_limit = value
-                self.storage.put("gap_limit", self.gap_limit)
+                self.storage.put(StorageKeys.GAP_LIMIT, self.gap_limit)
                 return True
             elif value >= self.min_acceptable_gap():
                 addresses = self.get_receiving_addresses()
@@ -3387,7 +3393,7 @@ class DeterministicWallet(AbstractWallet):
                 n = len(addresses) - k + value
                 self.receiving_addresses = self.receiving_addresses[0:n]
                 self.gap_limit = value
-                self.storage.put("gap_limit", self.gap_limit)
+                self.storage.put(StorageKeys.GAP_LIMIT, self.gap_limit)
                 self.save_addresses()
                 return True
             else:
@@ -3783,7 +3789,7 @@ def restore_wallet_from_text(
         if seed_type:
             storage.put("seed_type", seed_type)  # Save, just in case
         if gap_limit is not None:
-            storage.put("gap_limit", gap_limit)
+            storage.put(StorageKeys.GAP_LIMIT, gap_limit)
         wallet = Wallet(storage)
 
     wallet.update_password(old_pw=None, new_pw=password, encrypt_storage=encrypt_file)

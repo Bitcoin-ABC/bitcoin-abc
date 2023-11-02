@@ -7,6 +7,7 @@ from PyQt5 import QtWidgets
 from electrumabc.address import PublicKey
 from electrumabc.bitcoin import is_private_key
 from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
+from electrumabc.storage import StorageKeys
 from electrumabc.wallet import DeterministicWallet
 
 from ..password_dialog import PasswordDialog
@@ -152,10 +153,10 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
         self.key_widget = KeyWidget()
         layout.addWidget(self.key_widget)
 
-        self.max_shown_index = self.wallet.storage.get("auxiliary_key_index", 0)
+        self.max_shown_index = self.wallet.storage.get(StorageKeys.AUXILIARY_KEY_INDEX)
         # increment for the next time
         self.wallet.storage.put(
-            "auxiliary_key_index",
+            StorageKeys.AUXILIARY_KEY_INDEX,
             min(MAXIMUM_INDEX_DERIVATION_PATH, self.max_shown_index + 1),
         )
         self.index_spinbox.valueChanged.connect(self.on_index_changed)
@@ -165,7 +166,7 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
         if index > self.max_shown_index:
             self.max_shown_index = index
             self.wallet.storage.put(
-                "auxiliary_key_index",
+                StorageKeys.AUXILIARY_KEY_INDEX,
                 min(MAXIMUM_INDEX_DERIVATION_PATH, self.max_shown_index + 1),
             )
 

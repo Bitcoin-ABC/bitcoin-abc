@@ -15,6 +15,7 @@ from electrumabc.constants import PROOF_DUST_THRESHOLD, STAKE_UTXO_CONFIRMATIONS
 from electrumabc.i18n import _
 from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.serialize import DeserializationError, compact_size, serialize_blob
+from electrumabc.storage import StorageKeys
 from electrumabc.transaction import OutPoint, get_address_from_output_script
 from electrumabc.uint256 import UInt256
 from electrumabc.util import format_satoshis
@@ -407,12 +408,14 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             return ""
         wif_pk = ""
         if not self.wallet.has_password() or self.pwd is not None:
-            auxiliary_key_index = self.wallet.storage.get("auxiliary_key_index", 0)
+            auxiliary_key_index = self.wallet.storage.get(
+                StorageKeys.AUXILIARY_KEY_INDEX,
+            )
             wif_pk = get_auxiliary_privkey(
                 self.wallet, key_index=auxiliary_key_index, pwd=self.pwd
             )
             self.wallet.storage.put(
-                "auxiliary_key_index",
+                StorageKeys.AUXILIARY_KEY_INDEX,
                 min(auxiliary_key_index + 1, MAXIMUM_INDEX_DERIVATION_PATH),
             )
         return wif_pk
@@ -517,12 +520,45 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.generate_dg_button.setEnabled(True)
         self.save_proof_button.setEnabled(True)
 
+    def find_auxiliary_privkey_from_pubkey(self, pubkey: PublicKey) -> Optional[str]:
+        """Try to find the master private key from the master public key
+        by scanning a range of recent auxiliary keys.
+        Return the key in WIF format, or None."""
+        if (
+            not self.wallet.is_deterministic()
+            or not self.wallet.can_export()
+            or (self.wallet.has_password() and self.pwd is None)
+        ):
+            return None
+        auxiliary_key_index = self.wallet.storage.get(StorageKeys.AUXILIARY_KEY_INDEX)
+        gap_limit = self.wallet.storage.get(StorageKeys.GAP_LIMIT)
+        wif_pk = None
+        # Scan backwards from the current auxiliary_key_index, because in most cases the key will be the most recent one.
+        for i in range(
+            auxiliary_key_index, max(-1, auxiliary_key_index - gap_limit), -1
+        ):
+            maybe_wif_pk = get_auxiliary_privkey(self.wallet, key_index=i, pwd=self.pwd)
+            if Key.from_wif(maybe_wif_pk).get_pubkey() == pubkey:
+                wif_pk = maybe_wif_pk
+                break
+        return wif_pk
+
     def load_proof(self, proof: Proof):
-        known_keys = []
-        if self._get_privkey_suggestion():
-            known_keys.append(self._get_privkey_suggestion())
-        if is_private_key(self.master_key_edit.text()):
-            known_keys.append(self.master_key_edit.text())
+        # Figure out whether we know the private key associated with the proof's master public key.
+        # First check the key that is currently typed in the privkey widget. If not so, try a range of recently used auxiliary keys.
+        provided_privkey = (
+            self.master_key_edit.text()
+            if is_private_key(self.master_key_edit.text())
+            else None
+        )
+        if (
+            provided_privkey is not None
+            and Key.from_wif(provided_privkey).get_pubkey() == proof.master_pub
+        ):
+            known_privkey = provided_privkey
+        else:
+            known_privkey = self.find_auxiliary_privkey_from_pubkey(proof.master_pub)
+
         self.init_data()
 
         self.sequence_sb.setValue(proof.sequence)
@@ -531,12 +567,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         else:
             self.timestamp_widget.setValue(proof.expiration_time)
 
-        self.master_key_edit.setText("")
-        for wif_key in known_keys:
-            if Key.from_wif(wif_key).get_pubkey() == proof.master_pub:
-                self.master_key_edit.setText(wif_key)
-                break
-        else:
+        if known_privkey is None:
+            self.master_key_edit.setText("")
             QtWidgets.QMessageBox.warning(
                 self,
                 "Missing private key",
@@ -544,6 +576,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                 " key. You can fill it manually if you know it, or leave it blank"
                 " if you just want to sign your stakes, ",
             )
+        else:
+            self.master_key_edit.setText(known_privkey)
         self.master_pubkey_view.setText(proof.master_pub.to_hex())
 
         _txout_type, addr = get_address_from_output_script(proof.payout_script_pubkey)
