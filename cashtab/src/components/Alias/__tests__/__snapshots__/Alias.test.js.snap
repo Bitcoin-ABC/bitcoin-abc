@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with XEC balances 1`] = `
 Array [
@@ -72,7 +72,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kvZOFW eYbynb"
+          className="sc-jbKcbu wUzOX"
         >
           <h2>
             eCash Namespace Alias
@@ -249,10 +249,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-hqyNC hEUPzP"
+            className="sc-dNLxif cYGCgJ"
           />
           <div
-            className="sc-kvZOFW eYbynb"
+            className="sc-jbKcbu wUzOX"
           >
             <div
               className="sc-kgAjT jWFrne"
@@ -498,7 +498,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kvZOFW eYbynb"
+          className="sc-jbKcbu wUzOX"
         >
           <h2>
             eCash Namespace Alias
@@ -675,10 +675,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-hqyNC hEUPzP"
+            className="sc-dNLxif cYGCgJ"
           />
           <div
-            className="sc-kvZOFW eYbynb"
+            className="sc-jbKcbu wUzOX"
           >
             <div
               className="sc-kgAjT jWFrne"
@@ -929,7 +929,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kvZOFW eYbynb"
+          className="sc-jbKcbu wUzOX"
         >
           <h2>
             eCash Namespace Alias
@@ -1106,10 +1106,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-hqyNC hEUPzP"
+            className="sc-dNLxif cYGCgJ"
           />
           <div
-            className="sc-kvZOFW eYbynb"
+            className="sc-jbKcbu wUzOX"
           >
             <div
               className="sc-kgAjT jWFrne"
@@ -1355,7 +1355,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kvZOFW eYbynb"
+          className="sc-jbKcbu wUzOX"
         >
           <h2>
             eCash Namespace Alias
@@ -1532,10 +1532,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-hqyNC hEUPzP"
+            className="sc-dNLxif cYGCgJ"
           />
           <div
-            className="sc-kvZOFW eYbynb"
+            className="sc-jbKcbu wUzOX"
           >
             <div
               className="sc-kgAjT jWFrne"
@@ -1776,7 +1776,7 @@ Array [
         style={Object {}}
       >
         <div
-          className="sc-kvZOFW eYbynb"
+          className="sc-jbKcbu wUzOX"
         >
           <h2>
             eCash Namespace Alias
@@ -2022,10 +2022,10 @@ Array [
             </form>
           </div>
           <div
-            className="sc-hqyNC hEUPzP"
+            className="sc-dNLxif cYGCgJ"
           />
           <div
-            className="sc-kvZOFW eYbynb"
+            className="sc-jbKcbu wUzOX"
           >
             <div
               className="sc-kgAjT jWFrne"

@@ -9,6 +9,7 @@ import {
     WalletInfoCtn,
     AlertMsg,
 } from 'components/Common/Atoms';
+import { PendingAliasWarningIcon } from 'components/Common/CustomIcons';
 import {
     AntdFormWrapper,
     AliasInput,
@@ -43,6 +44,14 @@ export const CheckboxContainer = styled.div`
 // Change mouse cursor to pointer upon hovering over an Alias tag
 export const AliasLabel = styled.div`
     cursor: pointer;
+`;
+
+export const AliasAvailable = styled.span`
+    color: ${props => props.theme.aliasGreen};
+`;
+
+export const AliasPending = styled.span`
+    color: ${props => props.theme.forms.error};
 `;
 
 export const NamespaceCtn = styled.div`
@@ -395,22 +404,51 @@ const Alias = ({ passLoadingStatus }) => {
     return (
         <>
             <Modal
-                title="Confirm Alias Registration"
+                title={
+                    aliasWarningMsg ? (
+                        <>
+                            <PendingAliasWarningIcon />
+                            <AliasPending>
+                                {' '}
+                                <b>Warning: pending registrations detected</b>
+                            </AliasPending>
+                        </>
+                    ) : (
+                        <AliasAvailable>
+                            Confirm alias registration
+                        </AliasAvailable>
+                    )
+                }
                 open={isModalVisible}
                 onOk={handleOk}
                 onCancel={handleCancel}
             >
-                <p>
-                    {`Are you sure you want to register the alias '${
-                        formData.aliasName
-                    }' for ${fromSatoshisToXec(
-                        aliasDetails.registrationFeeSats,
-                    )} XEC?`}
-                    {aliasWarningMsg !== false && aliasWarningMsg}
-                    {!useThisAddressChecked &&
-                        !aliasAddressValidationError &&
-                        ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${wallet.Path1899?.cashAddress}.`}
-                </p>
+                {!aliasWarningMsg && (
+                    <AliasAvailable>
+                        {`The alias ${
+                            formData.aliasName
+                        } is available and can be registered for ${fromSatoshisToXec(
+                            aliasDetails.registrationFeeSats,
+                        )} XEC. Proceed with registration?`}
+                    </AliasAvailable>
+                )}
+                {aliasWarningMsg !== false && (
+                    <>
+                        <b>
+                            <AlertMsg>
+                                {` Warning: ${aliasWarningMsg}`}
+                                <br />
+                                <br />
+                                {` Continue the registration anyway for ${fromSatoshisToXec(
+                                    aliasDetails.registrationFeeSats,
+                                )} XEC?`}
+                            </AlertMsg>
+                        </b>
+                    </>
+                )}
+                {!useThisAddressChecked &&
+                    !aliasAddressValidationError &&
+                    ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${wallet.Path1899?.cashAddress}.`}
             </Modal>
             <WalletInfoCtn>
                 <WalletLabel
