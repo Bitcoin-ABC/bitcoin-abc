@@ -72,6 +72,7 @@ const useWallet = () => {
         registered: [],
         pending: [],
     });
+    const [aliasPrices, setAliasPrices] = useState(null);
     const [aliasServerError, setAliasServerError] = useState(false);
     const [aliasIntervalId, setAliasIntervalId] = useState(null);
     const { balances, tokens } = isValidStoredWallet(wallet)
@@ -849,11 +850,37 @@ const useWallet = () => {
     const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
         // get the message type
         const { type } = msg;
-        // Cashtab only processes "first seen" transactions, i.e. where type === 'AddedToMempool'
+        // Cashtab only processes "first seen" transactions and new blocks, i.e. where
+        // type === 'AddedToMempool' or 'BlockConnected'
         // Dev note: Other chronik msg types
-        // "BlockConnected", arrives as new blocks are found
         // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
-        if (type !== 'AddedToMempool') {
+        if (type !== 'AddedToMempool' && type !== 'BlockConnected') {
+            return;
+        }
+
+        // when new blocks are found, refresh alias prices
+        if (type === 'BlockConnected') {
+            try {
+                const aliasPricesResp = await queryAliasServer('prices');
+                if (!aliasPricesResp || !aliasPricesResp.prices) {
+                    throw new Error(
+                        'Invalid response from alias prices endpoint',
+                    );
+                }
+
+                // Only refresh alias prices if new tiers have been published.
+                // The 'prices' API tracks historical pricing via an array of 'prices[].fees'.
+                // Therefore a pricing update can be identified as a length change to the 'prices' object.
+                if (
+                    aliasPrices &&
+                    aliasPrices.prices.length === aliasPricesResp.prices.length
+                ) {
+                    return;
+                }
+                setAliasPrices(aliasPricesResp);
+            } catch (err) {
+                setAliasServerError(err);
+            }
             return;
         }
 
@@ -1511,6 +1538,8 @@ const useWallet = () => {
         setAliases,
         aliasServerError,
         setAliasServerError,
+        aliasPrices,
+        setAliasPrices,
         getActiveWalletFromLocalForage,
         getWallet,
         getWalletDetails,

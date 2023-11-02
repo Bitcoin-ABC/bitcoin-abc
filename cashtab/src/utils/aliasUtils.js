@@ -57,16 +57,13 @@ export const getAliasByteSize = aliasInputStr => {
  *        processedBlockheight: 802965,
  *  }
  */
-export const queryAliasServer = async (endPoint, aliasParam) => {
+export const queryAliasServer = async (endPoint, aliasParam = false) => {
     let aliasServerResp;
+    const fetchUrl = !aliasParam
+        ? `${aliasSettings.aliasServerBaseUrl}/${endPoint}`
+        : `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${aliasParam}`;
     try {
-        aliasServerResp = await fetch(
-            aliasSettings.aliasServerBaseUrl +
-                '/' +
-                endPoint +
-                '/' +
-                aliasParam,
-        );
+        aliasServerResp = await fetch(fetchUrl);
         // if alias-server is down, fetch returns undefined
         if (!aliasServerResp) {
             throw new Error('Network request failed');

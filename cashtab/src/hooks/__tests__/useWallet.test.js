@@ -70,16 +70,337 @@ test('Verify processChronikWsMsg() processes AddedToMempool events', async () =>
     assert.notEqual(walletState, false);
 });
 
-test('Verify processChronikWsMsg() does not process BlockConnected events', async () => {
+test('processChronikWsMsg() refreshes alias prices when aliasPrices is null', async () => {
     const { result } = renderHook(() => useWallet());
     const mockWebsocketMsg = { type: 'BlockConnected' };
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
+    const mockAliasServerResponse = {
+        note: 'alias-server is in beta and these prices are not finalized.',
+        prices: [
+            {
+                startHeight: 823950,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 551,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+        ],
+    };
+
+    // Mock the fetch call to alias-server's '/prices' endpoint
+    global.fetch = jest.fn();
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve(mockAliasServerResponse),
+        });
+
+    await result.current.processChronikWsMsg(mockWebsocketMsg);
+
+    // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
+    assert.deepEqual(result.current.aliasPrices, mockAliasServerResponse);
+});
+
+test('processChronikWsMsg() refreshes alias prices when aliasPrices exists, server and cashtab prices array length do not match', async () => {
+    const { result } = renderHook(() => useWallet());
+    const mockWebsocketMsg = { type: 'BlockConnected' };
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
+    const mockExistingAliasPrices = {
+        note: 'alias-server is in beta and these prices are not finalized.',
+        prices: [
+            {
+                startHeight: 823944,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 9999999999999,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+        ],
+    };
+    const mockAliasServerResponse = {
+        note: 'alias-server is in beta and these prices are not finalized.',
+        prices: [
+            {
+                startHeight: 823944,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 9999999999999,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+            {
+                startHeight: 823950,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 551,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+        ],
+    };
+
+    // Mock the existing aliasPrices state value
+    result.current.setAliasPrices(mockExistingAliasPrices);
+
+    // Mock the fetch call to alias-server's '/prices' endpoint
+    global.fetch = jest.fn();
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve(mockAliasServerResponse),
+        });
+
+    await result.current.processChronikWsMsg(mockWebsocketMsg);
+
+    // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
+    assert.deepEqual(result.current.aliasPrices, mockAliasServerResponse);
+});
+
+test('processChronikWsMsg() does not refresh alias prices when aliasPrices exists, server and cashtab array length do match', async () => {
+    const { result } = renderHook(() => useWallet());
+    const mockWebsocketMsg = { type: 'BlockConnected' };
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
+    const mockExistingAliasPrices = {
+        note: 'alias-server is in beta and these prices are not finalized.',
+        prices: [
+            {
+                // Technically, there should never be a scenario where the prices array length matches between
+                // server and cashtab and the height does not. But for the purposes of this unit test we need
+                // to validate the existing aliasPrices state var was not updated, hence this startHeight differentiation.
+                startHeight: 111111,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 9999999999999,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+            {
+                startHeight: 823950,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 551,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+        ],
+    };
+    const mockAliasServerResponse = {
+        note: 'alias-server is in beta and these prices are not finalized.',
+        prices: [
+            {
+                startHeight: 823944,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 9999999999999,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+            {
+                startHeight: 823950,
+                fees: {
+                    1: 558,
+                    2: 557,
+                    3: 556,
+                    4: 555,
+                    5: 554,
+                    6: 553,
+                    7: 552,
+                    8: 551,
+                    9: 551,
+                    10: 551,
+                    11: 551,
+                    12: 551,
+                    13: 551,
+                    14: 551,
+                    15: 551,
+                    16: 551,
+                    17: 551,
+                    18: 551,
+                    19: 551,
+                    20: 551,
+                    21: 551,
+                },
+            },
+        ],
+    };
+
+    // Mock the existing aliasPrices state value
+    result.current.setAliasPrices(mockExistingAliasPrices);
+
+    // Mock the fetch call to alias-server's '/prices' endpoint
+    global.fetch = jest.fn();
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve(mockAliasServerResponse),
+        });
+
+    await result.current.processChronikWsMsg(mockWebsocketMsg);
+
+    // Verify upon `BlockConnected` events processChronikWsMsg() does not update the aliasPrices state var
+    assert.deepEqual(result.current.aliasPrices, mockExistingAliasPrices);
+});
+
+test('Verify a processChronikWsMsg() new block event updates the `aliasServerError` state var upon a /prices/ endpoint error', async () => {
+    const { result } = renderHook(() => useWallet());
+    const mockWebsocketMsg = { type: 'BlockConnected' };
+    const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
+    const expectedError = 'Invalid response from alias prices endpoint';
+
+    // Mock the fetch call to alias-server's '/prices' endpoint
+    global.fetch = jest.fn();
+    when(fetch)
+        .calledWith(fetchUrl)
+        .mockResolvedValue({
+            json: () => Promise.resolve('not a valid prices response'),
+        });
+
+    await result.current.processChronikWsMsg(mockWebsocketMsg);
+
+    // Verify the `aliasServerError` state var in useWallet is updated
+    assert.deepEqual(result.current.aliasServerError, new Error(expectedError));
+});
+
+test('Verify processChronikWsMsg() does not process events that are NOT BlockConnected or AddedToMempool', async () => {
+    const { result } = renderHook(() => useWallet());
+    const mockWebsocketMsg = { type: 'Confirmed' };
 
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     const walletState = result.current.wallet;
+    const fiatPriceState = result.current.fiatPrice;
 
-    // verify upon `BlockConnected` events processChronikWsMsg() returns early and does not process the wallet input arg
+    // Verify upon `Confirmed` events processChronikWsMsg() returns early and does not process the wallet and fiatPrice input args
     assert.strictEqual(walletState, false);
+    assert.strictEqual(fiatPriceState, null);
 });
 
 test('Verify refreshAliases() updates the `aliases` state variable on a successful /address/ endpoint response', async () => {

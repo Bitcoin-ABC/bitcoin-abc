@@ -42,6 +42,7 @@ import { Space, Tag } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import appConfig from 'config/app';
+import { formatBalance } from 'utils/formatting';
 import aliasSettings from 'config/alias';
 
 export const CheckboxContainer = styled.div`
@@ -99,6 +100,8 @@ const Alias = ({ passLoadingStatus }) => {
         setAliases,
         aliasServerError,
         setAliasServerError,
+        aliasPrices,
+        setAliasPrices,
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
@@ -116,7 +119,6 @@ const Alias = ({ passLoadingStatus }) => {
     const [aliasDetails, setAliasDetails] = useState(false); // stores the /alias/<alias> endpoint response object
     // Stores a conditional warning to the registration confirmation modal
     const [aliasWarningMsg, setAliasWarningMsg] = useState(false);
-
     // Show a confirmation modal on alias registrations
     const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -144,6 +146,11 @@ const Alias = ({ passLoadingStatus }) => {
 
         if (wallet.Path1899.cashAddress) {
             await refreshAliases(wallet.Path1899.cashAddress);
+        }
+
+        // Refresh alias prices if none exist yet
+        if (aliasPrices === null) {
+            setAliasPrices(await queryAliasServer('prices'));
         }
 
         passLoadingStatus(false);
@@ -467,8 +474,8 @@ const Alias = ({ passLoadingStatus }) => {
                     <AliasAvailable>
                         {`The alias ${
                             formData.aliasName
-                        } is available and can be registered for ${fromSatoshisToXec(
-                            aliasDetails.registrationFeeSats,
+                        } is available and can be registered for ${formatBalance(
+                            fromSatoshisToXec(aliasDetails.registrationFeeSats),
                         )} XEC. Proceed with registration?`}
                     </AliasAvailable>
                 )}
@@ -479,8 +486,10 @@ const Alias = ({ passLoadingStatus }) => {
                                 {` Warning: ${aliasWarningMsg}`}
                                 <br />
                                 <br />
-                                {` Continue the registration anyway for ${fromSatoshisToXec(
-                                    aliasDetails.registrationFeeSats,
+                                {` Continue the registration anyway for ${formatBalance(
+                                    fromSatoshisToXec(
+                                        aliasDetails.registrationFeeSats,
+                                    ),
                                 )} XEC?`}
                             </AlertMsg>
                         </b>
@@ -557,8 +566,35 @@ const Alias = ({ passLoadingStatus }) => {
                                             let aliasLength = getAliasByteSize(
                                                 formData.aliasName,
                                             );
-                                            if (aliasLength > 0) {
-                                                return `This alias is ${aliasLength} bytes in length`;
+                                            if (
+                                                aliasLength > 0 &&
+                                                isValidAliasInput
+                                            ) {
+                                                // Disable alias registration if the array is not exactly one entry
+                                                if (
+                                                    aliasPrices.prices
+                                                        .length !== 1
+                                                ) {
+                                                    setAliasValidationError(
+                                                        `Alias registration is temporarily unavailable, please check again later.`,
+                                                    );
+                                                    setIsValidAliasInput(false);
+                                                    return;
+                                                }
+                                                // TODO Once chronik-client has been upgraded for in-node chronik, update
+                                                // this price parsing logic to use the new ws for blockheight comparisons.
+                                                // Intention is to reverse loop through `aliasPrices.prices` and parse for
+                                                // the latest array entry that has a startHeight within the chain's tipHeight.
+                                                let aliasPriceXec =
+                                                    formatBalance(
+                                                        fromSatoshisToXec(
+                                                            aliasPrices
+                                                                .prices[0].fees[
+                                                                aliasLength
+                                                            ],
+                                                        ),
+                                                    );
+                                                return `${aliasLength} bytes, ${aliasPriceXec} XEC to register.`;
                                             }
                                         })()}
                                         <p />
