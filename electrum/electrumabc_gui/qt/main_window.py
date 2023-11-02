@@ -4590,12 +4590,11 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
 
         self._do_import(title, msg, import_addr)
 
-    @protected
-    def show_auxiliary_keys(self, password):
+    def show_auxiliary_keys(self):
         if not self.wallet.is_deterministic() or not self.wallet.can_export():
             return
 
-        d = AuxiliaryKeysDialog(self.wallet, password, self)
+        d = AuxiliaryKeysDialog(self.wallet, parent=self)
         d.show()
 
     @protected

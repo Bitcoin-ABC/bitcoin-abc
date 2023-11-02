@@ -10,7 +10,7 @@ from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.wallet import DeterministicWallet
 
 from ..password_dialog import PasswordDialog
-from ..util import ButtonsLineEdit
+from ..util import ButtonsLineEdit, PrintError
 
 
 def get_auxiliary_privkey(
@@ -32,7 +32,7 @@ def get_auxiliary_privkey(
     return wallet.export_private_key_for_index(privkey_index, pwd)
 
 
-class CachedWalletPasswordWidget(QtWidgets.QWidget):
+class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
     """A base class for widgets that may prompt the user for a wallet password and
     remember that password for later reuse.
     The password can also be specified in the constructor. In this case, there is no
@@ -42,11 +42,12 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[str] = None,
+        pwd: Optional[bytearray] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
-        self._pwd = pwd
+        # store the password as a mutable type so the memory can be zeroed after it is no longer needed
+        self._pwd: Optional[bytearray] = pwd
         self.wallet = wallet
 
     @property
@@ -58,7 +59,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
         If the password dialog is cancelled, return None.
         """
         if self._pwd is not None:
-            return self._pwd
+            return self._pwd.decode("utf-8")
 
         while self.wallet.has_password():
             password = PasswordDialog(parent=self).run()
@@ -67,11 +68,16 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget):
                 return
             try:
                 self.wallet.check_password(password)
-                self._pwd = password
+                self._pwd = bytearray(password.encode("utf-8"))
                 # success
-                return self._pwd
+                return self._pwd.decode("utf-8")
             except Exception as e:
                 QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
+
+    def __del__(self):
+        if self._pwd is not None:
+            self.print_msg("Zeroing cached password in memory")
+            self._pwd[:] = b"\0" * len(self._pwd)
 
 
 class KeyWidget(QtWidgets.QWidget):
@@ -111,7 +117,7 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[str] = None,
+        pwd: Optional[bytearray] = None,
         parent: Optional[QtWidgets.QWidget] = None,
         additional_info: Optional[str] = None,
     ):
@@ -181,7 +187,7 @@ class AuxiliaryKeysDialog(QtWidgets.QDialog):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[str] = None,
+        pwd: Optional[bytearray] = None,
         parent: Optional[QtWidgets.QWidget] = None,
         additional_info: Optional[str] = None,
     ):

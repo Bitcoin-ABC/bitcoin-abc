@@ -23,7 +23,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[str] = None,
+        pwd: Optional[bytearray] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(wallet, pwd, parent)
@@ -148,7 +148,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
             "Please save the private key. You will need it to use your delegation with "
             "a Bitcoin ABC node."
         )
-        d = AuxiliaryKeysDialog(self.wallet, self.pwd, self, additional_info)
+        d = AuxiliaryKeysDialog(self.wallet, self._pwd, self, additional_info)
         d.exec_()
 
         self.pubkey_edit.setText(d.get_hex_public_key())
@@ -241,7 +241,7 @@ class AvaDelegationDialog(QtWidgets.QDialog):
     def __init__(
         self,
         wallet: DeterministicWallet,
-        pwd: Optional[str] = None,
+        pwd: Optional[bytearray] = None,
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
