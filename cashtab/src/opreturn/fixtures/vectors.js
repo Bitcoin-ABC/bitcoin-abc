@@ -48,4 +48,80 @@ export const opReturnVectors = {
             },
         ],
     },
+    airdrops: {
+        expectedReturns: [
+            {
+                description: 'Airdrop with no optional msg',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg: '',
+                outputScriptHex:
+                    '6a0464726f702050d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+            },
+            {
+                description:
+                    'Airdrop with many spaces for optional msg treated as no optional msg',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg: '          ',
+                outputScriptHex:
+                    '6a0464726f702050d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+            },
+            {
+                description: 'Airdrop with optional alphanumeric msg',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg: 'Test airdrop msg',
+                outputScriptHex:
+                    '6a0464726f702050d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e10546573742061697264726f70206d7367',
+            },
+            {
+                description:
+                    'Airdrop with optional emoji and special characters msg',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg:
+                    '30~40 프로 상승으로 만족못하겠으니 300~400프로 펌핑 함 가즈아~ 시체밭넘고~🤔',
+                outputScriptHex:
+                    '6a0464726f702050d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e4c6833307e343020ed9484eba19c20ec8381ec8ab9ec9cbceba19c20eba78ceca1b1ebaabbed9598eab2a0ec9cbceb8b88203330307e343030ed9484eba19c20ed8e8ced959120ed95a820eab080eca688ec95847e20ec8b9cecb2b4ebb0adeb8498eab3a07ef09fa494',
+            },
+            {
+                description:
+                    'Airdrop with optional msg of max allowable length',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg:
+                    '00000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000112',
+                outputScriptHex:
+                    '6a0464726f702050d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e4cb63030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313132',
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Invalid tokenId provided',
+                tokenId:
+                    '0d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg:
+                    '000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001123',
+                errorMsg: `Invalid tokenId: 0d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e`,
+            },
+            {
+                description:
+                    'Airdrop msg exceeding max length for airdrop msg by 1 byte',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg:
+                    '000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001123',
+                errorMsg: `Airdrop msg is 183 bytes. Exceeds ${opReturn.airdropMsgByteLimit} byte limit.`,
+            },
+            {
+                description: 'non-string input for airdrop msg',
+                tokenId:
+                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                airdropMsg: { airdropMsg: 'good to go' },
+                errorMsg:
+                    'getAirdropTargetOutput requires string input for tokenId and airdropMsg',
+            },
+        ],
+    },
 };
