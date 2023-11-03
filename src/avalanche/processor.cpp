@@ -167,17 +167,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                 LogPrint(BCLog::AVALANCHE,
                          "Promoting previously dangling proof %s\n",
                          proof->getId().ToString());
-                if (g_avalanche->isRecentlyFinalized(proof)) {
-                    g_avalanche->withPeerManager(
-                        [&](avalanche::PeerManager &pm) {
-                            pm.forPeer(proof->getId(),
-                                       [&](const avalanche::Peer &peer) {
-                                           return pm.setFinalized(peer.peerid);
-                                       });
-                        });
-                } else {
-                    addToReconcile(proof);
-                }
+                reconcileOrFinalize(proof);
             }
             return true;
         },
@@ -394,6 +384,25 @@ bool Processor::addToReconcile(const AnyVoteItem &item) {
     return voteRecords.getWriteView()
         ->insert(std::make_pair(item, VoteRecord(accepted)))
         .second;
+}
+
+bool Processor::reconcileOrFinalize(const ProofRef &proof) {
+    if (!proof) {
+        return false;
+    }
+
+    if (isRecentlyFinalized(proof)) {
+        PeerId peerid;
+        LOCK(cs_peerManager);
+        if (peerManager->forPeer(proof->getId(), [&](const Peer &peer) {
+                peerid = peer.peerid;
+                return true;
+            })) {
+            return peerManager->setFinalized(peerid);
+        }
+    }
+
+    return addToReconcile(proof);
 }
 
 bool Processor::isAccepted(const AnyVoteItem &item) const {
@@ -938,7 +947,7 @@ void Processor::updatedBlockTip() {
 
     auto registeredProofs = registerProofs();
     for (const auto &proof : registeredProofs) {
-        addToReconcile(proof);
+        reconcileOrFinalize(proof);
     }
 }
 

@@ -295,6 +295,12 @@ public:
                   bilingual_str &error);
 
     bool addToReconcile(const AnyVoteItem &item);
+    /**
+     * Wrapper around the addToReconcile for proofs that adds back the
+     * finalization flag to the peer if it is not polled due to being recently
+     * finalized.
+     */
+    bool reconcileOrFinalize(const ProofRef &proof);
     bool isAccepted(const AnyVoteItem &item) const;
     int getConfidence(const AnyVoteItem &item) const;
     bool isRecentlyFinalized(const AnyVoteItem &item) const;

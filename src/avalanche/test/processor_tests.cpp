@@ -81,6 +81,12 @@ namespace {
         }
 
         static void updatedBlockTip(Processor &p) { p.updatedBlockTip(); }
+
+        static void addProofToRecentfinalized(Processor &p,
+                                              const ProofId &proofid) {
+            WITH_LOCK(p.cs_finalizedItems,
+                      return p.finalizedItems.insert(proofid));
+        }
     };
 } // namespace
 
@@ -2443,6 +2449,89 @@ BOOST_AUTO_TEST_CASE(local_proof_status) {
     });
     AvalancheTest::updatedBlockTip(*m_processor);
     checkLocalProofState(false, ProofRegistrationResult::CONFLICTING);
+}
+
+BOOST_AUTO_TEST_CASE(reconcileOrFinalize) {
+    setArg("-avalancheconflictingproofcooldown", "0");
+    setArg("-avalanchepeerreplacementcooldown", "0");
+
+    // Proof is null
+    BOOST_CHECK(!m_processor->reconcileOrFinalize(ProofRef()));
+
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    Chainstate &activeChainState = chainman.ActiveChainstate();
+
+    const CKey key = CKey::MakeCompressedKey();
+    const COutPoint outpoint{TxId(GetRandHash()), 0};
+    {
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+
+        LOCK(cs_main);
+        CCoinsViewCache &coins = activeChainState.CoinsTip();
+        coins.AddCoin(outpoint,
+                      Coin(CTxOut(PROOF_DUST_THRESHOLD, script), 100, false),
+                      false);
+    }
+
+    auto buildProof = [&](const COutPoint &outpoint, uint64_t sequence) {
+        ProofBuilder pb(sequence, 0, key, UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+        BOOST_CHECK(
+            pb.addUTXO(outpoint, PROOF_DUST_THRESHOLD, 100, false, key));
+        return pb.build();
+    };
+
+    auto proof = buildProof(outpoint, 1);
+    BOOST_CHECK(proof);
+
+    // Not a peer nor conflicting
+    BOOST_CHECK(!m_processor->reconcileOrFinalize(proof));
+
+    // Register the proof
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.registerProof(proof));
+        BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(!pm.isInConflictingPool(proof->getId()));
+    });
+
+    // Reconcile works
+    BOOST_CHECK(m_processor->reconcileOrFinalize(proof));
+    // Repeated calls fail and do nothing
+    BOOST_CHECK(!m_processor->reconcileOrFinalize(proof));
+
+    // Finalize
+    AvalancheTest::addProofToRecentfinalized(*m_processor, proof->getId());
+    BOOST_CHECK(m_processor->isRecentlyFinalized(proof));
+    BOOST_CHECK(m_processor->reconcileOrFinalize(proof));
+
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        // The peer is marked as final
+        BOOST_CHECK(pm.forPeer(proof->getId(), [&](const Peer &peer) {
+            return peer.hasFinalized;
+        }));
+        BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(!pm.isInConflictingPool(proof->getId()));
+    });
+
+    // Same proof with a higher sequence number
+    auto betterProof = buildProof(outpoint, 2);
+    BOOST_CHECK(betterProof);
+
+    // Not registered nor conflicting yet
+    BOOST_CHECK(!m_processor->reconcileOrFinalize(betterProof));
+
+    m_processor->withPeerManager([&](avalanche::PeerManager &pm) {
+        BOOST_CHECK(pm.registerProof(betterProof));
+        BOOST_CHECK(pm.isBoundToPeer(betterProof->getId()));
+        BOOST_CHECK(!pm.isInConflictingPool(betterProof->getId()));
+
+        BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
+        BOOST_CHECK(pm.isInConflictingPool(proof->getId()));
+    });
+
+    // Recently finalized, not worth polling
+    BOOST_CHECK(!m_processor->reconcileOrFinalize(proof));
+    // But the better proof can be polled
+    BOOST_CHECK(m_processor->reconcileOrFinalize(betterProof));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

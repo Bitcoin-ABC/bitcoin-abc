@@ -7428,22 +7428,12 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
         return false;
     }
 
-    if (!g_avalanche->addToReconcile(proof)) {
+    if (!g_avalanche->reconcileOrFinalize(proof)) {
         LogPrint(BCLog::AVALANCHE,
                  "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
                  state.IsValid() ? "not-worth-polling"
                                  : state.GetRejectReason(),
                  nodeid, proofid.ToString());
-    }
-
-    // If the proof was finalized then cleaned up (typically due to missing
-    // nodes), don't lose the finalization state.
-    if (g_avalanche->isRecentlyFinalized(proof)) {
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
-            pm.forPeer(proofid, [&](const avalanche::Peer &peer) {
-                return pm.setFinalized(peer.peerid);
-            });
-        });
     }
 
     saveProofIfOutbound(node, proofid, nodeid);
