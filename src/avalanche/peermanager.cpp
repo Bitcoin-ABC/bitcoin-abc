@@ -621,6 +621,13 @@ bool PeerManager::isDangling(const ProofId &proofid) const {
     return danglingProofPool.getProof(proofid) != nullptr;
 }
 
+void PeerManager::setInvalid(const ProofId &proofid) {
+    invalidProofs.insert(proofid);
+}
+bool PeerManager::isInvalid(const ProofId &proofid) const {
+    return invalidProofs.contains(proofid);
+}
+
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                                   const bool present) {
     // Get how many proofs this node has announced

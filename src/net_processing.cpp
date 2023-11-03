@@ -1034,20 +1034,6 @@ private:
 } // namespace
 
 namespace {
-/**
- * Filter for proofs that are consensus-invalid or were recently invalidated
- * by avalanche (finalized rejection). These are not rerequested until they are
- * rolled out of the filter.
- *
- * Without this filter we'd be re-requesting proofs from each of our peers,
- * increasing bandwidth consumption considerably.
- *
- * Decreasing the false positive rate is fairly cheap, so we pick one in a
- * million to make it highly unlikely for users to have issues with this filter.
- */
-Mutex cs_invalidProofs;
-std::unique_ptr<CRollingBloomFilter> invalidProofs GUARDED_BY(cs_invalidProofs);
-
 /** Number of preferable block download peers. */
 int nPreferredDownload GUARDED_BY(cs_main) = 0;
 } // namespace
@@ -2226,12 +2212,7 @@ PeerManagerImpl::PeerManagerImpl(CConnman &connman, AddrMan &addrman,
                                  CTxMemPool &pool, bool ignore_incoming_txs)
     : m_chainparams(chainman.GetParams()), m_connman(connman),
       m_addrman(addrman), m_banman(banman), m_chainman(chainman),
-      m_mempool(pool), m_ignore_incoming_txs(ignore_incoming_txs) {
-    {
-        LOCK(cs_invalidProofs);
-        invalidProofs = std::make_unique<CRollingBloomFilter>(100000, 0.000001);
-    }
-}
+      m_mempool(pool), m_ignore_incoming_txs(ignore_incoming_txs) {}
 
 void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
     // Stale tip checking and peer eviction are on two different timers, but we
@@ -2492,11 +2473,9 @@ bool PeerManagerImpl::AlreadyHaveProof(const avalanche::ProofId &proofid) {
         return true;
     }
 
-    const bool hasProof = g_avalanche->withPeerManager(
-        [&proofid](avalanche::PeerManager &pm) { return pm.exists(proofid); });
-
-    LOCK(cs_invalidProofs);
-    return hasProof || invalidProofs->contains(proofid);
+    return g_avalanche->withPeerManager([&proofid](avalanche::PeerManager &pm) {
+        return pm.exists(proofid) || pm.isInvalid(proofid);
+    });
 }
 
 void PeerManagerImpl::SendPings() {
@@ -3554,12 +3533,12 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
 static uint32_t getAvalancheVoteForProof(const avalanche::ProofId &id) {
     assert(g_avalanche);
 
-    // Rejected proof
-    if (WITH_LOCK(cs_invalidProofs, return invalidProofs->contains(id))) {
-        return 1;
-    }
-
     return g_avalanche->withPeerManager([&id](avalanche::PeerManager &pm) {
+        // Rejected proof
+        if (pm.isInvalid(id)) {
+            return 1;
+        }
+
         // The proof is actively bound to a peer
         if (pm.isBoundToPeer(id)) {
             return 0;
@@ -5337,8 +5316,10 @@ void PeerManagerImpl::ProcessMessage(
                 auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
                 switch (u.getStatus()) {
                     case avalanche::VoteStatus::Invalid:
-                        WITH_LOCK(cs_invalidProofs,
-                                  invalidProofs->insert(proofid));
+                        g_avalanche->withPeerManager(
+                            [&](avalanche::PeerManager &pm) {
+                                pm.setInvalid(proofid);
+                            });
                         // Fallthrough
                     case avalanche::VoteStatus::Stale:
                         // Invalidate mode removes the proof from all proof
@@ -7417,7 +7398,8 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     }
 
     if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
-        WITH_LOCK(cs_invalidProofs, invalidProofs->insert(proofid));
+        g_avalanche->withPeerManager(
+            [&](avalanche::PeerManager &pm) { pm.setInvalid(proofid); });
         Misbehaving(nodeid, 100, state.GetRejectReason());
         return false;
     }

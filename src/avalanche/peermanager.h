@@ -280,6 +280,20 @@ class PeerManager {
      */
     RemoteProofSet remoteProofs;
 
+    /**
+     * Filter for proofs that are consensus-invalid or were recently invalidated
+     * by avalanche (finalized rejection). These are not rerequested until they
+     * are rolled out of the filter.
+     *
+     * Without this filter we'd be re-requesting proofs from each of our peers,
+     * increasing bandwidth consumption considerably.
+     *
+     * Decreasing the false positive rate is fairly cheap, so we pick one in a
+     * million to make it highly unlikely for users to have issues with this
+     * filter.
+     */
+    CRollingBloomFilter invalidProofs{100000, 0.000001};
+
 public:
     static constexpr size_t MAX_REMOTE_PROOFS{100};
 
@@ -484,6 +498,9 @@ public:
     bool isImmature(const ProofId &proofid) const;
     bool isInConflictingPool(const ProofId &proofid) const;
     bool isDangling(const ProofId &proofid) const;
+
+    void setInvalid(const ProofId &proofid);
+    bool isInvalid(const ProofId &proofid) const;
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;
