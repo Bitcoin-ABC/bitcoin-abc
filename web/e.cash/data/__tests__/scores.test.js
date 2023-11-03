@@ -43,17 +43,73 @@ describe('getScores', () => {
 });
 
 describe('sortExchanges', () => {
-    it('should sort a given array of exchange objects by name, then deposit confirmations, then score', () => {
-        const exchangesResult = sortExchanges(scoredMockExchanges);
-        expect(exchangesResult).toEqual(sortedMockExchanges);
-
-        const instantExchangesResult = sortExchanges(
-            scoredMockInstantExchanges,
-        );
-        expect(instantExchangesResult).toEqual(sortedMockInstantExchanges);
-
-        const servicesResult = sortExchanges(scoredMockServices);
-        expect(servicesResult).toEqual(sortedMockServices);
+    it('should sort a given array of exchange objects by name, then deposit confirmations, then score. Then will filter out any items with scores below the scoreThreshold or with invalid scores', () => {
+        const testCases = [
+            { scoreThreshold: -45, resultSlice: 5 },
+            { scoreThreshold: 0, resultSlice: 5 },
+            { scoreThreshold: 40.01, resultSlice: 4 },
+            { scoreThreshold: 70, resultSlice: 3 },
+            { scoreThreshold: 100, resultSlice: 1 },
+        ];
+        const exchangesMock = [
+            {
+                name: 'Exchange_A',
+                deposit_confirmations: 1,
+                score: 100,
+            },
+            {
+                name: 'Exchange_C',
+                deposit_confirmations: 1,
+                score: 80,
+            },
+            {
+                name: 'Exchange_B',
+                deposit_confirmations: 3,
+                score: 80,
+            },
+            {
+                name: 'Exchange_D',
+                deposit_confirmations: 3,
+                score: 40.453,
+            },
+            {
+                name: 'Exchange_E',
+                deposit_confirmations: 6,
+                score: 0,
+            },
+            {
+                name: 'Exchange_F',
+                deposit_confirmations: 6,
+                score: -10,
+            },
+            {
+                name: 'Exchange_G',
+                score: null,
+            },
+            {
+                name: 'Exchange_H',
+                score: undefined,
+            },
+            {
+                name: 'Exchange_I',
+            },
+        ];
+        const shuffleArray = array => {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+        for (let i = 0; i < testCases.length; i++) {
+            const result = sortExchanges(
+                shuffleArray(exchangesMock),
+                testCases[i].scoreThreshold,
+            );
+            expect(result).toEqual(
+                exchangesMock.slice(0, testCases[i].resultSlice),
+            );
+        }
     });
 });
 
@@ -152,7 +208,7 @@ describe('getScoreCardData', () => {
             .mockResolvedValueOnce({
                 json: () => Promise.resolve(mockInstantExchanges),
             }) // Mock an empty object response
-            .mockResolvedValueOnce({ json: () => Promise.resolve([]) }); //empty array for example
+            .mockResolvedValueOnce({ json: () => Promise.resolve(undefined) }); //undefined for example
 
         await expect(getScoreCardData()).rejects.toThrow(
             "TypeError: Cannot read properties of undefined (reading 'length')",

@@ -15,7 +15,12 @@
  *
  * The two special cases are trading_pairs, just requires a min number
  * And issues, which does not require a value to check against
+ *
+ * The scoreThreshold is the minimum score an item must meet
  */
+
+const scoreThreshold = 60;
+
 export const exchangeScoringCriteria = [
     {
         attribute: 'withdrawals_working',
@@ -148,15 +153,26 @@ export const getScores = (data, scoringCriteria) => {
 };
 
 /**
- * Return a sorted array based on name, score, and deposit confimations
+ * Return a sorted array based on name, deposit confimations, and score
  * @param {array} data - The array of data
+ * @param {number} scoreThreshold - The minimum score required to not be filtered out
  * @returns {array} The same array, sorted alphabetically, then by deposit
- * confirmations, then by score
+ * confirmations, then by score, and then removing items with scores below the
+ * threshold or invalid score values. Scoring is the primary sort
  */
-export const sortExchanges = data => {
+export const sortExchanges = (data, scoreThreshold) => {
     data.sort((a, b) => a.name.localeCompare(b.name));
     data.sort((a, b) => a.deposit_confirmations - b.deposit_confirmations);
     data.sort((a, b) => b.score - a.score);
+
+    // Filter out items with a score below the scoreThreshold
+    data = data.filter(
+        item =>
+            item.score >= scoreThreshold &&
+            item.score !== undefined &&
+            item.score !== null &&
+            item.score >= 0,
+    );
     return data;
 };
 
@@ -201,16 +217,19 @@ export async function getScoreCardData() {
                 exchanges: makeDivisibleByThree(
                     sortExchanges(
                         getScores(responses[0], exchangeScoringCriteria),
+                        scoreThreshold,
                     ),
                 ),
                 instantExchanges: makeDivisibleByThree(
                     sortExchanges(
                         getScores(responses[1], instantExchangeScoringCriteria),
+                        scoreThreshold,
                     ),
                 ),
                 services: makeDivisibleByThree(
                     sortExchanges(
                         getScores(responses[2], servicesScoringCriteria),
+                        scoreThreshold,
                     ),
                 ),
             },
