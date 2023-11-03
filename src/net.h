@@ -733,9 +733,10 @@ public:
     }
     int GetCommonVersion() const { return m_greatest_common_version; }
 
-    CService GetAddrLocal() const;
+    CService GetAddrLocal() const LOCKS_EXCLUDED(m_addr_local_mutex);
     //! May not be called more than once
-    void SetAddrLocal(const CService &addrLocalIn);
+    void SetAddrLocal(const CService &addrLocalIn)
+        LOCKS_EXCLUDED(m_addr_local_mutex);
 
     CNode *AddRef() {
         nRefCount++;
@@ -783,8 +784,8 @@ private:
     std::list<CNetMessage> vRecvMsg;
 
     // Our address, as reported by the peer
-    mutable RecursiveMutex cs_addrLocal;
-    CService addrLocal GUARDED_BY(cs_addrLocal);
+    mutable Mutex m_addr_local_mutex;
+    CService addrLocal GUARDED_BY(m_addr_local_mutex);
 
     /**
      * The inventories polled and voted counters since last score
