@@ -391,7 +391,7 @@ bool Processor::reconcileOrFinalize(const ProofRef &proof) {
         return false;
     }
 
-    if (isRecentlyFinalized(proof)) {
+    if (isRecentlyFinalized(proof->getId())) {
         PeerId peerid;
         LOCK(cs_peerManager);
         if (peerManager->forPeer(proof->getId(), [&](const Peer &peer) {
@@ -433,9 +433,13 @@ int Processor::getConfidence(const AnyVoteItem &item) const {
     return it->second.getConfidence();
 }
 
-bool Processor::isRecentlyFinalized(const AnyVoteItem &item) const {
-    return WITH_LOCK(cs_finalizedItems,
-                     return finalizedItems.contains(GetVoteItemId(item)));
+bool Processor::isRecentlyFinalized(const uint256 &itemId) const {
+    return WITH_LOCK(cs_finalizedItems, return finalizedItems.contains(itemId));
+}
+
+void Processor::clearFinalizedItems() {
+    LOCK(cs_finalizedItems);
+    finalizedItems.reset();
 }
 
 namespace {
@@ -1177,7 +1181,7 @@ bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
 
 bool Processor::isWorthPolling(const AnyVoteItem &item) const {
     return std::visit(IsWorthPolling(*this), item) &&
-           !isRecentlyFinalized(item);
+           !isRecentlyFinalized(GetVoteItemId(item));
 }
 
 bool Processor::GetLocalAcceptance::operator()(

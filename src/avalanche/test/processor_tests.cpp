@@ -2500,7 +2500,7 @@ BOOST_AUTO_TEST_CASE(reconcileOrFinalize) {
 
     // Finalize
     AvalancheTest::addProofToRecentfinalized(*m_processor, proof->getId());
-    BOOST_CHECK(m_processor->isRecentlyFinalized(proof));
+    BOOST_CHECK(m_processor->isRecentlyFinalized(proof->getId()));
     BOOST_CHECK(m_processor->reconcileOrFinalize(proof));
 
     m_processor->withPeerManager([&](avalanche::PeerManager &pm) {

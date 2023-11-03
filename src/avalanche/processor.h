@@ -303,7 +303,9 @@ public:
     bool reconcileOrFinalize(const ProofRef &proof);
     bool isAccepted(const AnyVoteItem &item) const;
     int getConfidence(const AnyVoteItem &item) const;
-    bool isRecentlyFinalized(const AnyVoteItem &item) const;
+
+    bool isRecentlyFinalized(const uint256 &itemId) const;
+    void clearFinalizedItems();
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;

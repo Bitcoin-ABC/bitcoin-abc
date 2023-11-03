@@ -501,6 +501,7 @@ public:
 
     void setInvalid(const ProofId &proofid);
     bool isInvalid(const ProofId &proofid) const;
+    void clearAllInvalid();
 
     const ProofRadixTree &getShareableProofsSnapshot() const {
         return shareableProofs;

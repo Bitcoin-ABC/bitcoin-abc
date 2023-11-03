@@ -624,8 +624,13 @@ bool PeerManager::isDangling(const ProofId &proofid) const {
 void PeerManager::setInvalid(const ProofId &proofid) {
     invalidProofs.insert(proofid);
 }
+
 bool PeerManager::isInvalid(const ProofId &proofid) const {
     return invalidProofs.contains(proofid);
+}
+
+void PeerManager::clearAllInvalid() {
+    invalidProofs.reset();
 }
 
 bool PeerManager::saveRemoteProof(const ProofId &proofid, const NodeId nodeid,

@@ -1296,6 +1296,59 @@ static RPCHelpMan getrawavalancheproof() {
     };
 }
 
+static RPCHelpMan invalidateavalancheproof() {
+    return RPCHelpMan{
+        "invalidateavalancheproof",
+        "Reject a known avalanche proof by id.\n",
+        {
+            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The hex encoded avalanche proof identifier."},
+        },
+        RPCResult{
+            RPCResult::Type::BOOL,
+            "success",
+            "",
+        },
+        RPCExamples{HelpExampleRpc("invalidateavalancheproof", "<proofid>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            const avalanche::ProofId proofid =
+                avalanche::ProofId::fromHex(request.params[0].get_str());
+
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                if (!pm.exists(proofid) && !pm.isDangling(proofid)) {
+                    throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                       "Proof not found");
+                }
+
+                if (!pm.rejectProof(
+                        proofid,
+                        avalanche::PeerManager::RejectionMode::INVALIDATE)) {
+                    throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                       "Failed to reject the proof");
+                }
+
+                pm.setInvalid(proofid);
+            });
+
+            if (g_avalanche->isRecentlyFinalized(proofid)) {
+                // If the proof was previously finalized, clear the status.
+                // Because there is no way to selectively delete an entry from a
+                // Bloom filter, we have to clear the whole filter which could
+                // cause extra voting rounds.
+                g_avalanche->clearFinalizedItems();
+            }
+
+            return true;
+        },
+    };
+}
+
 static RPCHelpMan isfinalblock() {
     return RPCHelpMan{
         "isfinalblock",
@@ -1432,6 +1485,63 @@ static RPCHelpMan isfinaltransaction() {
     };
 }
 
+static RPCHelpMan reconsideravalancheproof() {
+    return RPCHelpMan{
+        "reconsideravalancheproof",
+        "Reconsider a known avalanche proof.\n",
+        {
+            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The hex encoded avalanche proof."},
+        },
+        RPCResult{
+            RPCResult::Type::BOOL,
+            "success",
+            "Whether the proof has been successfully registered.",
+        },
+        RPCExamples{HelpExampleRpc("reconsideravalancheproof", "<proof hex>")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            if (!g_avalanche) {
+                throw JSONRPCError(RPC_INTERNAL_ERROR,
+                                   "Avalanche is not initialized");
+            }
+
+            auto proof = RCUPtr<avalanche::Proof>::make();
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+
+            // Verify the proof. Note that this is redundant with the
+            // verification done when adding the proof to the pool, but we get a
+            // chance to give a better error message.
+            verifyProofOrThrow(node, *proof, request.params[0].get_str());
+
+            // There is no way to selectively clear the invalidation status of
+            // a single proof, so we clear the whole Bloom filter. This could
+            // cause extra voting rounds.
+            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                if (pm.isInvalid(proof->getId())) {
+                    pm.clearAllInvalid();
+                }
+            });
+
+            // Add the proof to the pool if we don't have it already. Since the
+            // proof verification has already been done, a failure likely
+            // indicates that there already is a proof with conflicting utxos.
+            avalanche::ProofRegistrationState state;
+            if (!registerProofIfNeeded(proof, state)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER,
+                                   strprintf("%s (%s)\n",
+                                             state.GetRejectReason(),
+                                             state.GetDebugMessage()));
+            }
+
+            return g_avalanche->withPeerManager(
+                [&](const avalanche::PeerManager &pm) {
+                    return pm.isBoundToPeer(proof->getId());
+                });
+        },
+    };
+}
+
 static RPCHelpMan sendavalancheproof() {
     return RPCHelpMan{
         "sendavalancheproof",
@@ -1551,8 +1661,10 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         setstakingreward,          },
         { "avalanche",         getremoteproofs,           },
         { "avalanche",         getrawavalancheproof,      },
+        { "avalanche",         invalidateavalancheproof,  },
         { "avalanche",         isfinalblock,              },
         { "avalanche",         isfinaltransaction,        },
+        { "avalanche",         reconsideravalancheproof,  },
         { "avalanche",         sendavalancheproof,        },
         { "avalanche",         verifyavalancheproof,      },
         { "avalanche",         verifyavalanchedelegation, },
