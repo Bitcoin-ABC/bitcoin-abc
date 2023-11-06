@@ -382,6 +382,15 @@ struct Peer {
     /** Whether a ping has been requested by the user */
     std::atomic<bool> m_ping_queued{false};
 
+    /**
+     * The feerate in the most recent BIP133 `feefilter` message sent to the
+     * peer.
+     * It is *not* a p2p protocol violation for the peer to send us
+     * transactions with a lower fee rate than this. See BIP133.
+     */
+    Amount m_fee_filter_sent{Amount::zero()};
+    std::chrono::microseconds m_next_send_feefilter{0};
+
     struct TxRelay {
         mutable RecursiveMutex m_bloom_filter_mutex;
         // We use m_relay_txs for two purposes -
@@ -409,8 +418,6 @@ struct Peer {
 
         /** Minimum fee rate with which to filter inv's to this node */
         std::atomic<Amount> m_fee_filter_received{Amount::zero()};
-        Amount m_fee_filter_sent{Amount::zero()};
-        std::chrono::microseconds m_next_send_feefilter{0};
     };
 
     /**
@@ -6557,14 +6564,17 @@ void PeerManagerImpl::MaybeSendFeefilter(
     if (m_ignore_incoming_txs) {
         return;
     }
-    if (!peer.m_tx_relay) {
-        return;
-    }
     if (pto.GetCommonVersion() < FEEFILTER_VERSION) {
         return;
     }
     // peers with the forcerelay permission should not filter txs to us
     if (pto.HasPermission(NetPermissionFlags::ForceRelay)) {
+        return;
+    }
+    // Don't send feefilter messages to outbound block-relay-only peers since
+    // they should never announce transactions to us, regardless of feefilter
+    // state.
+    if (pto.IsBlockOnlyConn()) {
         return;
     }
 
@@ -6583,33 +6593,33 @@ void PeerManagerImpl::MaybeSendFeefilter(
         currentFilter = MAX_MONEY;
     } else {
         static const Amount MAX_FILTER{g_filter_rounder.round(MAX_MONEY)};
-        if (peer.m_tx_relay->m_fee_filter_sent == MAX_FILTER) {
+        if (peer.m_fee_filter_sent == MAX_FILTER) {
             // Send the current filter if we sent MAX_FILTER previously
             // and made it out of IBD.
-            peer.m_tx_relay->m_next_send_feefilter = 0us;
+            peer.m_next_send_feefilter = 0us;
         }
     }
-    if (current_time > peer.m_tx_relay->m_next_send_feefilter) {
+    if (current_time > peer.m_next_send_feefilter) {
         Amount filterToSend = g_filter_rounder.round(currentFilter);
         // We always have a fee filter of at least minRelayTxFee
         filterToSend = std::max(filterToSend, ::minRelayTxFee.GetFeePerK());
-        if (filterToSend != peer.m_tx_relay->m_fee_filter_sent) {
+        if (filterToSend != peer.m_fee_filter_sent) {
             m_connman.PushMessage(
                 &pto, CNetMsgMaker(pto.GetCommonVersion())
                           .Make(NetMsgType::FEEFILTER, filterToSend));
-            peer.m_tx_relay->m_fee_filter_sent = filterToSend;
+            peer.m_fee_filter_sent = filterToSend;
         }
-        peer.m_tx_relay->m_next_send_feefilter =
+        peer.m_next_send_feefilter =
             PoissonNextSend(current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
     }
     // If the fee filter has changed substantially and it's still more than
     // MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then move the
     // broadcast to within MAX_FEEFILTER_CHANGE_DELAY.
     else if (current_time + MAX_FEEFILTER_CHANGE_DELAY <
-                 peer.m_tx_relay->m_next_send_feefilter &&
-             (currentFilter < 3 * peer.m_tx_relay->m_fee_filter_sent / 4 ||
-              currentFilter > 4 * peer.m_tx_relay->m_fee_filter_sent / 3)) {
-        peer.m_tx_relay->m_next_send_feefilter =
+                 peer.m_next_send_feefilter &&
+             (currentFilter < 3 * peer.m_fee_filter_sent / 4 ||
+              currentFilter > 4 * peer.m_fee_filter_sent / 3)) {
+        peer.m_next_send_feefilter =
             current_time + GetRandomDuration<std::chrono::microseconds>(
                                MAX_FEEFILTER_CHANGE_DELAY);
     }
