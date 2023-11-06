@@ -559,9 +559,10 @@ struct Peer {
     /** Work queue of items requested by this peer **/
     std::deque<CInv> m_getdata_requests GUARDED_BY(m_getdata_requests_mutex);
 
-    explicit Peer(NodeId id, bool proof_relay)
-        : m_id(id), m_proof_relay(proof_relay ? std::make_unique<ProofRelay>()
-                                              : nullptr) {}
+    explicit Peer(NodeId id)
+        : m_id(id), m_proof_relay(isAvalancheEnabled(gArgs)
+                                      ? std::make_unique<ProofRelay>()
+                                      : nullptr) {}
 
 private:
     Mutex m_tx_relay_mutex;
@@ -1736,8 +1737,7 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode *pnode) {
             std::forward_as_tuple(pnode->IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
-    PeerRef peer = std::make_shared<Peer>(
-        nodeid, /*proof_relay=*/isAvalancheEnabled(gArgs));
+    PeerRef peer = std::make_shared<Peer>(nodeid);
     {
         LOCK(m_peer_mutex);
         m_peer_map.emplace_hint(m_peer_map.end(), nodeid, peer);
