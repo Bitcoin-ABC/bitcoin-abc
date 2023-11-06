@@ -66,6 +66,7 @@ def poll_for_answer(
             pass
         time.sleep(poll_interval)
         current = time.time()
+    raise TimeoutError("Timed out waiting for an answer")
 
 
 def bitcoind_rpc_connection() -> AuthServiceProxy:
@@ -81,6 +82,8 @@ def bitcoind_rpc_connection() -> AuthServiceProxy:
         _bitcoind.createwallet("test_wallet")
         addr = _bitcoind.getnewaddress()
         _bitcoind.generatetoaddress(101, addr)
+
+    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
 
     return _bitcoind
 
@@ -185,7 +188,7 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
     """
     electrum_datadir = make_tmp_electrum_data_dir()
     bitcoind_rpc_connection()
-    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
+    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.Chain", "regtest"))
 
     try:
         start_ec_daemon(electrum_datadir)
