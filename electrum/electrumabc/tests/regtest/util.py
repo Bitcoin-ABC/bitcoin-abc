@@ -12,6 +12,7 @@ import pytest
 import requests
 from bitcoinrpc.authproxy import AuthServiceProxy
 from jsonpath_ng import parse as path_parse
+from jsonrpcclient import Ok as rpc_Ok
 from jsonrpcclient import parse as rpc_parse
 from jsonrpcclient import request
 
@@ -50,6 +51,11 @@ def poll_for_answer(
                 if resp.status_code == 500:
                     retry = True
                 else:
+                    parsed = rpc_parse(resp.json())
+                    if not isinstance(parsed, rpc_Ok):
+                        raise RuntimeError(
+                            f"Unable to parse JSON-RPC: {parsed.message}"
+                        )
                     json_result = rpc_parse(resp.json()).result
 
             if expected_answer is not None and not retry:
@@ -100,6 +106,7 @@ def start_ec_daemon(datadir: str) -> None:
         [
             ELECTRUMABC_COMMAND,
             "--regtest",
+            "-v",
             "-D",
             datadir,
             "-w",
@@ -113,7 +120,7 @@ def start_ec_daemon(datadir: str) -> None:
 
     from ...version import PACKAGE_VERSION
 
-    assert result == PACKAGE_VERSION
+    assert result == PACKAGE_VERSION, f"{result} != {PACKAGE_VERSION}"
 
     r = request("create", params={"wallet_path": default_wallet})
     result = poll_for_answer(EC_DAEMON_RPC_URL, r)
