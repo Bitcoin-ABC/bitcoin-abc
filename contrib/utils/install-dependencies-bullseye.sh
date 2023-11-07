@@ -83,7 +83,6 @@ PACKAGES=(
   swig
   tar
   wget
-  wine
   xorriso
   xvfb
   yamllint
@@ -197,3 +196,13 @@ here=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")
 pip3 install -r "${here}/../../electrum/contrib/requirements/requirements.txt"
 pip3 install -r "${here}/../../electrum/contrib/requirements/requirements-regtest.txt"
 pip3 install -r "${here}/../../electrum/contrib/requirements/requirements-hw.txt"
+
+# Install the winehq-staging version of wine that doesn't suffer from the memory
+# limitations of the previous versions. Installation instructions are from
+# https://wiki.winehq.org/Debian
+mkdir -p /etc/apt/keyrings
+wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
+wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
+apt-get update
+# Pinpoint the version so we get consistent results on CI
+DEBIAN_FRONTEND=noninteractive apt-get install -y winehq-staging=8.19~bullseye-1
