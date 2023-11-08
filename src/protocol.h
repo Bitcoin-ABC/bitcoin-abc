@@ -489,8 +489,6 @@ public:
     CAddress(CService ipIn, ServiceFlags nServicesIn, uint32_t nTimeIn)
         : CService{ipIn}, nTime{nTimeIn}, nServices{nServicesIn} {};
 
-    void Init();
-
     SERIALIZE_METHODS(CAddress, obj) {
         // CAddress has a distinct network serialization and a disk
         // serialization, but it should never be hashed (except through
