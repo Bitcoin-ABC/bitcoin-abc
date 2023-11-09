@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Link from 'next/link';
 
-export const CustomLink = ({ href, children }) => {
+export const ExternalLink = ({ href, children }) => {
     return href.startsWith('https') ? (
         <Link href={href} target="_blank" rel="noreferrer">
             {children}
@@ -13,4 +13,4 @@ export const CustomLink = ({ href, children }) => {
     );
 };
 
-export default CustomLink;
+export default ExternalLink;

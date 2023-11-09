@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Layout from '/components/layout';
 import Image from 'next/image';
-import CustomLink from '/components/custom-link';
+import ExternalLink from '/components/external-link';
 import H3 from '/components/h3';
 import { Container } from '/components/atoms';
 import { getBlogPosts } from '/data/blog';
@@ -42,9 +42,9 @@ function BlogPost({ post, keepReadingPosts }) {
                     {evaluateMediaLink(post.attributes.media_link) && (
                         <MediaLink>
                             Originally published on{' '}
-                            <CustomLink href={post.attributes.media_link}>
+                            <ExternalLink href={post.attributes.media_link}>
                                 {new URL(post.attributes.media_link).hostname}
-                            </CustomLink>
+                            </ExternalLink>
                         </MediaLink>
                     )}
                     <MainPostImage>

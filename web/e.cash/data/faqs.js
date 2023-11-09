@@ -1,7 +1,7 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-import CustomLink from '/components/custom-link';
+import ExternalLink from '/components/external-link';
 
 export const faqs = [
     {
@@ -49,17 +49,17 @@ export const faqs = [
             <p>
                 eCash price information is available at all leading crypto
                 research sources, like{' '}
-                <CustomLink href="https://www.coingecko.com/en/coins/ecash">
+                <ExternalLink href="https://www.coingecko.com/en/coins/ecash">
                     Coingecko
-                </CustomLink>
+                </ExternalLink>
                 ,{' '}
-                <CustomLink href="https://coinmarketcap.com/currencies/ecash/">
+                <ExternalLink href="https://coinmarketcap.com/currencies/ecash/">
                     Coinmarketcap
-                </CustomLink>
+                </ExternalLink>
                 , and{' '}
-                <CustomLink href="https://crypto.com/price/ecash">
+                <ExternalLink href="https://crypto.com/price/ecash">
                     Crypto.com
-                </CustomLink>
+                </ExternalLink>
             </p>
         ),
     },
@@ -94,7 +94,9 @@ export const faqs = [
                 amount of coins that the team holds is still waiting to be
                 released into the market, causing future inflation. XEC, on the
                 other hand, is already about{' '}
-                <CustomLink href="https://ecash.supply/">90% issued</CustomLink>
+                <ExternalLink href="https://ecash.supply/">
+                    90% issued
+                </ExternalLink>
                 , and the dev team holds only a small amount relative to total
                 supply. This means that new supply of XEC into the market will
                 continue to be very limited.
@@ -111,9 +113,9 @@ export const faqs = [
                 <br />
                 There is a &quot;Wrapped XEC&quot; token available on the
                 Binance Smart Chain, with{' '}
-                <CustomLink href="https://github.com/binance-chain/bep20-issue-mirror-stats/blob/master/bep20-issue-mirror-stats.csv">
+                <ExternalLink href="https://github.com/binance-chain/bep20-issue-mirror-stats/blob/master/bep20-issue-mirror-stats.csv">
                     contract address 0x0Ef2e7602adD1733Bfdb17aC3094d0421B502cA3
-                </CustomLink>
+                </ExternalLink>
                 . Users should recognize that holding this BEP-20 token, or
                 similar &quot;wrapped XEC&quot; products, has custodial risk as
                 you have to trust that the custodian (in this case Binance) will
@@ -123,9 +125,9 @@ export const faqs = [
                 <br />
                 <br />
                 To hold native XEC yourself, you can{' '}
-                <CustomLink href="wallets.html">
+                <ExternalLink href="wallets.html">
                     use a supporting wallet
-                </CustomLink>
+                </ExternalLink>
                 . Write down the &quot;seed phrase&quot; for your wallet and
                 store that in a safe place. This is usually 12 words. The 12
                 words contain enough information to restore the private keys of
@@ -195,9 +197,9 @@ export const faqs = [
                 completely separate and distinct from the Avalanche (AVAX)
                 project. They have no connection, other than both using the
                 protocol described in the{' '}
-                <CustomLink href="https://ipfs.io/ipfs/QmUy4jh5mGNZvLkjies1RWM4YuvJh5o2FYopNPVYwrRVGV">
+                <ExternalLink href="https://ipfs.io/ipfs/QmUy4jh5mGNZvLkjies1RWM4YuvJh5o2FYopNPVYwrRVGV">
                     Avalanche whitepaper
-                </CustomLink>
+                </ExternalLink>
                 . Avalanche on eCash is an entirely new implementation which was
                 developed from scratch by the Bitcoin ABC team. This is
                 important as it puts <strong>eCash</strong> in a technology
@@ -227,9 +229,9 @@ export const faqs = [
                 <br />
                 <br />
                 You can learn more about Bitcoin ABC at{' '}
-                <CustomLink href="https://www.bitcoinabc.org/">
+                <ExternalLink href="https://www.bitcoinabc.org/">
                     bitcoinabc.org
-                </CustomLink>
+                </ExternalLink>
                 .
             </p>
         ),
@@ -258,9 +260,9 @@ export const faqs = [
                 became separate currencies via a blockchain split. You can split
                 the coins and retrieve your eCash by following the instructions
                 in{' '}
-                <CustomLink href="/blog/splitting-ecash-and-bch-coins-using-electrum-abc-and-electron-cash">
+                <ExternalLink href="/blog/splitting-ecash-and-bch-coins-using-electrum-abc-and-electron-cash">
                     this article
-                </CustomLink>
+                </ExternalLink>
                 .
             </p>
         ),
@@ -270,9 +272,9 @@ export const faqs = [
         answer: (
             <p>
                 Please email us at{' '}
-                <CustomLink href="mailto:contact@e.cash">
+                <ExternalLink href="mailto:contact@e.cash">
                     contact@e.cash
-                </CustomLink>
+                </ExternalLink>
                 .
             </p>
         ),

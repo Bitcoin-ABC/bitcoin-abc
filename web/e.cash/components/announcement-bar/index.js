@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import { AnnouncementBarCtn, Timer } from './styles';
-import CustomLink from '/components/custom-link';
+import ExternalLink from '/components/external-link';
 import Countdown, { zeroPad } from 'react-countdown';
 
 const activationTime = 1700049600000;
@@ -49,14 +49,14 @@ export default function AnnouncementBar({ href, text, navBackground }) {
     return (
         <AnnouncementBarCtn navBackground={navBackground}>
             {href ? (
-                <CustomLink href={href}>
+                <ExternalLink href={href}>
                     <Countdown
                         date={switchTime}
                         renderer={props => (
                             <CountdownClock {...props} text={text} />
                         )}
                     />
-                </CustomLink>
+                </ExternalLink>
             ) : (
                 <div>{text}</div>
             )}

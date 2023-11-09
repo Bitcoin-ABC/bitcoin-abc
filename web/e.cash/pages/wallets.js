@@ -7,7 +7,7 @@ import SubPageHero from '/components/sub-page-hero';
 import { Container, GradientSpacer } from '/components/atoms';
 import walletAnimation from '/public/animations/wallet.json';
 import { wallets, hardwareWallets } from '/data/wallets.js';
-import CustomLink from '/components/custom-link';
+import ExternalLink from '/components/external-link';
 import {
     WalletCardCtn,
     FlexCtn,
@@ -23,7 +23,7 @@ import {
  */
 function WalletCard({ props }) {
     return (
-        <CustomLink href={props.link} key={props.name}>
+        <ExternalLink href={props.link} key={props.name}>
             <WalletCardCtn>
                 <FlexCtn>
                     <OuterImageCtn>
@@ -43,7 +43,7 @@ function WalletCard({ props }) {
                     </TextCtn>
                 </FlexCtn>
             </WalletCardCtn>
-        </CustomLink>
+        </ExternalLink>
     );
 }
 

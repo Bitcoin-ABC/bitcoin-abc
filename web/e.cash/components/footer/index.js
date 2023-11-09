@@ -17,7 +17,7 @@ import {
 import { navitems } from '/data/navitems.js';
 import { socials } from '/data/socials.js';
 import { Container } from '/components/atoms';
-import CustomLink from '/components/custom-link';
+import ExternalLink from '/components/external-link';
 
 export default function Footer() {
     const currentYear = new Date().getFullYear();
@@ -78,7 +78,7 @@ export default function Footer() {
                                             <DropdownCtn>
                                                 {navitem.dropdown_items.map(
                                                     dropdownitem => (
-                                                        <CustomLink
+                                                        <ExternalLink
                                                             href={
                                                                 dropdownitem.link
                                                             }
@@ -87,20 +87,20 @@ export default function Footer() {
                                                             }
                                                         >
                                                             {dropdownitem.title}
-                                                        </CustomLink>
+                                                        </ExternalLink>
                                                     ),
                                                 )}
                                                 {index === 0 &&
                                                     navitemsWithoutDropdown.map(
                                                         item => (
-                                                            <CustomLink
+                                                            <ExternalLink
                                                                 href={item.link}
                                                                 key={
                                                                     item.nav_item
                                                                 }
                                                             >
                                                                 {item.nav_item}
-                                                            </CustomLink>
+                                                            </ExternalLink>
                                                         ),
                                                     )}
                                             </DropdownCtn>
