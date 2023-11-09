@@ -192,51 +192,87 @@ export class FailoverProxy {
         }
     }
 
+    /**
+     * Check if a given websocket URL connects
+     * Note: As of 20231110 there is no msg from chronik server confirming a connection to chronik
+     * We would have to wait for a block or a transaction, which is impractical here
+     * So, this is only testing whether or not a given URL is a live websocket or not
+     * @param {string} wsUrl
+     * @returns {bool}
+     */
+    private async _websocketUrlConnects(wsUrl: string) {
+        return new Promise(resolve => {
+            const testWs = new WebSocket(wsUrl);
+            testWs.onerror = function () {
+                testWs.close();
+                resolve(false);
+            };
+            testWs.onopen = function () {
+                testWs.close();
+                resolve(true);
+            };
+        }).catch(() => {
+            return false;
+        });
+    }
+
     // Iterates through available websocket urls and attempts connection.
     // Upon a successful connection it handles the various websocket callbacks.
     // Upon an unsuccessful connection it iterates to the next websocket url in the array.
-    public connectWs(wsEndpoint: WsEndpoint) {
+    public async connectWs(wsEndpoint: WsEndpoint) {
         for (let i = 0; i < this._endpointArray.length; i += 1) {
             const index = this.deriveEndpointIndex(i);
             const thisProxyWsUrl = this._endpointArray[index].wsUrl;
-            const ws = new WebSocket(thisProxyWsUrl);
-            wsEndpoint.ws = ws;
-            wsEndpoint.connected = new Promise(resolved => {
-                ws.onopen = msg => {
-                    wsEndpoint.subs.forEach(sub =>
-                        wsEndpoint.subUnsub(
-                            true,
-                            sub.scriptType,
-                            sub.scriptPayload,
-                        ),
-                    );
-                    resolved(msg);
-                    if (wsEndpoint.onConnect !== undefined) {
-                        wsEndpoint.onConnect(msg);
+            const websocketUrlConnects = await this._websocketUrlConnects(
+                thisProxyWsUrl,
+            );
+            if (websocketUrlConnects) {
+                // Set this index to state
+                this._workingIndex = index;
+
+                const ws = new WebSocket(thisProxyWsUrl);
+                ws.onmessage = e => wsEndpoint.handleMsg(e as MessageEvent);
+                ws.onerror = () => {
+                    if (wsEndpoint.onError !== undefined) {
+                        wsEndpoint.close();
                     }
-                    // If no errors thrown from above call then set this index to state
-                    this._workingIndex = index;
                 };
-            });
-            ws.onmessage = e => wsEndpoint.handleMsg(e as MessageEvent);
-            ws.onerror = e => {
-                if (wsEndpoint.onError !== undefined) {
-                    wsEndpoint.close();
-                }
-            };
-            ws.onclose = e => {
-                // End if manually closed or no auto-reconnect
-                if (wsEndpoint.manuallyClosed || !wsEndpoint.autoReconnect) {
-                    if (wsEndpoint.onEnd !== undefined) {
-                        wsEndpoint.onEnd(e);
+                ws.onclose = e => {
+                    // End if manually closed or no auto-reconnect
+                    if (
+                        wsEndpoint.manuallyClosed ||
+                        !wsEndpoint.autoReconnect
+                    ) {
+                        if (wsEndpoint.onEnd !== undefined) {
+                            wsEndpoint.onEnd(e);
+                        }
+                        return;
                     }
-                    return;
-                }
-                if (wsEndpoint.onReconnect !== undefined) {
-                    wsEndpoint.onReconnect(e);
-                }
-                this.connectWs(wsEndpoint);
-            };
+                    if (wsEndpoint.onReconnect !== undefined) {
+                        wsEndpoint.onReconnect(e);
+                    }
+                    this.connectWs(wsEndpoint);
+                };
+                wsEndpoint.ws = ws;
+                wsEndpoint.connected = new Promise(resolve => {
+                    ws.onopen = msg => {
+                        wsEndpoint.subs.forEach(sub =>
+                            wsEndpoint.subUnsub(
+                                true,
+                                sub.scriptType,
+                                sub.scriptPayload,
+                            ),
+                        );
+                        resolve(msg);
+                        if (wsEndpoint.onConnect !== undefined) {
+                            wsEndpoint.onConnect(msg);
+                        }
+                    };
+                });
+                return;
+            }
         }
+        // If no websocket URLs connect, throw error
+        throw new Error(`Error connecting to known Chronik websockets`);
     }
 }

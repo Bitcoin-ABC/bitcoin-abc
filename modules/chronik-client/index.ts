@@ -1,8 +1,8 @@
 import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
 import * as proto from './chronik';
-import { fromHex, fromHexRev, toHex, toHexRev } from './hex';
 import { FailoverProxy } from './failoverProxy';
+import { fromHex, fromHexRev, toHex, toHexRev } from './hex';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
@@ -273,11 +273,11 @@ export class WsEndpoint {
         this.manuallyClosed = false;
         this.subs = [];
         this._proxyInterface = proxyInterface;
-        this._proxyInterface.connectWs(this);
     }
 
     /** Wait for the WebSocket to be connected. */
     public async waitForOpen() {
+        await this._proxyInterface.connectWs(this);
         await this.connected;
     }
 

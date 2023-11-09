@@ -509,30 +509,56 @@ describe('/ws', () => {
         expect(msg.type).to.eql('Confirmed');
     });
     it('connects to the ws', async () => {
-        const promise = new Promise(resolve => {
+        const promise = new Promise((resolve, rejects) => {
             const ws = chronik.ws({});
-            ws.waitForOpen().then(() => {
-                resolve({});
-                ws.close();
-            });
+            ws.waitForOpen()
+                .then(() => {
+                    resolve({});
+                    ws.close();
+                })
+                .catch(err => rejects(err));
         });
         await promise;
     });
-    const halfBrokenChronik = new ChronikClient([
-        'https://chronikaaaa.be.cash/xec',
-        'https://chronikzzzz.be.cash/xec',
-        'https://chroniktttt.be.cash/xec',
-        LIVE_URL_ONE, // working
-    ]);
+
     it('connects to a working ws in an array of broken ws', async () => {
-        const promise = new Promise(resolve => {
+        const halfBrokenChronik = new ChronikClient([
+            'https://chronikaaaa.be.cash/xec',
+            'https://chronikzzzz.be.cash/xec',
+            'https://chroniktttt.be.cash/xec',
+            LIVE_URL_ONE, // working
+        ]);
+        const promise = new Promise((resolve, rejects) => {
             const ws = halfBrokenChronik.ws({});
-            ws.waitForOpen().then(() => {
-                resolve({});
-                ws.close();
-            });
+            ws.waitForOpen()
+                .then(() => {
+                    resolve({});
+                    ws.close();
+                })
+                .catch(err => rejects(err));
         });
         await promise;
+    });
+
+    it('throws expected error if no websockets will connect', async () => {
+        const brokenChronikUrls = new ChronikClient([
+            'https://chronikaaaa.be.cash/xec',
+            'https://chronikzzzz.be.cash/xec',
+            'https://chroniktttt.be.cash/xec',
+        ]);
+        const promise = new Promise((resolve, rejects) => {
+            const ws = brokenChronikUrls.ws({});
+            ws.waitForOpen()
+                .then(() => {
+                    resolve({});
+                    ws.close();
+                })
+                .catch(err => rejects(err));
+        });
+
+        await expect(promise).to.be.rejectedWith(
+            'Error connecting to known Chronik websockets',
+        );
     });
 });
 
