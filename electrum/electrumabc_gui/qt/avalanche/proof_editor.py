@@ -80,14 +80,24 @@ class StakesWidget(QtWidgets.QTableWidget):
 
     def __init__(self, blockchain__height: int):
         super().__init__()
-        self.setColumnCount(4)
-        self.setHorizontalHeaderLabels(["txid", "vout", "amount (XEC)", "block height"])
+        self.setColumnCount(5)
+        self.setHorizontalHeaderLabels(
+            ["txid", "vout", "amount (XEC)", "block height", ""]
+        )
         self.verticalHeader().setVisible(False)
         self.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
         # This is a simple global way to make the table read-only, without having to
         # set flags on each individual item.
         self.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        self.setColumnWidth(4, 50)
+
+        # select whole rows, with Ctrl and Shift key for selecting multiple rows
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+
+        self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.create_menu)
 
         self.stakes: List[Union[SignedStake, StakeAndKey]] = []
 
@@ -95,6 +105,54 @@ class StakesWidget(QtWidgets.QTableWidget):
         # of this widget, so we don't have to watch for new blocks and update the
         # maturity statuses.
         self.blockchain_height = blockchain__height
+
+        self._red_cross_icon = QtGui.QIcon(":icons/red_cross.svg")
+
+    def create_menu(self, position):
+        menu = QtWidgets.QMenu()
+        selected_rows = [index.row() for index in self.selectionModel().selectedRows()]
+        if not selected_rows:
+            return
+
+        # Sort in descending order so we can simply delete the stakes one by one
+        # by index from the self.stakes list
+        selected_rows.sort(reverse=True)
+
+        def remove_coins():
+            ret = QtWidgets.QMessageBox.question(
+                self,
+                _("Confirm coin deletion"),
+                _("Are you sure you want to remove {} coins").format(
+                    len(selected_rows)
+                ),
+            )
+            if ret != QtWidgets.QMessageBox.Yes:
+                return
+            for idx in selected_rows:
+                self.remove_stake_by_row_index(idx)
+
+        menu.addAction(
+            _("Remove coins"),
+            remove_coins,
+        )
+        menu.exec_(self.viewport().mapToGlobal(position))
+
+    def delete_this_line(self):
+        # This method must be triggered by a signal emitted by a widget in a cell
+        # of this table.
+        row = self.indexAt(self.sender().pos()).row()
+        self.remove_stake_by_row_index(row)
+
+    def remove_stake_by_row_index(self, row_index: int):
+        self.removeRow(row_index)
+        del self.stakes[row_index]
+        self.update_total_amount()
+
+    def update_total_amount(self):
+        total_amount_sats = 0
+        for s in self.stakes:
+            total_amount_sats += s.stake.amount
+        self.total_amount_changed.emit(total_amount_sats)
 
     def clear(self):
         self.stakes.clear()
@@ -144,10 +202,12 @@ class StakesWidget(QtWidgets.QTableWidget):
                 )
             self.setItem(row_index, 3, height_item)
 
-        total_amount_sats = 0
-        for s in self.stakes:
-            total_amount_sats += s.stake.amount
-        self.total_amount_changed.emit(total_amount_sats)
+            del_button = QtWidgets.QPushButton()
+            del_button.setIcon(self._red_cross_icon)
+            del_button.clicked.connect(self.delete_this_line)
+            self.setCellWidget(row_index, 4, del_button)
+
+        self.update_total_amount()
 
 
 class AvaProofEditor(CachedWalletPasswordWidget):
