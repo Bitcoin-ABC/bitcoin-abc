@@ -53,6 +53,7 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <numeric>
 #include <typeinfo>
 
 /** How long to cache transactions in mapRelay for normal relay */
@@ -903,12 +904,54 @@ private:
      *                                       before, e.g. is an orphan, to avoid
      *                                       adding duplicate entries.
      *
-     * Updates m_txrequest, m_recent_rejects, m_orphanage and
-     * vExtraTxnForCompact.
+     * Updates m_txrequest, m_recent_rejects, m_recent_rejects_reconsiderable,
+     * m_orphanage and vExtraTxnForCompact.
      */
     void ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
                           const TxValidationState &result,
                           bool maybe_add_extra_compact_tx)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+
+    /**
+     * Handle the results of package validation: calls ProcessValidTx and
+     * ProcessInvalidTx for individual transactions, and caches rejection for
+     * the package as a group.
+     * @param[in]   senders     Must contain the nodeids of the peers that
+     *                          provided each transaction in package, in the
+     *                          same order.
+     */
+    void ProcessPackageResult(const Package &package,
+                              const PackageMempoolAcceptResult &package_result,
+                              const std::vector<NodeId> &senders)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+
+    /** A package to validate  */
+    struct PackageToValidate {
+        const Package m_txns;
+        const std::vector<NodeId> m_senders;
+        /** Construct a 1-parent-1-child package. */
+        explicit PackageToValidate(const CTransactionRef &parent,
+                                   const CTransactionRef &child,
+                                   NodeId parent_sender, NodeId child_sender)
+            : m_txns{parent, child}, m_senders{parent_sender, child_sender} {}
+
+        std::string ToString() const {
+            Assume(m_txns.size() == 2);
+            return strprintf(
+                "parent %s (sender=%d) + child %s (sender=%d)",
+                m_txns.front()->GetId().ToString(), m_senders.front(),
+                m_txns.back()->GetId().ToString(), m_senders.back());
+        }
+    };
+
+    /**
+     * Look for a child of this transaction in the orphanage to form a
+     * 1-parent-1-child package, skipping any combinations that have already
+     * been tried. Return the resulting package along with the senders of its
+     * respective transactions, or std::nullopt if no package is found.
+     */
+    std::optional<PackageToValidate> Find1P1CPackage(const CTransactionRef &ptx,
+                                                     NodeId nodeid)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
 
     /**
@@ -1197,7 +1240,17 @@ private:
     std::atomic<std::chrono::seconds> m_block_stalling_timeout{
         BLOCK_STALLING_TIMEOUT_DEFAULT};
 
-    bool AlreadyHaveTx(const TxId &txid)
+    /**
+     * Check whether we already have this txid in:
+     *  - mempool
+     *  - orphanage
+     *  - m_recent_rejects
+     *  - m_recent_rejects_reconsiderable (if include_reconsiderable = true)
+     *  - m_recent_confirmed_transactions
+     * Also responsible for resetting m_recent_rejects and
+     * m_recent_rejects_reconsiderable if the chain tip has changed.
+     *  */
+    bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main,
                                  !m_recent_confirmed_transactions_mutex);
 
@@ -1222,7 +1275,40 @@ private:
      */
     CRollingBloomFilter m_recent_rejects GUARDED_BY(::cs_main){120'000,
                                                                0.000'001};
+
+    /**
+     * Block hash of chain tip the last time we reset m_recent_rejects and
+     * m_recent_rejects_reconsiderable.
+     * FIXME: should be of BlockHash type
+     */
     uint256 hashRecentRejectsChainTip GUARDED_BY(cs_main);
+
+    /**
+     * Filter for:
+     * (1) txids of transactions that were recently rejected by the mempool but
+     * are eligible for reconsideration if submitted with other transactions.
+     * (2) packages (see GetPackageHash) we have already rejected before and
+     * should not retry.
+     *
+     * Similar to m_recent_rejects, this filter is used to save bandwidth when
+     * e.g. all of our peers have larger mempools and thus lower minimum
+     * feerates than us.
+     *
+     * When a transaction's error is TxValidationResult::TX_RECONSIDERABLE (in a
+     * package or by itself), add its txid to this filter. When a package fails
+     * for any reason, add the combined hash to this filter.
+     *
+     * Upon receiving an announcement for a transaction, if it exists in this
+     * filter, do not download the txdata. When considering packages, if it
+     * exists in this filter, drop it.
+     *
+     * Reset this filter when the chain tip changes.
+     *
+     * Parameters are picked to be the same as m_recent_rejects, with the same
+     * rationale.
+     */
+    CRollingBloomFilter m_recent_rejects_reconsiderable GUARDED_BY(::cs_main){
+        120'000, 0.000'001};
 
     /**
      * Filter for transactions that have been recently confirmed.
@@ -2865,7 +2951,8 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 // Messages
 //
 
-bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
+bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
+                                    bool include_reconsiderable) {
     if (m_chainman.ActiveChain().Tip()->GetBlockHash() !=
         hashRecentRejectsChainTip) {
         // If the chain tip has changed previously rejected transactions
@@ -2875,9 +2962,15 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid) {
         hashRecentRejectsChainTip =
             m_chainman.ActiveChain().Tip()->GetBlockHash();
         m_recent_rejects.reset();
+        m_recent_rejects_reconsiderable.reset();
     }
 
     if (m_orphanage.HaveTx(txid)) {
+        return true;
+    }
+
+    if (include_reconsiderable &&
+        m_recent_rejects_reconsiderable.contains(txid)) {
         return true;
     }
 
@@ -4011,7 +4104,15 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         return;
     }
 
-    m_recent_rejects.insert(ptx->GetId());
+    if (state.GetResult() == TxValidationResult::TX_RECONSIDERABLE) {
+        // If the result is TX_RECONSIDERABLE, add it to
+        // m_recent_rejects_reconsiderable because we should not download or
+        // submit this transaction by itself again, but may submit it as part
+        // of a package later.
+        m_recent_rejects_reconsiderable.insert(ptx->GetId());
+    } else {
+        m_recent_rejects.insert(ptx->GetId());
+    }
     m_txrequest.ForgetInvId(ptx->GetId());
 
     if (maybe_add_extra_compact_tx && RecursiveDynamicUsage(*ptx) < 100000) {
@@ -4050,6 +4151,132 @@ void PeerManagerImpl::ProcessValidTx(NodeId nodeid, const CTransactionRef &tx) {
         m_mempool.DynamicMemoryUsage() / 1000);
 
     RelayTransaction(tx->GetId());
+}
+
+void PeerManagerImpl::ProcessPackageResult(
+    const Package &package, const PackageMempoolAcceptResult &package_result,
+    const std::vector<NodeId> &senders) {
+    AssertLockNotHeld(m_peer_mutex);
+    AssertLockHeld(g_msgproc_mutex);
+    AssertLockHeld(cs_main);
+
+    if (package_result.m_state.IsInvalid()) {
+        m_recent_rejects_reconsiderable.insert(GetPackageHash(package));
+    }
+    // We currently only expect to process 1-parent-1-child packages. Remove if
+    // this changes.
+    if (!Assume(package.size() == 2)) {
+        return;
+    }
+
+    // No package results to look through for PCKG_POLICY or PCKG_MEMPOOL_ERROR
+    if (package_result.m_state.GetResult() ==
+            PackageValidationResult::PCKG_POLICY ||
+        package_result.m_state.GetResult() ==
+            PackageValidationResult::PCKG_MEMPOOL_ERROR) {
+        return;
+    }
+
+    // Iterate backwards to erase in-package descendants from the orphanage
+    // before they become relevant in AddChildrenToWorkSet.
+    auto package_iter = package.rbegin();
+    auto senders_iter = senders.rbegin();
+    while (package_iter != package.rend()) {
+        const auto &tx = *package_iter;
+        const NodeId nodeid = *senders_iter;
+        const auto it_result{package_result.m_tx_results.find(tx->GetId())};
+        if (Assume(it_result != package_result.m_tx_results.end())) {
+            const auto &tx_result = it_result->second;
+            switch (tx_result.m_result_type) {
+                case MempoolAcceptResult::ResultType::VALID: {
+                    ProcessValidTx(nodeid, tx);
+                    break;
+                }
+                case MempoolAcceptResult::ResultType::INVALID: {
+                    // Don't add to vExtraTxnForCompact, as these transactions
+                    // should have already been added there when added to the
+                    // orphanage or rejected for TX_RECONSIDERABLE.
+                    // This should be updated if package submission is ever used
+                    // for transactions that haven't already been validated
+                    // before.
+                    ProcessInvalidTx(nodeid, tx, tx_result.m_state,
+                                     /*maybe_add_extra_compact_tx=*/false);
+                    break;
+                }
+                case MempoolAcceptResult::ResultType::MEMPOOL_ENTRY: {
+                    // AlreadyHaveTx() should be catching transactions that are
+                    // already in mempool.
+                    Assume(false);
+                    break;
+                }
+            }
+        }
+        package_iter++;
+        senders_iter++;
+    }
+}
+
+std::optional<PeerManagerImpl::PackageToValidate>
+PeerManagerImpl::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
+    AssertLockNotHeld(m_peer_mutex);
+    AssertLockHeld(g_msgproc_mutex);
+    AssertLockHeld(cs_main);
+
+    const auto &parent_txid{ptx->GetId()};
+
+    Assume(m_recent_rejects_reconsiderable.contains(parent_txid));
+
+    // Prefer children from this peer. This helps prevent censorship attempts in
+    // which an attacker sends lots of fake children for the parent, and we
+    // (unluckily) keep selecting the fake children instead of the real one
+    // provided by the honest peer.
+    const auto cpfp_candidates_same_peer{
+        m_orphanage.GetChildrenFromSamePeer(ptx, nodeid)};
+
+    // These children should be sorted from newest to oldest.
+    for (const auto &child : cpfp_candidates_same_peer) {
+        Package maybe_cpfp_package{ptx, child};
+        if (!m_recent_rejects_reconsiderable.contains(
+                GetPackageHash(maybe_cpfp_package))) {
+            return PeerManagerImpl::PackageToValidate{ptx, child, nodeid,
+                                                      nodeid};
+        }
+    }
+
+    // If no suitable candidate from the same peer is found, also try children
+    // that were provided by a different peer. This is useful because sometimes
+    // multiple peers announce both transactions to us, and we happen to
+    // download them from different peers (we wouldn't have known that these 2
+    // transactions are related). We still want to find 1p1c packages then.
+    //
+    // If we start tracking all announcers of orphans, we can restrict this
+    // logic to parent + child pairs in which both were provided by the same
+    // peer, i.e. delete this step.
+    const auto cpfp_candidates_different_peer{
+        m_orphanage.GetChildrenFromDifferentPeer(ptx, nodeid)};
+
+    // Find the first 1p1c that hasn't already been rejected. We randomize the
+    // order to not create a bias that attackers can use to delay package
+    // acceptance.
+    //
+    // Create a random permutation of the indices.
+    std::vector<size_t> tx_indices(cpfp_candidates_different_peer.size());
+    std::iota(tx_indices.begin(), tx_indices.end(), 0);
+    Shuffle(tx_indices.begin(), tx_indices.end(), m_rng);
+
+    for (const auto index : tx_indices) {
+        // If we already tried a package and failed for any reason, the combined
+        // hash was cached in m_recent_rejects_reconsiderable.
+        const auto [child_tx, child_sender] =
+            cpfp_candidates_different_peer.at(index);
+        Package maybe_cpfp_package{ptx, child_tx};
+        if (!m_recent_rejects_reconsiderable.contains(
+                GetPackageHash(maybe_cpfp_package))) {
+            return PeerManagerImpl::PackageToValidate{ptx, child_tx, nodeid,
+                                                      child_sender};
+        }
+    }
+    return std::nullopt;
 }
 
 bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
@@ -4984,7 +5211,8 @@ void PeerManagerImpl::ProcessMessage(
             if (inv.IsMsgTx()) {
                 LOCK(cs_main);
                 const TxId txid(inv.hash);
-                const bool fAlreadyHave = AlreadyHaveTx(txid);
+                const bool fAlreadyHave =
+                    AlreadyHaveTx(txid, /*include_reconsiderable=*/true);
                 logInv(inv, fAlreadyHave);
 
                 AddKnownTx(*peer, txid);
@@ -5348,7 +5576,7 @@ void PeerManagerImpl::ProcessMessage(
 
         m_txrequest.ReceivedResponse(pfrom.GetId(), txid);
 
-        if (AlreadyHaveTx(txid)) {
+        if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
             if (pfrom.HasPermission(NetPermissionFlags::ForceRelay)) {
                 // Always relay transactions received from peers with
                 // forcerelay permission, even if they were already in the
@@ -5365,6 +5593,32 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
+            if (m_recent_rejects_reconsiderable.contains(txid)) {
+                // When a transaction is already in
+                // m_recent_rejects_reconsiderable, we shouldn't submit it by
+                // itself again. However, look for a matching child in the
+                // orphanage, as it is possible that they succeed as a package.
+                LogPrint(BCLog::TXPACKAGES,
+                         "found tx %s in reconsiderable rejects, looking for "
+                         "child in orphanage\n",
+                         txid.ToString());
+                if (auto package_to_validate{
+                        Find1P1CPackage(ptx, pfrom.GetId())}) {
+                    const auto package_result{ProcessNewPackage(
+                        m_chainman.ActiveChainstate(), m_mempool,
+                        package_to_validate->m_txns, /*test_accept=*/false)};
+                    LogPrint(BCLog::TXPACKAGES,
+                             "package evaluation for %s: %s (%s)\n",
+                             package_to_validate->ToString(),
+                             package_result.m_state.IsValid()
+                                 ? "package accepted"
+                                 : "package rejected",
+                             package_result.m_state.ToString());
+                    ProcessPackageResult(package_to_validate->m_txns,
+                                         package_result,
+                                         package_to_validate->m_senders);
+                }
+            }
             // If a tx is detected by m_recent_rejects it is ignored. Because we
             // haven't submitted the tx to our mempool, we won't have computed a
             // DoS score for it or determined exactly why we consider it
@@ -5407,10 +5661,29 @@ void PeerManagerImpl::ProcessMessage(
             unique_parents.erase(
                 std::unique(unique_parents.begin(), unique_parents.end()),
                 unique_parents.end());
+
+            // Distinguish between parents in m_recent_rejects and
+            // m_recent_rejects_reconsiderable. We can tolerate having up to 1
+            // parent in m_recent_rejects_reconsiderable since we submit 1p1c
+            // packages. However, fail immediately if any are in
+            // m_recent_rejects.
+            std::optional<TxId> rejected_parent_reconsiderable;
             for (const TxId &parent_txid : unique_parents) {
                 if (m_recent_rejects.contains(parent_txid)) {
                     fRejectedParents = true;
                     break;
+                }
+
+                if (m_recent_rejects_reconsiderable.contains(parent_txid) &&
+                    !m_mempool.exists(parent_txid)) {
+                    // More than 1 parent in m_recent_rejects_reconsiderable:
+                    // 1p1c will not be sufficient to accept this package, so
+                    // just give up here.
+                    if (rejected_parent_reconsiderable.has_value()) {
+                        fRejectedParents = true;
+                        break;
+                    }
+                    rejected_parent_reconsiderable = parent_txid;
                 }
             }
             if (!fRejectedParents) {
@@ -5419,7 +5692,11 @@ void PeerManagerImpl::ProcessMessage(
                 for (const TxId &parent_txid : unique_parents) {
                     // FIXME: MSG_TX should use a TxHash, not a TxId.
                     AddKnownTx(*peer, parent_txid);
-                    if (!AlreadyHaveTx(parent_txid)) {
+                    // Exclude m_recent_rejects_reconsiderable: the missing
+                    // parent may have been previously rejected for being too
+                    // low feerate. This orphan might CPFP it.
+                    if (!AlreadyHaveTx(parent_txid,
+                                       /*include_reconsiderable=*/false)) {
                         AddTxAnnouncement(pfrom, parent_txid, current_time);
                     }
                 }
@@ -5452,6 +5729,30 @@ void PeerManagerImpl::ProcessMessage(
             ProcessInvalidTx(pfrom.GetId(), ptx, state,
                              /*maybe_add_extra_compact_tx=*/true);
         }
+        // When a transaction fails for TX_RECONSIDERABLE, look for a matching
+        // child in the orphanage, as it is possible that they succeed as a
+        // package.
+        if (state.GetResult() == TxValidationResult::TX_RECONSIDERABLE) {
+            LogPrint(BCLog::TXPACKAGES,
+                     "tx %s failed but reconsiderable, looking for child in "
+                     "orphanage\n",
+                     txid.ToString());
+            if (auto package_to_validate{Find1P1CPackage(ptx, pfrom.GetId())}) {
+                const auto package_result{ProcessNewPackage(
+                    m_chainman.ActiveChainstate(), m_mempool,
+                    package_to_validate->m_txns, /*test_accept=*/false)};
+                LogPrint(BCLog::TXPACKAGES,
+                         "package evaluation for %s: %s (%s)\n",
+                         package_to_validate->ToString(),
+                         package_result.m_state.IsValid() ? "package accepted"
+                                                          : "package rejected",
+                         package_result.m_state.ToString());
+                ProcessPackageResult(package_to_validate->m_txns,
+                                     package_result,
+                                     package_to_validate->m_senders);
+            }
+        }
+
         return;
     }
 
@@ -8324,7 +8625,10 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                      entry.second.ToString(), entry.first);
         }
         for (const TxId &txid : requestable) {
-            if (!AlreadyHaveTx(txid)) {
+            // Exclude m_recent_rejects_reconsiderable: we may be requesting a
+            // missing parent that was previously rejected for being too low
+            // feerate.
+            if (!AlreadyHaveTx(txid, /*include_reconsiderable=*/false)) {
                 addGetDataAndMaybeFlush(MSG_TX, txid);
                 m_txrequest.RequestedData(
                     pto->GetId(), txid,
