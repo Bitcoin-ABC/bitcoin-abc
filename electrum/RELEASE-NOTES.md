@@ -1,5 +1,16 @@
 # Release notes
 
+## Release 5.2.9
+
+- Implement the option to remove coins from the list of stakes in the proof
+  editor (D14761).
+- Fix the automatic detection of the master private key when loading a proof
+  created by the same wallet (D14726).
+- Fix the decryption of encrypted hardware wallets, broken in 5.2.8 (D14645).
+- Suppress a RuntimeError when the release checker fails to start a new thread
+  (D14674).
+
+
 ## Release 5.2.8
 
 - Fix a bug affecting the expected number of signatures by multisig wallets:
