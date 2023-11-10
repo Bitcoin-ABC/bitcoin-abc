@@ -319,7 +319,7 @@ struct CNodeStats {
 /**
  * Transport protocol agnostic message container.
  * Ideally it should only contain receive time, payload,
- * command and size.
+ * type and size.
  */
 class CNetMessage {
 public:
@@ -334,7 +334,7 @@ public:
     uint32_t m_message_size{0};
     //! used wire size of the message (including header/checksum)
     uint32_t m_raw_message_size{0};
-    std::string m_command;
+    std::string m_type;
 
     CNetMessage(CDataStream &&recv_in) : m_recv(std::move(recv_in)) {}
 

@@ -6216,11 +6216,11 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     CNetMessage &msg(msgs.front());
 
     TRACE6(net, inbound_message, pfrom->GetId(), pfrom->m_addr_name.c_str(),
-           pfrom->ConnectionTypeAsString().c_str(), msg.m_command.c_str(),
+           pfrom->ConnectionTypeAsString().c_str(), msg.m_type.c_str(),
            msg.m_recv.size(), msg.m_recv.data());
 
     if (gArgs.GetBoolArg("-capturemessages", false)) {
-        CaptureMessage(pfrom->addr, msg.m_command, MakeUCharSpan(msg.m_recv),
+        CaptureMessage(pfrom->addr, msg.m_type, MakeUCharSpan(msg.m_recv),
                        /*is_incoming=*/true);
     }
 
@@ -6230,7 +6230,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     if (!msg.m_valid_netmagic) {
         LogPrint(BCLog::NET,
                  "PROCESSMESSAGE: INVALID MESSAGESTART %s peer=%d\n",
-                 SanitizeString(msg.m_command), pfrom->GetId());
+                 SanitizeString(msg.m_type), pfrom->GetId());
 
         // Make sure we discourage where that come from for some time.
         if (m_banman) {
@@ -6245,19 +6245,15 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     // Check header
     if (!msg.m_valid_header) {
         LogPrint(BCLog::NET, "PROCESSMESSAGE: ERRORS IN HEADER %s peer=%d\n",
-                 SanitizeString(msg.m_command), pfrom->GetId());
+                 SanitizeString(msg.m_type), pfrom->GetId());
         return fMoreWork;
     }
-    const std::string &msg_type = msg.m_command;
-
-    // Message size
-    unsigned int nMessageSize = msg.m_message_size;
 
     // Checksum
     CDataStream &vRecv = msg.m_recv;
     if (!msg.m_valid_checksum) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): CHECKSUM ERROR peer=%d\n",
-                 __func__, SanitizeString(msg_type), nMessageSize,
+                 __func__, SanitizeString(msg.m_type), msg.m_message_size,
                  pfrom->GetId());
         if (m_banman) {
             m_banman->Discourage(pfrom->addr);
@@ -6267,7 +6263,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     }
 
     try {
-        ProcessMessage(config, *pfrom, msg_type, vRecv, msg.m_time,
+        ProcessMessage(config, *pfrom, msg.m_type, vRecv, msg.m_time,
                        interruptMsgProc);
         if (interruptMsgProc) {
             return false;
@@ -6281,11 +6277,11 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         }
     } catch (const std::exception &e) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): Exception '%s' (%s) caught\n",
-                 __func__, SanitizeString(msg_type), nMessageSize, e.what(),
-                 typeid(e).name());
+                 __func__, SanitizeString(msg.m_type), msg.m_message_size,
+                 e.what(), typeid(e).name());
     } catch (...) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): Unknown exception caught\n",
-                 __func__, SanitizeString(msg_type), nMessageSize);
+                 __func__, SanitizeString(msg.m_type), msg.m_message_size);
     }
 
     return fMoreWork;

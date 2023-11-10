@@ -684,8 +684,7 @@ bool CNode::ReceiveMsgBytes(const Config &config, Span<const uint8_t> msg_bytes,
 
             // Store received bytes per message command to prevent a memory DOS,
             // only allow valid commands.
-            mapMsgCmdSize::iterator i =
-                mapRecvBytesPerMsgCmd.find(msg.m_command);
+            mapMsgCmdSize::iterator i = mapRecvBytesPerMsgCmd.find(msg.m_type);
             if (i == mapRecvBytesPerMsgCmd.end()) {
                 i = mapRecvBytesPerMsgCmd.find(NET_MESSAGE_COMMAND_OTHER);
             }
@@ -778,7 +777,7 @@ V1TransportDeserializer::GetMessage(const Config &config,
     uint256 hash = GetMessageHash();
 
     // store command string, payload size
-    msg.m_command = hdr.GetCommand();
+    msg.m_type = hdr.GetCommand();
     msg.m_message_size = hdr.nMessageSize;
     msg.m_raw_message_size = hdr.nMessageSize + CMessageHeader::HEADER_SIZE;
 
@@ -792,7 +791,7 @@ V1TransportDeserializer::GetMessage(const Config &config,
     if (!msg.m_valid_checksum) {
         LogPrint(BCLog::NET,
                  "CHECKSUM ERROR (%s, %u bytes), expected %s was %s\n",
-                 SanitizeString(msg.m_command), msg.m_message_size,
+                 SanitizeString(msg.m_type), msg.m_message_size,
                  HexStr(Span{hash}.first(CMessageHeader::CHECKSUM_SIZE)),
                  HexStr(hdr.pchChecksum));
     }
