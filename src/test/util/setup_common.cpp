@@ -223,7 +223,6 @@ void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
     options.check_level = m_args.GetIntArg("-checklevel", DEFAULT_CHECKLEVEL);
     auto [status, error] =
         LoadChainstate(*Assert(m_node.chainman), m_cache_sizes, options);
-    std::cerr << status << "  " << error.original;
     assert(status == node::ChainstateLoadStatus::SUCCESS);
 
     std::tie(status, error) =
