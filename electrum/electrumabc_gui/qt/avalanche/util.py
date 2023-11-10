@@ -77,7 +77,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
 
     def __del__(self):
         if self._pwd is not None:
-            self.print_msg("Zeroing cached password in memory")
+            self.print_error("Zeroing cached password in memory")
             self._pwd[:] = b"\0" * len(self._pwd)
 
 
