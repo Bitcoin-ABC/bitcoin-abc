@@ -35,7 +35,7 @@ export async function getBlogPosts() {
     for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
         try {
             response = await fetch(
-                `https://strapi.fabien.cash/api/posts?pagination[page]=${pageNumber}&populate=*&sort=id:desc`,
+                `https://strapi.fabien.cash/api/posts?pagination[page]=${pageNumber}&populate=*&sort=publishedAt:desc`,
             ).then(res => res.json());
             posts = [...posts, ...response.data];
         } catch (err) {
