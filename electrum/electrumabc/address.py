@@ -41,7 +41,11 @@ from .bitcoin import (
     minikey_to_private_key,
     push_script_bytes,
 )
-from .constants import WHITELISTED_PREFIXES, WHITELISTED_TESTNET_PREFIXES
+from .constants import (
+    WHITELISTED_PREFIXES,
+    WHITELISTED_REGTEST_PREFIXES,
+    WHITELISTED_TESTNET_PREFIXES,
+)
 from .util import cachedproperty
 
 _sha256 = hashlib.sha256
@@ -414,10 +418,13 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             net = networks.net
         string = string.lower()
 
-        if net.TESTNET:
-            whitelisted_prefixes = WHITELISTED_TESTNET_PREFIXES
-        else:
-            whitelisted_prefixes = WHITELISTED_PREFIXES
+        whitelisted_prefixes = (
+            WHITELISTED_REGTEST_PREFIXES
+            if net.REGTEST
+            else WHITELISTED_TESTNET_PREFIXES
+            if net.TESTNET
+            else WHITELISTED_PREFIXES
+        )
 
         if ":" in string:
             # Case of prefix being specified

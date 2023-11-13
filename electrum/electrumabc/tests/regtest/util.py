@@ -203,3 +203,13 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
         stop_ec_daemon(electrum_datadir)
     finally:
         shutil.rmtree(electrum_datadir)
+
+
+def wait_for_len(req, expected_len, timeout=10):
+    t0 = time.time()
+    result = []
+    while len(result) != expected_len and time.time() - t0 <= timeout:
+        result = poll_for_answer(EC_DAEMON_RPC_URL, req)
+        time.sleep(1)
+    assert len(result) == expected_len, f"unexpected result {result}"
+    return result

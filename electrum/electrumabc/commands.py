@@ -37,7 +37,7 @@ import time
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import wraps
 
-from . import bitcoin, util, web
+from . import alias, bitcoin, util, web
 from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS, hash_160
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
@@ -454,7 +454,8 @@ class Commands:
     def signtransaction(self, tx, privkey=None, password=None):
         """Sign a transaction. The wallet keys will be used unless a private key is provided."""
         tx = Transaction(
-            tx, sign_schnorr=self.wallet and self.wallet.is_schnorr_enabled()
+            rawtx_from_str(tx),
+            sign_schnorr=self.wallet and self.wallet.is_schnorr_enabled(),
         )
         if privkey:
             txin_type, privkey2, compressed = bitcoin.deserialize_privkey(privkey)
@@ -467,7 +468,7 @@ class Commands:
     @command("")
     def deserialize(self, tx):
         """Deserialize a serialized transaction"""
-        tx = Transaction(tx)
+        tx = Transaction(rawtx_from_str(tx))
         tx.deserialize()
         outputs = [
             {
@@ -491,7 +492,7 @@ class Commands:
     @command("n")
     def broadcast(self, tx):
         """Broadcast a transaction to the network."""
-        tx = Transaction(tx)
+        tx = Transaction(rawtx_from_str(tx))
         return self.network.broadcast_transaction(tx)
 
     @command("")
@@ -643,7 +644,7 @@ class Commands:
     def _resolver(self, x):
         if x is None:
             return None
-        out = self.wallet.contacts.resolve(x)
+        out = alias.resolve(x)
         if (
             out.get("type") == "openalias"
             and self.nocheck is False
@@ -899,7 +900,7 @@ class Commands:
     @command("w")
     def getalias(self, key):
         """Retrieve alias. Lookup in your list of contacts, and for an OpenAlias DNS record."""
-        return self.wallet.contacts.resolve(key)
+        return alias.resolve(key)
 
     @command("w")
     def searchcontacts(self, query):
@@ -1089,14 +1090,14 @@ class Commands:
     @command("wp")
     def signrequest(self, address, password=None):
         "Sign payment request with an OpenAlias"
-        alias = self.config.get("alias")
-        if not alias:
+        alias_ = self.config.get("alias")
+        if not alias_:
             raise ValueError("No alias in your configuration")
-        data = self.wallet.contacts.resolve(alias)
+        data = alias.resolve(alias_)
         alias_addr = (data and data.get("address")) or None
         if not alias_addr:
             raise RuntimeError("Alias could not be resolved")
-        self.wallet.sign_payment_request(address, alias, alias_addr, password)
+        self.wallet.sign_payment_request(address, alias_, alias_addr, password)
 
     @command("w")
     def rmrequest(self, address):
@@ -1287,7 +1288,6 @@ arg_types = {
     "imax": int,
     "year": int,
     "entropy": int,
-    "tx": rawtx_from_str,
     "pubkeys": json_loads,
     "jsontx": json_loads,
     "inputs": json_loads,
