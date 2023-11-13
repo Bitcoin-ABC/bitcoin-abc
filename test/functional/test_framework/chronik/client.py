@@ -182,7 +182,7 @@ class ChronikClient:
         ws = websocket.WebSocket()
         ws.connect(
             f"{'wss' if self.https else 'ws'}://{self.host}:{self.port}/ws",
-            timeout=timeout,
+            timeout=timeout if timeout is not None else self.timeout,
         )
         return ChronikWs(ws)
 

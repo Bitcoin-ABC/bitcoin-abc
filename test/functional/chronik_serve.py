@@ -18,10 +18,14 @@ class ChronikServeTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient
+        from test_framework.chronik.client import DEFAULT_TIMEOUT, ChronikClient
 
         def test_host(ip, port):
-            chronik = ChronikClient(ip, port)
+            chronik = ChronikClient(
+                ip,
+                port,
+                timeout=DEFAULT_TIMEOUT * self.nodes[0].timeout_factor,
+            )
             response = chronik._request_get("/path/does/not/exist", pb_type=None)
             assert_equal(response.err(404).msg, "404: Not found: /path/does/not/exist")
 
