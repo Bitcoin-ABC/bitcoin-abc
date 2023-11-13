@@ -529,8 +529,9 @@ public:
             // the relevant bytes for an IPv4 mask. For compatiblity reasons,
             // keep doing so in serialized form.
             uint8_t dummy[12] = {0};
+            auto netmask_span = Span{obj.netmask};
             READWRITE(dummy);
-            READWRITE(Span{obj.netmask}.first(4));
+            READWRITE(netmask_span.first(4));
         } else {
             READWRITE(obj.netmask);
         }
