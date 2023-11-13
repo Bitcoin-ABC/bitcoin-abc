@@ -49,3 +49,10 @@ export const GradientSpacer = styled.div`
     );
     margin-bottom: 80px;
 `;
+
+export const WarningBox = styled.p`
+    padding: 20px;
+    background-color: ${props => props.theme.colors.primary};
+    border-radius: 10px;
+    line-height: 1.5em;
+`;

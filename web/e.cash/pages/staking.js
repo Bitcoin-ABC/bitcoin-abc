@@ -6,7 +6,7 @@ import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
 import Link from 'next/link';
 import ExternalLink from '/components/external-link';
-import { Container, GradientSpacer } from '/components/atoms';
+import { Container, GradientSpacer, WarningBox } from '/components/atoms';
 import staking from '/public/animations/staking.json';
 
 function Staking(props) {
@@ -29,13 +29,13 @@ function Staking(props) {
             </SubPageHero>
             <GradientSpacer />
             <Container narrow>
-                <p>
+                <WarningBox>
                     <b>WARNING</b> There are fake eCash staking guides that
                     attempt to steal your coins. To stake on eCash, you must run
                     a fully-validating node with avalanche enabled. There is no
                     &ldquo;wallet only&rdquo; staking option. Use extreme
                     caution with any third party staking service.
-                </p>
+                </WarningBox>
                 <p>
                     Staking rewards will go live on the eCash network on
                     November 15th, 2023 as part of the eCash{' '}
