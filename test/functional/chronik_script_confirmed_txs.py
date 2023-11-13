@@ -30,11 +30,8 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-        from test_framework.chronik.test_data import genesis_cb_tx
-
         node = self.nodes[0]
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         peer = node.add_p2p_connection(P2PDataStore())
         mocktime = 1300000000
@@ -108,6 +105,8 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
             + "number too large to fit in target type",
         )
 
+        from test_framework.chronik.client import pb
+
         # Handle overflow gracefully on 32-bit
         assert_equal(
             chronik.script("p2pk", GENESIS_CB_PK)
@@ -119,6 +118,8 @@ class ChronikScriptConfirmedTxsTest(BitcoinTestFramework):
         genesis_db_script_history = (
             chronik.script("p2pk", GENESIS_CB_PK).confirmed_txs().ok()
         )
+        from test_framework.chronik.test_data import genesis_cb_tx
+
         assert_equal(
             genesis_db_script_history,
             pb.TxHistoryPage(txs=[genesis_cb_tx()], num_pages=1, num_txs=1),

@@ -29,10 +29,8 @@ class ChronikRawTxTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-
         node = self.nodes[0]
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         assert_equal(chronik.tx("0").err(400).msg, "400: Not a txid: 0")
         assert_equal(chronik.tx("123").err(400).msg, "400: Not a txid: 123")
@@ -47,6 +45,8 @@ class ChronikRawTxTest(BitcoinTestFramework):
             chronik.tx("00" * 32).err(404).msg,
             f'404: Transaction {"00"*32} not found in the index',
         )
+
+        from test_framework.chronik.client import pb
 
         # Verify queried genesis tx matches
         # Note: unlike getrawtransaction, this also works on the Genesis coinbase

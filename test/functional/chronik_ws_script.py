@@ -47,10 +47,8 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-
         node = self.nodes[0]
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
         node.setmocktime(1300000000)
         peer = node.add_p2p_connection(P2PDataStore())
 
@@ -103,6 +101,8 @@ class ChronikWsScriptTest(BitcoinTestFramework):
 
         # Send the tx, will send updates to ws1 and ws2
         txid = node.sendrawtransaction(tx.serialize().hex())
+
+        from test_framework.chronik.client import pb
 
         expected_msg = pb.WsMsg(
             tx=pb.MsgTx(

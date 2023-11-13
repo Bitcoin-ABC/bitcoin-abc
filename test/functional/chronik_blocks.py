@@ -22,11 +22,9 @@ class ChronikBlockRangeTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-
         node = self.nodes[0]
         node.setmocktime(1300000000)
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         assert_equal(
             chronik.blocks(-1, 0).err(400).msg, "400: Invalid block start height: -1"
@@ -47,6 +45,8 @@ class ChronikBlockRangeTest(BitcoinTestFramework):
             chronik.blocks(0, 2**31 - 1).err(400).msg,
             f"400: Blocks page size too large, may not be above 500 but got {2**31}",
         )
+
+        from test_framework.chronik.client import pb
 
         genesis_info = pb.BlockInfo(
             hash=bytes.fromhex(GENESIS_BLOCK_HASH)[::-1],

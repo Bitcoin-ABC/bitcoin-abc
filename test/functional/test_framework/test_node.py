@@ -937,6 +937,17 @@ class TestNode:
             timeout_factor=self.timeout_factor,
         )
 
+    def get_chronik_client(self):
+        """Return a ChronikClient instance that communicates with this node"""
+        # Chronik might not be built-in so let's not import each time this file
+        # is included but only where it's expected to not explode.
+        from .chronik.client import ChronikClient
+
+        # host is always None in practice, we should get rid of it at some
+        # point. In the meantime, let's properly handle the API.
+        host = self.host if self.host is not None else "127.0.0.1"
+        return ChronikClient(host, self.chronik_port)
+
 
 class TestNodeCLIAttr:
     def __init__(self, cli, command):

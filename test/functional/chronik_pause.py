@@ -34,10 +34,8 @@ class ChronikPauseTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient
-
         node = self.nodes[0]
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         chronik.pause().err(403)
         chronik.resume().err(403)

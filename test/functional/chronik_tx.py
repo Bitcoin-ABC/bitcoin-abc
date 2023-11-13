@@ -31,11 +31,8 @@ class ChronikTxTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-        from test_framework.chronik.test_data import genesis_cb_tx
-
         node = self.nodes[0]
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         peer = node.add_p2p_connection(P2PDataStore())
         node.setmocktime(1333333337)
@@ -53,6 +50,8 @@ class ChronikTxTest(BitcoinTestFramework):
             chronik.tx("00" * 32).err(404).msg,
             f'404: Transaction {"00"*32} not found in the index',
         )
+
+        from test_framework.chronik.test_data import genesis_cb_tx
 
         # Verify queried genesis tx matches
         assert_equal(chronik.tx(GENESIS_CB_TXID).ok(), genesis_cb_tx())
@@ -86,6 +85,8 @@ class ChronikTxTest(BitcoinTestFramework):
 
         # Submit tx to mempool
         txid = node.sendrawtransaction(tx.serialize().hex())
+
+        from test_framework.chronik.client import pb
 
         proto_tx = pb.Tx(
             txid=bytes.fromhex(txid)[::-1],

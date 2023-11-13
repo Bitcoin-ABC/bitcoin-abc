@@ -35,11 +35,9 @@ class ChronikSpentByTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-
         node = self.nodes[0]
         node.setmocktime(1300000000)
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         peer = node.add_p2p_connection(P2PDataStore())
 
@@ -92,6 +90,8 @@ class ChronikSpentByTest(BitcoinTestFramework):
                     tx_outputs_spent(tx),
                     expected_outpoints,
                 )
+
+        from test_framework.chronik.client import pb
 
         # Initially, none of the outputs are spent
         check_outputs_spent([pb.SpentBy()] * len(send_values), has_been_mined=False)

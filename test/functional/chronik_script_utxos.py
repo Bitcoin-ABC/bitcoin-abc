@@ -36,11 +36,9 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-
         node = self.nodes[0]
         node.setmocktime(1300000000)
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         peer = node.add_p2p_connection(P2PDataStore())
 
@@ -79,6 +77,8 @@ class ChronikScriptUtxosTest(BitcoinTestFramework):
             "400: Invalid payload for P2PK: Invalid length, "
             + "expected one of [33, 65] but got 3 bytes",
         )
+
+        from test_framework.chronik.client import pb
 
         # Test Genesis pubkey UTXO
         coinvalue = 5000000000

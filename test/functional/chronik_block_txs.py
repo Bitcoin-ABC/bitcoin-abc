@@ -36,12 +36,9 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-        from test_framework.chronik.test_data import genesis_cb_tx
-
         node = self.nodes[0]
         node.setmocktime(1300000000)
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         peer = node.add_p2p_connection(P2PDataStore())
 
@@ -80,10 +77,14 @@ class ChronikBlockTxsTest(BitcoinTestFramework):
             + "number too large to fit in target type",
         )
 
+        from test_framework.chronik.client import pb
+
         assert_equal(
             chronik.block_txs(GENESIS_BLOCK_HASH, page=2**32 - 1, page_size=200).ok(),
             pb.TxHistoryPage(txs=[], num_pages=1, num_txs=1),
         )
+
+        from test_framework.chronik.test_data import genesis_cb_tx
 
         assert_equal(
             chronik.block_txs(GENESIS_BLOCK_HASH).ok(),

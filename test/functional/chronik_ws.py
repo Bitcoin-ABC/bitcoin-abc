@@ -32,10 +32,8 @@ class ChronikWsTest(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient, pb
-
         node = self.nodes[0]
-        chronik = ChronikClient("127.0.0.1", node.chronik_port)
+        chronik = node.get_chronik_client()
 
         # Build a fake quorum of nodes.
         def get_quorum():
@@ -66,6 +64,8 @@ class ChronikWsTest(BitcoinTestFramework):
         # Mine block
         tip = self.generate(node, 1)[-1]
         height = node.getblockcount()
+
+        from test_framework.chronik.client import pb
 
         # We get a CONNECTED msg
         assert_equal(
