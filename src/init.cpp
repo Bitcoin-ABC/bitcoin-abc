@@ -594,10 +594,9 @@ void SetupServerArgs(NodeContext &node) {
         OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-par=<n>",
-        strprintf("Set the number of script verification threads (%u to %d, 0 "
-                  "= auto, <0 = leave that many cores free, default: %d)",
-                  -GetNumCores(), MAX_SCRIPTCHECK_THREADS,
-                  DEFAULT_SCRIPTCHECK_THREADS),
+        strprintf("Set the number of script verification threads (0 = auto, "
+                  "up to %d, <0 = leave that many cores free, default: %d)",
+                  MAX_SCRIPTCHECK_THREADS, DEFAULT_SCRIPTCHECK_THREADS),
         ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-persistmempool",
                    strprintf("Whether to save the mempool on shutdown and load "
