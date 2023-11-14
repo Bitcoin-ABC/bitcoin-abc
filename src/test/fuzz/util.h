@@ -287,15 +287,9 @@ CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
          ConnectionType::MANUAL, ConnectionType::FEELER,
          ConnectionType::BLOCK_RELAY, ConnectionType::ADDR_FETCH});
     const bool inbound_onion = fuzzed_data_provider.ConsumeBool();
-    return {node_id,
-            socket,
-            address,
-            keyed_net_group,
-            local_host_nonce,
-            local_extra_entropy,
-            addr_bind,
-            addr_name,
-            conn_type,
+    return {node_id,         socket,           address,
+            keyed_net_group, local_host_nonce, local_extra_entropy,
+            addr_bind,       addr_name,        conn_type,
             inbound_onion};
 }
 

@@ -25,6 +25,7 @@ module.exports = {
         },
     ],
     plugins: ['header'],
+    ignorePatterns: ['__mocks__/'],
     rules: {
         'header/header': [
             2,

@@ -725,8 +725,7 @@ const App = () => {
                                             <p>Sign & Verify</p>
                                             <ThemedSignAndVerifyMsg />
                                         </NavItem>
-                                        {aliasSettings
-                                            .aliasEnabled && (
+                                        {aliasSettings.aliasEnabled && (
                                             <NavItem
                                                 active={selectedKey === 'alias'}
                                                 onClick={() =>
