@@ -47,9 +47,13 @@ function(add_functional_test_check TARGET DESCRIPTION)
 		set(JUNIT_OUTPUT "--junitoutput=${JUNIT_REPORT_DIRECTORY}/${JUNIT_FILE}")
 	endif()
 
-	# Sanitizers can have a lot of overhead, so double the timeout to prevent
-	# false positives.
-	if(ENABLE_SANITIZERS)
+	# Sanitizers, coverage and quemu introduce a lot of overhead, so double the
+	# timeout to prevent false positives.
+	if(ENABLE_SANITIZERS OR ENABLE_COVERAGE OR CMAKE_CROSSCOMPILING_EMULATOR)
+		message(
+			STATUS
+			"Slow build detected, doubling timeout for ${DESCRIPTION} (target '${TARGET}')"
+		)
 		set(EXTENDED_TIMEOUT "--timeout-factor=2")
 	endif()
 
