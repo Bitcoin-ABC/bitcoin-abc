@@ -6,7 +6,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Generator, Optional
+from typing import Any, Callable, Generator, Optional
 
 import pytest
 import requests
@@ -29,12 +29,15 @@ BITCOIND_RPC_URL = "http://user:pass@0.0.0.0:18333"
 ELECTRUM_ROOT = os.path.join(os.path.dirname(__file__), "..", "..", "..")
 ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
 
+DEFAULT_TIMEOUT = 10
+DEFAULT_POLL_INTERVAL = 1
+
 
 def poll_for_answer(
     url: Any,
     json_req: Optional[Any] = None,
-    poll_interval: int = 1,
-    poll_timeout: int = 10,
+    poll_interval: int = DEFAULT_POLL_INTERVAL,
+    poll_timeout: int = DEFAULT_TIMEOUT,
     expected_answer: Optional[Any] = None,
 ) -> Any:
     """Poll an RPC method until timeout or an expected answer has been received"""
@@ -205,11 +208,36 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
         shutil.rmtree(electrum_datadir)
 
 
-def wait_for_len(req, expected_len, timeout=10):
-    t0 = time.time()
+def wait_for_len(json_req, expected_len: int, timeout=DEFAULT_TIMEOUT):
+    """Poll Electrum ABC with a RPC request until the result is the expected length.
+    The RPC request must return a sequence (e.g. a list).
+    Raise an AssertionError if the request does not have the expected length after the
+    timeout.
+    Return the result in case of success.
+    """
     result = []
-    while len(result) != expected_len and time.time() - t0 <= timeout:
-        result = poll_for_answer(EC_DAEMON_RPC_URL, req)
-        time.sleep(1)
-    assert len(result) == expected_len, f"unexpected result {result}"
+
+    def poll_and_check_len():
+        nonlocal result
+        result = poll_for_answer(EC_DAEMON_RPC_URL, json_req)
+        return len(result) == expected_len
+
+    wait_until(poll_and_check_len, timeout)
     return result
+
+
+def wait_until(
+    test_function: Callable[[], bool],
+    timeout=DEFAULT_TIMEOUT,
+    interval=DEFAULT_POLL_INTERVAL,
+):
+    """Run a test function in a loop until it returns True. Raise an AssertionError
+    if it did not return True before the timeout is reached.
+    """
+    t0 = time.time()
+    time_end = t0 + timeout
+    success = False
+    while not success and time.time() < time_end:
+        success = test_function()
+        time.sleep(interval)
+    assert success, f"wait_until: predicate not True after {timeout} seconds"
