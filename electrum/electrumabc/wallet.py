@@ -1582,24 +1582,25 @@ class AbstractWallet(PrintError, SPVDelegate):
                         "payment_received", self, addr, status
                     )
 
-    def receive_history_callback(self, addr, hist, tx_fees):
+    def receive_history_callback(self, addr, hist: List[Tuple[str, int]], tx_fees):
+        hist_set = frozenset((tx_hash, height) for tx_hash, height in hist)
         with self.lock:
             old_hist = self.get_address_history(addr)
-            for tx_hash, height in old_hist:
-                if (tx_hash, height) not in hist:
-                    s = self.tx_addr_hist.get(tx_hash)
-                    if s:
-                        s.discard(addr)
-                    if not s:
-                        # if no address references this tx anymore, kill it
-                        # from txi/txo dicts.
-                        if s is not None:
-                            # We won't keep empty sets around.
-                            self.tx_addr_hist.pop(tx_hash)
-                        # note this call doesn't actually remove the tx from
-                        # storage, it merely removes it from the self.txi
-                        # and self.txo dicts
-                        self.remove_transaction(tx_hash)
+            old_hist_set = frozenset((tx_hash, height) for tx_hash, height in old_hist)
+            for tx_hash, height in old_hist_set - hist_set:
+                s = self.tx_addr_hist.get(tx_hash)
+                if s:
+                    s.discard(addr)
+                if not s:
+                    # if no address references this tx anymore, kill it
+                    # from txi/txo dicts.
+                    if s is not None:
+                        # We won't keep empty sets around.
+                        self.tx_addr_hist.pop(tx_hash)
+                    # note this call doesn't actually remove the tx from
+                    # storage, it merely removes it from the self.txi
+                    # and self.txo dicts
+                    self.remove_transaction(tx_hash)
             self._addr_bal_cache.pop(
                 addr, None
             )  # unconditionally invalidate cache entry
