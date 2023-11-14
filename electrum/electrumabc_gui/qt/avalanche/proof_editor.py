@@ -75,8 +75,8 @@ class StakesWidget(QtWidgets.QTableWidget):
     immature stakes or stakes below the dust threshold.
     """
 
-    total_amount_changed = QtCore.pyqtSignal(int)
-    """emit total stake amount in sats"""
+    total_amount_changed = QtCore.pyqtSignal("quint64")
+    """Emit total stake amount in sats."""
 
     def __init__(self, blockchain__height: int):
         super().__init__()

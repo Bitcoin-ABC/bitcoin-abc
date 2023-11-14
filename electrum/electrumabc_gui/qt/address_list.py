@@ -65,10 +65,8 @@ class AddressList(MyTreeWidget):
         address = Qt.UserRole + 0
         can_edit_label = Qt.UserRole + 1
 
-    # Emits the total number of satoshis for coins on selected addresses. It emits an
-    # integer, but we define it as a generic object because Qt would translate int to
-    # a 32 bits integer, which causes overflows for amounts > 21,474,836.47 XEC
-    selected_amount_changed = pyqtSignal(object)
+    # Emits the total number of satoshis for coins on selected addresses.
+    selected_amount_changed = pyqtSignal("quint64")
     selection_cleared = pyqtSignal()
 
     def __init__(self, main_window: ElectrumWindow, *, picker=False):
