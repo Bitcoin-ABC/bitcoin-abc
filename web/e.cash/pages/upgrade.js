@@ -5,6 +5,7 @@ import Layout from '/components/layout';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
 import Link from 'next/link';
+import ExternalLink from '/components/external-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
@@ -27,26 +28,24 @@ function Upgrade(props) {
             </SubPageHero>
             <GradientSpacer />
             <Container narrow>
+                <H3 text="What happened?" id="what" />
+                <p>
+                    The planned upgrade of the eCash network has successfully
+                    been completed. The first post-upgrade block is block number{' '}
+                    <ExternalLink href="https://explorer.e.cash/block/000000000000000003e79cfe757a675909fd2bffde52158ce4ec826e5ac6ae79">
+                        818670
+                    </ExternalLink>
+                    .
+                </p>
                 <H3 text="Who needs to upgrade?" id="who" />
                 <p>
                     All operators of a Bitcoin ABC full node must upgrade to the
-                    latest major version (0.28.x). This is available at the
-                    Bitcoin ABC{' '}
+                    latest major version ({latestVersion}). This is available at
+                    the Bitcoin ABC{' '}
                     <Link href="https://bitcoinabc.org/releases/">
                         Releases Page
                     </Link>
                     .
-                </p>
-                <H3 text="Exactly when will the upgrade activate?" id="when" />
-                <p>
-                    In order to activate reliably at a predictable time, the
-                    network upgrade uses the &ldquo;Median Time Past&rdquo;
-                    mechanism. The upgrade activates when the median of the last
-                    11 blocks reaches timestamp 1700049600 (12:00:00 UTC on
-                    November 15th, 2023). This means that the upgrade does not
-                    actually activate exactly at that time, but typically about
-                    one hour later, when 6 blocks with timestamps greater than
-                    the activation time have been produced.
                 </p>
                 <H3
                     text="What features are included in the Network Upgrade?"
@@ -71,7 +70,7 @@ function Upgrade(props) {
                 <b>Miner fund increase</b>
                 <p>
                     The miner fund, part of the block reward that is funding
-                    eCash network development, will increase from 8% of the
+                    eCash network development, was increased from 8% of the
                     block reward to 32%.
                 </p>
                 <p>
