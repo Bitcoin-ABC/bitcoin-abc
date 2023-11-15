@@ -106,7 +106,7 @@ module.exports = {
         const STAKING_REWARDS_PERCENT = 10;
         const { outputs } = coinbaseTx;
         const totalCoinbaseSats = outputs
-            .map(output => parseFloat(output.value))
+            .map(output => parseInt(output.value))
             .reduce((prev, curr) => prev + curr, 0);
         for (let output of outputs) {
             const thisValue = parseInt(output.value);
