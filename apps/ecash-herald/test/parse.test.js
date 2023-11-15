@@ -8,6 +8,7 @@ const opReturn = require('../constants/op_return');
 const unrevivedBlock = require('./mocks/block');
 const minersJson = require('../constants/miners');
 const minerTestFixtures = require('./fixtures/miners');
+const stakerTestFixtures = require('./fixtures/stakers');
 const { jsonReviver } = require('../src/utils');
 const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
 const miners = JSON.parse(JSON.stringify(minersJson), jsonReviver);
@@ -16,6 +17,7 @@ const { consumeNextPush } = require('ecash-script');
 
 const {
     parseBlock,
+    getStakerFromCoinbaseTx,
     getMinerFromCoinbaseTx,
     parseMemoOutputScript,
     getBlockTgMessage,
@@ -244,6 +246,13 @@ describe('parse.js functions', function () {
                 msg,
             });
         });
+    });
+    it('getStakerFromCoinbaseTx parses miner for all test vectors', function () {
+        for (let i = 0; i < stakerTestFixtures.length; i += 1) {
+            const { coinbaseTx, staker } = stakerTestFixtures[i];
+
+            assert.strictEqual(getStakerFromCoinbaseTx(coinbaseTx), staker);
+        }
     });
     it('getMinerFromCoinbaseTx parses miner for all test vectors', function () {
         for (let i = 0; i < minerTestFixtures.length; i += 1) {

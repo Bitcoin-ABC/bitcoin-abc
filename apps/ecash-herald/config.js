@@ -46,6 +46,7 @@ module.exports = {
     emojis: {
         alias: '👾',
         block: '📦',
+        staker: '💰',
         xecSend: '💸',
         arrowRight: '➡️',
         tokenBurn: '🔥',

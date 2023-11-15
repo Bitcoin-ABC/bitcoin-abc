@@ -2832,6 +2832,7 @@ module.exports = {
         hash: '0000000000000000000000000000000000000000000000000000000000000000',
         height: 0,
         miner: 'ViaBTC, Mined by volpe1564',
+        staker: false,
         numTxs: 20,
         parsedTxs: [
             {
