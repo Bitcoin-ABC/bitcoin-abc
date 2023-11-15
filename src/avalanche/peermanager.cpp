@@ -10,7 +10,6 @@
 #include <avalanche/stakecontender.h>
 #include <avalanche/validation.h>
 #include <cashaddrenc.h>
-#include <clientversion.h>
 #include <common/args.h>
 #include <consensus/activation.h>
 #include <logging.h>
@@ -1314,7 +1313,7 @@ bool PeerManager::dumpPeersToFile(const fs::path &dumpPath) const {
             return false;
         }
 
-        CAutoFile file{filestr, CLIENT_VERSION};
+        AutoFile file{filestr};
         file << PEERS_DUMP_VERSION;
         file << uint64_t(peers.size());
         for (const Peer &peer : peers) {
@@ -1353,7 +1352,7 @@ bool PeerManager::loadPeersFromFile(
     registeredProofs.clear();
 
     FILE *filestr = fsbridge::fopen(dumpPath, "rb");
-    CAutoFile file{filestr, CLIENT_VERSION};
+    AutoFile file{filestr};
     if (file.IsNull()) {
         LogPrint(BCLog::AVALANCHE,
                  "Failed to open avalanche peers file from disk.\n");

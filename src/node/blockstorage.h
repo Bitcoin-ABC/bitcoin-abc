@@ -5,8 +5,10 @@
 #ifndef BITCOIN_NODE_BLOCKSTORAGE_H
 #define BITCOIN_NODE_BLOCKSTORAGE_H
 
+#include <array>
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -22,7 +24,6 @@
 #include <util/fs.h>
 
 class BlockValidationState;
-class CAutoFile;
 class CBlock;
 class CBlockFileInfo;
 class CBlockHeader;
@@ -151,8 +152,7 @@ private:
     FlatFileSeq BlockFileSeq() const;
     FlatFileSeq UndoFileSeq() const;
 
-    CAutoFile OpenUndoFile(const FlatFilePos &pos,
-                           bool fReadOnly = false) const;
+    AutoFile OpenUndoFile(const FlatFilePos &pos, bool fReadOnly = false) const;
 
     /**
      * Write a block to disk. The pos argument passed to this function is
@@ -433,8 +433,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     /** Open a block file (blk?????.dat) */
-    CAutoFile OpenBlockFile(const FlatFilePos &pos,
-                            bool fReadOnly = false) const;
+    AutoFile OpenBlockFile(const FlatFilePos &pos,
+                           bool fReadOnly = false) const;
 
     /** Translation to a filesystem path. */
     fs::path GetBlockPosFilename(const FlatFilePos &pos) const;

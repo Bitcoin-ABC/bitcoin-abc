@@ -492,28 +492,8 @@ public:
     }
 };
 
-class CAutoFile : public AutoFile {
-private:
-    const int nVersion;
-
-public:
-    CAutoFile(FILE *filenew, int nVersionIn)
-        : AutoFile{filenew}, nVersion(nVersionIn) {}
-    int GetVersion() const { return nVersion; }
-
-    template <typename T> CAutoFile &operator<<(const T &obj) {
-        ::Serialize(*this, obj);
-        return (*this);
-    }
-
-    template <typename T> CAutoFile &operator>>(T &&obj) {
-        ::Unserialize(*this, obj);
-        return (*this);
-    }
-};
-
 /**
- * Wrapper around a CAutoFile& that implements a ring buffer to deserialize
+ * Wrapper around an AutoFile& that implements a ring buffer to deserialize
  * from. It guarantees the ability to rewind a given number of bytes.
  *
  * Will automatically close the file when it goes out of scope if not null. If
@@ -521,7 +501,7 @@ public:
  */
 class BufferedFile {
 private:
-    CAutoFile &m_src;
+    AutoFile &m_src;
     //! how many bytes have been read from source
     uint64_t nSrcPos;
     //! how many bytes have been read from this
@@ -582,7 +562,7 @@ private:
     }
 
 public:
-    BufferedFile(CAutoFile &file, uint64_t nBufSize, uint64_t nRewindIn)
+    BufferedFile(AutoFile &file, uint64_t nBufSize, uint64_t nRewindIn)
         : m_src{file}, nSrcPos{0}, m_read_pos{0},
           nReadLimit{std::numeric_limits<uint64_t>::max()}, nRewind{nRewindIn},
           vchBuf{nBufSize, std::byte{0}} {
@@ -591,8 +571,6 @@ public:
                 "Rewind limit must be less than buffer size");
         }
     }
-
-    int GetVersion() const { return m_src.GetVersion(); }
 
     //! check whether we're at the end of the source file
     bool eof() const { return m_read_pos == nSrcPos && m_src.feof(); }

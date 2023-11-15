@@ -20,7 +20,6 @@
 #include <chainparams.h>
 #include <checkpoints.h>
 #include <checkqueue.h>
-#include <clientversion.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <consensus/amount.h>
@@ -5627,7 +5626,7 @@ bool ChainstateManager::DumpRecentHeadersTime(const fs::path &filePath) const {
             return false;
         }
 
-        CAutoFile file{filestr, CLIENT_VERSION};
+        AutoFile file{filestr};
         file << HEADERS_TIME_VERSION;
         file << numHeaders;
 
@@ -5683,7 +5682,7 @@ bool ChainstateManager::LoadRecentHeadersTime(const fs::path &filePath) {
     }
 
     FILE *filestr = fsbridge::fopen(filePath, "rb");
-    CAutoFile file{filestr, CLIENT_VERSION};
+    AutoFile file{filestr};
     if (file.IsNull()) {
         LogPrintf("Failed to open header times from disk, skipping.\n");
         return false;
@@ -5827,7 +5826,7 @@ bool Chainstate::LoadGenesisBlock() {
 }
 
 void ChainstateManager::LoadExternalBlockFile(
-    CAutoFile &file_in, FlatFilePos *dbp,
+    AutoFile &file_in, FlatFilePos *dbp,
     std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent,
     avalanche::Processor *const avalanche) {
     // Either both should be specified (-reindex), or neither (-loadblock).

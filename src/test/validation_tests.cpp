@@ -6,7 +6,6 @@
 #include <validation.h>
 
 #include <chainparams.h>
-#include <clientversion.h>
 #include <common/system.h>
 #include <config.h>
 #include <consensus/amount.h>
@@ -125,7 +124,7 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
     BOOST_CHECK(GetSerializeSize(block) > 2 * MAX_TX_SIZE);
 
     unsigned int size = GetSerializeSize(block);
-    CAutoFile outs{fp, CLIENT_VERSION};
+    AutoFile outs{fp};
     outs << size;
     outs << block;
 

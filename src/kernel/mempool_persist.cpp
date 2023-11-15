@@ -4,7 +4,6 @@
 
 #include <kernel/mempool_persist.h>
 
-#include <clientversion.h>
 #include <consensus/amount.h>
 #include <logging.h>
 #include <primitives/transaction.h>
@@ -43,8 +42,7 @@ bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
         return false;
     }
 
-    FILE *filestr{mockable_fopen_function(load_path, "rb")};
-    CAutoFile file(filestr, CLIENT_VERSION);
+    AutoFile file{mockable_fopen_function(load_path, "rb")};
     if (file.IsNull()) {
         LogPrintf(
             "Failed to open mempool file from disk. Continuing anyway.\n");
@@ -164,12 +162,10 @@ bool DumpMempool(const CTxMemPool &pool, const fs::path &dump_path,
     auto mid = SteadyClock::now();
 
     try {
-        FILE *filestr{mockable_fopen_function(dump_path + ".new", "wb")};
-        if (!filestr) {
+        AutoFile file{mockable_fopen_function(dump_path + ".new", "wb")};
+        if (file.IsNull()) {
             return false;
         }
-
-        CAutoFile file{filestr, CLIENT_VERSION};
 
         uint64_t version = MEMPOOL_DUMP_VERSION;
         file << version;

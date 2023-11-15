@@ -19,7 +19,7 @@ FUZZ_TARGET(buffered_file) {
     FuzzedDataProvider fuzzed_data_provider{buffer.data(), buffer.size()};
     FuzzedFileProvider fuzzed_file_provider = ConsumeFile(fuzzed_data_provider);
     std::optional<BufferedFile> opt_buffered_file;
-    CAutoFile fuzzed_file{fuzzed_file_provider.open(), 0};
+    AutoFile fuzzed_file{fuzzed_file_provider.open()};
     try {
         opt_buffered_file.emplace(
             fuzzed_file,
@@ -71,6 +71,5 @@ FUZZ_TARGET(buffered_file) {
                 });
         }
         opt_buffered_file->GetPos();
-        opt_buffered_file->GetVersion();
     }
 }

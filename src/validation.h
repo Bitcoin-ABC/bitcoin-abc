@@ -1513,7 +1513,7 @@ public:
      *                        unknown parent, key is parent block hash
      *                        (only used for reindex)
      */
-    void LoadExternalBlockFile(CAutoFile &file_in, FlatFilePos *dbp = nullptr,
+    void LoadExternalBlockFile(AutoFile &file_in, FlatFilePos *dbp = nullptr,
                                std::multimap<BlockHash, FlatFilePos>
                                    *blocks_with_unknown_parent = nullptr,
                                avalanche::Processor *const avalanche = nullptr);
