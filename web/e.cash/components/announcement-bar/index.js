@@ -11,13 +11,13 @@ import ExternalLink from '/components/external-link';
  * @param {string} text - text to display
  * @param {boolean} navBackground - boolean based on window height to control the visibility of the bar
  */
-export default function AnnouncementBar({ href, text, navBackground }) {
+export default function AnnouncementBar({ href, children, navBackground }) {
     return (
         <AnnouncementBarCtn navBackground={navBackground}>
             {href ? (
-                <ExternalLink href={href}>{text}</ExternalLink>
+                <ExternalLink href={href}>{children}</ExternalLink>
             ) : (
-                <div>{text}</div>
+                <div>{children}</div>
             )}
         </AnnouncementBarCtn>
     );
