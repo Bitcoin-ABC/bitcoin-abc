@@ -34,12 +34,15 @@ from typing import Tuple, Union
 import ecdsa
 
 from electrumabc.address import Address, OpCodes, ScriptOutput
-from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, hash_160
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType, hash_160
 from electrumabc.transaction import (
+    OutPoint,
     Transaction,
+    TxInput,
     TxOutput,
     get_address_from_output_script,
 )
+from electrumabc.uint256 import UInt256
 
 from . import fusion_pb2 as pb
 from .protocol import Protocol
@@ -165,18 +168,17 @@ def tx_from_components(all_components, session_hash):
             if len(inp.prev_txid) != 32:
                 raise FusionError("bad component prevout")
             inputs.append(
-                {
-                    "address": Address.from_P2PKH_hash(hash_160(inp.pubkey)),
-                    "prevout_hash": inp.prev_txid[::-1].hex(),
-                    "prevout_n": inp.prev_index,
-                    "num_sig": 1,
-                    "signatures": [None],
-                    "type": "p2pkh",
-                    "x_pubkeys": [inp.pubkey.hex()],
-                    "pubkeys": [inp.pubkey.hex()],
-                    "sequence": 0xFFFFFFFF,
-                    "value": inp.amount,
-                }
+                TxInput.from_keys(
+                    outpoint=OutPoint(UInt256(inp.prev_txid), inp.prev_index),
+                    sequence=0xFFFFFFFF,
+                    script_type=ScriptType.p2pkh,
+                    num_required_sigs=1,
+                    x_pubkeys=[inp.pubkey],
+                    signatures=[None],
+                    pubkeys=[inp.pubkey],
+                    address=Address.from_P2PKH_hash(hash_160(inp.pubkey)),
+                    value=inp.amount,
+                )
             )
             input_indices.append(i)
         elif ctype == "output":
