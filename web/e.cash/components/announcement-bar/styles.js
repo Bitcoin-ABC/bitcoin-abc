@@ -52,10 +52,5 @@ export const AnnouncementBarCtn = styled.div`
 `;
 
 export const Timer = styled.span`
-    font-family: monospace;
-    font-size: 16px;
-    font-weight: 600;
-    ${props => props.theme.breakpoint.medium} {
-        font-size: 14px;
-    }
+    color: ${props => props.theme.colors.primaryLight};
 `;

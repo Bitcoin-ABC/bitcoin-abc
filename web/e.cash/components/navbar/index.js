@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { navitems } from '../../data/navitems';
 import { NavbarOuter, NavbarCtn, EnvVarMessage } from './styles';
-import AnnouncementBar from '/components/announcement-bar';
+import UpgradeNotice from '/components/announcement-bar/upgrade-notice';
 
 export default function Navbar({ announcementbar }) {
     const [priceLinkText, setPriceLinkText] = useState('Buy XEC');
@@ -62,11 +62,7 @@ export default function Navbar({ announcementbar }) {
 
     return (
         <NavbarOuter navBackground={navBackground}>
-            <AnnouncementBar
-                href="/upgrade"
-                text="Prepare for the eCash network upgrade!"
-                navBackground={navBackground}
-            />
+            <UpgradeNotice navBackground={navBackground} />
             {!process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
                 <EnvVarMessage>
                     Google Analytics is disabled, set the env
