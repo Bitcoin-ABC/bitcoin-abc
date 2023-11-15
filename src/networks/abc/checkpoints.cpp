@@ -76,6 +76,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Wellington activation.
         {792118, BlockHash::fromHex("00000000000000000b360176b8456de45b662fce6d"
                                     "557c6238dec17362d197f3")},
+        // Cowperthwaite activation.
+        {818670, BlockHash::fromHex("000000000000000003e79cfe757a675909fd2bffde"
+                                    "52158ce4ec826e5ac6ae79")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -120,6 +123,9 @@ static CCheckpointData testNetCheckpointData = {
         // Wellington activation.
         {1556121, BlockHash::fromHex("000000000eb806d6dbc9a200a9d533c7a11fc7d45"
                                      "ab67a3c8440cc1b5c4e741f")},
+        // Cowperthwaite activation.
+        {1584486, BlockHash::fromHex("000000000bdc9ee694295e611be29fcad7189f116"
+                                     "04edeb8f6c0ab65b40c3370")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
