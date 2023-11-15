@@ -21,8 +21,8 @@ DEST_DIR="$1"
 
 : "${TOPLEVEL:=$(git rev-parse --show-toplevel)}"
 
-OSX_SDK="Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz"
-OSX_SDK_SHA256="5b7e65304bb9abcc2cffc8bc4dd68b8f7e318dce85c195bea77c59600e777bd3"
+OSX_SDK="Xcode-15.0-15A240d-extracted-SDK-with-libcxx-headers.tar.gz"
+OSX_SDK_SHA256="c0c2e7bb92c1fee0c4e9f3a485e4530786732d6c6dd9e9f418c282aa6892f55d"
 
 pushd "${DEST_DIR}" > /dev/null
 if ! echo "${OSX_SDK_SHA256}  ${OSX_SDK}" | sha256sum --quiet -c > /dev/null 2>&1; then
