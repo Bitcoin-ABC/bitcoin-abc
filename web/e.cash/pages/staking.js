@@ -46,7 +46,7 @@ function Staking(props) {
                     quality nodes. This will help the eCash system to work well,
                     and also ensure you receive the staking rewards.
                 </p>
-                <h4>Staking Requirements</h4>
+                <H3 text="Staking Requirement" id="requirements" />
                 <ul>
                     <li>
                         The node should have reliably high uptime, and be able
@@ -65,7 +65,7 @@ function Staking(props) {
                         Delegations.
                     </li>
                 </ul>
-                <h4>Further Reading</h4>
+                <H3 text="Further Reading" id="further-reading" />
                 <ul>
                     <li>
                         <Link href="/blog/ecash-avalanche-tutorial">
