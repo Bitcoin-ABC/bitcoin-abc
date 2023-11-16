@@ -3517,13 +3517,13 @@ class DeterministicWallet(AbstractWallet):
     def get_auxiliary_pubkey_index(self, key: PublicKey, password) -> Optional[int]:
         """Return an index for an auxiliary public key. These are the keys on the
         BIP 44 path that uses change index = 2, for keys that are guaranteed to not
-        be used for addresses. Return None if the public key is not mine.
+        be used for addresses. Return None if the public key is not mine or too old
+        to be detected wrt to the gap limit.
         """
-        # For now, we expect that only index 0 (proof master key) and 1 (delegated key)
-        # are in use. In the future, if more keys are needed (multiple proofs or
-        # delegations for instance), it is possible to add data to the wallet file to
-        # store used keys the way it is done for addresses.
-        for index in [0, 1]:
+        max_index = self.storage.get(StorageKeys.AUXILIARY_KEY_INDEX)
+        gap_limit = self.storage.get(StorageKeys.GAP_LIMIT)
+
+        for index in range(max_index, max(-1, max_index - gap_limit), -1):
             wif = self.export_private_key_for_index((2, index), password)
             if PublicKey.from_WIF_privkey(wif) == key:
                 return index

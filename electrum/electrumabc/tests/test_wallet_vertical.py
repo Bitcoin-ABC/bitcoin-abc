@@ -182,17 +182,33 @@ class TestWalletKeystoreAddressIntegrity(unittest.TestCase):
         expected_auxiliary_keys = [
             "L2ETdaLkdB8ZV6k95X776wRBGJgFGMurfi35EY2DdaJHfzaVieWg",
             "KxmCxRaEg5RvqbyiLJgpFnosfykDWzbMgz6T34HsjQSZ99BbYFiV",
+            "Kxt578eeDjJeTbQwAbdwicbVD5xboqL83atFL5xWtz3Gwxvu9WBT",
+            "L4wena5fgpvxEg3GSz5ybb7bha8W7KsB9JHJPQjdnGiqZ6iPwLMB",
+            "L5WUDP9GTHLzJwc8chAKzdgxCYs63ESAcSER4m49YH8ZEaLzP6qU",
+            "L22RuEcegZGbE7A5cqQNYHSug7KFvCnAunpmzGsXV5DRtiRLChSM",
         ]
         AUX_INDEX = 2
+        w.storage.put(StorageKeys.GAP_LIMIT, 5)
+        w.storage.put(StorageKeys.AUXILIARY_KEY_INDEX, 5)
         for idx, wif_key in enumerate(expected_auxiliary_keys):
             self.assertEqual(
                 w.export_private_key_for_index((AUX_INDEX, idx), None),
                 wif_key,
             )
+
+        # we can guess the index for the last 5
+        for idx, wif_key in enumerate(expected_auxiliary_keys[1:]):
             self.assertEqual(
                 w.get_auxiliary_pubkey_index(PublicKey.from_WIF_privkey(wif_key), None),
-                idx,
+                idx + 1,
             )
+        # but the first one is too old wrt the gap limit
+        self.assertIsNone(
+            w.get_auxiliary_pubkey_index(
+                PublicKey.from_WIF_privkey(expected_auxiliary_keys[0]), None
+            ),
+            None,
+        )
 
     @mock.patch.object(storage.WalletStorage, "_write")
     def test_electrum_multisig_seed_standard(self, mock_write):
