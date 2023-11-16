@@ -1,5 +1,6 @@
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { FailoverProxy } from '../failoverProxy';
 import {
     BlockDetails,
     BlockInfo,
@@ -10,13 +11,12 @@ import {
     Utxo,
     UtxoState,
 } from '../index';
-import { FailoverProxy } from '../failoverProxy';
 
 const expect = chai.expect;
 const assert = chai.assert;
 chai.use(chaiAsPromised);
 
-const TEST_URL = 'https://chronik.be.cash/xec';
+const LIVE_URL_ONE = 'https://chronik.fabien.cash';
 
 const GENESIS_PK =
     '04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc' +
@@ -132,7 +132,7 @@ describe('new ChronikClient', () => {
 });
 
 describe('/broadcast-tx', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('throws a decode error', async () => {
         assert.isRejected(
             chronik.broadcastTx('00000000'),
@@ -145,7 +145,7 @@ describe('/broadcast-tx', () => {
 });
 
 describe('/blockchain-info', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('gives us the blockchain info', async () => {
         const blockchainInfo = await chronik.blockchainInfo();
         expect(blockchainInfo.tipHash.length).to.eql(64);
@@ -176,7 +176,7 @@ describe('/blockchain-info', () => {
 });
 
 describe('/block/:hash', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('gives us the Genesis block by hash', async () => {
         const block = await chronik.block(
             '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
@@ -194,7 +194,7 @@ describe('/block/:hash', () => {
 });
 
 describe('/blocks/:start/:end', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('gives us the first few blocks', async () => {
         const blocks = await chronik.blocks(0, 10);
         expect(blocks.length).to.equal(11);
@@ -229,7 +229,7 @@ describe('/blocks/:start/:end', () => {
 });
 
 describe('/tx/:txid', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('results in Not Found', async () => {
         assert.isRejected(
             chronik.tx(
@@ -358,7 +358,7 @@ describe('/tx/:txid', () => {
 });
 
 describe('/token/:tokenId', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('results in Not Found', async () => {
         assert.isRejected(
             chronik.token(
@@ -408,7 +408,7 @@ describe('/token/:tokenId', () => {
 });
 
 describe('/validate-utxos', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('validates the UTXOs', async () => {
         const validationResult = await chronik.validateUtxos([
             {
@@ -455,7 +455,7 @@ describe('/validate-utxos', () => {
 });
 
 describe('/script/:type/:payload/history', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('gives us the first page', async () => {
         const script = chronik.script('p2pk', GENESIS_PK);
         const history = await script.history();
@@ -483,7 +483,7 @@ describe('/script/:type/:payload/history', () => {
 });
 
 describe('/script/:type/:payload/utxos', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     it('gives us the UTXOs', async () => {
         const script = chronik.script('p2pk', GENESIS_PK);
         const utxos = await script.utxos();
@@ -494,7 +494,7 @@ describe('/script/:type/:payload/utxos', () => {
 });
 
 describe('/ws', () => {
-    const chronik = new ChronikClient(TEST_URL);
+    const chronik = new ChronikClient(LIVE_URL_ONE);
     xit('gives us a confirmation', async () => {
         const promise = new Promise((resolve: (msg: SubscribeMsg) => void) => {
             const ws = chronik.ws({
@@ -522,7 +522,7 @@ describe('/ws', () => {
         'https://chronikaaaa.be.cash/xec',
         'https://chronikzzzz.be.cash/xec',
         'https://chroniktttt.be.cash/xec',
-        TEST_URL, // working
+        LIVE_URL_ONE, // working
     ]);
     it('connects to a working ws in an array of broken ws', async () => {
         const promise = new Promise(resolve => {
@@ -539,14 +539,14 @@ describe('/ws', () => {
 describe('FailoverProxy', () => {
     it('appendWsUrls combines an object array of valid urls with wsUrls', () => {
         const urls = [
-            TEST_URL,
+            'https://chronik.be.cash/xec',
             'https://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
         const proxyInterface = new FailoverProxy(urls);
         const expectedResult = [
             {
-                url: TEST_URL,
+                url: 'https://chronik.be.cash/xec',
                 wsUrl: 'wss://chronik.be.cash/xec/ws',
             },
             {
@@ -562,14 +562,14 @@ describe('FailoverProxy', () => {
     });
     it('appendWsUrls combines an array of mixed valid https and http urls with wsUrls', () => {
         const urls = [
-            TEST_URL,
+            'https://chronik.be.cash/xec',
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
         const proxyInterface = new FailoverProxy(urls);
         const expectedResult = [
             {
-                url: TEST_URL,
+                url: 'https://chronik.be.cash/xec',
                 wsUrl: 'wss://chronik.be.cash/xec/ws',
             },
             {
@@ -585,7 +585,7 @@ describe('FailoverProxy', () => {
     });
     it('appendWsUrls returns an empty array for an empty input', () => {
         const urls = [
-            TEST_URL,
+            'https://chronik.be.cash/xec',
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
@@ -594,7 +594,7 @@ describe('FailoverProxy', () => {
     });
     it('appendWsUrls throws error on an invalid regular endpoint', () => {
         const urls = [
-            TEST_URL,
+            LIVE_URL_ONE,
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
@@ -610,14 +610,14 @@ describe('FailoverProxy', () => {
     });
     it('FailoverProxy instantiates with a valid url array', () => {
         const urls = [
-            TEST_URL,
+            'https://chronik.be.cash/xec',
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
         ];
         const proxyInterface = new FailoverProxy(urls);
         const expectedProxyArray = [
             {
-                url: TEST_URL,
+                url: 'https://chronik.be.cash/xec',
                 wsUrl: 'wss://chronik.be.cash/xec/ws',
             },
             {
@@ -647,7 +647,7 @@ describe('FailoverProxy', () => {
 describe('deriveEndpointIndex', () => {
     it('deriveEndpointIndex iterates through a four element array with default working index', () => {
         const testArray = [
-            TEST_URL,
+            'https://chronik.be.cash/xec',
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
             'https://chronik3.fabien.cash',
@@ -662,7 +662,7 @@ describe('deriveEndpointIndex', () => {
     });
     it('deriveEndpointIndex iterates through a four element array with working index set to 3', () => {
         const testArray = [
-            TEST_URL,
+            'https://chronik.be.cash/xec',
             'http://chronik.fabien.cash',
             'https://chronik2.fabien.cash',
             'https://chronik3.fabien.cash',
