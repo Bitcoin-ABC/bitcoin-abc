@@ -92,8 +92,8 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         ]
 
         # Connect 2 websocket clients
-        ws1 = chronik.ws(timeout=30)
-        ws2 = chronik.ws(timeout=30)
+        ws1 = chronik.ws()
+        ws2 = chronik.ws()
         # Subscribe to 2 scripts on ws1 and 1 on ws2
         ws1.sub_script("p2sh", send_script_hashes[1])
         ws1.sub_script("p2sh", send_script_hashes[2])
