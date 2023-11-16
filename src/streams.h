@@ -59,18 +59,16 @@ template <typename S> OverrideStream<S> WithOrVersion(S *s, int nVersionFlag) {
  *
  * The referenced vector will grow as necessary.
  */
-class CVectorWriter {
+class VectorWriter {
 public:
     /**
-     * @param[in]  nVersionIn Serialization Version (including any flags)
      * @param[in]  vchDataIn  Referenced byte vector to overwrite/append
      * @param[in]  nPosIn Starting position. Vector index where writes should
      * start. The vector will initially grow as necessary to  max(nPosIn,
      * vec.size()). So to append, use vec.size().
      */
-    CVectorWriter(int nVersionIn, std::vector<uint8_t> &vchDataIn,
-                  size_t nPosIn)
-        : nVersion{nVersionIn}, vchData{vchDataIn}, nPos{nPosIn} {
+    VectorWriter(std::vector<uint8_t> &vchDataIn, size_t nPosIn)
+        : vchData{vchDataIn}, nPos{nPosIn} {
         if (nPos > vchData.size()) {
             vchData.resize(nPos);
         }
@@ -80,9 +78,8 @@ public:
      * @param[in]  args  A list of items to serialize starting at nPosIn.
      */
     template <typename... Args>
-    CVectorWriter(int nVersionIn, std::vector<uint8_t> &vchDataIn,
-                  size_t nPosIn, Args &&...args)
-        : CVectorWriter(nVersionIn, vchDataIn, nPosIn) {
+    VectorWriter(std::vector<uint8_t> &vchDataIn, size_t nPosIn, Args &&...args)
+        : VectorWriter(vchDataIn, nPosIn) {
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
     void write(Span<const std::byte> src) {
@@ -97,14 +94,12 @@ public:
         }
         nPos += src.size();
     }
-    template <typename T> CVectorWriter &operator<<(const T &obj) {
+    template <typename T> VectorWriter &operator<<(const T &obj) {
         ::Serialize(*this, obj);
         return (*this);
     }
-    int GetVersion() const { return nVersion; }
 
 private:
-    const int nVersion;
     std::vector<uint8_t> &vchData;
     size_t nPos;
 };
