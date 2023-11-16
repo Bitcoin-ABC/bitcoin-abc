@@ -204,5 +204,13 @@ mkdir -p /etc/apt/keyrings
 wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key
 wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bullseye/winehq-bullseye.sources
 apt-get update
+WINE_VERSION=8.19~bullseye-1
+# We need all the packages and dependencies to use a pinpointed vesion
+WINE_PACKAGES=(
+  winehq-staging
+  wine-staging
+  wine-staging-amd64
+  wine-staging-i386
+)
 # Pinpoint the version so we get consistent results on CI
-DEBIAN_FRONTEND=noninteractive apt-get install -y winehq-staging=8.19~bullseye-1
+DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${WINE_PACKAGES[@]/%/=${WINE_VERSION}}")
