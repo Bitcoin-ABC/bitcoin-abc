@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from PyQt5 import QtWidgets
 
@@ -13,7 +13,9 @@ from electrumabc.avalanche.delegation import (
 from electrumabc.avalanche.primitives import Key, PublicKey
 from electrumabc.avalanche.proof import LimitedProofId, Proof
 from electrumabc.bitcoin import is_private_key
+from electrumabc.keystore import MAXIMUM_INDEX_DERIVATION_PATH
 from electrumabc.serialize import DeserializationError
+from electrumabc.storage import StorageKeys
 from electrumabc.wallet import DeterministicWallet
 
 from .util import AuxiliaryKeysDialog, CachedWalletPasswordWidget
@@ -91,6 +93,8 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         self.dg_display.setReadOnly(True)
         layout.addWidget(self.dg_display)
 
+        self.suggested_delegated_key_and_index: Optional[Tuple[str, int]] = None
+
         # Signals
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
         self.dg_edit.textChanged.connect(self.on_delegation_pasted)
@@ -151,12 +155,33 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         d = AuxiliaryKeysDialog(self.wallet, self._pwd, self, additional_info)
         d.exec_()
 
-        self.pubkey_edit.setText(d.get_hex_public_key())
+        pubkey_hex = d.get_hex_public_key()
+        self.suggested_delegated_key_and_index = (pubkey_hex, d.get_key_index())
+        self.pubkey_edit.setText(pubkey_hex)
+
+    def maybe_increment_aux_key_index(self):
+        """Increment the index if the suggested key was used as a delegated key,
+        to discourage key reuse by suggesting another key the next time."""
+        if self.suggested_delegated_key_and_index is None:
+            return
+        suggested_pubkey, suggested_index = self.suggested_delegated_key_and_index
+        if self.pubkey_edit.text().strip() != suggested_pubkey:
+            # the suggested key was replaced by another one
+            return
+        max_used_index = self.wallet.storage.get(StorageKeys.AUXILIARY_KEY_INDEX)
+        if suggested_index < max_used_index:
+            # For some reason the user chose to reuse an old key.
+            return
+        self.wallet.storage.put(
+            StorageKeys.AUXILIARY_KEY_INDEX,
+            min(MAXIMUM_INDEX_DERIVATION_PATH, suggested_index + 1),
+        )
 
     def on_generate_clicked(self):
         dg_hex = self._build()
         if dg_hex is not None:
             self.dg_display.setText(f'<p style="color:black;"><b>{dg_hex}</b></p>')
+            self.maybe_increment_aux_key_index()
 
     def _build(self) -> Optional[str]:
         delegator_wif = self.delegator_key_edit.text()

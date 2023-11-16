@@ -380,9 +380,11 @@ class AvaProofEditor(CachedWalletPasswordWidget):
 
         # Init widgets
         self.dg_dialog = None
-        self.init_data()
+        # Suggest a private key to the user. He can change it if he wants.
+        self.master_key_suggestion: str = self._get_privkey_suggestion()
+        self.init_widgets()
 
-    def init_data(self):
+    def init_widgets(self):
         # Clear internal state
         self.sequence_sb.setValue(0)
 
@@ -392,9 +394,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         self.calendar.setDateTime(now.addYears(3))
 
         self.master_pubkey_view.setText("")
-        # Suggest a private key to the user. He can change it if he wants.
-        master_key_suggestion = self._get_privkey_suggestion()
-        self.master_key_edit.setText(master_key_suggestion)
+        self.master_key_edit.setText(self.master_key_suggestion)
 
         if self.receive_address is not None:
             self.payout_addr_edit.setText(self.receive_address.to_ui_string())
@@ -493,11 +493,23 @@ class AvaProofEditor(CachedWalletPasswordWidget):
             wif_pk = get_auxiliary_privkey(
                 self.wallet, key_index=auxiliary_key_index, pwd=self.pwd
             )
-            self.wallet.storage.put(
-                StorageKeys.AUXILIARY_KEY_INDEX,
-                min(auxiliary_key_index + 1, MAXIMUM_INDEX_DERIVATION_PATH),
-            )
         return wif_pk
+
+    def maybe_increment_auxkey_index(self):
+        """Increment the index if the suggested key was used to sign the proof,
+        to discourage key reuse by suggesting another key the next time."""
+        if (
+            not self.master_key_suggestion
+            or self.master_key_edit.text() != self.master_key_suggestion
+        ):
+            return
+        self.wallet.storage.put(
+            StorageKeys.AUXILIARY_KEY_INDEX,
+            min(
+                self.wallet.storage.get(StorageKeys.AUXILIARY_KEY_INDEX) + 1,
+                MAXIMUM_INDEX_DERIVATION_PATH,
+            ),
+        )
 
     def on_expiration_cb_toggled(self, is_checked: bool):
         self.timestamp_widget.setEnabled(is_checked)
@@ -638,7 +650,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         else:
             known_privkey = self.find_auxiliary_privkey_from_pubkey(proof.master_pub)
 
-        self.init_data()
+        self.init_widgets()
 
         self.sequence_sb.setValue(proof.sequence)
         if proof.expiration_time <= 0:
@@ -700,6 +712,8 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         proof = self._build()
         if proof is not None:
             self.displayProof(proof)
+            if proof.is_signed():
+                self.maybe_increment_auxkey_index()
         self.generate_dg_button.setEnabled(proof is not None)
         self.save_proof_button.setEnabled(proof is not None)
 
@@ -713,7 +727,7 @@ class AvaProofEditor(CachedWalletPasswordWidget):
                     self,
                     "No valid master key",
                     "You need to specify either a master private key or a master "
-                    "public key before generate a proof.",
+                    "public key before generating a proof.",
                 )
                 return
             QtWidgets.QMessageBox.warning(

@@ -52,6 +52,9 @@ if TYPE_CHECKING:
     from ..address import Address, ScriptOutput
 
 
+NO_SIGNATURE = b"\0" * 64
+
+
 class Stake(SerializableObject):
     def __init__(
         self,
@@ -218,6 +221,9 @@ class Proof(SerializableObject):
         _txout_type, addr = get_address_from_output_script(self.payout_script_pubkey)
         return addr
 
+    def is_signed(self):
+        return self.signature != NO_SIGNATURE
+
 
 class ProofBuilder:
     def __init__(
@@ -314,11 +320,11 @@ class ProofBuilder:
             self.payout_script_pubkey,
         )
 
-        if self.master is not None:
-            signature = self.master.sign_schnorr(ltd_id.serialize())
-        else:
-            # We cannot sign the proof
-            signature = b"\0" * 64
+        signature = (
+            self.master.sign_schnorr(ltd_id.serialize())
+            if self.master is not None
+            else NO_SIGNATURE
+        )
 
         return Proof(
             self.sequence,

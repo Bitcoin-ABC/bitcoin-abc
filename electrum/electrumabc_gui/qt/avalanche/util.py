@@ -157,23 +157,11 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
         # valueChanged signal will not be emitted. For any other value this call
         # will be overridden by the index change event.
         self.set_keys_for_index(0)
-        self.max_shown_index = self.wallet.storage.get(StorageKeys.AUXILIARY_KEY_INDEX)
-        # increment for the next time
-        self.wallet.storage.put(
-            StorageKeys.AUXILIARY_KEY_INDEX,
-            min(MAXIMUM_INDEX_DERIVATION_PATH, self.max_shown_index + 1),
-        )
+        shown_index = self.wallet.storage.get(StorageKeys.AUXILIARY_KEY_INDEX)
         self.index_spinbox.valueChanged.connect(self.set_keys_for_index)
-        self.index_spinbox.setValue(self.max_shown_index)
+        self.index_spinbox.setValue(shown_index)
 
     def set_keys_for_index(self, index: int):
-        if index > self.max_shown_index:
-            self.max_shown_index = index
-            self.wallet.storage.put(
-                StorageKeys.AUXILIARY_KEY_INDEX,
-                min(MAXIMUM_INDEX_DERIVATION_PATH, self.max_shown_index + 1),
-            )
-
         wif_key = get_auxiliary_privkey(self.wallet, index, self.pwd)
         self.key_widget.setPrivkey(wif_key)
 
@@ -182,6 +170,9 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
 
     def get_hex_public_key(self) -> str:
         return self.key_widget.pubkey_view.text()
+
+    def get_key_index(self) -> int:
+        return self.index_spinbox.value()
 
 
 class AuxiliaryKeysDialog(QtWidgets.QDialog):
@@ -212,3 +203,6 @@ class AuxiliaryKeysDialog(QtWidgets.QDialog):
 
     def get_wif_private_key(self) -> str:
         return self.aux_keys_widget.get_wif_private_key()
+
+    def get_key_index(self) -> int:
+        return self.aux_keys_widget.get_key_index()
