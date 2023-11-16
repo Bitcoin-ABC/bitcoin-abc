@@ -57,6 +57,7 @@ class CompactProofsTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=1",
                 "-avacooldown=0",
+                "-whitelist=noban@127.0.0.1",
             ]
         ] * self.num_nodes
 
