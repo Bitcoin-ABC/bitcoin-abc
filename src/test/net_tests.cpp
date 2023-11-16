@@ -1293,7 +1293,6 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
 
     const uint64_t services{NODE_NETWORK};
     const int64_t time{Params().GenesisBlock().nTime};
-    const CNetMsgMaker msg_maker{PROTOCOL_VERSION};
 
     // Force ChainstateManager::IsInitialBlockDownload() to return false.
     // Otherwise PushAddress() isn't called by PeerManager::ProcessMessage().
@@ -1308,8 +1307,8 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
     std::chrono::microseconds time_received_dummy{0};
 
     const auto msg_version =
-        msg_maker.Make(NetMsgType::VERSION, PROTOCOL_VERSION, services, time,
-                       services, WithParams(CAddress::V1_NETWORK, peer_us));
+        NetMsg::Make(NetMsgType::VERSION, PROTOCOL_VERSION, services, time,
+                     services, WithParams(CAddress::V1_NETWORK, peer_us));
     CDataStream msg_version_stream{msg_version.data, SER_NETWORK,
                                    PROTOCOL_VERSION};
 
@@ -1317,7 +1316,7 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
                                    msg_version_stream, time_received_dummy,
                                    interrupt_dummy);
 
-    const auto msg_verack = msg_maker.Make(NetMsgType::VERACK);
+    const auto msg_verack = NetMsg::Make(NetMsgType::VERACK);
     CDataStream msg_verack_stream{msg_verack.data, SER_NETWORK,
                                   PROTOCOL_VERSION};
 

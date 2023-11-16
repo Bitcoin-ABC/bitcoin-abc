@@ -544,9 +544,8 @@ namespace {
 
 void Processor::sendResponse(CNode *pfrom, Response response) const {
     connman->PushMessage(
-        pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
-                   .Make(NetMsgType::AVARESPONSE,
-                         TCPResponse(std::move(response), sessionKey)));
+        pfrom, NetMsg::Make(NetMsgType::AVARESPONSE,
+                            TCPResponse(std::move(response), sessionKey)));
 }
 
 bool Processor::registerVotes(NodeId nodeid, const Response &response,
@@ -736,8 +735,7 @@ bool Processor::sendHelloInternal(CNode *pfrom) {
     }
 
     connman->PushMessage(
-        pfrom, CNetMsgMaker(pfrom->GetCommonVersion())
-                   .Make(NetMsgType::AVAHELLO, Hello(delegation, sig)));
+        pfrom, NetMsg::Make(NetMsgType::AVAHELLO, Hello(delegation, sig)));
 
     return delegation.getLimitedProofId() != uint256::ZERO;
 }
@@ -1270,9 +1268,8 @@ void Processor::runEventLoop() {
 
                 // Send the query to the node.
                 connman->PushMessage(
-                    pnode, CNetMsgMaker(pnode->GetCommonVersion())
-                               .Make(NetMsgType::AVAPOLL,
-                                     Poll(current_round, std::move(invs))));
+                    pnode, NetMsg::Make(NetMsgType::AVAPOLL,
+                                        Poll(current_round, std::move(invs))));
                 return true;
             });
 

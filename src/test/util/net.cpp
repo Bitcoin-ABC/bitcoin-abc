@@ -21,33 +21,32 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
     // This assumes that peerman is the first element in m_msgproc (see D11302)
     auto &peerman{static_cast<PeerManager &>(*m_msgproc.front())};
     auto &connman{*this};
-    const CNetMsgMaker mm{0};
 
     peerman.InitializeNode(::GetConfig(), node, local_services);
 
     CSerializedNetMsg msg_version{
-        mm.Make(NetMsgType::VERSION, version,
-                Using<CustomUintFormatter<8>>(remote_services),
-                // dummy time
-                int64_t{},
-                // ignored service bits
-                int64_t{},
-                // dummy addrMe
-                WithParams(CNetAddr::V1, CService{}),
-                // ignored service bits
-                int64_t{},
-                // dummy addrFrom
-                WithParams(CNetAddr::V1, CService{}),
-                // dummy nonce
-                uint64_t{1},
-                // dummy subver
-                std::string{},
-                // dummy starting_height
-                int32_t{},
-                //
-                relay_txs,
-                // dummy extra entropy
-                uint64_t{1}),
+        NetMsg::Make(NetMsgType::VERSION, version,
+                     Using<CustomUintFormatter<8>>(remote_services),
+                     // dummy time
+                     int64_t{},
+                     // ignored service bits
+                     int64_t{},
+                     // dummy addrMe
+                     WithParams(CNetAddr::V1, CService{}),
+                     // ignored service bits
+                     int64_t{},
+                     // dummy addrFrom
+                     WithParams(CNetAddr::V1, CService{}),
+                     // dummy nonce
+                     uint64_t{1},
+                     // dummy subver
+                     std::string{},
+                     // dummy starting_height
+                     int32_t{},
+                     //
+                     relay_txs,
+                     // dummy extra entropy
+                     uint64_t{1}),
     };
 
     (void)connman.ReceiveMsgFrom(node, msg_version);
@@ -63,7 +62,7 @@ void ConnmanTestMsg::Handshake(CNode &node, bool successfully_connected,
     assert(peerman.GetNodeStateStats(node.GetId(), statestats));
     assert(statestats.their_services == remote_services);
     if (successfully_connected) {
-        CSerializedNetMsg msg_verack{mm.Make(NetMsgType::VERACK)};
+        CSerializedNetMsg msg_verack{NetMsg::Make(NetMsgType::VERACK)};
         (void)connman.ReceiveMsgFrom(node, msg_verack);
         node.fPauseSend = false;
         connman.ProcessMessagesOnce(node);
