@@ -827,7 +827,7 @@ public:
         Misbehaving(*Assert(GetPeerRef(peer_id)), "");
     }
     void ProcessMessage(const Config &config, CNode &pfrom,
-                        const std::string &msg_type, CDataStream &vRecv,
+                        const std::string &msg_type, DataStream &vRecv,
                         const std::chrono::microseconds time_received,
                         const std::atomic<bool> &interruptMsgProc) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
@@ -1619,7 +1619,7 @@ private:
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   vRecv           The raw message received
      */
-    void ProcessGetCFilters(CNode &node, Peer &peer, CDataStream &vRecv);
+    void ProcessGetCFilters(CNode &node, Peer &peer, DataStream &vRecv);
     /**
      * Handle a cfheaders request.
      *
@@ -1629,7 +1629,8 @@ private:
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   vRecv           The raw message received
      */
-    void ProcessGetCFHeaders(CNode &node, Peer &peer, CDataStream &vRecv);
+    void ProcessGetCFHeaders(CNode &node, Peer &peer, DataStream &vRecv);
+
     /**
      * Handle a getcfcheckpt request.
      *
@@ -1639,7 +1640,7 @@ private:
      * @param[in]   peer            The peer that we received the request from
      * @param[in]   vRecv           The raw message received
      */
-    void ProcessGetCFCheckPt(CNode &node, Peer &peer, CDataStream &vRecv);
+    void ProcessGetCFCheckPt(CNode &node, Peer &peer, DataStream &vRecv);
 
     /**
      * Decide a response for an Avalanche poll about the given block.
@@ -4579,7 +4580,7 @@ bool PeerManagerImpl::PrepareBlockFilterRequest(
 }
 
 void PeerManagerImpl::ProcessGetCFilters(CNode &node, Peer &peer,
-                                         CDataStream &vRecv) {
+                                         DataStream &vRecv) {
     uint8_t filter_type_ser;
     uint32_t start_height;
     BlockHash stop_hash;
@@ -4613,7 +4614,7 @@ void PeerManagerImpl::ProcessGetCFilters(CNode &node, Peer &peer,
 }
 
 void PeerManagerImpl::ProcessGetCFHeaders(CNode &node, Peer &peer,
-                                          CDataStream &vRecv) {
+                                          DataStream &vRecv) {
     uint8_t filter_type_ser;
     uint32_t start_height;
     BlockHash stop_hash;
@@ -4661,7 +4662,7 @@ void PeerManagerImpl::ProcessGetCFHeaders(CNode &node, Peer &peer,
 }
 
 void PeerManagerImpl::ProcessGetCFCheckPt(CNode &node, Peer &peer,
-                                          CDataStream &vRecv) {
+                                          DataStream &vRecv) {
     uint8_t filter_type_ser;
     BlockHash stop_hash;
 
@@ -4882,7 +4883,7 @@ void PeerManagerImpl::ProcessBlock(const Config &config, CNode &node,
 
 void PeerManagerImpl::ProcessMessage(
     const Config &config, CNode &pfrom, const std::string &msg_type,
-    CDataStream &vRecv, const std::chrono::microseconds time_received,
+    DataStream &vRecv, const std::chrono::microseconds time_received,
     const std::atomic<bool> &interruptMsgProc) {
     AssertLockHeld(g_msgproc_mutex);
 
@@ -6106,7 +6107,7 @@ void PeerManagerImpl::ProcessMessage(
         // dummy (empty) BLOCKTXN message, to re-use the logic there in
         // completing processing of the putative block (without cs_main).
         bool fProcessBLOCKTXN = false;
-        CDataStream blockTxnMsg(SER_NETWORK, PROTOCOL_VERSION);
+        DataStream blockTxnMsg{};
 
         // If we end up treating this as a plain headers message, call that as
         // well
@@ -8033,8 +8034,6 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
                        /*is_incoming=*/true);
     }
 
-    msg.SetVersion(pfrom->GetCommonVersion());
-
     // Check network magic
     if (!msg.m_valid_netmagic) {
         LogPrint(BCLog::NET,
@@ -8059,7 +8058,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
     }
 
     // Checksum
-    CDataStream &vRecv = msg.m_recv;
+    DataStream &vRecv = msg.m_recv;
     if (!msg.m_valid_checksum) {
         LogPrint(BCLog::NET, "%s(%s, %u bytes): CHECKSUM ERROR peer=%d\n",
                  __func__, SanitizeString(msg.m_type), msg.m_message_size,

@@ -22,8 +22,7 @@ void initialize_p2p_transport_deserializer() {
 FUZZ_TARGET_INIT(p2p_transport_deserializer,
                  initialize_p2p_transport_deserializer) {
     const Config &config = GetConfig();
-    V1TransportDeserializer deserializer{config.GetChainParams().NetMagic(),
-                                         SER_NETWORK, INIT_PROTO_VERSION};
+    V1TransportDeserializer deserializer{config.GetChainParams().NetMagic()};
     Span<const uint8_t> msg_bytes{buffer};
     while (msg_bytes.size() > 0) {
         const int handled = deserializer.Read(config, msg_bytes);

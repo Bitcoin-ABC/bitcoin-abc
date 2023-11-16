@@ -256,7 +256,7 @@ struct CNodeStats {
 class CNetMessage {
 public:
     //! received message data
-    CDataStream m_recv;
+    DataStream m_recv;
     //! time of message receipt
     std::chrono::microseconds m_time{0};
     bool m_valid_netmagic = false;
@@ -268,7 +268,7 @@ public:
     uint32_t m_raw_message_size{0};
     std::string m_type;
 
-    CNetMessage(CDataStream &&recv_in) : m_recv(std::move(recv_in)) {}
+    CNetMessage(DataStream &&recv_in) : m_recv(std::move(recv_in)) {}
     // Only one CNetMessage object will exist for the same message on either
     // the receive or processing queue. For performance reasons we therefore
     // delete the copy constructor and assignment operator to avoid the
@@ -277,8 +277,6 @@ public:
     CNetMessage(const CNetMessage &) = delete;
     CNetMessage &operator=(CNetMessage &&) = default;
     CNetMessage &operator=(const CNetMessage &) = delete;
-
-    void SetVersion(int nVersionIn) { m_recv.SetVersion(nVersionIn); }
 };
 
 /**
@@ -290,8 +288,6 @@ class TransportDeserializer {
 public:
     // returns true if the current deserialization is complete
     virtual bool Complete() const = 0;
-    // set the serialization context version
-    virtual void SetVersion(int version) = 0;
     /** read and deserialize data, advances msg_bytes data pointer */
     virtual int Read(const Config &config, Span<const uint8_t> &msg_bytes) = 0;
     // decomposes a message from the context
@@ -308,11 +304,11 @@ private:
     // Parsing header (false) or data (true)
     bool in_data;
     // Partially received header.
-    CDataStream hdrbuf;
+    DataStream hdrbuf{};
     // Complete header.
     CMessageHeader hdr;
     // Received message data.
-    CDataStream vRecv;
+    DataStream vRecv{};
     uint32_t nHdrPos;
     uint32_t nDataPos;
 
@@ -332,11 +328,9 @@ private:
     }
 
 public:
-    V1TransportDeserializer(
-        const CMessageHeader::MessageMagic &pchMessageStartIn, int nTypeIn,
-        int nVersionIn)
-        : hdrbuf(nTypeIn, nVersionIn), hdr(pchMessageStartIn),
-          vRecv(nTypeIn, nVersionIn) {
+    explicit V1TransportDeserializer(
+        const CMessageHeader::MessageMagic &pchMessageStartIn)
+        : hdr(pchMessageStartIn) {
         Reset();
     }
 
@@ -348,10 +342,6 @@ public:
         return (hdr.nMessageSize == nDataPos);
     }
 
-    void SetVersion(int nVersionIn) override {
-        hdrbuf.SetVersion(nVersionIn);
-        vRecv.SetVersion(nVersionIn);
-    }
     int Read(const Config &config, Span<const uint8_t> &msg_bytes) override {
         int ret = in_data ? readData(msg_bytes) : readHeader(config, msg_bytes);
         if (ret < 0) {
