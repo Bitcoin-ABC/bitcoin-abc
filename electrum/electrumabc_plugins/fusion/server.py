@@ -894,8 +894,8 @@ class FusionController(threading.Thread, PrintError):
             if bad_inputs:
                 bad_components.update(input_indices[i] for i in bad_inputs)
             else:
-                for i, (inp, sig) in enumerate(zip(tx.inputs(), signatures)):
-                    inp["signatures"][0] = sig.hex() + "41"
+                for i, (inp, sig) in enumerate(zip(tx.txinputs(), signatures)):
+                    inp.update_signature(sig + b"\x41", 0)
 
                 assert tx.is_complete()
                 txid = tx.txid()

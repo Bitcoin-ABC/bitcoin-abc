@@ -1172,10 +1172,10 @@ class Fusion(threading.Thread, PrintError):
                 # assemble the transaction.
                 if len(allsigs) != len(tx.txinputs()):
                     raise FusionError("Server gave wrong number of signatures.")
-                for i, (sig, inp) in enumerate(zip(allsigs, tx.inputs())):
+                for i, (sig, inp) in enumerate(zip(allsigs, tx.txinputs())):
                     if len(sig) != 64:
                         raise FusionError("server relayed bad signature")
-                    inp["signatures"] = [sig.hex() + "41"]
+                    inp.update_signature(sig + b"\x41", 0)
 
                 assert tx.is_complete()
                 txhex = tx.serialize().hex()
