@@ -46,7 +46,7 @@ function Staking(props) {
                     quality nodes. This will help the eCash system to work well,
                     and also ensure you receive the staking rewards.
                 </p>
-                <H3 text="Staking Requirement" id="requirements" />
+                <H3 text="Staking Requirements" id="requirements" />
                 <ul>
                     <li>
                         The coins to be staked must be a minimum of
