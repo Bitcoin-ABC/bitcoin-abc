@@ -34,7 +34,10 @@ module.exports = [
                 timestamp: '1700051210',
             },
         },
-        staker: 'ecash:qqrxlq7f5j0zvwd47ras8ax6rvu8cl526y86jg3ddg',
+        staker: {
+            staker: 'ecash:qqrxlq7f5j0zvwd47ras8ax6rvu8cl526y86jg3ddg',
+            reward: 62500197,
+        },
     },
     {
         coinbaseTx: {

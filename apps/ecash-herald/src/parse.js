@@ -125,7 +125,10 @@ module.exports = {
                 thisValue >= minStakerValue &&
                 thisValue <= assumedMaxStakerValue
             ) {
-                return cashaddr.encodeOutputScript(output.outputScript);
+                return {
+                    staker: cashaddr.encodeOutputScript(output.outputScript),
+                    reward: thisValue,
+                };
             }
         }
         // If you don't find a staker, don't add it in msg. Can troubleshoot if see this in the app.
@@ -1605,10 +1608,14 @@ module.exports = {
         // Staker
         // Staking rewards to <staker>
         if (staker) {
+            // Get fiat amount of staking rwds
             tgMsg.push(
-                `${emojis.staker} Staking rewards to <a href="${
-                    config.blockExplorer
-                }/address/${staker}">${returnAddressPreview(staker)}</a>`,
+                `${emojis.staker}${satsToFormattedValue(
+                    staker.reward,
+                    coingeckoPrices,
+                )} to <a href="${config.blockExplorer}/address/${
+                    staker.staker
+                }">${returnAddressPreview(staker.staker)}</a>`,
             );
         }
 
