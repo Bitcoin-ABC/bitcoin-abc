@@ -524,7 +524,7 @@ __b43chars = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$*+-./:"
 assert len(__b43chars) == 43
 
 
-def base_encode(v, base):
+def base_encode(v, base) -> str:
     """encode v, which is a string of bytes, to base58."""
     assert_bytes(v)
     if base not in (58, 43):
@@ -557,7 +557,7 @@ def base_encode(v, base):
     return result.decode("ascii")
 
 
-def base_decode(v, length, base):
+def base_decode(v: str, length, base) -> Optional[bytes]:
     """decode v into a string of len bytes. May raise ValueError on bad chars
     in string."""
     # assert_bytes(v)
@@ -597,17 +597,19 @@ def base_decode(v, length, base):
     return bytes(result)
 
 
-def EncodeBase58Check(vchIn):
+def EncodeBase58Check(vchIn: bytes) -> str:
     h = Hash(vchIn)
     return base_encode(vchIn + h[0:4], base=58)
 
 
-def DecodeBase58Check(psz):
+def DecodeBase58Check(psz: str) -> Optional[bytes]:
     """Returns None on failure"""
     try:
         vchRet = base_decode(psz, None, base=58)
     except ValueError:
         # Bad characters in string
+        return None
+    if vchRet is None:
         return None
     key = vchRet[0:-4]
     csum = vchRet[-4:]
@@ -619,7 +621,7 @@ def DecodeBase58Check(psz):
         return key
 
 
-def serialize_privkey(secret, compressed, txin_type: ScriptType, *, net=None) -> bytes:
+def serialize_privkey(secret, compressed, txin_type: ScriptType, *, net=None) -> str:
     if net is None:
         net = networks.net
     prefix = bytes([(txin_type + net.WIF_PREFIX) & 255])
