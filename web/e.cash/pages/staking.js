@@ -49,10 +49,26 @@ function Staking(props) {
                 <H3 text="Staking Requirement" id="requirements" />
                 <ul>
                     <li>
-                        The node should have reliably high uptime, and be able
-                        to run continuously for long periods.
+                        The coins to be staked must be a minimum of
+                        100,000,000.00 XEC per UTXO.
                     </li>
-                    <li>Must have reliable internet connection.</li>
+                    <li>
+                        The stake UTXOs must have 2016 or more block
+                        confirmations. This means the coins must not have moved
+                        for approximately two weeks.
+                    </li>
+                    <li>
+                        The stake UTXOs must be of type Pay To Public Key Hash
+                        (P2PKH).
+                    </li>
+                    <li>
+                        Staking nodes should have reliably high uptime, and be
+                        able to run continuously for long periods.
+                    </li>
+                    <li>
+                        Staking nodes must have reliable, always-on internet
+                        connection.
+                    </li>
                     <li>
                         Node should accept incoming connections from the
                         network, not be behind a restrictive firewall, and not
@@ -61,8 +77,13 @@ function Staking(props) {
                         <code>bitcoin.conf</code> file).
                     </li>
                     <li>
-                        Preferably run multiple nodes per Proof with the use of
-                        Delegations.
+                        It is advisable to run multiple nodes per Proof with the
+                        use of Delegations. For best redundancy, the nodes
+                        should be geographically distributed, in different data
+                        centres and with different providers. This will help
+                        provide better service to the avalanche network, and
+                        ease in upgrading nodes one at a time to ensure no
+                        staking downtime.
                     </li>
                 </ul>
                 <H3 text="Further Reading" id="further-reading" />
