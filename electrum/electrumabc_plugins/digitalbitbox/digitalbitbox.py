@@ -775,7 +775,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                 dbb_signatures.extend(reply["sign"])
 
             # Fill signatures
-            if len(dbb_signatures) != len(tx.inputs()):
+            if len(dbb_signatures) != len(tx.txinputs()):
                 raise Exception(
                     "Incorrect number of transactions signed."
                 )  # Should never occur

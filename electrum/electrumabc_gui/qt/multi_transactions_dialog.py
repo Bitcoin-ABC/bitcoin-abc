@@ -123,7 +123,7 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
                 fee_item = QtWidgets.QTableWidgetItem(f"{fee / sats_per_unit:.2f}")
 
             self.transactions_table.setItem(
-                i, 0, QtWidgets.QTableWidgetItem(f"{len(tx.inputs())}")
+                i, 0, QtWidgets.QTableWidgetItem(f"{len(tx.txinputs())}")
             )
             self.transactions_table.setItem(
                 i, 1, QtWidgets.QTableWidgetItem(f"{len(tx.outputs())}")

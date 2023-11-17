@@ -692,7 +692,7 @@ class TxDialog(QtWidgets.QDialog, MessageBoxMixin, PrintError):
         hbox.setContentsMargins(0, 12, 0, 0)
 
         self.i_text = i_text = TextBrowserKeyboardFocusFilter()
-        num_inputs = len(self.tx.inputs())
+        num_inputs = len(self.tx.txinputs())
         inputs_lbl_text = ngettext(
             "&Input", "&Inputs ({num_inputs})", num_inputs
         ).format(num_inputs=num_inputs)

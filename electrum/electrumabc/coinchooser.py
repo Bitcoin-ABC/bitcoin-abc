@@ -232,7 +232,7 @@ class CoinChooserBase(PrintError):
         change = self.change_outputs(tx, change_addrs, fee)
         tx.add_outputs(change)
 
-        self.print_error("using %d inputs" % len(tx.inputs()))
+        self.print_error("using %d inputs" % len(tx.txinputs()))
         self.print_error("using buckets:", [bucket.desc for bucket in buckets])
 
         return tx

@@ -1170,7 +1170,7 @@ class Fusion(threading.Thread, PrintError):
             if msg.ok:
                 allsigs = msg.txsignatures
                 # assemble the transaction.
-                if len(allsigs) != len(tx.inputs()):
+                if len(allsigs) != len(tx.txinputs()):
                     raise FusionError("Server gave wrong number of signatures.")
                 for i, (sig, inp) in enumerate(zip(allsigs, tx.inputs())):
                     if len(sig) != 64:
