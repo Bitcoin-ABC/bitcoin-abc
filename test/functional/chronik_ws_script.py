@@ -101,6 +101,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
 
         # Send the tx, will send updates to ws1 and ws2
         txid = node.sendrawtransaction(tx.serialize().hex())
+        self.wait_until(lambda: txid in node.getrawmempool())
 
         from test_framework.chronik.client import pb
 
