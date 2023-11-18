@@ -500,33 +500,38 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     let replyAddress = '';
     let aliasFlag = false;
 
-    // Iterate over inputs to see if this is an incoming tx (incoming === true)
-    for (let i = 0; i < inputs.length; i += 1) {
-        const thisInput = inputs[i];
+    if (tx.isCoinbase) {
+        // Note that coinbase inputs have `undefined` for `thisInput.outputScript`
+        incoming = true;
+        replyAddress = 'N/A';
+    } else {
+        // Iterate over inputs to see if this is an incoming tx (incoming === true)
+        for (let i = 0; i < inputs.length; i += 1) {
+            const thisInput = inputs[i];
 
-        // If this is an etoken tx, check for token burn
-        if (
-            isEtokenTx &&
-            typeof thisInput.slpBurn !== 'undefined' &&
-            thisInput.slpBurn.token &&
-            thisInput.slpBurn.token.amount &&
-            thisInput.slpBurn.token.amount !== '0'
-        ) {
-            // Assume that any eToken tx with a burn is a burn tx
-            isTokenBurn = true;
-            try {
-                const thisEtokenBurnAmount = new BigNumber(
-                    thisInput.slpBurn.token.amount,
-                );
-                // Need to know the total output amount to compare to total input amount and tell if this is a burn transaction
-                etokenAmount = etokenAmount.plus(thisEtokenBurnAmount);
-            } catch (err) {
-                // do nothing
-                // If this happens, the burn amount will render wrong in tx history because we don't have the info in chronik
-                // This is acceptable
+            // If this is an etoken tx, check for token burn
+            if (
+                isEtokenTx &&
+                typeof thisInput.slpBurn !== 'undefined' &&
+                thisInput.slpBurn.token &&
+                thisInput.slpBurn.token.amount &&
+                thisInput.slpBurn.token.amount !== '0'
+            ) {
+                // Assume that any eToken tx with a burn is a burn tx
+                isTokenBurn = true;
+                try {
+                    const thisEtokenBurnAmount = new BigNumber(
+                        thisInput.slpBurn.token.amount,
+                    );
+                    // Need to know the total output amount to compare to total input amount and tell if this is a burn transaction
+                    etokenAmount = etokenAmount.plus(thisEtokenBurnAmount);
+                } catch (err) {
+                    // do nothing
+                    // If this happens, the burn amount will render wrong in tx history because we don't have the info in chronik
+                    // This is acceptable
+                }
             }
-        }
-        /* 
+            /* 
         
         Assume the first input is the originating address
         
@@ -541,30 +546,37 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         ...most of the time ;)
         */
 
-        // Since you may have more than one address in inputs, assume the first one is the replyAddress
-        if (i === 0) {
-            try {
-                replyAddress = outputScriptToAddress(thisInput.outputScript);
-            } catch (err) {
-                console.log(
-                    `Error from outputScriptToAddress(${thisInput.outputScript})`,
-                    err,
-                );
-                // If the transaction is nonstandard, don't worry about a reply address for now
-                replyAddress = 'N/A';
+            // Since you may have more than one address in inputs, assume the first one is the replyAddress
+            if (i === 0) {
+                try {
+                    replyAddress = outputScriptToAddress(
+                        thisInput.outputScript,
+                    );
+                } catch (err) {
+                    console.log(
+                        `Error from outputScriptToAddress(${thisInput.outputScript})`,
+                        err,
+                    );
+                    // If the transaction is nonstandard, don't worry about a reply address for now
+                    replyAddress = 'N/A';
+                }
             }
-        }
 
-        for (let j = 0; j < walletHash160s.length; j += 1) {
-            const thisWalletHash160 = walletHash160s[j];
-            if (thisInput.outputScript.includes(thisWalletHash160)) {
-                // Then this is an outgoing tx
-                incoming = false;
-                // Break out of this for loop once you know this is an outgoing tx
-                break;
+            for (let j = 0; j < walletHash160s.length; j += 1) {
+                const thisWalletHash160 = walletHash160s[j];
+                if (
+                    typeof thisInput.outputScript !== 'undefined' &&
+                    thisInput.outputScript.includes(thisWalletHash160)
+                ) {
+                    // Then this is an outgoing tx
+                    incoming = false;
+                    // Break out of this for loop once you know this is an outgoing tx
+                    break;
+                }
             }
         }
     }
+
     // Iterate over outputs to get the amount sent
     for (let i = 0; i < outputs.length; i += 1) {
         const thisOutput = outputs[i];

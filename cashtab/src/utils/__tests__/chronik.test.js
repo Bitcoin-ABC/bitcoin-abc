@@ -56,6 +56,7 @@ import {
     mockReceivedEtokenTx,
     mockSwapWallet,
     mockSwapTx,
+    coinbaseTx,
 } from '../__mocks__/chronikTxHistory';
 import {
     mintingTxTabCash,
@@ -233,7 +234,23 @@ it(`sortAndTrimChronikTxHistory successfully orders the result of flattenChronik
         ),
     ).toStrictEqual(mockSortedFlatTxHistoryWithAllUnconfirmed);
 });
-
+it(`Successfully parses a staking rewards coinbase tx`, () => {
+    expect(
+        parseChronikTx(coinbaseTx, mockParseTxWallet, txHistoryTokenInfoById),
+    ).toStrictEqual({
+        incoming: true,
+        xecAmount: '625008.97',
+        isEtokenTx: false,
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        decryptionSuccess: false,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        opReturnMessage: '',
+        replyAddress: 'N/A',
+    });
+});
 it(`Successfully parses an incoming XEC tx`, () => {
     expect(
         parseChronikTx(

@@ -10366,6 +10366,64 @@ export const anotherMockParseTxWallet = {
     },
 };
 
+export const coinbaseTx = {
+    txid: 'c8b0783e36ab472f26108007ffa522ee82b79db3777c84b0448f5b9ef35be895',
+    version: 1,
+    inputs: [
+        {
+            prevOut: {
+                txid: '0000000000000000000000000000000000000000000000000000000000000000',
+                outIdx: 4294967295,
+            },
+            inputScript:
+                '03f07d0c0439e5546508edc754ac9b2939000c736f6c6f706f6f6c2e6f7267',
+            value: '0',
+            sequenceNo: 0,
+        },
+    ],
+    outputs: [
+        {
+            value: '362505204',
+            outputScript: '76a914f4728f398bb962656803346fb4ac45d776041a2e88ac',
+            spentBy: {
+                txid: '6a26b853ba356cdc4a927c43afe33f03d30ef2367bd1f2c190a8c2e15f77fb6d',
+                outIdx: 1,
+            },
+        },
+        {
+            value: '200002871',
+            outputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+        },
+        {
+            value: '62500897',
+            outputScript: '76a91476458db0ed96fe9863fc1ccec9fa2cfab884b0f688ac',
+        },
+    ],
+    lockTime: 0,
+    block: {
+        height: 818672,
+        hash: '000000000000000009520291eb09aacd13b7bb802f329b584dafbc036a15b4cb',
+        timestamp: '1700062633',
+    },
+    timeFirstSeen: '0',
+    size: 182,
+    isCoinbase: true,
+    network: 'XEC',
+    parsed: {
+        incoming: true,
+        xecAmount: '625008.97',
+        isEtokenTx: false,
+        airdropFlag: false,
+        airdropTokenId: '',
+        opReturnMessage: '',
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        decryptionSuccess: false,
+        replyAddress: 'N/A',
+        aliasFlag: false,
+    },
+};
+
 export const lambdaIncomingXecTx = {
     txid: 'ac83faac54059c89c41dea4c3d6704e4f74fb82e4ad2fb948e640f1d19b760de',
     version: 2,
