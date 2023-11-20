@@ -42,7 +42,7 @@ import PopOut from 'assets/popout.svg';
 import extension from 'extensionizer';
 import aliasSettings from 'config/alias';
 
-const GlobalStyle = createGlobalStyle`    
+const GlobalStyle = createGlobalStyle`
     *::placeholder {
         color: ${props => props.theme.forms.placeholder} !important;
     }
@@ -65,7 +65,7 @@ const GlobalStyle = createGlobalStyle`
             background-color: ${props => props.theme.eCashBlue} !important;
         }
     }    
-    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button, #cropControlsConfirm{
+    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button, #cropControlsConfirm {
         border-radius: 3px;
         border-radius: 3px;
         background-color: ${props =>
@@ -80,9 +80,9 @@ const GlobalStyle = createGlobalStyle`
     }    
     
     .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover, #cropControlsConfirm:hover {
-        color: ${props => props.theme.contrast};	
-        transition: all 0.3s;	
-        background-color: ${props => props.theme.eCashBlue};	
+        color: ${props => props.theme.contrast};
+        transition: all 0.3s;
+        background-color: ${props => props.theme.eCashBlue};
         border-color: ${props => props.theme.eCashBlue};
     }   
     .selectedCurrencyOption, .ant-select-dropdown {
@@ -115,11 +115,11 @@ const GlobalStyle = createGlobalStyle`
     .ant-slider-track {
         background-color: ${props => props.theme.eCashBlue} !important;
     }
-    .ant-descriptions-bordered .ant-descriptions-row {	
-    background: ${props => props.theme.contrast};	
-    }	
-    .ant-modal-confirm-content, .ant-modal-confirm-title {	
-        color: ${props => props.theme.contrast} !important;	
+    .ant-descriptions-bordered .ant-descriptions-row {
+    background: ${props => props.theme.contrast};
+    }
+    .ant-modal-confirm-content, .ant-modal-confirm-title {
+        color: ${props => props.theme.contrast} !important;
     }
     .ant-form-item-explain {
         div {
@@ -143,7 +143,6 @@ const GlobalStyle = createGlobalStyle`
 
 const CustomApp = styled.div`
     text-align: center;
-    font-family: 'Gilroy', sans-serif;
     font-family: 'Poppins', sans-serif;
     background-color: ${props => props.theme.backgroundColor};
     background-size: 100px 171px;
@@ -222,11 +221,11 @@ const NavMenu = styled.div`
         props.open ? props.theme.contrast : 'transparent'};
     justify-content: center;
     align-items: center;
-    overflow: hidden;
     @media (max-width: 768px) {
         right: 0;
         margin-right: 0;
     }
+    overflow: hidden;
     transition: ${props =>
         props.open
             ? 'max-height 1000ms ease-in-out , border-color 800ms ease-in-out, border-width 800ms ease-in-out'
@@ -264,13 +263,14 @@ const NavItem = styled.button`
     }
     ${({ active, ...props }) =>
         active &&
-        `    
+        `
         color: ${props.theme.navActive};
         svg {
             fill: ${props.theme.navActive};
         }
   `}
 `;
+
 export const NavButton = styled.button`
     :focus,
     :active {

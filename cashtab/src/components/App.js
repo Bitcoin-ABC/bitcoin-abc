@@ -27,7 +27,7 @@ import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Swap from 'components/Swap/Swap';
 import NotFound from 'components/NotFound';
-import CashTab from 'assets/cashtab_xec.png';
+import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'utils/context';
 import { isValidStoredWallet } from 'utils/cashMethods';
@@ -333,7 +333,7 @@ export const HeaderCtn = styled.div`
     padding: 15px 0;
 `;
 
-export const CashTabLogo = styled.img`
+export const CashtabLogo = styled.img`
     width: 120px;
     @media (max-width: 768px) {
         width: 110px;
@@ -539,7 +539,7 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <CashTabLogo src={CashTab} alt="cashtab" />
+                                <CashtabLogo src={Cashtab} alt="cashtab" />
                                 {selectedKey === 'airdrop' && (
                                     <NavHeader>
                                         Airdrop
