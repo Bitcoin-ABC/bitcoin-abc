@@ -1,6 +1,5 @@
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { FailoverProxy } from '../failoverProxy';
 import {
     BlockDetails,
     BlockInfo,
@@ -11,6 +10,7 @@ import {
     Utxo,
     UtxoState,
 } from '../index';
+import { FailoverProxy } from '../src/failoverProxy';
 
 const expect = chai.expect;
 const assert = chai.assert;

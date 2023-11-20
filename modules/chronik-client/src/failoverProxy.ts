@@ -1,8 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
 import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
-import * as proto from './chronik';
-import { WsEndpoint } from './index';
+import * as proto from '../proto/chronik';
+import { WsEndpoint } from './ChronikClient';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
