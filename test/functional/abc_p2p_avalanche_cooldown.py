@@ -27,6 +27,7 @@ class AvalancheCooldownTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
                 "-avacooldown=10000",
+                "-persistavapeers=0",
             ],
         ]
 

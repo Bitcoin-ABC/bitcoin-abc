@@ -57,6 +57,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
             [
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=3",
+                "-persistavapeers=0",
             ]
         ]
         self.supports_cli = False

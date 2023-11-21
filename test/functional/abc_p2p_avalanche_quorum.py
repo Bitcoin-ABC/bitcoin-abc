@@ -38,6 +38,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
                 "-avaminquorumstake=150000000",
                 "-avaminquorumconnectedstakeratio=0.8",
                 "-minimumchainwork=0",
+                "-persistavapeers=0",
             ]
         ] * self.num_nodes
         self.extra_args[0] = self.extra_args[0] + ["-avaminavaproofsnodecount=0"]

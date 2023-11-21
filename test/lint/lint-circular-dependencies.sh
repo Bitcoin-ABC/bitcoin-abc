@@ -27,7 +27,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "wallet/rpcwallet -> wallet/wallet -> wallet/rpcwallet"
     "wallet/wallet -> wallet/walletdb -> wallet/wallet"
     "avalanche/processor -> validation -> avalanche/processor"
-    "avalanche/processor -> validation -> policy/block/stakingrewards -> avalanche/processor"
+    "avalanche/processor -> policy/block/stakingrewards -> avalanche/processor"
     "chainparams -> protocol -> chainparams"
     "chainparamsbase -> util/system -> chainparamsbase"
     "script/scriptcache -> validation -> script/scriptcache"

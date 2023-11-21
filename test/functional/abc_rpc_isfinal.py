@@ -27,6 +27,7 @@ class AvalancheIsFinalTest(BitcoinTestFramework):
                 "-avacooldown=0",
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
+                "-persistavapeers=0",
             ]
         ]
 

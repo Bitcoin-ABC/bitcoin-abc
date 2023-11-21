@@ -41,6 +41,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-avacooldown=0",
                 "-whitelist=noban@127.0.0.1",
+                "-persistavapeers=0",
             ]
         ] * self.num_nodes
 

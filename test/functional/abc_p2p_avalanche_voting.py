@@ -36,6 +36,7 @@ class AvalancheTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
+                "-persistavapeers=0",
             ],
             [
                 "-avaproofstakeutxodustthreshold=1000000",

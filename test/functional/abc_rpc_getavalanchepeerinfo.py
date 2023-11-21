@@ -71,6 +71,7 @@ class GetAvalanchePeerInfoTest(BitcoinTestFramework):
                 "-avaproofstakeutxodustthreshold=1000000",
                 "-avaproofstakeutxoconfirmations=1",
                 "-avacooldown=0",
+                "-persistavapeers=0",
             ]
         ]
 

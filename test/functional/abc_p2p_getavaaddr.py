@@ -107,6 +107,7 @@ class AvaAddrTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
+                "-persistavapeers=0",
             ]
         ]
 

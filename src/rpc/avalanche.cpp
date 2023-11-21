@@ -797,7 +797,9 @@ static RPCHelpMan getavalancheinfo() {
                 pm.forEachPeer([&](const avalanche::Peer &peer) {
                     CHECK_NONFATAL(peer.proof != nullptr);
 
-                    const bool isLocalProof = peer.proof == localProof;
+                    const bool isLocalProof =
+                        localProof &&
+                        peer.proof->getId() == localProof->getId();
 
                     ++proofCount;
                     const Amount proofStake = peer.proof->getStakedAmount();

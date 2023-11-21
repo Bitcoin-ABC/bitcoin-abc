@@ -1372,6 +1372,12 @@ void SetupServerArgs(NodeContext &node) {
             "%u).",
             DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS),
         ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
+    argsman.AddArg(
+        "-persistavapeers",
+        strprintf("Whether to save the avalanche peers upon shutdown and load "
+                  "them upon startup (default: %u).",
+                  DEFAULT_PERSIST_AVAPEERS),
+        ArgsManager::ALLOW_BOOL, OptionsCategory::AVALANCHE);
 
     hidden_args.emplace_back("-avalanchepreconsensus");
 

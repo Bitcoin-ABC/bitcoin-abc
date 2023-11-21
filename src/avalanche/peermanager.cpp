@@ -1158,6 +1158,9 @@ bool PeerManager::dumpPeersToFile(const fs::path &dumpPath) const {
         return false;
     }
 
+    LogPrint(BCLog::AVALANCHE, "Successfully dumped %d peers to %s.\n",
+             peers.size(), PathToString(dumpPath));
+
     return true;
 }
 

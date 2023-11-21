@@ -14,6 +14,7 @@
 #include <key_io.h> // For DecodeSecret
 #include <net.h>
 #include <netmessagemaker.h>
+#include <policy/block/stakingrewards.h>
 #include <scheduler.h>
 #include <util/bitmanip.h>
 #include <util/moneystr.h>
@@ -29,6 +30,8 @@
  * Run the avalanche event loop every 10ms.
  */
 static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
+
+static const std::string AVAPEERS_FILE_NAME{"avapeers.dat"};
 
 // Unfortunately, the bitcoind codebase is full of global and we are kinda
 // forced into it here.
@@ -172,11 +175,40 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
             return true;
         },
         5min);
+
+    if (!gArgs.GetBoolArg("-persistavapeers", DEFAULT_PERSIST_AVAPEERS)) {
+        return;
+    }
+
+    std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
+
+    // Attempt to load the peer file if it exists.
+    const fs::path dumpPath = gArgs.GetDataDirNet() / AVAPEERS_FILE_NAME;
+    WITH_LOCK(cs_peerManager, return peerManager->loadPeersFromFile(
+                                  dumpPath, registeredProofs));
+
+    // We just loaded the previous finalization status, but make sure to trigger
+    // another round of vote for these proofs to avoid issue if the network
+    // status changed since the peers file was dumped.
+    for (const auto &proof : registeredProofs) {
+        addToReconcile(proof);
+    }
+
+    LogPrint(BCLog::AVALANCHE, "Loaded %d peers from the %s file\n",
+             registeredProofs.size(), dumpPath.c_str());
 }
 
 Processor::~Processor() {
     chainNotificationsHandler.reset();
     stopEventLoop();
+
+    if (!gArgs.GetBoolArg("-persistavapeers", DEFAULT_PERSIST_AVAPEERS)) {
+        return;
+    }
+
+    LOCK(cs_peerManager);
+    // Discard the status output: if it fails we want to continue normally.
+    peerManager->dumpPeersToFile(gArgs.GetDataDirNet() / AVAPEERS_FILE_NAME);
 }
 
 std::unique_ptr<Processor>
@@ -808,6 +840,15 @@ bool Processor::isQuorumEstablished() {
     }
 
     quorumIsEstablished = true;
+
+    // Attempt to compute the staking rewards winner now so we don't have to
+    // wait for a block if we already have all the prerequisites.
+    const CBlockIndex *pprev = WITH_LOCK(cs_main, return chainman.ActiveTip());
+    if (pprev && IsStakingRewardsActivated(
+                     GetConfig().GetChainParams().GetConsensus(), pprev)) {
+        computeStakingReward(pprev);
+    }
+
     return true;
 }
 

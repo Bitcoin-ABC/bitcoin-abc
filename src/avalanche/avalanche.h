@@ -59,6 +59,9 @@ static constexpr double AVALANCHE_DEFAULT_MIN_QUORUM_CONNECTED_STAKE_RATIO =
  */
 static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 8;
 
+/** Default for -persistavapeers */
+static constexpr bool DEFAULT_PERSIST_AVAPEERS{true};
+
 /**
  * Global avalanche instance.
  */

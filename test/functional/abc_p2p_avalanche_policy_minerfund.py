@@ -44,6 +44,7 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
                 f"-cowperthwaiteactivationtime={THE_FUTURE}",
+                "-persistavapeers=0",
             ],
         ]
 
