@@ -104,8 +104,12 @@ namespace {
         }
 
         static void clearPeers(PeerManager &pm) {
+            std::vector<PeerId> peerIds;
             for (auto &peer : pm.peers) {
-                pm.removePeer(peer.peerid);
+                peerIds.push_back(peer.peerid);
+            }
+            for (const PeerId &peerid : peerIds) {
+                pm.removePeer(peerid);
             }
             BOOST_CHECK_EQUAL(pm.peers.size(), 0);
         }
