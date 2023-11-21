@@ -65,8 +65,6 @@ public:
         }
     }
 
-    explicit base_uint(const std::string &str);
-
     base_uint operator~() const {
         base_uint ret;
         for (int i = 0; i < WIDTH; i++) {
@@ -255,8 +253,6 @@ public:
     }
 
     std::string GetHex() const;
-    void SetHex(const char *psz);
-    void SetHex(const std::string &str);
     std::string ToString() const;
 
     unsigned int size() const { return sizeof(pn); }
@@ -280,7 +276,6 @@ public:
     arith_uint256() = default;
     arith_uint256(const base_uint<256> &b) : base_uint<256>(b) {}
     arith_uint256(uint64_t b) : base_uint<256>(b) {}
-    explicit arith_uint256(const std::string &str) : base_uint<256>(str) {}
 
     /**
      * The "compact" format is a representation of a whole number N using an

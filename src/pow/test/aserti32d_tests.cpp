@@ -476,10 +476,10 @@ BOOST_AUTO_TEST_CASE(calculate_asert_test) {
     };
 
     // Define some named input argument values
-    const arith_uint256 SINGLE_300_TARGET{
-        "00000000ffb1ffffffffffffffffffffffffffffffffffffffffffffffffffff"};
-    const arith_uint256 FUNNY_REF_TARGET{
-        "000000008000000000000000000fffffffffffffffffffffffffffffffffffff"};
+    const arith_uint256 SINGLE_300_TARGET{UintToArith256(uint256S(
+        "00000000ffb1ffffffffffffffffffffffffffffffffffffffffffffffffffff"))};
+    const arith_uint256 FUNNY_REF_TARGET{UintToArith256(uint256S(
+        "000000008000000000000000000fffffffffffffffffffffffffffffffffffff"))};
 
     // Define our expected input and output values.
     // The timeDiff entries exclude the `parent_time_diff` - this is

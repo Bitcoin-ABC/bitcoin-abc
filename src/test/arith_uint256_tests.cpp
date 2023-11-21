@@ -23,6 +23,9 @@ BOOST_FIXTURE_TEST_SUITE(arith_uint256_tests, BasicTestingSetup)
 static inline arith_uint256 arith_uint256V(const std::vector<uint8_t> &vch) {
     return UintToArith256(uint256(vch));
 }
+static inline arith_uint256 arith_uint256S(const std::string &str) {
+    return UintToArith256(uint256S(str));
+}
 
 const uint8_t R1Array[] =
     "\x9c\x52\x4a\xdb\xcf\x56\x11\x12\x2b\x29\x12\x5e\x5d\x35\xd2\xd2"
@@ -102,26 +105,26 @@ BOOST_AUTO_TEST_CASE(basics) {
     BOOST_CHECK(ZeroL == (OneL << 256));
 
     // String Constructor and Copy Constructor
-    BOOST_CHECK(arith_uint256("0x" + R1L.ToString()) == R1L);
-    BOOST_CHECK(arith_uint256("0x" + R2L.ToString()) == R2L);
-    BOOST_CHECK(arith_uint256("0x" + ZeroL.ToString()) == ZeroL);
-    BOOST_CHECK(arith_uint256("0x" + OneL.ToString()) == OneL);
-    BOOST_CHECK(arith_uint256("0x" + MaxL.ToString()) == MaxL);
-    BOOST_CHECK(arith_uint256(R1L.ToString()) == R1L);
-    BOOST_CHECK(arith_uint256("   0x" + R1L.ToString() + "   ") == R1L);
-    BOOST_CHECK(arith_uint256("") == ZeroL);
-    BOOST_CHECK(R1L == arith_uint256(R1ArrayHex));
+    BOOST_CHECK(arith_uint256S("0x" + R1L.ToString()) == R1L);
+    BOOST_CHECK(arith_uint256S("0x" + R2L.ToString()) == R2L);
+    BOOST_CHECK(arith_uint256S("0x" + ZeroL.ToString()) == ZeroL);
+    BOOST_CHECK(arith_uint256S("0x" + OneL.ToString()) == OneL);
+    BOOST_CHECK(arith_uint256S("0x" + MaxL.ToString()) == MaxL);
+    BOOST_CHECK(arith_uint256S(R1L.ToString()) == R1L);
+    BOOST_CHECK(arith_uint256S("   0x" + R1L.ToString() + "   ") == R1L);
+    BOOST_CHECK(arith_uint256S("") == ZeroL);
+    BOOST_CHECK(R1L == arith_uint256S(R1ArrayHex));
     BOOST_CHECK(arith_uint256(R1L) == R1L);
     BOOST_CHECK((arith_uint256(R1L ^ R2L) ^ R2L) == R1L);
     BOOST_CHECK(arith_uint256(ZeroL) == ZeroL);
     BOOST_CHECK(arith_uint256(OneL) == OneL);
 
     // uint64_t constructor
-    BOOST_CHECK((R1L & arith_uint256("0xffffffffffffffff")) ==
+    BOOST_CHECK((R1L & arith_uint256S("0xffffffffffffffff")) ==
                 arith_uint256(R1LLow64));
     BOOST_CHECK(ZeroL == arith_uint256(0));
     BOOST_CHECK(OneL == arith_uint256(1));
-    BOOST_CHECK(arith_uint256("0xffffffffffffffff") ==
+    BOOST_CHECK(arith_uint256S("0xffffffffffffffff") ==
                 arith_uint256(0xffffffffffffffffULL));
 
     // Assignment (from base_uint)
@@ -326,7 +329,7 @@ BOOST_AUTO_TEST_CASE(comparison) {
 
 BOOST_AUTO_TEST_CASE(plusMinus) {
     arith_uint256 TmpL = 0;
-    BOOST_CHECK(R1L + R2L == arith_uint256(R1LplusR2L));
+    BOOST_CHECK(R1L + R2L == arith_uint256S(R1LplusR2L));
     TmpL += R1L;
     BOOST_CHECK(TmpL == R1L);
     TmpL += R2L;
@@ -404,8 +407,8 @@ BOOST_AUTO_TEST_CASE(multiply) {
 }
 
 BOOST_AUTO_TEST_CASE(divide) {
-    arith_uint256 D1L("AD7133AC1977FA2B7");
-    arith_uint256 D2L("ECD751716");
+    arith_uint256 D1L{arith_uint256S("AD7133AC1977FA2B7")};
+    arith_uint256 D2L{arith_uint256S("ECD751716")};
     BOOST_CHECK(
         (R1L / D1L).ToString() ==
         "00000000000000000b8ac01106981635d9ed112290f8895545a7654dde28fb3a");
@@ -433,7 +436,7 @@ static bool almostEqual(double d1, double d2) {
            4 * fabs(d1) * std::numeric_limits<double>::epsilon();
 }
 
-// GetHex SetHex size() GetLow64 GetSerializeSize, Serialize, Unserialize
+// GetHex operator= size() GetLow64 GetSerializeSize, Serialize, Unserialize
 BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK(R1L.GetHex() == R1L.ToString());
     BOOST_CHECK(R2L.GetHex() == R2L.ToString());
@@ -441,14 +444,14 @@ BOOST_AUTO_TEST_CASE(methods) {
     BOOST_CHECK(MaxL.GetHex() == MaxL.ToString());
     arith_uint256 TmpL(R1L);
     BOOST_CHECK(TmpL == R1L);
-    TmpL.SetHex(R2L.ToString());
+    TmpL = R2L;
     BOOST_CHECK(TmpL == R2L);
-    TmpL.SetHex(ZeroL.ToString());
+    TmpL = ZeroL;
     BOOST_CHECK(TmpL == 0);
-    TmpL.SetHex(HalfL.ToString());
+    TmpL = HalfL;
     BOOST_CHECK(TmpL == HalfL);
 
-    TmpL.SetHex(R1L.ToString());
+    TmpL = R1L;
     BOOST_CHECK(R1L.size() == 32);
     BOOST_CHECK(R2L.size() == 32);
     BOOST_CHECK(ZeroL.size() == 32);
@@ -729,8 +732,8 @@ BOOST_AUTO_TEST_CASE(double_roundtrip) {
 
     // Integers above 2^54-1 needs to be subsampled to the compact size
     // resolution
-    arith_uint256 hashMax{
-        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
+    arith_uint256 hashMax{arith_uint256S(
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")};
     hashMax.SetCompact(hashMax.GetCompact());
     BOOST_CHECK_EQUAL(
         hashMax.ToString(),
