@@ -70,6 +70,8 @@ const ws = chronik.ws({
         // Fired before a reconnect attempt is made:
         console.log('Reconnecting websocket, disconnection cause: ', e);
     },
+    // Optional: ping the ws every 30s to reduce disconnects
+    keepAlive: true,
 });
 // Wait for WS to be connected:
 await ws.waitForOpen();
