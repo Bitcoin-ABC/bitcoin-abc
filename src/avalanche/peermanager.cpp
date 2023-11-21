@@ -24,6 +24,8 @@
 #include <limits>
 
 namespace avalanche {
+static constexpr uint64_t PEERS_DUMP_VERSION{1};
+
 bool PeerManager::addNode(NodeId nodeid, const ProofId &proofid) {
     auto &pview = peers.get<by_proofid>();
     auto it = pview.find(proofid);
@@ -1120,4 +1122,114 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
 
     return std::nullopt;
 }
+
+bool PeerManager::dumpPeersToFile(const fs::path &dumpPath) const {
+    try {
+        const fs::path dumpPathTmp = dumpPath + ".new";
+        FILE *filestr = fsbridge::fopen(dumpPathTmp, "wb");
+        if (!filestr) {
+            return false;
+        }
+
+        CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+        file << PEERS_DUMP_VERSION;
+        file << uint64_t(peers.size());
+        for (const Peer &peer : peers) {
+            file << peer.proof;
+            file << peer.hasFinalized;
+            file << int64_t(peer.registration_time.count());
+            file << int64_t(peer.nextPossibleConflictTime.count());
+        }
+
+        if (!FileCommit(file.Get())) {
+            throw std::runtime_error(strprintf("Failed to commit to file %s",
+                                               PathToString(dumpPathTmp)));
+        }
+        file.fclose();
+
+        if (!RenameOver(dumpPathTmp, dumpPath)) {
+            throw std::runtime_error(strprintf("Rename failed from %s to %s",
+                                               PathToString(dumpPathTmp),
+                                               PathToString(dumpPath)));
+        }
+    } catch (const std::exception &e) {
+        LogPrint(BCLog::AVALANCHE, "Failed to dump the avalanche peers: %s.\n",
+                 e.what());
+        return false;
+    }
+
+    return true;
+}
+
+bool PeerManager::loadPeersFromFile(
+    const fs::path &dumpPath,
+    std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs) {
+    registeredProofs.clear();
+
+    FILE *filestr = fsbridge::fopen(dumpPath, "rb");
+    CAutoFile file(filestr, SER_DISK, CLIENT_VERSION);
+    if (file.IsNull()) {
+        LogPrint(BCLog::AVALANCHE,
+                 "Failed to open avalanche peers file from disk.\n");
+        return false;
+    }
+
+    try {
+        uint64_t version;
+        file >> version;
+
+        if (version != PEERS_DUMP_VERSION) {
+            LogPrint(BCLog::AVALANCHE,
+                     "Unsupported avalanche peers file version.\n");
+            return false;
+        }
+
+        uint64_t numPeers;
+        file >> numPeers;
+
+        auto &peersByProofId = peers.get<by_proofid>();
+
+        for (uint64_t i = 0; i < numPeers; i++) {
+            ProofRef proof;
+            bool hasFinalized;
+            int64_t registrationTime;
+            int64_t nextPossibleConflictTime;
+
+            file >> proof;
+            file >> hasFinalized;
+            file >> registrationTime;
+            file >> nextPossibleConflictTime;
+
+            if (registerProof(proof)) {
+                auto it = peersByProofId.find(proof->getId());
+                if (it == peersByProofId.end()) {
+                    // Should never happen
+                    continue;
+                }
+
+                // We don't modify any key so we don't need to rehash.
+                // If the modify fails, it means we don't get the full benefit
+                // from the file but we still added our peer to the set. The
+                // non-overridden fields will be set the normal way.
+                peersByProofId.modify(it, [&](Peer &p) {
+                    p.hasFinalized = hasFinalized;
+                    p.registration_time =
+                        std::chrono::seconds{registrationTime};
+                    p.nextPossibleConflictTime =
+                        std::chrono::seconds{nextPossibleConflictTime};
+                });
+
+                registeredProofs.insert(proof);
+            }
+        }
+    } catch (const std::exception &e) {
+        LogPrint(BCLog::AVALANCHE,
+                 "Failed to read the avalanche peers file data on disk: %s.\n",
+                 e.what());
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace avalanche

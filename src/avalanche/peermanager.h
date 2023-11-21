@@ -517,6 +517,11 @@ public:
      */
     bool selectStakingRewardWinner(const CBlockIndex *pprev, CScript &winner);
 
+    bool dumpPeersToFile(const fs::path &dumpPath) const;
+    bool loadPeersFromFile(
+        const fs::path &dumpPath,
+        std::unordered_set<ProofRef, SaltedProofHasher> &registeredProofs);
+
 private:
     template <typename ProofContainer>
     void moveToConflictingPool(const ProofContainer &proofs);

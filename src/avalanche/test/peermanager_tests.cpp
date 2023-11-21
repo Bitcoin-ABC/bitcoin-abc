@@ -102,6 +102,13 @@ namespace {
         getRemotePresenceStatus(const PeerManager &pm, const ProofId &proofid) {
             return pm.getRemotePresenceStatus(proofid);
         }
+
+        static void clearPeers(PeerManager &pm) {
+            for (auto &peer : pm.peers) {
+                pm.removePeer(peer.peerid);
+            }
+            BOOST_CHECK_EQUAL(pm.peers.size(), 0);
+        }
     };
 
     static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
@@ -2770,6 +2777,109 @@ BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
         BOOST_CHECK_EQUAL(registeredProofs.count(proof), 1);
     }
     BOOST_CHECK_EQUAL(proofs.size(), registeredProofs.size());
+}
+
+BOOST_AUTO_TEST_CASE(avapeers_dump) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    auto mockTime = GetTime<std::chrono::seconds>();
+    SetMockTime(mockTime);
+
+    std::vector<ProofRef> proofs;
+    for (size_t i = 0; i < 10; i++) {
+        SetMockTime(mockTime + std::chrono::seconds{i});
+
+        auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+        // Registration time is mockTime + i
+        BOOST_CHECK(pm.registerProof(proof));
+
+        auto peerid = TestPeerManager::getPeerIdForProofId(pm, proof->getId());
+
+        // Next conflict time is mockTime + 100 + i
+        BOOST_CHECK(pm.updateNextPossibleConflictTime(
+            peerid, mockTime + std::chrono::seconds{100 + i}));
+
+        // The 5 first proofs are finalized
+        if (i < 5) {
+            BOOST_CHECK(pm.setFinalized(peerid));
+        }
+
+        proofs.push_back(proof);
+    }
+
+    BOOST_CHECK_EQUAL(TestPeerManager::getPeerCount(pm), 10);
+
+    const fs::path testDumpPath = "test_avapeers_dump.dat";
+    BOOST_CHECK(pm.dumpPeersToFile(testDumpPath));
+
+    TestPeerManager::clearPeers(pm);
+
+    std::unordered_set<ProofRef, SaltedProofHasher> registeredProofs;
+    BOOST_CHECK(pm.loadPeersFromFile(testDumpPath, registeredProofs));
+    BOOST_CHECK_EQUAL(registeredProofs.size(), 10);
+
+    auto findProofIndex = [&proofs](const ProofId &proofid) {
+        for (size_t i = 0; i < proofs.size(); i++) {
+            if (proofs[i]->getId() == proofid) {
+                return i;
+            }
+        }
+
+        // ProofId not found
+        BOOST_CHECK(false);
+        return size_t{0};
+    };
+
+    for (const auto &proof : registeredProofs) {
+        const ProofId &proofid = proof->getId();
+        size_t i = findProofIndex(proofid);
+        BOOST_CHECK(pm.forPeer(proofid, [&](auto &peer) {
+            BOOST_CHECK_EQUAL(peer.hasFinalized, i < 5);
+            BOOST_CHECK_EQUAL(peer.registration_time.count(),
+                              (mockTime + std::chrono::seconds{i}).count());
+            BOOST_CHECK_EQUAL(
+                peer.nextPossibleConflictTime.count(),
+                (mockTime + std::chrono::seconds{100 + i}).count());
+            return true;
+        }));
+    }
+
+    // No peer: create an empty file but generate no error
+    TestPeerManager::clearPeers(pm);
+    BOOST_CHECK(pm.dumpPeersToFile("test_empty_avapeers.dat"));
+    // We can also load an empty file
+    BOOST_CHECK(
+        pm.loadPeersFromFile("test_empty_avapeers.dat", registeredProofs));
+    BOOST_CHECK(registeredProofs.empty());
+    BOOST_CHECK_EQUAL(TestPeerManager::getPeerCount(pm), 0);
+
+    // If the file exists, it is overrwritten
+    BOOST_CHECK(pm.dumpPeersToFile("test_empty_avapeers.dat"));
+
+    // It fails to load if the file does not exist and the registeredProofs is
+    // cleared
+    registeredProofs.insert(proofs[0]);
+    BOOST_CHECK(!registeredProofs.empty());
+    BOOST_CHECK(!pm.loadPeersFromFile("I_dont_exist.dat", registeredProofs));
+    BOOST_CHECK(registeredProofs.empty());
+
+    // Change the version
+    FILE *f = fsbridge::fopen("test_bad_version_avapeers.dat", "wb");
+    BOOST_CHECK(f);
+    CAutoFile file(f, SER_DISK, CLIENT_VERSION);
+    file << static_cast<uint64_t>(-1); // Version
+    file << uint64_t{0};               // Number of peers
+    BOOST_CHECK(FileCommit(file.Get()));
+    file.fclose();
+
+    // Check loading fails and the registeredProofs is cleared
+    registeredProofs.insert(proofs[0]);
+    BOOST_CHECK(!registeredProofs.empty());
+    BOOST_CHECK(!pm.loadPeersFromFile("test_bad_version_avapeers.dat",
+                                      registeredProofs));
+    BOOST_CHECK(registeredProofs.empty());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
