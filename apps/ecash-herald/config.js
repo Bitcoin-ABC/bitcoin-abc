@@ -7,6 +7,7 @@ module.exports = {
     xecSendDisplayCount: 12,
     chronik: 'https://chronik.fabien.cash', // URL of chronik instance
     blockExplorer: 'https://explorer.e.cash',
+    stakerPeerApi: 'https://avalanche.cash/api/recentstakingpayouts/XEC',
     priceApi: {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
         cryptos: [

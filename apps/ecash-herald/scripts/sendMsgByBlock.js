@@ -31,10 +31,18 @@ const { getCoingeckoApiUrl } = require('../src/utils');
 // Default to the genesis block
 let blockhashOrHeight = 0;
 
+// Use live API for axios calls and not mocks
+// Default to false as it doesn't take much testing to rate limit coingecko API
+let liveApi = false;
+
 // Look for blockheight specified from command line
 if (process.argv && typeof process.argv[2] !== 'undefined') {
     // user input if available, commas removed
     blockhashOrHeight = parseInt(process.argv[2].replace(/,/g, ''));
+    if (typeof process.argv[3] !== 'undefined' && process.argv[3] === 'true') {
+        liveApi = true;
+        console.log(`Sending msg with live API calls`);
+    }
 }
 
 // Initialize chronik
@@ -49,6 +57,7 @@ const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
 // Create a bot that uses 'polling' to fetch new updates
 const telegramBotDev = new TelegramBot(botId, { polling: true });
+const recentStakersApiResponse = require('../test/mocks/recentStakersApiResponse');
 
 // Mock price API call to prevent rate limiting during testing
 const axios = require('axios');
@@ -60,15 +69,17 @@ async function sendMsgByBlock(
     channelId,
     blockhashOrHeight,
 ) {
-    // Mock price API
-    const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-    const mockResult = {
-        bitcoin: { usd: 25000.0 },
-        ecash: { usd: 0.00003333 },
-        ethereum: { usd: 1900.0 },
-    };
-
-    mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
+    if (!liveApi) {
+        // Mock price API
+        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
+        const mockResult = {
+            bitcoin: { usd: 25000.0 },
+            ecash: { usd: 0.00003333 },
+            ethereum: { usd: 1900.0 },
+        };
+        mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
+        mock.onGet(config.stakerPeerApi).reply(200, recentStakersApiResponse);
+    }
 
     const returnedMocks = await handleBlockConnected(
         chronik,

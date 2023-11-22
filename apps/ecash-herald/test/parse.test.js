@@ -45,6 +45,7 @@ describe('parse.js functions', function () {
             blockDetails,
             parsedBlock,
             coingeckoPrices,
+            avalanchePeerName,
             tokenInfoMap,
             outputScriptInfoMap,
             blockSummaryTgMsgs,
@@ -54,6 +55,7 @@ describe('parse.js functions', function () {
             getBlockTgMessage(
                 parsedBlock,
                 coingeckoPrices,
+                avalanchePeerName,
                 tokenInfoMap,
                 outputScriptInfoMap,
             ),
