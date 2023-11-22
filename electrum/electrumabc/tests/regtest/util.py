@@ -61,32 +61,37 @@ def poll_for_answer(
     """Poll an RPC method until timeout or an expected answer has been received"""
     start = current = time.time()
 
+    def sleep_and_get_time():
+        time.sleep(poll_interval)
+        return time.time()
+
     while current < start + poll_timeout:
-        retry = False
         try:
             resp = requests.post(url, json=json_req)
-            if resp.status_code == 500:
-                retry = True
-            else:
-                parsed = rpc_parse(resp.json())
-                if not isinstance(parsed, rpc_Ok):
-                    raise RuntimeError(f"Unable to parse JSON-RPC: {parsed.message}")
-                json_result = rpc_parse(resp.json()).result
-
-            if expected_answer is not None and not retry:
-                path, answer = expected_answer
-                jsonpath_expr = path_parse(path)
-                expect_element = jsonpath_expr.find(json_result)
-                if len(expect_element) > 0 and expect_element[0].value == answer:
-                    return json_result
-            elif retry:
-                pass
-            else:
-                return json_result
         except requests.exceptions.ConnectionError:
-            pass
-        time.sleep(poll_interval)
-        current = time.time()
+            current = sleep_and_get_time()
+            continue
+
+        if resp.status_code == 500:
+            current = sleep_and_get_time()
+            continue
+
+        parsed = rpc_parse(resp.json())
+        if not isinstance(parsed, rpc_Ok):
+            raise RuntimeError(f"Unable to parse JSON-RPC: {parsed.message}")
+        json_result = rpc_parse(resp.json()).result
+        if expected_answer is None:
+            return json_result
+
+        # We expect a specific result, so check it and keep polling until we get it.
+        path, answer = expected_answer
+        jsonpath_expr = path_parse(path)
+        expect_element = jsonpath_expr.find(json_result)
+        if len(expect_element) > 0 and expect_element[0].value == answer:
+            return json_result
+
+        current = sleep_and_get_time()
+
     raise TimeoutError("Timed out waiting for an answer")
 
 
