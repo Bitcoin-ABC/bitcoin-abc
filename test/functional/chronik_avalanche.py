@@ -31,6 +31,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-chronik",
                 "-whitelist=noban@127.0.0.1",
+                "-persistavapeers=0",
             ],
         ]
         self.supports_cli = False

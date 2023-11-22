@@ -195,7 +195,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
     }
 
     LogPrint(BCLog::AVALANCHE, "Loaded %d peers from the %s file\n",
-             registeredProofs.size(), dumpPath.c_str());
+             registeredProofs.size(), PathToString(dumpPath));
 }
 
 Processor::~Processor() {
