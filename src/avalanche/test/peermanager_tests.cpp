@@ -2869,21 +2869,50 @@ BOOST_AUTO_TEST_CASE(avapeers_dump) {
     BOOST_CHECK(!pm.loadPeersFromFile("I_dont_exist.dat", registeredProofs));
     BOOST_CHECK(registeredProofs.empty());
 
-    // Change the version
-    FILE *f = fsbridge::fopen("test_bad_version_avapeers.dat", "wb");
-    BOOST_CHECK(f);
-    CAutoFile file(f, SER_DISK, CLIENT_VERSION);
-    file << static_cast<uint64_t>(-1); // Version
-    file << uint64_t{0};               // Number of peers
-    BOOST_CHECK(FileCommit(file.Get()));
-    file.fclose();
+    {
+        // Change the version
+        FILE *f = fsbridge::fopen("test_bad_version_avapeers.dat", "wb");
+        BOOST_CHECK(f);
+        CAutoFile file(f, SER_DISK, CLIENT_VERSION);
+        file << static_cast<uint64_t>(-1); // Version
+        file << uint64_t{0};               // Number of peers
+        BOOST_CHECK(FileCommit(file.Get()));
+        file.fclose();
 
-    // Check loading fails and the registeredProofs is cleared
-    registeredProofs.insert(proofs[0]);
-    BOOST_CHECK(!registeredProofs.empty());
-    BOOST_CHECK(!pm.loadPeersFromFile("test_bad_version_avapeers.dat",
-                                      registeredProofs));
-    BOOST_CHECK(registeredProofs.empty());
+        // Check loading fails and the registeredProofs is cleared
+        registeredProofs.insert(proofs[0]);
+        BOOST_CHECK(!registeredProofs.empty());
+        BOOST_CHECK(!pm.loadPeersFromFile("test_bad_version_avapeers.dat",
+                                          registeredProofs));
+        BOOST_CHECK(registeredProofs.empty());
+    }
+
+    {
+        // Wrong format, will cause a deserialization error
+        FILE *f = fsbridge::fopen("test_ill_formed_avapeers.dat", "wb");
+        BOOST_CHECK(f);
+        const uint64_t now = GetTime();
+        CAutoFile file(f, SER_DISK, CLIENT_VERSION);
+        file << static_cast<uint64_t>(1); // Version
+        file << uint64_t{2};              // Number of peers
+        // Single peer content!
+        file << proofs[0];
+        file << true;
+        file << now;
+        file << now + 100;
+
+        BOOST_CHECK(FileCommit(file.Get()));
+        file.fclose();
+
+        // Check loading fails and the registeredProofs is fed with our single
+        // peer
+        BOOST_CHECK(registeredProofs.empty());
+        BOOST_CHECK(!pm.loadPeersFromFile("test_ill_formed_avapeers.dat",
+                                          registeredProofs));
+        BOOST_CHECK_EQUAL(registeredProofs.size(), 1);
+        BOOST_CHECK_EQUAL((*registeredProofs.begin())->getId(),
+                          proofs[0]->getId());
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
