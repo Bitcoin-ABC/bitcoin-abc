@@ -9,7 +9,7 @@ const { ChronikClient } = require('chronik-client');
 const chronik = new ChronikClient(config.chronik);
 const { MockChronikClient } = require('../../mock-chronik-client');
 const mockedChronik = new MockChronikClient();
-const { jsonReplacer } = require('../src/utils');
+const { jsonReplacer, getCoingeckoApiUrl } = require('../src/utils');
 const unrevivedBlockMocks = require('../test/mocks/block');
 const { jsonReviver } = require('../src/utils');
 const blockMocks = JSON.parse(JSON.stringify(unrevivedBlockMocks), jsonReviver);
@@ -194,7 +194,7 @@ async function generateMock(
     });
 
     // Mock a successful API request
-    mock.onGet().reply(200, coingeckoResponse);
+    mock.onGet(getCoingeckoApiUrl(config)).reply(200, coingeckoResponse);
 
     // Generate app mocks using this block
     // TODO need to mock all the calls here

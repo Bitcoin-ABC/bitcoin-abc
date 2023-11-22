@@ -26,6 +26,7 @@
 // App functions
 const { handleBlockConnected } = require('../src/events');
 const { sendBlockSummary } = require('../src/telegram');
+const { getCoingeckoApiUrl } = require('../src/utils');
 
 // Default to the genesis block
 let blockhashOrHeight = 0;
@@ -66,7 +67,8 @@ async function sendMsgByBlock(
         ecash: { usd: 0.00003333 },
         ethereum: { usd: 1900.0 },
     };
-    mock.onGet().reply(200, mockResult);
+
+    mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
 
     const returnedMocks = await handleBlockConnected(
         chronik,

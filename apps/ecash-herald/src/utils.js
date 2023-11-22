@@ -22,16 +22,21 @@ module.exports = {
             sliceSize,
         )}...${unprefixedAddress.slice(-sliceSize)}`;
     },
+    /**
+     * Get the price API url herald would use for specified config
+     * @param {object} config ecash-herald config object
+     * @returns {string} expected URL of price API call
+     */
+    getCoingeckoApiUrl: function (config) {
+        return `${config.priceApi.apiBase}?ids=${config.priceApi.cryptos
+            .map(crypto => crypto.coingeckoSlug)
+            .join(',')}&vs_currencies=${
+            config.priceApi.fiat
+        }&precision=${config.priceApi.precision.toString()}`;
+    },
     getCoingeckoPrices: async function (priceInfoObj) {
         const { apiBase, cryptos, fiat, precision } = priceInfoObj;
-        let tickerReference = {};
-        let coingeckoSlugs = [];
-        for (let i = 0; i < cryptos.length; i += 1) {
-            const thisCoingeckoSlug = cryptos[i].coingeckoSlug;
-            const thisTicker = cryptos[i].ticker;
-            coingeckoSlugs.push(thisCoingeckoSlug);
-            tickerReference[thisCoingeckoSlug] = thisTicker;
-        }
+        let coingeckoSlugs = cryptos.map(crypto => crypto.coingeckoSlug);
         let apiUrl = `${apiBase}?ids=${coingeckoSlugs.join(
             ',',
         )}&vs_currencies=${fiat}&precision=${precision.toString()}`;
@@ -56,7 +61,9 @@ module.exports = {
                     const thisPriceInfo = {
                         fiat,
                         price: data[thisCoingeckoSlug][fiat],
-                        ticker: tickerReference[thisCoingeckoSlug],
+                        ticker: cryptos.filter(
+                            el => el.coingeckoSlug === thisCoingeckoSlug,
+                        )[0].ticker,
                     };
                     if (thisPriceInfo.ticker === 'XEC') {
                         coingeckoPriceArray.unshift(thisPriceInfo);

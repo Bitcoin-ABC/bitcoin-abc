@@ -6,7 +6,7 @@
 const assert = require('assert');
 const config = require('../config');
 const unrevivedBlock = require('./mocks/block');
-const { jsonReviver } = require('../src/utils');
+const { jsonReviver, getCoingeckoApiUrl } = require('../src/utils');
 const block = JSON.parse(JSON.stringify(unrevivedBlock), jsonReviver);
 const cashaddr = require('ecashaddrjs');
 
@@ -75,7 +75,7 @@ describe('ecash-herald events.js', async function () {
         const mockResult = thisBlock.coingeckoResponse;
 
         // Mock a successful API request
-        mock.onGet().reply(200, mockResult);
+        mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
 
         const result = await handleBlockConnected(
             mockedChronik,
@@ -154,7 +154,7 @@ describe('ecash-herald events.js', async function () {
         });
 
         // Mock a failed API request
-        mock.onGet().reply(500, { error: 'error' });
+        mock.onGet(getCoingeckoApiUrl(config)).reply(500, { error: 'error' });
 
         const result = await handleBlockConnected(
             mockedChronik,
