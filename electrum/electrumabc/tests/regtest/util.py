@@ -33,9 +33,27 @@ DEFAULT_TIMEOUT = 10
 DEFAULT_POLL_INTERVAL = 1
 
 
+def get_fulcrum_stat(json_path: str) -> Any:
+    """Get fulcrum's stats, parse the answer and return a particular field defined
+    by the json path.
+    Return None in case of connection error or if the field is not found.
+    """
+    try:
+        json_result = requests.get(FULCRUM_STATS_URL).json()
+    except requests.exceptions.ConnectionError:
+        return None
+
+    jsonpath_expr = path_parse(json_path)
+    expect_element = jsonpath_expr.find(json_result)
+
+    if len(expect_element) > 0:
+        return expect_element[0].value
+    return None
+
+
 def poll_for_answer(
     url: Any,
-    json_req: Optional[Any] = None,
+    json_req: Any,
     poll_interval: int = DEFAULT_POLL_INTERVAL,
     poll_timeout: int = DEFAULT_TIMEOUT,
     expected_answer: Optional[Any] = None,
@@ -46,20 +64,14 @@ def poll_for_answer(
     while current < start + poll_timeout:
         retry = False
         try:
-            if json_req is None:
-                resp = requests.get(url)
-                json_result = resp.json()
+            resp = requests.post(url, json=json_req)
+            if resp.status_code == 500:
+                retry = True
             else:
-                resp = requests.post(url, json=json_req)
-                if resp.status_code == 500:
-                    retry = True
-                else:
-                    parsed = rpc_parse(resp.json())
-                    if not isinstance(parsed, rpc_Ok):
-                        raise RuntimeError(
-                            f"Unable to parse JSON-RPC: {parsed.message}"
-                        )
-                    json_result = rpc_parse(resp.json()).result
+                parsed = rpc_parse(resp.json())
+                if not isinstance(parsed, rpc_Ok):
+                    raise RuntimeError(f"Unable to parse JSON-RPC: {parsed.message}")
+                json_result = rpc_parse(resp.json()).result
 
             if expected_answer is not None and not retry:
                 path, answer = expected_answer
@@ -92,7 +104,8 @@ def bitcoind_rpc_connection() -> AuthServiceProxy:
         addr = _bitcoind.getnewaddress()
         _bitcoind.generatetoaddress(101, addr)
 
-    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.TxNum", 102))
+    # Let Fulcrum catch up with the indexing
+    wait_until(lambda: get_fulcrum_stat("Controller.TxNum") == 102)
 
     return _bitcoind
 
@@ -198,7 +211,9 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
     """
     electrum_datadir = make_tmp_electrum_data_dir()
     bitcoind_rpc_connection()
-    poll_for_answer(FULCRUM_STATS_URL, expected_answer=("Controller.Chain", "regtest"))
+
+    # Sanity check that fulcrum is running and responding
+    assert get_fulcrum_stat("Controller.Chain") == "regtest"
 
     try:
         start_ec_daemon(electrum_datadir)
