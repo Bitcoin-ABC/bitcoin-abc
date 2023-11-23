@@ -20,9 +20,11 @@
 
 BOOST_FIXTURE_TEST_SUITE(activation_tests, BasicTestingSetup)
 
-static void testPastActivation(
-    std::function<bool(const Consensus::Params &, const CBlockIndex *)> func,
-    const Consensus::Params &params, int activationHeight) {
+using ActivationFun = bool (*)(const Consensus::Params &, const CBlockIndex *);
+
+static void testPastActivation(ActivationFun func,
+                               const Consensus::Params &params,
+                               int activationHeight) {
     BOOST_CHECK(!func(params, nullptr));
 
     std::array<CBlockIndex, 4> blocks;
@@ -42,11 +44,14 @@ BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
     const auto params = CreateChainParams(CBaseChainParams::MAIN);
     const auto consensus = params->GetConsensus();
 
+    // Static cast to select the correct overload
+    testPastActivation(static_cast<ActivationFun>(IsMagneticAnomalyEnabled),
+                       consensus, consensus.magneticAnomalyHeight);
     testPastActivation(IsGravitonEnabled, consensus, consensus.gravitonHeight);
     testPastActivation(IsPhononEnabled, consensus, consensus.phononHeight);
     testPastActivation(IsAxionEnabled, consensus, consensus.axionHeight);
-    // testPastActivation(IsWellingtonEnabled, consensus,
-    // consensus.wellingtonHeight);
+    testPastActivation(static_cast<ActivationFun>(IsWellingtonEnabled),
+                       consensus, consensus.wellingtonHeight);
 }
 
 BOOST_AUTO_TEST_CASE(iscowperthwaiteenabled) {
