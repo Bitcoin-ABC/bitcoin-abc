@@ -18,18 +18,18 @@ def get_auxiliary_privkey(
     wallet: DeterministicWallet,
     key_index: int = 0,
     pwd: Optional[str] = None,
-) -> str:
+) -> Optional[str]:
     """Get a deterministic private key derived from a BIP44 path that is not used
     by the wallet to generate addresses.
 
-    Return it in WIF format, or return an empty string on failure (pwd dialog
+    Return it in WIF format, or return None on failure (pwd dialog
     cancelled).
     """
     # Use BIP44 change_index 2, which is not used by any application.
     privkey_index = (2, key_index)
 
     if wallet.has_password() and pwd is None:
-        raise RuntimeError("Wallet password required")
+        return None
     return wallet.export_private_key_for_index(privkey_index, pwd)
 
 
@@ -163,6 +163,13 @@ class AuxiliaryKeysWidget(CachedWalletPasswordWidget):
 
     def set_keys_for_index(self, index: int):
         wif_key = get_auxiliary_privkey(self.wallet, index, self.pwd)
+        if wif_key is None:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Failed to generate key",
+                "If this wallet is encrypted, you must provide the password to export a private key.",
+            )
+            return
         self.key_widget.setPrivkey(wif_key)
 
     def get_wif_private_key(self) -> str:

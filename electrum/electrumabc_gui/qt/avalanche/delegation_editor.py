@@ -153,11 +153,14 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
             "a Bitcoin ABC node."
         )
         d = AuxiliaryKeysDialog(self.wallet, self._pwd, self, additional_info)
-        d.exec_()
+        if not d.exec_() or not d.get_hex_public_key():
+            # Aux key dialog was cancelled or did not show any key (can happen
+            # if the password prompt is cancelled)
+            return
 
         pubkey_hex = d.get_hex_public_key()
-        self.suggested_delegated_key_and_index = (pubkey_hex, d.get_key_index())
         self.pubkey_edit.setText(pubkey_hex)
+        self.suggested_delegated_key_and_index = (pubkey_hex, d.get_key_index())
 
     def maybe_increment_aux_key_index(self):
         """Increment the index if the suggested key was used as a delegated key,
