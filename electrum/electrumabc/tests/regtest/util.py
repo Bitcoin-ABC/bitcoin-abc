@@ -32,6 +32,8 @@ ELECTRUMABC_COMMAND = os.path.join(ELECTRUM_ROOT, "electrum-abc")
 DEFAULT_TIMEOUT = 10
 DEFAULT_POLL_INTERVAL = 1
 
+COINBASE_MATURITY = 100
+
 
 def get_fulcrum_stat(json_path: str) -> Any:
     """Get fulcrum's stats, parse the answer and return a particular field defined

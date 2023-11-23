@@ -33,6 +33,7 @@ from .util import docker_compose_command  # noqa: F401
 from .util import docker_compose_file  # noqa: F401
 from .util import fulcrum_service  # noqa: F401
 from .util import (
+    COINBASE_MATURITY,
     EC_DAEMON_RPC_URL,
     SUPPORTED_PLATFORM,
     bitcoind_rpc_connection,
@@ -64,22 +65,57 @@ def test_reorg(fulcrum_service):  # noqa: F811
 
     bitcoind = bitcoind_rpc_connection()
 
-    # Mine 2 empty blocks
+    # Mine a transaction, send the block reward to the Electrum ABC wallet
+    bitcoind.generatetoaddress(1, addr)
+    hist = wait_for_len(request("history"), 1)
+    parent_txid = hist[0]["txid"]
+    parent_height = hist[0]["height"]
+
+    # Make the parent coinbase UTXO mature
+    bitcoind.generatetoaddress(COINBASE_MATURITY, address_not_mine)
+    # Note that the "confirmations" field in the history is the number of confirmations
+    # for the tx, not for the block. The block containing the tx counts for +1.
+    wait_until(
+        lambda: poll_for_answer(EC_DAEMON_RPC_URL, request("history"))[0][
+            "confirmations"
+        ]
+        == COINBASE_MATURITY + 1
+    )
+
+    # Mine 2 empty blocks. The first one will be invalidated
     blockhash_to_invalidate = bitcoind.generatetoaddress(2, address_not_mine)[0]
 
-    # Add a transaction to the wallet's history
-    bitcoind.sendtoaddress(addr, 1_000)
+    # Add another transaction to the wallet's history, spending the previous UTXO
+    tx_hex = poll_for_answer(
+        EC_DAEMON_RPC_URL,
+        request(
+            "payto",
+            params={"destination": addr, "amount": 1_000, "addtransaction": True},
+        ),
+    )["hex"]
+    success, txid = poll_for_answer(
+        EC_DAEMON_RPC_URL, request("broadcast", params={"tx": tx_hex})
+    )
+    assert success
 
-    hist = wait_for_len(request("history"), 1)
+    hist = wait_for_len(request("history"), 2)
+    # The history is in reverse block height order, with mempool txs first, then
+    # txs from the most recent blocks first.
     # Electrum ABC assigns a block height of 0 for mempool transactions with confirmed
     # parents.
-    tx_height = hist[0]["height"]
-    assert tx_height == 0
-    txid = hist[0]["txid"]
+    assert hist[0]["txid"] == txid
+    assert hist[0]["height"] == 0
+    assert hist[1]["txid"] == parent_txid
+    assert hist[1]["height"] == parent_height
 
-    # Mine the tx into a block
+    # Mine the new tx into a block
     bitcoind.generatetoaddress(1, address_not_mine)
     blockheight = bitcoind.getblockchaininfo()["blocks"]
+
+    # Invalidating 2 blocks prior to the one containing the child tx should not
+    # affect the maturity of the parent tx, so the tx will remain a valid mempool
+    # tx.
+    assert blockheight == parent_height + COINBASE_MATURITY + 3
 
     def is_block_height_set_for_tx() -> bool:
         hist = poll_for_answer(EC_DAEMON_RPC_URL, request("history"))
