@@ -113,8 +113,9 @@ BOOST_AUTO_TEST_CASE(policy_minerfund) {
     BlockHash cowperthwaiteBlockHash = BlockHash(uint256(13));
     cowperthwaiteBlockIndex.phashBlock = &cowperthwaiteBlockHash;
     cowperthwaiteBlockIndex.pprev = &lastBlockIndexRef;
+    lastBlockIndexRef.nHeight = consensusParams.cowperthwaiteHeight;
+    cowperthwaiteBlockIndex.nHeight = consensusParams.cowperthwaiteHeight + 1;
 
-    SetMTP(blocks, consensusParams.cowperthwaiteActivationTime);
     BOOST_CHECK(
         IsCowperthwaiteEnabled(consensusParams, cowperthwaiteBlockIndex.pprev));
 

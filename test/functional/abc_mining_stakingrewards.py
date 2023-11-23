@@ -6,6 +6,7 @@
 Tests for Bitcoin ABC mining with staking rewards
 """
 
+import time
 from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
@@ -21,7 +22,6 @@ from test_framework.util import (
 
 QUORUM_NODE_COUNT = 16
 STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
-COWPERTHWAITE_ACTIVATION = 2000000000
 
 
 class AbcMiningStakingRewardsTest(BitcoinTestFramework):
@@ -36,14 +36,13 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
                 "-avalanchestakingrewards=1",
-                f"-cowperthwaiteactivationtime={COWPERTHWAITE_ACTIVATION}",
             ],
         ]
 
     def run_test(self):
         node = self.nodes[0]
 
-        now = COWPERTHWAITE_ACTIVATION - 10000
+        now = int(time.time())
         node.setmocktime(now)
 
         # Build a quorum
@@ -96,7 +95,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
         assert_raises_rpc_error(
             -32603,
-            f"Staking rewards are not activated for block {tiphash}",
+            f"Unable to determine a staking reward winner for block {tiphash}",
             node.getstakingreward,
             tiphash,
         )
@@ -116,7 +115,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
         assert_raises_rpc_error(
             -32603,
-            f"Staking rewards are not activated for block {tiphash}",
+            f"Unable to determine a staking reward winner for block {tiphash}",
             node.getstakingreward,
             tiphash,
         )
@@ -139,90 +138,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         for peer in quorum:
             wait_for_finalized_proof(peer.proof.proofid)
 
-        now = COWPERTHWAITE_ACTIVATION - 5
-        for _ in range(10):
-            node.setmocktime(now)
-            tiphash = self.generate(node, 1)[-1]
-
-            gbt = node.getblocktemplate()
-            assert_equal(gbt["previousblockhash"], tiphash)
-            assert "coinbasetxn" in gbt
-            assert "stakingrewards" not in gbt["coinbasetxn"]
-
-            assert_raises_rpc_error(
-                -32603,
-                f"Staking rewards are not activated for block {tiphash}",
-                node.getstakingreward,
-                tiphash,
-            )
-
-            now += 1
-
-        # Activate Cowperthwaite
-        node.setmocktime(now)
-        activation_hash = self.generate(node, 1)[-1]
-
-        gbt = node.getblocktemplate()
-        assert_equal(gbt["previousblockhash"], activation_hash)
-        assert "coinbasetxn" in gbt
-        assert "stakingrewards" in gbt["coinbasetxn"]
-        assert_equal(
-            gbt["coinbasetxn"]["stakingrewards"],
-            {
-                "payoutscript": {
-                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
-                    "hex": "76a914000000000000000000000000000000000000000088ac",
-                    "reqSigs": 1,
-                    "type": "pubkeyhash",
-                    "addresses": [ADDRESS_ECREG_UNSPENDABLE],
-                },
-                "minimumvalue": Decimal(
-                    block_reward * STAKING_REWARDS_COINBASE_RATIO_PERCENT // 100 * XEC
-                ),
-            },
-        )
-
-        assert_equal(
-            node.getstakingreward(activation_hash),
-            {
-                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
-                "hex": "76a914000000000000000000000000000000000000000088ac",
-                "reqSigs": 1,
-                "type": "pubkeyhash",
-                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
-            },
-        )
-
-        self.log.info(
-            "Staking rewards are computed, check the miner produces the staking rewards output"
-        )
-
         tiphash = self.generate(node, 1)[-1]
-        coinbase = get_coinbase(tiphash)
-        assert_greater_than_or_equal(len(coinbase["vout"]), 2)
-        assert_equal(
-            coinbase["vout"][-1]["value"],
-            Decimal(block_reward * STAKING_REWARDS_COINBASE_RATIO_PERCENT // 100),
-        )
-        assert_equal(
-            coinbase["vout"][-1]["scriptPubKey"]["hex"],
-            "76a914000000000000000000000000000000000000000088ac",
-        )
-
-        # Revert activation
-        node.parkblock(activation_hash)
-
-        gbt = node.getblocktemplate()
-        assert "coinbasetxn" in gbt
-        assert "stakingrewards" not in gbt["coinbasetxn"]
-
-        # Change the destination so we don't get the same block hash as the
-        # parked block.
-        tiphash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
-        coinbase = get_coinbase(tiphash)
-        assert_equal(len(coinbase["vout"]), 1)
-
-        # Re-activate
         gbt = node.getblocktemplate()
         assert_equal(gbt["previousblockhash"], tiphash)
         assert "coinbasetxn" in gbt
@@ -268,17 +184,6 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         assert_equal(
             coinbase["vout"][-1]["scriptPubKey"]["hex"],
             "76a914000000000000000000000000000000000000000088ac",
-        )
-
-        assert_equal(
-            node.getstakingreward(tiphash),
-            {
-                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
-                "hex": "76a914000000000000000000000000000000000000000088ac",
-                "reqSigs": 1,
-                "type": "pubkeyhash",
-                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
-            },
         )
 
         self.log.info("Override the staking reward via RPC")

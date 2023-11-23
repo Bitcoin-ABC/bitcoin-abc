@@ -46,9 +46,14 @@ bool IsWellingtonEnabled(const Consensus::Params &params,
                          const CBlockIndex *pindexPrev);
 
 /** Check if Nov 15th, 2023 protocol upgrade has activated. */
-bool IsCowperthwaiteEnabled(const Consensus::Params &params,
-                            int64_t nMedianTimePast);
+bool IsCowperthwaiteEnabled(const Consensus::Params &params, int32_t nHeight);
 bool IsCowperthwaiteEnabled(const Consensus::Params &params,
                             const CBlockIndex *pindexPrev);
+
+/** Check if May 15th, 2024 protocol upgrade has activated. */
+bool IsLeeKuanYewEnabled(const Consensus::Params &params,
+                         int64_t nMedianTimePast);
+bool IsLeeKuanYewEnabled(const Consensus::Params &params,
+                         const CBlockIndex *pindexPrev);
 
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H

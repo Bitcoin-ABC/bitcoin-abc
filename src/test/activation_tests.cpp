@@ -52,35 +52,37 @@ BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
     testPastActivation(IsAxionEnabled, consensus, consensus.axionHeight);
     testPastActivation(static_cast<ActivationFun>(IsWellingtonEnabled),
                        consensus, consensus.wellingtonHeight);
+    testPastActivation(static_cast<ActivationFun>(IsCowperthwaiteEnabled),
+                       consensus, consensus.cowperthwaiteHeight);
 }
 
-BOOST_AUTO_TEST_CASE(iscowperthwaiteenabled) {
+BOOST_AUTO_TEST_CASE(isleekuanyewenabled) {
     const Consensus::Params &params = Params().GetConsensus();
-    const auto activation = gArgs.GetIntArg("-cowperthwaiteactivationtime",
-                                            params.cowperthwaiteActivationTime);
+    const auto activation = gArgs.GetIntArg("-leekuanyewactivationtime",
+                                            params.leeKuanYewActivationTime);
     SetMockTime(activation - 1000000);
 
-    BOOST_CHECK(!IsCowperthwaiteEnabled(params, nullptr));
+    BOOST_CHECK(!IsLeeKuanYewEnabled(params, nullptr));
 
     std::array<CBlockIndex, 12> blocks;
     for (size_t i = 1; i < blocks.size(); ++i) {
         blocks[i].pprev = &blocks[i - 1];
     }
-    BOOST_CHECK(!IsCowperthwaiteEnabled(params, &blocks.back()));
+    BOOST_CHECK(!IsLeeKuanYewEnabled(params, &blocks.back()));
     BOOST_CHECK(
-        !IsCowperthwaiteEnabled(params, blocks.back().GetMedianTimePast()));
+        !IsLeeKuanYewEnabled(params, blocks.back().GetMedianTimePast()));
 
     SetMTP(blocks, activation - 1);
-    BOOST_CHECK(!IsCowperthwaiteEnabled(params, &blocks.back()));
-    BOOST_CHECK(!IsCowperthwaiteEnabled(params, activation - 1));
+    BOOST_CHECK(!IsLeeKuanYewEnabled(params, &blocks.back()));
+    BOOST_CHECK(!IsLeeKuanYewEnabled(params, activation - 1));
 
     SetMTP(blocks, activation);
-    BOOST_CHECK(IsCowperthwaiteEnabled(params, &blocks.back()));
-    BOOST_CHECK(IsCowperthwaiteEnabled(params, activation));
+    BOOST_CHECK(IsLeeKuanYewEnabled(params, &blocks.back()));
+    BOOST_CHECK(IsLeeKuanYewEnabled(params, activation));
 
     SetMTP(blocks, activation + 1);
-    BOOST_CHECK(IsCowperthwaiteEnabled(params, &blocks.back()));
-    BOOST_CHECK(IsCowperthwaiteEnabled(params, activation + 1));
+    BOOST_CHECK(IsLeeKuanYewEnabled(params, &blocks.back()));
+    BOOST_CHECK(IsLeeKuanYewEnabled(params, activation + 1));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

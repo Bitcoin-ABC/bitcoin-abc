@@ -32,40 +32,34 @@ struct StakingRewardsActivationTestingSetup : public TestingSetup {
         BOOST_CHECK(isAvalancheEnabled(gArgs));
 
         // Before Cowperthwaite activation
-        const auto activation = gArgs.GetIntArg(
-            "-cowperthwaiteactivationtime", params.cowperthwaiteActivationTime);
-        SetMockTime(activation - 1000000);
+        const auto activationHeight = params.cowperthwaiteHeight;
 
-        std::array<CBlockIndex, 12> blocks;
-        for (size_t i = 1; i < blocks.size(); ++i) {
-            blocks[i].pprev = &blocks[i - 1];
-        }
+        CBlockIndex block;
+        block.nHeight = activationHeight - 1;
+        BOOST_CHECK(!IsStakingRewardsActivated(params, &block));
 
-        SetMTP(blocks, activation - 1);
-        BOOST_CHECK(!IsStakingRewardsActivated(params, &blocks.back()));
-
-        SetMTP(blocks, activation);
-        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &blocks.back()),
+        block.nHeight = activationHeight;
+        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &block),
                           expectActivation);
 
-        SetMTP(blocks, activation + 1);
-        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &blocks.back()),
+        block.nHeight = activationHeight + 1;
+        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &block),
                           expectActivation);
 
         // If avalanche is disabled, staking rewards are disabled
         gArgs.ForceSetArg("-avalanche", "0");
         BOOST_CHECK(!isAvalancheEnabled(gArgs));
-        BOOST_CHECK(!IsStakingRewardsActivated(params, &blocks.back()));
+        BOOST_CHECK(!IsStakingRewardsActivated(params, &block));
 
         gArgs.ForceSetArg("-avalanche", "1");
         BOOST_CHECK(isAvalancheEnabled(gArgs));
-        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &blocks.back()),
+        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &block),
                           expectActivation);
 
         // If g_avalanche is null, staking rewards are disabled
         g_avalanche.reset(nullptr);
         BOOST_CHECK(!g_avalanche);
-        BOOST_CHECK(!IsStakingRewardsActivated(params, &blocks.back()));
+        BOOST_CHECK(!IsStakingRewardsActivated(params, &block));
 
         gArgs.ClearForcedArg("-avalanche");
     }

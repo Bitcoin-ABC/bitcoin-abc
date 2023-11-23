@@ -426,15 +426,26 @@ void SetupServerArgs(NodeContext &node) {
 
     // Hidden Options
     std::vector<std::string> hidden_args = {
-        "-dbcrashratio", "-forcecompactdb", "-maxaddrtosend", "-parkdeepreorg",
-        "-automaticunparking", "-replayprotectionactivationtime",
-        "-enableminerfund", "-chronikallowpause",
+        "-dbcrashratio",
+        "-forcecompactdb",
+        "-maxaddrtosend",
+        "-parkdeepreorg",
+        "-automaticunparking",
+        "-replayprotectionactivationtime",
+        "-enableminerfund",
+        "-chronikallowpause",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
-        "-allowselfsignedrootcertificates", "-choosedatadir", "-lang=<lang>",
-        "-min", "-resetguisettings", "-rootcertificates=<file>", "-splash",
+        "-allowselfsignedrootcertificates",
+        "-choosedatadir",
+        "-lang=<lang>",
+        "-min",
+        "-resetguisettings",
+        "-rootcertificates=<file>",
+        "-splash",
         "-uiplatform",
-        // TODO remove after the Nov. 2023 upgrade
-        "-cowperthwaiteactivationtime"};
+        // TODO remove after the May. 2024 upgrade
+        "-leekuanyewactivationtime",
+    };
 
     // Set all of the args and their help
     // When adding new options to the categories, please keep and ensure

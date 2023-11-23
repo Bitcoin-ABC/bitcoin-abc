@@ -58,8 +58,8 @@ struct Params {
     int axionHeight;
     /** Block height at which the wellington activation becomes active */
     int wellingtonHeight;
-    /** Unix time used for MTP activation of 15 Nov 2023 12:00:00 UTC upgrade */
-    int cowperthwaiteActivationTime;
+    /** Block height at which the Cowperthwaite activation becomes active */
+    int cowperthwaiteHeight;
     /** Unix time used for MTP activation of 15 May 2024 12:00:00 UTC upgrade */
     int leeKuanYewActivationTime;
 

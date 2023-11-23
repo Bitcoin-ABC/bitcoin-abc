@@ -137,7 +137,7 @@ public:
         consensus.wellingtonHeight = 792116;
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
-        consensus.cowperthwaiteActivationTime = 1700049600;
+        consensus.cowperthwaiteHeight = 818669;
 
         // May 15, 2024 12:00:00 UTC protocol upgrade
         consensus.leeKuanYewActivationTime = 1715774400;
@@ -289,7 +289,7 @@ public:
         consensus.wellingtonHeight = 1556117;
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
-        consensus.cowperthwaiteActivationTime = 1700049600;
+        consensus.cowperthwaiteHeight = 1584485;
 
         // May 15, 2024 12:00:00 UTC protocol upgrade
         consensus.leeKuanYewActivationTime = 1715774400;
@@ -423,7 +423,7 @@ public:
         consensus.wellingtonHeight = 0;
 
         // Nov 15, 2023 12:00:00 UTC protocol upgrade
-        consensus.cowperthwaiteActivationTime = 1700049600;
+        consensus.cowperthwaiteHeight = 0;
 
         // May 15, 2024 12:00:00 UTC protocol upgrade
         consensus.leeKuanYewActivationTime = 1715774400;

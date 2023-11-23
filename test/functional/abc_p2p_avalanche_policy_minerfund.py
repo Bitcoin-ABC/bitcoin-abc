@@ -27,8 +27,6 @@ MINER_FUND_ADDR = "ecregtest:prfhcnyqnl5cgrnmlfmms675w93ld7mvvq9jcw0zsn"
 OTHER_MINER_FUND_ADDR = "ecregtest:pqv2r67sgz3qumufap3h2uuj0zfmnzuv8v38gtrh5v"
 QUORUM_NODE_COUNT = 16
 
-THE_FUTURE = 2100000000
-
 
 class AvalancheMinerFundTest(BitcoinTestFramework):
     def set_test_params(self):
@@ -43,8 +41,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
                 "-avaminquorumstake=0",
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
-                f"-cowperthwaiteactivationtime={THE_FUTURE}",
-                "-persistavapeers=0",
             ],
         ]
 
@@ -197,12 +193,6 @@ class AvalancheMinerFundTest(BitcoinTestFramework):
         )
 
     def run_test(self):
-        self.run_for_ratio(LEGACY_MINER_FUND_RATIO)
-
-        self.stop_nodes()
-        self.start_nodes()
-        self.nodes[0].setmocktime(THE_FUTURE)
-
         self.run_for_ratio(MINER_FUND_RATIO)
 
 
