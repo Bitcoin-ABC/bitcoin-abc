@@ -261,3 +261,15 @@ def wait_until(
         success = test_function()
         time.sleep(interval)
     assert success, f"wait_until: predicate not True after {timeout} seconds"
+
+
+def get_block_subsidy(blockheight) -> int:
+    """Compute the expected coinbase amount in satoshis for a given block height,
+    for an empty block (no tx fees)."""
+    # See GetBlockSubsidy function in the node
+    subsidy_halving_interval = 150
+    initial_subsidy = 5_000_000_000
+    halvings = blockheight // subsidy_halving_interval
+    if halvings >= 64:
+        return 0
+    return initial_subsidy >> halvings

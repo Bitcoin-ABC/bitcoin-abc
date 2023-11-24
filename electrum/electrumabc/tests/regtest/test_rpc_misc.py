@@ -14,8 +14,10 @@ from .util import (  # noqa: F401
     docker_compose_command,
     docker_compose_file,
     fulcrum_service,
+    get_block_subsidy,
     poll_for_answer,
     wait_for_len,
+    wait_until,
 )
 
 if not SUPPORTED_PLATFORM:
@@ -47,13 +49,20 @@ def test_balance(fulcrum_service: Any) -> None:  # noqa: F811
 
     bitcoind = bitcoind_rpc_connection()
 
+    tip_height = bitcoind.getblockchaininfo()["blocks"]
+    coinbase_amount = XEC.satoshis_to_unit(get_block_subsidy(tip_height + 1))
+
     bitcoind.generatetoaddress(1, addr)
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("unmatured", "50000000"),
-    )
-    assert result["unmatured"] == "50000000"
+
+    def wallet_has_expected_amount(amount_status: str, amount: Decimal) -> bool:
+        """Check the wallet balance for a specific amount.
+        The amount is in XEC.
+        amount_status can be one of "unmatured", "unconfirmed" or "confirmed"
+        """
+        result = poll_for_answer(EC_DAEMON_RPC_URL, request("getbalance"))
+        return amount_status in result and Decimal(result[amount_status]) == amount
+
+    wait_until(lambda: wallet_has_expected_amount("unmatured", coinbase_amount))
 
     bitcoind.sendtoaddress(addr, 10_000_000)
     result = poll_for_answer(
@@ -61,7 +70,10 @@ def test_balance(fulcrum_service: Any) -> None:  # noqa: F811
         request("getbalance"),
         expected_answer=("unconfirmed", "10000000"),
     )
-    assert result["unmatured"] == "50000000" and result["unconfirmed"] == "10000000"
+    assert (
+        Decimal(result["unmatured"]) == coinbase_amount
+        and result["unconfirmed"] == "10000000"
+    )
 
     bitcoind.generatetoaddress(1, bitcoind.getnewaddress())
     result = poll_for_answer(
@@ -69,7 +81,10 @@ def test_balance(fulcrum_service: Any) -> None:  # noqa: F811
         request("getbalance"),
         expected_answer=("confirmed", "10000000"),
     )
-    assert result["unmatured"] == "50000000" and result["confirmed"] == "10000000"
+    assert (
+        Decimal(result["unmatured"]) == coinbase_amount
+        and result["confirmed"] == "10000000"
+    )
 
     bitcoind.generatetoaddress(97, bitcoind.getnewaddress())
     bitcoind.sendtoaddress(addr, 10_000_000)
@@ -79,18 +94,15 @@ def test_balance(fulcrum_service: Any) -> None:  # noqa: F811
         expected_answer=("unconfirmed", "10000000"),
     )
     assert (
-        result["unmatured"] == "50000000"
+        Decimal(result["unmatured"]) == coinbase_amount
         and result["confirmed"] == "10000000"
         and result["unconfirmed"] == "10000000"
     )
 
     bitcoind.generatetoaddress(1, bitcoind.getnewaddress())
-    result = poll_for_answer(
-        EC_DAEMON_RPC_URL,
-        request("getbalance"),
-        expected_answer=("confirmed", "70000000"),
+    wait_until(
+        lambda: wallet_has_expected_amount("confirmed", coinbase_amount + 20_000_000)
     )
-    assert result["confirmed"] == "70000000"
 
 
 def test_payto_broadcast_getaddresshistory(fulcrum_service):  # noqa: F811
