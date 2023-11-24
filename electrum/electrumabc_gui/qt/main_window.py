@@ -37,7 +37,7 @@ import time
 import traceback
 from decimal import Decimal as PyDecimal  # Qt 5.12 also exports Decimal
 from functools import partial
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import (
@@ -2668,46 +2668,50 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             task = partial(self.wallet.sign_transaction, tx, password, use_cache=True)
         WaitingDialog(self, _("Signing transaction..."), task, on_signed, on_failed)
 
-    def broadcast_transaction(self, tx, tx_desc, *, callback=None):
-        def broadcast_thread():
+    def broadcast_transaction(
+        self,
+        tx: Transaction,
+        tx_desc,
+        *,
+        callback: Optional[Callable[[bool], None]] = None,
+    ):
+        def broadcast_thread() -> Tuple[bool, str]:
             # non-GUI thread
-            status = False
-            msg = "Failed"
             pr = self.payment_request
-            if pr and pr.has_expired():
+            if not pr:
+                # Not a PR, just broadcast.
+                return self.network.broadcast_transaction(tx)
+
+            if pr.has_expired():
                 self.payment_request = None
                 return False, _("Payment request has expired")
-            if pr:
-                refund_address = self.wallet.get_receiving_addresses()[0]
-                ack_status, ack_msg = pr.send_payment(str(tx), refund_address)
-                if not ack_status:
-                    if ack_msg == "no url":
-                        # "no url" hard-coded in send_payment method
-                        # it means merchant doesn't need the tx sent to him
-                        # since he didn't specify a POST url.
-                        # so we just broadcast and rely on that result status.
-                        ack_msg = None
-                    else:
-                        return False, ack_msg
-                # at this point either ack_status is True or there is "no url"
-                # and we proceed anyway with the broadcast
-                status, msg = self.network.broadcast_transaction(tx)
 
-                # prefer the merchant's ack_msg over the broadcast msg, but fallback
-                # to broadcast msg if no ack_msg.
-                msg = ack_msg or msg
-                # if both broadcast and merchant ACK failed -- it's a failure. if
-                # either succeeded -- it's a success
-                status = bool(ack_status or status)
+            refund_address = self.wallet.get_receiving_addresses()[0]
+            ack_status, ack_msg = pr.send_payment(str(tx), refund_address)
+            if not ack_status:
+                if ack_msg == "no url":
+                    # "no url" hard-coded in send_payment method
+                    # it means merchant doesn't need the tx sent to him
+                    # since he didn't specify a POST url.
+                    # so we just broadcast and rely on that result status.
+                    ack_msg = None
+                else:
+                    return False, ack_msg
+            # at this point either ack_status is True or there is "no url"
+            # and we proceed anyway with the broadcast
+            status, msg = self.network.broadcast_transaction(tx)
 
-                if status:
-                    self.invoices.set_paid(pr, tx.txid())
-                    self.invoices.save()
-                    self.payment_request = None
+            # prefer the merchant's ack_msg over the broadcast msg, but fallback
+            # to broadcast msg if no ack_msg.
+            msg = ack_msg or msg
+            # if both broadcast and merchant ACK failed -- it's a failure. if
+            # either succeeded -- it's a success
+            status = bool(ack_status or status)
 
-            else:
-                # Not a PR, just broadcast.
-                status, msg = self.network.broadcast_transaction(tx)
+            if status:
+                self.invoices.set_paid(pr, tx.txid())
+                self.invoices.save()
+                self.payment_request = None
 
             return status, msg
 
@@ -2716,14 +2720,15 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         try:
             fee = tx.get_fee()
         except Exception:
-            pass  # no fee info available for tx
+            # no fee info available for tx
+            pass
         # Check fee >= size otherwise warn. FIXME: If someday network relay
         # rules change to be other than 1.0 sats/B minimum, this code needs
         # to be changed.
         if (
-            isinstance(fee, int)
+            fee is not None
             and tx.is_complete()
-            and fee < len(str(tx)) // 2
+            and fee < tx.estimated_size()
             and not tx.ephemeral.get("warned_low_fee_already")
         ):
             msg = (
@@ -2738,68 +2743,65 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             )
             if not self.question(msg, title=_("Low Fee")):
                 return
-        # /end fee check
 
         # Capture current TL window; override might be removed on return
         parent = self.top_level_window()
 
         if self.gui_object.warn_if_no_network(self):
-            # Don't allow a useless broadcast when in offline mode. Previous to this we were getting an exception on broadcast.
+            # Don't allow a useless broadcast when in offline mode. Previous to this
+            # we were getting an exception on broadcast.
             return
-        elif not self.network.is_connected():
+        if not self.network.is_connected():
             # Don't allow a potentially very slow broadcast when obviously not connected.
             parent.show_error(_("Not connected"))
             return
 
-        def broadcast_done(result):
+        def broadcast_done(result: Optional[Tuple[bool, str]]):
             # GUI thread
-            cb_result = False
-            if result:
-                status, msg = result
-                if status:
-                    cb_result = True
-                    buttons, copy_index, copy_link = [_("Ok")], None, ""
-                    try:
-                        txid = (
-                            tx.txid()
-                        )  # returns None if not is_complete, but may raise potentially as well
-                    except Exception:
-                        txid = None
-                    if txid is not None:
-                        if tx_desc is not None:
-                            self.wallet.set_label(txid, tx_desc)
-                        copy_link = web.BE_URL(
-                            self.config, web.ExplorerUrlParts.TX, txid
-                        )
-                        if copy_link:
-                            # tx is complete and there is a copy_link
-                            buttons.insert(0, _("Copy link"))
-                            copy_index = 0
-                    if (
-                        parent.show_message(
-                            _("Payment sent.") + "\n" + msg,
-                            buttons=buttons,
-                            defaultButton=buttons[-1],
-                            escapeButton=buttons[-1],
-                        )
-                        == copy_index
-                    ):
-                        # There WAS a 'Copy link' and they clicked it
-                        self.copy_to_clipboard(
-                            copy_link,
-                            _("Block explorer link copied to clipboard"),
-                            self.top_level_window(),
-                        )
-                    self.invoice_list.update()
-                    self.do_clear()
-                else:
-                    if msg.startswith("error: "):
-                        msg = msg.split(" ", 1)[
-                            -1
-                        ]  # take the last part, sans the "error: " prefix
+            status, msg = result or (False, "")
+            if not status:
+                if msg.startswith("error: "):
+                    # take the last part, sans the "error: " prefix
+                    msg = msg.split(" ", 1)[-1]
+                if msg:
                     parent.show_error(msg)
+                if callback:
+                    callback(False)
+                return
+
+            buttons, copy_index, copy_link = [_("Ok")], None, ""
+            try:
+                # returns None if not is_complete, but may raise potentially as well
+                txid = tx.txid()
+            except Exception:
+                txid = None
+            if txid is not None:
+                if tx_desc is not None:
+                    self.wallet.set_label(txid, tx_desc)
+                copy_link = web.BE_URL(self.config, web.ExplorerUrlParts.TX, txid)
+                if copy_link:
+                    # tx is complete and there is a copy_link
+                    buttons.insert(0, _("Copy link"))
+                    copy_index = 0
+            if (
+                parent.show_message(
+                    _("Payment sent.") + "\n" + msg,
+                    buttons=buttons,
+                    defaultButton=buttons[-1],
+                    escapeButton=buttons[-1],
+                )
+                == copy_index
+            ):
+                # There WAS a 'Copy link' and they clicked it
+                self.copy_to_clipboard(
+                    copy_link,
+                    _("Block explorer link copied to clipboard"),
+                    self.top_level_window(),
+                )
+            self.invoice_list.update()
+            self.do_clear()
             if callback:
-                callback(cb_result)
+                callback(True)
 
         WaitingDialog(
             self,
