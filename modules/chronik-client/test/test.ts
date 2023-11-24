@@ -520,9 +520,9 @@ describe('/ws', () => {
         });
         await promise;
     });
-    it('connects to the ws if keepAlive = true', async () => {
+    it('connects to the ws if keepAlive = false', async () => {
         const promise = new Promise((resolve, rejects) => {
-            const ws = chronik.ws({ keepAlive: true });
+            const ws = chronik.ws({ keepAlive: false });
             ws.waitForOpen()
                 .then(() => {
                     resolve({});
