@@ -2675,6 +2675,47 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         *,
         callback: Optional[Callable[[bool], None]] = None,
     ):
+        if self.gui_object.warn_if_no_network(self):
+            # Don't allow a useless broadcast when in offline mode. Previous to this
+            # we were getting an exception on broadcast.
+            return
+
+        # Capture current TL window; override might be removed on return
+        parent = self.top_level_window()
+        if not self.network.is_connected():
+            # Don't allow a potentially very slow broadcast when obviously not connected.
+            parent.show_error(_("Not connected"))
+            return
+
+        # Check fee and warn if it's below 1.0 sats/B (and not warned already)
+        fee = None
+        try:
+            fee = tx.get_fee()
+        except Exception:
+            # no fee info available for tx
+            pass
+        # Check fee >= size otherwise warn. FIXME: If someday network relay
+        # rules change to be other than 1.0 sats/B minimum, this code needs
+        # to be changed.
+        if (
+            fee is not None
+            and tx.is_complete()
+            and fee < tx.estimated_size()
+            and not tx.ephemeral.get("warned_low_fee_already")
+        ):
+            msg = (
+                _("Warning")
+                + ": "
+                + _(
+                    "You're using a fee of less than 1.0 sats/B. It may take a very"
+                    " long time to confirm."
+                )
+                + "\n\n"
+                + _("Proceed?")
+            )
+            if not self.question(msg, title=_("Low Fee")):
+                return
+
         def broadcast_thread() -> Tuple[bool, str]:
             # non-GUI thread
             pr = self.payment_request
@@ -2714,47 +2755,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 self.payment_request = None
 
             return status, msg
-
-        # Check fee and warn if it's below 1.0 sats/B (and not warned already)
-        fee = None
-        try:
-            fee = tx.get_fee()
-        except Exception:
-            # no fee info available for tx
-            pass
-        # Check fee >= size otherwise warn. FIXME: If someday network relay
-        # rules change to be other than 1.0 sats/B minimum, this code needs
-        # to be changed.
-        if (
-            fee is not None
-            and tx.is_complete()
-            and fee < tx.estimated_size()
-            and not tx.ephemeral.get("warned_low_fee_already")
-        ):
-            msg = (
-                _("Warning")
-                + ": "
-                + _(
-                    "You're using a fee of less than 1.0 sats/B. It may take a very"
-                    " long time to confirm."
-                )
-                + "\n\n"
-                + _("Proceed?")
-            )
-            if not self.question(msg, title=_("Low Fee")):
-                return
-
-        # Capture current TL window; override might be removed on return
-        parent = self.top_level_window()
-
-        if self.gui_object.warn_if_no_network(self):
-            # Don't allow a useless broadcast when in offline mode. Previous to this
-            # we were getting an exception on broadcast.
-            return
-        if not self.network.is_connected():
-            # Don't allow a potentially very slow broadcast when obviously not connected.
-            parent.show_error(_("Not connected"))
-            return
 
         def broadcast_done(result: Optional[Tuple[bool, str]]):
             # GUI thread
