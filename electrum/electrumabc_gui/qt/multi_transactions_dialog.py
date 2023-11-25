@@ -1,15 +1,16 @@
 import json
 from pathlib import Path
-from typing import Sequence
+from typing import List, Sequence, Tuple
 
 from PyQt5 import QtGui, QtWidgets
 
 from electrumabc import transaction
 from electrumabc.bitcoin import sha256
 from electrumabc.constants import XEC
+from electrumabc.i18n import _
 from electrumabc.wallet import AbstractWallet
 
-from .util import MessageBoxMixin
+from .util import MessageBoxMixin, WaitingDialog
 
 
 class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
@@ -209,17 +210,62 @@ class MultiTransactionsWidget(QtWidgets.QWidget, MessageBoxMixin):
         return self.transactions[0].is_complete()
 
     def on_broadcast_clicked(self):
-        self.main_window.push_top_level_window(self)
-        try:
-            for tx in self.transactions:
-                self.main_window.broadcast_transaction(tx, None)
-        finally:
-            self.main_window.pop_top_level_window(self)
-        QtWidgets.QMessageBox.information(
+        WaitingDialog(
             self,
-            "Done broadcasting",
-            f"Broadcasted {len(self.transactions)} transactions.",
+            _("Broadcasting {} transactions...").format(len(self.transactions)),
+            self.broadcast_transactions,
+            self.on_broadcast_done,
+            self.on_broadcast_error,
         )
+
+    def broadcast_transactions(self) -> List[Tuple[bool, str]]:
+        statuses = []
+        for tx in self.transactions:
+            statuses.append(self.main_window.network.broadcast_transaction(tx))
+        return statuses
+
+    def on_broadcast_done(self, statuses: List[Tuple[bool, str]]):
+        if not statuses:
+            # Should never happen. This means the user somehow manage to trigger
+            # the broadcast button while there was no transaction to broadcast.
+            return
+        successes, msgs = zip(*statuses)
+        number_of_successes = sum(successes)
+        complete_success = number_of_successes == len(self.transactions)
+        complete_failure = number_of_successes == 0
+        success_message = _("Successfully broadcasted {} transactions.").format(
+            number_of_successes
+        )
+        fail_message = _("Failed to broadcast {} transactions.").format(
+            len(self.transactions) - number_of_successes
+        )
+        msg = (
+            (success_message + "\n\n" if not complete_failure else "")
+            + (fail_message + "\n\n" if not complete_success else "")
+            + "\n".join(msgs)
+        )
+        if complete_success:
+            QtWidgets.QMessageBox.information(
+                self,
+                _("Done broadcasting transactions"),
+                msg,
+            )
+            return
+
+        if complete_failure:
+            QtWidgets.QMessageBox.critical(
+                self,
+                _("Failed broadcasting transactions"),
+                msg,
+            )
+            return
+
+        QtWidgets.QMessageBox.warning(
+            self, _("Partially failed broadcasting transactions"), msg
+        )
+
+    def on_broadcast_error(self, exc_info):
+        self.show_error(str(exc_info[1]))
 
 
 class MultiTransactionsDialog(QtWidgets.QDialog):
