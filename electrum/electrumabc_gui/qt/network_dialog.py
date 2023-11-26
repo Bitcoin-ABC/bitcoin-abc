@@ -62,7 +62,7 @@ from .util import (
     char_width_in_lineedit,
     rate_limited,
 )
-from .utils import UserPortValidator
+from .utils.validators import HostValidator, PortValidator, UserPortValidator
 
 protocol_names = ["TCP", "SSL"]
 protocol_letters = "ts"
@@ -506,8 +506,10 @@ class NetworkChoiceLayout(QObject, PrintError):
 
         self.server_host = QtWidgets.QLineEdit()
         self.server_host.setFixedWidth(fixed_width_hostname)
+        self.server_host.setValidator(HostValidator(self.server_host))
         self.server_port = QtWidgets.QLineEdit()
         self.server_port.setFixedWidth(fixed_width_port)
+        self.server_port.setValidator(PortValidator(self.server_port))
         self.ssl_cb = QtWidgets.QCheckBox(_("Use SSL"))
         self.autoconnect_cb = QtWidgets.QCheckBox(_("Select server automatically"))
         self.autoconnect_cb.setEnabled(self.config.is_modifiable("auto_connect"))
@@ -653,8 +655,10 @@ class NetworkChoiceLayout(QObject, PrintError):
         self.proxy_mode.addItems(["SOCKS4", "SOCKS5", "HTTP"])
         self.proxy_host = QtWidgets.QLineEdit()
         self.proxy_host.setFixedWidth(fixed_width_hostname)
+        self.proxy_host.setValidator(HostValidator(self.proxy_host))
         self.proxy_port = QtWidgets.QLineEdit()
         self.proxy_port.setFixedWidth(fixed_width_port)
+        self.proxy_port.setValidator(PortValidator(self.proxy_port))
         self.proxy_user = QtWidgets.QLineEdit()
         self.proxy_user.setPlaceholderText(_("Proxy user"))
         self.proxy_password = PasswordLineEdit()

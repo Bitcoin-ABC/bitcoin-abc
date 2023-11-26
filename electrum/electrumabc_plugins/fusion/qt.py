@@ -56,7 +56,7 @@ from electrumabc_gui.qt.util import (
     WaitingDialog,
     WindowModalDialog,
 )
-from electrumabc_gui.qt.utils import PortValidator, UserPortValidator
+from electrumabc_gui.qt.utils.validators import PortValidator, UserPortValidator
 
 from .conf import Conf, Global
 from .fusion import can_fuse_from, can_fuse_to

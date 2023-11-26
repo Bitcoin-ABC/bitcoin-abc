@@ -28,4 +28,3 @@ from .aspect_layout import FixedAspectRatioLayout  # noqa: F401
 from .aspect_svg_widget import FixedAspectRatioSvgWidget  # noqa: F401
 from .color_utils import QColorLerp  # noqa: F401
 from .image_effect import ImageGraphicsEffect  # noqa: F401
-from .user_port_validator import PortValidator, UserPortValidator  # noqa: F401
