@@ -375,7 +375,6 @@ void Shutdown(NodeContext &node) {
     node.chain_clients.clear();
     if (node.validation_signals) {
         node.validation_signals->UnregisterAllValidationInterfaces();
-        node.validation_signals->UnregisterBackgroundSignalScheduler();
     }
     node.kernel.reset();
     node.mempool.reset();
@@ -2232,12 +2231,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     auto &scheduler = *node.scheduler;
 
     // Start the lightweight task scheduler thread
-    node.scheduler->m_service_thread =
+    scheduler.m_service_thread =
         std::thread(&util::TraceThread, "scheduler",
                     [&] { node.scheduler->serviceQueue(); });
 
     // Gather some entropy once per minute.
-    node.scheduler->scheduleEvery(
+    scheduler.scheduleEvery(
         [] {
             RandAddPeriodic();
             return true;
@@ -2255,7 +2254,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     // Check disk space every 5 minutes to avoid db corruption.
-    node.scheduler->scheduleEvery(
+    scheduler.scheduleEvery(
         [&args] {
             constexpr uint64_t min_disk_space = 250_MiB;
             if (!CheckDiskSpace(args.GetBlocksDirPath(), min_disk_space)) {
@@ -2267,9 +2266,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         std::chrono::minutes{5});
 
     assert(!node.validation_signals);
-    node.validation_signals = std::make_unique<CMainSignals>();
+    node.validation_signals = std::make_unique<CMainSignals>(scheduler);
     auto &validation_signals = *node.validation_signals;
-    validation_signals.RegisterBackgroundSignalScheduler(*node.scheduler);
 
     /**
      * Register RPC commands regardless of -server setting so they will be
@@ -2797,7 +2795,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         bilingual_str avalancheError;
         node.avalanche = avalanche::Processor::MakeProcessor(
             args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
-            *node.scheduler, avalancheError);
+            scheduler, avalancheError);
         if (!node.avalanche) {
             InitError(avalancheError);
             return false;
@@ -3208,7 +3206,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.m_i2p_accept_incoming =
         args.GetBoolArg("-i2pacceptincoming", true);
 
-    if (!node.connman->Start(*node.scheduler, connOptions)) {
+    if (!node.connman->Start(scheduler, connOptions)) {
         return false;
     }
 
@@ -3229,11 +3227,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     uiInterface.InitMessage(_("Done loading").translated);
 
     for (const auto &client : node.chain_clients) {
-        client->start(*node.scheduler);
+        client->start(scheduler);
     }
 
     BanMan *banman = node.banman.get();
-    node.scheduler->scheduleEvery(
+    scheduler.scheduleEvery(
         [banman] {
             banman->DumpBanlist();
             return true;
@@ -3242,11 +3240,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     // Start Avalanche's event loop.
     if (node.avalanche) {
-        node.avalanche->startEventLoop(*node.scheduler);
+        node.avalanche->startEventLoop(scheduler);
     }
 
     if (node.peerman) {
-        node.peerman->StartScheduledTasks(*node.scheduler);
+        node.peerman->StartScheduledTasks(scheduler);
     }
 
 #if HAVE_SYSTEM

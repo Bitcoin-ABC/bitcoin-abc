@@ -166,9 +166,8 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.scheduler->m_service_thread =
         std::thread(util::TraceThread, "scheduler",
                     [&] { m_node.scheduler->serviceQueue(); });
-    m_node.validation_signals = std::make_unique<CMainSignals>();
-    m_node.validation_signals->RegisterBackgroundSignalScheduler(
-        *m_node.scheduler);
+    m_node.validation_signals =
+        std::make_unique<CMainSignals>(*m_node.scheduler);
 
     m_node.mempool =
         std::make_unique<CTxMemPool>(config, MemPoolOptionsForTest(m_node));
@@ -209,7 +208,7 @@ ChainTestingSetup::~ChainTestingSetup() {
     }
 
     m_node.validation_signals->FlushBackgroundCallbacks();
-    m_node.validation_signals->UnregisterBackgroundSignalScheduler();
+    m_node.avalanche.reset();
     m_node.connman.reset();
     m_node.banman.reset();
     m_node.addrman.reset();

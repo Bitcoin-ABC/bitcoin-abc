@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
     scheduler.m_service_thread = std::thread(util::TraceThread, "scheduler",
                                              [&] { scheduler.serviceQueue(); });
 
-    CMainSignals validation_signals{};
+    CMainSignals validation_signals{scheduler};
 
     // Gather some entropy once per minute.
     scheduler.scheduleEvery(
@@ -94,8 +94,6 @@ int main(int argc, char *argv[]) {
             return true;
         },
         std::chrono::minutes{1});
-
-    validation_signals.RegisterBackgroundSignalScheduler(scheduler);
 
     class KernelNotifications : public kernel::Notifications {
     public:
@@ -343,5 +341,4 @@ epilogue:
             }
         }
     }
-    validation_signals.UnregisterBackgroundSignalScheduler();
 }
