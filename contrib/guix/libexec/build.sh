@@ -179,7 +179,8 @@ esac
 ####################
 
 # Build the depends tree, overriding variables that assume multilib gcc
-make -C depends --jobs="$JOBS" HOST="$HOST" \
+# FIXME: find out why the crossbuild does not pick up the correct protobuf lib
+make -C depends --jobs="$JOBS" NO_PROTOBUF=1 HOST="$HOST" \
                                    ${V:+V=1} \
                                    ${SOURCES_PATH+SOURCES_PATH="$SOURCES_PATH"} \
                                    ${BASE_CACHE+BASE_CACHE="$BASE_CACHE"} \
@@ -201,9 +202,11 @@ mkdir -p source_package
 pushd source_package
 # Any toolchain file will work for building the source package, just pick the
 # first one
+# FIXME: when the problem with protobuf is fixed, remove -DENABLE_BIP70=OFF
 cmake -GNinja .. \
   -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Linux64.cmake \
-  -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+  -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
+  -DENABLE_BIP70=OFF
 
 ninja package_source
 SOURCEDIST=$(echo bitcoin-abc-*.tar.gz)
@@ -267,6 +270,7 @@ mkdir -p "$DISTSRC"
     INSTALLPATH=$(pwd)/installed/${DISTNAME}
     mkdir -p "${INSTALLPATH}"
 
+    # FIXME: when the problem with protobuf is fixed, remove -DENABLE_BIP70=OFF
     cmake -GNinja .. \
       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
       -DCLIENT_VERSION_IS_RELEASE=ON \
@@ -277,6 +281,7 @@ mkdir -p "$DISTSRC"
       -DCMAKE_C_FLAGS="${HOST_CFLAGS}" \
       -DCMAKE_CXX_FLAGS="${HOST_CXXFLAGS}" \
       -DCMAKE_EXE_LINKER_FLAGS="${HOST_LDFLAGS}" \
+      -DENABLE_BIP70=OFF \
       "${CMAKE_EXTRA_OPTIONS[@]}"
 
     # Build Bitcoin ABC
