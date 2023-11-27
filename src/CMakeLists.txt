@@ -884,7 +884,6 @@ if(BUILD_CHAINSTATE)
 		random.cpp
 		randomenv.cpp
 		rcu.cpp
-		scheduler.cpp
 		script/bitfield.cpp
 		script/interpreter.cpp
 		script/intmath.cpp
@@ -905,7 +904,6 @@ if(BUILD_CHAINSTATE)
 		util/bytevectorhash.cpp
 		util/chaintype.cpp
 		util/check.cpp
-		util/exception.cpp
 		util/fs.cpp
 		util/fs_helpers.cpp
 		util/hasher.cpp
@@ -915,7 +913,6 @@ if(BUILD_CHAINSTATE)
 		util/strencodings.cpp
 		util/string.cpp
 		util/syserror.cpp
-		util/thread.cpp
 		util/threadinterrupt.cpp
 		util/threadnames.cpp
 		util/time.cpp
@@ -959,10 +956,13 @@ if(BUILD_CHAINSTATE)
 		policy/block/rtt.cpp
 		policy/block/stakingrewards.cpp
 		protocol.cpp            # avalanche/processor.cpp uses NetMsgType
+		scheduler.cpp           # via avalanche/processor.cpp
 		timedata.cpp            # via net.cpp
 		util/asmap.cpp          # via netaddress.cpp
+		util/exception.cpp      # via util/thread.cpp
 		util/readwritefile.cpp  # via i2p.cpp
 		util/sock.cpp           # via net.cpp
+		util/thread.cpp         # via scheduler.cpp
 	)
 
 	target_include_directories(bitcoinkernel

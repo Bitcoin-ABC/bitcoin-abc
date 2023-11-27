@@ -24,12 +24,11 @@
 #include <logging.h>
 #include <node/blockstorage.h>
 #include <node/chainstate.h>
-#include <scheduler.h>
 #include <script/scriptcache.h>
 #include <script/sigcache.h>
 #include <util/chaintype.h>
 #include <util/fs.h>
-#include <util/thread.h>
+#include <util/task_runner.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>
@@ -79,21 +78,8 @@ int main(int argc, char *argv[]) {
     // properly
     assert(kernel::SanityChecks(kernel_context));
 
-    // SETUP: Scheduling and Background Signals
-    CScheduler scheduler{};
-    // Start the lightweight task scheduler thread
-    scheduler.m_service_thread = std::thread(util::TraceThread, "scheduler",
-                                             [&] { scheduler.serviceQueue(); });
-
-    ValidationSignals validation_signals{scheduler};
-
-    // Gather some entropy once per minute.
-    scheduler.scheduleEvery(
-        [] {
-            RandAddPeriodic();
-            return true;
-        },
-        std::chrono::minutes{1});
+    ValidationSignals validation_signals{
+        std::make_unique<util::ImmediateTaskRunner>()};
 
     class KernelNotifications : public kernel::Notifications {
     public:
@@ -326,7 +312,6 @@ int main(int argc, char *argv[]) {
 epilogue:
     // Without this precise shutdown sequence, there will be a lot of nullptr
     // dereferencing and UB.
-    scheduler.stop();
     if (chainman.m_thread_load.joinable()) {
         chainman.m_thread_load.join();
     }

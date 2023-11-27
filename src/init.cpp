@@ -2266,7 +2266,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         std::chrono::minutes{5});
 
     assert(!node.validation_signals);
-    node.validation_signals = std::make_unique<ValidationSignals>(scheduler);
+    node.validation_signals = std::make_unique<ValidationSignals>(
+        std::make_unique<SerialTaskRunner>(scheduler));
     auto &validation_signals = *node.validation_signals;
 
     /**

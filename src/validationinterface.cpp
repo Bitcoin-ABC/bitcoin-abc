@@ -5,14 +5,14 @@
 
 #include <validationinterface.h>
 
-#include <attributes.h>
 #include <chain.h>
 #include <consensus/validation.h>
 #include <kernel/chain.h>
 #include <logging.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
-#include <scheduler.h>
+#include <util/check.h>
+#include <util/task_runner.h>
 
 #include <future>
 #include <tuple>
@@ -46,13 +46,11 @@ private:
         m_map GUARDED_BY(m_mutex);
 
 public:
-    // We are not allowed to assume the scheduler only runs in one thread,
-    // but must ensure all callbacks happen in-order, so we end up creating
-    // our own queue here :(
-    SerialTaskRunner m_task_runner;
+    std::unique_ptr<util::TaskRunnerInterface> m_task_runner;
 
-    explicit ValidationSignalsImpl(CScheduler &scheduler LIFETIMEBOUND)
-        : m_task_runner(scheduler) {}
+    explicit ValidationSignalsImpl(
+        std::unique_ptr<util::TaskRunnerInterface> task_runner)
+        : m_task_runner{std::move(Assert(task_runner))} {}
 
     void Register(std::shared_ptr<CValidationInterface> callbacks)
         EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
@@ -104,17 +102,19 @@ public:
     }
 };
 
-ValidationSignals::ValidationSignals(CScheduler &scheduler)
-    : m_internals{std::make_unique<ValidationSignalsImpl>(scheduler)} {}
+ValidationSignals::ValidationSignals(
+    std::unique_ptr<util::TaskRunnerInterface> task_runner)
+    : m_internals{
+          std::make_unique<ValidationSignalsImpl>(std::move(task_runner))} {}
 
 ValidationSignals::~ValidationSignals() {}
 
 void ValidationSignals::FlushBackgroundCallbacks() {
-    m_internals->m_task_runner.flush();
+    m_internals->m_task_runner->flush();
 }
 
 size_t ValidationSignals::CallbacksPending() {
-    return m_internals->m_task_runner.size();
+    return m_internals->m_task_runner->size();
 }
 
 void ValidationSignals::RegisterSharedValidationInterface(
@@ -148,7 +148,7 @@ void ValidationSignals::UnregisterAllValidationInterfaces() {
 
 void ValidationSignals::CallFunctionInValidationInterfaceQueue(
     std::function<void()> func) {
-    m_internals->m_task_runner.insert(std::move(func));
+    m_internals->m_task_runner->insert(std::move(func));
 }
 
 void ValidationSignals::SyncWithValidationInterfaceQueue() {
@@ -167,7 +167,7 @@ void ValidationSignals::SyncWithValidationInterfaceQueue() {
     do {                                                                       \
         auto local_name = (name);                                              \
         LOG_EVENT("Enqueuing " fmt, local_name, __VA_ARGS__);                  \
-        m_internals->m_task_runner.insert([=] {                                \
+        m_internals->m_task_runner->insert([=] {                               \
             LOG_EVENT(fmt, local_name, __VA_ARGS__);                           \
             event();                                                           \
         });                                                                    \
