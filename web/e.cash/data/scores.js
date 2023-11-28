@@ -72,23 +72,27 @@ export const instantExchangeScoringCriteria = [
     {
         attribute: 'trading_open',
         value: true,
-        score: 40,
+        score: 30,
     },
     {
         attribute: 'ecash_deposit_address_format',
         value: true,
-        score: 30,
+        score: 25,
     },
     {
         attribute: 'deposit_confirmations',
         min: 0,
         max: 1,
-        score: 20,
+        score: 25,
     },
     {
         attribute: 'decimal_place',
         min: 2,
         max: 2,
+        score: 10,
+    },
+    {
+        attribute: 'issues',
         score: 10,
     },
 ];
