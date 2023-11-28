@@ -392,6 +392,7 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     bilingual_str error;
     NetWhitebindPermissions whitebindPermissions;
     NetWhitelistPermissions whitelistPermissions;
+    ConnectionDirection connection_direction;
 
     // Detect invalid white bind
     BOOST_CHECK(
@@ -505,6 +506,12 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
                                                   whitebindPermissions, error));
     BOOST_CHECK_EQUAL(whitebindPermissions.m_flags, NetPermissionFlags::None);
 
+    BOOST_CHECK(!NetWhitebindPermissions::TryParse(
+        "out,forcerelay@1.2.3.4:32", whitebindPermissions, error));
+    BOOST_CHECK(error.original.find("whitebind may only be used for incoming "
+                                    "connections (\"out\" was passed)") !=
+                std::string::npos);
+
     // Detect invalid flag
     BOOST_CHECK(!NetWhitebindPermissions::TryParse(
         "bloom,forcerelay,oopsie@1.2.3.4:32", whitebindPermissions, error));
@@ -513,21 +520,22 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
 
     // Check netmask error
     BOOST_CHECK(!NetWhitelistPermissions::TryParse(
-        "bloom,forcerelay,noban@1.2.3.4:32", whitelistPermissions, error));
+        "bloom,forcerelay,noban@1.2.3.4:32", whitelistPermissions,
+        connection_direction, error));
     BOOST_CHECK(
         error.original.find("Invalid netmask specified in -whitelist") !=
         std::string::npos);
 
     // Happy path for whitelist parsing
-    BOOST_CHECK(NetWhitelistPermissions::TryParse("noban@1.2.3.4",
-                                                  whitelistPermissions, error));
+    BOOST_CHECK(NetWhitelistPermissions::TryParse(
+        "noban@1.2.3.4", whitelistPermissions, connection_direction, error));
     BOOST_CHECK_EQUAL(whitelistPermissions.m_flags, NetPermissionFlags::NoBan);
     BOOST_CHECK(NetPermissions::HasFlag(whitelistPermissions.m_flags,
                                         NetPermissionFlags::NoBan));
 
     BOOST_CHECK(NetWhitelistPermissions::TryParse(
         "bloom,forcerelay,noban,relay,bypass_proof_request_limits@1.2.3.4/32",
-        whitelistPermissions, error));
+        whitelistPermissions, connection_direction, error));
     BOOST_CHECK_EQUAL(
         whitelistPermissions.m_flags,
         NetPermissionFlags::BloomFilter | NetPermissionFlags::ForceRelay |
@@ -537,7 +545,7 @@ BOOST_AUTO_TEST_CASE(netpermissions_test) {
     BOOST_CHECK_EQUAL(whitelistPermissions.m_subnet.ToString(), "1.2.3.4/32");
     BOOST_CHECK(NetWhitelistPermissions::TryParse(
         "bloom,forcerelay,noban,relay,mempool@1.2.3.4/32", whitelistPermissions,
-        error));
+        connection_direction, error));
 
     const auto strings = NetPermissions::ToStrings(NetPermissionFlags::All);
     BOOST_CHECK_EQUAL(strings.size(), 8U);

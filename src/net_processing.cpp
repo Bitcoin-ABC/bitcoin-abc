@@ -2198,6 +2198,12 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
                                    std::forward_as_tuple(node.IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
+
+    if (NetPermissions::HasFlag(node.m_permission_flags,
+                                NetPermissionFlags::BloomFilter)) {
+        our_services = static_cast<ServiceFlags>(our_services | NODE_BLOOM);
+    }
+
     PeerRef peer = std::make_shared<Peer>(nodeid, our_services, !!m_avalanche);
     {
         LOCK(m_peer_mutex);

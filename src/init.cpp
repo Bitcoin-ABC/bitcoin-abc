@@ -519,8 +519,8 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-blocksonly",
         strprintf("Whether to reject transactions from network peers.  "
-                  "Automatic broadcast and rebroadcast of any transactions "
-                  "from inbound peers is disabled, unless the peer has the "
+                  "Disables automatic broadcast and rebroadcast of "
+                  "transactions, unless the source peer has the "
                   "'forcerelay' permission. RPC transactions are"
                   " not affected. (default: %u)",
                   DEFAULT_BLOCKSONLY),
@@ -969,11 +969,14 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
 
     argsman.AddArg("-whitelist=<[permissions@]IP address or network>",
-                   "Add permission flags to the peers connecting from the "
-                   "given IP address (e.g. 1.2.3.4) or CIDR-notated network "
+                   "Add permission flags to the peers using the given "
+                   "IP address (e.g. 1.2.3.4) or CIDR-notated network "
                    "(e.g. 1.2.3.0/24). "
-                   "Uses the same permissions as -whitebind. Can be specified "
-                   "multiple times.",
+                   "Uses the same permissions as -whitebind. "
+                   "Additional flags \"in\" and \"out\" control whether "
+                   "permissions apply to incoming connections and/or manual "
+                   "(default: incoming only). "
+                   "Can be specified multiple times.",
                    ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
     argsman.AddArg(
         "-maxuploadtarget=<n>",
@@ -1196,7 +1199,7 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg(
         "-whitelistrelay",
-        strprintf("Add 'relay' permission to whitelisted inbound peers "
+        strprintf("Add 'relay' permission to whitelisted peers "
                   "with default permissions. This will accept relayed "
                   "transactions even when not relaying transactions "
                   "(default: %d)",
@@ -1204,8 +1207,8 @@ void SetupServerArgs(NodeContext &node) {
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
     argsman.AddArg(
         "-whitelistforcerelay",
-        strprintf("Add 'forcerelay' permission to whitelisted inbound peers"
-                  " with default permissions. This will relay transactions "
+        strprintf("Add 'forcerelay' permission to whitelisted peers "
+                  "with default permissions. This will relay transactions "
                   "even if the transactions were already in the mempool "
                   "(default: %d)",
                   DEFAULT_WHITELISTFORCERELAY),
@@ -2784,6 +2787,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         1024 * 1024 *
         args.GetIntArg("-maxuploadtarget", DEFAULT_MAX_UPLOAD_TARGET);
     connOptions.m_peer_connect_timeout = peer_connect_timeout;
+    connOptions.whitelist_forcerelay =
+        args.GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY);
+    connOptions.whitelist_relay =
+        args.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY);
 
     // Port to bind to if `-bind=addr` is provided without a `:port` suffix.
     const uint16_t default_bind_port = static_cast<uint16_t>(
@@ -2874,11 +2881,18 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     for (const auto &net : args.GetArgs("-whitelist")) {
         NetWhitelistPermissions subnet;
+        ConnectionDirection connection_direction;
         bilingual_str error;
-        if (!NetWhitelistPermissions::TryParse(net, subnet, error)) {
+        if (!NetWhitelistPermissions::TryParse(net, subnet,
+                                               connection_direction, error)) {
             return InitError(error);
         }
-        connOptions.vWhitelistedRange.push_back(subnet);
+        if (connection_direction & ConnectionDirection::In) {
+            connOptions.vWhitelistedRangeIncoming.push_back(subnet);
+        }
+        if (connection_direction & ConnectionDirection::Out) {
+            connOptions.vWhitelistedRangeOutgoing.push_back(subnet);
+        }
     }
 
     connOptions.vSeedNodes = args.GetArgs("-seednode");

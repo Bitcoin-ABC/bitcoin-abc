@@ -530,6 +530,14 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         return nullptr;
     }
 
+    NetPermissionFlags permission_flags = NetPermissionFlags::None;
+    std::vector<NetWhitelistPermissions> whitelist_permissions =
+        conn_type == ConnectionType::MANUAL
+            ? vWhitelistedRangeOutgoing
+            : std::vector<NetWhitelistPermissions>{};
+    AddWhitelistPermissionFlags(permission_flags, addrConnect,
+                                whitelist_permissions);
+
     // Add node
     NodeId id = GetNewNodeId();
     uint64_t nonce = GetDeterministicRandomizer(RANDOMIZER_ID_LOCALHOSTNONCE)
@@ -545,7 +553,8 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
     CNode *pnode = new CNode(
         id, sock->Release(), addrConnect, CalculateKeyedNetGroup(addrConnect),
         nonce, extra_entropy, addr_bind, pszDest ? pszDest : "", conn_type,
-        /* inbound_onion */ false);
+        /* inbound_onion */ false,
+        CNodeOptions{.permission_flags = permission_flags});
     pnode->AddRef();
 
     // We're making a new connection, harvest entropy from the time (and our
@@ -564,12 +573,24 @@ void CNode::CloseSocketDisconnect() {
     }
 }
 
-void CConnman::AddWhitelistPermissionFlags(NetPermissionFlags &flags,
-                                           const CNetAddr &addr) const {
-    for (const auto &subnet : vWhitelistedRange) {
+void CConnman::AddWhitelistPermissionFlags(
+    NetPermissionFlags &flags, const CNetAddr &addr,
+    const std::vector<NetWhitelistPermissions> &ranges) const {
+    for (const auto &subnet : ranges) {
         if (subnet.m_subnet.Match(addr)) {
             NetPermissions::AddFlag(flags, subnet.m_flags);
         }
+    }
+    if (NetPermissions::HasFlag(flags, NetPermissionFlags::Implicit)) {
+        NetPermissions::ClearFlag(flags, NetPermissionFlags::Implicit);
+        if (whitelist_forcerelay) {
+            NetPermissions::AddFlag(flags, NetPermissionFlags::ForceRelay);
+        }
+        if (whitelist_relay) {
+            NetPermissions::AddFlag(flags, NetPermissionFlags::Relay);
+        }
+        NetPermissions::AddFlag(flags, NetPermissionFlags::Mempool);
+        NetPermissions::AddFlag(flags, NetPermissionFlags::NoBan);
     }
 }
 
@@ -1296,23 +1317,8 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
     int nInbound = 0;
     int nMaxInbound = nMaxConnections - m_max_outbound;
 
-    AddWhitelistPermissionFlags(permission_flags, addr);
-    if (NetPermissions::HasFlag(permission_flags,
-                                NetPermissionFlags::Implicit)) {
-        NetPermissions::ClearFlag(permission_flags,
-                                  NetPermissionFlags::Implicit);
-        if (gArgs.GetBoolArg("-whitelistforcerelay",
-                             DEFAULT_WHITELISTFORCERELAY)) {
-            NetPermissions::AddFlag(permission_flags,
-                                    NetPermissionFlags::ForceRelay);
-        }
-        if (gArgs.GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)) {
-            NetPermissions::AddFlag(permission_flags,
-                                    NetPermissionFlags::Relay);
-        }
-        NetPermissions::AddFlag(permission_flags, NetPermissionFlags::Mempool);
-        NetPermissions::AddFlag(permission_flags, NetPermissionFlags::NoBan);
-    }
+    AddWhitelistPermissionFlags(permission_flags, addr,
+                                vWhitelistedRangeIncoming);
 
     {
         LOCK(m_nodes_mutex);
@@ -1382,12 +1388,6 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
             .Write(id)
             .Finalize();
 
-    ServiceFlags nodeServices = nLocalServices;
-    if (NetPermissions::HasFlag(permission_flags,
-                                NetPermissionFlags::BloomFilter)) {
-        nodeServices = static_cast<ServiceFlags>(nodeServices | NODE_BLOOM);
-    }
-
     const bool inbound_onion =
         std::find(m_onion_binds.begin(), m_onion_binds.end(), addr_bind) !=
         m_onion_binds.end();
@@ -1400,7 +1400,7 @@ void CConnman::CreateNodeFromAcceptedSocket(SOCKET hSocket,
                              });
     pnode->AddRef();
     for (auto interface : m_msgproc) {
-        interface->InitializeNode(*config, *pnode, nodeServices);
+        interface->InitializeNode(*config, *pnode, nLocalServices);
     }
 
     LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
@@ -3452,7 +3452,8 @@ CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
              uint64_t nLocalExtraEntropyIn, const CAddress &addrBindIn,
              const std::string &addrNameIn, ConnectionType conn_type_in,
              bool inbound_onion, CNodeOptions &&node_opts)
-    : m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
+    : m_permission_flags{node_opts.permission_flags},
+      m_connected(GetTime<std::chrono::seconds>()), addr(addrIn),
       addrBind(addrBindIn),
       m_addr_name{addrNameIn.empty() ? addr.ToStringIPPort() : addrNameIn},
       m_inbound_onion(inbound_onion), m_prefer_evict{node_opts.prefer_evict},
@@ -3461,8 +3462,7 @@ CNode::CNode(NodeId idIn, SOCKET hSocketIn, const CAddress &addrIn,
       // block-relay-only peers (to prevent adversaries from inferring these
       // links from addr traffic).
       id(idIn), nLocalHostNonce(nLocalHostNonceIn),
-      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in),
-      m_permission_flags{node_opts.permission_flags} {
+      nLocalExtraEntropy(nLocalExtraEntropyIn), m_conn_type(conn_type_in) {
     if (inbound_onion) {
         assert(conn_type_in == ConnectionType::INBOUND);
     }
