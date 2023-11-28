@@ -41,13 +41,22 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
     // strCommand);
     if (strCommand == NetMsgType::VERSION) {
         int64_t nTime;
-        CAddress addrMe;
-        CAddress addrFrom;
+        CService addrMe;
         uint64_t nNonce = 1;
         uint64_t nServiceInt;
-        recv >> nVersion >> nServiceInt >> nTime >> addrMe;
-        you.nServices = ServiceFlags(nServiceInt);
-        recv >> addrFrom >> nNonce;
+        recv >> nVersion >> nServiceInt >> nTime;
+        yourServices = ServiceFlags(nServiceInt);
+        // Ignore the addrMe service bits sent by the peer
+        recv.ignore(8);
+        recv >> addrMe;
+
+        // The version message includes information about the sending node
+        // which we don't use:
+        //   - 8 bytes (service bits)
+        //   - 16 bytes (ipv6 address)
+        //   - 2 bytes (port)
+        recv.ignore(26);
+        recv >> nNonce;
         recv >> strSubVer;
         recv >> nStartingHeight;
 
@@ -177,7 +186,7 @@ bool CSeederNode::ProcessMessages() {
 CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
     : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
       nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0), doneAfter(0),
-      you(ip, ServiceFlags(NODE_NETWORK)) {
+      you(ip), yourServices(ServiceFlags(NODE_NETWORK)) {
     if (GetTime() > 1329696000) {
         vSend.SetVersion(209);
         vRecv.SetVersion(209);
@@ -221,10 +230,11 @@ bool CSeederNode::Run() {
     }
 
     // Write version message
+    // Don't include the time in CAddress serialization. See D14753.
     uint64_t nLocalServices = 0;
     uint64_t nLocalNonce = BITCOIN_SEED_NONCE;
-    CService myService;
-    CAddress me(myService, ServiceFlags(NODE_NETWORK));
+    uint64_t your_services{yourServices};
+    uint64_t my_services{ServiceFlags(NODE_NETWORK)};
     uint8_t fRelayTxs = 0;
 
     const std::string clientName = gArgs.GetArg("-uaclientname", CLIENT_NAME);
@@ -234,8 +244,9 @@ bool CSeederNode::Run() {
         FormatUserAgent(clientName, clientVersion, {"seeder"});
 
     MessageWriter::WriteMessage(vSend, NetMsgType::VERSION, PROTOCOL_VERSION,
-                                nLocalServices, GetTime(), you, me, nLocalNonce,
-                                userAgent, GetRequireHeight(), fRelayTxs);
+                                nLocalServices, GetTime(), your_services, you,
+                                my_services, CService(), nLocalNonce, userAgent,
+                                GetRequireHeight(), fRelayTxs);
     Send();
 
     bool res = true;

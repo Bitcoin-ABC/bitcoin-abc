@@ -47,7 +47,8 @@ private:
     std::vector<CAddress> *vAddr;
     int ban;
     int64_t doneAfter;
-    CAddress you;
+    CService you;
+    ServiceFlags yourServices;
 
     int GetTimeout() { return you.IsTor() ? 120 : 30; }
 
@@ -80,7 +81,7 @@ public:
 
     int GetStartingHeight() { return nStartingHeight; }
 
-    uint64_t GetServices() { return you.nServices; }
+    uint64_t GetServices() { return yourServices; }
 };
 
 #endif // BITCOIN_SEEDER_BITCOIN_H

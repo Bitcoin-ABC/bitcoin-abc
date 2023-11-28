@@ -59,27 +59,21 @@ struct SeederTestingSetup {
 
 BOOST_FIXTURE_TEST_SUITE(p2p_messaging_tests, SeederTestingSetup)
 
-static CDataStream
-CreateVersionMessage(int64_t now, CAddress addrTo, CAddress addrFrom,
-                     int32_t start_height, uint32_t nVersion,
-                     uint64_t nonce = 0,
-                     std::string user_agent = "/Bitcoin ABC:0.0.0(seeder)/") {
-    CDataStream payload(SER_NETWORK, 0);
-    payload.SetVersion(nVersion);
-    ServiceFlags serviceflags = ServiceFlags(NODE_NETWORK);
-    payload << nVersion << uint64_t(serviceflags) << now << addrTo << addrFrom
-            << nonce << user_agent << start_height;
-    return payload;
-}
-
 static const int SEEDER_INIT_VERSION = 0;
 
 BOOST_AUTO_TEST_CASE(process_version_msg) {
-    CService serviceFrom;
-    CAddress addrFrom(serviceFrom, ServiceFlags(NODE_NETWORK));
+    CDataStream versionMessage(SER_NETWORK, INIT_PROTO_VERSION);
+    uint64_t serviceflags = ServiceFlags(NODE_NETWORK);
+    CService addr_to = vAddr[0];
+    uint64_t addr_to_services = vAddr[0].nServices;
+    CService addr_from;
+    uint64_t nonce = 0;
+    std::string user_agent = "/Bitcoin ABC:0.0.0(seeder)/";
 
-    CDataStream versionMessage = CreateVersionMessage(
-        GetTime(), vAddr[0], addrFrom, GetRequireHeight(), INIT_PROTO_VERSION);
+    // Don't include the time in CAddress serialization. See D14753.
+    versionMessage << INIT_PROTO_VERSION << serviceflags << GetTime()
+                   << addr_to_services << addr_to << serviceflags << addr_from
+                   << nonce << user_agent << GetRequireHeight();
 
     // Verify the version is set as the initial value
     BOOST_CHECK_EQUAL(testNode->CSeederNode::GetClientVersion(),
