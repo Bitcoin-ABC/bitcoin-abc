@@ -17,7 +17,6 @@
 #include <uint256.h>
 #include <util/overflow.h>
 #include <util/vector.h>
-#include <version.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>
 #include <test/fuzz/fuzz.h>
@@ -149,7 +148,7 @@ ConsumeDeserializable(FuzzedDataProvider &fuzzed_data_provider,
                       const size_t max_length = 4096) noexcept {
     const std::vector<uint8_t> buffer =
         ConsumeRandomLengthByteVector(fuzzed_data_provider, max_length);
-    CDataStream ds{buffer, SER_NETWORK, INIT_PROTO_VERSION};
+    DataStream ds{buffer};
     T obj;
     try {
         ds >> obj;

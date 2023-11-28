@@ -13,7 +13,6 @@
 #include <streams.h>
 #include <util/chaintype.h>
 #include <validation.h>
-#include <version.h>
 
 #include <test/fuzz/fuzz.h>
 
@@ -26,12 +25,9 @@ void initialize_block() {
 }
 
 FUZZ_TARGET_INIT(block, initialize_block) {
-    CDataStream ds(buffer, SER_NETWORK, INIT_PROTO_VERSION);
+    DataStream ds{buffer};
     CBlock block;
     try {
-        int nVersion;
-        ds >> nVersion;
-        ds.SetVersion(nVersion);
         ds >> block;
     } catch (const std::ios_base::failure &) {
         return;

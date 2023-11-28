@@ -24,7 +24,6 @@
 #include <script/keyorigin.h>
 #include <streams.h>
 #include <undo.h>
-#include <version.h>
 
 #include <test/fuzz/fuzz.h>
 #include <test/fuzz/util.h>
@@ -81,37 +80,21 @@ void DeserializeFromFuzzingInput(std::vector<uint8_t> &buffer, T &&obj,
     assert(buffer.empty() || !Serialize(obj, params).empty());
 }
 
-template <typename T>
-CDataStream Serialize(const T &obj, const int version = INIT_PROTO_VERSION,
-                      const int ser_type = SER_NETWORK) {
-    CDataStream ds(ser_type, version);
+template <typename T> DataStream Serialize(const T &obj) {
+    DataStream ds{};
     ds << obj;
     return ds;
 }
 
-template <typename T> T Deserialize(CDataStream ds) {
+template <typename T> T Deserialize(DataStream ds) {
     T obj;
     ds >> obj;
     return obj;
 }
 
 template <typename T>
-void DeserializeFromFuzzingInput(
-    const std::vector<uint8_t> &buffer, T &&obj,
-    const std::optional<int> protocol_version = std::nullopt,
-    const int ser_type = SER_NETWORK) {
-    CDataStream ds(buffer, ser_type, INIT_PROTO_VERSION);
-    if (protocol_version) {
-        ds.SetVersion(*protocol_version);
-    } else {
-        try {
-            int version;
-            ds >> version;
-            ds.SetVersion(version);
-        } catch (const std::ios_base::failure &) {
-            throw invalid_fuzzing_input_exception();
-        }
-    }
+void DeserializeFromFuzzingInput(const std::vector<uint8_t> &buffer, T &&obj) {
+    DataStream ds{buffer};
     try {
         ds >> obj;
     } catch (const std::ios_base::failure &) {
@@ -124,11 +107,8 @@ template <typename T, typename P>
 void AssertEqualAfterSerializeDeserialize(const T &obj, const P &params) {
     assert(Deserialize<T>(Serialize(obj, params), params) == obj);
 }
-template <typename T>
-void AssertEqualAfterSerializeDeserialize(
-    const T &obj, const int version = INIT_PROTO_VERSION,
-    const int ser_type = SER_NETWORK) {
-    assert(Deserialize<T>(Serialize(obj, version, ser_type)) == obj);
+template <typename T> void AssertEqualAfterSerializeDeserialize(const T &obj) {
+    assert(Deserialize<T>(Serialize(obj)) == obj);
 }
 
 } // namespace

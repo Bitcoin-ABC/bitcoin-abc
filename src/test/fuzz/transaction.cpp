@@ -17,7 +17,6 @@
 #include <test/fuzz/fuzz.h>
 #include <util/chaintype.h>
 #include <validation.h>
-#include <version.h>
 
 #include <univalue.h>
 
@@ -28,14 +27,7 @@ void initialize_transaction() {
 }
 
 FUZZ_TARGET_INIT(transaction, initialize_transaction) {
-    CDataStream ds(buffer, SER_NETWORK, INIT_PROTO_VERSION);
-    try {
-        int nVersion;
-        ds >> nVersion;
-        ds.SetVersion(nVersion);
-    } catch (const std::ios_base::failure &) {
-        return;
-    }
+    DataStream ds{buffer};
     bool valid_tx = true;
     const CTransaction tx = [&] {
         try {
@@ -46,12 +38,9 @@ FUZZ_TARGET_INIT(transaction, initialize_transaction) {
         }
     }();
     bool valid_mutable_tx = true;
-    CDataStream ds_mtx(buffer, SER_NETWORK, INIT_PROTO_VERSION);
+    DataStream ds_mtx{buffer};
     CMutableTransaction mutable_tx;
     try {
-        int nVersion;
-        ds_mtx >> nVersion;
-        ds_mtx.SetVersion(nVersion);
         ds_mtx >> mutable_tx;
     } catch (const std::ios_base::failure &) {
         valid_mutable_tx = false;
