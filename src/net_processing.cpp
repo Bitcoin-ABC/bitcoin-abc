@@ -951,7 +951,7 @@ private:
     std::map<NodeId, PeerRef> m_peer_map GUARDED_BY(m_peer_mutex);
 
     /** Map maintaining per-node state. */
-    std::map<NodeId, CNodeState> mapNodeState GUARDED_BY(cs_main);
+    std::map<NodeId, CNodeState> m_node_states GUARDED_BY(cs_main);
 
     /**
      * Get a pointer to a const CNodeState, used when not mutating the
@@ -980,7 +980,7 @@ private:
     int m_outbound_peers_with_protect_from_disconnect GUARDED_BY(cs_main) = 0;
 
     /** Number of preferable block download peers. */
-    int nPreferredDownload GUARDED_BY(cs_main){0};
+    int m_num_preferred_download_peers GUARDED_BY(cs_main){0};
 
     bool AlreadyHaveTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
@@ -1028,18 +1028,18 @@ private:
                       std::chrono::seconds average_interval);
 
     // All of the following cache a recent block, and are protected by
-    // cs_most_recent_block
-    RecursiveMutex cs_most_recent_block;
+    // m_most_recent_block_mutex
+    RecursiveMutex m_most_recent_block_mutex;
     std::shared_ptr<const CBlock>
-        most_recent_block GUARDED_BY(cs_most_recent_block);
+        m_most_recent_block GUARDED_BY(m_most_recent_block_mutex);
     std::shared_ptr<const CBlockHeaderAndShortTxIDs>
-        most_recent_compact_block GUARDED_BY(cs_most_recent_block);
-    BlockHash most_recent_block_hash GUARDED_BY(cs_most_recent_block);
+        m_most_recent_compact_block GUARDED_BY(m_most_recent_block_mutex);
+    BlockHash m_most_recent_block_hash GUARDED_BY(m_most_recent_block_mutex);
 
     /**
      * Height of the highest block announced using BIP 152 high-bandwidth mode.
      */
-    int nHighestFastAnnounce{0};
+    int m_highest_fast_announce{0};
 
     /** Have we requested this block from a peer */
     bool IsBlockRequested(const BlockHash &hash)
@@ -1272,8 +1272,8 @@ private:
 
 const CNodeState *PeerManagerImpl::State(NodeId pnode) const
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
-    std::map<NodeId, CNodeState>::const_iterator it = mapNodeState.find(pnode);
-    if (it == mapNodeState.end()) {
+    std::map<NodeId, CNodeState>::const_iterator it = m_node_states.find(pnode);
+    if (it == m_node_states.end()) {
         return nullptr;
     }
 
@@ -1827,9 +1827,10 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
     NodeId nodeid = node.GetId();
     {
         LOCK(cs_main);
-        mapNodeState.emplace_hint(mapNodeState.end(), std::piecewise_construct,
-                                  std::forward_as_tuple(nodeid),
-                                  std::forward_as_tuple(node.IsInboundConn()));
+        m_node_states.emplace_hint(m_node_states.end(),
+                                   std::piecewise_construct,
+                                   std::forward_as_tuple(nodeid),
+                                   std::forward_as_tuple(node.IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
     PeerRef peer = std::make_shared<Peer>(nodeid, our_services);
@@ -2051,19 +2052,19 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
         }
         WITH_LOCK(g_cs_orphans, m_orphanage.EraseForPeer(nodeid));
         m_txrequest.DisconnectedPeer(nodeid);
-        nPreferredDownload -= state->fPreferredDownload;
+        m_num_preferred_download_peers -= state->fPreferredDownload;
         m_peers_downloading_from -= (state->nBlocksInFlight != 0);
         assert(m_peers_downloading_from >= 0);
         m_outbound_peers_with_protect_from_disconnect -=
             state->m_chain_sync.m_protect;
         assert(m_outbound_peers_with_protect_from_disconnect >= 0);
 
-        mapNodeState.erase(nodeid);
+        m_node_states.erase(nodeid);
 
-        if (mapNodeState.empty()) {
+        if (m_node_states.empty()) {
             // Do a consistency check after the last peer is removed.
             assert(mapBlocksInFlight.empty());
-            assert(nPreferredDownload == 0);
+            assert(m_num_preferred_download_peers == 0);
             assert(m_peers_downloading_from == 0);
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
             assert(m_txrequest.Size() == 0);
@@ -2444,10 +2445,10 @@ void PeerManagerImpl::NewPoWValidBlock(
 
     LOCK(cs_main);
 
-    if (pindex->nHeight <= nHighestFastAnnounce) {
+    if (pindex->nHeight <= m_highest_fast_announce) {
         return;
     }
-    nHighestFastAnnounce = pindex->nHeight;
+    m_highest_fast_announce = pindex->nHeight;
 
     BlockHash hashBlock(pblock->GetHash());
     const std::shared_future<CSerializedNetMsg> lazy_ser{
@@ -2456,10 +2457,10 @@ void PeerManagerImpl::NewPoWValidBlock(
         })};
 
     {
-        LOCK(cs_most_recent_block);
-        most_recent_block_hash = hashBlock;
-        most_recent_block = pblock;
-        most_recent_compact_block = pcmpctblock;
+        LOCK(m_most_recent_block_mutex);
+        m_most_recent_block_hash = hashBlock;
+        m_most_recent_block = pblock;
+        m_most_recent_compact_block = pcmpctblock;
     }
 
     m_connman.ForEachNode(
@@ -2723,9 +2724,9 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
     std::shared_ptr<const CBlock> a_recent_block;
     std::shared_ptr<const CBlockHeaderAndShortTxIDs> a_recent_compact_block;
     {
-        LOCK(cs_most_recent_block);
-        a_recent_block = most_recent_block;
-        a_recent_compact_block = most_recent_compact_block;
+        LOCK(m_most_recent_block_mutex);
+        a_recent_block = m_most_recent_block;
+        a_recent_compact_block = m_most_recent_compact_block;
     }
 
     bool need_activate_chain = false;
@@ -3909,7 +3910,7 @@ void PeerManagerImpl::ProcessMessage(
                 (!pfrom.IsInboundConn() ||
                  pfrom.HasPermission(NetPermissionFlags::NoBan)) &&
                 !pfrom.IsAddrFetchConn() && CanServeBlocks(*peer);
-            nPreferredDownload += state->fPreferredDownload;
+            m_num_preferred_download_peers += state->fPreferredDownload;
         }
 
         // Self advertisement & GETADDR logic
@@ -4412,8 +4413,8 @@ void PeerManagerImpl::ProcessMessage(
         {
             std::shared_ptr<const CBlock> a_recent_block;
             {
-                LOCK(cs_most_recent_block);
-                a_recent_block = most_recent_block;
+                LOCK(m_most_recent_block_mutex);
+                a_recent_block = m_most_recent_block;
             }
             BlockValidationState state;
             if (!m_chainman.ActiveChainstate().ActivateBestChain(
@@ -4483,11 +4484,11 @@ void PeerManagerImpl::ProcessMessage(
 
         std::shared_ptr<const CBlock> recent_block;
         {
-            LOCK(cs_most_recent_block);
-            if (most_recent_block_hash == req.blockhash) {
-                recent_block = most_recent_block;
+            LOCK(m_most_recent_block_mutex);
+            if (m_most_recent_block_hash == req.blockhash) {
+                recent_block = m_most_recent_block;
             }
-            // Unlock cs_most_recent_block to avoid cs_main lock inversion
+            // Unlock m_most_recent_block_mutex to avoid cs_main lock inversion
         }
         if (recent_block) {
             SendBlockTransactions(pfrom, *recent_block, req);
@@ -6867,8 +6868,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         // Download if this is a nice peer, or we have no nice peers and this
         // one might do.
         fFetch = state.fPreferredDownload ||
-                 (nPreferredDownload == 0 && CanServeBlocks(*peer) &&
-                  !pto->IsAddrFetchConn());
+                 (m_num_preferred_download_peers == 0 &&
+                  CanServeBlocks(*peer) && !pto->IsAddrFetchConn());
 
         if (!state.fSyncStarted && CanServeBlocks(*peer) && !fImporting &&
             !fReindex) {
@@ -7001,11 +7002,11 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
 
                     bool fGotBlockFromCache = false;
                     {
-                        LOCK(cs_most_recent_block);
-                        if (most_recent_block_hash ==
+                        LOCK(m_most_recent_block_mutex);
+                        if (m_most_recent_block_hash ==
                             pBestIndex->GetBlockHash()) {
                             CBlockHeaderAndShortTxIDs cmpctblock(
-                                *most_recent_block);
+                                *m_most_recent_block);
                             m_connman.PushMessage(
                                 pto, msgMaker.Make(nSendFlags,
                                                    NetMsgType::CMPCTBLOCK,
@@ -7346,7 +7347,9 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 GetAdjustedTime() - 24 * 60 * 60) {
                 if (current_time > state.m_headers_sync_timeout &&
                     nSyncStarted == 1 &&
-                    (nPreferredDownload - state.fPreferredDownload >= 1)) {
+                    (m_num_preferred_download_peers -
+                         state.fPreferredDownload >=
+                     1)) {
                     // Disconnect a peer (without NetPermissionFlags::NoBan
                     // permission) if it is our only sync peer, and we have
                     // others we could be using instead. Note: If all our peers
