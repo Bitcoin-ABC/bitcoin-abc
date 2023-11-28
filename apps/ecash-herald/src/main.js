@@ -13,9 +13,8 @@ module.exports = {
         telegramChannelId,
     ) {
         // Initialize websocket connection
-        let telegramBotWebsocket;
         try {
-            telegramBotWebsocket = await initializeWebsocket(
+            await initializeWebsocket(
                 chronik,
                 websocketSubscriptionAddress,
                 telegramBot,
@@ -28,25 +27,6 @@ module.exports = {
             );
             console.log(`Failed to start ecash-herald.`);
             return err;
-        }
-
-        if (
-            telegramBotWebsocket &&
-            telegramBotWebsocket._subs &&
-            telegramBotWebsocket._subs[0]
-        ) {
-            console.log(
-                `Websocket subscribed to ${websocketSubscriptionAddress}`,
-            );
-        } else {
-            // If you do not connect to a websocket on app startup, shutdown
-            console.log(`Failed to start ecash-herald.`);
-            // TODO
-            // If you see this frequently or if and when deployment is automated,
-            // notify the admin with a Telegram msg
-
-            // Shut down in error condition
-            process.exit(1);
         }
     },
 };
