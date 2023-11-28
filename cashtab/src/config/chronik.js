@@ -5,7 +5,11 @@
 'use strict';
 
 export const chronik = {
-    urls: ['https://chronik.fabien.cash', 'https://chronik2.fabien.cash'],
+    urls: [
+        'https://chronik.be.cash/xec',
+        'https://chronik.fabien.cash',
+        'https://chronik2.fabien.cash',
+    ],
     txHistoryCount: 10,
     txHistoryPageSize: 25,
 };

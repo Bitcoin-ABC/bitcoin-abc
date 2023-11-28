@@ -4,7 +4,7 @@
 
 'use strict';
 module.exports = {
-    chronik: 'https://chronik.fabien.cash', // URL of chronik instance
+    chronik: 'https://chronik.be.cash/xec', // URL of chronik instance
     avalancheCheckWaitInterval: 500, // half a second
     avalancheCheckCount: 100, // max number of times you'll check if a block is avalanche finalized
     database: {

@@ -5,7 +5,7 @@
 'use strict';
 module.exports = {
     xecSendDisplayCount: 12,
-    chronik: 'https://chronik.fabien.cash', // URL of chronik instance
+    chronik: 'https://chronik.be.cash/xec', // URL of chronik instance
     blockExplorer: 'https://explorer.e.cash',
     stakerPeerApi: 'https://avalanche.cash/api/recentstakingpayouts/XEC',
     priceApi: {
