@@ -29,20 +29,21 @@ module.exports = {
         returnMocks = false,
     ) {
         // Initialize websocket connection
-        const aliasWebsocket = await initializeWebsocket(
-            chronik,
-            address,
-            db,
-            cache,
-            telegramBot,
-            channelId,
-            avalancheRpc,
-        );
-        if (aliasWebsocket && aliasWebsocket._subs && aliasWebsocket._subs[0]) {
-            const subscribedHash160 = aliasWebsocket._subs[0].scriptPayload;
-            console.log(`Websocket subscribed to ${subscribedHash160}`);
-        } else {
-            // Shutdown if the websocket does not connect on startup
+        let aliasWebsocket;
+        try {
+            aliasWebsocket = await initializeWebsocket(
+                chronik,
+                address,
+                db,
+                cache,
+                telegramBot,
+                channelId,
+                avalancheRpc,
+            );
+        } catch (err) {
+            console.log(
+                `Error initializing websocket connection, shutting down`,
+            );
             return false;
         }
 

@@ -114,7 +114,7 @@ describe('alias-server main.js', async function () {
             returnMocks,
         );
         // Check that websocket is connected
-        assert.deepEqual(result.aliasWebsocket._subs, [
+        assert.deepEqual(result.aliasWebsocket.subs, [
             { scriptPayload: hash, scriptType: type },
         ]);
         // Check that startup was called

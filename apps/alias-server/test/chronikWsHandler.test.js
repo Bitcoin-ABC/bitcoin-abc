@@ -107,7 +107,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Confirm subscribe was called
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
         // Confirm ws is subscribed to expected type and hash
-        assert.deepEqual(result._subs, [
+        assert.deepEqual(result.subs, [
             { scriptType: type, scriptPayload: hash },
         ]);
     });
@@ -137,7 +137,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Confirm subscribe was called
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
         // Confirm ws is subscribed to expected type and hash
-        assert.deepEqual(result._subs, [
+        assert.deepEqual(result.subs, [
             { scriptType: type, scriptPayload: hash },
         ]);
     });

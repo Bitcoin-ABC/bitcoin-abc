@@ -23,7 +23,7 @@
         "assert": "^2.0.0",
         "async-lock": "^1.4.0",
         "axios": "^1.3.4",
-        "chronik-client": "^0.8.2",
+        "chronik-client": "^0.9.0",
         "cors": "^2.8.5",
         "ecash-script": "^2.0.0",
         "ecashaddrjs": "^1.5.0",
