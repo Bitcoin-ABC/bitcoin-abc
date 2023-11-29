@@ -9,7 +9,7 @@ import ExternalLink from '/components/external-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
-const latestVersion = `0.28.3`;
+const latestVersion = `0.28.4`;
 
 function Upgrade(props) {
     return (
