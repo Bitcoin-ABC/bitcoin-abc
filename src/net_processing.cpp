@@ -306,6 +306,8 @@ static constexpr double MAX_ADDR_RATE_PER_SECOND{0.1};
  * MAX_ADDR_TO_SEND increment following GETADDR is exempt from this limit).
  */
 static constexpr size_t MAX_ADDR_PROCESSING_TOKEN_BUCKET{MAX_ADDR_TO_SEND};
+/** The compactblocks version we support. See BIP 152. */
+static constexpr uint64_t CMPCTBLOCKS_VERSION{1};
 
 inline size_t GetMaxAddrToSend() {
     return gArgs.GetIntArg("-maxaddrtosend", MAX_ADDR_TO_SEND);
@@ -638,19 +640,8 @@ struct CNodeState {
     //! Whether this peer wants invs or cmpctblocks (when possible) for block
     //! announcements.
     bool fPreferHeaderAndIDs{false};
-    /**
-     * Whether this peer will send us cmpctblocks if we request them.
-     * This is not used to gate request logic, as we really only care about
-     * fSupportsDesiredCmpctVersion, but is used as a flag to "lock in" the
-     * version of compact blocks we send.
-     */
+    /** Whether this peer will send us cmpctblocks if we request them. */
     bool fProvidesHeaderAndIDs{false};
-    /**
-     * If we've announced NODE_WITNESS to this peer: whether the peer sends
-     * witnesses in cmpctblocks/blocktxns, otherwise: whether this peer sends
-     * non-witnesses in cmpctblocks/blocktxns.
-     */
-    bool fSupportsDesiredCmpctVersion{false};
 
     /**
      * State used to enforce CHAIN_SYNC_TIMEOUT and EXTRA_PEER_CHECK_INTERVAL
@@ -1493,18 +1484,16 @@ void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
     m_connman.ForNode(nodeid, [this](CNode *pfrom) EXCLUSIVE_LOCKS_REQUIRED(
                                   ::cs_main) {
         AssertLockHeld(::cs_main);
-        uint64_t nCMPCTBLOCKVersion = 1;
         if (lNodesAnnouncingHeaderAndIDs.size() >= 3) {
             // As per BIP152, we only get 3 of our peers to announce
             // blocks using compact encodings.
             m_connman.ForNode(
-                lNodesAnnouncingHeaderAndIDs.front(),
-                [this, nCMPCTBLOCKVersion](CNode *pnodeStop) {
+                lNodesAnnouncingHeaderAndIDs.front(), [this](CNode *pnodeStop) {
                     m_connman.PushMessage(
                         pnodeStop, CNetMsgMaker(pnodeStop->GetCommonVersion())
                                        .Make(NetMsgType::SENDCMPCT,
-                                             /*fAnnounceUsingCMPCTBLOCK=*/false,
-                                             nCMPCTBLOCKVersion));
+                                             /*high_bandwidth=*/false,
+                                             /*version=*/CMPCTBLOCKS_VERSION));
                     // save BIP152 bandwidth state: we select peer to be
                     // low-bandwidth
                     pnodeStop->m_bip152_highbandwidth_to = false;
@@ -1515,8 +1504,8 @@ void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
         m_connman.PushMessage(pfrom,
                               CNetMsgMaker(pfrom->GetCommonVersion())
                                   .Make(NetMsgType::SENDCMPCT,
-                                        /*fAnnounceUsingCMPCTBLOCK=*/true,
-                                        nCMPCTBLOCKVersion));
+                                        /*high_bandwidth=*/true,
+                                        /*version=*/CMPCTBLOCKS_VERSION));
         // save BIP152 bandwidth state: we select peer to be high-bandwidth
         pfrom->m_bip152_highbandwidth_to = true;
         lNodesAnnouncingHeaderAndIDs.push_back(pfrom->GetId());
@@ -3301,7 +3290,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                 }
                 if (vGetData.size() > 0) {
                     if (!m_ignore_incoming_txs &&
-                        nodestate->fSupportsDesiredCmpctVersion &&
+                        nodestate->fProvidesHeaderAndIDs &&
                         vGetData.size() == 1 && mapBlocksInFlight.size() == 1 &&
                         pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
                         // In any case, we want to download using a compact
@@ -4056,12 +4045,10 @@ void PeerManagerImpl::ProcessMessage(
             // cmpctblocks. However, we do not request new block announcements
             // using cmpctblock messages. We send this to non-NODE NETWORK peers
             // as well, because they may wish to request compact blocks from us.
-            bool fAnnounceUsingCMPCTBLOCK = false;
-            uint64_t nCMPCTBLOCKVersion = 1;
-            m_connman.PushMessage(&pfrom,
-                                  msgMaker.Make(NetMsgType::SENDCMPCT,
-                                                fAnnounceUsingCMPCTBLOCK,
-                                                nCMPCTBLOCKVersion));
+            m_connman.PushMessage(
+                &pfrom,
+                msgMaker.Make(NetMsgType::SENDCMPCT, /*high_bandwidth=*/false,
+                              /*version=*/CMPCTBLOCKS_VERSION));
         }
 
         if (g_avalanche && isAvalancheEnabled(gArgs)) {
@@ -4228,27 +4215,22 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::SENDCMPCT) {
-        bool fAnnounceUsingCMPCTBLOCK = false;
-        uint64_t nCMPCTBLOCKVersion = 0;
-        vRecv >> fAnnounceUsingCMPCTBLOCK >> nCMPCTBLOCKVersion;
-        if (nCMPCTBLOCKVersion == 1) {
-            LOCK(cs_main);
-            // fProvidesHeaderAndIDs is used to "lock in" version of compact
-            // blocks we send.
-            if (!State(pfrom.GetId())->fProvidesHeaderAndIDs) {
-                State(pfrom.GetId())->fProvidesHeaderAndIDs = true;
-            }
+        bool sendcmpct_hb{false};
+        uint64_t sendcmpct_version{0};
+        vRecv >> sendcmpct_hb >> sendcmpct_version;
 
-            State(pfrom.GetId())->fPreferHeaderAndIDs =
-                fAnnounceUsingCMPCTBLOCK;
-            // save whether peer selects us as BIP152 high-bandwidth peer
-            // (receiving sendcmpct(1) signals high-bandwidth,
-            // sendcmpct(0) low-bandwidth)
-            pfrom.m_bip152_highbandwidth_from = fAnnounceUsingCMPCTBLOCK;
-            if (!State(pfrom.GetId())->fSupportsDesiredCmpctVersion) {
-                State(pfrom.GetId())->fSupportsDesiredCmpctVersion = true;
-            }
+        if (sendcmpct_version != CMPCTBLOCKS_VERSION) {
+            return;
         }
+
+        LOCK(cs_main);
+        CNodeState *nodestate = State(pfrom.GetId());
+        nodestate->fProvidesHeaderAndIDs = true;
+        nodestate->fPreferHeaderAndIDs = sendcmpct_hb;
+        // save whether peer selects us as BIP152 high-bandwidth peer
+        // (receiving sendcmpct(1) signals high-bandwidth,
+        // sendcmpct(0) low-bandwidth)
+        pfrom.m_bip152_highbandwidth_from = sendcmpct_hb;
         return;
     }
 
@@ -6998,8 +6980,6 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                              __func__, vHeaders.front().GetHash().ToString(),
                              pto->GetId());
 
-                    int nSendFlags = 0;
-
                     bool fGotBlockFromCache = false;
                     {
                         LOCK(m_most_recent_block_mutex);
@@ -7008,8 +6988,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                             CBlockHeaderAndShortTxIDs cmpctblock(
                                 *m_most_recent_block);
                             m_connman.PushMessage(
-                                pto, msgMaker.Make(nSendFlags,
-                                                   NetMsgType::CMPCTBLOCK,
+                                pto, msgMaker.Make(NetMsgType::CMPCTBLOCK,
                                                    cmpctblock));
                             fGotBlockFromCache = true;
                         }
@@ -7022,8 +7001,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         CBlockHeaderAndShortTxIDs cmpctblock(block);
                         m_connman.PushMessage(
                             pto,
-                            msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
-                                          cmpctblock));
+                            msgMaker.Make(NetMsgType::CMPCTBLOCK, cmpctblock));
                     }
                     state.pindexBestHeaderSent = pBestIndex;
                 } else if (state.fPreferHeaders) {
