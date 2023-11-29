@@ -147,6 +147,9 @@ it('Mock the ws() API response', async function () {
     assert.strictEqual(mockedChronik.wsSubscribeCalled, true);
     assert.strictEqual(mockedChronik.manuallyClosed, true);
 
+    // Verify websocket subscription is as expected
+    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+
     // Verify ws confirmation event on the given txid
     assert.strictEqual(mockedChronik.mockedResponses.ws.type, 'Confirmed');
     assert.strictEqual(mockedChronik.mockedResponses.ws.txid, txid);

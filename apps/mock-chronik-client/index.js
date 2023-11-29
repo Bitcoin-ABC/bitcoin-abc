@@ -5,12 +5,10 @@
 
 module.exports = {
     MockChronikClient: class {
-        constructor(url = `mocked-chronik-instance/not-a-url/`) {
+        constructor() {
             // Use self since it is not a reserved term in js
             // Can access self from inside a method and still get the class
             const self = this;
-            self._url = `https://${url}`;
-            self._wsUrl = `wss://${url}`;
 
             // API call mock return objects
             // Can be set with self.setMock
@@ -74,13 +72,13 @@ module.exports = {
                         onReconnect: wsObj.onReconnect, // may be undefined
                         onEnd: wsObj.onEnd, // may be undefined
                         autoReconnect: wsObj.autoReconnect || true, // default to true if unset
-                        _manuallyClosed: false,
-                        _subs: [],
+                        manuallyClosed: false,
+                        subs: [],
                         waitForOpen: async function () {
                             self.wsWaitForOpenCalled = true;
                         },
                         subscribe: function (type, hash) {
-                            returnedWs._subs.push({
+                            returnedWs.subs.push({
                                 scriptType: type,
                                 scriptPayload: hash,
                             });
