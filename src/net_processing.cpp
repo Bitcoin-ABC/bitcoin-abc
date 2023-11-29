@@ -637,11 +637,13 @@ struct CNodeState {
     //! Whether this peer wants invs or headers (when possible) for block
     //! announcements.
     bool fPreferHeaders{false};
-    //! Whether this peer wants invs or cmpctblocks (when possible) for block
-    //! announcements.
-    bool fPreferHeaderAndIDs{false};
+    /**
+     * Whether this peer wants invs or cmpctblocks (when possible) for block
+     * announcements.
+     */
+    bool m_requested_hb_cmpctblocks{false};
     /** Whether this peer will send us cmpctblocks if we request them. */
-    bool fProvidesHeaderAndIDs{false};
+    bool m_provides_cmpctblocks{false};
 
     /**
      * State used to enforce CHAIN_SYNC_TIMEOUT and EXTRA_PEER_CHECK_INTERVAL
@@ -1450,7 +1452,7 @@ void PeerManagerImpl::MaybeSetPeerAsAnnouncingHeaderAndIDs(NodeId nodeid) {
         LogPrint(BCLog::NET, "node state unavailable: peer=%d\n", nodeid);
         return;
     }
-    if (!nodestate->fProvidesHeaderAndIDs) {
+    if (!nodestate->m_provides_cmpctblocks) {
         return;
     }
     int num_outbound_hb_peers = 0;
@@ -2453,33 +2455,34 @@ void PeerManagerImpl::NewPoWValidBlock(
     }
 
     m_connman.ForEachNode(
-        [this, pindex, &lazy_ser,
-         &hashBlock](CNode *pnode) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
-            AssertLockHeld(::cs_main);
+        [this, pindex, &lazy_ser, &hashBlock](CNode *pnode)
+            EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
+                AssertLockHeld(::cs_main);
 
-            if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
-                pnode->fDisconnect) {
-                return;
-            }
-            ProcessBlockAvailability(pnode->GetId());
-            CNodeState &state = *State(pnode->GetId());
-            // If the peer has, or we announced to them the previous block
-            // already, but we don't think they have this one, go ahead and
-            // announce it.
-            if (state.fPreferHeaderAndIDs && !PeerHasHeader(&state, pindex) &&
-                PeerHasHeader(&state, pindex->pprev)) {
-                LogPrint(BCLog::NET,
-                         "%s sending header-and-ids %s to peer=%d\n",
-                         "PeerManager::NewPoWValidBlock", hashBlock.ToString(),
-                         pnode->GetId());
+                if (pnode->GetCommonVersion() < INVALID_CB_NO_BAN_VERSION ||
+                    pnode->fDisconnect) {
+                    return;
+                }
+                ProcessBlockAvailability(pnode->GetId());
+                CNodeState &state = *State(pnode->GetId());
+                // If the peer has, or we announced to them the previous block
+                // already, but we don't think they have this one, go ahead and
+                // announce it.
+                if (state.m_requested_hb_cmpctblocks &&
+                    !PeerHasHeader(&state, pindex) &&
+                    PeerHasHeader(&state, pindex->pprev)) {
+                    LogPrint(BCLog::NET,
+                             "%s sending header-and-ids %s to peer=%d\n",
+                             "PeerManager::NewPoWValidBlock",
+                             hashBlock.ToString(), pnode->GetId());
 
-                const CSerializedNetMsg &ser_cmpctblock{lazy_ser.get()};
-                m_connman.PushMessage(pnode,
-                                      CSerializedNetMsg{ser_cmpctblock.data,
-                                                        ser_cmpctblock.m_type});
-                state.pindexBestHeaderSent = pindex;
-            }
-        });
+                    const CSerializedNetMsg &ser_cmpctblock{lazy_ser.get()};
+                    m_connman.PushMessage(
+                        pnode, CSerializedNetMsg{ser_cmpctblock.data,
+                                                 ser_cmpctblock.m_type});
+                    state.pindexBestHeaderSent = pindex;
+                }
+            });
 }
 
 /**
@@ -3290,7 +3293,7 @@ void PeerManagerImpl::ProcessHeadersMessage(
                 }
                 if (vGetData.size() > 0) {
                     if (!m_ignore_incoming_txs &&
-                        nodestate->fProvidesHeaderAndIDs &&
+                        nodestate->m_provides_cmpctblocks &&
                         vGetData.size() == 1 && mapBlocksInFlight.size() == 1 &&
                         pindexLast->pprev->IsValid(BlockValidity::CHAIN)) {
                         // In any case, we want to download using a compact
@@ -4225,8 +4228,8 @@ void PeerManagerImpl::ProcessMessage(
 
         LOCK(cs_main);
         CNodeState *nodestate = State(pfrom.GetId());
-        nodestate->fProvidesHeaderAndIDs = true;
-        nodestate->fPreferHeaderAndIDs = sendcmpct_hb;
+        nodestate->m_provides_cmpctblocks = true;
+        nodestate->m_requested_hb_cmpctblocks = sendcmpct_hb;
         // save whether peer selects us as BIP152 high-bandwidth peer
         // (receiving sendcmpct(1) signals high-bandwidth,
         // sendcmpct(0) low-bandwidth)
@@ -6912,7 +6915,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
             std::vector<CBlock> vHeaders;
             bool fRevertToInv =
                 ((!state.fPreferHeaders &&
-                  (!state.fPreferHeaderAndIDs ||
+                  (!state.m_requested_hb_cmpctblocks ||
                    peer->m_blocks_for_headers_relay.size() > 1)) ||
                  peer->m_blocks_for_headers_relay.size() >
                      MAX_BLOCKS_TO_ANNOUNCE);
@@ -6971,7 +6974,7 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 }
             }
             if (!fRevertToInv && !vHeaders.empty()) {
-                if (vHeaders.size() == 1 && state.fPreferHeaderAndIDs) {
+                if (vHeaders.size() == 1 && state.m_requested_hb_cmpctblocks) {
                     // We only send up to 1 block as header-and-ids, as
                     // otherwise probably means we're doing an initial-ish-sync
                     // or they're slow.
