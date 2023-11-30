@@ -6,8 +6,10 @@ import { fromHex, fromHexRev, toHex, toHexRev } from './hex';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
-/** Client to access a Chronik instance.Plain object, without any
- * connections. */
+/**
+ * Client to access a Chronik instance.Plain object, without any
+ * connections.
+ */
 export class ChronikClient {
     private _proxyInterface: FailoverProxy;
     /**
@@ -32,7 +34,8 @@ export class ChronikClient {
         return this._proxyInterface;
     }
 
-    /** Broadcasts the `rawTx` on the network.
+    /**
+     * Broadcasts the `rawTx` on the network.
      * If `skipSlpCheck` is false, it will be checked that the tx doesn't burn
      * any SLP tokens before broadcasting.
      */
@@ -51,7 +54,8 @@ export class ChronikClient {
         };
     }
 
-    /** Broadcasts the `rawTxs` on the network, only if all of them are valid.
+    /**
+     * Broadcasts the `rawTxs` on the network, only if all of them are valid.
      * If `skipSlpCheck` is false, it will be checked that the txs don't burn
      * any SLP tokens before broadcasting.
      */
@@ -86,8 +90,10 @@ export class ChronikClient {
         return convertToBlock(block);
     }
 
-    /** Fetch block info of a range of blocks. `startHeight` and `endHeight` are
-     * inclusive ranges. */
+    /**
+     * Fetch block info of a range of blocks. `startHeight` and `endHeight` are
+     * inclusive ranges.
+     */
     public async blocks(
         startHeight: number,
         endHeight: number,
@@ -113,8 +119,10 @@ export class ChronikClient {
         return convertToToken(token);
     }
 
-    /** Validate the given outpoints: whether they are unspent, spent or
-     * never existed. */
+    /**
+     * Validate the given outpoints: whether they are unspent, spent or
+     * never existed.
+     */
     public async validateUtxos(outpoints: OutPoint[]): Promise<UtxoState[]> {
         const request = proto.ValidateUtxoRequest.encode({
             outpoints: outpoints.map(outpoint => ({
@@ -168,7 +176,8 @@ export class ScriptEndpoint {
         this._scriptPayload = scriptPayload;
     }
 
-    /** Fetches the tx history of this script, in anti-chronological order.
+    /**
+     * Fetches the tx history of this script, in anti-chronological order.
      * This means it's ordered by first-seen first. If the tx hasn't been seen
      * by the indexer before, it's ordered by the block timestamp.
      * @param page Page index of the tx history.
@@ -196,9 +205,11 @@ export class ScriptEndpoint {
         };
     }
 
-    /** Fetches the current UTXO set for this script.
+    /**
+     * Fetches the current UTXO set for this script.
      * It is grouped by output script, in case a script type can match multiple
-     * different output scripts (e.g. Taproot on Lotus). */
+     * different output scripts (e.g. Taproot on Lotus).
+     */
     public async utxos(): Promise<ScriptUtxos[]> {
         const data = await this._proxyInterface.get(
             `/script/${this._scriptType}/${this._scriptPayload}/utxos`,
@@ -219,15 +230,19 @@ export interface WsConfig {
     /** Fired when a connection has been (re)established. */
     onConnect?: (e: ws.Event) => void;
 
-    /** Fired after a connection has been unexpectedly closed, and before a
-     * reconnection attempt is made. Only fired if `autoReconnect` is true. */
+    /**
+     * Fired after a connection has been unexpectedly closed, and before a
+     * reconnection attempt is made. Only fired if `autoReconnect` is true.
+     */
     onReconnect?: (e: ws.Event) => void;
 
     /** Fired when an error with the WebSocket occurs. */
     onError?: (e: ws.ErrorEvent) => void;
 
-    /** Fired after a connection has been manually closed, or if `autoReconnect`
-     * is false, if the WebSocket disconnects for any reason. */
+    /**
+     * Fired after a connection has been manually closed, or if `autoReconnect`
+     * is false, if the WebSocket disconnects for any reason.
+     */
     onEnd?: (e: ws.Event) => void;
 
     /** Whether to automatically reconnect on disconnect, default true. */
@@ -249,15 +264,19 @@ export class WsEndpoint {
     /** Fired when a connection has been (re)established. */
     public onConnect?: (e: ws.Event) => void;
 
-    /** Fired after a connection has been unexpectedly closed, and before a
-     * reconnection attempt is made. Only fired if `autoReconnect` is true. */
+    /**
+     * Fired after a connection has been unexpectedly closed, and before a
+     * reconnection attempt is made. Only fired if `autoReconnect` is true.
+     */
     public onReconnect?: (e: ws.Event) => void;
 
     /** Fired when an error with the WebSocket occurs. */
     public onError?: (e: ws.ErrorEvent) => void;
 
-    /** Fired after a connection has been manually closed, or if `autoReconnect`
-     * is false, if the WebSocket disconnects for any reason. */
+    /**
+     * Fired after a connection has been manually closed, or if `autoReconnect`
+     * is false, if the WebSocket disconnects for any reason.
+     */
     public onEnd?: (e: ws.Event) => void;
 
     /** Whether to automatically reconnect on disconnect, default true. */
@@ -294,8 +313,10 @@ export class WsEndpoint {
         await this.connected;
     }
 
-    /** Subscribe to the given script type and payload.
-     * For "p2pkh", `scriptPayload` is the 20 byte public key hash. */
+    /**
+     * Subscribe to the given script type and payload.
+     * For "p2pkh", `scriptPayload` is the 20 byte public key hash.
+     */
     public subscribe(scriptType: ScriptType, scriptPayload: string) {
         this.subs.push({ scriptType, scriptPayload });
         if (this.ws?.readyState === WebSocket.OPEN) {
@@ -315,8 +336,10 @@ export class WsEndpoint {
         }
     }
 
-    /** Close the WebSocket connection and prevent future any reconnection
-     * attempts. */
+    /**
+     * Close the WebSocket connection and prevent future any reconnection
+     * attempts.
+     */
     public close() {
         this.manuallyClosed = true;
         this.ws?.close();
@@ -687,7 +710,8 @@ export interface BlockchainInfo {
 
 /** A transaction on the blockchain or in the mempool. */
 export interface Tx {
-    /** Transaction ID.
+    /**
+     * Transaction ID.
      * - On BCH, eCash and Ergon, this is the hash of the tx.
      * - On Lotus, this is a special serialization, omitting the input scripts.
      */
@@ -707,7 +731,8 @@ export interface Tx {
     slpErrorMsg: string | undefined;
     /** Block data for this tx, or undefined if not mined yet. */
     block: BlockMetadata | undefined;
-    /** UNIX timestamp when this tx has first been seen in the mempool.
+    /**
+     * UNIX timestamp when this tx has first been seen in the mempool.
      * 0 if unknown -> make sure to check.
      */
     timeFirstSeen: string;
@@ -725,8 +750,10 @@ export interface Utxo {
     outpoint: OutPoint;
     /** Which block this UTXO is in, or -1 if in the mempool. */
     blockHeight: number;
-    /** Whether this UTXO is a coinbase UTXO
-     * (make sure it's buried 100 blocks before spending!) */
+    /**
+     * Whether this UTXO is a coinbase UTXO
+     * (make sure it's buried 100 blocks before spending!)
+     */
     isCoinbase: boolean;
     /** Value of the UTXO in satoshis. */
     value: string;
@@ -746,13 +773,17 @@ export interface Token {
     tokenStats: TokenStats;
     /** Block the GENESIS transaction has been mined in, or undefined if not mined yet. */
     block: BlockMetadata | undefined;
-    /** UNIX timestamp when the GENESIS transaction has first been seen in the mempool.
-     * 0 if unknown. */
+    /**
+     * UNIX timestamp when the GENESIS transaction has first been seen in the mempool.
+     * 0 if unknown.
+     */
     timeFirstSeen: string;
     /** How many tokens have been mined in the GENESIS transaction. */
     initialTokenQuantity: string;
-    /** Whether the GENESIS transaction created a mint baton.
-     * Note: This doesn't indicate whether the mint baton is still alive. */
+    /**
+     * Whether the GENESIS transaction created a mint baton.
+     * Note: This doesn't indicate whether the mint baton is still alive.
+     */
     containsBaton: boolean;
     /** Which network this token is on. */
     network: Network;
@@ -762,15 +793,19 @@ export interface Token {
 export interface BlockInfo {
     /** Block hash of the block, in 'human-readable' (big-endian) hex encoding. */
     hash: string;
-    /** Block hash of the previous block, in 'human-readable' (big-endian) hex
-     * encoding. */
+    /**
+     * Block hash of the previous block, in 'human-readable' (big-endian) hex
+     * encoding.
+     */
     prevHash: string;
     /** Height of the block; Genesis block has height 0. */
     height: number;
     /** nBits field of the block, encodes the target compactly. */
     nBits: number;
-    /** Timestamp of the block. Filled in by the miner, so might not be 100%
-     * precise. */
+    /**
+     * Timestamp of the block. Filled in by the miner, so might not be 100%
+     * precise.
+     */
     timestamp: string;
     /** Block size of this block in bytes (including headers etc.). */
     blockSize: string;
@@ -810,8 +845,10 @@ export interface Block {
     blockDetails: BlockDetails;
     /** Header encoded as hex. */
     rawHeader: string;
-    /** Txs in this block, in canonical order
-     * (at least on all supported chains). */
+    /**
+     * Txs in this block, in canonical order
+     * (at least on all supported chains).
+     */
     txs: Tx[];
 }
 
@@ -827,8 +864,10 @@ export interface ScriptUtxos {
 export interface TxHistoryPage {
     /** Txs of this page. */
     txs: Tx[];
-    /** Number of pages of the entire transaction history.
-     * This changes based on the `pageSize` provided. */
+    /**
+     * Number of pages of the entire transaction history.
+     * This changes based on the `pageSize` provided.
+     */
     numPages: number;
 }
 
@@ -856,10 +895,12 @@ export interface SlpMeta {
     txType: SlpTxType;
     /** Token ID of this tx/UTXO, in human-readable (big-endian) hex encoding. */
     tokenId: string;
-    /** Group token ID of this tx/UTXO, NFT only, in human-readable
+    /**
+     * Group token ID of this tx/UTXO, NFT only, in human-readable
      * (big-endian) hex encoding.
      * This is the token ID of the token that went into the GENESIS of this token
-     * as first input. */
+     * as first input.
+     */
     groupTokenId: string | undefined;
 }
 
@@ -880,11 +921,15 @@ export interface TokenStats {
 export interface TxInput {
     /** Points to an output spent by this input. */
     prevOut: OutPoint;
-    /** Script unlocking the output, in hex encoding.
-     * Aka. `scriptSig` in bitcoind parlance. */
+    /**
+     * Script unlocking the output, in hex encoding.
+     * Aka. `scriptSig` in bitcoind parlance.
+     */
     inputScript: string;
-    /** Script of the output, in hex encoding.
-     * Aka. `scriptPubKey` in bitcoind parlance. */
+    /**
+     * Script of the output, in hex encoding.
+     * Aka. `scriptPubKey` in bitcoind parlance.
+     */
     outputScript: string | undefined;
     /** Value of the output spent by this input, in satoshis. */
     value: string;
@@ -892,8 +937,10 @@ export interface TxInput {
     sequenceNo: number;
     /** SLP tokens burned by this input, or `undefined` if no burn occured. */
     slpBurn: SlpBurn | undefined;
-    /** SLP tokens spent by this input, or `undefined` if the tokens were burned
-     * or if there were no tokens in the output spent by this input. */
+    /**
+     * SLP tokens spent by this input, or `undefined` if the tokens were burned
+     * or if there were no tokens in the output spent by this input.
+     */
     slpToken: SlpToken | undefined;
 }
 
@@ -901,14 +948,20 @@ export interface TxInput {
 export interface TxOutput {
     /** Value of the output, in satoshis. */
     value: string;
-    /** Script of this output, locking the coins.
-     * Aka. `scriptPubKey` in bitcoind parlance. */
+    /**
+     * Script of this output, locking the coins.
+     * Aka. `scriptPubKey` in bitcoind parlance.
+     */
     outputScript: string;
-    /** SLP tokens locked up in this output, or `undefined` if no tokens were sent
-     * to this output. */
+    /**
+     * SLP tokens locked up in this output, or `undefined` if no tokens were sent
+     * to this output.
+     */
     slpToken: SlpToken | undefined;
-    /** Transaction & input index spending this output, or undefined if
-     * unspent. */
+    /**
+     * Transaction & input index spending this output, or undefined if
+     * unspent.
+     */
     spentBy: OutPoint | undefined;
 }
 
@@ -918,18 +971,24 @@ export interface BlockMetadata {
     height: number;
     /** Hash of the block. */
     hash: string;
-    /** Timestamp of the block; useful if `timeFirstSeen` of a transaction is
-     * unknown. */
+    /**
+     * Timestamp of the block; useful if `timeFirstSeen` of a transaction is
+     * unknown.
+     */
     timestamp: string;
 }
 
-/** Outpoint referencing an output on the blockchain (or input for field
- * `spentBy`). */
+/**
+ * Outpoint referencing an output on the blockchain (or input for field
+ * `spentBy`).
+ */
 export interface OutPoint {
     /** Transaction referenced by this outpoint. */
     txid: string;
-    /** Index of the output in the tx referenced by this outpoint
-     * (or input index if used in field `spentBy`). */
+    /**
+     * Index of the output in the tx referenced by this outpoint
+     * (or input index if used in field `spentBy`).
+     */
     outIdx: number;
 }
 
@@ -945,8 +1004,10 @@ export interface SlpToken {
 export interface SlpBurn {
     /** SLP amount/mint baton burned by this burn. */
     token: SlpToken;
-    /** Token ID of the burned SLP tokens, in human-readable (big-endian) hex
-     * encoding. */
+    /**
+     * Token ID of the burned SLP tokens, in human-readable (big-endian) hex
+     * encoding.
+     */
     tokenId: string;
 }
 
@@ -958,8 +1019,10 @@ export interface SlpGenesisInfo {
     tokenName: string;
     /** URL of the token, decoded as UTF-8. */
     tokenDocumentUrl: string;
-    /** Document hash of the token, encoded in hex (byte order as occuring in the
-     * OP_RETURN). */
+    /**
+     * Document hash of the token, encoded in hex (byte order as occuring in the
+     * OP_RETURN).
+     */
     tokenDocumentHash: string;
     /** Number of decimals of the GENESIS transaction. */
     decimals: number;
@@ -967,14 +1030,18 @@ export interface SlpGenesisInfo {
 
 /** State of a UTXO (from `validateUtxos`). */
 export interface UtxoState {
-    /** Height of the UTXO. -1 if the tx doesn't exist or is unconfirmed.
+    /**
+     * Height of the UTXO. -1 if the tx doesn't exist or is unconfirmed.
      * If it's confirmed (or if the output doesn't exist but the tx does),
-     * it's the height of the block confirming the tx. */
+     * it's the height of the block confirming the tx.
+     */
     height: number;
     /** Whether the UTXO or the transaction queried is confirmed. */
     isConfirmed: boolean;
-    /** State of the UTXO, can be unconfirmed, confirmed, tx doesn't exist or
-     * output doesn't exist. */
+    /**
+     * State of the UTXO, can be unconfirmed, confirmed, tx doesn't exist or
+     * output doesn't exist.
+     */
     state: UtxoStateVariant;
 }
 
@@ -995,7 +1062,8 @@ export interface MsgAddedToMempool {
     txid: string;
 }
 
-/** A transaction has been removed from the mempool,
+/**
+ * A transaction has been removed from the mempool,
  * but not because of a confirmation (e.g. expiry, conflict, etc.).
  */
 export interface MsgRemovedFromMempool {
@@ -1011,7 +1079,8 @@ export interface MsgConfirmed {
     txid: string;
 }
 
-/** A transaction used to be part of a block but now got re-orged.
+/**
+ * A transaction used to be part of a block but now got re-orged.
  * Usually, unless something malicious occurs, a "Confirmed" message is sent
  * immediately afterwards.
  */
@@ -1042,13 +1111,17 @@ export interface Error {
     errorCode: string;
     /** Human-readable message for this error. */
     msg: string;
-    /** Whether this error is presentable to an end-user.
-     * This is somewhat subjective, but can be used as a good heuristic. */
+    /**
+     * Whether this error is presentable to an end-user.
+     * This is somewhat subjective, but can be used as a good heuristic.
+     */
     isUserError: boolean;
 }
 
-/** Different networks of txs/blocks/UTXOs.
- * Supported are BCH, eCash, Lotus and Ergon. */
+/**
+ * Different networks of txs/blocks/UTXOs.
+ * Supported are BCH, eCash, Lotus and Ergon.
+ */
 export type Network = 'BCH' | 'XEC' | 'XPI' | 'XRG';
 
 /** Which SLP tx type. */
@@ -1066,7 +1139,8 @@ export type SlpTokenType =
     | 'NFT1_CHILD'
     | 'UNKNOWN_TOKEN_TYPE';
 
-/** State of a transaction output.
+/**
+ * State of a transaction output.
  * - `UNSPENT`: The UTXO is unspent.
  * - `SPENT`: The output is spent and no longer part of the UTXO set.
  * - `NO_SUCH_TX`: The tx queried does not exist.
@@ -1078,7 +1152,8 @@ export type UtxoStateVariant =
     | 'NO_SUCH_TX'
     | 'NO_SUCH_OUTPUT';
 
-/** Script type queried in the `script` method.
+/**
+ * Script type queried in the `script` method.
  * - `other`: Script type not covered by the standard script types; payload is
  *   the raw hex.
  * - `p2pk`: Pay-to-Public-Key (`<pk> OP_CHECKSIG`), payload is the hex of the
