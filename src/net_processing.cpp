@@ -2886,10 +2886,18 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
         if (CanDirectFetch() &&
             pindex->nHeight >=
                 m_chainman.ActiveChain().Height() - MAX_CMPCTBLOCK_DEPTH) {
-            CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
-            m_connman.PushMessage(
-                &pfrom,
-                msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK, cmpctblock));
+            if (a_recent_compact_block &&
+                a_recent_compact_block->header.GetHash() ==
+                    pindex->GetBlockHash()) {
+                m_connman.PushMessage(&pfrom,
+                                      msgMaker.Make(NetMsgType::CMPCTBLOCK,
+                                                    *a_recent_compact_block));
+            } else {
+                CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
+                m_connman.PushMessage(
+                    &pfrom, msgMaker.Make(nSendFlags, NetMsgType::CMPCTBLOCK,
+                                          cmpctblock));
+            }
         } else {
             m_connman.PushMessage(
                 &pfrom, msgMaker.Make(nSendFlags, NetMsgType::BLOCK, *pblock));
@@ -7019,11 +7027,10 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         LOCK(m_most_recent_block_mutex);
                         if (m_most_recent_block_hash ==
                             pBestIndex->GetBlockHash()) {
-                            CBlockHeaderAndShortTxIDs cmpctblock(
-                                *m_most_recent_block);
                             m_connman.PushMessage(
-                                pto, msgMaker.Make(NetMsgType::CMPCTBLOCK,
-                                                   cmpctblock));
+                                pto,
+                                msgMaker.Make(NetMsgType::CMPCTBLOCK,
+                                              *m_most_recent_compact_block));
                             fGotBlockFromCache = true;
                         }
                     }
