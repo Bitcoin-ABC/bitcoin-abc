@@ -217,6 +217,9 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         check_tx_msgs(ws1, pb.TX_FINALIZED, sorted([txid, tx3_conflict.hash]))
         check_tx_msgs(ws2, pb.TX_FINALIZED, sorted([txid, txid2]))
 
+        ws1.close()
+        ws2.close()
+
 
 if __name__ == "__main__":
     ChronikWsScriptTest().main()

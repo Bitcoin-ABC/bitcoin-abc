@@ -47,7 +47,7 @@ class ChronikWsTest(BitcoinTestFramework):
             return node.isfinalblock(tip_expected)
 
         # Connect, but don't subscribe yet
-        ws = chronik.ws(timeout=30)
+        ws = chronik.ws()
 
         # Pick one node from the quorum for polling.
         # ws will not receive msgs because it's not subscribed to blocks yet.
@@ -104,6 +104,8 @@ class ChronikWsTest(BitcoinTestFramework):
                 )
             ),
         )
+
+        ws.close()
 
 
 if __name__ == "__main__":

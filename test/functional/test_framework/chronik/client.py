@@ -4,7 +4,9 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import http.client
-from typing import Union
+import threading
+import time
+from typing import List, Union
 
 import chronik_pb2 as pb
 import websocket
@@ -79,14 +81,74 @@ class ChronikScriptClient:
 
 
 class ChronikWs:
-    def __init__(self, ws) -> None:
-        self.ws = ws
+    def __init__(self, client: "ChronikClient", **kwargs) -> None:
+        self.messages: List[pb.WsMsg] = []
+        self.errors: List[str] = []
+        self.timeout = kwargs.get("timeout", client.timeout)
+        self.ping_interval = kwargs.get("ping_interval", 10)
+        self.ping_timeout = kwargs.get("ping_timeout", 5)
+        self.is_open = False
+        self.ws_url = (
+            f"{'wss' if client.https else 'ws'}://{client.host}:{client.port}/ws"
+        )
+
+        self.ws = websocket.WebSocketApp(
+            self.ws_url,
+            on_message=self.on_message,
+            on_error=self.on_error,
+            on_open=self.on_open,
+            on_close=self.on_close,
+            on_ping=self.on_ping,
+            on_pong=self.on_pong,
+        )
+
+        self.ws_thread = threading.Thread(
+            target=self.ws.run_forever,
+            kwargs={
+                "ping_interval": self.ping_interval,
+                "ping_timeout": self.ping_timeout,
+                "ping_payload": "Bitcoin ABC functional test framework",
+            },
+        )
+        self.ws_thread.start()
+
+        connect_timeout = time.time() + self.timeout
+        while not self.is_open:
+            if time.time() > connect_timeout:
+                self.close()
+                raise TimeoutError(
+                    f"Connection to chronik websocket {self.ws_url} timed out after {self.timeout}s"
+                )
+            time.sleep(0.05)
+
+    def on_message(self, ws, message):
+        ws_msg = pb.WsMsg()
+        ws_msg.ParseFromString(message)
+        self.messages.append(ws_msg)
+
+    def on_error(self, ws, error):
+        self.errors.append(error)
+
+    def on_open(self, ws):
+        self.is_open = True
+
+    def on_close(self, ws, close_status_code, close_message):
+        pass
+
+    def on_ping(self, ws, message):
+        pass
+
+    def on_pong(self, ws, message):
+        pass
 
     def recv(self):
-        data = self.ws.recv()
-        ws_msg = pb.WsMsg()
-        ws_msg.ParseFromString(data)
-        return ws_msg
+        recv_timeout = time.time() + self.timeout
+        while len(self.messages) == 0:
+            if time.time() > recv_timeout:
+                raise TimeoutError(
+                    f"No message received from {self.ws_url} after {self.timeout}s"
+                )
+        return self.messages.pop(0)
 
     def send_bytes(self, data: bytes) -> None:
         self.ws.send(data, websocket.ABNF.OPCODE_BINARY)
@@ -101,6 +163,10 @@ class ChronikWs:
             script=pb.WsSubScript(script_type=script_type, payload=payload),
         )
         self.send_bytes(sub.SerializeToString())
+
+    def close(self):
+        self.ws.close()
+        self.ws_thread.join(self.timeout)
 
 
 class ChronikClient:
@@ -178,13 +244,8 @@ class ChronikClient:
     def resume(self) -> ChronikResponse:
         return self._request_get("/resume", pb.Empty)
 
-    def ws(self, *, timeout=None) -> ChronikWs:
-        ws = websocket.WebSocket()
-        ws.connect(
-            f"{'wss' if self.https else 'ws'}://{self.host}:{self.port}/ws",
-            timeout=timeout if timeout is not None else self.timeout,
-        )
-        return ChronikWs(ws)
+    def ws(self, **kwargs) -> ChronikWs:
+        return ChronikWs(self, **kwargs)
 
 
 def _page_query_params(page=None, page_size=None) -> str:
