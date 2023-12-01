@@ -22,9 +22,6 @@ public:
     virtual void SetCashAddrEncoding(bool) = 0;
     virtual bool UseCashAddrEncoding() const = 0;
 
-    virtual void SetExcessUTXOCharge(Amount amt) = 0;
-    virtual Amount GetExcessUTXOCharge() const = 0;
-
     Config() = default;
     Config(const Config &) = delete;
     Config &operator=(const Config &) = delete;
@@ -39,12 +36,8 @@ public:
     void SetCashAddrEncoding(bool) override;
     bool UseCashAddrEncoding() const override;
 
-    void SetExcessUTXOCharge(Amount) override;
-    Amount GetExcessUTXOCharge() const override;
-
 private:
     bool useCashAddr;
-    Amount excessUTXOCharge;
 
     /** The largest block size this node will accept. */
     uint64_t nMaxBlockSize;
@@ -64,9 +57,6 @@ public:
 
     void SetCashAddrEncoding(bool) override {}
     bool UseCashAddrEncoding() const override { return false; }
-
-    void SetExcessUTXOCharge(Amount amt) override {}
-    Amount GetExcessUTXOCharge() const override { return Amount::zero(); }
 
 private:
     std::unique_ptr<CChainParams> chainParams;

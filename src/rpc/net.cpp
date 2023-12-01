@@ -757,8 +757,6 @@ static RPCHelpMan getnetworkinfo() {
                  }},
                 {RPCResult::Type::NUM, "relayfee",
                  "minimum relay fee for transactions in " + ticker + "/kB"},
-                {RPCResult::Type::NUM, "excessutxocharge",
-                 "minimum charge for excess utxos in " + ticker},
                 {RPCResult::Type::ARR,
                  "localaddresses",
                  "list of local addresses",
@@ -805,7 +803,6 @@ static RPCHelpMan getnetworkinfo() {
             }
             obj.pushKV("networks", GetNetworksInfo());
             obj.pushKV("relayfee", ::minRelayTxFee.GetFeePerK());
-            obj.pushKV("excessutxocharge", config.GetExcessUTXOCharge());
             UniValue localAddresses(UniValue::VARR);
             {
                 LOCK(g_maplocalhost_mutex);

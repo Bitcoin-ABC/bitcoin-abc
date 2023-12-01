@@ -1147,15 +1147,6 @@ void SetupServerArgs(NodeContext &node) {
                   DEFAULT_WHITELISTFORCERELAY),
         ArgsManager::ALLOW_ANY, OptionsCategory::NODE_RELAY);
 
-    // Not sure this really belongs here, but it will do for now.
-    // FIXME: This doesn't work anyways.
-    argsman.AddArg("-excessutxocharge=<amt>",
-                   strprintf("Fees (in %s/kB) to charge per utxo created for "
-                             "relaying, and mining (default: %s)",
-                             ticker, FormatMoney(DEFAULT_UTXO_FEE)),
-                   ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
-                   OptionsCategory::NODE_RELAY);
-
     argsman.AddArg("-blockmaxsize=<n>",
                    strprintf("Set maximum block size in bytes (default: %d)",
                              DEFAULT_MAX_GENERATED_BLOCK_SIZE),
@@ -1914,19 +1905,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     if (peer_connect_timeout <= 0) {
         return InitError(Untranslated(
             "peertimeout cannot be configured with a negative value."));
-    }
-
-    // Obtain the amount to charge excess UTXO
-    if (args.IsArgSet("-excessutxocharge")) {
-        Amount n = Amount::zero();
-        auto parsed = ParseMoney(args.GetArg("-excessutxocharge", ""), n);
-        if (!parsed || Amount::zero() > n) {
-            return InitError(AmountErrMsg(
-                "excessutxocharge", args.GetArg("-excessutxocharge", "")));
-        }
-        config.SetExcessUTXOCharge(n);
-    } else {
-        config.SetExcessUTXOCharge(DEFAULT_UTXO_FEE);
     }
 
     if (args.IsArgSet("-minrelaytxfee")) {

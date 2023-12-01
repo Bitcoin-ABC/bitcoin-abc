@@ -55,10 +55,3 @@ void DummyConfig::SetChainParams(std::string net) {
     chainParams = CreateChainParams(net);
 }
 
-void GlobalConfig::SetExcessUTXOCharge(Amount fee) {
-    excessUTXOCharge = fee;
-}
-
-Amount GlobalConfig::GetExcessUTXOCharge() const {
-    return excessUTXOCharge;
-}

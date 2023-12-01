@@ -77,8 +77,6 @@ struct Params;
 
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
 static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
-/** Default for -excessutxocharge for transactions transactions */
-static const Amount DEFAULT_UTXO_FEE = Amount::zero();
 /**
  * Default for -mempoolexpiry, expiration time for mempool transactions in
  * hours.
