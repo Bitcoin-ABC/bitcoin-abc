@@ -732,17 +732,18 @@ public:
                         ServiceFlags our_services) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
     void FinalizeNode(const Config &config, const CNode &node) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !cs_proofrequest);
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
                                  !m_recent_confirmed_transactions_mutex,
-                                 !m_most_recent_block_mutex);
+                                 !m_most_recent_block_mutex, !cs_proofrequest);
     bool SendMessages(const Config &config, CNode *pto) override
         EXCLUSIVE_LOCKS_REQUIRED(pto->cs_sendProcessing)
             EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
                                      !m_recent_confirmed_transactions_mutex,
-                                     !m_most_recent_block_mutex);
+                                     !m_most_recent_block_mutex,
+                                     !cs_proofrequest);
 
     /** Implement PeerManager */
     void StartScheduledTasks(CScheduler &scheduler) override;
@@ -768,7 +769,7 @@ public:
                         const std::atomic<bool> &interruptMsgProc) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
                                  !m_recent_confirmed_transactions_mutex,
-                                 !m_most_recent_block_mutex);
+                                 !m_most_recent_block_mutex, !cs_proofrequest);
     void UpdateLastBlockAnnounceTime(NodeId node,
                                      int64_t time_in_seconds) override;
 
@@ -1267,7 +1268,8 @@ private:
      * @return             Our current vote for the transaction
      */
     uint32_t GetAvalancheVoteForTx(const TxId &id) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main);
+        EXCLUSIVE_LOCKS_REQUIRED(cs_main,
+                                 !m_recent_confirmed_transactions_mutex);
 
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
@@ -1285,7 +1287,7 @@ private:
      */
     bool ReceivedAvalancheProof(CNode &node, Peer &peer,
                                 const avalanche::ProofRef &proof)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, !cs_proofrequest);
 
     avalanche::ProofRef FindProofForGetData(const CNode &peer,
                                             const avalanche::ProofId &proofid,

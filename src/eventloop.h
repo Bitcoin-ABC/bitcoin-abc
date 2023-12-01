@@ -6,6 +6,7 @@
 #define BITCOIN_EVENTLOOP_H
 
 #include <sync.h>
+#include <threadsafety.h>
 
 #include <atomic>
 #include <chrono>
@@ -21,8 +22,9 @@ public:
 
     bool startEventLoop(CScheduler &scheduler,
                         std::function<void()> runEventLoop,
-                        std::chrono::milliseconds delta);
-    bool stopEventLoop();
+                        std::chrono::milliseconds delta)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_running);
+    bool stopEventLoop() EXCLUSIVE_LOCKS_REQUIRED(!cs_running);
 
 private:
     /**

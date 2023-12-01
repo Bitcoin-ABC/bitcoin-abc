@@ -294,26 +294,33 @@ public:
                   CTxMemPool *mempoolIn, CScheduler &scheduler,
                   bilingual_str &error);
 
-    bool addToReconcile(const AnyVoteItem &item);
+    bool addToReconcile(const AnyVoteItem &item)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     /**
      * Wrapper around the addToReconcile for proofs that adds back the
      * finalization flag to the peer if it is not polled due to being recently
      * finalized.
      */
-    bool reconcileOrFinalize(const ProofRef &proof);
+    bool reconcileOrFinalize(const ProofRef &proof)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     bool isAccepted(const AnyVoteItem &item) const;
     int getConfidence(const AnyVoteItem &item) const;
 
-    bool isRecentlyFinalized(const uint256 &itemId) const;
-    void clearFinalizedItems();
+    bool isRecentlyFinalized(const uint256 &itemId) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+    void clearFinalizedItems() EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
     void sendResponse(CNode *pfrom, Response response) const;
     bool registerVotes(NodeId nodeid, const Response &response,
                        std::vector<VoteItemUpdate> &updates, int &banscore,
-                       std::string &error);
+                       std::string &error)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems,
+                                 !cs_invalidatedBlocks, !cs_finalizationTip);
 
-    template <typename Callable> auto withPeerManager(Callable &&func) const {
+    template <typename Callable>
+    auto withPeerManager(Callable &&func) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager) {
         LOCK(cs_peerManager);
         return func(*peerManager);
     }
@@ -325,8 +332,10 @@ public:
      * @param pfrom The node to send the message to
      * @return True if a non-null delegation has been announced
      */
-    bool sendHello(CNode *pfrom);
-    void sendDelayedAvahello();
+    bool sendHello(CNode *pfrom)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_delayedAvahelloNodeIds);
+    void sendDelayedAvahello()
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_delayedAvahelloNodeIds);
 
     ProofRef getLocalProof() const;
     ProofRegistrationState getLocalProofRegistrationState() const;
@@ -339,20 +348,26 @@ public:
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
 
-    void avaproofsSent(NodeId nodeid) LOCKS_EXCLUDED(cs_main);
+    void avaproofsSent(NodeId nodeid) LOCKS_EXCLUDED(cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
     int64_t getAvaproofsNodeCounter() const {
         return avaproofsNodeCounter.load();
     }
-    bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main);
+    bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
     bool canShareLocalProof();
 
-    bool computeStakingReward(const CBlockIndex *pindex);
-    bool eraseStakingRewardWinner(const BlockHash &prevBlockHash);
-    void cleanupStakingRewards(const int minHeight);
+    bool computeStakingReward(const CBlockIndex *pindex)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards);
+    bool eraseStakingRewardWinner(const BlockHash &prevBlockHash)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
+    void cleanupStakingRewards(const int minHeight)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     bool getStakingRewardWinner(const BlockHash &prevBlockHash,
-                                CScript &winner) const;
-    bool setStakingRewardWinner(const CBlockIndex *pprev,
-                                const CScript &winner);
+                                CScript &winner) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
+    bool setStakingRewardWinner(const CBlockIndex *pprev, const CScript &winner)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.
     void InitializeNode(const ::Config &config, CNode &pnode,
@@ -366,17 +381,23 @@ public:
     }
 
     /** Handle removal of a node */
-    void FinalizeNode(const ::Config &config, const CNode &node) override
-        LOCKS_EXCLUDED(cs_main);
+    void FinalizeNode(const ::Config &config,
+                      const CNode &node) override LOCKS_EXCLUDED(cs_main)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_delayedAvahelloNodeIds);
 
 private:
-    void updatedBlockTip();
-    void runEventLoop();
-    void clearTimedoutRequests();
-    std::vector<CInv> getInvsForNextPoll(bool forPoll = true);
+    void updatedBlockTip()
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+    void runEventLoop()
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
+                                 !cs_finalizedItems);
+    void clearTimedoutRequests() EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
+    std::vector<CInv> getInvsForNextPoll(bool forPoll = true)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
     bool sendHelloInternal(CNode *pfrom)
         EXCLUSIVE_LOCKS_REQUIRED(cs_delayedAvahelloNodeIds);
-    AnyVoteItem getVoteItemFromInv(const CInv &inv) const;
+    AnyVoteItem getVoteItemFromInv(const CInv &inv) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager);
 
     /**
      * We don't need many blocks but a low false positive rate.
@@ -412,7 +433,8 @@ private:
             LOCKS_EXCLUDED(cs_peerManager);
         bool operator()(const CTransactionRef &tx) const;
     };
-    bool isWorthPolling(const AnyVoteItem &item) const;
+    bool isWorthPolling(const AnyVoteItem &item) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
 
     struct GetLocalAcceptance {
         const Processor &processor;
