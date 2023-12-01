@@ -146,7 +146,46 @@ const Alias = ({ passLoadingStatus }) => {
             setAliasPrices(await queryAliasServer('prices'));
         }
 
+        // Track when the user stops typing into the aliasName input field for at least
+        // 'aliasSettings.aliasKeyUpTimeoutMs' and make an API call to check the alias status
+        let timeout;
+        const aliasInput = document.getElementsByName('aliasName')[0];
+        aliasInput?.addEventListener('keyup', function () {
+            timeout = setTimeout(async function () {
+                // Retrieve alias details
+                let aliasDetailsResp;
+                try {
+                    // Note: aliasInput.value is used here as formData is not yet
+                    // initialized at the point of useEffect execution
+                    aliasDetailsResp = await queryAliasServer(
+                        'alias',
+                        aliasInput.value,
+                    );
+                    if (aliasDetailsResp.address) {
+                        setAliasValidationError(
+                            `This alias is already owned by ${aliasDetailsResp.address}, please try another alias`,
+                        );
+                        setIsValidAliasInput(false);
+                    } else {
+                        setAliasValidationError(false);
+                        setIsValidAliasInput(true);
+                    }
+                } catch (err) {
+                    const errorMsg = 'Error retrieving alias status';
+                    errorNotification(null, errorMsg);
+                    setIsValidAliasInput(false);
+                    setAliasServerError(errorMsg);
+                    passLoadingStatus(false);
+                }
+            }, aliasSettings.aliasKeyUpTimeoutMs);
+        });
+
         passLoadingStatus(false);
+
+        // Clear timeout when this component unmounts
+        return () => {
+            clearTimeout(timeout);
+        };
     }, [wallet.name]);
 
     const clearInputForms = () => {
