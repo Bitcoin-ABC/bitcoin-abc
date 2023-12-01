@@ -66,6 +66,9 @@ static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
  */
 static const Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
 
+/** Default for -minrelaytxfee, minimum relay fee for transactions */
+static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
+
 /**
  * When transactions fail script evaluations under standard flags, this flagset
  * influences the decision of whether to drop them or to also ban the originator

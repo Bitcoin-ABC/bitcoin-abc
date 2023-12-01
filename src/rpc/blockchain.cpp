@@ -26,6 +26,7 @@
 #include <node/context.h>
 #include <node/utxo_snapshot.h>
 #include <policy/policy.h>
+#include <policy/settings.h>
 #include <primitives/transaction.h>
 #include <rpc/server.h>
 #include <rpc/server_util.h>

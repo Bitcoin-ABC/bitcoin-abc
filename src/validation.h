@@ -75,8 +75,6 @@ struct Params;
 #define MIN_TRANSACTION_SIZE                                                   \
     (::GetSerializeSize(CTransaction(), PROTOCOL_VERSION))
 
-/** Default for -minrelaytxfee, minimum relay fee for transactions */
-static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
 /**
  * Default for -mempoolexpiry, expiration time for mempool transactions in
  * hours.
@@ -133,11 +131,6 @@ extern bool fRequireStandard;
 extern bool fCheckBlockIndex;
 extern bool fCheckpointsEnabled;
 
-/**
- * A fee rate smaller than this is considered zero fee (for relaying, mining and
- * transaction creation)
- */
-extern CFeeRate minRelayTxFee;
 /**
  * If the tip is older than this (in seconds), the node is considered to be in
  * initial block download.

@@ -123,8 +123,6 @@ int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 BlockHash hashAssumeValid;
 arith_uint256 nMinimumChainWork;
 
-CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE_PER_KB);
-
 BlockValidationOptions::BlockValidationOptions(const Config &config)
     : excessiveBlockSize(config.GetMaxBlockSize()), checkPoW(true),
       checkMerkleRoot(true) {}

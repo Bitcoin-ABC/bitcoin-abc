@@ -15,6 +15,11 @@ class CTransaction;
 
 // Policy settings which are configurable at runtime.
 extern CFeeRate dustRelayFee;
+/**
+ * A fee rate smaller than this is considered zero fee (for relaying, mining and
+ * transaction creation)
+ */
+extern CFeeRate minRelayTxFee;
 extern uint32_t nBytesPerSigCheck;
 extern bool fIsBareMultisigStd;
 
