@@ -705,7 +705,11 @@ const Alias = ({ passLoadingStatus }) => {
                                     </Space>
                                     <AlertMsg>{aliasServerError}</AlertMsg>
                                 </CustomCollapseCtn>
-                                <CustomCollapseCtn panelHeader="Pending Aliases">
+                                <CustomCollapseCtn
+                                    panelHeader="Pending Aliases"
+                                    optionalDefaultActiveKey={['1']}
+                                    optionalKey="1"
+                                >
                                     <Space size={[0, 8]} wrap>
                                         {aliases &&
                                         aliases.pending &&

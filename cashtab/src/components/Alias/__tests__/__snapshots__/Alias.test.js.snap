@@ -403,11 +403,11 @@ Array [
                 }
               >
                 <div
-                  className="ant-collapse-item"
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
                   <div
                     aria-disabled={false}
-                    aria-expanded={false}
+                    aria-expanded={true}
                     className="ant-collapse-header"
                     onClick={[Function]}
                     onKeyPress={[Function]}
@@ -429,6 +429,12 @@ Array [
                           fill="currentColor"
                           focusable="false"
                           height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
                           viewBox="64 64 896 896"
                           width="1em"
                         >
@@ -448,6 +454,40 @@ Array [
                         Pending Aliases
                       </div>
                     </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No pending aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -863,11 +903,11 @@ Array [
                 }
               >
                 <div
-                  className="ant-collapse-item"
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
                   <div
                     aria-disabled={false}
-                    aria-expanded={false}
+                    aria-expanded={true}
                     className="ant-collapse-header"
                     onClick={[Function]}
                     onKeyPress={[Function]}
@@ -889,6 +929,12 @@ Array [
                           fill="currentColor"
                           focusable="false"
                           height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
                           viewBox="64 64 896 896"
                           width="1em"
                         >
@@ -908,6 +954,40 @@ Array [
                         Pending Aliases
                       </div>
                     </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No pending aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1328,11 +1408,11 @@ Array [
                 }
               >
                 <div
-                  className="ant-collapse-item"
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
                   <div
                     aria-disabled={false}
-                    aria-expanded={false}
+                    aria-expanded={true}
                     className="ant-collapse-header"
                     onClick={[Function]}
                     onKeyPress={[Function]}
@@ -1354,6 +1434,12 @@ Array [
                           fill="currentColor"
                           focusable="false"
                           height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
                           viewBox="64 64 896 896"
                           width="1em"
                         >
@@ -1373,6 +1459,40 @@ Array [
                         Pending Aliases
                       </div>
                     </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No pending aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1788,11 +1908,11 @@ Array [
                 }
               >
                 <div
-                  className="ant-collapse-item"
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
                   <div
                     aria-disabled={false}
-                    aria-expanded={false}
+                    aria-expanded={true}
                     className="ant-collapse-header"
                     onClick={[Function]}
                     onKeyPress={[Function]}
@@ -1814,6 +1934,12 @@ Array [
                           fill="currentColor"
                           focusable="false"
                           height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
                           viewBox="64 64 896 896"
                           width="1em"
                         >
@@ -1833,6 +1959,40 @@ Array [
                         Pending Aliases
                       </div>
                     </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No pending aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2312,11 +2472,11 @@ Array [
                 }
               >
                 <div
-                  className="ant-collapse-item"
+                  className="ant-collapse-item ant-collapse-item-active"
                 >
                   <div
                     aria-disabled={false}
-                    aria-expanded={false}
+                    aria-expanded={true}
                     className="ant-collapse-header"
                     onClick={[Function]}
                     onKeyPress={[Function]}
@@ -2338,6 +2498,12 @@ Array [
                           fill="currentColor"
                           focusable="false"
                           height="1em"
+                          style={
+                            Object {
+                              "msTransform": "rotate(90deg)",
+                              "transform": "rotate(90deg)",
+                            }
+                          }
                           viewBox="64 64 896 896"
                           width="1em"
                         >
@@ -2357,6 +2523,40 @@ Array [
                         Pending Aliases
                       </div>
                     </span>
+                  </div>
+                  <div
+                    className="ant-collapse-content ant-collapse-content-active"
+                    role={null}
+                  >
+                    <div
+                      className="ant-collapse-content-box"
+                    >
+                      <div
+                        className="ant-space ant-space-horizontal ant-space-align-center"
+                        style={
+                          Object {
+                            "flexWrap": "wrap",
+                            "marginBottom": -8,
+                          }
+                        }
+                      >
+                        <div
+                          className="ant-space-item"
+                          style={
+                            Object {
+                              "paddingBottom": 8,
+                            }
+                          }
+                        >
+                          <h3>
+                            No pending aliases
+                          </h3>
+                        </div>
+                      </div>
+                      <p
+                        className="sc-jDwBTQ bcLZea"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
