@@ -10,7 +10,6 @@ import {
     LockOutlined,
     ContactsOutlined,
     FireOutlined,
-    SearchOutlined,
     UserAddOutlined,
     WarningOutlined,
     SwapOutlined,
@@ -215,9 +214,6 @@ export const SwapIcon = () => <SwapOutlined style={{ fontSize: 24 }} />;
 export const SendIcon = styled(Send)`
     transform: rotate(-35deg);
 `;
-export const AliasSearchIcon = () => (
-    <SearchOutlined style={{ fontSize: 20 }} />
-);
 export const AliasRegisterIcon = () => (
     <UserAddOutlined style={{ fontSize: 20 }} />
 );

@@ -1,18 +1,18 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
 
 exports[`Wallet with XEC balances 1`] = `
 Array [
   <div
-    className="sc-kjoXOD fLggMW"
+    className="sc-gisBJw lhAjrX"
   >
     <div
-      className="sc-brqgnP jTrtLE"
+      className="sc-jWBwVP cKvBni"
     >
       <div
-        className="sc-fBuWsC caLBtP"
+        className="sc-jhAzac kaAIpD"
       >
         <h4
-          className="sc-fMiknA hzosfA"
+          className="sc-fBuWsC eRpPSf"
         >
           MigrationTestAlpha
         </h4>
@@ -54,7 +54,7 @@ Array [
         </div>
       </div>
       <div
-        className="sc-jDwBTQ bfTPPk"
+        className="sc-jAaTju Vyslf"
       >
         You currently have 0 
         XEC
@@ -65,13 +65,13 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cvbbAY blOKNt"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
-      className="sc-fAjcbJ bHLkJg"
+      className="sc-eqIVtm jMsian"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-gisBJw jqFgrU"
+        className="ant-collapse ant-collapse-icon-position-start sc-caSCKo xvorO"
         role={null}
         style={
           Object {
@@ -120,7 +120,7 @@ Array [
               onClick={null}
             >
               <div
-                className="sc-eqIVtm kRufpp"
+                className="sc-dVhcbM fghLuF"
               >
                 SideShift
               </div>
@@ -136,16 +136,16 @@ Array [
 exports[`Wallet with XEC balances and tokens 1`] = `
 Array [
   <div
-    className="sc-kjoXOD fLggMW"
+    className="sc-gisBJw lhAjrX"
   >
     <div
-      className="sc-brqgnP jTrtLE"
+      className="sc-jWBwVP cKvBni"
     >
       <div
-        className="sc-fBuWsC caLBtP"
+        className="sc-jhAzac kaAIpD"
       >
         <h4
-          className="sc-fMiknA hzosfA"
+          className="sc-fBuWsC eRpPSf"
         >
           MigrationTestAlpha
         </h4>
@@ -187,7 +187,7 @@ Array [
         </div>
       </div>
       <div
-        className="sc-jDwBTQ bfTPPk"
+        className="sc-jAaTju Vyslf"
       >
         You currently have 0 
         XEC
@@ -198,13 +198,13 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cvbbAY blOKNt"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
-      className="sc-fAjcbJ bHLkJg"
+      className="sc-eqIVtm jMsian"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-gisBJw jqFgrU"
+        className="ant-collapse ant-collapse-icon-position-start sc-caSCKo xvorO"
         role={null}
         style={
           Object {
@@ -253,7 +253,7 @@ Array [
               onClick={null}
             >
               <div
-                className="sc-eqIVtm kRufpp"
+                className="sc-dVhcbM fghLuF"
               >
                 SideShift
               </div>
@@ -269,16 +269,16 @@ Array [
 exports[`Wallet with XEC balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-kjoXOD fLggMW"
+    className="sc-gisBJw lhAjrX"
   >
     <div
-      className="sc-brqgnP jTrtLE"
+      className="sc-jWBwVP cKvBni"
     >
       <div
-        className="sc-fBuWsC caLBtP"
+        className="sc-jhAzac kaAIpD"
       >
         <h4
-          className="sc-fMiknA hzosfA"
+          className="sc-fBuWsC eRpPSf"
         >
           MigrationTestAlpha
         </h4>
@@ -320,10 +320,10 @@ Array [
         </div>
       </div>
       <div
-        className="sc-jAaTju eoNejo"
+        className="sc-cMljjf coNPHF"
       >
         <span
-          className="sc-bRBYWo gpfPyL"
+          className="sc-Rmtcm iyxXlA"
         >
            
           0.06
@@ -336,13 +336,13 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cvbbAY blOKNt"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
-      className="sc-fAjcbJ bHLkJg"
+      className="sc-eqIVtm jMsian"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-gisBJw jqFgrU"
+        className="ant-collapse ant-collapse-icon-position-start sc-caSCKo xvorO"
         role={null}
         style={
           Object {
@@ -391,7 +391,7 @@ Array [
               onClick={null}
             >
               <div
-                className="sc-eqIVtm kRufpp"
+                className="sc-dVhcbM fghLuF"
               >
                 SideShift
               </div>
@@ -407,16 +407,16 @@ Array [
 exports[`Wallet without XEC balance 1`] = `
 Array [
   <div
-    className="sc-kjoXOD fLggMW"
+    className="sc-gisBJw lhAjrX"
   >
     <div
-      className="sc-brqgnP jTrtLE"
+      className="sc-jWBwVP cKvBni"
     >
       <div
-        className="sc-fBuWsC caLBtP"
+        className="sc-jhAzac kaAIpD"
       >
         <h4
-          className="sc-fMiknA hzosfA"
+          className="sc-fBuWsC eRpPSf"
         >
           MigrationTestAlpha
         </h4>
@@ -458,7 +458,7 @@ Array [
         </div>
       </div>
       <div
-        className="sc-jDwBTQ bfTPPk"
+        className="sc-jAaTju Vyslf"
       >
         You currently have 0 
         XEC
@@ -469,13 +469,13 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cvbbAY blOKNt"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
-      className="sc-fAjcbJ bHLkJg"
+      className="sc-eqIVtm jMsian"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-gisBJw jqFgrU"
+        className="ant-collapse ant-collapse-icon-position-start sc-caSCKo xvorO"
         role={null}
         style={
           Object {
@@ -524,7 +524,7 @@ Array [
               onClick={null}
             >
               <div
-                className="sc-eqIVtm kRufpp"
+                className="sc-dVhcbM fghLuF"
               >
                 SideShift
               </div>
@@ -540,13 +540,13 @@ Array [
 exports[`Without wallet defined 1`] = `
 Array [
   <div
-    className="sc-kjoXOD fLggMW"
+    className="sc-gisBJw lhAjrX"
   >
     <div
-      className="sc-brqgnP jTrtLE"
+      className="sc-jWBwVP cKvBni"
     >
       <div
-        className="sc-fBuWsC caLBtP"
+        className="sc-jhAzac kaAIpD"
       >
         <a
           href="/configure"
@@ -586,7 +586,7 @@ Array [
         </div>
       </div>
       <div
-        className="sc-jDwBTQ bfTPPk"
+        className="sc-jAaTju Vyslf"
       >
         You currently have 0 
         XEC
@@ -597,13 +597,13 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cvbbAY blOKNt"
+    className="sc-eHgmQL kvZwAq"
   >
     <div
-      className="sc-fAjcbJ bHLkJg"
+      className="sc-eqIVtm jMsian"
     >
       <div
-        className="ant-collapse ant-collapse-icon-position-start sc-gisBJw jqFgrU"
+        className="ant-collapse ant-collapse-icon-position-start sc-caSCKo xvorO"
         role={null}
         style={
           Object {
@@ -652,7 +652,7 @@ Array [
               onClick={null}
             >
               <div
-                className="sc-eqIVtm kRufpp"
+                className="sc-dVhcbM fghLuF"
               >
                 SideShift
               </div>
