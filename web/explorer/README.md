@@ -4,6 +4,13 @@ A no-frills eCash explorer focused on speed and providing in-depth information
 
 ## Development
 
+### 1. Install dependencies
+
+```
+sudo apt install libssl-dev
+sudo apt install -y protobuf-compiler libprotobuf-dev
+```
+
 ### 2. Run
 
 ```
