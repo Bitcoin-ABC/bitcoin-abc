@@ -257,8 +257,8 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     peerLogic->InitializeNode(config, dummyNode1, NODE_NETWORK);
     dummyNode1.fSuccessfullyConnected = true;
     // Should be discouraged
-    peerLogic->Misbehaving(dummyNode1.GetId(), DISCOURAGEMENT_THRESHOLD,
-                           /* message */ "");
+    peerLogic->UnitTestMisbehaving(dummyNode1.GetId(),
+                                   DISCOURAGEMENT_THRESHOLD);
     {
         LOCK(dummyNode1.cs_sendProcessing);
         BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode1));
@@ -276,8 +276,8 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     dummyNode2.SetCommonVersion(PROTOCOL_VERSION);
     peerLogic->InitializeNode(config, dummyNode2, NODE_NETWORK);
     dummyNode2.fSuccessfullyConnected = true;
-    peerLogic->Misbehaving(dummyNode2.GetId(), DISCOURAGEMENT_THRESHOLD - 1,
-                           /* message */ "");
+    peerLogic->UnitTestMisbehaving(dummyNode2.GetId(),
+                                   DISCOURAGEMENT_THRESHOLD - 1);
     {
         LOCK(dummyNode2.cs_sendProcessing);
         BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode2));
@@ -287,7 +287,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     // ... but 1 still should be
     BOOST_CHECK(banman->IsDiscouraged(addr1));
     // 2 reaches discouragement threshold
-    peerLogic->Misbehaving(dummyNode2.GetId(), 1, /* message */ "");
+    peerLogic->UnitTestMisbehaving(dummyNode2.GetId(), 1);
     {
         LOCK(dummyNode2.cs_sendProcessing);
         BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode2));
@@ -325,8 +325,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     peerLogic->InitializeNode(config, dummyNode, NODE_NETWORK);
     dummyNode.fSuccessfullyConnected = true;
 
-    peerLogic->Misbehaving(dummyNode.GetId(), DISCOURAGEMENT_THRESHOLD,
-                           /* message */ "");
+    peerLogic->UnitTestMisbehaving(dummyNode.GetId(), DISCOURAGEMENT_THRESHOLD);
     {
         LOCK(dummyNode.cs_sendProcessing);
         BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode));

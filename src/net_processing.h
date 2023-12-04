@@ -93,14 +93,9 @@ public:
     /** Set the best height */
     virtual void SetBestHeight(int height) = 0;
 
-    /**
-     * Increment peer's misbehavior score. If the new value >=
-     * DISCOURAGEMENT_THRESHOLD, mark the node to be discouraged, meaning the
-     * peer might be disconnected and added to the discouragement filter. Public
-     * for unit testing.
-     */
-    virtual void Misbehaving(const NodeId pnode, const int howmuch,
-                             const std::string &message) = 0;
+    /** Public for unit testing. */
+    virtual void UnitTestMisbehaving(const NodeId peer_id,
+                                     const int howmuch) = 0;
 
     /**
      * Evict extra outbound peers. If we think our tip may be stale, connect to
