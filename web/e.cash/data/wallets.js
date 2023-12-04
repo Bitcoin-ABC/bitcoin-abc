@@ -50,12 +50,6 @@ export const wallets = [
         image: '/images/stack-wallet.png',
         link: 'https://stackwallet.com/',
     },
-    {
-        name: 'Guarda Wallet',
-        text: 'Guarda Wallet is a secure and user-friendly multi-coin wallet for managing cryptocurrencies and tokens in a non-custodial manner. Available for web, desktop, Apple, and Android.',
-        image: '/images/guarda-wallet.png',
-        link: 'https://guarda.com/coins/ecash-wallet/',
-    },
 ];
 
 export const hardwareWallets = [
