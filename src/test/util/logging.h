@@ -39,6 +39,6 @@ public:
 };
 
 #define ASSERT_DEBUG_LOG(message)                                              \
-    DebugLogHelper UNIQUE_NAME(debugloghelper)(message)
+    DebugLogHelper UNIQUE_LOG_NAME(debugloghelper)(message)
 
 #endif // BITCOIN_TEST_UTIL_LOGGING_H

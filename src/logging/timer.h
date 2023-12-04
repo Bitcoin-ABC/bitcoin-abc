@@ -92,16 +92,16 @@ private:
 } // namespace BCLog
 
 #define LOG_TIME_MICROS_WITH_CATEGORY(end_msg, log_category)                   \
-    BCLog::Timer<std::chrono::microseconds> UNIQUE_NAME(logging_timer)(        \
+    BCLog::Timer<std::chrono::microseconds> UNIQUE_LOG_NAME(logging_timer)(    \
         __func__, end_msg, log_category)
 #define LOG_TIME_MILLIS_WITH_CATEGORY(end_msg, log_category)                   \
-    BCLog::Timer<std::chrono::milliseconds> UNIQUE_NAME(logging_timer)(        \
+    BCLog::Timer<std::chrono::milliseconds> UNIQUE_LOG_NAME(logging_timer)(    \
         __func__, end_msg, log_category)
 #define LOG_TIME_MILLIS_WITH_CATEGORY_MSG_ONCE(end_msg, log_category)          \
-    BCLog::Timer<std::chrono::milliseconds> UNIQUE_NAME(logging_timer)(        \
+    BCLog::Timer<std::chrono::milliseconds> UNIQUE_LOG_NAME(logging_timer)(    \
         __func__, end_msg, log_category, /* msg_on_completion=*/false)
 #define LOG_TIME_SECONDS(end_msg)                                              \
-    BCLog::Timer<std::chrono::seconds> UNIQUE_NAME(logging_timer)(__func__,    \
-                                                                  end_msg)
+    BCLog::Timer<std::chrono::seconds> UNIQUE_LOG_NAME(logging_timer)(         \
+        __func__, end_msg)
 
 #endif // BITCOIN_LOGGING_TIMER_H

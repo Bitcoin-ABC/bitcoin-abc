@@ -263,8 +263,8 @@ public:
 };
 
 #define REVERSE_LOCK(g)                                                        \
-    typename std::decay<decltype(g)>::type::reverse_lock UNIQUE_NAME(revlock)( \
-        g, #g, __FILE__, __LINE__)
+    typename std::decay<decltype(g)>::type::reverse_lock UNIQUE_LOG_NAME(      \
+        revlock)(g, #g, __FILE__, __LINE__)
 
 template <typename MutexArg>
 using DebugLock = UniqueLock<typename std::remove_reference<
@@ -304,7 +304,7 @@ inline RecursiveMutex *MaybeCheckNotHeld(RecursiveMutex *cs) LOCKS_EXCLUDED(cs)
 }
 
 #define LOCK(cs)                                                               \
-    DebugLock<decltype(cs)> UNIQUE_NAME(criticalblock)(                        \
+    DebugLock<decltype(cs)> UNIQUE_LOG_NAME(criticalblock)(                    \
         MaybeCheckNotHeld(cs), #cs, __FILE__, __LINE__)
 #define LOCK2(cs1, cs2)                                                        \
     DebugLock<decltype(cs1)> criticalblock1(MaybeCheckNotHeld(cs1), #cs1,      \
