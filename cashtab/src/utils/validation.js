@@ -489,11 +489,27 @@ export const isValidEtokenAddress = addr => {
     return isValidEtokenAddress;
 };
 
+/**
+ * Returns true if input is a valid xec send amount
+ * @param {string} xecSendAmount
+ * @returns {boolean}
+ */
 export const isValidXecSendAmount = xecSendAmount => {
-    // A valid XEC send amount must be a number higher than the app dust limit
+    // A valid XEC send amount must be
+    // - higher than the app dust limit
+    // - have no more than 2 decimal places
+    if (typeof xecSendAmount !== 'string') {
+        return false;
+    }
+    if (xecSendAmount.includes('.')) {
+        // If you have decimal places
+        const decimalCount = xecSendAmount.split('.')[1].length;
+        const XEC_DECIMALS = 2;
+        if (decimalCount > XEC_DECIMALS) {
+            return false;
+        }
+    }
     return (
-        xecSendAmount !== null &&
-        typeof xecSendAmount !== 'undefined' &&
         !isNaN(parseFloat(xecSendAmount)) &&
         parseFloat(xecSendAmount) >=
             fromSatoshisToXec(appConfig.dustSats).toNumber()

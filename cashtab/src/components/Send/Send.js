@@ -570,7 +570,9 @@ const SendBCH = ({ passLoadingStatus }) => {
                 }));
             }
             if (!validValueString) {
-                error = 'Ensure each tx is at least 5.5 XEC';
+                error = `Amount must be >= ${(appConfig.dustSats / 100).toFixed(
+                    2,
+                )} XEC and <= 2 decimals.`;
                 setSendBchAddressError(error);
                 return setFormData(p => ({
                     ...p,

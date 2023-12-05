@@ -569,16 +569,29 @@ describe('Validation utils', () => {
         expect(isValidEtokenAddress(addr)).toBe(false);
     });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
-        const testXecSendAmount = fromSatoshisToXec(appConfig.dustSats);
+        const testXecSendAmount = fromSatoshisToXec(
+            appConfig.dustSats,
+        ).toString();
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum`, () => {
-        const testXecSendAmount = fromSatoshisToXec(appConfig.dustSats) + 1.75;
+        const testXecSendAmount = (
+            fromSatoshisToXec(appConfig.dustSats) + 1.75
+        ).toString();
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount rejects zero`, () => {
-        const testXecSendAmount = 0;
+        const testXecSendAmount = '0';
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
+    });
+    it(`isValidXecSendAmount accepts a string with 1 decimal place`, () => {
+        expect(isValidXecSendAmount('100.1')).toBe(true);
+    });
+    it(`isValidXecSendAmount accepts a string with 2 decimal places`, () => {
+        expect(isValidXecSendAmount('100.12')).toBe(true);
+    });
+    it(`isValidXecSendAmount rejects a string with more than 2 decimal places`, () => {
+        expect(isValidXecSendAmount('100.123')).toBe(false);
     });
     it(`isValidXecSendAmount rejects a non-number string`, () => {
         const testXecSendAmount = 'not a number';
