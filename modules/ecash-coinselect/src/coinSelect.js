@@ -11,7 +11,7 @@ const DUST_SATOSHIS = 546;
 
 function finalize(inputs, outputs, feeRate) {
     let bytesAccum = transactionBytes(inputs, outputs);
-    let feeAfterExtraOutput = feeRate * (bytesAccum + BLANK_OUTPUT);
+    let feeAfterExtraOutput = Math.ceil(feeRate * (bytesAccum + BLANK_OUTPUT));
     let remainderAfterExtraOutput =
         sumValues(inputs) - (sumValues(outputs) + feeAfterExtraOutput);
     if (remainderAfterExtraOutput > DUST_SATOSHIS) {

@@ -19,6 +19,26 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             fee: 374,
         });
     });
+    it('Does not include decimals in a change output', function () {
+        const stubChronikUtxos = [
+            {
+                value: 206191611,
+            },
+        ];
+        const mockFeeRate = 2.01;
+        assert.deepEqual(
+            coinSelect(stubChronikUtxos, [{ value: 11000 }], mockFeeRate),
+            {
+                inputs: [
+                    {
+                        value: 206191611,
+                    },
+                ],
+                outputs: [{ value: 11000 }, { value: 206180156 }],
+                fee: 455,
+            },
+        );
+    });
     it('does not add a change output if change < dust', function () {
         const stubChronikUtxos = [
             { value: '1000' },
