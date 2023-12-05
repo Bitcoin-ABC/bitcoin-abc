@@ -31,7 +31,7 @@ import unittest
 import xml.etree.ElementTree as ET
 from collections import deque
 from queue import Empty, Queue
-from typing import Set
+from typing import Set, Tuple
 
 # Formatting. Default colors to empty strings.
 BOLD, GREEN, RED, GREY = ("", ""), ("", ""), ("", ""), ("", "")
@@ -88,7 +88,7 @@ TEST_FRAMEWORK_MODULES = [
     "util",
 ]
 
-NON_SCRIPTS = {
+NON_TESTS = {
     # These are python files that live in the functional tests directory, but
     # are not test scripts.
     "combine_logs.py",
@@ -151,9 +151,17 @@ TEST_PARAMS = {
 DEFAULT_EXTENDED_CUTOFF = 40
 DEFAULT_JOBS = (multiprocessing.cpu_count() // 3) + 1
 
+SETUP_SCRIPTS_SUBDIR = "setup_scripts"
+
 
 def bold(text) -> str:
     return f"{BOLD[1]}{text}{BOLD[0]}"
+
+
+def running_setup_script(test_list):
+    return len(test_list) == 1 and test_list[0].startswith(
+        os.path.join(SETUP_SCRIPTS_SUBDIR, "")
+    )
 
 
 class TestCase:
@@ -191,7 +199,7 @@ class TestCase:
             + portseed_arg
             + tmpdir_arg,
             universal_newlines=True,
-            stdout=log_stdout,
+            stdout=sys.stdout if running_setup_script([testname]) else log_stdout,
             stderr=log_stderr,
         )
 
@@ -365,11 +373,11 @@ def main():
         sys.exit(0)
 
     # Build list of tests
-    all_scripts = get_all_scripts_from_disk(tests_dir, NON_SCRIPTS)
+    all_tests, all_setup_scripts = get_all_scripts_from_disk(tests_dir, NON_TESTS)
 
     # Check all tests with parameters actually exist
     for test in TEST_PARAMS:
-        if test not in all_scripts:
+        if test not in all_tests:
             print(
                 f"ERROR: Test with parameter {test} does not exist, check it has "
                 "not been renamed or deleted"
@@ -377,9 +385,9 @@ def main():
             sys.exit(1)
 
     if tests:
-        # Individual tests have been specified. Run specified tests that exist
-        # in the all_scripts list. Accept the name with or without .py
-        # extension.
+        # Individual tests or setup scripts have been specified. Run specified
+        # tests/setup scripts that exist in the all_tests/all_setup_scripts
+        # list. Accept the name with or without .py extension.
         individual_tests = [
             re.sub(r"\.py$", "", test) + ".py"
             for test in tests
@@ -387,7 +395,7 @@ def main():
         ]
         test_list = []
         for test in individual_tests:
-            if test in all_scripts:
+            if test in (all_tests | all_setup_scripts):
                 test_list.append(test)
             else:
                 print(f"{bold('WARNING!')} Test '{test}' not found in full test list.")
@@ -396,13 +404,13 @@ def main():
         # match multiple tests
         for test in tests:
             if test.endswith("*"):
-                test_list.extend([t for t in all_scripts if t.startswith(test[:-1])])
+                test_list.extend([t for t in all_tests if t.startswith(test[:-1])])
 
         # do not cut off explicitly specified tests
         cutoff = sys.maxsize
     else:
         # Run base tests only
-        test_list = all_scripts
+        test_list = all_tests
         cutoff = sys.maxsize if args.extended else args.cutoff
 
     # Remove the test cases that the user has explicitly asked to exclude.
@@ -449,7 +457,7 @@ def main():
         )
         sys.exit(0)
 
-    check_script_prefixes(all_scripts)
+    check_script_prefixes(all_tests)
 
     if not args.keepcache:
         shutil.rmtree(os.path.join(build_dir, "test", "cache"), ignore_errors=True)
@@ -639,6 +647,8 @@ def execute_test_processes(
         printed_status = False
         running_jobs = []
 
+        is_running_setup_script = running_setup_script(test_list)
+
         while True:
             message = None
             try:
@@ -655,7 +665,7 @@ def execute_test_processes(
                 handle_message(message, running_jobs)
                 update_queue.task_done()
             except Empty:
-                if not on_ci():
+                if not on_ci() and not is_running_setup_script:
                     jobs = ", ".join([j[1] for j in running_jobs])
                     print(f"Running jobs: {jobs}", end="\r")
                     sys.stdout.flush()
@@ -805,12 +815,19 @@ class TestResult:
         return self.status != "Failed"
 
 
-def get_all_scripts_from_disk(test_dir, non_scripts: Set[str]) -> Set[str]:
+def get_all_scripts_from_disk(
+    test_dir, non_tests: Set[str]
+) -> Tuple[Set[str], Set[str]]:
     """
-    Return all available test script from script directory (excluding NON_SCRIPTS)
+    Return all available test script from script directory (excluding NON_TESTS)
     """
-    python_files = {t for t in os.listdir(test_dir) if t[-3:] == ".py"}
-    return python_files - non_scripts
+    test_scripts = {t for t in os.listdir(test_dir) if t[-3:] == ".py"}
+    setup_scripts = {
+        os.path.join(SETUP_SCRIPTS_SUBDIR, t)
+        for t in os.listdir(os.path.join(test_dir, SETUP_SCRIPTS_SUBDIR))
+        if t[-3:] == ".py"
+    }
+    return test_scripts - non_tests, setup_scripts
 
 
 def check_script_prefixes(all_scripts):

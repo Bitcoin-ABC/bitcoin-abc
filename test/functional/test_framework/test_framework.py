@@ -131,6 +131,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         # optionally, increase timeout by a factor
         self.rpc_timeout = int(self.rpc_timeout * self.options.timeout_factor)
 
+    def _run_test_internal(self):
+        """Alias for run_test() for regular BitcoinTestFramework functional tests.
+        Can be overloaded by subclasses if needed to add custom logic."""
+        self.run_test()
+
     def main(self):
         """Main function. This should not be overridden by the subclass test scripts."""
         assert hasattr(
@@ -139,7 +144,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
 
         try:
             self.setup()
-            self.run_test()
+            self._run_test_internal()
         except JSONRPCException:
             self.log.exception("JSONRPC error")
             self.success = TestStatus.FAILED
