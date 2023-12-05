@@ -47,7 +47,8 @@ import {
     calcFee,
     getMessageByteSize,
 } from 'utils/cashMethods';
-import { sendXec } from 'utils/transactions';
+import { sendXec, getMultisendTargetOutputs } from 'transactions';
+import { getCashtabMsgTargetOutput, getAirdropTargetOutput } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
@@ -351,97 +352,77 @@ const SendBCH = ({ passLoadingStatus }) => {
             ...formData,
         });
 
-        if (isOneToManyXECSend) {
-            // this is a one to many XEC send transactions
+        // Initialize targetOutputs for this tx
+        let targetOutputs = [];
 
-            // ensure multi-recipient input is not blank
-            if (!formData.address) {
-                return;
-            }
+        // If you have an OP_RETURN output, add it at index 0
+        // Aesthetic choice, easier to see when checking on block explorer
 
-            // Event("Category", "Action", "Label")
-            // Track number of XEC send-to-many transactions
-            Event('Send.js', 'SendToMany', selectedCurrency);
-
-            passLoadingStatus(true);
-            const { address } = formData;
-
-            //convert each line from TextArea input
-            let addressAndValueArray = address.split('\n');
-
-            try {
-                const link = await sendXec(
-                    chronik,
-                    wallet,
-                    nonSlpUtxos,
-                    appConfig.defaultFee,
-                    opReturnMsg,
-                    true, // indicate send mode is one to many
-                    addressAndValueArray,
-                    null,
-                    null,
-                    false, // one to many tx msg can't be encrypted
-                    airdropFlag,
+        if (airdropFlag) {
+            // Airdrop txs require special OP_RETURN handling
+            targetOutputs.push(
+                getAirdropTargetOutput(
                     formData.airdropTokenId,
-                );
-                sendXecNotification(link);
-                clearInputForms();
-                setAirdropFlag(false);
-            } catch (e) {
-                handleSendXecError(e, isOneToManyXECSend);
-            }
+                    opReturnMsg ? opReturnMsg : '',
+                ),
+            );
+        } else if (opReturnMsg !== false && opReturnMsg !== '') {
+            // If not an airdrop msg, add opReturnMsg as a Cashtab Msg, if it exists
+            targetOutputs.push(getCashtabMsgTargetOutput(opReturnMsg));
+        }
+
+        if (isOneToManyXECSend) {
+            // Handle XEC send to multiple addresses
+            targetOutputs = targetOutputs.concat(
+                getMultisendTargetOutputs(formData.address),
+            );
+
+            Event('Send.js', 'SendToMany', selectedCurrency);
         } else {
-            // standard one to one XEC send transaction
-
-            if (
-                !formData.address ||
-                !formData.value ||
-                Number(formData.value) <= 0
-            ) {
-                return;
-            }
-
-            // Event("Category", "Action", "Label")
-            // Track number of BCHA send transactions and whether users
-            // are sending BCHA or USD
-            Event('Send.js', 'Send', selectedCurrency);
-
-            passLoadingStatus(true);
-            const { address, value } = formData;
-
+            // Handle XEC send to one address
             let cleanAddress;
             // check state on whether this is an alias or ecash address
             if (aliasInputAddress) {
                 cleanAddress = aliasInputAddress;
             } else {
                 // Get the non-alias param-free address
-                cleanAddress = address.split('?')[0];
+                cleanAddress = formData.address.split('?')[0];
             }
-            // Calculate the amount in BCH
-            let bchValue = value;
+            // Calculate the amount in XEC
+            let xecSendValue = formData.value;
 
             if (selectedCurrency !== 'XEC') {
-                bchValue = fiatToCrypto(value, fiatPrice);
+                // If fiat send is selected, calculate send amount in XEC
+                xecSendValue = fiatToCrypto(xecSendValue, fiatPrice);
             }
 
-            try {
-                const link = await sendXec(
-                    chronik,
-                    wallet,
-                    nonSlpUtxos,
-                    appConfig.defaultFee,
-                    opReturnMsg,
-                    false, // sendToMany boolean flag
-                    null, // address array not applicable for one to many tx
-                    cleanAddress,
-                    bchValue,
-                    false,
-                );
-                sendXecNotification(link);
-                clearInputForms();
-            } catch (e) {
-                handleSendXecError(e, isOneToManyXECSend);
-            }
+            const SATOSHIS_PER_XEC = 100;
+            const satoshisToSend = SATOSHIS_PER_XEC * xecSendValue;
+            targetOutputs.push({
+                address: cleanAddress,
+                value: satoshisToSend,
+            });
+
+            Event('Send.js', 'Send', selectedCurrency);
+        }
+
+        passLoadingStatus(true);
+
+        // Send and notify
+        try {
+            const txObj = await sendXec(
+                chronik,
+                wallet,
+                targetOutputs,
+                appConfig.defaultFee,
+            );
+            sendXecNotification(
+                `${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`,
+            );
+            clearInputForms();
+            setAirdropFlag(false);
+        } catch (err) {
+            handleSendXecError(err, isOneToManyXECSend);
         }
     }
 

@@ -213,7 +213,7 @@ export const sendXecVectors = {
                     address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 },
             ],
-            msg: 'Transaction must send more than dust threshold of 546 satoshis',
+            msg: 'Transaction output amount must be at least the dust threshold of 546 satoshis',
             hex: undefined,
         },
         {
