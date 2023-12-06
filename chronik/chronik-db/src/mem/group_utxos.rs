@@ -21,7 +21,7 @@ pub struct MempoolGroupUtxos<G: Group> {
 }
 
 /// Error indicating something went wrong with [`MempoolGroupUtxos`].
-#[derive(Debug, Eq, Error, PartialEq)]
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum MempoolGroupUtxosError {
     /// Tried adding a UTXO that already exists
     #[error("Inconsistent mempool: UTXO {0:?} already exists in mempool")]
@@ -32,8 +32,23 @@ pub enum MempoolGroupUtxosError {
     UtxoAlreadyUnspent(OutPoint),
 
     /// Tried removing a UTXO from the mempool that doesn't exist
-    #[error("Inconsistent mempool: UTXO {0:?} doesn't exist in mempool")]
-    UtxoDoesntExist(OutPoint),
+    #[error(
+        "Inconsistent mempool when removing tx: UTXO {0:?} doesn't exist in \
+         mempool"
+    )]
+    UtxoDoesntExistForRemoval(OutPoint),
+
+    /// Tried removing a UTXO from the mempool that doesn't exist
+    #[error(
+        "Inconsistent mempool: UTXO {outpoint:?} spent by {txid} doesn't \
+         exist in mempool"
+    )]
+    UtxoDoesntExist {
+        /// Spent outpoint that doesn't exist in the mempool but should
+        outpoint: OutPoint,
+        /// TxId that spent the nonexistent outpoint
+        txid: TxId,
+    },
 }
 
 use self::MempoolGroupUtxosError::*;
@@ -78,7 +93,11 @@ impl<G: Group> MempoolGroupUtxos<G> {
                 continue;
             }
             let member_ser = self.group.ser_member(&item.member);
-            self.remove_utxo(member_ser.as_ref(), &input.prev_out)?;
+            self.remove_utxo(
+                member_ser.as_ref(),
+                Some(tx.tx.txid_ref()),
+                &input.prev_out,
+            )?;
         }
         Ok(())
     }
@@ -130,7 +149,7 @@ impl<G: Group> MempoolGroupUtxos<G> {
             };
             // Due to our assumption, all outputs of this tx must be unspent,
             // hence a UTXO entry must exist for the member.
-            self.remove_utxo(member_ser.as_ref(), &outpoint)?;
+            self.remove_utxo(member_ser.as_ref(), None, &outpoint)?;
         }
         Ok(())
     }
@@ -157,6 +176,7 @@ impl<G: Group> MempoolGroupUtxos<G> {
             // previously been spent by another mempool tx.
             let _ = self.remove_utxo(
                 member_ser.as_ref(),
+                None,
                 &OutPoint {
                     txid: tx.tx.txid(),
                     out_idx: item.idx as u32,
@@ -184,14 +204,22 @@ impl<G: Group> MempoolGroupUtxos<G> {
     fn remove_utxo(
         &mut self,
         member_ser: &[u8],
+        txid: Option<&TxId>,
         outpoint: &OutPoint,
     ) -> Result<(), MempoolGroupUtxosError> {
+        let make_err = || match txid {
+            Some(txid) => UtxoDoesntExist {
+                outpoint: *outpoint,
+                txid: *txid,
+            },
+            None => UtxoDoesntExistForRemoval(*outpoint),
+        };
         let utxos = self
             .utxos
             .get_mut(member_ser.as_ref())
-            .ok_or(UtxoDoesntExist(*outpoint))?;
+            .ok_or_else(make_err)?;
         if !utxos.remove(outpoint) {
-            return Err(UtxoDoesntExist(*outpoint));
+            return Err(make_err());
         }
         if utxos.is_empty() {
             // Clean up if there's no utxos for this member anymore
@@ -278,10 +306,13 @@ mod tests {
                     )
                     .unwrap_err()
                     .downcast::<MempoolGroupUtxosError>()?,
-                MempoolGroupUtxosError::UtxoDoesntExist(OutPoint {
-                    txid: TxId::from([2; 32]),
-                    out_idx: 4,
-                }),
+                MempoolGroupUtxosError::UtxoDoesntExist {
+                    outpoint: OutPoint {
+                        txid: TxId::from([2; 32]),
+                        out_idx: 4,
+                    },
+                    txid: TxId::from([3; 32]),
+                },
             );
         }
 
@@ -295,7 +326,7 @@ mod tests {
                     .remove(&make_mempool_tx(3, [], [value]), is_mempool_tx)
                     .unwrap_err()
                     .downcast::<MempoolGroupUtxosError>()?,
-                MempoolGroupUtxosError::UtxoDoesntExist(OutPoint {
+                MempoolGroupUtxosError::UtxoDoesntExistForRemoval(OutPoint {
                     txid: TxId::from([3; 32]),
                     out_idx: 0,
                 }),
