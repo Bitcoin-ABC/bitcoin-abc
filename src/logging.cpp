@@ -18,6 +18,9 @@
 #include <optional>
 #include <unordered_map>
 
+using util::Join;
+using util::RemovePrefixView;
+
 bool fLogIPs = DEFAULT_LOGIPS;
 const char *const DEFAULT_DEBUGLOGFILE = "debug.log";
 constexpr auto MAX_USER_SETABLE_SEVERITY_LEVEL{BCLog::Level::Info};

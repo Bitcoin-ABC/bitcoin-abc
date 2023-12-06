@@ -35,6 +35,7 @@
 #include <vector>
 
 using namespace avalanche;
+using util::ToString;
 
 namespace avalanche {
 namespace {

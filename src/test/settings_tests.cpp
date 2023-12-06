@@ -22,6 +22,8 @@
 #include <system_error>
 #include <vector>
 
+using util::ToString;
+
 inline bool operator==(const util::SettingsValue &a,
                        const util::SettingsValue &b) {
     return a.write() == b.write();

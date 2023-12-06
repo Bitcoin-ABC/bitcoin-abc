@@ -21,6 +21,8 @@
 
 #include <system_error>
 
+using util::Join;
+
 bool VerifyWallets(WalletContext &context) {
     interfaces::Chain &chain = *context.chain;
     if (gArgs.IsArgSet("-walletdir")) {

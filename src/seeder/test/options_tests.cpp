@@ -8,6 +8,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+using util::ToString;
+
 static const char *TEST_HOST = "-host=seeder.bitcoinabc.org";
 static const char *TEST_NAMESERVER = "-ns=localhost";
 static const char *TEST_EMAIL = "-mbox=email@bitcoinabc.org";

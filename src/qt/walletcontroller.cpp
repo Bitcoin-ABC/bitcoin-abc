@@ -24,6 +24,8 @@
 
 #include <algorithm>
 
+using util::Join;
+
 WalletController::WalletController(ClientModel &client_model,
                                    const PlatformStyle *platform_style,
                                    QObject *parent)

@@ -46,6 +46,7 @@
 #include <variant>
 
 using interfaces::FoundBlock;
+using util::Join;
 
 /**
  * Checks if a CKey is in the given CWallet compressed or otherwise

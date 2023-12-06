@@ -52,6 +52,7 @@ using node::BlockAssembler;
 using node::CBlockTemplate;
 using node::NodeContext;
 using node::UpdateTime;
+using util::ToString;
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,

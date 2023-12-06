@@ -35,10 +35,10 @@ std::string FormatMoney(const Amount amt) {
 }
 
 bool ParseMoney(const std::string &money_string, Amount &nRet) {
-    if (!ContainsNoNUL(money_string)) {
+    if (!util::ContainsNoNUL(money_string)) {
         return false;
     }
-    const std::string str = TrimString(money_string);
+    const std::string str = util::TrimString(money_string);
     if (str.empty()) {
         return false;
     }

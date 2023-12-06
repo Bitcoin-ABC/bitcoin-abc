@@ -13,6 +13,8 @@
 
 #include <vector>
 
+using util::Join;
+
 static GlobalMutex g_warnings_mutex;
 static bilingual_str g_misc_warnings GUARDED_BY(g_warnings_mutex);
 static bool fLargeWorkForkFound GUARDED_BY(g_warnings_mutex) = false;

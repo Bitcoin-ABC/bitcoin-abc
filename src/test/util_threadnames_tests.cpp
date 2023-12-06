@@ -18,6 +18,8 @@
 #include <thread>
 #include <vector>
 
+using util::ToString;
+
 BOOST_FIXTURE_TEST_SUITE(util_threadnames_tests, BasicTestingSetup)
 
 const std::string TEST_THREAD_NAME_BASE = "test_thread.";

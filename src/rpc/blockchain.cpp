@@ -59,6 +59,7 @@ using node::BlockManager;
 using node::GetUTXOStats;
 using node::NodeContext;
 using node::SnapshotMetadata;
+using util::MakeUnorderedList;
 
 struct CUpdatedBlock {
     BlockHash hash;

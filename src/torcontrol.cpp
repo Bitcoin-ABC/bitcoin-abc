@@ -34,6 +34,9 @@
 #include <set>
 #include <vector>
 
+using util::ReplaceAll;
+using util::SplitString;
+
 /** Default control port */
 const std::string DEFAULT_TOR_CONTROL = "127.0.0.1:9051";
 /** Tor cookie size (from control-spec.txt) */

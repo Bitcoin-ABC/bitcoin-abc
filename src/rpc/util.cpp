@@ -29,6 +29,8 @@ using common::PSBTError;
 using common::PSBTErrorString;
 using common::TransactionErrorString;
 using node::TransactionError;
+using util::Join;
+using util::SplitString;
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
 const std::string EXAMPLE_ADDRESS =
@@ -799,7 +801,7 @@ std::string RPCHelpMan::ToString() const {
 
         // Push named argument name and description
         sections.m_sections.emplace_back(
-            ::ToString(i + 1) + ". " + arg.GetFirstName(),
+            util::ToString(i + 1) + ". " + arg.GetFirstName(),
             arg.ToDescriptionString(/*is_named_arg=*/true));
         sections.m_max_pad = std::max(sections.m_max_pad,
                                       sections.m_sections.back().m_left.size());

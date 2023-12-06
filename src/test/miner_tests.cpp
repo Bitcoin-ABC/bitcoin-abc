@@ -39,6 +39,7 @@ using node::BlockAssembler;
 using node::BlockFitter;
 using node::CBlockTemplate;
 using node::CBlockTemplateEntry;
+using util::ToString;
 
 namespace miner_tests {
 struct MinerTestingSetup : public AvalancheTestingSetup {

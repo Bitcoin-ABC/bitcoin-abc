@@ -19,6 +19,8 @@
 #include <limits>
 #include <string>
 
+using util::ToString;
+
 BOOST_FIXTURE_TEST_SUITE(serialize_tests, BasicTestingSetup)
 
 class CSerializeMethodsTestSingle {

@@ -30,6 +30,8 @@ using node::BlockManager;
 using node::KernelNotifications;
 using node::SnapshotMetadata;
 
+using util::ToString;
+
 BOOST_FIXTURE_TEST_SUITE(validation_chainstatemanager_tests, TestingSetup)
 
 //! Basic tests for ChainstateManager.

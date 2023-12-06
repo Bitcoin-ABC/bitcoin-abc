@@ -18,6 +18,8 @@
 
 using node::DEFAULT_PRINTPRIORITY;
 
+using util::SplitString;
+
 namespace init {
 void AddLoggingArgs(ArgsManager &argsman) {
     argsman.AddArg(

@@ -80,6 +80,8 @@ Q_DECLARE_METATYPE(Config *)
 
 using node::NodeContext;
 
+using util::MakeUnorderedList;
+
 static void RegisterMetaTypes() {
     // Register meta types used for QMetaObject::invokeMethod and
     // Qt::QueuedConnection

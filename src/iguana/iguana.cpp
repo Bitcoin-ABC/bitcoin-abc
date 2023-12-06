@@ -94,7 +94,8 @@ int main(int argc, char *argv[]) {
         missingArgs.push_back("-value");
     }
     if (!missingArgs.empty()) {
-        std::cerr << "Missing required args " << Join(missingArgs, ", ") << ". "
+        std::cerr << "Missing required args " << util::Join(missingArgs, ", ")
+                  << ". "
                   << "Provide -h to see a description for each." << std::endl;
         return -1;
     }

@@ -35,7 +35,7 @@ static inline void WriteOrderPos(const int64_t &nOrderPos,
     if (nOrderPos == -1) {
         return;
     }
-    mapValue["n"] = ToString(nOrderPos);
+    mapValue["n"] = util::ToString(nOrderPos);
 }
 
 /**

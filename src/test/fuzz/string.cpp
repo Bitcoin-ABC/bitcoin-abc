@@ -38,6 +38,11 @@
 using common::AmountErrMsg;
 using common::AmountHighWarn;
 using common::ResolveErrMsg;
+using util::ContainsNoNUL;
+using util::Join;
+using util::RemovePrefix;
+using util::SplitString;
+using util::TrimString;
 
 namespace {
 bool LegacyParsePrechecks(const std::string &str) {

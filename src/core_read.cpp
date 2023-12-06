@@ -19,6 +19,9 @@
 #include <algorithm>
 #include <string>
 
+using util::SplitString;
+using util::ToString;
+
 namespace {
 
 opcodetype ParseOpCode(const std::string &s) {

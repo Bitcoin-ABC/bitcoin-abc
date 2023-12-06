@@ -27,6 +27,9 @@
 #include <utility>
 #include <vector>
 
+using util::TrimString;
+using util::TrimStringView;
+
 fs::path GetConfigFile(const ArgsManager &args,
                        const fs::path &configuration_file_path) {
     return AbsPathForConfigVal(args, configuration_file_path,

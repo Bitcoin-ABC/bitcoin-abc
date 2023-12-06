@@ -49,6 +49,8 @@
 #include <set>
 #include <vector>
 
+using util::ToString;
+
 void initialize_integer() {
     SelectParams(ChainType::REGTEST);
 }

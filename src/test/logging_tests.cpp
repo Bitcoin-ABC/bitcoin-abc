@@ -26,6 +26,10 @@
 
 #include <boost/test/unit_test.hpp>
 
+using util::RemovePrefix;
+using util::SplitString;
+using util::TrimString;
+
 BOOST_FIXTURE_TEST_SUITE(logging_tests, BasicTestingSetup)
 
 static void ResetLogger() {

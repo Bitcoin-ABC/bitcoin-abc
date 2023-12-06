@@ -42,6 +42,7 @@
 #include <string>
 
 using namespace std::literals;
+using util::ToString;
 
 static CNetAddr ip(uint32_t ip) {
     struct in_addr s;

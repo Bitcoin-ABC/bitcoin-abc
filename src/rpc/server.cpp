@@ -25,6 +25,8 @@
 #include <set>
 #include <unordered_map>
 
+using util::SplitString;
+
 using SteadyClock = std::chrono::steady_clock;
 
 static GlobalMutex g_rpc_warmup_mutex;

@@ -16,6 +16,7 @@
 #include <string_view>
 #include <vector>
 
+namespace util {
 void ReplaceAll(std::string &in_out, const std::string &search,
                 const std::string &substitute);
 
@@ -162,5 +163,6 @@ HasPrefix(const T1 &obj, const std::array<uint8_t, PREFIX_LEN> &prefix) {
     return obj.size() >= PREFIX_LEN &&
            std::equal(std::begin(prefix), std::end(prefix), std::begin(obj));
 }
+} // namespace util
 
 #endif // BITCOIN_UTIL_STRING_H

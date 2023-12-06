@@ -28,6 +28,8 @@
 #include <QSettings>
 #include <QStringList>
 
+using util::ToString;
+
 const char *DEFAULT_GUI_PROXY_HOST = "127.0.0.1";
 
 static QString GetDefaultProxyAddress();

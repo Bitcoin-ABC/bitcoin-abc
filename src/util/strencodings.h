@@ -110,7 +110,7 @@ template <typename T> T LocaleIndependentAtoi(const std::string &str) {
     static_assert(std::is_integral<T>::value);
     T result;
     // Emulate atoi(...) handling of white space and leading +/-.
-    std::string s = TrimString(str);
+    std::string s = util::TrimString(str);
     if (!s.empty() && s[0] == '+') {
         if (s.length() >= 2 && s[1] == '-') {
             return 0;

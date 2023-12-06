@@ -46,6 +46,7 @@ using common::AmountErrMsg;
 using common::AmountHighWarn;
 using common::PSBTError;
 using interfaces::FoundBlock;
+using util::ReplaceAll;
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
     {WALLET_FLAG_AVOID_REUSE,

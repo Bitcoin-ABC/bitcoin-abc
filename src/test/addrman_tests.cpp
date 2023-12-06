@@ -23,6 +23,7 @@
 #include <string>
 
 using namespace std::literals;
+using util::ToString;
 
 class AddrManTest : public AddrMan {
 public:

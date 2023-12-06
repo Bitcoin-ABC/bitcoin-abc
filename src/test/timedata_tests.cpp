@@ -17,6 +17,8 @@
 
 #include <string>
 
+using util::ToString;
+
 BOOST_FIXTURE_TEST_SUITE(timedata_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(util_MedianFilter) {

@@ -20,6 +20,8 @@
 
 #include <any>
 
+using util::SplitString;
+
 static UniValue JSON(std::string_view json) {
     UniValue value;
     BOOST_CHECK(value.read(json));

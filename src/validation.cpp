@@ -6632,8 +6632,8 @@ util::Result<CBlockIndex *> ChainstateManager::ActivateSnapshot(
         if (!GetParams().AssumeutxoForBlockhash(base_blockhash).has_value()) {
             auto available_heights = GetParams().GetAvailableSnapshotHeights();
             std::string heights_formatted =
-                Join(available_heights, ", ",
-                     [&](const auto &i) { return ToString(i); });
+                util::Join(available_heights, ", ",
+                           [&](const auto &i) { return util::ToString(i); });
             return util::Error{strprintf(
                 Untranslated("assumeutxo block hash in snapshot metadata not "
                              "recognized (hash: %s). The following "

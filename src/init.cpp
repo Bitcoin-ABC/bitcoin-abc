@@ -136,6 +136,8 @@ using node::MempoolPath;
 using node::NodeContext;
 using node::ShouldPersistMempool;
 using node::VerifyLoadedChainstate;
+using util::Join;
+using util::ReplaceAll;
 
 static const bool DEFAULT_PROXYRANDOMIZE = true;
 static const bool DEFAULT_REST_ENABLE = false;

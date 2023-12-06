@@ -36,6 +36,8 @@
 #include <vector>
 
 using interfaces::FoundBlock;
+using util::Join;
+using util::SplitString;
 
 static std::string EncodeDumpString(const std::string &str) {
     std::stringstream ret;
