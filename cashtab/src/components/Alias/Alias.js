@@ -154,28 +154,33 @@ const Alias = ({ passLoadingStatus }) => {
             timeout = setTimeout(async function () {
                 // Retrieve alias details
                 let aliasDetailsResp;
-                try {
-                    // Note: aliasInput.value is used here as formData is not yet
-                    // initialized at the point of useEffect execution
-                    aliasDetailsResp = await queryAliasServer(
-                        'alias',
-                        aliasInput.value,
-                    );
-                    if (aliasDetailsResp.address) {
-                        setAliasValidationError(
-                            `This alias is already owned by ${aliasDetailsResp.address}, please try another alias`,
+                if (
+                    aliasInput.value !== null &&
+                    aliasInput.value.trim() !== ''
+                ) {
+                    try {
+                        // Note: aliasInput.value is used here as formData is not yet
+                        // initialized at the point of useEffect execution
+                        aliasDetailsResp = await queryAliasServer(
+                            'alias',
+                            aliasInput.value,
                         );
+                        if (aliasDetailsResp.address) {
+                            setAliasValidationError(
+                                `This alias is already owned by ${aliasDetailsResp.address}, please try another alias`,
+                            );
+                            setIsValidAliasInput(false);
+                        } else {
+                            setAliasValidationError(false);
+                            setIsValidAliasInput(true);
+                        }
+                    } catch (err) {
+                        const errorMsg = 'Error retrieving alias status';
+                        errorNotification(null, errorMsg);
                         setIsValidAliasInput(false);
-                    } else {
-                        setAliasValidationError(false);
-                        setIsValidAliasInput(true);
+                        setAliasServerError(errorMsg);
+                        passLoadingStatus(false);
                     }
-                } catch (err) {
-                    const errorMsg = 'Error retrieving alias status';
-                    errorNotification(null, errorMsg);
-                    setIsValidAliasInput(false);
-                    setAliasServerError(errorMsg);
-                    passLoadingStatus(false);
                 }
             }, aliasSettings.aliasKeyUpTimeoutMs);
         });
