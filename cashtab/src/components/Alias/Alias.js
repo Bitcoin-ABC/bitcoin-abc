@@ -154,10 +154,7 @@ const Alias = ({ passLoadingStatus }) => {
             timeout = setTimeout(async function () {
                 // Retrieve alias details
                 let aliasDetailsResp;
-                if (
-                    aliasInput.value !== null &&
-                    aliasInput.value.trim() !== ''
-                ) {
+                if (isValidAliasString(aliasInput.value)) {
                     try {
                         // Note: aliasInput.value is used here as formData is not yet
                         // initialized at the point of useEffect execution
@@ -170,9 +167,6 @@ const Alias = ({ passLoadingStatus }) => {
                                 `This alias is already owned by ${aliasDetailsResp.address}, please try another alias`,
                             );
                             setIsValidAliasInput(false);
-                        } else {
-                            setAliasValidationError(false);
-                            setIsValidAliasInput(true);
                         }
                     } catch (err) {
                         const errorMsg = 'Error retrieving alias status';
