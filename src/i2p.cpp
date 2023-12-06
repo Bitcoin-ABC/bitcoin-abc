@@ -13,11 +13,11 @@
 #include <netaddress.h>
 #include <netbase.h>
 #include <random.h>
+#include <script/parsing.h>
 #include <tinyformat.h>
 #include <util/fs.h>
 #include <util/readwritefile.h>
 #include <util/sock.h>
-#include <util/spanparsing.h>
 #include <util/strencodings.h>
 #include <util/threadinterrupt.h>
 
@@ -267,7 +267,7 @@ namespace sam {
         reply.full = sock.RecvUntilTerminator('\n', recv_timeout, *m_interrupt,
                                               MAX_MSG_SIZE);
 
-        for (const auto &kv : spanparsing::Split(reply.full, ' ')) {
+        for (const auto &kv : Split(reply.full, ' ')) {
             const auto &pos = std::find(kv.begin(), kv.end(), '=');
             if (pos != kv.end()) {
                 reply.keys.emplace(std::string{kv.begin(), pos},

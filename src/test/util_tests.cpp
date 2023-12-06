@@ -7,6 +7,7 @@
 #include <common/signmessage.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC
 #include <hash.h>               // For Hash()
 #include <key.h>                // For CKey
+#include <script/parsing.h>
 #include <sync.h>
 #include <test/util/logging.h>
 #include <test/util/str.h>
@@ -19,7 +20,6 @@
 #include <util/fs_helpers.h>
 #include <util/moneystr.h>
 #include <util/overflow.h>
-#include <util/spanparsing.h>
 #include <util/strencodings.h>
 #include <util/string.h>
 #include <util/time.h>
@@ -2725,8 +2725,8 @@ static std::string SpanToStr(const Span<const char> &span) {
     return std::string(span.begin(), span.end());
 }
 
-BOOST_AUTO_TEST_CASE(test_spanparsing) {
-    using namespace spanparsing;
+BOOST_AUTO_TEST_CASE(test_script_parsing) {
+    using namespace script;
     std::string input;
     Span<const char> sp;
     bool success;

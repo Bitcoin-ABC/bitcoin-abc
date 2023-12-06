@@ -9,10 +9,10 @@
 #include <config.h>
 #include <key_io.h>
 #include <pubkey.h>
+#include <script/parsing.h>
 #include <script/standard.h>
 #include <span.h>
 #include <util/bip32.h>
-#include <util/spanparsing.h>
 #include <util/strencodings.h>
 #include <util/vector.h>
 
@@ -919,8 +919,6 @@ std::unique_ptr<PubkeyProvider> ParsePubkeyInner(uint32_t key_exp_index,
                                                  const Span<const char> &sp,
                                                  FlatSigningProvider &out,
                                                  std::string &error) {
-    using namespace spanparsing;
-
     auto split = Split(sp, '/');
     std::string str(split[0].begin(), split[0].end());
     if (str.size() == 0) {
@@ -977,8 +975,6 @@ std::unique_ptr<PubkeyProvider> ParsePubkey(uint32_t key_exp_index,
                                             const Span<const char> &sp,
                                             FlatSigningProvider &out,
                                             std::string &error) {
-    using namespace spanparsing;
-
     auto origin_split = Split(sp, ']');
     if (origin_split.size() > 2) {
         error = "Multiple ']' characters found for a single pubkey";
@@ -1031,7 +1027,7 @@ std::unique_ptr<DescriptorImpl> ParseScript(uint32_t key_exp_index,
                                             ParseScriptContext ctx,
                                             FlatSigningProvider &out,
                                             std::string &error) {
-    using namespace spanparsing;
+    using namespace script;
 
     auto expr = Expr(sp);
     bool sorted_multi = false;
@@ -1233,8 +1229,6 @@ std::unique_ptr<DescriptorImpl> InferScript(const CScript &script,
  */
 bool CheckChecksum(Span<const char> &sp, bool require_checksum,
                    std::string &error, std::string *out_checksum = nullptr) {
-    using namespace spanparsing;
-
     auto check_split = Split(sp, '#');
     if (check_split.size() > 2) {
         error = "Multiple '#' symbols";

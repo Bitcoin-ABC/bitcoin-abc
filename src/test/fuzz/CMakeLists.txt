@@ -83,6 +83,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	script_flags.cpp
 	script_interpreter.cpp
 	script_ops.cpp
+	script_parsing.cpp
 	script_sigcache.cpp
 	script_sign.cpp
 	scriptnum_ops.cpp
@@ -91,7 +92,6 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	signature_checker.cpp
 	socks5.cpp
 	span.cpp
-	spanparsing.cpp
 	string.cpp
 	strprintf.cpp
 	system.cpp
