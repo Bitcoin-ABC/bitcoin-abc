@@ -49,7 +49,7 @@ export const AliasLabel = styled.div`
 `;
 
 export const AliasAvailable = styled.span`
-    color: ${props => props.theme.aliasGreen};
+    color: ${props => props.theme.eCashBlue};
 `;
 
 export const AliasPending = styled.span`
@@ -599,7 +599,14 @@ const Alias = ({ passLoadingStatus }) => {
                                                             ],
                                                         ),
                                                     );
-                                                return `${aliasLength} bytes, ${aliasPriceXec} XEC to register.`;
+                                                return (
+                                                    <AliasAvailable>
+                                                        This {aliasLength} byte
+                                                        alias is available,{' '}
+                                                        {aliasPriceXec} XEC to
+                                                        register.
+                                                    </AliasAvailable>
+                                                );
                                             }
                                         })()}
                                         <p />
