@@ -249,7 +249,14 @@ RPCHelpMan encryptwallet() {
         "will require the passphrase to be set prior the making these calls.\n"
         "Use the walletpassphrase call for this, and then walletlock call.\n"
         "If the wallet is already encrypted, use the walletpassphrasechange "
-        "call.\n",
+        "call.\n"
+        "** IMPORTANT **\n"
+        "For security reasons, the encryption process will generate a new HD "
+        "seed, resulting\n"
+        "in the creation of a fresh set of active descriptors. Therefore, "
+        "it is crucial to\n"
+        "securely back up the newly generated wallet file using the "
+        "backupwallet RPC.\n",
         {
             {"passphrase", RPCArg::Type::STR, RPCArg::Optional::NO,
              "The pass phrase to encrypt the wallet with. It must be at least "
@@ -311,10 +318,8 @@ RPCHelpMan encryptwallet() {
             }
 
             return "wallet encrypted; The keypool has been flushed and a new "
-                   "HD seed "
-                   "was generated (if you are using HD). You need to make a "
-                   "new "
-                   "backup.";
+                   "HD seed was generated. You need to make a new backup with "
+                   "the backupwallet RPC.";
         },
     };
 }
