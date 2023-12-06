@@ -164,7 +164,7 @@ const Alias = ({ passLoadingStatus }) => {
                         );
                         if (aliasDetailsResp.address) {
                             setAliasValidationError(
-                                `This alias is already owned by ${aliasDetailsResp.address}, please try another alias`,
+                                `This alias is already taken`,
                             );
                             setIsValidAliasInput(false);
                         }
