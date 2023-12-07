@@ -380,7 +380,7 @@ public:
 
     //! Check whether the block associated with this index entry is pruned or
     //! not.
-    bool IsBlockPruned(const CBlockIndex *pblockindex)
+    bool IsBlockPruned(const CBlockIndex &block) const
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
     //! Create or update a prune lock identified by its name

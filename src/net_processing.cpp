@@ -3336,8 +3336,9 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
         // Send block from disk
         std::shared_ptr<CBlock> pblockRead = std::make_shared<CBlock>();
         if (!m_chainman.m_blockman.ReadBlockFromDisk(*pblockRead, block_pos)) {
-            if (WITH_LOCK(m_chainman.GetMutex(),
-                          return m_chainman.m_blockman.IsBlockPruned(pindex))) {
+            if (WITH_LOCK(
+                    m_chainman.GetMutex(),
+                    return m_chainman.m_blockman.IsBlockPruned(*pindex))) {
                 LogPrint(BCLog::NET,
                          "Block was pruned before it could be read, disconnect "
                          "peer=%s\n",

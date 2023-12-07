@@ -189,7 +189,7 @@ UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
     if (txDetails) {
         CBlockUndo blockUndo;
         const bool is_not_pruned{
-            WITH_LOCK(::cs_main, return !blockman.IsBlockPruned(blockindex))};
+            WITH_LOCK(::cs_main, return !blockman.IsBlockPruned(*blockindex))};
         const bool have_undo{is_not_pruned &&
                              blockman.UndoReadFromDisk(blockUndo, *blockindex)};
         for (size_t i = 0; i < block.vtx.size(); ++i) {
@@ -657,7 +657,7 @@ static CBlock GetBlockChecked(BlockManager &blockman,
     CBlock block;
     {
         LOCK(cs_main);
-        if (blockman.IsBlockPruned(pblockindex)) {
+        if (blockman.IsBlockPruned(*pblockindex)) {
             throw JSONRPCError(RPC_MISC_ERROR,
                                "Block not available (pruned data)");
         }
@@ -680,7 +680,7 @@ static CBlockUndo GetUndoChecked(BlockManager &blockman,
 
     {
         LOCK(cs_main);
-        if (blockman.IsBlockPruned(pblockindex)) {
+        if (blockman.IsBlockPruned(*pblockindex)) {
             throw JSONRPCError(RPC_MISC_ERROR,
                                "Undo data not available (pruned data)");
         }
