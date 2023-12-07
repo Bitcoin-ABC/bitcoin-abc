@@ -125,6 +125,14 @@ module.exports = [
         parsed: 'IceBerg',
     },
     {
+        height: 821592,
+        parsed: 'iceberg',
+        coinbaseHex:
+            '0358890c00042dc37165044fc5a6120c40bf716509756caf200000000a636b706f6f6c122f6d696e656420627920696365626572672f',
+        payoutOutputScript:
+            '76a9149bbc716500000000ca3d0b0000000000a5bc716588ac',
+    },
+    {
         height: 790863,
         coinbaseHex:
             '034f110c04602a5764084200079077422b017a706f6f6c2e636100fabe6d6da821294426652ebd8cff8df5e02ffcbbdc1b1d9e9022832acf4d071e9bfa2d952000000000000000',

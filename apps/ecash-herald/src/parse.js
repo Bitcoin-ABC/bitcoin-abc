@@ -209,6 +209,11 @@ module.exports = {
                     return `IceBerg`;
                 }
 
+                if (infoAscii === 'mined by iceberg') {
+                    // If the miner self identifies as iceberg, go with it
+                    return `iceberg`;
+                }
+
                 // Return your improved 'miner' info
                 // ViaBTC, Mined by 260786
                 if (infoAscii.length === 0) {
