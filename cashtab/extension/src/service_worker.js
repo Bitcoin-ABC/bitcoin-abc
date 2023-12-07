@@ -48,6 +48,10 @@ extension.runtime.onConnect.addListener(function (port) {
             }
         }
     });
+    // Handle disconnects
+    port.onDisconnect.addListener(() => {
+        // For now, do nothing
+    });
 });
 
 // Fetch item from extension storage and return it as a variable
