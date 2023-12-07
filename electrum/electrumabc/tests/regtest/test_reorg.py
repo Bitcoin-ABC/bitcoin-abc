@@ -25,6 +25,7 @@
 """
 Test how the software behaves in a reorg
 """
+import time
 
 import pytest
 from jsonrpcclient import request
@@ -46,6 +47,61 @@ if not SUPPORTED_PLATFORM:
     pytest.skip(allow_module_level=True)
 
 
+# An address that will not affect the wallet's history
+ADDRESS_NOT_MINE = "ecregtest:qz5j83ez703wvlwpqh94j6t45f8dn2afjgr4q2cuzz"
+
+
+def check_tip_height(bitcoind_height: int, server_height: int, local_height: int):
+    """Check that we get the expected tip heights.
+    The server_height field returned by the `getinfo` RPC is usually fulcrum's tip,
+    but it could be 0 if Electrum ABC is not connected to any server.
+    """
+    bitcoind = bitcoind_rpc_connection()
+    info = poll_for_answer(EC_DAEMON_RPC_URL, request("getinfo"))
+    return (
+        bitcoind.getblockchaininfo()["blocks"],
+        info["server_height"],
+        info["blockchain_height"],
+    ) == (bitcoind_height, server_height, local_height)
+
+
+def test_1_block_reorg(fulcrum_service):  # noqa: F811
+    """
+    Historically in Bitcoin (Cash) a reorg meant that a branch of the blockchain
+    was replaced with a strictly longer branch of blocks.
+    With Avalanche on eCash, a single block initially accepted can be parked and
+    reorg-ed by a single other block, which leaves Electrum in a state that was not
+    expected by the initial developers until another block is mined to make one chain
+    longer. From the perspective of Electrum ABC, all the servers are on a potentially
+    shorter or same length fork.
+    """
+    bitcoind = bitcoind_rpc_connection()
+    now = int(time.time())
+    bitcoind.setmocktime(now)
+    height = bitcoind.getblockchaininfo()["blocks"]
+    wait_until(lambda: check_tip_height(height, height, height))
+
+    blockhash_to_park = bitcoind.generatetoaddress(1, ADDRESS_NOT_MINE)[0]
+    wait_until(lambda: check_tip_height(height + 1, height + 1, height + 1))
+
+    bitcoind.parkblock(blockhash_to_park)
+    # Sync fulcrum and Electrum. The local height is the longest local chain.
+    wait_until(
+        lambda: check_tip_height(
+            bitcoind_height=height, server_height=height, local_height=height + 1
+        )
+    )
+
+    # bump the mocktime so the block hash will be different for this height
+    bitcoind.setmocktime(now + 100)
+    bitcoind.generatetoaddress(1, ADDRESS_NOT_MINE)
+    wait_until(lambda: check_tip_height(height + 1, height + 1, height + 1))
+
+    # Advance the chain past the previous tip
+    bitcoind.generatetoaddress(1, ADDRESS_NOT_MINE)
+    wait_until(lambda: check_tip_height(height + 2, height + 2, height + 2))
+
+
 def test_reorg(fulcrum_service):  # noqa: F811
     """
     Mine a wallet tx on the chain tip, then reorg 3 blocks, mine it again (at
@@ -55,11 +111,9 @@ def test_reorg(fulcrum_service):  # noqa: F811
     # Get a wallet address
     addr = poll_for_answer(EC_DAEMON_RPC_URL, request("getunusedaddress"))
 
-    # An address that will not affect the wallet's history
-    address_not_mine = "ecregtest:qz5j83ez703wvlwpqh94j6t45f8dn2afjgr4q2cuzz"
     poll_for_answer(
         EC_DAEMON_RPC_URL,
-        request("ismine", params={"address": address_not_mine}),
+        request("ismine", params={"address": ADDRESS_NOT_MINE}),
         expected_answer=("$", False),
     )
 
@@ -71,8 +125,14 @@ def test_reorg(fulcrum_service):  # noqa: F811
     parent_txid = hist[0]["txid"]
     parent_height = hist[0]["height"]
 
+    assert check_tip_height(
+        bitcoind_height=parent_height,
+        server_height=parent_height,
+        local_height=parent_height,
+    )
+
     # Make the parent coinbase UTXO mature
-    bitcoind.generatetoaddress(COINBASE_MATURITY, address_not_mine)
+    bitcoind.generatetoaddress(COINBASE_MATURITY, ADDRESS_NOT_MINE)
     # Note that the "confirmations" field in the history is the number of confirmations
     # for the tx, not for the block. The block containing the tx counts for +1.
     wait_until(
@@ -83,7 +143,7 @@ def test_reorg(fulcrum_service):  # noqa: F811
     )
 
     # Mine 2 empty blocks. The first one will be invalidated
-    blockhash_to_invalidate = bitcoind.generatetoaddress(2, address_not_mine)[0]
+    blockhash_to_park = bitcoind.generatetoaddress(2, ADDRESS_NOT_MINE)[0]
 
     # Add another transaction to the wallet's history, spending the previous UTXO
     tx_hex = poll_for_answer(
@@ -109,7 +169,7 @@ def test_reorg(fulcrum_service):  # noqa: F811
     assert hist[1]["height"] == parent_height
 
     # Mine the new tx into a block
-    bitcoind.generatetoaddress(1, address_not_mine)
+    bitcoind.generatetoaddress(1, ADDRESS_NOT_MINE)
     blockheight = bitcoind.getblockchaininfo()["blocks"]
 
     # Invalidating 2 blocks prior to the one containing the child tx should not
@@ -122,20 +182,31 @@ def test_reorg(fulcrum_service):  # noqa: F811
         return hist[0]["height"] == blockheight
 
     wait_until(is_block_height_set_for_tx)
+    assert check_tip_height(blockheight, blockheight, blockheight)
 
-    # Now lets invalidate a few blocks and check the tx is still there, but the block
+    # Now lets invalidate a few blocks and check the tx is still there, but its block
     # height is reverted to 0 as the tx is added back to the mempool.
-    bitcoind.invalidateblock(blockhash_to_invalidate)
+    bitcoind.parkblock(blockhash_to_park)
     hist = poll_for_answer(
         EC_DAEMON_RPC_URL, request("history"), expected_answer=("[0].height", 0)
     )
     assert hist[0]["txid"] == txid
 
+    # We invalidated 3 blocks. The wallet is aware that the server height changed
+    # by now, but the local tip is still the highest block we know of.
+    assert check_tip_height(
+        bitcoind_height=blockheight - 3,
+        server_height=blockheight - 3,
+        local_height=blockheight,
+    )
+
     # Mine the tx again, then mine a few more empty blocks to advance the chain past the
-    # previous tip, check that the height is correctly updated.
-    bitcoind.generatetoaddress(4, address_not_mine)
+    # previous tip, check that the height is correctly updated for the transaction,
+    # the server and the local headers chain.
+    bitcoind.generatetoaddress(4, ADDRESS_NOT_MINE)
     poll_for_answer(
         EC_DAEMON_RPC_URL,
         request("history"),
         expected_answer=("[0].height", blockheight - 2),
     )
+    assert check_tip_height(blockheight + 1, blockheight + 1, blockheight + 1)

@@ -1663,13 +1663,14 @@ class Network(util.DaemonThread):
                             self.blockchains[interface.bad] = b
                             interface.blockchain = b
                             interface.print_error("new chain", b.base_height)
-                            interface.set_mode(Interface.Mode.CATCH_UP)
-                            # FIXME: if the server just parked its tip and no new block
-                            #   arrived to replace it, this will cause the server to
-                            #   reply with an error when requesting the next block,
-                            #   and Electrum ABC will then disconnect the interface.
-                            next_height = interface.bad + 1
-                            interface.blockchain.catch_up = interface.server
+                            # Catch up to the new forked tip if this is a multi-block
+                            # reorg
+                            if interface.bad < interface.tip:
+                                interface.set_mode(Interface.Mode.CATCH_UP)
+                                next_height = interface.bad + 1
+                                interface.blockchain.catch_up = interface.server
+                            # Else just switch back to DEFAULT mode and wait for the
+                            # next tip.
                     else:
                         assert bh == interface.good
                         if interface.blockchain.catch_up is None and bh < interface.tip:
