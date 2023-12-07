@@ -9,6 +9,7 @@
 #include <common/system.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
+#include <node/types.h>
 #include <policy/policy.h>
 #include <util/check.h>
 #include <util/insert.h>
@@ -21,6 +22,7 @@
 #include <wallet/wallet.h>
 
 using common::TransactionErrorString;
+using node::TransactionError;
 
 static const size_t OUTPUT_GROUP_MAX_ENTRIES = 10;
 

@@ -23,6 +23,7 @@
 #include <node/coin.h>
 #include <node/context.h>
 #include <node/transaction.h>
+#include <node/types.h>
 #include <node/ui_interface.h>
 #include <policy/settings.h>
 #include <primitives/block.h>

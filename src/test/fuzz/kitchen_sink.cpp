@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <common/messages.h>
+#include <node/types.h>
 #include <rpc/util.h>
 #include <util/translation.h>
 
@@ -14,6 +15,7 @@
 #include <vector>
 
 using common::TransactionErrorString;
+using node::TransactionError;
 
 // The fuzzing kitchen sink: Fuzzing harness for functions that need to be
 // fuzzed but a.) don't belong in any existing fuzzing harness file, and

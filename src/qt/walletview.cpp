@@ -8,6 +8,7 @@
 #include <interfaces/node.h>
 #include <node/psbt.h>
 #include <node/transaction.h>
+#include <node/types.h>
 #include <node/ui_interface.h>
 #include <policy/policy.h>
 #include <qt/addressbookpage.h>
@@ -38,6 +39,7 @@
 using node::AnalyzePSBT;
 using node::DEFAULT_MAX_RAW_TX_FEE_RATE;
 using node::PSBTAnalysis;
+using node::TransactionError;
 
 WalletView::WalletView(const PlatformStyle *_platformStyle,
                        WalletModel *_walletModel, QWidget *parent)

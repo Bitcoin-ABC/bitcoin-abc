@@ -39,10 +39,12 @@ struct FlatSigningProvider;
 enum class OutputType;
 struct Sections;
 enum ServiceFlags : uint64_t;
-enum class TransactionError;
 namespace common {
 enum class PSBTError;
 } // namespace common
+namespace node {
+enum class TransactionError;
+} // namespace node
 
 static constexpr bool DEFAULT_RPC_DOC_CHECK{false};
 
@@ -108,9 +110,9 @@ CTxDestination AddAndGetMultisigDestination(const int required,
 UniValue DescribeAddress(const CTxDestination &dest);
 std::string GetAllOutputTypes();
 
-RPCErrorCode RPCErrorFromTransactionError(TransactionError terr);
+RPCErrorCode RPCErrorFromTransactionError(node::TransactionError terr);
 UniValue JSONRPCPSBTError(common::PSBTError err);
-UniValue JSONRPCTransactionError(TransactionError terr,
+UniValue JSONRPCTransactionError(node::TransactionError terr,
                                  const std::string &err_string = "");
 
 //! Parse a JSON range specified as int64, or [int64, int64]

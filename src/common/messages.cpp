@@ -7,6 +7,7 @@
 
 #include <common/system.h>
 #include <common/types.h>
+#include <node/types.h>
 #include <tinyformat.h>
 #include <util/strencodings.h>
 #include <util/string.h>
@@ -14,6 +15,8 @@
 
 #include <cassert>
 #include <string>
+
+using node::TransactionError;
 
 namespace common {
 bilingual_str PSBTErrorString(PSBTError err) {

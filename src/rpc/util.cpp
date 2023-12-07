@@ -10,6 +10,7 @@
 #include <common/types.h>
 #include <consensus/amount.h>
 #include <key_io.h>
+#include <node/types.h>
 #include <script/descriptor.h>
 #include <script/signingprovider.h>
 #include <tinyformat.h>
@@ -27,6 +28,7 @@
 using common::PSBTError;
 using common::PSBTErrorString;
 using common::TransactionErrorString;
+using node::TransactionError;
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
 const std::string EXAMPLE_ADDRESS =

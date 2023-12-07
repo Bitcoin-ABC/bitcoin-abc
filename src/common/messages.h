@@ -5,16 +5,19 @@
 #ifndef BITCOIN_COMMON_MESSAGES_H
 #define BITCOIN_COMMON_MESSAGES_H
 
-#include <node/types.h>
 #include <string>
 
 struct bilingual_str;
+
+namespace node {
+enum class TransactionError;
+} // namespace node
 
 namespace common {
 enum class PSBTError;
 bilingual_str PSBTErrorString(PSBTError err);
 
-bilingual_str TransactionErrorString(TransactionError error);
+bilingual_str TransactionErrorString(node::TransactionError error);
 
 bilingual_str ResolveErrMsg(const std::string &optname,
                             const std::string &strBind);

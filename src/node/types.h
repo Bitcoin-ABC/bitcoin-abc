@@ -13,6 +13,7 @@
 #ifndef BITCOIN_NODE_TYPES_H
 #define BITCOIN_NODE_TYPES_H
 
+namespace node {
 enum class TransactionError {
     OK, //!< No error
 
@@ -23,5 +24,6 @@ enum class TransactionError {
     MAX_FEE_EXCEEDED,
     INVALID_PACKAGE,
 };
+} // namespace node
 
 #endif // BITCOIN_NODE_TYPES_H

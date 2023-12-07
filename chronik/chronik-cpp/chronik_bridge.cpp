@@ -28,6 +28,7 @@
 #include <validationinterface.h>
 
 using common::TransactionErrorString;
+using node::TransactionError;
 
 chronik_bridge::OutPoint BridgeOutPoint(const COutPoint &outpoint) {
     return {
