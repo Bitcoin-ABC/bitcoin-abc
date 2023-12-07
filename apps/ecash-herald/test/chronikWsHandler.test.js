@@ -40,7 +40,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called on expected type and hash
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
-        assert.deepEqual(result._subs, [
+        assert.deepEqual(result.subs, [
             { scriptType: type, scriptPayload: hash },
         ]);
     });
@@ -64,7 +64,7 @@ describe('ecash-herald chronikWsHandler.js', async function () {
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called on expected type and hash
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
-        assert.deepEqual(result._subs, [
+        assert.deepEqual(result.subs, [
             { scriptType: type, scriptPayload: hash },
         ]);
     });
