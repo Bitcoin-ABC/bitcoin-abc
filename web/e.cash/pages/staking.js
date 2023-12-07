@@ -85,6 +85,12 @@ function Staking(props) {
                         ease in upgrading nodes one at a time to ensure no
                         staking downtime.
                     </li>
+                    <li>
+                        Do not use Tor for your staking node. Using Tor results
+                        in an unreliable connection to the rest of the network.
+                        It provides worse service to the avalanche network, and
+                        increases the chance of losing your staking rewards.
+                    </li>
                 </ul>
                 <H3 text="Frequently Asked Questions" id="faq" />
                 <h4>How is the staking reward recipient determined?</h4>
