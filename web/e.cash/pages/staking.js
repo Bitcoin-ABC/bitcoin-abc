@@ -37,8 +37,8 @@ function Staking(props) {
                     caution with any third party staking service.
                 </WarningBox>
                 <p>
-                    Staking rewards will go live on the eCash network on
-                    November 15th, 2023 as part of the eCash{' '}
+                    Staking rewards went live on the eCash network on November
+                    15th, 2023 as part of the eCash{' '}
                     <Link href="/upgrade">network upgrade</Link>. The purpose of
                     staking rewards is to incentivize running eCash avalanche
                     nodes to improve the overall security and performance of
