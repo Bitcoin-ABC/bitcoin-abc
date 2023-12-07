@@ -189,4 +189,21 @@ module.exports = [
             '76a914f4728f398bb962656803346fb4ac45d776041a2e88ac',
         parsed: 'solopool.org',
     },
+    // Determined from pubkey tag output
+    {
+        height: '821556',
+        coinbaseHex:
+            '0334890c2cfabe6d6d2a357fe8c5668c1edd58a42eaaa181f49afcf397cd6ae2475393ec06cfca62f010000000000000007032702d7370622e78797a',
+        payoutOutputScript:
+            '41047fa64f6874fb7213776b24c40bc915451b57ef7f17ad7b982561f99f7cdc7010d141b856a092ee169c5405323895e1962c6b0d7c101120d360164c9e4b3997bdac',
+        parsed: 'p2p-spb',
+    },
+    // Determined from coinbasehex fragment
+    {
+        height: '821556',
+        coinbaseHex:
+            '0334890c2cfabe6d6d2a357fe8c5668c1edd58a42eaaa181f49afcf397cd6ae2475393ec06cfca62f010000000000000007032702d7370622e78797a',
+        payoutOutputScript: 'some new payout address',
+        parsed: 'p2p-spb',
+    },
 ];

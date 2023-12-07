@@ -84,5 +84,12 @@ module.exports = {
                 coinbaseHexFragment: '736f6c6f706f6f6c2e6f7267', // ascii solopool.org
             },
         ],
+        [
+            '41047fa64f6874fb7213776b24c40bc915451b57ef7f17ad7b982561f99f7cdc7010d141b856a092ee169c5405323895e1962c6b0d7c101120d360164c9e4b3997bdac',
+            {
+                miner: 'p2p-spb',
+                coinbaseHexFragment: '7370622e78797a', // ascii spb.xyz
+            },
+        ],
     ],
 };
