@@ -930,11 +930,15 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
         // updateMempoolForReorg()
         txInfo.try_emplace(e.GetTx().GetId(), e.GetTime(),
                            e.GetModifiedFee() - e.GetFee(), e.GetHeight());
+    }
+    for (const CTxMemPoolEntry &e :
+         reverse_iterate(pool.mapTx.get<entry_id>())) {
         // Notify all observers of this (possibly temporary) removal. This is
         // necessary for tracking the transactions that are removed from the
         // mempool during a reorg and can't be added back due to missing parent.
         // Transactions that are added back to the mempool will trigger another
-        // notification.
+        // notification. Make sure to notify in reverse topological order,
+        // children first.
         GetMainSignals().TransactionRemovedFromMempool(
             e.GetSharedTx(), MemPoolRemovalReason::REORG,
             pool.GetAndIncrementSequence());
