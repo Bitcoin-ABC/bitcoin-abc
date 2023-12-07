@@ -31,19 +31,19 @@ RPCHelpMan getblockchaininfo();
  * @return A floating point number that is a multiple of the main net minimum
  * difficulty (4295032833 hashes).
  */
-double GetDifficulty(const CBlockIndex *blockindex);
+double GetDifficulty(const CBlockIndex &blockindex);
 
 /** Callback for when block tip changed. */
 void RPCNotifyBlockChange(const CBlockIndex *pindex);
 
 /** Block description to JSON */
 UniValue blockToJSON(node::BlockManager &blockman, const CBlock &block,
-                     const CBlockIndex *tip, const CBlockIndex *blockindex,
+                     const CBlockIndex &tip, const CBlockIndex &blockindex,
                      bool txDetails = false) LOCKS_EXCLUDED(cs_main);
 
 /** Block header to JSON */
-UniValue blockheaderToJSON(const CBlockIndex *tip,
-                           const CBlockIndex *blockindex)
+UniValue blockheaderToJSON(const CBlockIndex &tip,
+                           const CBlockIndex &blockindex)
     LOCKS_EXCLUDED(cs_main);
 
 /**

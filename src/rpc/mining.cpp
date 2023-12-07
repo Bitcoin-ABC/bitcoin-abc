@@ -542,7 +542,8 @@ static RPCHelpMan getmininginfo() {
                 obj.pushKV("currentblocktx",
                            *BlockAssembler::m_last_block_num_txs);
             }
-            obj.pushKV("difficulty", double(GetDifficulty(active_chain.Tip())));
+            obj.pushKV("difficulty",
+                       GetDifficulty(*CHECK_NONFATAL(active_chain.Tip())));
             obj.pushKV("networkhashps",
                        getnetworkhashps().HandleRequest(config, request));
             obj.pushKV("pooledtx", uint64_t(mempool.size()));
