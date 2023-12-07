@@ -607,3 +607,42 @@ export const isValidAirdropExclusionArray = airdropExclusionArray => {
 
     return isValid;
 };
+
+/**
+ * Validate user input on Send.js for multi-input mode
+ * @param {string} userMultisendInput formData.address from Send.js screen, validated for multi-send
+ * @returns {boolean | string} true if is valid, error msg about why if not
+ */
+export const isValidMultiSendUserInput = userMultisendInput => {
+    if (typeof userMultisendInput !== 'string') {
+        // In usage pairing to a form input, this should never happen
+        return 'Input must be a string';
+    }
+    if (userMultisendInput.trim() === '') {
+        return 'Input must not be blank';
+    }
+    let inputLines = userMultisendInput.split('\n');
+    for (let i = 0; i < inputLines.length; i += 1) {
+        if (inputLines[i].trim() === '') {
+            return `Remove empty row at line ${i + 1}`;
+        }
+
+        const address = inputLines[i].split(',')[0];
+        const isValidAddress = isValidXecAddress(address);
+
+        if (!isValidAddress) {
+            return `Invalid address "${address}" at line ${i + 1}`;
+        }
+        const value = inputLines[i].split(',')[1];
+        const isValidValue = isValidXecSendAmount(value);
+        if (!isValidValue) {
+            return `Invalid value ${
+                typeof value === 'string' ? value.trim() : `at line ${i + 1}`
+            }. Amount must be >= ${(appConfig.dustSats / 100).toFixed(
+                2,
+            )} XEC and <= 2 decimals.`;
+        }
+    }
+    // If you make it here, all good
+    return true;
+};

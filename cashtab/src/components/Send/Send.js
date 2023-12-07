@@ -26,8 +26,8 @@ import {
     shouldRejectAmountInput,
     isValidXecAddress,
     isValidEtokenAddress,
-    isValidXecSendAmount,
     isAliasFormat,
+    isValidMultiSendUserInput,
 } from 'utils/validation';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -528,61 +528,12 @@ const SendBCH = ({ passLoadingStatus }) => {
 
     const handleMultiAddressChange = e => {
         const { value, name } = e.target;
-        let error;
+        let errorOrIsValid = isValidMultiSendUserInput(value);
 
-        if (!value) {
-            error = 'Input must not be blank';
-            setSendBchAddressError(error);
-            return setFormData(p => ({
-                ...p,
-                [name]: value,
-            }));
-        }
-
-        //convert each line from the <TextArea> input into array
-        let addressStringArray = value.split('\n');
-        const arrayLength = addressStringArray.length;
-
-        // loop through each row in the <TextArea> input
-        for (let i = 0; i < arrayLength; i++) {
-            if (addressStringArray[i].trim() === '') {
-                // if this line is a line break or bunch of spaces
-                error = 'Empty spaces and rows must be removed';
-                setSendBchAddressError(error);
-                return setFormData(p => ({
-                    ...p,
-                    [name]: value,
-                }));
-            }
-
-            let addressString = addressStringArray[i].split(',')[0];
-            let valueString = addressStringArray[i].split(',')[1];
-
-            const validAddress = isValidXecAddress(addressString);
-            const validValueString = isValidXecSendAmount(valueString);
-
-            if (!validAddress) {
-                error = 'Ensure each XEC address is valid';
-                setSendBchAddressError(error);
-                return setFormData(p => ({
-                    ...p,
-                    [name]: value,
-                }));
-            }
-            if (!validValueString) {
-                error = `Amount must be >= ${(appConfig.dustSats / 100).toFixed(
-                    2,
-                )} XEC and <= 2 decimals.`;
-                setSendBchAddressError(error);
-                return setFormData(p => ({
-                    ...p,
-                    [name]: value,
-                }));
-            }
-        }
-
-        // If iterate to end of array with no errors, then there is no error msg
-        setSendBchAddressError(false);
+        // If you get an error msg, set it. If validation is good, clear error msg.
+        setSendBchAddressError(
+            typeof errorOrIsValid === 'string' ? errorOrIsValid : false,
+        );
 
         // Set address field to user input
         setFormData(p => ({

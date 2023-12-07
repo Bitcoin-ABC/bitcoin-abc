@@ -26,6 +26,7 @@ import {
     isProbablyNotAScam,
     isValidRecipient,
     isValidSideshiftObj,
+    isValidMultiSendUserInput,
 } from '../validation';
 import aliasSettings from 'config/alias';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -963,5 +964,61 @@ describe('Validation utils', () => {
                 'This token is not Ethereum or bitcoin or USD $',
             ),
         ).toBe(true);
+    });
+    it(`isValidMultiSendUserInput accepts correctly formed multisend output`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 22,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
+ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+            ),
+        ).toBe(true);
+    });
+    it(`isValidMultiSendUserInput returns expected error msg for invalid address`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `ecash:notValid, 22,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
+ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+            ),
+        ).toBe(`Invalid address "ecash:notValid" at line 1`);
+    });
+    it(`isValidMultiSendUserInput returns expected error msg for invalid value (dust)`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
+ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+            ),
+        ).toBe(
+            `Invalid value 1. Amount must be >= ${(
+                appConfig.dustSats / 100
+            ).toFixed(2)} XEC and <= 2 decimals.`,
+        );
+    });
+    it(`isValidMultiSendUserInput returns expected error msg for invalid value (too many decimals)`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 10.123,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
+ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+            ),
+        ).toBe(
+            `Invalid value 10.123. Amount must be >= ${(
+                appConfig.dustSats / 100
+            ).toFixed(2)} XEC and <= 2 decimals.`,
+        );
+    });
+    it(`isValidMultiSendUserInput returns expected error msg for a blank input`, () => {
+        expect(isValidMultiSendUserInput(`    `)).toBe(
+            `Input must not be blank`,
+        );
+    });
+    it(`isValidMultiSendUserInput returns expected error msg for extra spaces on a particular line`, () => {
+        expect(
+            isValidMultiSendUserInput(`\n,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
+ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`),
+        ).toBe(`Remove empty row at line 1`);
+    });
+    it(`isValidMultiSendUserInput returns expected error for non-string input`, () => {
+        expect(isValidMultiSendUserInput(undefined)).toBe(
+            `Input must be a string`,
+        );
     });
 });
