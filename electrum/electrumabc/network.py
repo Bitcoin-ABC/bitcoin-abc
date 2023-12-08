@@ -36,7 +36,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
 import socks
 
@@ -49,6 +49,12 @@ from .simple_config import SimpleConfig
 from .tor import TorController, check_proxy_bypass_tor_control
 from .transaction import DUST_THRESHOLD
 from .utils import Event
+
+NetworkRequest = Tuple[str, List[Any], Callable]
+"""(method, params, callback)
+Method and params are passed to the interface with a unique request id. Callback is
+called and takes the interface's response as a parameter.
+"""
 
 DEFAULT_AUTO_CONNECT = True
 
@@ -331,29 +337,47 @@ class Network(util.DaemonThread):
         # callbacks passed with subscriptions
         self.subscriptions = defaultdict(list)
         self.sub_cache = {}  # note: needs self.interface_lock
-        # callbacks set by the GUI
-        self.callbacks = defaultdict(list)
+
+        self.callbacks: Dict[str, List[Callable]] = defaultdict(list)
+        """{event: [f1(event, *args), f2(event, *args), ...], ...}
+        Network callbacks can be registered via  Network.register_callback (usually from
+        the GUI code, but also from the fusion plugin) and can be triggered via
+        Network.trigger_callback from various components (network, wallet,
+        synchronizer, verifier, exchange_rate)
+        """
 
         dir_path = os.path.join(self.config.path, "certs")
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
             os.chmod(dir_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
 
-        # subscriptions and requests
-        self.subscribed_addresses = set()
+        self.subscribed_addresses: Set[str] = set()
+        """Scripthashes we want the servers to monitor and notify us about."""
+
         # Requests from client we've not seen a response to
-        self.unanswered_requests = {}
+        self.unanswered_requests: Dict[int, NetworkRequest] = {}
+        """{request_id: (method, params, callback), ...}"""
+
         # retry times
         self.server_retry_time = time.time()
         self.nodes_retry_time = time.time()
-        # kick off the network.  interface is the main server we are currently
-        # communicating with.  interfaces is the set of servers we are connecting
-        # to or have an ongoing connection with
-        self.interface = None  # note: needs self.interface_lock
-        self.interfaces = {}  # note: needs self.interface_lock
-        self.auto_connect = self.config.get("auto_connect", DEFAULT_AUTO_CONNECT)
-        self.connecting = set()
-        self.requested_chunks = set()
+        # kick off the network.
+        self.interface: Optional[Interface] = None
+        """The main server we are currently communicating with.
+        Requires self.interface_lock.
+        """
+        self.interfaces: Dict[str, Interface] = {}
+        """The servers we are connecting to or have an ongoing connection with.
+        The dict key is a "<host>:<port>:<protocol>" string.
+        Requires self.interface_lock.
+        """
+        self.auto_connect: bool = self.config.get("auto_connect", DEFAULT_AUTO_CONNECT)
+        self.connecting: Set[str] = set()
+        """Set of servers as "<host>:<port>:<protocol>" strings."""
+        self.requested_chunks: Set[int] = set()
+        """Set of indices of header chunks requested from the interface.
+        The blockchain is cut in chunks of 2016 blocks, and the index of a chunk is
+        base_height // 2016."""
         self.socket_queue = queue.Queue()
         if Network.INSTANCE:
             # This happens on iOS which kills and restarts the daemon on app sleep/wake
@@ -476,7 +500,13 @@ class Network(util.DaemonThread):
         return self.unanswered_requests == {}
 
     def queue_request(
-        self, method, params, interface=None, *, callback=None, max_qlen=None
+        self,
+        method: str,
+        params: List[Any],
+        interface: Optional[Interface] = None,
+        *,
+        callback: Optional[Callable] = None,
+        max_qlen: Optional[int] = None,
     ):
         """If you want to queue a request on any interface it must go through
         this function so message ids are properly tracked.
@@ -506,7 +536,7 @@ class Network(util.DaemonThread):
             if max_qlen and len(self.unanswered_requests) >= max_qlen:
                 # Indicate to client code we are busy
                 return None
-            self.unanswered_requests[message_id] = [method, params, callback]
+            self.unanswered_requests[message_id] = (method, params, callback)
             if not interface:
                 # Request was queued -- it should get sent if/when we get
                 # an interface in the future
@@ -620,7 +650,7 @@ class Network(util.DaemonThread):
                     out[host] = {protocol: port}
         return out
 
-    def start_interface(self, server_key):
+    def start_interface(self, server_key: str):
         """Start the given server if it is not already active or being connected to.
 
         Arguments:
@@ -1221,7 +1251,7 @@ class Network(util.DaemonThread):
                             self.default_server, self.SWITCH_SOCKET_LOOP
                         )
 
-    def request_chunk(self, interface, chunk_index):
+    def request_chunk(self, interface: Interface, chunk_index: int):
         if chunk_index in self.requested_chunks:
             return False
         self.requested_chunks.add(chunk_index)

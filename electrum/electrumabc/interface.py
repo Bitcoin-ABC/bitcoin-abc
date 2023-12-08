@@ -50,7 +50,8 @@ if TYPE_CHECKING:
 
     from .blockchain import Blockchain, Header
 
-    Request = Tuple[str, List[Any], int]
+    InterfaceRequest = Tuple[str, List[Any], int]
+    """(method, params, id)"""
 
 ca_path = requests.certs.where()
 
@@ -374,9 +375,9 @@ class Interface(PrintError):
         # Dump network messages.  Set at runtime from the console.
         self.debug = False
         self.request_time = time.time()
-        self.unsent_requests: List[Request] = []
+        self.unsent_requests: List[InterfaceRequest] = []
         """[(method, params, id), ...]"""
-        self.unanswered_requests: Dict[int, Request] = {}
+        self.unanswered_requests: Dict[int, InterfaceRequest] = {}
         """{id: (method, params, id), ...}"""
         self.last_send = time.time()
 
