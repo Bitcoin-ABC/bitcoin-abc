@@ -2632,6 +2632,33 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
     BOOST_CHECK(
         !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
              .has_value());
+
+    TestPeerManager::clearPeers(pm);
+
+    // Peer 1 has 1 node (id 0)
+    auto proof1 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proof1));
+    BOOST_CHECK(pm.addNode(0, proof1->getId()));
+
+    // Peer 2 has 5 nodes (ids 1 to 5)
+    auto proof2 = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    BOOST_CHECK(pm.registerProof(proof2));
+    for (NodeId nodeid = 1; nodeid < 6; nodeid++) {
+        BOOST_CHECK(pm.addNode(nodeid, proof2->getId()));
+    }
+
+    // Node 0 is missing proofid 0, nodes 1 to 5 have it
+    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
+    for (NodeId nodeid = 1; nodeid < 6; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
+    }
+
+    // At this stage we have 5/6 nodes with the proof, but since all the nodes
+    // advertising the proof are from the same peer, we only 1/2 peers, i.e. 50%
+    // of the stakes.
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .has_value());
 }
 
 BOOST_AUTO_TEST_CASE(dangling_with_remotes) {
