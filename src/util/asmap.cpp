@@ -10,6 +10,7 @@
 #include <streams.h>
 #include <util/fs.h>
 
+#include <bit>
 #include <cassert>
 #include <map>
 #include <vector>
@@ -134,7 +135,7 @@ uint32_t Interpret(const std::vector<bool> &asmap,
                 // Match bits straddle EOF
                 break;
             }
-            matchlen = CountBits(match) - 1;
+            matchlen = std::bit_width(match) - 1;
             if (bits < matchlen) {
                 // Not enough input bits
                 break;
@@ -254,7 +255,7 @@ bool SanityCheckASMap(const std::vector<bool> &asmap, int bits) {
                 // Match bits straddle EOF
                 return false;
             }
-            int matchlen = CountBits(match) - 1;
+            int matchlen = std::bit_width(match) - 1;
             if (prevopcode != Instruction::MATCH) {
                 had_incomplete_match = false;
             }

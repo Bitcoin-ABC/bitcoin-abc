@@ -12,6 +12,7 @@
 #include <uint256.h>
 #include <util/check.h>
 
+#include <bit>
 #include <chrono>
 #include <concepts>
 #include <cstdint>
@@ -270,7 +271,7 @@ public:
     uint64_t randrange(uint64_t range) noexcept {
         assert(range);
         --range;
-        int bits = CountBits(range);
+        int bits = std::bit_width(range);
         while (true) {
             uint64_t ret = Impl().randbits(bits);
             if (ret <= range) {

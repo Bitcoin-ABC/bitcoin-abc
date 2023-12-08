@@ -38,8 +38,6 @@
 #cmakedefine HAVE_SYS_PRCTL_H 1
 
 #cmakedefine HAVE_DECL___BUILTIN_CLZ 1
-#cmakedefine HAVE_DECL___BUILTIN_CLZL 1
-#cmakedefine HAVE_DECL___BUILTIN_CLZLL 1
 #cmakedefine HAVE_DECL___BUILTIN_CTZ 1
 #cmakedefine HAVE_DECL___BUILTIN_CTZL 1
 #cmakedefine HAVE_DECL___BUILTIN_CTZLL 1

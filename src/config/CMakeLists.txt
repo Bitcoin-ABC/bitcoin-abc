@@ -113,8 +113,6 @@ endfunction()
 # Bitmanip intrinsics
 # CLZ => Count Leading Zeros; CTZ => Count Trailing Zeros
 check_builtin_exist(__builtin_clz HAVE_DECL___BUILTIN_CLZ)
-check_builtin_exist(__builtin_clzl HAVE_DECL___BUILTIN_CLZL)
-check_builtin_exist(__builtin_clzll HAVE_DECL___BUILTIN_CLZLL)
 check_builtin_exist(__builtin_ctz HAVE_DECL___BUILTIN_CTZ)
 check_builtin_exist(__builtin_ctzl HAVE_DECL___BUILTIN_CTZL)
 check_builtin_exist(__builtin_ctzll HAVE_DECL___BUILTIN_CTZLL)

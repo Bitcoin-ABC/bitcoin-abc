@@ -9,6 +9,7 @@
 #include <serialize.h>
 #include <tinyformat.h>
 
+#include <bit>
 #include <cstdint>
 #include <ios>
 
@@ -51,7 +52,7 @@ template <typename Stream> void WriteIntcode(Stream &os, uint64_t value) {
     }
 
     // Number of bits required to represent `value`
-    const uint64_t numBits = CountBits(value);
+    const uint64_t numBits = std::bit_width(value);
     // Number of bytes required to represent `value`
     uint64_t numBytes = (numBits - 1) / 7;
     if (numBytes >= 8) {
@@ -91,7 +92,7 @@ template <typename Stream> uint64_t ReadIntcode(Stream &is) {
     }
 
     // Number of leading ones in header (represents the number of extra bytes)
-    const uint64_t leadingOnes = 8 - CountBits(uint8_t(~header));
+    const uint64_t leadingOnes = 8 - std::bit_width(uint8_t(~header));
 
     // Read the data bits from the header
     const uint8_t mask = 0xff >> leadingOnes;
