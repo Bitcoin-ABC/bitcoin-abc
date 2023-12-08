@@ -1160,7 +1160,7 @@ class Network(util.DaemonThread):
         interface.blockchain = None
         interface.tip_header = None
         interface.tip = 0
-        interface.set_mode(Interface.MODE_VERIFICATION)
+        interface.set_mode(Interface.Mode.VERIFICATION)
 
         with self.interface_lock:
             self.interfaces[server_key] = interface
@@ -1377,7 +1377,7 @@ class Network(util.DaemonThread):
                 )
 
         initial_interface_mode = interface.mode
-        if interface.mode == Interface.MODE_VERIFICATION:
+        if interface.mode == Interface.Mode.VERIFICATION:
             if not was_verification_request:
                 interface.print_error(
                     "disconnecting unverified server for sending unrelated header chunk"
@@ -1434,7 +1434,7 @@ class Network(util.DaemonThread):
             return
 
         # This interface was verified above. Get it syncing.
-        if initial_interface_mode == Interface.MODE_VERIFICATION:
+        if initial_interface_mode == Interface.Mode.VERIFICATION:
             self._process_latest_tip(interface)
             return
 
@@ -1449,7 +1449,7 @@ class Network(util.DaemonThread):
                     interface, request_base_height + actual_header_count, 2016
                 )
             else:
-                interface.set_mode(Interface.MODE_DEFAULT)
+                interface.set_mode(Interface.Mode.DEFAULT)
                 interface.print_error("catch up done", interface.blockchain.height())
                 interface.blockchain.catch_up = None
         self.notify("blockchain_updated")
@@ -1525,10 +1525,10 @@ class Network(util.DaemonThread):
         header = blockchain.deserialize_header(bytes.fromhex(hexheader), height)
         # Is there a blockchain that already includes this header?
         chain = blockchain.check_header(header)
-        if interface.mode == Interface.MODE_BACKWARD:
+        if interface.mode == Interface.Mode.BACKWARD:
             if chain:
                 interface.print_error("binary search")
-                interface.set_mode(Interface.MODE_BINARY)
+                interface.set_mode(Interface.Mode.BINARY)
                 interface.blockchain = chain
                 interface.good = height
                 next_height = (interface.bad + interface.good) // 2
@@ -1556,7 +1556,7 @@ class Network(util.DaemonThread):
                         interface.tip - 2 * delta,
                     )
 
-        elif interface.mode == Interface.MODE_BINARY:
+        elif interface.mode == Interface.Mode.BINARY:
             if chain:
                 interface.good = height
                 interface.blockchain = chain
@@ -1586,7 +1586,7 @@ class Network(util.DaemonThread):
                         )
                         branch.write(b"", 0)
                         branch.save_header(interface.bad_header)
-                        interface.set_mode(Interface.MODE_CATCH_UP)
+                        interface.set_mode(Interface.Mode.CATCH_UP)
                         interface.blockchain = branch
                         next_height = interface.bad + 1
                         interface.blockchain.catch_up = interface.server
@@ -1599,20 +1599,20 @@ class Network(util.DaemonThread):
                             self.blockchains[interface.bad] = b
                             interface.blockchain = b
                             interface.print_error("new chain", b.base_height)
-                            interface.set_mode(Interface.MODE_CATCH_UP)
+                            interface.set_mode(Interface.Mode.CATCH_UP)
                             next_height = interface.bad + 1
                             interface.blockchain.catch_up = interface.server
                     else:
                         assert bh == interface.good
                         if interface.blockchain.catch_up is None and bh < interface.tip:
                             interface.print_error("catching up from %d" % (bh + 1))
-                            interface.set_mode(Interface.MODE_CATCH_UP)
+                            interface.set_mode(Interface.Mode.CATCH_UP)
                             next_height = bh + 1
                             interface.blockchain.catch_up = interface.server
 
                 self.notify("blockchain_updated")
 
-        elif interface.mode == Interface.MODE_CATCH_UP:
+        elif interface.mode == Interface.Mode.CATCH_UP:
             can_connect = interface.blockchain.can_connect(header)
             if can_connect:
                 interface.blockchain.save_header(header)
@@ -1620,7 +1620,7 @@ class Network(util.DaemonThread):
             else:
                 # go back
                 interface.print_error("cannot connect", height)
-                interface.set_mode(Interface.MODE_BACKWARD)
+                interface.set_mode(Interface.Mode.BACKWARD)
                 interface.bad = height
                 interface.bad_header = header
                 next_height = height - 1
@@ -1631,7 +1631,7 @@ class Network(util.DaemonThread):
                 interface.blockchain.catch_up = None
                 self.switch_lagging_interface()
                 self.notify("blockchain_updated")
-        elif interface.mode == Interface.MODE_DEFAULT:
+        elif interface.mode == Interface.Mode.DEFAULT:
             interface.print_error(
                 "ignored header {} received in default mode".format(height)
             )
@@ -1640,14 +1640,14 @@ class Network(util.DaemonThread):
         # If not finished, get the next header
         if next_height:
             if (
-                interface.mode == Interface.MODE_CATCH_UP
+                interface.mode == Interface.Mode.CATCH_UP
                 and interface.tip > next_height
             ):
                 self.request_headers(interface, next_height, 2016)
             else:
                 self.request_header(interface, next_height)
         else:
-            interface.set_mode(Interface.MODE_DEFAULT)
+            interface.set_mode(Interface.Mode.DEFAULT)
             self.notify("blockchain_updated")
         # refresh network dialog
         self.notify("interfaces")
@@ -1814,7 +1814,7 @@ class Network(util.DaemonThread):
         interface.tip_header = header
         interface.tip = height
 
-        if interface.mode == Interface.MODE_VERIFICATION:
+        if interface.mode == Interface.Mode.VERIFICATION:
             # If the server has already had this requested, this will be a no-op.
             self.request_initial_proof_and_headers(interface)
             return
@@ -1822,7 +1822,7 @@ class Network(util.DaemonThread):
         self._process_latest_tip(interface)
 
     def _process_latest_tip(self, interface):
-        if interface.mode != Interface.MODE_DEFAULT:
+        if interface.mode != Interface.Mode.DEFAULT:
             return
 
         header = interface.tip_header
@@ -1854,7 +1854,7 @@ class Network(util.DaemonThread):
                     tip, heights
                 )
             )
-            interface.set_mode(Interface.MODE_BACKWARD)
+            interface.set_mode(Interface.Mode.BACKWARD)
             interface.bad = height
             interface.bad_header = header
             self.request_header(interface, min(tip, height - 1))
@@ -1865,7 +1865,7 @@ class Network(util.DaemonThread):
             chain = self.blockchains[0]
             if chain.catch_up is None:
                 chain.catch_up = interface
-                interface.set_mode(Interface.MODE_CATCH_UP)
+                interface.set_mode(Interface.Mode.CATCH_UP)
                 interface.blockchain = chain
                 interface.print_error("switching to catchup mode", tip)
                 self.request_header(
@@ -1908,7 +1908,7 @@ class Network(util.DaemonThread):
         else:
             # We already have them verified, maybe we got disconnected.
             interface.print_error("request_initial_proof_and_headers bypassed")
-            interface.set_mode(Interface.MODE_DEFAULT)
+            interface.set_mode(Interface.Mode.DEFAULT)
             self._process_latest_tip(interface)
 
     def apply_successful_verification(
@@ -1932,7 +1932,7 @@ class Network(util.DaemonThread):
             self.verified_checkpoint = True
 
         interface.print_error("server was verified correctly")
-        interface.set_mode(Interface.MODE_DEFAULT)
+        interface.set_mode(Interface.Mode.DEFAULT)
         return True
 
     def validate_checkpoint_result(

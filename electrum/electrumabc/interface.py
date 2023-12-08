@@ -23,6 +23,8 @@
 # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from __future__ import annotations
+
 import os
 import re
 import socket
@@ -31,8 +33,8 @@ import sys
 import threading
 import time
 import traceback
-from collections import namedtuple
-from typing import Optional, Tuple
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Tuple
 
 import requests
 from pathvalidate import sanitize_filename
@@ -40,20 +42,33 @@ from pathvalidate import sanitize_filename
 from . import pem, util, x509
 from .json_util import JSONSocketPipe
 from .printerror import PrintError, is_verbose, print_error, print_msg
+from .simple_config import SimpleConfig
 from .utils import Event
+
+if TYPE_CHECKING:
+    from queue import Queue
+
+    Request = Tuple[str, List[Any], int]
 
 ca_path = requests.certs.where()
 
 PING_INTERVAL = 300
 
 
-def Connection(server, queue, config_path, callback=None):
+def Connection(
+    server: str,
+    queue: Queue,
+    config_path: str,
+    callback: Optional[Callable[[TcpConnection], None]] = None,
+) -> TcpConnection:
     """Makes asynchronous connections to a remote electrum server.
     Returns the running thread that is making the connection.
 
     Once the thread has connected, it finishes, placing a tuple on the
     queue of the form (server, socket), where socket is None if
     connection failed.
+
+    server is a "<host>:<port>:<protocol>" string
     """
     host, port, protocol = server.rsplit(":", 2)
     if protocol not in "st":
@@ -70,13 +85,13 @@ class TcpConnection(threading.Thread, PrintError):
 
     def __init__(self, server, queue, config_path):
         threading.Thread.__init__(self)
-        self.config_path = config_path
-        self.queue = queue
-        self.server = server
-        self.host, self.port, self.protocol = self.server.rsplit(":", 2)
-        self.host = str(self.host)
-        self.port = int(self.port)
-        self.use_ssl = self.protocol == "s"
+        self.config_path: str = config_path
+        self.queue: Queue = queue
+        self.server: str = server
+        host, port, protocol = self.server.rsplit(":", 2)
+        self.host: str = host
+        self.port = int(port)
+        self.use_ssl = protocol == "s"
         self.daemon = True
 
     def diagnostic_name(self):
@@ -331,27 +346,39 @@ class Interface(PrintError):
     - Member variable server.
     """
 
-    MODE_DEFAULT = "default"
-    MODE_BACKWARD = "backward"
-    MODE_BINARY = "binary"
-    MODE_CATCH_UP = "catch_up"
-    MODE_VERIFICATION = "verification"
+    class Mode(Enum):
+        DEFAULT = "default"
+        BACKWARD = "backward"
+        BINARY = "binary"
+        CATCH_UP = "catch_up"
+        VERIFICATION = "verification"
 
-    def __init__(self, server, socket, *, max_message_bytes=0, config=None):
+    def __init__(
+        self,
+        server: str,
+        socket: ssl.SSLSocket,
+        *,
+        max_message_bytes: int = 0,
+        config: Optional[SimpleConfig] = None,
+    ):
         self.server = server
         self.config = config
-        self.host, self.port, _ = server.rsplit(":", 2)
+        host, port, _ = server.rsplit(":", 2)
+        self.host: str = host
+        self.port: str = port
         self.socket = socket
 
         self.pipe = JSONSocketPipe(socket, max_message_bytes=max_message_bytes)
         # Dump network messages.  Set at runtime from the console.
         self.debug = False
         self.request_time = time.time()
-        self.unsent_requests = []
-        self.unanswered_requests = {}
+        self.unsent_requests: List[Request] = []
+        """[(method, params, id), ...]"""
+        self.unanswered_requests: Dict[int, Request] = {}
+        """{id: (method, params, id), ...}"""
         self.last_send = time.time()
 
-        self.mode = None
+        self.mode: Optional[Interface.Mode] = None
 
     def __repr__(self):
         return "<{}.{} {}>".format(__name__, type(self).__name__, self.format_address())
@@ -359,7 +386,7 @@ class Interface(PrintError):
     def format_address(self):
         return "{}:{}".format(self.host, self.port)
 
-    def set_mode(self, mode):
+    def set_mode(self, mode: Mode):
         self.print_error("set_mode({})".format(mode))
         self.mode = mode
 
@@ -380,26 +407,32 @@ class Interface(PrintError):
         except Exception:
             pass
 
-    def queue_request(self, *args):  # method, params, _id
+    def queue_request(self, method: str, params: List[Any], id_: int):
         """Queue a request, later to be sent with send_requests when the
         socket is available for writing."""
         self.request_time = time.time()
-        self.unsent_requests.append(args)
+        self.unsent_requests.append((method, params, id_))
 
-    ReqThrottleParams = namedtuple("ReqThrottleParams", "max chunkSize")
+    class ReqThrottleParams(NamedTuple):
+        max: int
+        chunkSize: int
+
     req_throttle_default = ReqThrottleParams(2000, 100)
 
     @classmethod
-    def get_req_throttle_params(cls, config):
+    def get_req_throttle_params(cls, config: Optional[SimpleConfig]):
         tup = config and config.get("network_unanswered_requests_throttle")
         if not isinstance(tup, (list, tuple)) or len(tup) != 2:
-            tup = cls.req_throttle_default
+            return cls.req_throttle_default
         tup = cls.ReqThrottleParams(*tup)
         return tup
 
     @classmethod
     def set_req_throttle_params(
-        cls, config, max_unanswered_requests=None, chunkSize=None
+        cls,
+        config: Optional[SimpleConfig],
+        max_unanswered_requests: Optional[int] = None,
+        chunkSize: Optional[int] = None,
     ):
         if not config:
             return
@@ -557,8 +590,6 @@ def check_cert(host, cert):
 
 
 def test_certificates():
-    from .simple_config import SimpleConfig
-
     config = SimpleConfig()
     mydir = os.path.join(config.path, "certs")
     certs = os.listdir(mydir)
