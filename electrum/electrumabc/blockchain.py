@@ -26,7 +26,7 @@ from __future__ import annotations
 import os
 import threading
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from . import asert_daa, bitcoin, networks, util
 from .printerror import PrintError
@@ -191,6 +191,7 @@ def read_blockchains(config: SimpleConfig) -> Dict[int, Blockchain]:
 
 
 def get_chain_for_header(header: dict) -> Optional[Blockchain]:
+    """Return a blockchain that contains this header, or None."""
     if not isinstance(header, dict):
         return None
     for b in blockchains.values():
@@ -199,33 +200,35 @@ def get_chain_for_header(header: dict) -> Optional[Blockchain]:
     return None
 
 
-def can_connect(header: Header):
+def get_connecting_chain(header: Header) -> Optional[Blockchain]:
+    """Return a blockchain on the tip of which this header can be added, or None."""
     for b in blockchains.values():
         if b.can_connect(header):
             return b
-    return False
+    return None
 
 
-def verify_proven_chunk(chunk_base_height, chunk_data):
+def verify_proven_chunk(chunk_base_height: int, chunk_data: bytes):
+    """Verify a chain of headers. Raises VerifyError if any prev_block_hash does not
+    match the hash of the previous header."""
     chunk = HeaderChunk(chunk_base_height, chunk_data)
 
     header_count = len(chunk_data) // HEADER_SIZE
-    prev_header_hash = None
-    for i in range(header_count):
+    prev_header_hash = hash_header(chunk.get_header_at_index(0))
+    for i in range(1, header_count):
         header = chunk.get_header_at_index(i)
         # Check the chain of hashes for all headers preceding the proven one.
         this_header_hash = hash_header(header)
-        if i > 0:
-            if prev_header_hash != header.get("prev_block_hash"):
-                raise VerifyError(
-                    "prev hash mismatch: %s vs %s"
-                    % (prev_header_hash, header.get("prev_block_hash"))
-                )
+        if prev_header_hash != header.get("prev_block_hash"):
+            raise VerifyError(
+                "prev hash mismatch: %s vs %s"
+                % (prev_header_hash, header.get("prev_block_hash"))
+            )
         prev_header_hash = this_header_hash
 
 
 # Copied from electrumx
-def root_from_proof(hash_, branch, index):
+def root_from_proof(hash_: bytes, branch: List[bytes], index: int) -> bytes:
     hash_func = bitcoin.Hash
     for elt in branch:
         if index & 1:
@@ -311,6 +314,7 @@ class Blockchain(PrintError):
         return self.get_hash(self.get_base_height()).lstrip("00")[0:10]
 
     def check_header(self, header: Header):
+        """Return True if this chain contains the header at the expected height."""
         header_hash = hash_header(header)
         height = header.get("block_height")
         return header_hash == self.get_hash(height)
@@ -714,6 +718,7 @@ class Blockchain(PrintError):
         return target_to_bits(new_target)
 
     def can_connect(self, header: Header, check_height=True):
+        """Return True if header is the next header on this chain."""
         height = header["block_height"]
         if check_height and self.height() != height - 1:
             return False

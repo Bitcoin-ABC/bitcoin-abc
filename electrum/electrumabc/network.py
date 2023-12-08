@@ -36,7 +36,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Dict, Iterable, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 import socks
 
@@ -1834,8 +1834,8 @@ class Network(util.DaemonThread):
             self.notify("interfaces")
             return
         # Is it the next header on a given blockchain.
-        b = blockchain.can_connect(header)
-        if b:
+        b = blockchain.get_connecting_chain(header)
+        if b is not None:
             interface.blockchain = b
             b.save_header(header)
             self.switch_lagging_interface()
@@ -1933,8 +1933,13 @@ class Network(util.DaemonThread):
         return True
 
     def validate_checkpoint_result(
-        self, interface, merkle_root, merkle_branch, header, header_height
-    ):
+        self,
+        interface: Interface,
+        merkle_root: str,
+        merkle_branch: List[str],
+        header: str,
+        header_height: int,
+    ) -> bool:
         """
         header: hex representation of the block header.
         merkle_root: hex representation of the server's calculated merkle root.
