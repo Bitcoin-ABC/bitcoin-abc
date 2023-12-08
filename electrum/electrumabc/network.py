@@ -1409,15 +1409,15 @@ class Network(util.DaemonThread):
                 request_base_height, chunk_data, proof_was_provided
             )
             if target_blockchain
-            else blockchain.CHUNK_BAD
+            else blockchain.ChunkStatus.BAD
         )
-        if connect_state == blockchain.CHUNK_ACCEPTED:
+        if connect_state == blockchain.ChunkStatus.ACCEPTED:
             interface.print_error(
                 "connected chunk, height={} count={} proof_was_provided={}".format(
                     request_base_height, actual_header_count, proof_was_provided
                 )
             )
-        elif connect_state == blockchain.CHUNK_FORKS:
+        elif connect_state == blockchain.ChunkStatus.FORKS:
             interface.print_error(
                 "identified forking chunk, height={} count={}".format(
                     request_base_height, actual_header_count
@@ -1524,9 +1524,9 @@ class Network(util.DaemonThread):
         # Simple header request.
         header = blockchain.deserialize_header(bytes.fromhex(hexheader), height)
         # Is there a blockchain that already includes this header?
-        chain = blockchain.check_header(header)
+        chain = blockchain.get_chain_for_header(header)
         if interface.mode == Interface.Mode.BACKWARD:
-            if chain:
+            if chain is not None:
                 interface.print_error("binary search")
                 interface.set_mode(Interface.Mode.BINARY)
                 interface.blockchain = chain
@@ -1829,8 +1829,8 @@ class Network(util.DaemonThread):
         height = interface.tip
 
         # Does it match the hash of a known header.
-        b = blockchain.check_header(header)
-        if b:
+        b = blockchain.get_chain_for_header(header)
+        if b is not None:
             interface.blockchain = b
             self.switch_lagging_interface()
             self.notify("blockchain_updated")
