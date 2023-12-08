@@ -2577,7 +2577,7 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
         !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
              .has_value());
 
-    // 50/50 on the remotes
+    // 50/50 of the stakes
     for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(pm.registerProof(proof));
@@ -2590,7 +2590,7 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
         !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
              .has_value());
 
-    // 90% on the remotes
+    // 90% of the stakes
     BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
     for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
@@ -2599,7 +2599,7 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
         TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
             .value());
 
-    // 10% on the remotes
+    // 10% of the stakes
     BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
     for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
@@ -2615,23 +2615,23 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
     // Update the node's proof
     BOOST_CHECK(pm.addNode(0, bigProof->getId()));
 
-    // 90% on the remotes, but not enough stakes => inconclusive
+    // 90% of the remotes, but < 10% of the stakes => absent
     BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
     for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
     }
     BOOST_CHECK(
         !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
-             .has_value());
+             .value());
 
-    // 10% on the remotes, but not enough stakes => inconclusive
+    // 10% of the remotes, but > 90% of the stakes => present
     BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
     for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
     }
     BOOST_CHECK(
-        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
-             .has_value());
+        TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+            .value());
 
     TestPeerManager::clearPeers(pm);
 

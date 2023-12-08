@@ -1066,11 +1066,8 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
         return std::nullopt;
     }
 
-    size_t total_remotes{0};
     double total_score{0};
-    size_t present_remotes{0};
     double present_score{0};
-    size_t missing_remotes{0};
     double missing_score{0};
 
     for (auto it = begin; it != end; it++) {
@@ -1090,24 +1087,19 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
 
         const double score = double(pit->getScore()) / pit->node_count;
 
-        ++total_remotes;
         total_score += score;
         if (it->present) {
-            ++present_remotes;
             present_score += score;
         } else {
-            ++missing_remotes;
             missing_score += score;
         }
     }
 
-    if ((double(present_remotes) / total_remotes > 0.8) &&
-        (present_score / total_score > 0.8)) {
+    if (present_score / total_score > 0.8) {
         return std::make_optional(true);
     }
 
-    if ((double(missing_remotes) / total_remotes > 0.8) &&
-        (missing_score / total_score > 0.8)) {
+    if (missing_score / total_score > 0.8) {
         return std::make_optional(false);
     }
 
