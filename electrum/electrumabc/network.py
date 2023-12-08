@@ -1157,9 +1157,6 @@ class Network(util.DaemonThread):
             max_message_bytes=self.MAX_MESSAGE_BYTES,
             config=self.config,
         )
-        interface.blockchain = None
-        interface.tip_header = None
-        interface.tip = 0
         interface.set_mode(Interface.Mode.VERIFICATION)
 
         with self.interface_lock:

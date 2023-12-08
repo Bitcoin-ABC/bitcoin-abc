@@ -48,6 +48,8 @@ from .utils import Event
 if TYPE_CHECKING:
     from queue import Queue
 
+    from .blockchain import Blockchain, Header
+
     Request = Tuple[str, List[Any], int]
 
 ca_path = requests.certs.where()
@@ -379,6 +381,18 @@ class Interface(PrintError):
         self.last_send = time.time()
 
         self.mode: Optional[Interface.Mode] = None
+
+        # Set and used in network.py
+        self.blockchain: Optional[Blockchain] = None
+        self.tip_header: Optional[Header] = None
+        self.tip = 0
+        """Tip height"""
+
+        # Note: the following attributes are always set in network.py, so the init
+        # value here does not matter.
+        self.good: int = 0
+        self.bad: int = 0
+        self.bad_header: Header = {}
 
     def __repr__(self):
         return "<{}.{} {}>".format(__name__, type(self).__name__, self.format_address())
