@@ -67,7 +67,9 @@ export const sendXec = async (chronik, wallet, targetOutputs, feeRate) => {
     }
 
     for (const output of outputs) {
-        if (!output.address) {
+        let isOpReturn = 'script' in output;
+        let isChange = !isOpReturn && !('address' in output);
+        if (isChange) {
             // Note that you may now have a change output with no specified address
             // This is expected behavior of coinSelect
             // User provides target output, coinSelect adds change output if necessary (with no address key)
@@ -77,7 +79,10 @@ export const sendXec = async (chronik, wallet, targetOutputs, feeRate) => {
         }
 
         // TODO add cashaddr support for eCash to txBuilder in utxo-lib
-        txBuilder.addOutput(cashaddr.toLegacy(output.address), output.value);
+        txBuilder.addOutput(
+            isOpReturn ? output.script : cashaddr.toLegacy(output.address),
+            output.value,
+        );
     }
 
     signInputs(

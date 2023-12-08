@@ -11,6 +11,9 @@ import {
     allTheXecWallet,
 } from './mocks';
 
+import { getCashtabMsgTargetOutput } from 'opreturn';
+const OP_RETURN_CASHTAB_MSG_TEST = getCashtabMsgTargetOutput('test');
+
 export const sendXecVectors = {
     txs: [
         {
@@ -26,6 +29,36 @@ export const sendXecVectors = {
             feeRate: 1,
             txid: '191ea0bff422cfd7bf9d717e3287e1a4f4441b7c70fac4ef270767da3917362a',
             hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006a47304402202747b4da71786b3305b39d17531824ade98db589f032a59ddd8da7166df4f6b202200c6fb9fa6a9d5da69dbfff1c1ff64fd049371ca27e3c3984723d630190c2a22e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff02e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acde5c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
+        },
+        {
+            description:
+                '1000 satoshis with 1 change output at 1 sat/byte to p2pkh address with an OP_RETURN output',
+            wallet,
+            targetOutputs: [
+                {
+                    value: 1000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+                OP_RETURN_CASHTAB_MSG_TEST,
+            ],
+            feeRate: 1,
+            txid: '51f2a0e23b044fe0c59daab999b9c08f0d6f12f5bb04423e492c857090b8056a',
+            hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006b483045022100a5478c4caeb466f626c93a76458b230a51960d225ba5d94fecdd0b72126a0c7e0220659c227139b8487a467490328ce870e06d30c96ddf906eed05ae9cff4ffad1034121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac00000000000000000b6a04007461620474657374ca5c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
+        },
+        {
+            description:
+                '1000 satoshis with 1 change output at 1 sat/byte to p2pkh address with an OP_RETURN output at index 0',
+            wallet,
+            targetOutputs: [
+                OP_RETURN_CASHTAB_MSG_TEST,
+                {
+                    value: 1000,
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                },
+            ],
+            feeRate: 1,
+            txid: 'bdc08939fe6c7369fb90830c66f131027ad32ba7bf58937bf35fe7c11876c46d',
+            hex: '0200000001c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468000000006b483045022100c10e4b2b58d7630a35d576a3ea69d2ee1525f947da3d633af04e51f5ccd89331022079840fe09cbcc0a64665e52b61933b29d7a260d838c38c0493f1f8cedd19d99f4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000000b6a04007461620474657374e8030000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acca5c0000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000',
         },
         {
             description:
