@@ -1056,26 +1056,6 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
     return true;
 }
 
-bool PeerManager::getPeerScoreFromNodeId(const NodeId nodeid,
-                                         uint32_t &score) const {
-    auto nit = nodes.find(nodeid);
-    if (nit == nodes.end()) {
-        // No such node
-        return false;
-    }
-
-    const PeerId peerid = nit->peerid;
-
-    auto pit = peers.find(peerid);
-    if (pit == peers.end()) {
-        // Peer not found
-        return false;
-    }
-
-    score = pit->getScore();
-    return true;
-}
-
 std::optional<bool>
 PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
     auto &remoteProofsView = remoteProofs.get<by_proofid>();
@@ -1093,11 +1073,21 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
     size_t missing_remotes{0};
     uint32_t missing_score{0};
     for (auto it = begin; it != end; it++) {
-        uint32_t score;
-        if (!getPeerScoreFromNodeId(it->nodeid, score)) {
-            // Should never happen
+        auto nit = nodes.find(it->nodeid);
+        if (nit == nodes.end()) {
+            // No such node
             continue;
         }
+
+        const PeerId peerid = nit->peerid;
+
+        auto pit = peers.find(peerid);
+        if (pit == peers.end()) {
+            // Peer not found
+            continue;
+        }
+
+        const uint32_t score = pit->getScore();
 
         ++total_remotes;
         total_score += score;
