@@ -100,7 +100,7 @@
         "test": "node scripts/test.js",
         "test:coverage": "CI=true npm run test --coverage",
         "preextension": "npm  i -g browserify",
-        "extension": "./scripts/extension.sh"
+        "extension": "REACT_APP_BUILD_ENV=extension ./scripts/extension.sh"
     },
     "eslintConfig": {
         "extends": [
