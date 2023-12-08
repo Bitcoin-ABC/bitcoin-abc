@@ -51,7 +51,7 @@ public:
     void EraseForBlock(const CBlock &block) EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /** Limit the orphanage to the given maximum */
-    unsigned int LimitOrphans(unsigned int max_orphans)
+    unsigned int LimitOrphans(unsigned int max_orphans, FastRandomContext &rng)
         EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /**

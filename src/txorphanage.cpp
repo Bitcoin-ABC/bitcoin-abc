@@ -110,7 +110,8 @@ void TxOrphanage::EraseForPeer(NodeId peer) {
     }
 }
 
-unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
+unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans,
+                                       FastRandomContext &rng) {
     LOCK(m_mutex);
 
     unsigned int nEvicted = 0;
@@ -139,7 +140,6 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
                      "Erased %d orphan tx due to expiration\n", nErased);
         }
     }
-    FastRandomContext rng;
     while (m_orphans.size() > max_orphans) {
         // Evict a random orphan:
         size_t randompos = rng.randrange(m_orphan_list.size());

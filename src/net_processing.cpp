@@ -5701,7 +5701,7 @@ void PeerManagerImpl::ProcessMessage(
                 m_txrequest.ForgetInvId(tx.GetId());
 
                 unsigned int nEvicted =
-                    m_orphanage.LimitOrphans(m_opts.max_orphan_txs);
+                    m_orphanage.LimitOrphans(m_opts.max_orphan_txs, m_rng);
                 if (nEvicted > 0) {
                     LogPrint(BCLog::TXPACKAGES,
                              "orphanage overflow, removed %u tx\n", nEvicted);
