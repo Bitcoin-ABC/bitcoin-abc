@@ -1,19 +1,18 @@
 Sample init scripts and service configuration for bitcoind
 ==========================================================
 
-Sample scripts and configuration files for systemd, Upstart and OpenRC
+Sample scripts and configuration files for systemd and OpenRC
 can be found in the contrib/init folder.
 
     contrib/init/bitcoind.service:    systemd service unit configuration
     contrib/init/bitcoind.openrc:     OpenRC compatible SysV style init script
     contrib/init/bitcoind.openrcconf: OpenRC conf.d file
-    contrib/init/bitcoind.conf:       Upstart service configuration file
     contrib/init/bitcoind.init:       CentOS compatible SysV style init script
 
 Service User
 ---------------------------------
 
-All three Linux startup configurations assume the existence of a "bitcoin" user
+Both Linux startup configurations assume the existence of a "bitcoin" user
 and group.  They must be created before attempting to use these scripts.
 The macOS configuration assumes bitcoind will be set up for the current user.
 
@@ -56,7 +55,7 @@ All three configurations assume several paths that might need to be adjusted.
 Binary:              `/usr/bin/bitcoind`\
 Configuration file:  `/etc/bitcoin/bitcoin.conf`\
 Data directory:      `/var/lib/bitcoind`\
-PID file:            `/var/run/bitcoind/bitcoind.pid` (OpenRC and Upstart) or `/var/lib/bitcoind/bitcoind.pid` (systemd)\
+PID file:            `/var/run/bitcoind/bitcoind.pid` (OpenRC) or `/var/lib/bitcoind/bitcoind.pid` (systemd)\
 Lock file:           `/var/lock/subsys/bitcoind` (CentOS)
 
 The configuration file, PID directory (if applicable) and data directory
@@ -96,16 +95,6 @@ check ownership and permissions and make it executable.  Test it with
 `/etc/init.d/bitcoind start` and configure it to run on startup with
 `rc-update add bitcoind`
 
-### Upstart (for Debian/Ubuntu based distributions)
-
-Upstart is the default init system for Debian/Ubuntu versions older than 15.04. If you are using version 15.04 or newer and haven't manually configured upstart you should follow the systemd instructions instead.
-
-Drop bitcoind.conf in /etc/init.  Test by running `service bitcoind start`
-it will automatically start on reboot.
-
-NOTE: This script is incompatible with CentOS 5 and Amazon Linux 2014 as they
-use old versions of Upstart and do not supply the start-stop-daemon utility.
-
 ### CentOS
 
 Copy bitcoind.init to /etc/init.d/bitcoind. Test by running `service bitcoind start`.
@@ -128,5 +117,5 @@ Launch Daemon with a dedicated bitcoin user.
 Auto-respawn
 -----------------------------------
 
-Auto respawning is currently only configured for Upstart and systemd.
+Auto respawning is currently only configured for systemd.
 Reasonable defaults have been chosen but YMMV.
