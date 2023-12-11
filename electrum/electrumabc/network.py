@@ -36,7 +36,7 @@ import stat
 import threading
 import time
 from collections import defaultdict
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Union
 
 import socks
 
@@ -288,8 +288,17 @@ class Network(util.DaemonThread):
         self.config = config or SimpleConfig()
         self.num_server = 10 if not self.config.get("oneserver") else 0
         self.blockchains = blockchain.read_blockchains(self.config)
+        """Dict of blockchains (main chain and forks) indexed by base heights."""
         self.print_error("blockchains", self.blockchains.keys())
         self.blockchain_index = self.config.get("blockchain_index", 0)
+        """Base height of the chain or fork used by the current main server
+        (self.interface).
+        May be updated in the following situations:
+         - when the current server switches to a fork
+         - when the user selects a forked server in the network dialog
+         - in case there are forks, when the user selects "Follow this branch" in the
+           network dialog.
+        """
         if self.blockchain_index not in self.blockchains.keys():
             self.blockchain_index = 0
         # Server for addresses and transactions
@@ -320,12 +329,21 @@ class Network(util.DaemonThread):
         self.pending_sends = []
         self.message_id = Monotonic(locking=True)
         self.verified_checkpoint = False
+        """Flag set to True if the checkpoint header is in the local blockchain
+        or when an interface checks the checkpoint."""
         self.verifications_required = 1
         # If the height is cleared from the network constants, we're
         # taking looking to get 3 confirmations of the first verification.
         if networks.net.VERIFICATION_BLOCK_HEIGHT is None:
             self.verifications_required = 3
-        self.checkpoint_servers_verified = {}
+        self.checkpoint_servers_verified: Dict[
+            str, Dict[str, Union[int, Optional[str]]]
+        ] = {}
+        """{server: {"root": merkle_root, "height": checkpoint_height}, ... }
+        where server is a "<host>:<port>:<protocol>" string and merkle_root is a hex
+        representation of the server's calculated merkle root
+        """
+
         self.checkpoint_height = networks.net.VERIFICATION_BLOCK_HEIGHT
         self.debug = False
         self.irc_servers = {}  # returned by interface (list from irc)
@@ -1627,6 +1645,10 @@ class Network(util.DaemonThread):
                             interface.blockchain = b
                             interface.print_error("new chain", b.base_height)
                             interface.set_mode(Interface.Mode.CATCH_UP)
+                            # FIXME: if the server just parked its tip and no new block
+                            #   arrived to replace it, this will cause the server to
+                            #   reply with an error when requesting the next block,
+                            #   and Electrum ABC will then disconnect the interface.
                             next_height = interface.bad + 1
                             interface.blockchain.catch_up = interface.server
                     else:
@@ -1941,6 +1963,8 @@ class Network(util.DaemonThread):
     def apply_successful_verification(
         self, interface, checkpoint_height, checkpoint_root
     ):
+        """Check that the merkle_root served by an interface is consistent.
+        Return False and disconnect the interface if it isn't."""
         known_roots = [
             v["root"]
             for v in self.checkpoint_servers_verified.values()

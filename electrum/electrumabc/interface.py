@@ -351,10 +351,83 @@ class Interface(PrintError):
 
     class Mode(Enum):
         DEFAULT = "default"
+        """In DEFAULT mode, we process tip changes. If the new tip send by the
+        interface is already known locally, or connects to a local blockchain,
+        we update the interface's blockchain to the connecting local chain.
+        We add the block to the tip of that local chain if we didn't already have it.
+        If the new tip is lower than the most recent local chain's tip, and
+        auto-connect is enabled, we switch to a different interface.
+        If the tip is not known, we switch to BACKWARD or CATCH_UP mode, depending
+        on the height of the local tip.
+        """
+
         BACKWARD = "backward"
+        """The interface is switched to this mode from DEFAULT when the server sends its
+        tip and it does not connect to any local chain, and the most advanced local
+        chain is newer than the checkpointed block height.
+        It is switched to this mode from CATCH_UP when the next block does not connect.
+
+        We will then request the header with the same height as the local tip or the
+        previous header from the server tip (whichever one has the lowest height).
+
+        If it does not match one of our local headers or connect to their tip, we
+        keep requesting lower block heights with an increasing step until we can either
+        connect the header or we reach the checkpoint block.
+
+        If the block at the checkpoint height served by this interface does not
+        connect, we disconnect the interface.
+
+        If we find a connecting header, the interface switches to BINARY mode.
+        """
+
         BINARY = "binary"
+        """The server switches to this mode when it was previously in BACKWARD mode and
+        found a connecting header.
+        In this mode, we move forward, bisecting the chain until we find the block
+        height at which the next header is not present in the local chain
+        currently used by the interface.
+
+        We then check if we can connect the next header to any local branch. If we
+        can't, we disconnect the interface.
+
+        If we can, and we already have local forking branch starting at the next height,
+        we check if the next header exists in that branch, and if it does we switch back
+        to DEFAULT mode (joining chain).
+
+        If we have a branch at this next height without the header, we check if the
+        parent header exists in the parent branch. If it does, we replace the
+        interface's chain with the parent chain and switch back to DEFAULT_MODE (reorg).
+
+        If we have a branch at this next height but the next header does not match its
+        first header and the current header is not in the parent branch, we overwrite
+        the existing branch with a new fork and switch to CATCH_UP mode (conflict with
+        existing fork).
+
+        If we don't already have a branch with this base height, and the interface's
+        chain tip is higher,  we add a new fork to the interface's chain and switch to
+        CATCH_UP mode to build on top of that fork. If the interface's chain tip is at
+        the same height as the last good header, we just switch to CATCH_UP mode and
+        keep building on that chain.
+        """
+
         CATCH_UP = "catch_up"
+        """We switch to catch-up mode if the interface sends us a non-connecting tip
+        and the local chains all have a lower height than the checkpoint block, or if
+        just found a good header to build on top of while in BINARY mode.
+
+        In that mode, we request chunks of 2016 headers and add them to the interface's
+        local chain until it reaches the same tip as the interface, then we switch
+        to DEFAULT mode.
+        If we can't connect a received header, we switch to BACKWARD mode.
+        """
+
         VERIFICATION = "verification"
+        """A new interface starts in this mode. If we have not previously verified the
+        checkpoint for this server, it is done when the server replies to
+        blockchain.headers.subscribe. The interface is disconnected if the verification
+        fails. If the verification succeeds or was already done previously (not the
+        first time we connect to it), we switch to DEFAULT mode.
+        """
 
     def __init__(
         self,
