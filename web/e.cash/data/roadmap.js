@@ -96,7 +96,7 @@ export const roadmap = [
                 status: 'underway',
             },
             {
-                title: 'Zero-Knowledge Subchain',
+                title: 'Zero-Knowledge Subnet',
                 description: 'bulletproof privacy',
                 status: 'planning',
             },
@@ -132,7 +132,7 @@ export const roadmap = [
                 status: 'complete',
             },
             {
-                title: 'EVM Subchain',
+                title: 'EVM Subnet',
                 description: 'scalable smart contracts & improved privacy',
                 status: 'planning',
             },
