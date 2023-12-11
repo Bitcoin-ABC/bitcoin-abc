@@ -2013,8 +2013,7 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
 
     m_connman.ForEachNode([&](CNode *pnode) {
         // Build a list of the avalanche peers nodeids
-        if (pnode->m_avalanche_enabled &&
-            (!fQuorumEstablished || !pnode->IsInboundConn())) {
+        if (pnode->m_avalanche_enabled) {
             avanode_ids.push_back(pnode->GetId());
         }
 
@@ -2039,19 +2038,23 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
 
     // Request avalanche addresses from our peers
     for (NodeId avanodeId : avanode_ids) {
-        m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
-            m_connman.PushMessage(pavanode,
-                                  CNetMsgMaker(pavanode->GetCommonVersion())
+        const bool sentGetavaaddr =
+            m_connman.ForNode(avanodeId, [&](CNode *pavanode) {
+                if (!fQuorumEstablished || !pavanode->IsInboundConn()) {
+                    m_connman.PushMessage(
+                        pavanode, CNetMsgMaker(pavanode->GetCommonVersion())
                                       .Make(NetMsgType::GETAVAADDR));
-            PeerRef peer = GetPeerRef(avanodeId);
-            WITH_LOCK(peer->m_addr_token_bucket_mutex,
-                      peer->m_addr_token_bucket += GetMaxAddrToSend());
-            return true;
-        });
+                    PeerRef peer = GetPeerRef(avanodeId);
+                    WITH_LOCK(peer->m_addr_token_bucket_mutex,
+                              peer->m_addr_token_bucket += GetMaxAddrToSend());
+                    return true;
+                }
+                return false;
+            });
 
         // If we have no reason to believe that we need more nodes, only request
         // addresses from one of our peers.
-        if (fQuorumEstablished && !fShouldRequestMoreNodes) {
+        if (sentGetavaaddr && fQuorumEstablished && !fShouldRequestMoreNodes) {
             break;
         }
     }
@@ -5927,7 +5930,9 @@ void PeerManagerImpl::ProcessMessage(
         // quorum is close enough to the other participants.
         g_avalanche->avaproofsSent(nodeid);
 
-        if (pfrom.IsAvalancheOutboundConnection() || pfrom.IsManualConn()) {
+        // Only save remote proofs from stakers
+        if (WITH_LOCK(pfrom.cs_avalanche_pubkey,
+                      return pfrom.m_avalanche_pubkey.has_value())) {
             g_avalanche->withPeerManager(
                 [&remoteProofsStatus, nodeid](avalanche::PeerManager &pm) {
                     for (const auto &[proofid, present] : remoteProofsStatus) {
@@ -7724,10 +7729,12 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
 
     const NodeId nodeid = node.GetId();
 
-    auto saveProofIfOutbound = [](const CNode &node,
-                                  const avalanche::ProofId &proofid,
-                                  const NodeId nodeid) -> bool {
-        if (node.IsAvalancheOutboundConnection() || node.IsManualConn()) {
+    const bool isStaker = WITH_LOCK(node.cs_avalanche_pubkey,
+                                    return node.m_avalanche_pubkey.has_value());
+    auto saveProofIfStaker = [isStaker](const CNode &node,
+                                        const avalanche::ProofId &proofid,
+                                        const NodeId nodeid) -> bool {
+        if (isStaker) {
             LogPrint(BCLog::AVALANCHE, "Saving remote proof %s\n",
                      proofid.ToString());
             return g_avalanche->withPeerManager(
@@ -7745,7 +7752,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
 
         if (AlreadyHaveProof(proofid)) {
             m_proofrequest.ForgetInvId(proofid);
-            saveProofIfOutbound(node, proofid, nodeid);
+            saveProofIfStaker(node, proofid, nodeid);
             return true;
         }
     }
@@ -7787,7 +7794,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
                  nodeid, proofid.ToString());
     }
 
-    saveProofIfOutbound(node, proofid, nodeid);
+    saveProofIfStaker(node, proofid, nodeid);
 
     return true;
 }

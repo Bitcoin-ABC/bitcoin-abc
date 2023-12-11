@@ -64,9 +64,9 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         assert_equal(len(node.getpeerinfo()), 2)
         outbound.nodeid = node.getpeerinfo()[-1]["id"]
 
-        self.log.info("Check we save the remote proofs for our avalanche outbounds")
+        self.log.info("Check we save the remote proofs for our avalanche peers")
 
-        def remoteFromProof(proof, present=True, last_update=now):
+        def remoteFromProof(proof, present=True):
             return {
                 "proofid": uint256_hex(proof.proofid),
                 "present": present,
@@ -82,7 +82,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             lhs, rhs = check_remote_proofs(node, nodeid, remote_proofs)
             assert_equal(lhs, rhs)
 
-        assert_remote_proofs(inbound.nodeid, [])
+        assert_remote_proofs(inbound.nodeid, [remoteFromProof(inbound.proof)])
         assert_remote_proofs(outbound.nodeid, [remoteFromProof(outbound.proof)])
 
         proofs = []
@@ -96,7 +96,10 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         inbound.sync_with_ping()
         outbound.sync_with_ping()
 
-        assert_remote_proofs(inbound.nodeid, [])
+        assert_remote_proofs(
+            inbound.nodeid,
+            [remoteFromProof(proof) for proof in [inbound.proof] + proofs],
+        )
         assert_remote_proofs(
             outbound.nodeid,
             [remoteFromProof(proof) for proof in [outbound.proof] + proofs],
@@ -312,8 +315,12 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
 
         self.wait_until(lambda: node1.getavalancheinfo()["ready_to_poll"] is True)
 
+        # The sending node is not a staker, so it is not acconted for the remote
+        # proofs status.
+        sending_node = AvaP2PInterface()
+        node1.add_p2p_connection(sending_node)
         for proof in proofs:
-            node1_quorum[0].send_avaproof(proof)
+            sending_node.send_avaproof(proof)
             wait_for_proof(node1, uint256_hex(proof.proofid))
             wait_for_finalized_proof(node1, node1_quorum, proof.proofid)
 
