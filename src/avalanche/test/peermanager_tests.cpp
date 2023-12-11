@@ -107,6 +107,10 @@ namespace {
             }
             BOOST_CHECK_EQUAL(pm.peers.size(), 0);
         }
+
+        static void setLocalProof(PeerManager &pm, const ProofRef &proof) {
+            pm.localProof = proof;
+        }
     };
 
     static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
@@ -2578,7 +2582,7 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
              .has_value());
 
     // 50/50 of the stakes
-    for (NodeId nodeid = 0; nodeid < 10; nodeid++) {
+    for (NodeId nodeid = 0; nodeid < 12; nodeid++) {
         auto proof = buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
         BOOST_CHECK(pm.registerProof(proof));
         BOOST_CHECK(pm.addNode(nodeid, proof->getId()));
@@ -2590,18 +2594,38 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
         !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
              .has_value());
 
-    // 90% of the stakes
-    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
-    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+    // ~83% of the stakes
+    for (NodeId nodeid = 0; nodeid < 2; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
+    }
+    for (NodeId nodeid = 2; nodeid < 12; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
     }
     BOOST_CHECK(
         TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
             .value());
 
-    // 10% of the stakes
-    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
-    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+    // Add our local proof so we have < 80% (~77%)
+    auto localProof =
+        buildRandomProof(active_chainstate, MIN_VALID_PROOF_SCORE);
+    TestPeerManager::setLocalProof(pm, localProof);
+    BOOST_CHECK(pm.registerProof(localProof));
+    BOOST_CHECK(
+        !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+             .has_value());
+
+    // Remove the local proof to revert back to ~83%
+    pm.rejectProof(localProof->getId());
+    TestPeerManager::setLocalProof(pm, ProofRef());
+    BOOST_CHECK(
+        TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
+            .value());
+
+    // ~17% of the stakes
+    for (NodeId nodeid = 0; nodeid < 2; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
+    }
+    for (NodeId nodeid = 2; nodeid < 12; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
     }
     BOOST_CHECK(
@@ -2615,18 +2639,22 @@ BOOST_AUTO_TEST_CASE(get_remote_status) {
     // Update the node's proof
     BOOST_CHECK(pm.addNode(0, bigProof->getId()));
 
-    // 90% of the remotes, but < 10% of the stakes => absent
-    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, false));
-    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+    // ~83% of the remotes, but < 10% of the stakes => absent
+    for (NodeId nodeid = 0; nodeid < 2; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
+    }
+    for (NodeId nodeid = 2; nodeid < 12; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
     }
     BOOST_CHECK(
         !TestPeerManager::getRemotePresenceStatus(pm, ProofId(uint256::ZERO))
              .value());
 
-    // 10% of the remotes, but > 90% of the stakes => present
-    BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), 0, true));
-    for (NodeId nodeid = 1; nodeid < 10; nodeid++) {
+    // 17% of the remotes, but > 90% of the stakes => present
+    for (NodeId nodeid = 0; nodeid < 2; nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, true));
+    }
+    for (NodeId nodeid = 2; nodeid < 12; nodeid++) {
         BOOST_CHECK(pm.saveRemoteProof(ProofId(uint256::ZERO), nodeid, false));
     }
     BOOST_CHECK(

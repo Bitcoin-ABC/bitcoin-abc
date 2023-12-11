@@ -1085,13 +1085,50 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
             continue;
         }
 
-        const double score = double(pit->getScore()) / pit->node_count;
+        uint32_t node_count = pit->node_count;
+        if (localProof && pit->getProofId() == localProof->getId()) {
+            // If that's our local proof, account for ourself
+            ++node_count;
+        }
+
+        if (node_count == 0) {
+            // should never happen
+            continue;
+        }
+
+        const double score = double(pit->getScore()) / node_count;
 
         total_score += score;
         if (it->present) {
             present_score += score;
         } else {
             missing_score += score;
+        }
+    }
+
+    if (localProof) {
+        auto &peersByProofid = peers.get<by_proofid>();
+
+        // Do we have a node connected for that proof ?
+        bool present = false;
+        auto pit = peersByProofid.find(proofid);
+        if (pit != peersByProofid.end()) {
+            present = pit->node_count > 0;
+        }
+
+        pit = peersByProofid.find(localProof->getId());
+        if (pit != peersByProofid.end()) {
+            // Also divide by node_count, we can have several nodes even for our
+            // local proof.
+            const double score =
+                double(pit->getScore()) / (1 + pit->node_count);
+
+            total_score += score;
+            if (present) {
+                present_score += score;
+            } else {
+                missing_score += score;
+            }
         }
     }
 
