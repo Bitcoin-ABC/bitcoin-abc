@@ -77,13 +77,17 @@ Installing Service Configuration
 
 ### systemd
 
-The systemd service file expects the bitcoind executable to be located in ~/bitcoin-abc/bin/bitcoind, so make sure to create the directory and move or copy the file before running the following instructions.
+The systemd service file expects the bitcoind executable to be located in
+~/bitcoin-abc/bin/bitcoind, so make sure to create the directory and move or
+copy the file before running the following instructions.
 
-Installing this .service file consists of copying it to the ~/.config/systemd/user directory,
+Installing this .service file consists of copying it to the
+~/.config/systemd/user directory, followed by the command `systemctl --user
+daemon-reload` in order to update the running systemd configuration.
 
-followed by the command `systemctl --user daemon-reload` in order to update the running systemd configuration.
-
-To start bitcoind, run `systemctl --user start bitcoind`, to tell systemd to start bitcoind at bootup run `systemctl --user enable bitcoind`, and to see the current status run `systemctl --user status bitcoind`.
+To start bitcoind, run `systemctl --user start bitcoind`, to tell systemd to
+start bitcoind at bootup run `systemctl --user enable bitcoind`, and to see the
+current status run `systemctl --user status bitcoind`.
 
 ### OpenRC
 
