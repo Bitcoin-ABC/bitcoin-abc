@@ -179,15 +179,6 @@ check_cxx_source_compiles("
 " HAVE_SYSCTL_ARND)
 
 check_cxx_source_compiles("
-    #include <cstdint>
-    #include <type_traits>
-    int main() {
-        static_assert(std::is_same<int8_t, char>::value, \"\");
-        return 0;
-    }
-" CHAR_EQUALS_INT8)
-
-check_cxx_source_compiles("
     #include <sys/types.h>
     #include <type_traits>
     int main() {

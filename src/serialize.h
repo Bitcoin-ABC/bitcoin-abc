@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <cstdint>
 #include <cstring>
 #include <ios>
@@ -224,10 +225,14 @@ template <typename X> const X &ReadWriteAsHelper(const X &x) {
     }                                                                          \
     FORMATTER_METHODS(cls, obj)
 
-#ifndef CHAR_EQUALS_INT8
+// Typically int8_t and char are distinct types, but some systems may define
+// int8_t in terms of char. Forbid serialization of char in the typical case,
+// but allow it if it's the only way to describe an int8_t.
+template <class T>
+concept CharNotInt8 = std::same_as<T, char> && !std::same_as<T, int8_t>;
+
 // char serialization forbidden. Use uint8_t or int8_t
-template <typename Stream> void Serialize(Stream &, char) = delete;
-#endif
+template <typename Stream, CharNotInt8 V> void Serialize(Stream &, V) = delete;
 template <typename Stream> void Serialize(Stream &s, std::byte a) {
     ser_writedata8(s, uint8_t(a));
 }
@@ -265,8 +270,8 @@ template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const int8_t (&a)[N]) {
     s.write(a, N);
 }
-template <typename Stream, size_t N>
-inline void Serialize(Stream &s, const uint8_t (&a)[N]) {
+template <typename Stream, BasicByte B, size_t N>
+void Serialize(Stream &s, const B (&a)[N]) {
     s.write(MakeByteSpan(a));
 }
 template <typename Stream, size_t N>
@@ -277,22 +282,18 @@ template <typename Stream, size_t N>
 inline void Serialize(Stream &s, const std::array<uint8_t, N> &a) {
     s.write(MakeByteSpan(a));
 }
-#ifndef CHAR_EQUALS_INT8
-// char serialization forbidden. Use uint8_t or int8_t
-template <typename Stream> void Unserialize(Stream &, char) = delete;
-template <typename Stream, size_t N>
-inline void Serialize(Stream &s, const char (&a)[N]) {
+template <typename Stream, BasicByte B, std::size_t N>
+void Serialize(Stream &s, const std::array<B, N> &a) {
     s.write(MakeByteSpan(a));
 }
-template <typename Stream, size_t N>
-inline void Serialize(Stream &s, const std::array<char, N> &a) {
-    s.write(MakeByteSpan(a));
-}
-#endif
-template <typename Stream, typename B> void Serialize(Stream &s, Span<B> span) {
-    (void)/* force byte-type */ UCharCast(span.data());
+template <typename Stream, BasicByte B>
+void Serialize(Stream &s, Span<B> span) {
     s.write(AsBytes(span));
 }
+
+// char serialization forbidden. Use uint8_t or int8_t
+template <typename Stream, CharNotInt8 V>
+void Unserialize(Stream &, V) = delete;
 template <typename Stream> void Unserialize(Stream &s, std::byte &a) {
     a = std::byte{ser_readdata8(s)};
 }
@@ -330,28 +331,10 @@ template <typename Stream, size_t N>
 inline void Unserialize(Stream &s, int8_t (&a)[N]) {
     s.read(MakeWritableByteSpan(a));
 }
-template <typename Stream, size_t N>
-inline void Unserialize(Stream &s, uint8_t (&a)[N]) {
+template <typename Stream, BasicByte B, size_t N>
+void Unserialize(Stream &s, B (&a)[N]) {
     s.read(MakeWritableByteSpan(a));
 }
-template <typename Stream, size_t N>
-inline void Unserialize(Stream &s, std::array<int8_t, N> &a) {
-    s.read(a.data(), N);
-}
-template <typename Stream, size_t N>
-inline void Unserialize(Stream &s, std::array<uint8_t, N> &a) {
-    s.read(MakeWritableByteSpan(a));
-}
-#ifndef CHAR_EQUALS_INT8
-template <typename Stream, size_t N>
-inline void Unserialize(Stream &s, char (&a)[N]) {
-    s.read(MakeWritableByteSpan(a));
-}
-template <typename Stream, size_t N>
-inline void Unserialize(Stream &s, std::array<char, N> &a) {
-    s.read(MakeWritableByteSpan(a));
-}
-#endif
 
 template <typename Stream> inline void Serialize(Stream &s, bool a) {
     char f = a;
@@ -361,9 +344,12 @@ template <typename Stream> inline void Unserialize(Stream &s, bool &a) {
     char f = ser_readdata8(s);
     a = f;
 }
-template <typename Stream, typename B>
+template <typename Stream, BasicByte B, std::size_t N>
+void Unserialize(Stream &s, std::array<B, N> &a) {
+    s.read(MakeWritableByteSpan(a));
+}
+template <typename Stream, BasicByte B>
 void Unserialize(Stream &s, Span<B> span) {
-    (void)/* force byte-type */ UCharCast(span.data());
     s.read(AsWritableBytes(span));
 }
 
@@ -909,13 +895,19 @@ void Unserialize(Stream &os, RCUPtr<const T> &p);
  * If none of the specialized versions above matched, default to calling member
  * function.
  */
+template <class T, class Stream>
+concept Serializable = requires(T a, Stream s) { a.Serialize(s); };
 template <typename Stream, typename T>
-inline void Serialize(Stream &os, const T &a) {
+    requires Serializable<T, Stream>
+void Serialize(Stream &os, const T &a) {
     a.Serialize(os);
 }
 
+template <class T, class Stream>
+concept Unserializable = requires(T a, Stream s) { a.Unserialize(s); };
 template <typename Stream, typename T>
-inline void Unserialize(Stream &is, T &&a) {
+    requires Unserializable<T, Stream>
+void Unserialize(Stream &is, T &&a) {
     a.Unserialize(is);
 }
 
