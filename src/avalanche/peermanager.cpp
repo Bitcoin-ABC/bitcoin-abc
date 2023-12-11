@@ -1132,11 +1132,11 @@ PeerManager::getRemotePresenceStatus(const ProofId &proofid) const {
         }
     }
 
-    if (present_score / total_score > 0.8) {
+    if (present_score / total_score > 0.55) {
         return std::make_optional(true);
     }
 
-    if (missing_score / total_score > 0.8) {
+    if (missing_score / total_score > 0.55) {
         return std::make_optional(false);
     }
 
