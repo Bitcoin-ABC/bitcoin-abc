@@ -917,7 +917,8 @@ const SendBCH = ({ passLoadingStatus }) => {
                                 sendBchAddressError ||
                                 isMsgError ||
                                 priceApiError ||
-                                isNaN(formData.value) ? (
+                                (!isOneToManyXECSend &&
+                                    isNaN(formData.value)) ? (
                                     <DisabledButton>Send</DisabledButton>
                                 ) : (
                                     <>
