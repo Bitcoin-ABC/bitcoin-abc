@@ -16,7 +16,7 @@ describe('/blockchain-info', () => {
         console.log('Starting test_runner');
 
         testRunner = spawn(
-            'python',
+            'python3',
             [
                 'test/functional/test_runner.py',
                 // Place the setup in the python file

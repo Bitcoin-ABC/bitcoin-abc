@@ -4,3 +4,4 @@
 # generated files
 /dist
 /docs
+/.nyc_output

@@ -104,6 +104,59 @@ templates:
       mv coverage/coverage.tar.gz "${BUILD_DIR}/"
       rm -rf coverage
 
+  # This template expect the following environment variables to be set:
+  #  - JS_PROJECT_ROOT: the root directory for the js project being tested,
+  #    relative to the repository top level (no trailing /).
+  js-mocha-integration-tests:
+    artifacts:
+      coverage.tar.gz: coverage.tar.gz
+    post_build: |
+      # Convert hyphen separated words to space separated capitalized words
+      project_to_suite() {
+        HYPHEN_SEPARATED=$1
+        WORD_SEPARATED=($(echo "${HYPHEN_SEPARATED//-/ }"))
+        echo "${WORD_SEPARATED[@]^}"
+      }
+
+      PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
+      TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
+
+      pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
+
+      MOCHA_JUNIT_DIR="test_results"
+      MOCHA_JUNIT_PATH="${MOCHA_JUNIT_DIR}/${PROJECT_NAME}-integration-tests-junit.xml"
+      rm -rf "${MOCHA_JUNIT_DIR}" && mkdir -p "${MOCHA_JUNIT_DIR}"
+
+      npm ci
+
+      # Make sure the report is available even if the tests fail
+      move_junit_report() {
+        mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/"
+      }
+      trap "move_junit_report" EXIT
+
+      nyc \
+        --reporter=text \
+        --reporter=lcov \
+        --reporter=teamcity \
+        npm run integration-tests -- \
+          --reporter mocha-junit-reporter \
+          --reporter-options mochaFile="${MOCHA_JUNIT_PATH}" \
+          --reporter-options testsuitesTitle="${TEST_SUITE_NAME} Integration Tests" \
+          --reporter-options rootSuiteTitle="${TEST_SUITE_NAME}"
+
+      # Generate a summary report
+      lcov \
+        --rc lcov_branch_coverage=1 \
+        --summary coverage/lcov.info \
+        > coverage/lcov-report/coverage-summary.txt 2>&1
+
+      pushd coverage/lcov-report
+      tar -czf ../coverage.tar.gz -- *
+      popd
+      mv coverage/coverage.tar.gz "${BUILD_DIR}/"
+      rm -rf coverage
+
 # The build descriptions.
 # If a script is defined, then this will be the only step to run.
 # Otherwise a list of targets can be specified, grouped by parallel runs.
@@ -666,6 +719,19 @@ builds:
       JS_PROJECT_ROOT: modules/chronik-client
     templates:
       - js-mocha
+
+  chronik-client-integration-tests:
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+    targets:
+      - - all
+    runOnDiffRegex:
+      - chronik/
+      - modules/chronik-client/
+    env:
+      JS_PROJECT_ROOT: modules/chronik-client
+    templates:
+      - js-mocha-integration-tests
 
   ecashaddrjs-tests:
     runOnDiffRegex:
