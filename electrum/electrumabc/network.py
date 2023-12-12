@@ -1621,17 +1621,36 @@ class Network(util.DaemonThread):
                     if branch.check_header(interface.bad_header):
                         interface.print_error("joining chain", interface.bad)
                         next_height = None
-                    elif branch.parent().check_header(header):
+                    # The branch.height() == branch.parent().height() case is caused
+                    # by a previous single block reorg due to a server accepting a
+                    # block, then rejecting it after polling Avalanche.
+                    # Prior to Electrum ABC 5.2.10, this was not handled correctly
+                    # and the local chain would end up stuck at the reorg height.
+                    # To get the affected wallets unstuck, don't enter the next block,
+                    # use the "checkpoint conflicts with existing fork" branch.
+                    # This will cause a switch to a new fork which will be filled with
+                    # the latest headers, then we will swap this longer fork with
+                    # the parent chain.
+                    elif (
+                        branch.parent().check_header(header)
+                        and branch.height() != branch.parent().height()
+                    ):
                         interface.print_error("reorg", interface.bad, interface.tip)
                         interface.blockchain = branch.parent()
                         next_height = None
                     else:
                         interface.print_error(
-                            "checkpoint conflicts with existing fork", branch.path()
+                            f"checkpoint conflicts with existing fork {branch.path()},"
+                            f" overwriting the fork"
                         )
                         branch.write(b"", 0)
                         branch.save_header(interface.bad_header)
                         interface.set_mode(Interface.Mode.CATCH_UP)
+                        interface.print_error(
+                            f"switching from chain with base height "
+                            f"{interface.blockchain.base_height} to new branch with "
+                            f"base height {branch.base_height}"
+                        )
                         interface.blockchain = branch
                         next_height = interface.bad + 1
                         interface.blockchain.catch_up = interface.server
