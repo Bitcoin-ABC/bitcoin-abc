@@ -2022,6 +2022,27 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         }
     }
 
+    // This is a staking node
+    if (isAvalancheEnabled(args) && args.IsArgSet("-avaproof")) {
+        if (!args.GetBoolArg("-listen", true)) {
+            return InitError(_("Running a staking node requires accepting "
+                               "inbound connections. Please enable -listen."));
+        }
+        if (args.IsArgSet("-proxy")) {
+            return InitError(_("Running a staking node behind a proxy is not "
+                               "supported. Please disable -proxy."));
+        }
+        if (args.IsArgSet("-i2psam")) {
+            return InitError(_("Running a staking node behind I2P is not "
+                               "supported. Please disable -i2psam."));
+        }
+        if (args.IsArgSet("-onlynet")) {
+            return InitError(
+                _("Restricting the outbound network is not supported when "
+                  "running a staking node. Please disable -onlynet."));
+        }
+    }
+
     return true;
 }
 
