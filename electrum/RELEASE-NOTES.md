@@ -1,5 +1,17 @@
 # Release notes
 
+## Release 5.2.11
+
+- Show a single popup dialog with a progress bar when broadcasting multiple
+  transactions instead of showing one popup per transaction (D14853, D14854).
+- Fix a bug causing the local chain of headers to get stuck and new
+  transactions not showing as verified in the GUI after a single block reorg
+  (D14968, D14944).
+- Fix an error when the user cancelled the password dialog when using the
+  Generate Key button in the Avalanche delegation editor (D14842).
+- Bump the checkpoint to a more recent block (D14972).
+
+
 ## Release 5.2.10
 
 - Don't change the master private key every time the Avalanche proof editor is
