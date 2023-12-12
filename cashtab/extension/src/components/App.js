@@ -42,6 +42,13 @@ import PopOut from 'assets/popout.svg';
 import extension from 'extensionizer';
 import aliasSettings from 'config/alias';
 
+const ExtensionFrame = createGlobalStyle`
+    html, body {
+        min-width: 400px;
+        min-height: 600px;
+    }
+`;
+
 const GlobalStyle = createGlobalStyle`
     *::placeholder {
         color: ${props => props.theme.forms.placeholder} !important;
@@ -546,6 +553,9 @@ const App = () => {
 
     return (
         <ThemeProvider theme={theme}>
+            {process.env.REACT_APP_BUILD_ENV === 'extension' && (
+                <ExtensionFrame />
+            )}
             <GlobalStyle />
             {showApproveAddressShareModal && (
                 <Modal
