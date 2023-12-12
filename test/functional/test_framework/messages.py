@@ -22,7 +22,6 @@ import copy
 import hashlib
 import random
 import socket
-import struct
 import time
 import unittest
 from base64 import b64decode, b64encode
@@ -84,11 +83,11 @@ def ser_compact_size(size: int) -> bytes:
     if size < 253:
         r = size.to_bytes(1, "little")
     elif size < 0x10000:
-        r = struct.pack("<BH", 253, size)
+        r = (253).to_bytes(1, "little") + size.to_bytes(2, "little")
     elif size < 0x100000000:
-        r = struct.pack("<BI", 254, size)
+        r = (254).to_bytes(1, "little") + size.to_bytes(4, "little")
     else:
-        r = struct.pack("<BQ", 255, size)
+        r = (255).to_bytes(1, "little") + size.to_bytes(8, "little")
     return r
 
 
@@ -901,7 +900,8 @@ class AvalancheProof:
         """Compute Bitcoin's 256-bit hash (double SHA-256) of the
         serialized proof data.
         """
-        ss = struct.pack("<Qq", self.sequence, self.expiration)
+        ss = self.sequence.to_bytes(8, "little")
+        ss += self.expiration.to_bytes(8, "little", signed=True)
         ss += ser_string(self.payout_script)
         ss += ser_compact_size(len(self.stakes))
         # Use unsigned stakes
@@ -1758,11 +1758,13 @@ class msg_sendcmpct:
         self.version = version
 
     def deserialize(self, f):
-        self.announce = struct.unpack("<?", f.read(1))[0]
+        self.announce = bool(int.from_bytes(f.read(1), "little"))
         self.version = int.from_bytes(f.read(8), "little")
 
     def serialize(self) -> bytes:
-        return struct.pack("<?", self.announce) + self.version.to_bytes(8, "little")
+        return int(self.announce).to_bytes(1, "little") + self.version.to_bytes(
+            8, "little"
+        )
 
     def __repr__(self):
         return f"msg_sendcmpct(announce={self.announce}, version={self.version})"
