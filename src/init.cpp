@@ -1370,8 +1370,8 @@ void SetupServerArgs(NodeContext &node) {
         "-maxavalancheoutbound",
         strprintf(
             "Set the maximum number of avalanche outbound peers to connect to. "
-            "Note that the -maxconnections option takes precedence (default: "
-            "%u).",
+            "Note that this option takes precedence over the -maxconnections "
+            "option (default: %u).",
             DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS),
         ArgsManager::ALLOW_INT, OptionsCategory::AVALANCHE);
     argsman.AddArg(
@@ -1773,6 +1773,17 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     nUserMaxConnections =
         args.GetIntArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS);
     nMaxConnections = std::max(nUserMaxConnections, 0);
+
+    // -maxavalancheoutbound takes precedence over -maxconnections
+    const int maxAvalancheOutbound = args.GetIntArg(
+        "-maxavalancheoutbound", DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS);
+    if (isAvalancheEnabled(args) && maxAvalancheOutbound > nMaxConnections) {
+        nMaxConnections = std::max(maxAvalancheOutbound, nMaxConnections);
+        // Indicate the value set by the user
+        LogPrintf("Increasing -maxconnections from %d to %d to comply with "
+                  "-maxavalancheoutbound\n",
+                  nUserMaxConnections, nMaxConnections);
+    }
 
     // Trim requested connection counts, to fit into system limitations
     // <int> in std::min<int>(...) to work around FreeBSD compilation issue
@@ -2691,12 +2702,11 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     CConnman::Options connOptions;
     connOptions.nLocalServices = nLocalServices;
     connOptions.nMaxConnections = nMaxConnections;
-    connOptions.m_max_avalanche_outbound = std::min<int64_t>(
+    connOptions.m_max_avalanche_outbound =
         g_avalanche && isAvalancheEnabled(args)
             ? args.GetIntArg("-maxavalancheoutbound",
                              DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
-            : 0,
-        connOptions.nMaxConnections);
+            : 0;
     connOptions.m_max_outbound_full_relay = std::min(
         MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
         connOptions.nMaxConnections - connOptions.m_max_avalanche_outbound);

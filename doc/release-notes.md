@@ -7,9 +7,11 @@ Bitcoin ABC version 0.28.5 is now available from:
 Updated settings
 ----------------
 
-If the `-checkblocks` or `-checklevel` options are explicitly provided by the
-user, but the verification checks cannot be completed due to an insufficient
-dbcache, Bitcoin ABC will now return an error at startup.
+ - If the `-checkblocks` or `-checklevel` options are explicitly provided by the
+   user, but the verification checks cannot be completed due to an insufficient
+   dbcache, Bitcoin ABC will now return an error at startup.
+ - The `-maxavalancheoutbound` option now takes precedence over the
+   `-maxconnections` option.
 
 RPC
 ---
