@@ -290,3 +290,85 @@ export const sendXecVectors = {
         },
     ],
 };
+
+export const getMultisendTargetOutputsVectors = {
+    formedOutputs: [
+        {
+            description: 'Airdrop',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,150\necash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035,50\necash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6,150\necash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj,4400\necash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly,50\necash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m,200`,
+            targetOutputs: [
+                {
+                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    value: 15000,
+                },
+                {
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    value: 5000,
+                },
+                {
+                    address: 'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                    value: 15000,
+                },
+                {
+                    address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    value: 440000,
+                },
+                {
+                    address: 'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                    value: 5000,
+                },
+                {
+                    address: 'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                    value: 20000,
+                },
+            ],
+        },
+        {
+            description:
+                'Multisend format with extra space around address and value',
+            userMultisendInput: `   ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr   ,   150\n   ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035 ,     50       `,
+            targetOutputs: [
+                {
+                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    value: 15000,
+                },
+                {
+                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    value: 5000,
+                },
+            ],
+        },
+        {
+            description: 'One address in multi format',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,150`,
+            targetOutputs: [
+                {
+                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    value: 15000,
+                },
+            ],
+        },
+    ],
+    errors: [
+        {
+            description: 'Invalid multisend input (dust)',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,3`,
+            msg: 'Invalid input for Cashtab multisend tx',
+        },
+        {
+            description: 'Too many decimal places',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,200.123`,
+            msg: 'Invalid input for Cashtab multisend tx',
+        },
+        {
+            description: 'Use of comma as decimal place marker',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,200,12`,
+            msg: 'Invalid input for Cashtab multisend tx',
+        },
+        {
+            description: 'Too many commas on one line',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,200.12,foobar`,
+            msg: 'Invalid input for Cashtab multisend tx',
+        },
+    ],
+};

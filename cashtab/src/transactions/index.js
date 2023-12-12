@@ -5,6 +5,7 @@
 import * as utxolib from '@bitgo/utxo-lib';
 import { coinSelect } from 'ecash-coinselect';
 import cashaddr from 'ecashaddrjs';
+import { isValidMultiSendUserInput } from 'utils/validation';
 
 /**
  * Sign tx inputs
@@ -98,4 +99,34 @@ export const sendXec = async (chronik, wallet, targetOutputs, feeRate) => {
     const response = await chronik.broadcastTx(hex);
 
     return { hex, response };
+};
+
+/**
+ * Get desired target outputs from validated user input for eCash multi-send tx in Cashtab
+ * @param {string} userMultisendInput formData.address from Send.js screen, validated for multi-send
+ * @throws {error} on invalid input
+ * @returns {array} targetOutputs for the sendXec function
+ */
+export const getMultisendTargetOutputs = userMultisendInput => {
+    if (isValidMultiSendUserInput(userMultisendInput) !== true) {
+        throw new Error('Invalid input for Cashtab multisend tx');
+    }
+
+    // User input is validated as a string of
+    // address, value\naddress, value\naddress, value\n
+    const addressValueArray = userMultisendInput.split('\n');
+
+    const targetOutputs = [];
+    for (let addressValueCsvPair of addressValueArray) {
+        const addressValueLineArray = addressValueCsvPair.split(',');
+        const valueXec = parseFloat(addressValueLineArray[1].trim());
+        // targetOutputs expects satoshis at value key
+        const SATOSHIS_PER_XEC = 100;
+        const valueSats = SATOSHIS_PER_XEC * valueXec;
+        targetOutputs.push({
+            address: addressValueLineArray[0].trim(),
+            value: valueSats,
+        });
+    }
+    return targetOutputs;
 };

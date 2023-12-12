@@ -1,11 +1,14 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-import { sendXec } from 'transactions';
+import { sendXec, getMultisendTargetOutputs } from 'transactions';
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
-import { sendXecVectors } from '../fixtures/vectors';
+import {
+    sendXecVectors,
+    getMultisendTargetOutputsVectors,
+} from '../fixtures/vectors';
 
-describe('Improved Cashtab transaction broadcasting functions', () => {
+describe('Improved Cashtab transaction broadcasting function', () => {
     // Unit test for each vector in fixtures for the sendingXecToSingleAddress case
     const { txs, errors } = sendXecVectors;
 
@@ -43,6 +46,32 @@ describe('Improved Cashtab transaction broadcasting functions', () => {
             await expect(
                 sendXec(chronik, wallet, targetOutputs, feeRate),
             ).rejects.toThrow(msg);
+        });
+    });
+});
+
+describe('Forming multisend targetOutputs', () => {
+    // Unit test for each vector in fixtures for the getMultisendTargetOutputs case
+    const { formedOutputs, errors } = getMultisendTargetOutputsVectors;
+
+    // Successfully built and broadcast txs
+    formedOutputs.forEach(async formedOutput => {
+        const { description, userMultisendInput, targetOutputs } = formedOutput;
+        it(`getMultisendTargetOutputs: ${description}`, () => {
+            expect(getMultisendTargetOutputs(userMultisendInput)).toStrictEqual(
+                targetOutputs,
+            );
+        });
+    });
+
+    // Error cases
+    errors.forEach(async error => {
+        const { description, userMultisendInput, msg } = error;
+
+        it(`getMultisendTargetOutputs throws error for: ${description}`, () => {
+            expect(() => getMultisendTargetOutputs(userMultisendInput)).toThrow(
+                msg,
+            );
         });
     });
 });
