@@ -90,9 +90,9 @@ class MainNet(AbstractNet):
     #
     # Consult the ElectrumX documentation for more details.
     VERIFICATION_BLOCK_MERKLE_ROOT = (
-        "33dc6713c2fc5613a4524f1b0039c755e32169e8cec177b41389ebf0b4c07b04"
+        "a2e598719582a014b3e65de4d59288b9f32eab26ef710a3cf8405acbefeb2f4b"
     )
-    VERIFICATION_BLOCK_HEIGHT = 713661
+    VERIFICATION_BLOCK_HEIGHT = 822000
     asert_daa = ASERTDaa()
     # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to
     # the way blockchain.py skips headers after the checkpoint.  So all instances that
