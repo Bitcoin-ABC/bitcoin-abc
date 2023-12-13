@@ -466,15 +466,17 @@ mod tests {
         db::Db,
         index_tx::prepare_indexed_txs,
         io::{
-            group_history::PageNum, BlockTxs, GroupHistoryMemData,
-            GroupHistoryReader, GroupHistoryWriter, TxEntry, TxNum, TxWriter,
-            TxsMemData,
+            group_history::PageNum,
+            merge::{check_for_errors, MERGE_ERROR_LOCK},
+            BlockTxs, GroupHistoryMemData, GroupHistoryReader,
+            GroupHistoryWriter, TxEntry, TxNum, TxWriter, TxsMemData,
         },
         test::{make_value_tx, ser_value, ValueGroup},
     };
 
     #[test]
     fn test_value_group_history() -> Result<()> {
+        let _guard = MERGE_ERROR_LOCK.lock().unwrap();
         abc_rust_error::install();
         let tempdir = tempdir::TempDir::new("chronik-db--group_history")?;
         let mut cfs = Vec::new();
@@ -663,6 +665,10 @@ mod tests {
 
         disconnect_block(&block0)?;
         assert_eq!(read_page(10, 0)?, None);
+
+        drop(db);
+        rocksdb::DB::destroy(&rocksdb::Options::default(), tempdir.path())?;
+        let _ = check_for_errors();
 
         Ok(())
     }

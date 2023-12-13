@@ -391,15 +391,16 @@ mod tests {
         db::{Db, WriteBatch},
         index_tx::prepare_indexed_txs,
         io::{
-            merge::check_for_errors, BlockTxs, SpentByEntry, SpentByError,
-            SpentByMemData, SpentByReader, SpentByWriter, TxEntry, TxWriter,
-            TxsMemData,
+            merge::{check_for_errors, MERGE_ERROR_LOCK},
+            BlockTxs, SpentByEntry, SpentByError, SpentByMemData,
+            SpentByReader, SpentByWriter, TxEntry, TxWriter, TxsMemData,
         },
         test::make_inputs_tx,
     };
 
     #[test]
     fn test_spent_by() -> Result<()> {
+        let _guard = MERGE_ERROR_LOCK.lock().unwrap();
         abc_rust_error::install();
         let tempdir = tempdir::TempDir::new("chronik-db--spent_by")?;
         let mut cfs = Vec::new();
@@ -670,6 +671,10 @@ mod tests {
         disconnect_block(&block0)?;
         assert_eq!(spent_by_reader.by_tx_num(0)?, None);
         assert_eq!(spent_by_reader.by_tx_num(1)?, None);
+
+        drop(db);
+        rocksdb::DB::destroy(&rocksdb::Options::default(), tempdir.path())?;
+        let _ = check_for_errors();
 
         Ok(())
     }

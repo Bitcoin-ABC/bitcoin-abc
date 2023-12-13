@@ -12,6 +12,9 @@ use rocksdb::MergeOperands;
 
 static MERGE_ERROR: Mutex<Option<Report>> = Mutex::new(None);
 
+#[cfg(test)]
+pub(crate) static MERGE_ERROR_LOCK: Mutex<()> = Mutex::new(());
+
 /// Check if a previous merge had any errors and throw it if so.
 ///
 /// There's an unfornate corollary of RocksDB's merge: Failure in a merge is
@@ -110,7 +113,7 @@ mod tests {
 
     use crate::{
         db::Db,
-        io::merge::{catch_merge_errors, check_for_errors},
+        io::merge::{catch_merge_errors, check_for_errors, MERGE_ERROR_LOCK},
     };
 
     #[derive(Debug, Error, PartialEq, Eq)]
@@ -154,8 +157,9 @@ mod tests {
 
     #[test]
     fn test_catch_merge() -> Result<()> {
+        let _guard = MERGE_ERROR_LOCK.lock().unwrap();
         abc_rust_error::install();
-        let tempdir = tempdir::TempDir::new("chronik-db--group_history")?;
+        let tempdir = tempdir::TempDir::new("chronik-db--catch_merge")?;
         let mut options = rocksdb::Options::default();
         options.set_merge_operator(
             "name",
@@ -236,6 +240,10 @@ mod tests {
                 .downcast::<TestSerMergeError>()?,
             TestSerMergeError,
         );
+
+        drop(db);
+        rocksdb::DB::destroy(&rocksdb::Options::default(), tempdir.path())?;
+        let _ = check_for_errors();
 
         Ok(())
     }
