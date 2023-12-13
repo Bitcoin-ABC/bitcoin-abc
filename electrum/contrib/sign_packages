@@ -1,33 +1,40 @@
 #!/usr/bin/python
+"""Produce the sha256_checksums-X.Y.Z.txt file for a release, and sign the file
+with gpg.
+
+This must be run from the root of the electrum packages (`contrib/sign_packages`)
+and it assumes that all the files for a single release are present in the dist/
+directory.
+"""
 
 import getpass
 import os
+import re
 import subprocess
+import sys
 
 if __name__ == "__main__":
     os.chdir("dist")
     fnames = os.listdir(".")
     version_str = None
     for fname in fnames:
-        if fname.startswith("ElectrumABC-") and fname.endswith(".tar.gz"):
-            version_str = fname[12:17]
+        match = re.match(r"ElectrumABC-(\d+\.\d+\.\d+)\.tar\.gz", fname)
+        if match:
+            version_str = match.group(1)
     if version_str is None:
-        print("Warning: could not find release version number.")
-    else:
-        print("Detected version number: " + version_str)
+        print("Error: could not find release version number.")
+        sys.exit(1)
+
+    print("Detected version number: " + version_str)
 
     proc = subprocess.Popen(["sha256sum", *fnames], stdout=subprocess.PIPE)
     stdout, _ = proc.communicate()
-    fname = (
-        "sha256_checksums"
-        + (("-" + version_str) if version_str is not None else "")
-        + ".txt"
-    )
+    fname = f"sha256_checksums-{version_str}.txt"
     with open(fname, "w") as f:
         f.write(stdout.decode("utf-8"))
     print(f"Checksum file: {fname}")
 
-    password = getpass.getpass("Password:")
+    password = getpass.getpass("GPG password:")
     os.system(f'gpg --sign --detach --passphrase "{password}" {fname}')
     os.chdir("..")
     print(f"Signature file: {fname}.sig")
