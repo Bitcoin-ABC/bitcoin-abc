@@ -501,6 +501,14 @@ export const isValidXecSendAmount = xecSendAmount => {
     if (typeof xecSendAmount !== 'string') {
         return false;
     }
+    // xecSendAmount may only contain numbers and '.', must contain at least 1 char
+    const xecSendAmountFormatRegExp = /^[0-9.]+$/;
+    const xecSendAmountCharCheck =
+        xecSendAmountFormatRegExp.test(xecSendAmount);
+
+    if (!xecSendAmountCharCheck) {
+        return false;
+    }
     if (xecSendAmount.includes('.')) {
         // If you have decimal places
         const decimalCount = xecSendAmount.split('.')[1].length;
@@ -627,14 +635,28 @@ export const isValidMultiSendUserInput = userMultisendInput => {
             return `Remove empty row at line ${i + 1}`;
         }
 
-        const address = inputLines[i].split(',')[0];
+        const addressAndValueThisLine = inputLines[i].split(',');
+
+        const elementsThisLine = addressAndValueThisLine.length;
+
+        if (elementsThisLine < 2) {
+            return `Line ${
+                i + 1
+            } must have address and value, separated by a comma`;
+        } else if (elementsThisLine > 2) {
+            return `Line ${i + 1}: Comma can only separate address and value.`;
+        }
+
+        const address = addressAndValueThisLine[0];
         const isValidAddress = isValidXecAddress(address);
 
         if (!isValidAddress) {
             return `Invalid address "${address}" at line ${i + 1}`;
         }
-        const value = inputLines[i].split(',')[1];
+
+        const value = addressAndValueThisLine[1].trim();
         const isValidValue = isValidXecSendAmount(value);
+
         if (!isValidValue) {
             return `Invalid value ${
                 typeof value === 'string' ? value.trim() : `at line ${i + 1}`

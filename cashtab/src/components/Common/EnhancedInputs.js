@@ -112,6 +112,7 @@ export const AntdFormCss = css`
         text-overflow: ellipsis;
         width: 100%;
         min-width: 1px;
+        font-size: 12px;
     }
     .ant-input-suffix {
         color: ${props => props.theme.lightWhite};

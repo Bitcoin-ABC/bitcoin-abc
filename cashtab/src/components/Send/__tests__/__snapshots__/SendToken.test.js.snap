@@ -33,7 +33,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-eHgmQL jlnegu"
+          className="sc-eHgmQL cFnff"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -156,7 +156,7 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
         </div>
         <br />
         <div
-          className="sc-eHgmQL jlnegu"
+          className="sc-eHgmQL cFnff"
         >
           <div
             className="ant-form-item ant-form-item-with-help"

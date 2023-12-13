@@ -612,6 +612,14 @@ describe('Validation utils', () => {
         const testXecSendAmount = undefined;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
     });
+    it(`isValidXecSendAmount rejects a value including non-numerical characters`, () => {
+        const testXecSendAmount = '12a17';
+        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
+    });
+    it(`isValidXecSendAmount rejects a value including decimal marker that is not a period`, () => {
+        const testXecSendAmount = '12500,17';
+        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
+    });
     it(`isValidEtokenBurnAmount rejects null`, () => {
         const testEtokenBurnAmount = null;
         expect(isValidEtokenBurnAmount(testEtokenBurnAmount)).toBe(false);
@@ -968,24 +976,21 @@ describe('Validation utils', () => {
     it(`isValidMultiSendUserInput accepts correctly formed multisend output`, () => {
         expect(
             isValidMultiSendUserInput(
-                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 22,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
-ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
             ),
         ).toBe(true);
     });
     it(`isValidMultiSendUserInput returns expected error msg for invalid address`, () => {
         expect(
             isValidMultiSendUserInput(
-                `ecash:notValid, 22,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
-ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                `ecash:notValid, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
             ),
         ).toBe(`Invalid address "ecash:notValid" at line 1`);
     });
     it(`isValidMultiSendUserInput returns expected error msg for invalid value (dust)`, () => {
         expect(
             isValidMultiSendUserInput(
-                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
-ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
             ),
         ).toBe(
             `Invalid value 1. Amount must be >= ${(
@@ -996,8 +1001,7 @@ ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
     it(`isValidMultiSendUserInput returns expected error msg for invalid value (too many decimals)`, () => {
         expect(
             isValidMultiSendUserInput(
-                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 10.123,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
-ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 10.123\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
             ),
         ).toBe(
             `Invalid value 10.123. Amount must be >= ${(
@@ -1012,13 +1016,28 @@ ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
     });
     it(`isValidMultiSendUserInput returns expected error msg for extra spaces on a particular line`, () => {
         expect(
-            isValidMultiSendUserInput(`\n,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33,
-ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`),
+            isValidMultiSendUserInput(
+                `\n,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+            ),
         ).toBe(`Remove empty row at line 1`);
     });
     it(`isValidMultiSendUserInput returns expected error for non-string input`, () => {
         expect(isValidMultiSendUserInput(undefined)).toBe(
             `Input must be a string`,
         );
+    });
+    it(`isValidMultiSendUserInput returns expected error msg for input without only an address`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y`,
+            ),
+        ).toBe(`Line 1 must have address and value, separated by a comma`);
+    });
+    it(`isValidMultiSendUserInput returns expected error msg if line has more than one comma`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 170,23`,
+            ),
+        ).toBe(`Line 1: Comma can only separate address and value.`);
     });
 });
