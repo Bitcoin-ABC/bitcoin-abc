@@ -21,12 +21,10 @@ FUZZ_TARGET(kitchen_sink) {
 
     const TransactionError transaction_error =
         fuzzed_data_provider.PickValueInArray<TransactionError>(
-            {TransactionError::OK, TransactionError::MISSING_INPUTS,
-             TransactionError::ALREADY_IN_CHAIN, TransactionError::P2P_DISABLED,
+            {TransactionError::MISSING_INPUTS,
+             TransactionError::ALREADY_IN_CHAIN,
              TransactionError::MEMPOOL_REJECTED,
-             TransactionError::MEMPOOL_ERROR, TransactionError::INVALID_PSBT,
-             TransactionError::PSBT_MISMATCH,
-             TransactionError::SIGHASH_MISMATCH,
+             TransactionError::MEMPOOL_ERROR,
              TransactionError::MAX_FEE_EXCEEDED});
     (void)JSONRPCTransactionError(transaction_error);
     (void)RPCErrorFromTransactionError(transaction_error);

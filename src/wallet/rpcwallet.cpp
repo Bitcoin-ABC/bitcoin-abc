@@ -4414,10 +4414,10 @@ static RPCHelpMan send() {
 
             // Fill transaction with our data and sign
             bool complete = true;
-            const TransactionError err = pwallet->FillPSBT(
+            const auto err = pwallet->FillPSBT(
                 psbtx, complete, SigHashType().withForkId(), true, false);
-            if (err != TransactionError::OK) {
-                throw JSONRPCTransactionError(err);
+            if (err) {
+                throw JSONRPCPSBTError(*err);
             }
 
             CMutableTransaction mtx;
@@ -4615,10 +4615,10 @@ static RPCHelpMan walletprocesspsbt() {
                                    ? true
                                    : request.params[3].get_bool();
             bool complete = true;
-            const TransactionError err = pwallet->FillPSBT(
-                psbtx, complete, nHashType, sign, bip32derivs);
-            if (err != TransactionError::OK) {
-                throw JSONRPCTransactionError(err);
+            const auto err = pwallet->FillPSBT(psbtx, complete, nHashType, sign,
+                                               bip32derivs);
+            if (err) {
+                throw JSONRPCPSBTError(*err);
             }
 
             UniValue result(UniValue::VOBJ);
@@ -4810,11 +4810,11 @@ static RPCHelpMan walletcreatefundedpsbt() {
                                    ? true
                                    : request.params[4].get_bool();
             bool complete = true;
-            const TransactionError err =
+            const auto err =
                 pwallet->FillPSBT(psbtx, complete, SigHashType().withForkId(),
                                   false, bip32derivs);
-            if (err != TransactionError::OK) {
-                throw JSONRPCTransactionError(err);
+            if (err) {
+                throw JSONRPCPSBTError(*err);
             }
 
             // Serialize the PSBT

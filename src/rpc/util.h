@@ -40,6 +40,9 @@ enum class OutputType;
 struct Sections;
 enum ServiceFlags : uint64_t;
 enum class TransactionError;
+namespace common {
+enum class PSBTError;
+} // namespace common
 
 static constexpr bool DEFAULT_RPC_DOC_CHECK{false};
 
@@ -106,6 +109,7 @@ UniValue DescribeAddress(const CTxDestination &dest);
 std::string GetAllOutputTypes();
 
 RPCErrorCode RPCErrorFromTransactionError(TransactionError terr);
+UniValue JSONRPCPSBTError(common::PSBTError err);
 UniValue JSONRPCTransactionError(TransactionError terr,
                                  const std::string &err_string = "");
 

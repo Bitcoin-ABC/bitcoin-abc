@@ -42,6 +42,7 @@
 
 #include <variant>
 
+using common::PSBTError;
 using interfaces::FoundBlock;
 
 const std::map<uint64_t, std::string> WALLET_FLAG_CAVEATS{
@@ -2121,9 +2122,10 @@ bool CWallet::SignTransaction(CMutableTransaction &tx,
     return false;
 }
 
-TransactionError CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
-                                   bool &complete, SigHashType sighash_type,
-                                   bool sign, bool bip32derivs) const {
+std::optional<PSBTError> CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
+                                           bool &complete,
+                                           SigHashType sighash_type, bool sign,
+                                           bool bip32derivs) const {
     LOCK(cs_wallet);
     // Get all of the previous transactions
     for (size_t i = 0; i < psbtx.tx->vin.size(); ++i) {
@@ -2149,10 +2151,10 @@ TransactionError CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
 
     // Fill in information from ScriptPubKeyMans
     for (ScriptPubKeyMan *spk_man : GetAllScriptPubKeyMans()) {
-        TransactionError res =
-            spk_man->FillPSBT(psbtx, sighash_type, sign, bip32derivs);
-        if (res != TransactionError::OK) {
-            return res;
+        const auto error{
+            spk_man->FillPSBT(psbtx, sighash_type, sign, bip32derivs)};
+        if (error) {
+            return error;
         }
     }
 
@@ -2162,7 +2164,7 @@ TransactionError CWallet::FillPSBT(PartiallySignedTransaction &psbtx,
         complete &= PSBTInputSigned(input);
     }
 
-    return TransactionError::OK;
+    return {};
 }
 
 SigningResult CWallet::SignMessage(const std::string &message,

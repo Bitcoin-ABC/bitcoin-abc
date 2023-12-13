@@ -36,6 +36,8 @@
 #include <QSettings>
 #include <QTextDocument>
 
+using common::PSBTError;
+
 SendCoinsDialog::SendCoinsDialog(const PlatformStyle *_platformStyle,
                                  WalletModel *_model, QWidget *parent)
     : QDialog(parent), ui(new Ui::SendCoinsDialog), clientModel(nullptr),
@@ -431,11 +433,11 @@ void SendCoinsDialog::on_sendButton_clicked() {
             CMutableTransaction{*(m_current_transaction->getWtx())};
         PartiallySignedTransaction psbtx(mtx);
         bool complete = false;
-        const TransactionError err = model->wallet().fillPSBT(
+        std::optional<PSBTError> err = model->wallet().fillPSBT(
             SigHashType().withForkId(), false /* sign */,
             true /* bip32derivs */, psbtx, complete);
         assert(!complete);
-        assert(err == TransactionError::OK);
+        assert(!err);
         // Serialize the PSBT
         DataStream ssTx{};
         ssTx << psbtx;

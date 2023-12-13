@@ -88,9 +88,8 @@ BOOST_AUTO_TEST_CASE(psbt_updater_test) {
 
     // Fill transaction with our data
     bool complete = true;
-    BOOST_REQUIRE_EQUAL(
-        m_wallet.FillPSBT(psbtx, complete, SigHashType(), false, true),
-        TransactionError::OK);
+    BOOST_REQUIRE(
+        !m_wallet.FillPSBT(psbtx, complete, SigHashType(), false, true));
 
     // Get the final tx
     DataStream ssTx{};

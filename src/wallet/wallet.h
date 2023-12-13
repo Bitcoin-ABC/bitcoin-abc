@@ -46,6 +46,9 @@
 #include <boost/signals2/signal.hpp>
 
 struct WalletContext;
+namespace common {
+enum class PSBTError;
+} // namespace common
 
 using LoadWalletFn =
     std::function<void(std::unique_ptr<interfaces::Wallet> wallet)>;
@@ -692,7 +695,7 @@ public:
      * @param[in]  bip32derivs whether to fill in bip32 derivation information
      * if available return error
      */
-    TransactionError
+    std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbtx, bool &complete,
              SigHashType sighash_type = SigHashType().withForkId(),
              bool sign = true, bool bip32derivs = true) const;

@@ -6,6 +6,7 @@
 
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/types.h>
 #include <consensus/amount.h>
 #include <key_io.h>
 #include <script/descriptor.h>
@@ -21,6 +22,8 @@
 #include <string_view>
 #include <tuple>
 #include <variant>
+
+using common::PSBTError;
 
 const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
 const std::string EXAMPLE_ADDRESS =
@@ -314,23 +317,33 @@ std::string GetAllOutputTypes() {
     return Join(ret, ", ");
 }
 
+RPCErrorCode RPCErrorFromPSBTError(PSBTError err) {
+    switch (err) {
+        case PSBTError::UNSUPPORTED:
+            return RPC_INVALID_PARAMETER;
+        case PSBTError::SIGHASH_MISMATCH:
+            return RPC_DESERIALIZATION_ERROR;
+        default:
+            break;
+    }
+    return RPC_TRANSACTION_ERROR;
+}
+
 RPCErrorCode RPCErrorFromTransactionError(TransactionError terr) {
     switch (terr) {
         case TransactionError::MEMPOOL_REJECTED:
             return RPC_TRANSACTION_REJECTED;
         case TransactionError::ALREADY_IN_CHAIN:
             return RPC_TRANSACTION_ALREADY_IN_CHAIN;
-        case TransactionError::P2P_DISABLED:
-            return RPC_CLIENT_P2P_DISABLED;
-        case TransactionError::INVALID_PSBT:
-        case TransactionError::PSBT_MISMATCH:
-            return RPC_INVALID_PARAMETER;
-        case TransactionError::SIGHASH_MISMATCH:
-            return RPC_DESERIALIZATION_ERROR;
         default:
             break;
     }
     return RPC_TRANSACTION_ERROR;
+}
+
+UniValue JSONRPCPSBTError(PSBTError err) {
+    return JSONRPCError(RPCErrorFromPSBTError(err),
+                        PSBTErrorString(err).original);
 }
 
 UniValue JSONRPCTransactionError(TransactionError terr,

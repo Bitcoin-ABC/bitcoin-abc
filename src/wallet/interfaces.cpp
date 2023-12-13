@@ -28,6 +28,7 @@
 #include <wallet/spend.h>
 #include <wallet/wallet.h>
 
+using common::PSBTError;
 using interfaces::Chain;
 using interfaces::FoundBlock;
 using interfaces::Handler;
@@ -328,10 +329,10 @@ namespace {
             }
             return {};
         }
-        TransactionError fillPSBT(SigHashType sighash_type, bool sign,
-                                  bool bip32derivs,
-                                  PartiallySignedTransaction &psbtx,
-                                  bool &complete) const override {
+        std::optional<PSBTError> fillPSBT(SigHashType sighash_type, bool sign,
+                                          bool bip32derivs,
+                                          PartiallySignedTransaction &psbtx,
+                                          bool &complete) const override {
             return m_wallet->FillPSBT(psbtx, complete, sighash_type, sign,
                                       bip32derivs);
         }

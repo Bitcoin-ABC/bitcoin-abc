@@ -5,8 +5,24 @@
 #include <util/error.h>
 
 #include <common/system.h>
+#include <common/types.h>
 #include <tinyformat.h>
 #include <util/translation.h>
+using common::PSBTError;
+
+bilingual_str PSBTErrorString(PSBTError err) {
+    switch (err) {
+        case PSBTError::MISSING_INPUTS:
+            return Untranslated("Inputs missing or spent");
+        case PSBTError::SIGHASH_MISMATCH:
+            return Untranslated(
+                "Specified sighash value does not match value stored in PSBT");
+        case PSBTError::UNSUPPORTED:
+            return Untranslated("Signer does not support PSBT");
+            // no default case, so the compiler can warn about missing cases
+    }
+    assert(false);
+}
 
 bilingual_str TransactionErrorString(const TransactionError error) {
     switch (error) {
@@ -16,21 +32,10 @@ bilingual_str TransactionErrorString(const TransactionError error) {
             return Untranslated("Missing inputs");
         case TransactionError::ALREADY_IN_CHAIN:
             return Untranslated("Transaction already in block chain");
-        case TransactionError::P2P_DISABLED:
-            return Untranslated(
-                "Peer-to-peer functionality missing or disabled");
         case TransactionError::MEMPOOL_REJECTED:
             return Untranslated("Transaction rejected by mempool");
         case TransactionError::MEMPOOL_ERROR:
             return Untranslated("Mempool internal error");
-        case TransactionError::INVALID_PSBT:
-            return Untranslated("PSBT is not sane");
-        case TransactionError::PSBT_MISMATCH:
-            return Untranslated(
-                "PSBTs not compatible (different transactions)");
-        case TransactionError::SIGHASH_MISMATCH:
-            return Untranslated(
-                "Specified sighash value does not match existing value");
         case TransactionError::MAX_FEE_EXCEEDED:
             return Untranslated("Fee exceeds maximum configured by user (e.g. "
                                 "-maxtxfee, maxfeerate)");

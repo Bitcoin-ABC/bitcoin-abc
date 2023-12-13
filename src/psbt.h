@@ -561,10 +561,10 @@ bool FinalizeAndExtractPSBT(PartiallySignedTransaction &psbtx,
  *
  * @param[out] out   the combined PSBT, if successful
  * @param[in]  psbtxs the PSBTs to combine
- * @return error (OK if we successfully combined the transactions, other error
- * if they were not compatible)
+ * @return True if we successfully combined the transactions, false if they were
+ * not compatible
  */
-[[nodiscard]] TransactionError
+[[nodiscard]] bool
 CombinePSBTs(PartiallySignedTransaction &out,
              const std::vector<PartiallySignedTransaction> &psbtxs);
 

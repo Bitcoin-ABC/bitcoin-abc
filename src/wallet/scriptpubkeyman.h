@@ -6,6 +6,7 @@
 #define BITCOIN_WALLET_SCRIPTPUBKEYMAN_H
 
 #include <common/signmessage.h>
+#include <common/types.h>
 #include <psbt.h>
 #include <script/descriptor.h>
 #include <script/signingprovider.h>
@@ -283,11 +284,11 @@ public:
      * Adds script and derivation path information to a PSBT, and optionally
      * signs it.
      */
-    virtual TransactionError
+    virtual std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbt,
              SigHashType sighash_type = SigHashType().withForkId(),
              bool sign = true, bool bip32derivs = false) const {
-        return TransactionError::INVALID_PSBT;
+        return common::PSBTError::UNSUPPORTED;
     }
 
     virtual uint256 GetID() const { return uint256(); }
@@ -484,7 +485,7 @@ public:
                     std::map<int, std::string> &input_errors) const override;
     SigningResult SignMessage(const std::string &message, const PKHash &pkhash,
                               std::string &str_sig) const override;
-    TransactionError
+    std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbt,
              SigHashType sighash_type = SigHashType().withForkId(),
              bool sign = true, bool bip32derivs = false) const override;
@@ -756,7 +757,7 @@ public:
                     std::map<int, std::string> &input_errors) const override;
     SigningResult SignMessage(const std::string &message, const PKHash &pkhash,
                               std::string &str_sig) const override;
-    TransactionError
+    std::optional<common::PSBTError>
     FillPSBT(PartiallySignedTransaction &psbt,
              SigHashType sighash_type = SigHashType().withForkId(),
              bool sign = true, bool bip32derivs = false) const override;

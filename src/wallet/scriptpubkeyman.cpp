@@ -16,6 +16,8 @@
 #include <util/translation.h>
 #include <wallet/scriptpubkeyman.h>
 
+using common::PSBTError;
+
 //! Value for the first BIP 32 hardened derivation. Can be used as a bit mask
 //! and as a value. See BIP 32 for more details.
 const uint32_t BIP32_HARDENED_KEY_LIMIT = 0x80000000;
@@ -565,7 +567,7 @@ SigningResult LegacyScriptPubKeyMan::SignMessage(const std::string &message,
     return SigningResult::SIGNING_FAILED;
 }
 
-TransactionError
+std::optional<PSBTError>
 LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                                 SigHashType sighash_type, bool sign,
                                 bool bip32derivs) const {
@@ -579,7 +581,7 @@ LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
         // Get the Sighash type
         if (sign && input.sighash_type.getRawSigHashType() > 0 &&
             input.sighash_type != sighash_type) {
-            return TransactionError::SIGHASH_MISMATCH;
+            return PSBTError::SIGHASH_MISMATCH;
         }
 
         if (input.utxo.IsNull()) {
@@ -599,7 +601,7 @@ LegacyScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                          i);
     }
 
-    return TransactionError::OK;
+    return {};
 }
 
 std::unique_ptr<CKeyMetadata>
@@ -2182,7 +2184,7 @@ DescriptorScriptPubKeyMan::SignMessage(const std::string &message,
     return SigningResult::OK;
 }
 
-TransactionError
+std::optional<PSBTError>
 DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                                     SigHashType sighash_type, bool sign,
                                     bool bip32derivs) const {
@@ -2196,7 +2198,7 @@ DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
         // Get the Sighash type
         if (sign && input.sighash_type.getRawSigHashType() > 0 &&
             input.sighash_type != sighash_type) {
-            return TransactionError::SIGHASH_MISMATCH;
+            return PSBTError::SIGHASH_MISMATCH;
         }
 
         // Get the scriptPubKey to know which SigningProvider to use
@@ -2245,7 +2247,7 @@ DescriptorScriptPubKeyMan::FillPSBT(PartiallySignedTransaction &psbtx,
                          psbtx, i);
     }
 
-    return TransactionError::OK;
+    return {};
 }
 
 std::unique_ptr<CKeyMetadata>

@@ -35,7 +35,9 @@ class CTransaction;
 class CWallet;
 enum class FeeReason;
 enum class OutputType;
-enum class TransactionError;
+namespace common {
+enum class PSBTError;
+} // namespace common
 enum isminetype : unsigned int;
 struct CRecipient;
 struct PartiallySignedTransaction;
@@ -188,10 +190,9 @@ public:
                                         bool &in_mempool, int &num_blocks) = 0;
 
     //! Fill PSBT.
-    virtual TransactionError fillPSBT(SigHashType sighash_type, bool sign,
-                                      bool bip32derivs,
-                                      PartiallySignedTransaction &psbtx,
-                                      bool &complete) const = 0;
+    virtual std::optional<common::PSBTError>
+    fillPSBT(SigHashType sighash_type, bool sign, bool bip32derivs,
+             PartiallySignedTransaction &psbtx, bool &complete) const = 0;
 
     //! Get balances.
     virtual WalletBalances getBalances() = 0;
