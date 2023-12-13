@@ -36,6 +36,6 @@ export const socials = [
     },
     {
         name: 'discord',
-        link: 'https://discord.gg/d5EHW3PgTy',
+        link: 'https://discord.gg/ecash-official-852595915159896114',
     },
 ];
