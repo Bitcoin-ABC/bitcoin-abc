@@ -14,7 +14,7 @@ popd
 
 # Check that all tests are included in timing.json
 pushd "${TOPLEVEL}"/test/functional
-NON_TESTS=$(python3 -c 'from test_runner import NON_SCRIPTS; print(" ".join(NON_SCRIPTS))')
+NON_TESTS=$(python3 -c 'from test_runner import NON_TESTS; print(" ".join(NON_TESTS))')
 export NON_TESTS
 EXTRA_PRIVILEGES_TESTS=$(python3 -c 'from test_runner import EXTRA_PRIVILEGES_TESTS; print(" ".join(EXTRA_PRIVILEGES_TESTS))')
 export EXTRA_PRIVILEGES_TESTS
