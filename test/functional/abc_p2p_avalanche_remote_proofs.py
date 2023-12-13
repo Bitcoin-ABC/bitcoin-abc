@@ -49,10 +49,10 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         self.disconnect_nodes(0, 1)
         node = self.nodes[0]
 
-        inbound = get_ava_p2p_interface(self, node)
-
         now = int(time.time())
         node.setmocktime(now)
+
+        inbound = get_ava_p2p_interface(self, node)
 
         outbound = node.add_outbound_p2p_connection(
             AvaP2PInterface(self, node),
