@@ -6,7 +6,6 @@
 
 #include <key.h>
 #include <random.h>
-#include <util/time.h>
 #include <util/translation.h>
 
 namespace kernel {
@@ -20,10 +19,6 @@ util::Result<void> SanityChecks(const Context &) {
     if (!Random_SanityCheck()) {
         return util::Error{Untranslated(
             "OS cryptographic RNG sanity check failure. Aborting.")};
-    }
-
-    if (!ChronoSanityCheck()) {
-        return util::Error{Untranslated("Clock epoch mismatch. Aborting.")};
     }
 
     return {};

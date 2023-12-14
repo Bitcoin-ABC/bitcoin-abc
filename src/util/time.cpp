@@ -5,10 +5,6 @@
 
 #include <util/time.h>
 
-#if defined(HAVE_CONFIG_H)
-#include <config/bitcoin-config.h>
-#endif
-
 #include <compat.h>
 #include <util/check.h>
 #include <util/strencodings.h>
@@ -17,7 +13,6 @@
 
 #include <atomic>
 #include <chrono>
-#include <ctime>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -29,47 +24,6 @@ void UninterruptibleSleep(const std::chrono::microseconds &n) {
 
 //! For testing
 static std::atomic<int64_t> nMockTime(0);
-
-bool ChronoSanityCheck() {
-    // std::chrono::system_clock.time_since_epoch and time_t(0) are not
-    // guaranteed to use the Unix epoch timestamp, prior to C++20, but in
-    // practice they almost certainly will. Any differing behavior will be
-    // assumed to be an error, unless certain platforms prove to consistently
-    // deviate, at which point we'll cope with it by adding offsets.
-
-    // Create a new clock from time_t(0) and make sure that it represents 0
-    // seconds from the system_clock's time_since_epoch. Then convert that back
-    // to a time_t and verify that it's the same as before.
-    const time_t time_t_epoch{};
-    auto clock = std::chrono::system_clock::from_time_t(time_t_epoch);
-    if (std::chrono::duration_cast<std::chrono::seconds>(
-            clock.time_since_epoch())
-            .count() != 0) {
-        return false;
-    }
-
-    time_t time_val = std::chrono::system_clock::to_time_t(clock);
-    if (time_val != time_t_epoch) {
-        return false;
-    }
-
-    // Check that the above zero time is actually equal to the known unix
-    // timestamp.
-    struct tm epoch;
-#ifdef _WIN32
-    if (gmtime_s(&epoch, &time_val) != 0) {
-#else
-    if (gmtime_r(&time_val, &epoch) == nullptr) {
-#endif
-        return false;
-    }
-
-    if ((epoch.tm_sec != 0) || (epoch.tm_min != 0) || (epoch.tm_hour != 0) ||
-        (epoch.tm_mday != 1) || (epoch.tm_mon != 0) || (epoch.tm_year != 70)) {
-        return false;
-    }
-    return true;
-}
 
 NodeClock::time_point NodeClock::now() noexcept {
     const std::chrono::seconds mocktime{
@@ -109,33 +63,41 @@ int64_t GetTime() {
     return GetTime<std::chrono::seconds>().count();
 }
 
+// According to https://en.cppreference.com/w/cpp/chrono/year.html, the
+// valid year range is [-32767, 32767].
+// Rejecting values outside this year range guards against
+// a segfault (obeserved with GCC 13.3.0 + Debug build) for very negative
+// values (e.g. std::numeric_limits<int64_t>::min()), and is consistent
+// with the behavior of std::chrono::year_month_day::ok()
+static bool IsInvalidTimestamp(int64_t nTime) {
+    constexpr int64_t december_31st_32767{971890963199};
+    constexpr int64_t january_1st_minus32767{-1096193779200};
+    return nTime > december_31st_32767 || nTime < january_1st_minus32767;
+}
+
 std::string FormatISO8601DateTime(int64_t nTime) {
-    struct tm ts;
-    time_t time_val = nTime;
-#ifdef _WIN32
-    if (gmtime_s(&ts, &time_val) != 0) {
-#else
-    if (gmtime_r(&time_val, &ts) == nullptr) {
-#endif
+    if (IsInvalidTimestamp(nTime)) {
         return {};
     }
-    return strprintf("%04i-%02i-%02iT%02i:%02i:%02iZ", ts.tm_year + 1900,
-                     ts.tm_mon + 1, ts.tm_mday, ts.tm_hour, ts.tm_min,
-                     ts.tm_sec);
+    const std::chrono::sys_seconds secs{std::chrono::seconds{nTime}};
+    const auto days{std::chrono::floor<std::chrono::days>(secs)};
+    const std::chrono::year_month_day ymd{days};
+    const std::chrono::hh_mm_ss hms{secs - days};
+    return strprintf("%04i-%02u-%02uT%02i:%02i:%02iZ", signed{ymd.year()},
+                     unsigned{ymd.month()}, unsigned{ymd.day()},
+                     hms.hours().count(), hms.minutes().count(),
+                     hms.seconds().count());
 }
 
 std::string FormatISO8601Date(int64_t nTime) {
-    struct tm ts;
-    time_t time_val = nTime;
-#ifdef _WIN32
-    if (gmtime_s(&ts, &time_val) != 0) {
-#else
-    if (gmtime_r(&time_val, &ts) == nullptr) {
-#endif
+    if (IsInvalidTimestamp(nTime)) {
         return {};
     }
-    return strprintf("%04i-%02i-%02i", ts.tm_year + 1900, ts.tm_mon + 1,
-                     ts.tm_mday);
+    const std::chrono::sys_seconds secs{std::chrono::seconds{nTime}};
+    const auto days{std::chrono::floor<std::chrono::days>(secs)};
+    const std::chrono::year_month_day ymd{days};
+    return strprintf("%04i-%02u-%02u", signed{ymd.year()},
+                     unsigned{ymd.month()}, unsigned{ymd.day()});
 }
 
 std::optional<int64_t> ParseISO8601DateTime(std::string_view str) {

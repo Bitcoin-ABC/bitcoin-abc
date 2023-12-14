@@ -381,6 +381,15 @@ BOOST_AUTO_TEST_CASE(util_ParseISO8601DateTime) {
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatISO8601DateTime) {
+    BOOST_CHECK_EQUAL(FormatISO8601DateTime(-1096193779201), "");
+    BOOST_CHECK_EQUAL(FormatISO8601DateTime(-1096193779200),
+                      "-32767-01-01T00:00:00Z");
+    BOOST_CHECK_EQUAL(FormatISO8601DateTime(971890876800),
+                      "32767-12-31T00:00:00Z");
+    BOOST_CHECK_EQUAL(FormatISO8601DateTime(971890963199),
+                      "32767-12-31T23:59:59Z");
+    BOOST_CHECK_EQUAL(FormatISO8601DateTime(971890963200), "");
+
     BOOST_CHECK_EQUAL(FormatISO8601DateTime(-1), "1969-12-31T23:59:59Z");
     BOOST_CHECK_EQUAL(FormatISO8601DateTime(0), "1970-01-01T00:00:00Z");
     BOOST_CHECK_EQUAL(FormatISO8601DateTime(1), "1970-01-01T00:00:01Z");
@@ -391,11 +400,27 @@ BOOST_AUTO_TEST_CASE(util_FormatISO8601DateTime) {
                       "2100-12-31T23:59:59Z");
     BOOST_CHECK_EQUAL(FormatISO8601DateTime(253402300799),
                       "9999-12-31T23:59:59Z");
+
+    BOOST_CHECK_EQUAL(
+        FormatISO8601DateTime(std::numeric_limits<int64_t>::min()), "");
+    BOOST_CHECK_EQUAL(
+        FormatISO8601DateTime(std::numeric_limits<int64_t>::max()), "");
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatISO8601Date) {
+    BOOST_CHECK_EQUAL(FormatISO8601Date(-1096193779201), "");
+    BOOST_CHECK_EQUAL(FormatISO8601Date(-1096193779200), "-32767-01-01");
+    BOOST_CHECK_EQUAL(FormatISO8601Date(971890876800), "32767-12-31");
+    BOOST_CHECK_EQUAL(FormatISO8601Date(971890963199), "32767-12-31");
+    BOOST_CHECK_EQUAL(FormatISO8601Date(971890963200), "");
+
     BOOST_CHECK_EQUAL(FormatISO8601Date(0), "1970-01-01");
     BOOST_CHECK_EQUAL(FormatISO8601Date(1317425777), "2011-09-30");
+
+    BOOST_CHECK_EQUAL(FormatISO8601Date(std::numeric_limits<int64_t>::min()),
+                      "");
+    BOOST_CHECK_EQUAL(FormatISO8601Date(std::numeric_limits<int64_t>::max()),
+                      "");
 }
 
 struct TestArgsManager : public ArgsManager {
