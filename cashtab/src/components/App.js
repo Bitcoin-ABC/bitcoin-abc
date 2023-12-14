@@ -44,6 +44,15 @@ import { checkForTokenById } from 'utils/tokenMethods.js';
 import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
 import aliasSettings from 'config/alias';
 import WebApp from './AppModes/WebApp';
+import Extension from './AppModes/Extension';
+import ExtensionHeader from './Common/ExtensionHeader';
+
+const ExtensionFrame = createGlobalStyle`
+    html, body {
+        min-width: 400px;
+        min-height: 600px;
+    }
+`;
 
 const GlobalStyle = createGlobalStyle`
     *::placeholder {
@@ -408,8 +417,17 @@ const App = () => {
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
-            <ServiceWorkerWrapper />
-            {process.env.REACT_APP_BUILD_ENV !== 'extension' && <WebApp />}
+            {process.env.REACT_APP_BUILD_ENV === 'extension' ? (
+                <>
+                    <ExtensionFrame />
+                    <Extension wallet={wallet} />
+                </>
+            ) : (
+                <>
+                    <ServiceWorkerWrapper />
+                    <WebApp />
+                </>
+            )}
             <Spin
                 spinning={
                     loading ||
@@ -423,7 +441,14 @@ const App = () => {
                     <WalletBody>
                         <WalletCtn>
                             <HeaderCtn>
-                                <CashtabLogo src={Cashtab} alt="cashtab" />
+                                {process.env.REACT_APP_BUILD_ENV ===
+                                'extension' ? (
+                                    <ExtensionHeader
+                                        selectedKey={selectedKey}
+                                    />
+                                ) : (
+                                    <CashtabLogo src={Cashtab} alt="cashtab" />
+                                )}
                                 {selectedKey === 'airdrop' && (
                                     <NavHeader>
                                         Airdrop
@@ -443,18 +468,29 @@ const App = () => {
                                         <ThemedSignAndVerifyMsg />
                                     </NavHeader>
                                 )}
-                                {selectedKey === 'swap' && (
-                                    <NavHeader>
-                                        {' '}
-                                        Swap
-                                        <SwapIcon />
-                                    </NavHeader>
+                                {process.env.REACT_APP_BUILD_ENV !==
+                                    'extension' && (
+                                    <>
+                                        {selectedKey === 'swap' && (
+                                            <NavHeader>
+                                                {' '}
+                                                Swap
+                                                <SwapIcon />
+                                            </NavHeader>
+                                        )}
+                                    </>
                                 )}
-                                {/*Begin component not included in extension as desktop only*/}
-                                {hasTab && (
-                                    <EasterEgg src={TabCash} alt="tabcash" />
+                                {process.env.REACT_APP_BUILD_ENV !==
+                                    'extension' && (
+                                    <>
+                                        {hasTab && (
+                                            <EasterEgg
+                                                src={TabCash}
+                                                alt="tabcash"
+                                            />
+                                        )}
+                                    </>
                                 )}
-                                {/*End component not included in extension as desktop only*/}
                             </HeaderCtn>
                             <Switch>
                                 <Route path="/wallet">
@@ -518,9 +554,12 @@ const App = () => {
                                         }
                                     />
                                 </Route>
-                                <Route path="/swap">
-                                    <Swap />
-                                </Route>
+                                {process.env.REACT_APP_BUILD_ENV !==
+                                    'extension' && (
+                                    <Route path="/swap">
+                                        <Swap />
+                                    </Route>
+                                )}
                                 <Redirect exact from="/" to="/wallet" />
                                 <Route component={NotFound} />
                             </Switch>
@@ -563,16 +602,19 @@ const App = () => {
                                             <p>Airdrop</p>
                                             <AirdropIcon />
                                         </NavItem>
-                                        <NavItem
-                                            active={selectedKey === 'swap'}
-                                            onClick={() =>
-                                                history.push('/swap')
-                                            }
-                                        >
-                                            {' '}
-                                            <p>Swap</p>
-                                            <SwapIcon />
-                                        </NavItem>
+                                        {process.env.REACT_APP_BUILD_ENV !==
+                                            'extension' && (
+                                            <NavItem
+                                                active={selectedKey === 'swap'}
+                                                onClick={() =>
+                                                    history.push('/swap')
+                                                }
+                                            >
+                                                {' '}
+                                                <p>Swap</p>
+                                                <SwapIcon />
+                                            </NavItem>
+                                        )}
                                         <NavItem
                                             active={
                                                 selectedKey === 'signverifymsg'
