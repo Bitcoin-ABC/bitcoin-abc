@@ -28,6 +28,8 @@ hiddenimports += collect_submodules('smartcard')   # Satochip
 
 datas = [
     (home+'electrumabc/currencies.json', PYPKG),
+    (home+'electrumabc/checkpoint.json', PYPKG),
+    (home+'electrumabc/checkpoint_testnet.json', PYPKG),
     (home+'electrumabc/servers.json', PYPKG),
     (home+'electrumabc/servers_testnet.json', PYPKG),
     (home+'electrumabc/servers_regtest.json', PYPKG),

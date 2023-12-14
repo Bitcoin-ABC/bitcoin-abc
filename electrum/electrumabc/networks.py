@@ -89,10 +89,10 @@ class MainNet(AbstractNet):
     #    network.synchronous_get(("blockchain.block.header", [height, height]))
     #
     # Consult the ElectrumX documentation for more details.
-    VERIFICATION_BLOCK_MERKLE_ROOT = (
-        "a2e598719582a014b3e65de4d59288b9f32eab26ef710a3cf8405acbefeb2f4b"
-    )
-    VERIFICATION_BLOCK_HEIGHT = 822000
+    checkpoint_data = _read_json_dict("checkpoint.json")
+    VERIFICATION_BLOCK_HEIGHT = checkpoint_data["height"]
+    VERIFICATION_BLOCK_MERKLE_ROOT = checkpoint_data["merkle_root"]
+
     asert_daa = ASERTDaa()
     # Note: We *must* specify the anchor if the checkpoint is after the anchor, due to
     # the way blockchain.py skips headers after the checkpoint.  So all instances that
@@ -133,10 +133,10 @@ class TestNet(AbstractNet):
         "00000000000e38fef93ed9582a7df43815d5c2ba9fd37ef70c9a0ea4a285b8f5"
     )
 
-    VERIFICATION_BLOCK_MERKLE_ROOT = (
-        "3f8ec0f193d3213a23812e688309a8547da64b48d424dd122bd930c5f061148b"
-    )
-    VERIFICATION_BLOCK_HEIGHT = 1477500
+    checkpoint_data = _read_json_dict("checkpoint_testnet.json")
+    VERIFICATION_BLOCK_HEIGHT = checkpoint_data["height"]
+    VERIFICATION_BLOCK_MERKLE_ROOT = checkpoint_data["merkle_root"]
+
     asert_daa = ASERTDaa()
     asert_daa.anchor = Anchor(height=1421481, bits=486604799, prev_time=1605445400)
 

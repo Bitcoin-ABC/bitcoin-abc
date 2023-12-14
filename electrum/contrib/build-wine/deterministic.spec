@@ -45,6 +45,8 @@ binaries += [('C:/python*/Lib/site-packages/smartcard/scard/_scard.cp*-win32.pyd
 
 datas = [
     (home+'electrumabc/currencies.json', 'electrumabc'),
+    (home+'electrumabc/checkpoint.json', 'electrumabc'),
+    (home+'electrumabc/checkpoint_testnet.json', 'electrumabc'),
     (home+'electrumabc/servers.json', 'electrumabc'),
     (home+'electrumabc/servers_testnet.json', 'electrumabc'),
     (home+'electrumabc/servers_regtest.json', 'electrumabc'),

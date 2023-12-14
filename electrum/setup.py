@@ -202,6 +202,8 @@ setup(
     ],
     package_data={
         "electrumabc": [
+            "checkpoint.json",
+            "checkpoint_testnet.json",
             "servers.json",
             "servers_testnet.json",
             "servers_regtest.json",
