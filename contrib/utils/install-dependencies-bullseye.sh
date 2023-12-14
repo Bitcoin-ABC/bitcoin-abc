@@ -75,7 +75,6 @@ PACKAGES=(
   python3-setuptools
   python3-yaml
   python3-zmq
-  qemu-user-static
   qttools5-dev
   qttools5-dev-tools
   shellcheck
@@ -99,6 +98,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y $(join_by ' ' "${PACKAGES[@]}"
 
 BACKPORTS=(
   git-filter-repo
+  qemu-user-static
 )
 
 echo "deb http://deb.debian.org/debian bullseye-backports main" | tee -a /etc/apt/sources.list
