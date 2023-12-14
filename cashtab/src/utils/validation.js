@@ -647,7 +647,7 @@ export const isValidMultiSendUserInput = userMultisendInput => {
             return `Line ${i + 1}: Comma can only separate address and value.`;
         }
 
-        const address = addressAndValueThisLine[0];
+        const address = addressAndValueThisLine[0].trim();
         const isValidAddress = isValidXecAddress(address);
 
         if (!isValidAddress) {

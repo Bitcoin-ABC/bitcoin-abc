@@ -980,6 +980,13 @@ describe('Validation utils', () => {
             ),
         ).toBe(true);
     });
+    it(`isValidMultiSendUserInput accepts correctly formed multisend output even if address has extra spaces`, () => {
+        expect(
+            isValidMultiSendUserInput(
+                `   ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr   , 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+            ),
+        ).toBe(true);
+    });
     it(`isValidMultiSendUserInput returns expected error msg for invalid address`, () => {
         expect(
             isValidMultiSendUserInput(

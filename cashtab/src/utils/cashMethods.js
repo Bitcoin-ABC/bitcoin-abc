@@ -707,8 +707,9 @@ export const generateTxOutput = (
             let arrayLength = destinationAddressAndValueArray.length;
             for (let i = 0; i < arrayLength; i++) {
                 // add each send tx from the array as an output
-                let outputAddress =
-                    destinationAddressAndValueArray[i].split(',')[0];
+                let outputAddress = destinationAddressAndValueArray[i]
+                    .split(',')[0]
+                    .trim();
                 let outputValue = new BigNumber(
                     destinationAddressAndValueArray[i].split(',')[1],
                 );
