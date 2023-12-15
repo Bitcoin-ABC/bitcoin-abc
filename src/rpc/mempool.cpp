@@ -699,11 +699,11 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
                (int64_t)pool.GetTotalFinalizedTxSigchecks());
     ret.pushKV("usage", (int64_t)pool.DynamicMemoryUsage());
     ret.pushKV("total_fee", pool.GetTotalFee());
-    ret.pushKV("maxmempool", pool.m_max_size_bytes);
+    ret.pushKV("maxmempool", pool.m_opts.max_size_bytes);
     ret.pushKV(
         "mempoolminfee",
-        std::max(pool.GetMinFee(), pool.m_min_relay_feerate).GetFeePerK());
-    ret.pushKV("minrelaytxfee", pool.m_min_relay_feerate.GetFeePerK());
+        std::max(pool.GetMinFee(), pool.m_opts.min_relay_feerate).GetFeePerK());
+    ret.pushKV("minrelaytxfee", pool.m_opts.min_relay_feerate.GetFeePerK());
     ret.pushKV("unbroadcastcount", uint64_t{pool.GetUnbroadcastTxs().size()});
     return ret;
 }

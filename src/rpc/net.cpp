@@ -820,7 +820,7 @@ static RPCHelpMan getnetworkinfo() {
                 // This field can be deprecated, to be replaced by the
                 // getmempoolinfo fields
                 obj.pushKV("relayfee",
-                           node.mempool->m_min_relay_feerate.GetFeePerK());
+                           node.mempool->m_opts.min_relay_feerate.GetFeePerK());
             }
             UniValue localAddresses(UniValue::VARR);
             {

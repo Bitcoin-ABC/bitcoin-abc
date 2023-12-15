@@ -81,8 +81,8 @@ bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
                 opts.apply_fee_delta_priority) {
                 pool.PrioritiseTransaction(tx->GetId(), amountdelta);
             }
-            if (nTime >
-                TicksSinceEpoch<std::chrono::seconds>(now - pool.m_expiry)) {
+            if (nTime > TicksSinceEpoch<std::chrono::seconds>(
+                            now - pool.m_opts.expiry)) {
                 LOCK(cs_main);
                 const auto &accepted =
                     AcceptToMemoryPool(active_chainstate, tx, nTime,

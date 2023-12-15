@@ -116,17 +116,11 @@ void CTxMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove) {
     }
 }
 
-CTxMemPool::CTxMemPool(const Config &config, const Options &opts)
-    : m_check_ratio(opts.check_ratio),
-      m_finalizedTxsFitter(node::BlockFitter(config)),
+CTxMemPool::CTxMemPool(const Config &config, Options opts)
+    : m_finalizedTxsFitter(node::BlockFitter(config)),
       m_orphanage(std::make_unique<TxOrphanage>()),
       m_conflicting(std::make_unique<TxConflicting>()),
-      m_max_size_bytes{opts.max_size_bytes}, m_expiry{opts.expiry},
-      m_min_relay_feerate{opts.min_relay_feerate},
-      m_dust_relay_feerate{opts.dust_relay_feerate},
-      m_permit_bare_multisig{opts.permit_bare_multisig},
-      m_max_datacarrier_bytes{opts.max_datacarrier_bytes},
-      m_require_standard{opts.require_standard}, m_signals{opts.signals} {
+      m_opts{std::move(opts)} {
     // lock free clear
     _clear();
 }
@@ -205,13 +199,13 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     const TxId &txid = (*it)->GetTx().GetId();
 
     if (reason != MemPoolRemovalReason::BLOCK) {
-        if (m_signals) {
+        if (m_opts.signals) {
             // Notify clients that a transaction has been removed from the
             // mempool for any reason except being included in a block. Clients
             // interested in transactions included in blocks can subscribe to
             // the BlockConnected notification.
-            m_signals->TransactionRemovedFromMempool((*it)->GetSharedTx(),
-                                                     reason, mempool_sequence);
+            m_opts.signals->TransactionRemovedFromMempool(
+                (*it)->GetSharedTx(), reason, mempool_sequence);
         }
 
         if (auto removed_tx = finalizedTxs.remove(txid)) {
@@ -392,11 +386,11 @@ void CTxMemPool::clear(bool include_finalized_txs) {
 
 void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
                        int64_t spendheight) const {
-    if (m_check_ratio == 0) {
+    if (m_opts.check_ratio == 0) {
         return;
     }
 
-    if (FastRandomContext().randrange(m_check_ratio) >= 1) {
+    if (FastRandomContext().randrange(m_opts.check_ratio) >= 1) {
         return;
     }
 
@@ -643,8 +637,9 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
             finalizedTxIds.push_back((*ancestor_it)->GetTx().GetId());
 
-            if (m_signals) {
-                m_signals->TransactionFinalized((*ancestor_it)->GetSharedTx());
+            if (m_opts.signals) {
+                m_opts.signals->TransactionFinalized(
+                    (*ancestor_it)->GetSharedTx());
             }
         }
     }
@@ -705,7 +700,7 @@ CFeeRate CTxMemPool::estimateFee() const {
     // may disagree with the rollingMinimumFeerate under certain scenarios
     // where the mempool  increases rapidly, or blocks are being mined which
     // do not contain propagated transactions.
-    return std::max(m_min_relay_feerate, GetMinFee());
+    return std::max(m_opts.min_relay_feerate, GetMinFee());
 }
 
 void CTxMemPool::PrioritiseTransaction(const TxId &txid,
@@ -884,14 +879,14 @@ int CTxMemPool::Expire(std::chrono::seconds time) {
 void CTxMemPool::LimitSize(CCoinsViewCache &coins_cache) {
     AssertLockHeld(::cs_main);
     AssertLockHeld(cs);
-    int expired = Expire(GetTime<std::chrono::seconds>() - m_expiry);
+    int expired = Expire(GetTime<std::chrono::seconds>() - m_opts.expiry);
     if (expired != 0) {
         LogPrint(BCLog::MEMPOOL,
                  "Expired %i transactions from the memory pool\n", expired);
     }
 
     std::vector<COutPoint> vNoSpendsRemaining;
-    TrimToSize(m_max_size_bytes, &vNoSpendsRemaining);
+    TrimToSize(m_opts.max_size_bytes, &vNoSpendsRemaining);
     for (const COutPoint &removed : vNoSpendsRemaining) {
         coins_cache.Uncache(removed);
     }

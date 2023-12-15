@@ -308,7 +308,7 @@ namespace {
             if (!m_context->mempool) {
                 return CFeeRate{DUST_RELAY_TX_FEE};
             }
-            return m_context->mempool->m_dust_relay_feerate;
+            return m_context->mempool->m_opts.dust_relay_feerate;
         }
         UniValue executeRpc(const Config &config, const std::string &command,
                             const UniValue &params,
@@ -709,13 +709,13 @@ namespace {
             if (!m_node.mempool) {
                 return CFeeRate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB};
             }
-            return m_node.mempool->m_min_relay_feerate;
+            return m_node.mempool->m_opts.min_relay_feerate;
         }
         CFeeRate relayDustFee() override {
             if (!m_node.mempool) {
                 return CFeeRate{DUST_RELAY_TX_FEE};
             }
-            return m_node.mempool->m_dust_relay_feerate;
+            return m_node.mempool->m_opts.dust_relay_feerate;
         }
         bool havePruned() override {
             LOCK(cs_main);

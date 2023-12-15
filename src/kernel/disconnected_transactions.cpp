@@ -47,7 +47,7 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
         txInfo.try_emplace(e->GetTx().GetId(), e->GetTime(),
                            e->GetModifiedFee() - e->GetFee(), e->GetHeight());
     }
-    if (pool.m_signals) {
+    if (pool.m_opts.signals) {
         for (const CTxMemPoolEntryRef &e :
              reverse_iterate(pool.mapTx.get<entry_id>())) {
             // Notify all observers of this (possibly temporary) removal. This
@@ -56,7 +56,7 @@ void DisconnectedBlockTransactions::importMempool(CTxMemPool &pool) {
             // parent. Transactions that are added back to the mempool will
             // trigger another notification. Make sure to notify in reverse
             // topological order, children first.
-            pool.m_signals->TransactionRemovedFromMempool(
+            pool.m_opts.signals->TransactionRemovedFromMempool(
                 e->GetSharedTx(), MemPoolRemovalReason::REORG,
                 pool.GetAndIncrementSequence());
         }

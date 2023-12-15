@@ -498,7 +498,7 @@ void TestChain100Setup::MockMempoolMinFee(const CFeeRate &target_feerate) {
     assert(target_feerate > MEMPOOL_FULL_FEE_INCREMENT);
     // ...otherwise this is not meaningful. The feerate policy uses the maximum
     // of both feerates.
-    assert(target_feerate > m_node.mempool->m_min_relay_feerate);
+    assert(target_feerate > m_node.mempool->m_opts.min_relay_feerate);
 
     // Manually create an invalid transaction. Manually set the fee in the
     // CTxMemPoolEntry to achieve the exact target feerate.

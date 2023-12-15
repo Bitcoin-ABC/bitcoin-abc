@@ -221,8 +221,6 @@ std::string RemovalReasonToString(const MemPoolRemovalReason &r) noexcept;
  */
 class CTxMemPool {
 private:
-    //! Value n means that 1 times in n we check.
-    const int m_check_ratio;
     //! Used by getblocktemplate to trigger CreateNewBlock() invocation
     std::atomic<uint32_t> nTransactionsUpdated{0};
 
@@ -352,15 +350,7 @@ public:
 
     using Options = kernel::MemPoolOptions;
 
-    const int64_t m_max_size_bytes;
-    const std::chrono::seconds m_expiry;
-    const CFeeRate m_min_relay_feerate;
-    const CFeeRate m_dust_relay_feerate;
-    const bool m_permit_bare_multisig;
-    const std::optional<unsigned> m_max_datacarrier_bytes;
-    const bool m_require_standard;
-
-    ValidationSignals *const m_signals;
+    const Options m_opts;
 
     /**
      * Create a new CTxMemPool.
@@ -368,7 +358,7 @@ public:
      * accepting transactions becomes O(N^2) where N is the number of
      * transactions in the pool.
      */
-    CTxMemPool(const Config &config, const Options &opts);
+    CTxMemPool(const Config &config, Options opts);
     ~CTxMemPool();
 
     /**
@@ -463,7 +453,7 @@ public:
      * The minimum fee to get into the mempool, which may itself not be enough
      * for larger-sized transactions.
      */
-    CFeeRate GetMinFee() const { return GetMinFee(m_max_size_bytes); }
+    CFeeRate GetMinFee() const { return GetMinFee(m_opts.max_size_bytes); }
     CFeeRate GetMinFee(size_t sizelimit) const;
 
     /**

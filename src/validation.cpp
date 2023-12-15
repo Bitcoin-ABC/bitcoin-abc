@@ -551,12 +551,14 @@ private:
 
         // Do not change this to use virtualsize without coordinating a network
         // policy upgrade.
-        if (package_fee < m_pool.m_min_relay_feerate.GetFee(package_size)) {
+        if (package_fee <
+            m_pool.m_opts.min_relay_feerate.GetFee(package_size)) {
             return state.Invalid(
                 TxValidationResult::TX_PACKAGE_RECONSIDERABLE,
                 "min relay fee not met",
-                strprintf("%d < %d", package_fee,
-                          m_pool.m_min_relay_feerate.GetFee(package_size)));
+                strprintf(
+                    "%d < %d", package_fee,
+                    m_pool.m_opts.min_relay_feerate.GetFee(package_size)));
         }
 
         return true;
@@ -598,10 +600,10 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     // Rather not work on nonstandard transactions (unless -testnet)
     std::string reason;
-    if (m_pool.m_require_standard &&
-        !IsStandardTx(tx, m_pool.m_max_datacarrier_bytes,
-                      m_pool.m_permit_bare_multisig,
-                      m_pool.m_dust_relay_feerate, reason)) {
+    if (m_pool.m_opts.require_standard &&
+        !IsStandardTx(tx, m_pool.m_opts.max_datacarrier_bytes,
+                      m_pool.m_opts.permit_bare_multisig,
+                      m_pool.m_opts.dust_relay_feerate, reason)) {
         return state.Invalid(TxValidationResult::TX_NOT_STANDARD, reason);
     }
 
@@ -713,7 +715,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     }
 
     // Check for non-standard pay-to-script-hash in inputs
-    if (m_pool.m_require_standard &&
+    if (m_pool.m_opts.require_standard &&
         !AreInputsStandard(tx, m_view, ws.m_next_block_script_verify_flags)) {
         return state.Invalid(TxValidationResult::TX_INPUTS_NOT_STANDARD,
                              "bad-txns-nonstandard-inputs");
@@ -751,14 +753,14 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     // could disappear due to a replacement.
     if (!bypass_limits &&
         ws.m_modified_fees <
-            m_pool.m_min_relay_feerate.GetFee(ws.m_ptx->GetTotalSize())) {
+            m_pool.m_opts.min_relay_feerate.GetFee(ws.m_ptx->GetTotalSize())) {
         // Even though this is a fee-related failure, this result is
         // TX_MEMPOOL_POLICY, not TX_PACKAGE_RECONSIDERABLE, because it cannot
         // be bypassed using package validation.
         return state.Invalid(
             TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
             strprintf("%d < %d", ws.m_modified_fees,
-                      m_pool.m_min_relay_feerate.GetFee(nSize)));
+                      m_pool.m_opts.min_relay_feerate.GetFee(nSize)));
     }
     // No individual transactions are allowed below the mempool min feerate
     // except from disconnected blocks and transactions in a package. Package
@@ -831,8 +833,8 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     auto spentCoins = GetSpentCoins(ws.m_ptx, m_view);
     Assume(spentCoins.has_value());
 
-    if (m_pool.m_signals) {
-        m_pool.m_signals->TransactionAddedToMempool(
+    if (m_pool.m_opts.signals) {
+        m_pool.m_opts.signals->TransactionAddedToMempool(
             ws.m_ptx,
             // Spent coins should never be null, but better be safe than sorry.
             spentCoins.has_value() ? std::make_shared<const std::vector<Coin>>(
@@ -941,7 +943,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
                                        ATMPArgs &args) {
     AssertLockHeld(cs_main);
     // mempool "read lock" (held through
-    // m_pool.m_signals->TransactionAddedToMempool())
+    // m_pool.m_opts.signals->TransactionAddedToMempool())
     LOCK(m_pool.cs);
 
     const CBlockIndex *tip = m_active_chainstate.m_chain.Tip();
@@ -2564,9 +2566,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
 CoinsCacheSizeState Chainstate::GetCoinsCacheSizeState() {
     AssertLockHeld(::cs_main);
-    return this->GetCoinsCacheSizeState(m_coinstip_cache_size_bytes,
-                                        m_mempool ? m_mempool->m_max_size_bytes
-                                                  : 0);
+    return this->GetCoinsCacheSizeState(
+        m_coinstip_cache_size_bytes,
+        m_mempool ? m_mempool->m_opts.max_size_bytes : 0);
 }
 
 CoinsCacheSizeState

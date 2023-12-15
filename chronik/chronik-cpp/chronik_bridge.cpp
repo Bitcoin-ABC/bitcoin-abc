@@ -456,7 +456,8 @@ int64_t ChronikBridge::min_relay_feerate_sats_per_kb() const {
         return -1;
     }
 
-    return m_node.mempool->m_min_relay_feerate.GetFeePerK() / Amount::satoshi();
+    return m_node.mempool->m_opts.min_relay_feerate.GetFeePerK() /
+           Amount::satoshi();
 }
 
 bool ChronikBridge::get_feerate_info(std::array<uint8_t, 32> mempool_txid,

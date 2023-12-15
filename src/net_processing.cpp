@@ -7284,9 +7284,9 @@ void PeerManagerImpl::ProcessMessage(
 
                             AddToCompactExtraTransactions(tx);
 
-                            if (m_mempool.m_signals) {
-                                m_mempool.m_signals->TransactionInvalidated(
-                                    tx, spentCoins);
+                            if (m_mempool.m_opts.signals) {
+                                m_mempool.m_opts.signals
+                                    ->TransactionInvalidated(tx, spentCoins);
                             }
                         }
 
@@ -8601,8 +8601,8 @@ void PeerManagerImpl::MaybeSendFeefilter(
     if (current_time > peer.m_next_send_feefilter) {
         Amount filterToSend = m_fee_filter_rounder.round(currentFilter);
         // We always have a fee filter of at least the min relay fee
-        filterToSend =
-            std::max(filterToSend, m_mempool.m_min_relay_feerate.GetFeePerK());
+        filterToSend = std::max(
+            filterToSend, m_mempool.m_opts.min_relay_feerate.GetFeePerK());
         if (filterToSend != peer.m_fee_filter_sent) {
             MakeAndPushMessage(pto, NetMsgType::FEEFILTER, filterToSend);
             peer.m_fee_filter_sent = filterToSend;

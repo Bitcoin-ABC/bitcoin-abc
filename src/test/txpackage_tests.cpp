@@ -621,7 +621,7 @@ BOOST_AUTO_TEST_CASE(package_mix) {
     package_mixed.push_back(ptx_parent2);
     BOOST_CHECK(m_node.mempool->GetMinFee().GetFee(
                     GetVirtualTransactionSize(*ptx_parent2)) > low_fee_amt);
-    BOOST_CHECK(m_node.mempool->m_min_relay_feerate.GetFee(
+    BOOST_CHECK(m_node.mempool->m_opts.min_relay_feerate.GetFee(
                     GetVirtualTransactionSize(*ptx_parent2)) <= low_fee_amt);
 
     // child spends parent1 and parent2
@@ -818,7 +818,7 @@ BOOST_AUTO_TEST_CASE(package_cpfp_tests) {
     package_still_too_low.push_back(tx_parent_cheap);
     BOOST_CHECK(m_node.mempool->GetMinFee().GetFee(
                     GetVirtualTransactionSize(*tx_parent_cheap)) > parent_fee);
-    BOOST_CHECK(m_node.mempool->m_min_relay_feerate.GetFee(
+    BOOST_CHECK(m_node.mempool->m_opts.min_relay_feerate.GetFee(
                     GetVirtualTransactionSize(*tx_parent_cheap)) <= parent_fee);
 
     auto mtx_child_cheap = CreateValidMempoolTransaction(
