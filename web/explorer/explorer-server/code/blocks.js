@@ -97,6 +97,7 @@ const dataTable = () => {
 
     $('#blocks-table').DataTable({
         searching: false,
+        retrieve: true,
         lengthMenu: [50, 100, 250, 500, 1000],
         pageLength: DEFAULT_ROWS_PER_PAGE,
         language: {
