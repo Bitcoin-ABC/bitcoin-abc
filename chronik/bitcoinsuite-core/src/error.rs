@@ -35,3 +35,5 @@ pub enum DataError {
     #[error("Invalid hex: {0}")]
     InvalidHex(hex::FromHexError),
 }
+
+impl Eq for DataError {}

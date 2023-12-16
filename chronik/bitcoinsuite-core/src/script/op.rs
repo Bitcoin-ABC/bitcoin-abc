@@ -44,4 +44,12 @@ impl Op {
             otherwise => Op::Code(otherwise),
         })
     }
+
+    /// [`Opcode`] of the [`Op`], without pushed data, if any.
+    pub fn opcode(&self) -> Opcode {
+        match *self {
+            Op::Code(opcode) => opcode,
+            Op::Push(opcode, _) => opcode,
+        }
+    }
 }
