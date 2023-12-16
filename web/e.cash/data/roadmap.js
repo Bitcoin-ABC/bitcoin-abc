@@ -26,13 +26,13 @@ export const roadmap = [
                 status: 'underway',
             },
             {
-                title: 'Faster Block Propagation',
-                description: 'graphene or other',
-                status: 'planning',
+                title: 'UTXO Commitments',
+                description: 'blockchain pruning, faster initial sync',
+                status: 'underway',
             },
             {
-                title: 'UTXO Commitment',
-                description: 'blockchain pruning, faster initial sync',
+                title: 'Faster Block Propagation',
+                description: 'graphene or other',
                 status: 'planning',
             },
             {
