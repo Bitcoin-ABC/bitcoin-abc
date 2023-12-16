@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { Link } from 'react-router-dom';
-import TokenList from './TokenList';
 import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import BalanceHeader from 'components/Common/BalanceHeader';
@@ -59,13 +58,8 @@ export const TabLabel = styled.button`
   `}
 `;
 
-export const TabPane = styled.div`
+export const TxHistoryCtn = styled.div`
     color: ${props => props.theme.contrast};
-    ${({ active }) =>
-        !active &&
-        `    
-        display: none;
-  `}
 `;
 
 export const Links = styled(Link)`
@@ -126,22 +120,6 @@ export const AddrSwitchContainer = styled.div`
     padding: 6px 0 12px 0;
 `;
 
-const CreateToken = styled(Link)`
-    color: ${props => props.theme.contrast};
-    border: 1px solid ${props => props.theme.contrast};
-    padding: 8px 15px;
-    border-radius: 5px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    display: inline-block;
-    width: 100%;
-    :hover {
-        background: ${props => props.theme.eCashPurple};
-        border-color: ${props => props.theme.eCashPurple};
-        color: ${props => props.theme.contrast};
-    }
-`;
-
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
     const {
@@ -154,8 +132,7 @@ const WalletInfo = () => {
         changeCashtabSettings,
     } = ContextValue;
     const walletState = getWalletState(wallet);
-    const { balances, parsedTxHistory, tokens } = walletState;
-    const [activeTab, setActiveTab] = React.useState('txHistory');
+    const { balances, parsedTxHistory } = walletState;
     const sideshift = window.sideshift;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
@@ -179,25 +156,9 @@ const WalletInfo = () => {
                 />
             </WalletInfoCtn>
             {apiError && <ApiError />}
-
+            <br />
             <SidePaddingCtn>
-                <Tabs>
-                    <TabLabel
-                        active={activeTab === 'txHistory'}
-                        onClick={() => setActiveTab('txHistory')}
-                    >
-                        Transactions
-                    </TabLabel>
-                    <TabLabel
-                        active={activeTab === 'tokens'}
-                        token={activeTab === 'tokens'}
-                        onClick={() => setActiveTab('tokens')}
-                    >
-                        eTokens
-                    </TabLabel>
-                </Tabs>
-
-                <TabPane active={activeTab === 'txHistory'}>
+                <TxHistoryCtn>
                     <TxHistory
                         txs={
                             Array.isArray(parsedTxHistory)
@@ -235,24 +196,7 @@ const WalletInfo = () => {
                             )}
                         </>
                     )}
-                </TabPane>
-                <TabPane active={activeTab === 'tokens'}>
-                    <CreateToken
-                        to={{
-                            pathname: `/tokens`,
-                        }}
-                    >
-                        Create eToken
-                    </CreateToken>
-                    {tokens && tokens.length > 0 ? (
-                        <TokenList wallet={wallet} tokens={tokens} />
-                    ) : (
-                        <p>
-                            Tokens sent to your {appConfig.tokenTicker} address
-                            will appear here
-                        </p>
-                    )}
-                </TabPane>
+                </TxHistoryCtn>
             </SidePaddingCtn>
         </>
     );

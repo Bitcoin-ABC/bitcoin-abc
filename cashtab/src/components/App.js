@@ -12,6 +12,7 @@ import {
     ThemedSignAndVerifyMsg,
     ThemedUserProfileIcon,
     SwapIcon,
+    EtokensIcon,
 } from 'components/Common/CustomIcons';
 import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
@@ -23,6 +24,7 @@ import Send from 'components/Send/Send';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
 import Alias from 'components/Alias/Alias';
+import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Swap from 'components/Swap/Swap';
@@ -535,6 +537,13 @@ const App = () => {
                                         }
                                     />
                                 </Route>
+                                <Route path="/etokens">
+                                    <Etokens
+                                        passLoadingStatus={
+                                            setLoadingUtxosAfterSend
+                                        }
+                                    />
+                                </Route>
                                 <Route path="/signverifymsg">
                                     <SignVerifyMsg />
                                 </Route>
@@ -578,6 +587,16 @@ const App = () => {
                                     onClick={() => history.push('/send')}
                                 >
                                     <SendIcon
+                                        style={{
+                                            marginTop: '-9px',
+                                        }}
+                                    />
+                                </NavButton>
+                                <NavButton
+                                    active={selectedKey === 'etokens'}
+                                    onClick={() => history.push('/etokens')}
+                                >
+                                    <EtokensIcon
                                         style={{
                                             marginTop: '-9px',
                                         }}
