@@ -11,7 +11,7 @@ license = "MIT"
 abc-rust-lint = { path = "../abc-rust-lint" }
 
 # Efficient byte strings, with ref counted substrings
-bytes = "1.4"
+bytes = { version = "1.4", features = ["serde"] }
 
 # En-/decode byte strings from/to hex
 hex = "0.4"
@@ -21,6 +21,9 @@ hex-literal = "0.3"
 
 # Implementation of RIPEMD-160 etc. cryptographic hash functions
 ripemd = "0.1"
+
+# Serialize structs
+serde = { version = "1.0", features = ["derive"] }
 
 # Implementation of SHA-256 etc. cryptographic hash functions
 sha2 = "0.10"

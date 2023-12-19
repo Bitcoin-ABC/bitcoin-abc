@@ -7,6 +7,7 @@
 
 use std::{cmp::Ordering, fmt::Debug, hash::Hash};
 
+use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::error::DataError;
@@ -360,7 +361,9 @@ macro_rules! hash_algo {
         $($item_impls:item)*
     ) => {
         $(#[$attrs])*
-        #[derive(Clone, Copy, Default, Eq, Hash, PartialEq)]
+        #[derive(
+            Clone, Copy, Default, Deserialize, Eq, Hash, PartialEq, Serialize
+        )]
         pub struct $ALGO_NAME(pub [u8; $SIZE]);
 
         impl Hashed for $ALGO_NAME {

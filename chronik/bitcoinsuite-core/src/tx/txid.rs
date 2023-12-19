@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+use serde::{Deserialize, Serialize};
+
 use crate::{
     bytes::read_array,
     error::DataError,
@@ -13,7 +15,18 @@ use crate::{
 /// Wraps a tx ID's [`Sha256d`], to avoid mixing different kinds of hashes.
 /// Txids are always represented with a big-endian hex string, but stored
 /// in little-endian byteorder.
-#[derive(Clone, Copy, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(
+    Clone,
+    Copy,
+    Default,
+    Deserialize,
+    Eq,
+    Hash,
+    Ord,
+    PartialEq,
+    PartialOrd,
+    Serialize,
+)]
 pub struct TxId(Sha256d);
 
 impl std::fmt::Debug for TxId {
