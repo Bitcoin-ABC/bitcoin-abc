@@ -36,6 +36,14 @@ module.exports = {
             },
         ],
         [
+            '76a9141c2a7324dc6b7a2fd5d1e385f49f98bbef0e318b88ac',
+            {
+                miner: 'Hathor-MM',
+                // Alt receiving addr for Hathor-MM
+                coinbaseHexFragment: '48617468', // Hath
+            },
+        ],
+        [
             '76a9141b1bbcb888b4440a573427f526cb221f657318cf88ac',
             {
                 miner: 'Zulu Pool',

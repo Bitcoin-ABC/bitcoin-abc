@@ -214,4 +214,20 @@ module.exports = [
         payoutOutputScript: 'some new payout address',
         parsed: 'p2p-spb',
     },
+    {
+        height: '823276',
+        coinbaseHex:
+            '03ec8f0c486174683dec223b763544f28819df8ba957944bbac2e35cb8de151b030edee88a90135073e02f191d000000',
+        payoutOutputScript:
+            '76a9141c2a7324dc6b7a2fd5d1e385f49f98bbef0e318b88ac',
+        parsed: 'Hathor-MM',
+    },
+    // Parse from hex
+    {
+        height: '823308',
+        coinbaseHex:
+            '030c900c486174685359f0bc84593a22dfc02d55f9121478a99352c1575208aeb484c82cb15fbb752f9701151d000000',
+        payoutOutputScript: 'some new payout address',
+        parsed: 'Hathor-MM',
+    },
 ];
