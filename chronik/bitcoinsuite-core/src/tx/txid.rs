@@ -42,6 +42,16 @@ impl std::fmt::Display for TxId {
 }
 
 impl TxId {
+    /// Create a [`TxId`] with the given txid in little endian.
+    /// Can be used in a const context.
+    /// ```
+    /// # use bitcoinsuite_core::tx::TxId;
+    /// const txid: TxId = TxId::new([5; 32]);
+    /// ```
+    pub const fn new(txid: [u8; 32]) -> Self {
+        TxId(Sha256d(txid))
+    }
+
     /// Return the [`TxId`] for the given [`TxMut`] (or `Tx`).
     ///
     /// This is done by hashing the serialized tx using [`Sha256d`].
@@ -102,6 +112,11 @@ impl TxId {
     /// ```
     pub fn to_vec(&self) -> Vec<u8> {
         self.to_bytes().to_vec()
+    }
+
+    /// Return the hash behind the [`TxId`].
+    pub fn hash(&self) -> Sha256d {
+        self.0
     }
 }
 
