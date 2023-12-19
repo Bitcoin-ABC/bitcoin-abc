@@ -190,6 +190,7 @@ dependencies = [
  "bytes",
  "hex",
  "pretty_assertions",
+ "serde",
  "thiserror",
 ]
 

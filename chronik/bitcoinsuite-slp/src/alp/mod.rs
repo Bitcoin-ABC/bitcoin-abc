@@ -2,12 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-abc_rust_lint::lint! {
-    pub mod alp;
-    pub mod consts;
-    pub mod empp;
-    pub mod slp;
-    pub mod structs;
-    pub mod token_id;
-    pub mod token_type;
-}
+//! Modules for the Augmented Ledger Protocol
+//!
+//! See here for a specification:
+//! https://ecashbuilders.notion.site/ALP-a862a4130877448387373b9e6a93dd97
+
+pub mod consts;

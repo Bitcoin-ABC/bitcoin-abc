@@ -2,12 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-abc_rust_lint::lint! {
-    pub mod alp;
-    pub mod consts;
-    pub mod empp;
-    pub mod slp;
-    pub mod structs;
-    pub mod token_id;
-    pub mod token_type;
-}
+//! Modules for the Simple Ledger Protocol
+//!
+//! See this repo for specifications:
+//! https://github.com/badger-cash/slp-specifications/
+
+pub mod consts;
