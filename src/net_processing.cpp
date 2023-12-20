@@ -2313,14 +2313,6 @@ bool PeerManagerImpl::MaybePunishNodeForBlock(NodeId nodeid,
                 Misbehaving(*peer, 100, message);
             }
             return true;
-        case BlockValidationResult::BLOCK_FINALIZATION:
-            // TODO: Use the state object to report this is probably not the
-            // best idea. This is effectively unreachable, unless there is a bug
-            // somewhere.
-            if (peer) {
-                Misbehaving(*peer, 20, message);
-            }
-            return true;
         // Conflicting (but not necessarily invalid) data or different policy:
         case BlockValidationResult::BLOCK_MISSING_PREV:
             // TODO: Handle this much more gracefully (10 DoS points is super

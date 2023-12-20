@@ -78,8 +78,6 @@ enum class BlockValidationResult {
     BLOCK_TIME_FUTURE,
     //! the block failed to meet one of our checkpoints
     BLOCK_CHECKPOINT,
-    //! block finalization problems
-    BLOCK_FINALIZATION,
 };
 
 /**
