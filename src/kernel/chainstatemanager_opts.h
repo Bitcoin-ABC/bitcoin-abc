@@ -40,7 +40,7 @@ struct ChainstateManagerOpts {
     fs::path datadir;
     const std::function<NodeClock::time_point()> adjusted_time_callback{
         nullptr};
-    std::optional<bool> check_block_index{};
+    std::optional<int32_t> check_block_index{};
     bool checkpoints_enabled{DEFAULT_CHECKPOINTS_ENABLED};
     bool park_deep_reorg{DEFAULT_PARK_DEEP_REORG};
     bool automatic_unparking{!AVALANCHE_DEFAULT_ENABLED};

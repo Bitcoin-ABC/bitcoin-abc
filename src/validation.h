@@ -1274,9 +1274,7 @@ public:
     const Consensus::Params &GetConsensus() const {
         return m_options.config.GetChainParams().GetConsensus();
     }
-    bool ShouldCheckBlockIndex() const {
-        return *Assert(m_options.check_block_index);
-    }
+    bool ShouldCheckBlockIndex() const;
     const arith_uint256 &MinimumChainWork() const {
         return *Assert(m_options.minimum_chain_work);
     }

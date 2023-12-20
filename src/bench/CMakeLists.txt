@@ -44,6 +44,7 @@ add_executable(bitcoin-bench
 	chacha20.cpp
 	chained_tx.cpp
 	checkblock.cpp
+	checkblockindex.cpp
 	checkqueue.cpp
 	crypto_aes.cpp
 	crypto_hash.cpp

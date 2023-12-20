@@ -1162,7 +1162,8 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-checkblockindex",
                    strprintf("Do a consistency check for the block tree, "
                              "chainstate, and other validation data structures "
-                             "occasionally. (default: %u, regtest: %u)",
+                             " every <n> operations. Use 0 to disable. "
+                             "(default: %u, regtest: %u)",
                              defaultChainParams->DefaultConsistencyChecks(),
                              regtestChainParams->DefaultConsistencyChecks()),
                    ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,

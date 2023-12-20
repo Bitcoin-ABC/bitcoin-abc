@@ -179,7 +179,7 @@ ChainTestingSetup::ChainTestingSetup(
         .config = config,
         .datadir = m_args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
-        .check_block_index = true,
+        .check_block_index = 1,
         .notifications = *m_node.notifications,
         .signals = m_node.validation_signals.get(),
         .worker_threads_num = 2,
