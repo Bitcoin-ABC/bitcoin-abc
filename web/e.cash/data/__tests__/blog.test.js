@@ -5,6 +5,7 @@
 import {
     getPageCount,
     getBlogPosts,
+    sortBlogPostsByDate,
     formatTimestamp,
     evaluateMediaLink,
 } from '../blog.js';
@@ -99,15 +100,15 @@ describe('getBlogPosts', () => {
         );
         expect(fetch).toHaveBeenNthCalledWith(
             2,
-            'https://strapi.fabien.cash/api/posts?pagination[page]=1&populate=*&sort=id:desc',
+            'https://strapi.fabien.cash/api/posts?pagination[page]=1&populate=*&sort=publishedAt:desc',
         );
         expect(fetch).toHaveBeenNthCalledWith(
             3,
-            'https://strapi.fabien.cash/api/posts?pagination[page]=2&populate=*&sort=id:desc',
+            'https://strapi.fabien.cash/api/posts?pagination[page]=2&populate=*&sort=publishedAt:desc',
         );
         expect(fetch).toHaveBeenNthCalledWith(
             4,
-            'https://strapi.fabien.cash/api/posts?pagination[page]=3&populate=*&sort=id:desc',
+            'https://strapi.fabien.cash/api/posts?pagination[page]=3&populate=*&sort=publishedAt:desc',
         );
 
         expect(result).toEqual({
@@ -127,6 +128,32 @@ describe('getBlogPosts', () => {
         });
 
         await expect(getBlogPosts()).rejects.toThrow('Failed to fetch api');
+    });
+});
+
+describe('sortBlogPostsByDate', () => {
+    it('should sort blog posts by date in descending order', async () => {
+        const blogPostsSortedByDate = [
+            { attributes: { title: 'Post 5', publishedAt: '2022-05-05' } },
+            { attributes: { title: 'Post 4', publish_date: '2022-04-04' } },
+            { attributes: { title: 'Post 3', publishedAt: '2022-03-03' } },
+            { attributes: { title: 'Post 2', publish_date: '2022-02-02' } },
+            { attributes: { title: 'Post 1', publishedAt: '2022-01-01' } },
+        ];
+
+        const shuffleArray = originalArray => {
+            const array = [...originalArray];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        };
+
+        const shuffledBlogPosts = shuffleArray(blogPostsSortedByDate);
+
+        const result = await sortBlogPostsByDate(shuffledBlogPosts);
+        expect(result).toEqual(blogPostsSortedByDate);
     });
 });
 

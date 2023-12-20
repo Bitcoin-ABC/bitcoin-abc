@@ -49,6 +49,29 @@ export async function getBlogPosts() {
 }
 
 /**
+ * Sort blog posts by date and return them in a props object
+ * @returns {object} props object containing blog posts responses
+ * sorted by date to be used with getStaticProps
+ */
+export async function sortBlogPostsByDate(posts) {
+    const customSort = (postA, postB) => {
+        const dateA =
+            postA.attributes.publish_date || postA.attributes.publishedAt; // Check for the presence of 'publish_date' or 'publishedAt'
+        const dateB =
+            postB.attributes.publish_date || postB.attributes.publishedAt;
+
+        // Convert both date formats to comparable formats
+        const dateAFormatted = new Date(dateA).getTime();
+        const dateBFormatted = new Date(dateB).getTime();
+
+        return dateBFormatted - dateAFormatted; // Sort in descending order (latest first)
+    };
+    // Sort the posts array using the custom sorting function. Use slice() to avoid mutating the original array
+    const sortedPosts = posts.slice().sort(customSort);
+    return sortedPosts;
+}
+
+/**
  * Convert a timestamp into a more readable format
  * @param {string} timestamp - the timestamp to convert
  * accepts UTC, Unix, and UTC string representation timestamps

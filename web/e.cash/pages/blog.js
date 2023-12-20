@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Layout from '/components/layout';
 import H3 from '/components/h3';
 import { Container } from '/components/atoms';
-import { getBlogPosts } from '/data/blog.js';
+import { getBlogPosts, sortBlogPostsByDate } from '/data/blog.js';
 import {
     BlogCtn,
     FeaturedCardCtn,
@@ -105,7 +105,12 @@ function Blog(props) {
  */
 export async function getStaticProps() {
     const posts = await getBlogPosts();
-    return posts;
+    const orderedPosts = await sortBlogPostsByDate(posts.props.posts);
+    return {
+        props: {
+            posts: orderedPosts,
+        },
+    };
 }
 
 export default Blog;
