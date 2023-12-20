@@ -83,6 +83,12 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         delegated_key_layout.addWidget(self.pubkey_edit)
         generate_key_button = QtWidgets.QPushButton("Generate key")
         delegated_key_layout.addWidget(generate_key_button)
+        if not self.wallet.is_deterministic() or not self.wallet.can_export():
+            generate_key_button.setEnabled(False)
+            generate_key_button.setToolTip(
+                "Watch-only wallets and imported private key wallets cannot generate "
+                "new keys."
+            )
         layout.addLayout(delegated_key_layout)
         layout.addSpacing(10)
 
