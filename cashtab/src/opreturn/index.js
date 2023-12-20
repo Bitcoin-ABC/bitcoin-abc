@@ -3,8 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as utxolib from '@bitgo/utxo-lib';
+import cashaddr from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
-import { isValidTokenId } from 'utils/validation';
+import { isValidTokenId, isValidAlias } from 'utils/validation';
 
 /**
  * Initialize an OP_RETURN script element in a way that utxolib.script.compile(script) accepts
@@ -92,6 +93,64 @@ export const getAirdropTargetOutput = (tokenId, airdropMsg = '') => {
 
         script.push(airdropMsgScript);
     }
+
+    script = utxolib.script.compile(script);
+
+    // Create output
+    return { value: 0, script };
+};
+
+/**
+ * Generate an OP_RETURN targetOutput for use in broadcasting a v0 alias registration
+ *
+ * @param {string} alias
+ * @param {string} address
+ * @throws {error} validation errors on alias or address
+ * @returns {object} targetOutput ready for transaction building, see sendXec function at src/transactions
+ */
+export const getAliasTargetOutput = (alias, address) => {
+    if (!isValidAlias(alias)) {
+        throw new Error(`Invalid alias "${alias}"`);
+    }
+
+    let script = initializeScript();
+
+    // Push alias protocol identifier
+    script.push(
+        Buffer.from(opReturn.appPrefixesHex.aliasRegistration, 'hex'), // '.xec'
+    );
+
+    // Push alias protocol tx version to stack
+    // Per spec, push this as OP_0
+    script.push(0);
+
+    // Push alias to the stack
+    script.push(Buffer.from(alias, 'utf8'));
+
+    // Get the type and hash of the address in string format
+    let decoded;
+    try {
+        decoded = cashaddr.decode(address, true);
+    } catch (err) {
+        throw new Error(`Invalid address "${address}"`);
+    }
+    const { type, hash } = decoded;
+
+    // Determine address type and corresponding address version byte
+    let addressVersionByte;
+    // Version bytes per cashaddr spec,https://github.com/bitcoincashorg/bitcoincash.org/blob/master/spec/cashaddr.md
+    if (type === 'p2pkh') {
+        addressVersionByte = '00'; // one byte 0 in hex
+    } else if (type === 'p2sh') {
+        addressVersionByte = '08'; // one byte 8 in hex
+    } else {
+        throw new Error(
+            `Unsupported address type ${type}. Only p2pkh and p2sh addresses are supported.`,
+        );
+    }
+
+    // Push <addressVersionByte> and <addressPayload>
+    script.push(Buffer.from(`${addressVersionByte}${hash}`, 'hex'));
 
     script = utxolib.script.compile(script);
 

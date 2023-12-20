@@ -1,7 +1,11 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-import { getCashtabMsgTargetOutput, getAirdropTargetOutput } from 'opreturn';
+import {
+    getCashtabMsgTargetOutput,
+    getAirdropTargetOutput,
+    getAliasTargetOutput,
+} from 'opreturn';
 import { opReturnVectors } from '../fixtures/vectors';
 
 describe('Cashtab Msg building functions', () => {
@@ -53,6 +57,34 @@ describe('getAirdropTargetOutput', () => {
         const { description, tokenId, airdropMsg, errorMsg } = expectedError;
         it(`getAirdropTargetOutput throws error for: ${description}`, () => {
             expect(() => getAirdropTargetOutput(tokenId, airdropMsg)).toThrow(
+                errorMsg,
+            );
+        });
+    });
+});
+
+describe('Alias registration target output building functions', () => {
+    const { expectedReturns, expectedErrors } =
+        opReturnVectors.aliasRegistrations;
+
+    // Successfully created targetOutputs
+    expectedReturns.forEach(expectedReturn => {
+        const { description, alias, address, outputScriptHex } = expectedReturn;
+        it(`getAliasTargetOutput: ${description}`, () => {
+            const targetOutput = getAliasTargetOutput(alias, address);
+            // Output value should be zero for OP_RETURN
+            expect(targetOutput.value).toStrictEqual(0);
+            // Test vs hex string as cannot store buffer type in vectors
+            expect(targetOutput.script.toString('hex')).toStrictEqual(
+                outputScriptHex,
+            );
+        });
+    });
+    // Error cases
+    expectedErrors.forEach(expectedError => {
+        const { description, alias, address, errorMsg } = expectedError;
+        it(`getAliasTargetOutput throws error for: ${description}`, () => {
+            expect(() => getAliasTargetOutput(alias, address)).toThrow(
                 errorMsg,
             );
         });

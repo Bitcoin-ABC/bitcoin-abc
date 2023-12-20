@@ -124,4 +124,36 @@ export const opReturnVectors = {
             },
         ],
     },
+    aliasRegistrations: {
+        expectedReturns: [
+            {
+                description: 'Valid alias to p2pkh address',
+                alias: 'test',
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                outputScriptHex:
+                    '6a042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+            },
+            {
+                description: 'Valid alias to p2sh address',
+                alias: 'testtwo',
+                address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                outputScriptHex:
+                    '6a042e78656300077465737474776f1508d37c4c809fe9840e7bfa77b86bd47163f6fb6c60',
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Invalid alias',
+                alias: 'test_WITH_badchars',
+                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                errorMsg: 'Invalid alias "test_WITH_badchars"',
+            },
+            {
+                description: 'Invalid address',
+                alias: 'test',
+                address: 'not an address',
+                errorMsg: 'Invalid address "not an address"',
+            },
+        ],
+    },
 };
