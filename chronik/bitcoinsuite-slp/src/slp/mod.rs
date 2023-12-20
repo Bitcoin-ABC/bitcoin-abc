@@ -7,4 +7,13 @@
 //! See this repo for specifications:
 //! https://github.com/badger-cash/slp-specifications/
 
+mod build;
+mod common;
 pub mod consts;
+mod error;
+mod genesis;
+mod parse;
+
+pub use crate::slp::build::*;
+pub use crate::slp::error::*;
+pub use crate::slp::parse::*;

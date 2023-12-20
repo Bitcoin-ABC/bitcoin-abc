@@ -6,6 +6,7 @@ abc_rust_lint::lint! {
     pub mod alp;
     pub mod consts;
     pub mod empp;
+    pub mod parsed;
     pub mod slp;
     pub mod structs;
     pub mod token_id;
