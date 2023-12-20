@@ -25,6 +25,8 @@ pub enum ParsedTxType {
     Genesis(ParsedGenesis),
     /// Parsed MINT tx with mint data
     Mint(ParsedMintData),
+    /// Parsed SEND tx with send amounts
+    Send(Vec<Amount>),
     /// Parsed unknown token type
     Unknown,
 }

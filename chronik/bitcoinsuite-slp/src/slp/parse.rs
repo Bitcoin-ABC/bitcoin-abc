@@ -19,6 +19,7 @@ use crate::{
         genesis::parse_genesis_data,
         mint::parse_mint_data_baton,
         mint_vault::parse_mint_data_mint_vault,
+        send::parse_send_data,
         ParseError::{self, *},
     },
     structs::TokenMeta,
@@ -85,7 +86,7 @@ pub fn parse_with_ignored_err(
             parse_mint_data_mint_vault(opreturn_data)
         }
         MINT => parse_mint_data_baton(token_type, opreturn_data),
-        SEND => todo!("Implemented in another diff"),
+        SEND => parse_send_data(token_type, opreturn_data),
         BURN => todo!("Implemented in another diff"),
         _ => Err(InvalidTxType(opreturn_data[2].clone())),
     }

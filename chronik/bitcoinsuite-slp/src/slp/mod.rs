@@ -15,6 +15,7 @@ mod genesis;
 mod mint;
 pub mod mint_vault;
 mod parse;
+pub mod send;
 
 pub use crate::slp::build::*;
 pub use crate::slp::error::*;
