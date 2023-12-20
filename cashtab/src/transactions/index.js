@@ -6,6 +6,7 @@ import * as utxolib from '@bitgo/utxo-lib';
 import { coinSelect } from 'ecash-coinselect';
 import cashaddr from 'ecashaddrjs';
 import { isValidMultiSendUserInput } from 'utils/validation';
+import { toSatoshis } from 'utils/cashMethods';
 
 /**
  * Sign tx inputs
@@ -121,8 +122,7 @@ export const getMultisendTargetOutputs = userMultisendInput => {
         const addressValueLineArray = addressValueCsvPair.split(',');
         const valueXec = parseFloat(addressValueLineArray[1].trim());
         // targetOutputs expects satoshis at value key
-        const SATOSHIS_PER_XEC = 100;
-        const valueSats = SATOSHIS_PER_XEC * valueXec;
+        const valueSats = toSatoshis(valueXec);
         targetOutputs.push({
             address: addressValueLineArray[0].trim(),
             value: valueSats,

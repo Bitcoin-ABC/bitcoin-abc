@@ -19,7 +19,11 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { parseAddressForParams, sumOneToManyXec } from 'utils/cashMethods';
+import {
+    parseAddressForParams,
+    sumOneToManyXec,
+    toSatoshis,
+} from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
@@ -396,8 +400,8 @@ const SendBCH = ({ passLoadingStatus }) => {
                 xecSendValue = fiatToCrypto(xecSendValue, fiatPrice);
             }
 
-            const SATOSHIS_PER_XEC = 100;
-            const satoshisToSend = SATOSHIS_PER_XEC * xecSendValue;
+            const satoshisToSend = toSatoshis(xecSendValue);
+
             targetOutputs.push({
                 address: cleanAddress,
                 value: satoshisToSend,

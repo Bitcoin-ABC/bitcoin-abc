@@ -348,6 +348,32 @@ export const getMultisendTargetOutputsVectors = {
                 },
             ],
         },
+        {
+            description: 'Multisend including a non-integer JS result',
+            userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,151.52\necash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6,151.52\necash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj,4444.44\necash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly,50.51\necash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m,202.02`,
+            targetOutputs: [
+                {
+                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    value: 15152,
+                },
+                {
+                    address: 'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                    value: 15152,
+                },
+                {
+                    address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    value: 444444,
+                },
+                {
+                    address: 'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                    value: 5051,
+                },
+                {
+                    address: 'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                    value: 20202,
+                },
+            ],
+        },
     ],
     errors: [
         {
