@@ -12,6 +12,7 @@ use crate::{
     consts::{BURN, GENESIS, MINT, SEND},
     parsed::{ParsedData, ParsedTxType},
     slp::{
+        burn::parse_burn_data,
         consts::{
             SLP_LOKAD_ID, TOKEN_TYPE_V1, TOKEN_TYPE_V1_NFT1_CHILD,
             TOKEN_TYPE_V1_NFT1_GROUP, TOKEN_TYPE_V2,
@@ -87,7 +88,7 @@ pub fn parse_with_ignored_err(
         }
         MINT => parse_mint_data_baton(token_type, opreturn_data),
         SEND => parse_send_data(token_type, opreturn_data),
-        BURN => todo!("Implemented in another diff"),
+        BURN => parse_burn_data(token_type, opreturn_data),
         _ => Err(InvalidTxType(opreturn_data[2].clone())),
     }
 }

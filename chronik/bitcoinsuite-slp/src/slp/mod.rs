@@ -8,6 +8,7 @@
 //! https://github.com/badger-cash/slp-specifications/
 
 mod build;
+mod burn;
 mod common;
 pub mod consts;
 mod error;

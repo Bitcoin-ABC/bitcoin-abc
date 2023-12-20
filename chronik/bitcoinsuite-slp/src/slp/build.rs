@@ -8,7 +8,7 @@ use bitcoinsuite_core::{
 };
 
 use crate::{
-    consts::{GENESIS, MINT, SEND},
+    consts::{BURN, GENESIS, MINT, SEND},
     slp::consts::{
         SLP_LOKAD_ID, TOKEN_TYPE_V1, TOKEN_TYPE_V1_NFT1_CHILD,
         TOKEN_TYPE_V1_NFT1_GROUP, TOKEN_TYPE_V2,
@@ -119,5 +119,21 @@ pub fn send_opreturn(
     for &amount in send_amounts {
         script.put_slp_pushdata(&amount.to_be_bytes());
     }
+    script.freeze()
+}
+
+/// Build an SLP OP_RETURN BURN script
+pub fn burn_opreturn(
+    token_id: &TokenId,
+    token_type: SlpTokenType,
+    burn_amount: Amount,
+) -> Script {
+    let mut script = ScriptMut::with_capacity(1 + 5 + 2 + 5 + 33 + 9);
+    script.put_opcodes([OP_RETURN]);
+    script.put_slp_pushdata(&SLP_LOKAD_ID);
+    script.put_slp_pushdata(token_type_bytes(token_type));
+    script.put_slp_pushdata(BURN);
+    script.put_slp_pushdata(&token_id.to_be_bytes());
+    script.put_slp_pushdata(&burn_amount.to_be_bytes());
     script.freeze()
 }

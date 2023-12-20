@@ -27,6 +27,8 @@ pub enum ParsedTxType {
     Mint(ParsedMintData),
     /// Parsed SEND tx with send amounts
     Send(Vec<Amount>),
+    /// Parsed BURN tx with the burned amount
+    Burn(Amount),
     /// Parsed unknown token type
     Unknown,
 }
