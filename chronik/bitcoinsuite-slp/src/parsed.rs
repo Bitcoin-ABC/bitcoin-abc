@@ -23,6 +23,8 @@ pub struct ParsedData {
 pub enum ParsedTxType {
     /// Parsed GENESIS tx with genesis info + mint data
     Genesis(ParsedGenesis),
+    /// Parsed MINT tx with mint data
+    Mint(ParsedMintData),
     /// Parsed unknown token type
     Unknown,
 }

@@ -17,6 +17,8 @@ use crate::{
             TOKEN_TYPE_V1_NFT1_GROUP, TOKEN_TYPE_V2,
         },
         genesis::parse_genesis_data,
+        mint::parse_mint_data_baton,
+        mint_vault::parse_mint_data_mint_vault,
         ParseError::{self, *},
     },
     structs::TokenMeta,
@@ -79,7 +81,10 @@ pub fn parse_with_ignored_err(
 
     match opreturn_data[2].as_ref() {
         GENESIS => parse_genesis_data(*txid, token_type, opreturn_data),
-        MINT => todo!("Implemented in another diff"),
+        MINT if token_type == SlpTokenType::MintVault => {
+            parse_mint_data_mint_vault(opreturn_data)
+        }
+        MINT => parse_mint_data_baton(token_type, opreturn_data),
         SEND => todo!("Implemented in another diff"),
         BURN => todo!("Implemented in another diff"),
         _ => Err(InvalidTxType(opreturn_data[2].clone())),

@@ -12,6 +12,8 @@ mod common;
 pub mod consts;
 mod error;
 mod genesis;
+mod mint;
+pub mod mint_vault;
 mod parse;
 
 pub use crate::slp::build::*;

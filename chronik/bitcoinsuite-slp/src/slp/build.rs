@@ -8,12 +8,13 @@ use bitcoinsuite_core::{
 };
 
 use crate::{
-    consts::GENESIS,
+    consts::{GENESIS, MINT},
     slp::consts::{
         SLP_LOKAD_ID, TOKEN_TYPE_V1, TOKEN_TYPE_V1_NFT1_CHILD,
         TOKEN_TYPE_V1_NFT1_GROUP, TOKEN_TYPE_V2,
     },
     structs::{Amount, GenesisInfo},
+    token_id::TokenId,
     token_type::SlpTokenType,
 };
 
@@ -62,5 +63,43 @@ pub fn genesis_opreturn(
         },
     }
     script.put_slp_pushdata(&initial_quantity.to_be_bytes());
+    script.freeze()
+}
+
+/// Build an SLP OP_RETURN MINT script (for Fungible and Nft1Group).
+pub fn mint_opreturn(
+    token_id: &TokenId,
+    token_type: SlpTokenType,
+    mint_baton_out_idx: Option<u8>,
+    additional_quantity: Amount,
+) -> Script {
+    let mut script = ScriptMut::with_capacity(64);
+    script.put_opcodes([OP_RETURN]);
+    script.put_slp_pushdata(&SLP_LOKAD_ID);
+    script.put_slp_pushdata(token_type_bytes(token_type));
+    script.put_slp_pushdata(MINT);
+    script.put_slp_pushdata(&token_id.to_be_bytes());
+    match mint_baton_out_idx {
+        Some(out_idx) => script.put_slp_pushdata(&[out_idx]),
+        None => script.put_slp_pushdata(&[]),
+    };
+    script.put_slp_pushdata(&additional_quantity.to_be_bytes());
+    script.freeze()
+}
+
+/// Build an SLP OP_RETURN MINT script for V2 MintVault
+pub fn mint_vault_opreturn(
+    token_id: &TokenId,
+    additional_quantites: impl IntoIterator<Item = Amount>,
+) -> Script {
+    let mut script = ScriptMut::with_capacity(64);
+    script.put_opcodes([OP_RETURN]);
+    script.put_slp_pushdata(&SLP_LOKAD_ID);
+    script.put_slp_pushdata(token_type_bytes(SlpTokenType::MintVault));
+    script.put_slp_pushdata(MINT);
+    script.put_slp_pushdata(&token_id.to_be_bytes());
+    for additional_quantity in additional_quantites {
+        script.put_slp_pushdata(&additional_quantity.to_be_bytes());
+    }
     script.freeze()
 }
