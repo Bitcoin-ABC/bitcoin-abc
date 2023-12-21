@@ -679,6 +679,24 @@ describe('cashaddr', () => {
                 );
             }
         });
+        it('returns false for nonstring input', () => {
+            assert.equal(
+                cashaddr.isValidCashAddress(
+                    { address: 'some invalid address' },
+                    'ecash',
+                ),
+                false,
+            );
+            assert.equal(cashaddr.isValidCashAddress(false, 'ecash'), false);
+            assert.equal(cashaddr.isValidCashAddress(null, 'ecash'), false);
+            assert.equal(
+                cashaddr.isValidCashAddress(
+                    ['ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2'],
+                    'ecash',
+                ),
+                false,
+            );
+        });
     });
     describe('#getOutputScriptFromAddress()', () => {
         it('should get outputScripts from address on mainnet correctly', () => {

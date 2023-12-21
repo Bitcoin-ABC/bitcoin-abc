@@ -1,6 +1,6 @@
 {
     "name": "ecashaddrjs",
-    "version": "1.5.3",
+    "version": "1.5.4",
     "description": "eCash cashaddr address format support for Node.js and web browsers.",
     "main": "src/cashaddr.js",
     "browser": "dist/cashaddrjs.min.js",
