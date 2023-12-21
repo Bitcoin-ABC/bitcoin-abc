@@ -55,14 +55,6 @@ enum class BlockValidationResult {
     BLOCK_RESULT_UNSET = 0,
     //! invalid by consensus rules (excluding any below reasons)
     BLOCK_CONSENSUS,
-    /**
-     * Invalid by a change to consensus rules more recent than SegWit.
-     * Currently unused as there are no such consensus rule changes, and any
-     * download sources realistically need to support SegWit in order to provide
-     * useful data, so differentiating between always-invalid and
-     * invalid-by-pre-SegWit-soft-fork is uninteresting.
-     */
-    BLOCK_RECENT_CONSENSUS_CHANGE,
     //! this block was cached as being invalid and we didn't store the reason
     //! why
     BLOCK_CACHED_INVALID,

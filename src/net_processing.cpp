@@ -2321,7 +2321,6 @@ bool PeerManagerImpl::MaybePunishNodeForBlock(NodeId nodeid,
                 Misbehaving(*peer, 10, message);
             }
             return true;
-        case BlockValidationResult::BLOCK_RECENT_CONSENSUS_CHANGE:
         case BlockValidationResult::BLOCK_TIME_FUTURE:
             break;
     }
