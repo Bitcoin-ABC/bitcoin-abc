@@ -28,7 +28,7 @@ import {
     errorNotification,
     registerAliasNotification,
 } from 'components/Common/Notifications';
-import { isAliasFormat, isValidAliasString } from 'utils/validation';
+import { isAliasFormat, isValidAlias } from 'utils/validation';
 import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 import { Space, Tag } from 'antd';
@@ -154,7 +154,7 @@ const Alias = ({ passLoadingStatus }) => {
             timeout = setTimeout(async function () {
                 // Retrieve alias details
                 let aliasDetailsResp;
-                if (isValidAliasString(aliasInput.value)) {
+                if (isValidAlias(aliasInput.value)) {
                     try {
                         // Note: aliasInput.value is used here as formData is not yet
                         // initialized at the point of useEffect execution
@@ -348,7 +348,7 @@ const Alias = ({ passLoadingStatus }) => {
 
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
-        const validAliasInput = isValidAliasString(value);
+        const validAliasInput = isValidAlias(value);
         const aliasInputByteSize = getAliasByteSize(value);
         if (
             value &&

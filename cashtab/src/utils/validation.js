@@ -49,7 +49,15 @@ export const isValidRecipient = async value => {
     return false;
 };
 
-export const isValidAliasString = inputStr => {
+/**
+ * Is input a valid alias
+ * @param {string} inputStr
+ * @returns {bool} false if alias is not alphanumeric or string
+ */
+export const isValidAlias = inputStr => {
+    if (typeof inputStr !== 'string') {
+        return false;
+    }
     return /^[a-z0-9]+$/.test(inputStr);
 };
 

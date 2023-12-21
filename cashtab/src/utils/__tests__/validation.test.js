@@ -22,7 +22,7 @@ import {
     parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
-    isValidAliasString,
+    isValidAlias,
     isProbablyNotAScam,
     isValidRecipient,
     isValidSideshiftObj,
@@ -135,29 +135,32 @@ describe('Validation utils', () => {
             ),
         ).toBe(true);
     });
-    it(`isValidAliasString() returns true for a valid lowercase alphanumeric input`, () => {
-        expect(isValidAliasString('jasdf3873')).toBe(true);
+    it(`isValidAlias() returns true for a valid lowercase alphanumeric input`, () => {
+        expect(isValidAlias('jasdf3873')).toBe(true);
     });
-    it(`isValidAliasString() returns false for an uppercase alphanumeric input`, () => {
-        expect(isValidAliasString('jasDf3873')).toBe(false);
+    it(`isValidAlias() returns false for an uppercase alphanumeric input`, () => {
+        expect(isValidAlias('jasDf3873')).toBe(false);
     });
-    it(`isValidAliasString() returns false for a non-english input`, () => {
-        expect(isValidAliasString('Glück')).toBe(false);
+    it(`isValidAlias() returns false for a non-english input`, () => {
+        expect(isValidAlias('Glück')).toBe(false);
     });
-    it(`isValidAliasString() returns false for an emoji input`, () => {
-        expect(isValidAliasString('😉')).toBe(false);
+    it(`isValidAlias() returns false for an emoji input`, () => {
+        expect(isValidAlias('😉')).toBe(false);
     });
-    it(`isValidAliasString() returns false for a special character input`, () => {
-        expect(isValidAliasString('( ͡° ͜ʖ ͡°)')).toBe(false);
+    it(`isValidAlias() returns false for a special character input`, () => {
+        expect(isValidAlias('( ͡° ͜ʖ ͡°)')).toBe(false);
     });
-    it(`isValidAliasString() returns false for a zero width character input`, () => {
-        expect(isValidAliasString('​')).toBe(false);
+    it(`isValidAlias() returns false for a zero width character input`, () => {
+        expect(isValidAlias('​')).toBe(false);
     });
-    it(`isValidAliasString() returns false for a valid alphanumeric input with spaces`, () => {
-        expect(isValidAliasString('​jasdf3873 ')).toBe(false);
+    it(`isValidAlias() returns false for a valid alphanumeric input with spaces`, () => {
+        expect(isValidAlias('​jasdf3873 ')).toBe(false);
     });
-    it(`isValidAliasString() returns false for a valid alphanumeric input with symbols`, () => {
-        expect(isValidAliasString('​jasdf3873@#')).toBe(false);
+    it(`isValidAlias() returns false for a valid alphanumeric input with symbols`, () => {
+        expect(isValidAlias('​jasdf3873@#')).toBe(false);
+    });
+    it(`isValidAlias() returns false for non-string input`, () => {
+        expect(isValidAlias({ testAlias: 'string at key' })).toBe(false);
     });
     it(`validateMnemonic() returns true for a valid mnemonic`, () => {
         const mnemonic =
