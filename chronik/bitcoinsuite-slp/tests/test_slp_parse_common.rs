@@ -160,6 +160,28 @@ fn test_parse_slp_lokad_id() {
 }
 
 #[test]
+fn test_parse_slp_alp_mixup() {
+    // Used ALP ("SLP2") LOKAD ID, which we report separately and don't ignore.
+    // Otherwise, someone forgetting the OP_RESERVED might get confused.
+    check_script(
+        &[0x6a, 0x04, b'S', b'L', b'P', b'2'],
+        ParseError::InvalidAlpLokadId,
+        false,
+    );
+    // Using it with additional bytes at the end also gets reported as ALP
+    check_script(
+        &[0x6a, 0x05, b'S', b'L', b'P', b'2', 0],
+        ParseError::InvalidAlpLokadId,
+        false,
+    );
+    check_script(
+        &[0x6a, 0x06, b'S', b'L', b'P', b'2', 0, 0],
+        ParseError::InvalidAlpLokadId,
+        false,
+    );
+}
+
+#[test]
 fn test_parse_slp_disallowed_push() {
     // Disallowed push
     let mut scripts: Vec<(&[_], Opcode, usize)> = vec![

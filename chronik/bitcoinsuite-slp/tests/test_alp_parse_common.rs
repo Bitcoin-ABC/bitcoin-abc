@@ -71,3 +71,19 @@ fn test_parse_alp_intro() {
         Err(ParseError::UnknownTxType(b"INVALID".to_vec().into())),
     );
 }
+
+#[test]
+fn test_parse_alp_slp_mixup() {
+    assert_eq!(
+        parse(vec![b'S', b'L', b'P', 0]),
+        Err(ParseError::InvalidSlpLokadId),
+    );
+    assert_eq!(
+        parse(vec![b'S', b'L', b'P', 0, 1]),
+        Err(ParseError::InvalidSlpLokadId),
+    );
+    assert_eq!(
+        parse(vec![b'S', b'L', b'P', 0, 1, 1]),
+        Err(ParseError::InvalidSlpLokadId),
+    );
+}

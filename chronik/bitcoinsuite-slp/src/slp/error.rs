@@ -36,6 +36,11 @@ pub enum ParseError {
     #[error("Invalid opcode instead of LOKAD ID pushop: {0}")]
     InvalidLokadIdOpcode(Opcode),
 
+    /// Used the ALP "SLP2" prefix, this is almost certainly a mistake, so we
+    /// handle it separately.
+    #[error("Invalid LOKAD ID \"SLP2\", did you forget to use eMPP?")]
+    InvalidAlpLokadId,
+
     /// OP_RETURN can't contain any non-push ops
     #[error("Non-push op: {opcode} at op {op_idx}")]
     NonPushOp {

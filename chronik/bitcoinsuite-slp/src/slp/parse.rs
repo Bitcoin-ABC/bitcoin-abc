@@ -9,6 +9,7 @@ use bitcoinsuite_core::{
 use bytes::Bytes;
 
 use crate::{
+    alp::consts::ALP_LOKAD_ID,
     consts::{BURN, GENESIS, MINT, SEND},
     parsed::{ParsedData, ParsedTxType},
     slp::{
@@ -134,6 +135,9 @@ fn parse_lokad_id(script: &Script) -> Result<(), ParseError> {
     }
     match ops_iter.next() {
         Some(Ok(Op::Push(_, lokad_id))) => {
+            if lokad_id.starts_with(&ALP_LOKAD_ID) {
+                return Err(InvalidAlpLokadId);
+            }
             if lokad_id.as_ref() != SLP_LOKAD_ID {
                 return Err(WrongLokadId(lokad_id.clone()));
             }

@@ -17,6 +17,7 @@ use crate::{
     },
     consts::{BURN, GENESIS, MINT, SEND},
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
+    slp::consts::SLP_LOKAD_ID,
     structs::{Amount, GenesisInfo, LokadId, TokenMeta},
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
@@ -59,6 +60,11 @@ pub enum ParseError {
     /// Expected "SLP2" LOKAD ID
     #[error("Invalid LOKAD ID: {0:?}")]
     InvalidLokadId(LokadId),
+
+    /// Used the "SLP\0" prefix, this is almost certainly a mistake, so we
+    /// handle it separately.
+    #[error("Invalid LOKAD ID \"SLP\\0\", did you accidentally use eMPP?")]
+    InvalidSlpLokadId,
 
     /// Unknown tx type.
     /// Note: For known token types, this does not color outputs as "unknown",
@@ -128,6 +134,9 @@ pub fn parse_section_with_ignored_err(
         return Err(MissingLokadId(pushdata));
     }
     let lokad_id: LokadId = read_array(&mut pushdata).unwrap();
+    if lokad_id == SLP_LOKAD_ID {
+        return Err(InvalidSlpLokadId);
+    }
     if lokad_id != ALP_LOKAD_ID {
         return Err(InvalidLokadId(lokad_id));
     }
