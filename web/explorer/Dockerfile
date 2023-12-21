@@ -1,4 +1,4 @@
-FROM rust:slim-bullseye
+FROM rust:1.72-slim-bookworm
 
 RUN apt-get update && \
   apt-get upgrade -y && \
