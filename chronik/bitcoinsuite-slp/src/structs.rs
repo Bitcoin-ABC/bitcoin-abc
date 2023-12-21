@@ -149,3 +149,19 @@ impl std::fmt::Display for Token {
         write!(f, " of {} ({})", self.meta.token_id, self.meta.token_type)
     }
 }
+
+impl GenesisInfo {
+    /// Make an empty ALP [`GenesisInfo`].
+    pub fn empty_alp() -> GenesisInfo {
+        GenesisInfo {
+            token_ticker: Bytes::new(),
+            token_name: Bytes::new(),
+            mint_vault_scripthash: None,
+            url: Bytes::new(),
+            hash: None,
+            data: Some(Bytes::new()),
+            auth_pubkey: Some(Bytes::new()),
+            decimals: 0,
+        }
+    }
+}
