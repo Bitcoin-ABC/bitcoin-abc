@@ -27,6 +27,7 @@ import {
     isValidRecipient,
     isValidSideshiftObj,
     isValidMultiSendUserInput,
+    isValidOpreturnParam,
 } from '../validation';
 import aliasSettings from 'config/alias';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -1049,5 +1050,58 @@ describe('Validation utils', () => {
                 `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 170,23`,
             ),
         ).toBe(`Line 1: Comma can only separate address and value.`);
+    });
+    it(`isValidOpreturnParam rejects a string that starts with 6a`, () => {
+        expect(isValidOpreturnParam('6a')).toBe(false);
+    });
+    it(`isValidOpreturnParam rejects a string that starts with invalid pushdata`, () => {
+        expect(isValidOpreturnParam('4d')).toBe(false);
+    });
+    it(`isValidOpreturnParam rejects non-string input`, () => {
+        expect(isValidOpreturnParam(null)).toBe(false);
+    });
+    it(`isValidOpreturnParam rejects non-hex input`, () => {
+        expect(isValidOpreturnParam('nothexvaluesinthisstring')).toBe(false);
+    });
+    it(`isValidOpreturnParam supports a valid hex string under max length`, () => {
+        expect(
+            isValidOpreturnParam(
+                '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+            ),
+        ).toBe(true);
+    });
+    it(`isValidOpreturnParam supports a valid hex string under max length with mixed capitalization`, () => {
+        expect(
+            isValidOpreturnParam(
+                '042E786563000474657374150095e79F51D4260bc0dc3ba7fb77c7be92d0fbdd1d',
+            ),
+        ).toBe(true);
+    });
+    it(`isValidOpreturnParam supports a valid hex string of max length`, () => {
+        expect(
+            isValidOpreturnParam(
+                '04007461624cd73030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313132333435',
+            ),
+        ).toBe(true);
+    });
+    it(`isValidOpreturnParam rejects a string with empty spaces`, () => {
+        expect(
+            isValidOpreturnParam(
+                '04 2e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+            ),
+        ).toBe(false);
+    });
+    it(`isValidOpreturnParam rejects an empty string`, () => {
+        expect(isValidOpreturnParam('')).toBe(false);
+    });
+    it(`isValidOpreturnParam rejects a valid hex string exceeding max length`, () => {
+        expect(
+            isValidOpreturnParam(
+                '04007461624cd7303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031303030303030303030313030303030303030303130303030303030303031313233343501',
+            ),
+        ).toBe(false);
+    });
+    it(`isValidOpreturnParam rejects a valid hex string that has uneven length (i.e., half a byte)`, () => {
+        expect(isValidOpreturnParam('042e7')).toBe(false);
     });
 });

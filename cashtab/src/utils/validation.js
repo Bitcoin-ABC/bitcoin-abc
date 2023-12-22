@@ -10,6 +10,8 @@ import tokenBlacklist from 'config/tokenBlacklist';
 import { queryAliasServer } from 'utils/aliasUtils';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
+import { opReturn } from 'config/opreturn';
+import { getStackArray } from 'ecash-script';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -675,4 +677,32 @@ export const isValidMultiSendUserInput = userMultisendInput => {
     }
     // If you make it here, all good
     return true;
+};
+
+/**
+ * Test a bip21 opreturn param for spec compliance
+ * @param {string} opreturn
+ * @returns {bool}
+ */
+export const isValidOpreturnParam = testedParam => {
+    // Spec
+    // The param must contain a valid hex string for a valid `OP_RETURN` output,
+    // not beginning with the`OP_RETURN` `6a`.
+
+    try {
+        if (testedParam === '') {
+            // No empty OP_RETURN for this param per ecash bip21 spec
+            return false;
+        }
+
+        // Use validation from ecash-script library
+        // Apply .toLowerCase() to support uppercase, lowercase, or mixed case input
+        getStackArray(
+            `${opReturn.opReturnPrefixHex}${testedParam.toLowerCase()}`,
+        );
+
+        return true;
+    } catch (err) {
+        return false;
+    }
 };
