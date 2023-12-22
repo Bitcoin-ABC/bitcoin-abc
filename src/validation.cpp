@@ -1177,9 +1177,8 @@ void CoinsViews::InitCache() {
 Chainstate::Chainstate(CTxMemPool *mempool, BlockManager &blockman,
                        ChainstateManager &chainman,
                        std::optional<BlockHash> from_snapshot_blockhash)
-    : m_mempool(mempool), m_blockman(blockman), m_params(::Params()),
-      m_chainman(chainman), m_from_snapshot_blockhash(from_snapshot_blockhash) {
-}
+    : m_mempool(mempool), m_blockman(blockman), m_chainman(chainman),
+      m_from_snapshot_blockhash(from_snapshot_blockhash) {}
 
 void Chainstate::InitCoinsDB(size_t cache_size_bytes, bool in_memory,
                              bool should_wipe, std::string leveldb_name) {
@@ -1750,7 +1749,8 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
 
     int64_t nTimeStart = GetTimeMicros();
 
-    const Consensus::Params &consensusParams = m_params.GetConsensus();
+    const CChainParams &params{m_chainman.GetParams()};
+    const Consensus::Params &consensusParams = params.GetConsensus();
 
     // Check it again in case a previous version let a bad block in
     // NOTE: We don't currently (re-)invoke ContextualCheckBlock() or
@@ -2141,7 +2141,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         return true;
     }
 
-    if (!m_blockman.WriteUndoDataForBlock(blockundo, state, pindex, m_params)) {
+    if (!m_blockman.WriteUndoDataForBlock(blockundo, state, pindex, params)) {
         return false;
     }
 
@@ -2241,7 +2241,8 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     LOG_TIME_MILLIS_WITH_CATEGORY("find files to prune",
                                                   BCLog::BENCH);
                     m_blockman.FindFilesToPrune(
-                        setFilesToPrune, m_params.PruneAfterHeight(),
+                        setFilesToPrune,
+                        m_chainman.GetParams().PruneAfterHeight(),
                         m_chain.Height(), last_prune, IsInitialBlockDownload());
                     m_blockman.m_check_for_pruning = false;
                 }
@@ -2401,6 +2402,8 @@ void Chainstate::UpdateTip(const CBlockIndex *pindexNew) {
     AssertLockHeld(::cs_main);
     const auto &coins_tip = CoinsTip();
 
+    const CChainParams &params{m_chainman.GetParams()};
+
     // The remainder of the function isn't relevant if we are not acting on
     // the active chainstate, so return if need be.
     if (this != &m_chainman.ActiveChainstate()) {
@@ -2408,7 +2411,7 @@ void Chainstate::UpdateTip(const CBlockIndex *pindexNew) {
         // tip.
         constexpr int BACKGROUND_LOG_INTERVAL = 2000;
         if (pindexNew->nHeight % BACKGROUND_LOG_INTERVAL == 0) {
-            UpdateTipLog(coins_tip, pindexNew, m_params, __func__,
+            UpdateTipLog(coins_tip, pindexNew, params, __func__,
                          "[background validation] ");
         }
         return;
@@ -2425,7 +2428,7 @@ void Chainstate::UpdateTip(const CBlockIndex *pindexNew) {
         g_best_block_cv.notify_all();
     }
 
-    UpdateTipLog(coins_tip, pindexNew, m_params, __func__, "");
+    UpdateTipLog(coins_tip, pindexNew, params, __func__, "");
 }
 
 /**
@@ -2447,7 +2450,7 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
     }
 
     CBlockIndex *pindexDelete = m_chain.Tip();
-    const Consensus::Params &consensusParams = m_params.GetConsensus();
+    const Consensus::Params &consensusParams = m_chainman.GetConsensus();
 
     assert(pindexDelete);
 
@@ -2575,7 +2578,7 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
         AssertLockHeld(m_mempool->cs);
     }
 
-    const Consensus::Params &consensusParams = m_params.GetConsensus();
+    const Consensus::Params &consensusParams = m_chainman.GetConsensus();
 
     assert(pindexNew->pprev == m_chain.Tip());
     // Read block from disk.
@@ -4362,7 +4365,8 @@ bool Chainstate::AcceptBlock(const Config &config,
         }
     }
 
-    const Consensus::Params &consensusParams = m_params.GetConsensus();
+    const CChainParams &params{m_chainman.GetParams()};
+    const Consensus::Params &consensusParams = params.GetConsensus();
 
     if (!CheckBlock(block, state, consensusParams,
                     BlockValidationOptions(config)) ||
@@ -4405,8 +4409,8 @@ bool Chainstate::AcceptBlock(const Config &config,
         *fNewBlock = true;
     }
     try {
-        FlatFilePos blockPos{m_blockman.SaveBlockToDisk(
-            block, pindex->nHeight, m_chain, m_params, dbp)};
+        FlatFilePos blockPos{m_blockman.SaveBlockToDisk(block, pindex->nHeight,
+                                                        m_chain, params, dbp)};
         if (blockPos.IsNull()) {
             state.Error(strprintf(
                 "%s: Failed to find position to write new block to disk",
@@ -4588,7 +4592,7 @@ bool Chainstate::LoadChainTip() {
         "Loaded best chain: hashBestChain=%s height=%d date=%s progress=%f\n",
         tip->GetBlockHash().ToString(), m_chain.Height(),
         FormatISO8601DateTime(tip->GetBlockTime()),
-        GuessVerificationProgress(m_params.TxData(), tip));
+        GuessVerificationProgress(m_chainman.GetParams().TxData(), tip));
     return true;
 }
 
@@ -4804,7 +4808,7 @@ bool Chainstate::RollforwardBlock(const CBlockIndex *pindex,
     AssertLockHeld(cs_main);
     // TODO: merge with ConnectBlock
     CBlock block;
-    if (!ReadBlockFromDisk(block, pindex, m_params.GetConsensus())) {
+    if (!ReadBlockFromDisk(block, pindex, m_chainman.GetConsensus())) {
         return error("ReplayBlock(): ReadBlockFromDisk failed at %d, hash=%s",
                      pindex->nHeight, pindex->GetBlockHash().ToString());
     }
@@ -4876,7 +4880,8 @@ bool Chainstate::ReplayBlocks() {
         if (pindexOld->nHeight > 0) {
             // Never disconnect the genesis block.
             CBlock block;
-            if (!ReadBlockFromDisk(block, pindexOld, m_params.GetConsensus())) {
+            if (!ReadBlockFromDisk(block, pindexOld,
+                                   m_chainman.GetConsensus())) {
                 return error("RollbackBlock(): ReadBlockFromDisk() failed at "
                              "%d, hash=%s",
                              pindexOld->nHeight,
@@ -4940,7 +4945,7 @@ bool ChainstateManager::LoadBlockIndex() {
     // Load block index from databases
     bool needs_init = fReindex;
     if (!fReindex) {
-        bool ret = m_blockman.LoadBlockIndexDB();
+        bool ret = m_blockman.LoadBlockIndexDB(GetConsensus());
         if (!ret) {
             return false;
         }
@@ -5057,18 +5062,20 @@ bool ChainstateManager::LoadBlockIndex() {
 bool Chainstate::LoadGenesisBlock() {
     LOCK(cs_main);
 
+    const CChainParams &params{m_chainman.GetParams()};
+
     // Check whether we're already initialized by checking for genesis in
     // m_blockman.m_block_index. Note that we can't use m_chain here, since it
     // is set based on the coins db, not the block index db, which is the only
     // thing loaded at this point.
-    if (m_blockman.m_block_index.count(m_params.GenesisBlock().GetHash())) {
+    if (m_blockman.m_block_index.count(params.GenesisBlock().GetHash())) {
         return true;
     }
 
     try {
-        const CBlock &block = m_params.GenesisBlock();
+        const CBlock &block = params.GenesisBlock();
         FlatFilePos blockPos{
-            m_blockman.SaveBlockToDisk(block, 0, m_chain, m_params, nullptr)};
+            m_blockman.SaveBlockToDisk(block, 0, m_chain, params, nullptr)};
         if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
@@ -5092,6 +5099,7 @@ void Chainstate::LoadExternalBlockFile(
     assert(!dbp == !blocks_with_unknown_parent);
 
     int64_t nStart = GetTimeMillis();
+    const CChainParams &params{m_chainman.GetParams()};
 
     int nLoaded = 0;
     try {
@@ -5115,10 +5123,10 @@ void Chainstate::LoadExternalBlockFile(
             try {
                 // Locate a header.
                 uint8_t buf[CMessageHeader::MESSAGE_START_SIZE];
-                blkdat.FindByte(char(m_params.DiskMagic()[0]));
+                blkdat.FindByte(char(params.DiskMagic()[0]));
                 nRewind = blkdat.GetPos() + 1;
                 blkdat >> buf;
-                if (memcmp(buf, m_params.DiskMagic().data(),
+                if (memcmp(buf, params.DiskMagic().data(),
                            CMessageHeader::MESSAGE_START_SIZE)) {
                     continue;
                 }
@@ -5149,7 +5157,7 @@ void Chainstate::LoadExternalBlockFile(
                 {
                     LOCK(cs_main);
                     // detect out of order blocks, and store them for later
-                    if (hash != m_params.GetConsensus().hashGenesisBlock &&
+                    if (hash != params.GetConsensus().hashGenesisBlock &&
                         !m_blockman.LookupBlockIndex(block.hashPrevBlock)) {
                         LogPrint(
                             BCLog::REINDEX,
@@ -5175,8 +5183,7 @@ void Chainstate::LoadExternalBlockFile(
                         if (state.IsError()) {
                             break;
                         }
-                    } else if (hash !=
-                                   m_params.GetConsensus().hashGenesisBlock &&
+                    } else if (hash != params.GetConsensus().hashGenesisBlock &&
                                pindex->nHeight % 1000 == 0) {
                         LogPrint(
                             BCLog::REINDEX,
@@ -5187,7 +5194,7 @@ void Chainstate::LoadExternalBlockFile(
 
                 // Activate the genesis block so normal node progress can
                 // continue
-                if (hash == m_params.GetConsensus().hashGenesisBlock) {
+                if (hash == params.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
                     if (!ActivateBestChain(config, state, nullptr)) {
                         break;
@@ -5232,7 +5239,7 @@ void Chainstate::LoadExternalBlockFile(
                         std::shared_ptr<CBlock> pblockrecursive =
                             std::make_shared<CBlock>();
                         if (ReadBlockFromDisk(*pblockrecursive, it->second,
-                                              m_params.GetConsensus())) {
+                                              params.GetConsensus())) {
                             LogPrint(
                                 BCLog::REINDEX,
                                 "%s: Processing out of order child %s of %s\n",
@@ -5383,7 +5390,7 @@ void Chainstate::CheckBlockIndex() {
             // Genesis block checks.
             // Genesis block's hash must match.
             assert(pindex->GetBlockHash() ==
-                   m_params.GetConsensus().hashGenesisBlock);
+                   m_chainman.GetConsensus().hashGenesisBlock);
             // The current active chain's genesis block must be this block.
             assert(pindex == m_chain.Genesis());
         }
@@ -6109,7 +6116,7 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
     }
 
     int base_height = snapshot_start_block->nHeight;
-    auto maybe_au_data = ExpectedAssumeutxo(base_height, ::Params());
+    auto maybe_au_data = ExpectedAssumeutxo(base_height, GetParams());
 
     if (!maybe_au_data) {
         LogPrintf("[snapshot] assumeutxo height in snapshot metadata not "
@@ -6389,7 +6396,7 @@ SnapshotCompletionResult ChainstateManager::MaybeCompleteSnapshotValidation(
     CCoinsViewDB &ibd_coins_db = m_ibd_chainstate->CoinsDB();
     m_ibd_chainstate->ForceFlushStateToDisk();
 
-    auto maybe_au_data = ExpectedAssumeutxo(curr_height, ::Params());
+    auto maybe_au_data = ExpectedAssumeutxo(curr_height, GetParams());
     if (!maybe_au_data) {
         LogPrintf("[snapshot] assumeutxo data not found for height "
                   "(%d) - refusing to validate snapshot\n",

@@ -312,8 +312,8 @@ bool BlockManager::WriteBlockIndexDB() {
     return true;
 }
 
-bool BlockManager::LoadBlockIndexDB() {
-    if (!LoadBlockIndex(::Params().GetConsensus())) {
+bool BlockManager::LoadBlockIndexDB(const Consensus::Params &consensus_params) {
+    if (!LoadBlockIndex(consensus_params)) {
         return false;
     }
 
