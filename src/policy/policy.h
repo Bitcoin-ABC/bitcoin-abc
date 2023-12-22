@@ -21,16 +21,16 @@ class CTxOut;
  * Default for -blockmaxsize, which controls the maximum size of block the
  * mining code will create.
  */
-static const uint64_t DEFAULT_MAX_GENERATED_BLOCK_SIZE = 2 * ONE_MEGABYTE;
+static constexpr uint64_t DEFAULT_MAX_GENERATED_BLOCK_SIZE{2 * ONE_MEGABYTE};
 /**
  * Default for -blockmintxfee, which sets the minimum feerate for a transaction
  * in blocks created by mining code.
  */
-static const Amount DEFAULT_BLOCK_MIN_TX_FEE_PER_KB(1000 * SATOSHI);
+static constexpr Amount DEFAULT_BLOCK_MIN_TX_FEE_PER_KB(1000 * SATOSHI);
 /**
  * The maximum size for transactions we're willing to relay/mine.
  */
-static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
+static constexpr unsigned int MAX_STANDARD_TX_SIZE{100000};
 
 /**
  * Biggest 'standard' txin is a 15-of-15 P2SH multisig with compressed
@@ -40,23 +40,23 @@ static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
  * future-proofing. That's also enough to spend a 20-of-20 CHECKMULTISIG
  * scriptPubKey, though such a scriptPubKey is not considered standard.
  */
-static const unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE = 1650;
+static constexpr unsigned int MAX_TX_IN_SCRIPT_SIG_SIZE{1650};
 
 /**
  * Default for -maxmempool, maximum megabytes of mempool memory usage.
  */
-static const unsigned int DEFAULT_MAX_MEMPOOL_SIZE = 300;
+static constexpr unsigned int DEFAULT_MAX_MEMPOOL_SIZE{300};
 /**
  * Default for -incrementalrelayfee, which sets the minimum feerate increase for
  * mempool limiting or BIP 125 replacement.
  */
-static const CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
+static constexpr CFeeRate MEMPOOL_FULL_FEE_INCREMENT(1000 * SATOSHI);
 /**
  * Default for -bytespersigcheck .
  */
-static const unsigned int DEFAULT_BYTES_PER_SIGCHECK = 50;
+static constexpr unsigned int DEFAULT_BYTES_PER_SIGCHECK{50};
 /** Default for -permitbaremultisig */
-static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
+static constexpr bool DEFAULT_PERMIT_BAREMULTISIG{true};
 /**
  * Min feerate for defining dust. Historically this has been the same as the
  * minRelayTxFee, however changing the dust limit changes which transactions are
@@ -64,21 +64,21 @@ static const bool DEFAULT_PERMIT_BAREMULTISIG = true;
  * only increase the dust limit after prior releases were already not creating
  * outputs below the new threshold.
  */
-static const Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
+static constexpr Amount DUST_RELAY_TX_FEE(1000 * SATOSHI);
 
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
-static const Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
+static constexpr Amount DEFAULT_MIN_RELAY_TX_FEE_PER_KB(1000 * SATOSHI);
 
 /**
  * When transactions fail script evaluations under standard flags, this flagset
  * influences the decision of whether to drop them or to also ban the originator
  * (see CheckInputScripts).
  */
-static constexpr uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
+static constexpr uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS{
     SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
     SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_VERIFY_LOW_S |
     SCRIPT_VERIFY_NULLFAIL | SCRIPT_VERIFY_MINIMALDATA |
-    SCRIPT_ENABLE_SCHNORR_MULTISIG | SCRIPT_ENFORCE_SIGCHECKS;
+    SCRIPT_ENABLE_SCHNORR_MULTISIG | SCRIPT_ENFORCE_SIGCHECKS};
 
 /**
  * Standard script verification flags that standard transactions will comply
@@ -91,25 +91,25 @@ static constexpr uint32_t MANDATORY_SCRIPT_VERIFY_FLAGS =
  * used in numerous parts of the codebase that are unable to access the
  * contextual information of which upgrades are currently active.
  */
-static constexpr uint32_t STANDARD_SCRIPT_VERIFY_FLAGS =
+static constexpr uint32_t STANDARD_SCRIPT_VERIFY_FLAGS{
     MANDATORY_SCRIPT_VERIFY_FLAGS | SCRIPT_VERIFY_DERSIG |
     SCRIPT_VERIFY_SIGPUSHONLY | SCRIPT_VERIFY_MINIMALDATA |
     SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS | SCRIPT_VERIFY_CLEANSTACK |
     SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY | SCRIPT_VERIFY_CHECKSEQUENCEVERIFY |
-    SCRIPT_DISALLOW_SEGWIT_RECOVERY | SCRIPT_VERIFY_INPUT_SIGCHECKS;
+    SCRIPT_DISALLOW_SEGWIT_RECOVERY | SCRIPT_VERIFY_INPUT_SIGCHECKS};
 
 /**
  * For convenience, standard but not mandatory verify flags.
  */
-static constexpr uint32_t STANDARD_NOT_MANDATORY_VERIFY_FLAGS =
-    STANDARD_SCRIPT_VERIFY_FLAGS & ~MANDATORY_SCRIPT_VERIFY_FLAGS;
+static constexpr uint32_t STANDARD_NOT_MANDATORY_VERIFY_FLAGS{
+    STANDARD_SCRIPT_VERIFY_FLAGS & ~MANDATORY_SCRIPT_VERIFY_FLAGS};
 
 /**
  * Used as the flags parameter to sequence and nLocktime checks in non-consensus
  * code.
  */
-static constexpr uint32_t STANDARD_LOCKTIME_VERIFY_FLAGS =
-    LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST;
+static constexpr uint32_t STANDARD_LOCKTIME_VERIFY_FLAGS{
+    LOCKTIME_VERIFY_SEQUENCE | LOCKTIME_MEDIAN_TIME_PAST};
 
 Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
