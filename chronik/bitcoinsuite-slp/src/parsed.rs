@@ -4,7 +4,9 @@
 
 //! Module for data parsed from SLP and ALP.
 
-use crate::structs::{Amount, GenesisInfo, TokenMeta};
+use std::ops::Range;
+
+use crate::structs::{Amount, GenesisInfo, TokenMeta, TxType};
 
 /// Parsed data from SLP or ALP.
 /// For SLP, this is from parsing an entire `OP_RETURN`.
@@ -50,4 +52,30 @@ pub struct ParsedMintData {
     pub amounts: Vec<Amount>,
     /// Number of mint batons to create, each having their own tx output
     pub num_batons: usize,
+}
+
+impl ParsedTxType {
+    /// Map the tx type with attached data to just the [`TxType`].
+    pub fn tx_type(&self) -> TxType {
+        match self {
+            ParsedTxType::Genesis(_) => TxType::GENESIS,
+            ParsedTxType::Mint(_) => TxType::MINT,
+            ParsedTxType::Send(_) => TxType::SEND,
+            ParsedTxType::Burn(_) => TxType::BURN,
+            ParsedTxType::Unknown => TxType::UNKNOWN,
+        }
+    }
+}
+
+impl ParsedMintData {
+    /// [`Range`] for the outputs that will receive an amount
+    pub fn amounts_range(&self) -> Range<usize> {
+        1..1 + self.amounts.len()
+    }
+
+    /// [`Range`] for the outputs that will receive a mint baton
+    pub fn batons_range(&self) -> Range<usize> {
+        let start = 1 + self.amounts.len();
+        start..start + self.num_batons
+    }
 }

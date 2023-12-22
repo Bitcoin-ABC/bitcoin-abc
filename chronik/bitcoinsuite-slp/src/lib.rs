@@ -4,6 +4,7 @@
 
 abc_rust_lint::lint! {
     pub mod alp;
+    pub mod color;
     pub mod consts;
     pub mod empp;
     pub mod parsed;

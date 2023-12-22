@@ -152,7 +152,7 @@ impl std::fmt::Display for Token {
 
 impl GenesisInfo {
     /// Make an empty ALP [`GenesisInfo`].
-    pub fn empty_alp() -> GenesisInfo {
+    pub const fn empty_alp() -> GenesisInfo {
         GenesisInfo {
             token_ticker: Bytes::new(),
             token_name: Bytes::new(),
