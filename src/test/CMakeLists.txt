@@ -208,7 +208,6 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		scheduler_tests.cpp
 		schnorr_tests.cpp
 		script_bitfield_tests.cpp
-		script_commitment_tests.cpp
 		script_p2sh_tests.cpp
 		script_standard_tests.cpp
 		script_tests.cpp
