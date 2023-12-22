@@ -5,53 +5,44 @@ const NOTIFICATION_WIDTH = 400;
 const EXTENSION_DEV_ID = 'aleabaopoakgpbijdnicepefdiglggfl';
 const EXTENSION_PROD_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
 
-// This starts listening to the port created with `extension.runtime.connect` in contentscript.js
-extension.runtime.onConnect.addListener(function (port) {
-    console.assert(port.name == 'cashtabPort');
-    port.onMessage.addListener(function (msg) {
-        // Handle a transaction creation request
-        if (msg.text == `Cashtab` && msg.txInfo) {
-            console.log(
-                `Received a transaction request, opening Cashtab extension`,
-            );
-            openSendXec(msg.txInfo);
+extension.runtime.onMessage.addListener(function (request) {
+    // Handle a transaction creation request
+    if (request.text == `Cashtab` && request.txInfo) {
+        console.log(
+            `Received a transaction request, opening Cashtab extension`,
+        );
+        openSendXec(request.txInfo);
+    }
+    // Handle an address sharing request
+    if (request.text === `Cashtab` && request.addressRequest) {
+        // get the tab this message came from
+        // Note that chrome extension does not support making this listener async
+        // so need to use this Promise.then() syntax
+        getCurrentActiveTab().then(
+            requestingTab => {
+                openAddressShareApproval('addressRequest', requestingTab);
+            },
+            err => {
+                console.log(
+                    'Error in getCurrentActiveTab() triggered by ecash address request',
+                    err,
+                );
+            },
+        );
+    }
+    // Handle user approval / rejection of an ecash address sharing request
+    if (
+        request.text === `Cashtab` &&
+        Object.keys(request).includes('addressRequestApproved')
+    ) {
+        // If approved, then share the address
+        if (request.addressRequestApproved) {
+            fetchAddress(request.tabId);
+        } else {
+            // If denied, let the webpage know that the user denied this request
+            handleDeniedAddressRequest(request.tabId);
         }
-        // Handle an address sharing request
-        if (msg.text === `Cashtab` && msg.addressRequest) {
-            console.log(`Received request for ecash address`);
-            // get the tab this message came from
-            // Note that chrome extension does not support making this listener async
-            // so need to use this Promise.then() syntax
-            getCurrentActiveTab().then(
-                requestingTab => {
-                    openAddressShareApproval('addressRequest', requestingTab);
-                },
-                err => {
-                    console.log(
-                        'Error in getCurrentActiveTab() triggered by ecash address request',
-                        err,
-                    );
-                },
-            );
-        }
-        // Handle user approval / rejection of an ecash address sharing request
-        if (
-            msg.text === `Cashtab` &&
-            Object.keys(msg).includes('addressRequestApproved')
-        ) {
-            // If approved, then share the address
-            if (msg.addressRequestApproved) {
-                fetchAddress(msg.tabId);
-            } else {
-                // If denied, let the webpage know that the user denied this request
-                handleDeniedAddressRequest(msg.tabId);
-            }
-        }
-    });
-    // Handle disconnects
-    port.onDisconnect.addListener(() => {
-        // For now, do nothing
-    });
+    }
 });
 
 // Fetch item from extension storage and return it as a variable

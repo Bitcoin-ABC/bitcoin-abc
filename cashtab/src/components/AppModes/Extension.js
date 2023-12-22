@@ -10,8 +10,6 @@ const Extension = ({ wallet }) => {
     const [addressRequestTabId, setAddressRequestTabId] = useState(null);
     const [addressRequestTabUrl, setAddressRequestTabUrl] = useState('');
 
-    // Connect to extension messaging port
-    const port = extension.runtime.connect({ name: 'cashtabPort' });
     // Extension storage get method
     const getObjectFromExtensionStorage = async function (key) {
         return new Promise((resolve, reject) => {
@@ -55,10 +53,8 @@ const Extension = ({ wallet }) => {
         });
     };
 
-    const handleApprovedAddressShare = () => {
-        console.log(`handleApprovedAddressShare called`);
-        // Let the background script know you approved this request
-        port.postMessage({
+    const handleApprovedAddressShare = async () => {
+        await extension.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: true,
@@ -70,10 +66,8 @@ const Extension = ({ wallet }) => {
         window.close();
     };
 
-    const handleRejectedAddressShare = () => {
-        console.log(`handleRejectedAddressShare called`);
-        // Let the background script know you denied this request
-        port.postMessage({
+    const handleRejectedAddressShare = async () => {
+        await extension.tabs.sendMessage(addressRequestTabId, {
             type: 'FROM_CASHTAB',
             text: 'Cashtab',
             addressRequestApproved: false,
@@ -109,7 +103,7 @@ const Extension = ({ wallet }) => {
             let queryString = queryStringArray[1];
             let queryStringParams = new URLSearchParams(queryString);
             let request = queryStringParams.get('request');
-            let tabId = queryStringParams.get('tabId');
+            let tabId = parseInt(queryStringParams.get('tabId'));
             let tabUrl = queryStringParams.get('tabUrl');
             console.log(`request`, request);
             console.log(`tabId`, tabId);
