@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Wallet with BCH balances and tokens and state field 1`] = `
+exports[`Wallet with XEC balances and tokens and state field 1`] = `
 <div
   className="sc-gisBJw hfDtmk"
 >

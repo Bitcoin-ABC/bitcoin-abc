@@ -1,8 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Render StyledCollapse component 1`] = `
-<div
-  className="ant-collapse ant-collapse-icon-position-start sc-bdVaJa cOUamb"
-  role={null}
-/>
-`;

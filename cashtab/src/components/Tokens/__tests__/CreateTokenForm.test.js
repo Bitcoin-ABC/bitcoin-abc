@@ -27,7 +27,7 @@ beforeEach(() => {
     });
 });
 
-test('Wallet with BCH balances and tokens and state field', () => {
+test('Wallet with XEC balances and tokens and state field', () => {
     const component = renderer.create(
         <WalletContext.Provider
             value={walletWithBalancesAndTokensWithCorrectState}
