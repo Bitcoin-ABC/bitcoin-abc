@@ -418,6 +418,16 @@ class AvaProofEditor(CachedWalletPasswordWidget):
         """
         unconfirmed_count = 0
         stakes = []
+        if self.wallet.has_password() and self.pwd is None:
+            # We are here if the user cancelled the password dialog.
+            QtWidgets.QMessageBox.critical(
+                self,
+                _("Password required"),
+                f"Failed to add {len(utxos)} stakes to the proof because the "
+                f"decryption password for this wallet is unavailable.",
+            )
+            return
+
         for utxo in utxos:
             height = utxo["height"]
             if height <= 0:
