@@ -10,6 +10,9 @@ abc_rust_lint::lint! {
     pub mod parsed;
     pub mod slp;
     pub mod structs;
+    pub mod test_helpers;
     pub mod token_id;
+    pub mod token_tx;
     pub mod token_type;
+    pub mod verify;
 }

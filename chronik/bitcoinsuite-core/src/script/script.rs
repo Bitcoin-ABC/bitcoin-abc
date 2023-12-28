@@ -22,6 +22,10 @@ use crate::{
 pub struct Script(Bytes);
 
 impl Script {
+    /// Empty script
+    #[allow(clippy::declare_interior_mutable_const)]
+    pub const EMPTY: Script = Script(Bytes::new());
+
     /// Create a new script from the given bytecode.
     pub fn new(bytecode: Bytes) -> Self {
         Script(bytecode)

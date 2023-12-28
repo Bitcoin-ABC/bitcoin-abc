@@ -151,6 +151,20 @@ impl std::fmt::Display for Token {
 }
 
 impl GenesisInfo {
+    /// Make an empty SLP [`GenesisInfo`].
+    pub const fn empty_slp() -> GenesisInfo {
+        GenesisInfo {
+            token_ticker: Bytes::new(),
+            token_name: Bytes::new(),
+            mint_vault_scripthash: None,
+            url: Bytes::new(),
+            hash: None,
+            data: None,
+            auth_pubkey: None,
+            decimals: 0,
+        }
+    }
+
     /// Make an empty ALP [`GenesisInfo`].
     pub const fn empty_alp() -> GenesisInfo {
         GenesisInfo {
