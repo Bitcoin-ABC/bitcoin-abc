@@ -381,7 +381,9 @@ impl<'a> TxReader<'a> {
 
     /// Read the [`BlockTx`] by [`TxNum`], or [`None`] if not in the DB.
     pub fn tx_by_tx_num(&self, tx_num: TxNum) -> Result<Option<BlockTx>> {
-        let Some(ser_tx) = self.col.get_tx(tx_num)? else { return Ok(None) };
+        let Some(ser_tx) = self.col.get_tx(tx_num)? else {
+            return Ok(None);
+        };
         let block_height = self.block_height_by_tx_num(tx_num)?;
         Ok(Some(BlockTx {
             entry: TxEntry::from(ser_tx),
@@ -392,7 +394,9 @@ impl<'a> TxReader<'a> {
     /// Read just the [`TxId`] of the tx by [`TxNum`], or [`None`] if not in the
     /// DB. This is faster than [`TxReader::tx_and_num_by_txid`].
     pub fn txid_by_tx_num(&self, tx_num: TxNum) -> Result<Option<TxId>> {
-        let Some(ser_tx) = self.col.get_tx(tx_num)? else { return Ok(None) };
+        let Some(ser_tx) = self.col.get_tx(tx_num)? else {
+            return Ok(None);
+        };
         Ok(Some(TxId::from(ser_tx.txid)))
     }
 

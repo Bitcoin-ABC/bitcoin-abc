@@ -164,10 +164,10 @@ apt-get install -y nodejs
 # Install nyc for mocha unit test reporting
 npm i -g nyc
 
-# Install Rust stable 1.72.0 and nightly from the 2023-08-23
+# Install Rust stable 1.72.0 and nightly from the 2023-12-29
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.72.0
 RUST_HOME="${HOME}/.cargo/bin"
-RUST_NIGHTLY_DATE=2023-08-23
+RUST_NIGHTLY_DATE=2023-12-29
 "${RUST_HOME}/rustup" install nightly-${RUST_NIGHTLY_DATE}
 "${RUST_HOME}/rustup" component add rustfmt --toolchain nightly-${RUST_NIGHTLY_DATE}
 # Name the nightly toolchain "abc-nightly"

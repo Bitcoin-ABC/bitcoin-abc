@@ -134,7 +134,10 @@ fn test_parse_genesis_invalid_mint_baton_size() {
                     &[0x01, token_type],
                     &[0x07],
                     b"GENESIS",
-                    &[0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x4c, 0x00, 0x01, 0x00],
+                    &[
+                        0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x4c, 0x00, 0x01,
+                        0x00,
+                    ],
                     &[0x4c, size],
                     &vec![0x01; size as usize],
                     &[0x01, 0x00],
