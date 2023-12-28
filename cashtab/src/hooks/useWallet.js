@@ -49,6 +49,15 @@ import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 const chronik = new ChronikClient(chronikConfig.urls);
+// Cashtab is always running the `update` function at an interval
+// When the websocket detects an incoming tx (or when the wallet is first loaded)
+// Set this interval to near-instant (10ms)
+// If the `update` function runs and this is the refresh interval, it will throttle back to
+// the standard interval set in websocketConfig
+// Note: react setState is async. If you set this to 0, the update function will run 2 or 3 times before
+// the interval is updated in state
+// 10ms and update will only run once before backing off the interval, which is all you need
+const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
 
 const useWallet = () => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
@@ -112,9 +121,9 @@ const useWallet = () => {
     };
 
     const update = async ({ wallet }) => {
-        // Check if walletRefreshInterval is set to 10, i.e. this was called by websocket tx detection
-        // If walletRefreshInterval is 10, set it back to the usual refresh rate
-        if (walletRefreshInterval === 10) {
+        // Check if walletRefreshInterval is set to TRIGGER_UTXO_REFRESH_INTERVAL_MS, i.e. this was called by websocket tx detection
+        if (walletRefreshInterval === TRIGGER_UTXO_REFRESH_INTERVAL_MS) {
+            // If so, set it back to the usual refresh rate
             setWalletRefreshInterval(
                 websocketConfig.websocketConnectedRefreshInterval,
             );
@@ -849,7 +858,7 @@ const useWallet = () => {
 
         // If you see a tx from your subscribed addresses added to the mempool, then the wallet utxo set has changed
         // Update it
-        setWalletRefreshInterval(10);
+        setWalletRefreshInterval(TRIGGER_UTXO_REFRESH_INTERVAL_MS);
 
         // get txid info
         const txid = msg.txid;
@@ -1541,8 +1550,8 @@ const useWallet = () => {
             // Changing the wallet here will cause `initializeWebsocket` to fire which will update the websocket interval on a successful connection
             setWallet(newWallet);
             // Immediately call update on this wallet to populate it in the latest format
-            // Use the instant interval of 10ms that the update function will cancel
-            setWalletRefreshInterval(10);
+            // Use the instant interval of TRIGGER_UTXO_REFRESH_INTERVAL_MS that the update function will cancel
+            setWalletRefreshInterval(TRIGGER_UTXO_REFRESH_INTERVAL_MS);
             setLoading(false);
         },
         addNewSavedWallet,
