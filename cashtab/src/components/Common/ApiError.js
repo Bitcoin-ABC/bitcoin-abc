@@ -7,7 +7,14 @@ const ApiError = () => {
         <>
             <AlertMsg>
                 <b>Error in chronik connection</b>
-                <br /> Re-establishing connection...
+                <br /> If not corrected by refresh,{' '}
+                <a
+                    href="https://t.me/eCashDevelopment"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    notify admin
+                </a>
             </AlertMsg>
             <CashLoader />
         </>

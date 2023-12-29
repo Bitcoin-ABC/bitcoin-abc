@@ -48,12 +48,9 @@ import {
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
+const chronik = new ChronikClient(chronikConfig.urls);
 
 const useWallet = () => {
-    const [chronik, setChronik] = useState(
-        new ChronikClient(chronikConfig.urls[0]),
-    );
-    const previousChronik = usePrevious(chronik);
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
         websocketConfig.websocketDisconnectedRefreshInterval,
     );
@@ -67,7 +64,6 @@ const useWallet = () => {
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
     const [hasUpdated, setHasUpdated] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [chronikIndex, setChronikIndex] = useState(0);
     const [aliases, setAliases] = useState({
         registered: [],
         pending: [],
@@ -83,40 +79,6 @@ const useWallet = () => {
           };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
-
-    const tryNextChronikUrl = () => {
-        console.log(`Error with chronik instance at ${chronik._url}`);
-        let currentChronikIndex = chronikIndex;
-
-        // How many chronik URLs are available?
-        const chronikUrlCount = chronikConfig.urls.length;
-
-        console.log(
-            `Cashtab has ${
-                chronikUrlCount - 1
-            } alternative chronik instances available`,
-        );
-        // If only one, exit
-        if (chronikUrlCount === 1) {
-            console.log(
-                `There are no backup chronik servers. Please contact an admin to fix the chronik server.`,
-            );
-            return;
-        } else if (currentChronikIndex < chronikUrlCount - 1) {
-            // If you have another one, use the next one
-            currentChronikIndex += 1;
-        } else {
-            // If you are at the "end" of the array, use the first one
-            currentChronikIndex = 0;
-        }
-        setChronikIndex(currentChronikIndex);
-        console.log(
-            `Creating new chronik client with URL ${chronikConfig.urls[currentChronikIndex]}`,
-        );
-        return setChronik(
-            new ChronikClient(chronikConfig.urls[currentChronikIndex]),
-        );
-    };
 
     const deriveAccount = async ({ masterHDNode, path }) => {
         const node = masterHDNode.derivePath(path);
@@ -259,8 +221,6 @@ const useWallet = () => {
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
-            // Try another chronik instance
-            tryNextChronikUrl();
         }
     };
 
@@ -995,56 +955,62 @@ const useWallet = () => {
             return setChronikWebsocket(null);
         }
 
-        const hasChronikUrlChanged = chronik !== previousChronik;
-        if (hasChronikUrlChanged) {
-            console.log(`Chronik URL has changed to ${chronik._url}.`);
-        }
-
         let ws = chronikWebsocket;
 
-        // If chronik URL has changed and ws is not null, close existing websocket
-        if (hasChronikUrlChanged && ws !== null) {
-            console.log(`Closing websocket connection at ${ws._wsUrl}`);
-            ws.close();
-        }
+        // Initialize websocket if not in state
+        if (ws === null) {
+            if (
+                chronik &&
+                chronik._proxyInterface &&
+                chronik._proxyInterface._endpointArray &
+                    chronik._proxyInterface._workingIndex
+            )
+                console.log(
+                    `Opening websocket connection at ${
+                        chronik._proxyInterface._endpointArray[
+                            chronik._proxyInterface._workingIndex
+                        ].wsUrl
+                    }`,
+                );
+            try {
+                ws = chronik.ws({
+                    onMessage: msg => {
+                        processChronikWsMsg(msg, wallet, fiatPrice);
+                    },
+                    autoReconnect: true,
+                    onReconnect: e => {
+                        // Fired before a reconnect attempt is made:
+                        console.log(
+                            'Reconnecting websocket, disconnection cause: ',
+                            e,
+                        );
+                    },
+                    onConnect: e => {
+                        console.log(`Chronik websocket connected`, e);
+                        console.log(
+                            `Websocket connected, adjusting wallet refresh interval to ${
+                                websocketConfig.websocketConnectedRefreshInterval /
+                                1000
+                            }s`,
+                        );
+                        setWalletRefreshInterval(
+                            websocketConfig.websocketConnectedRefreshInterval,
+                        );
+                    },
+                });
 
-        // Initialize websocket if not in state or if chronik URL has changed
-        if (ws === null || hasChronikUrlChanged) {
-            console.log(`Opening websocket connection at ${chronik._wsUrl}`);
-            ws = chronik.ws({
-                onMessage: msg => {
-                    processChronikWsMsg(msg, wallet, fiatPrice);
-                },
-                autoReconnect: true,
-                onReconnect: e => {
-                    // Fired before a reconnect attempt is made:
-                    console.log(
-                        'Reconnecting websocket, disconnection cause: ',
-                        e,
-                    );
-                },
-                onConnect: e => {
-                    console.log(`Chronik websocket connected`, e);
-                    console.log(
-                        `Websocket connected, adjusting wallet refresh interval to ${
-                            websocketConfig.websocketConnectedRefreshInterval /
-                            1000
-                        }s`,
-                    );
-                    setWalletRefreshInterval(
-                        websocketConfig.websocketConnectedRefreshInterval,
-                    );
-                },
-            });
+                // Need to keep in state so subscriptions can be modified when wallet changes
+                setChronikWebsocket(ws);
 
-            // Need to put ws in state here so that, if the connection fails, it can be cleared for the next chronik URL
-            setChronikWebsocket(ws);
-
-            // Wait for websocket to be connected:
-            await ws.waitForOpen();
+                // Wait for websocket to be connected:
+                await ws.waitForOpen();
+            } catch (err) {
+                console.log(`Error creating websocket`, err);
+                return setChronikWebsocket(null);
+            }
         } else {
             /*        
-            If the websocket connection is not null and the chronik URL has not changed, initializeWebsocket was called
+            If the websocket connection is not null, initializeWebsocket was called
             because one of the websocket's dependencies changed
 
             Update the onMessage method to get the latest dependencies (wallet, fiatPrice)
@@ -1058,7 +1024,7 @@ const useWallet = () => {
         // Check if current subscriptions match current wallet
         let activeSubscriptionsMatchActiveWallet = true;
 
-        const previousWebsocketSubscriptions = ws._subs;
+        const previousWebsocketSubscriptions = ws.subs;
         // If there are no previous subscriptions, then activeSubscriptionsMatchActiveWallet is certainly false
         if (previousWebsocketSubscriptions.length === 0) {
             activeSubscriptionsMatchActiveWallet = false;

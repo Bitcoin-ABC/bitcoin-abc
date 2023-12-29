@@ -1,7 +1,7 @@
 export const activeWebsocketAlpha = {
     autoReconnect: true,
-    _manuallyClosed: false,
-    _subs: [
+    manuallyClosed: false,
+    subs: [
         {
             scriptType: 'p2pkh',
             scriptPayload: '1fb76a7db96fc774cbad00e8a72890602b4be304',
@@ -15,15 +15,15 @@ export const activeWebsocketAlpha = {
             scriptPayload: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         },
     ],
-    _wsUrl: 'wss://chronik.be.cash/xec/ws',
-    _ws: { readyState: 1 },
-    _connected: {},
+    wsUrl: 'wss://chronik.be.cash/xec/ws',
+    ws: { readyState: 1 },
+    connected: {},
 };
 
 export const disconnectedWebsocketAlpha = {
     autoReconnect: true,
-    _manuallyClosed: false,
-    _subs: [
+    manuallyClosed: false,
+    subs: [
         {
             scriptType: 'p2pkh',
             scriptPayload: '1fb76a7db96fc774cbad00e8a72890602b4be304',
@@ -37,16 +37,16 @@ export const disconnectedWebsocketAlpha = {
             scriptPayload: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
         },
     ],
-    _wsUrl: 'wss://chronik.be.cash/xec/ws',
-    _ws: { readyState: 3 },
-    _connected: {},
+    wsUrl: 'wss://chronik.be.cash/xec/ws',
+    ws: { readyState: 3 },
+    connected: {},
 };
 
 export const unsubscribedWebsocket = {
     autoReconnect: true,
-    _manuallyClosed: false,
-    _subs: [],
-    _wsUrl: 'wss://chronik.be.cash/xec/ws',
-    _ws: { readyState: 1 },
-    _connected: {},
+    manuallyClosed: false,
+    subs: [],
+    wsUrl: 'wss://chronik.be.cash/xec/ws',
+    ws: { readyState: 1 },
+    connected: {},
 };

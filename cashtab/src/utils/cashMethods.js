@@ -1023,11 +1023,11 @@ export const isActiveWebsocket = ws => {
     return (
         ws !== null &&
         ws &&
-        '_ws' in ws &&
-        'readyState' in ws._ws &&
-        ws._ws.readyState === 1 &&
-        '_subs' in ws &&
-        ws._subs.length > 0
+        'ws' in ws &&
+        'readyState' in ws.ws &&
+        ws.ws.readyState === 1 &&
+        'subs' in ws &&
+        ws.subs.length > 0
     );
 };
 
