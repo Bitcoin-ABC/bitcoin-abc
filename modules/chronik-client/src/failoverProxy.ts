@@ -222,7 +222,19 @@ export class FailoverProxy {
      */
     private _ping(wsEndpoint: WsEndpoint) {
         if (typeof wsEndpoint.ws !== 'undefined') {
-            wsEndpoint.ws.ping();
+            if (wsEndpoint.ws.ping instanceof Function) {
+                // check that ws.ping() is available before calling it
+                // browser Websocket object does not support ping() like nodejs
+                // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
+                wsEndpoint.ws.ping();
+            } else if (wsEndpoint.subs.length > 0) {
+                // If we have no subs, no need to ping anyway
+                wsEndpoint.subUnsub(
+                    true,
+                    wsEndpoint.subs[0].scriptType,
+                    wsEndpoint.subs[0].scriptPayload,
+                );
+            }
         }
     }
 
