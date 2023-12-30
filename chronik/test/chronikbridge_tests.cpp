@@ -97,6 +97,107 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
                       chainman.ActiveTip()->GetAncestor(49)->GetBlockHash());
 }
 
+BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    LOCK(cs_main);
+    const CChainParams &params = GetConfig().GetChainParams();
+    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    CCoinsViewCache &coins_cache = chainman.ActiveChainstate().CoinsTip();
+
+    CScript anyoneScript = CScript() << OP_1;
+    CScript anyoneP2sh = GetScriptForDestination(ScriptHash(anyoneScript));
+    CBlock coinsBlock =
+        CreateAndProcessBlock({}, anyoneP2sh, &chainman.ActiveChainstate());
+    mineBlocks(100);
+
+    const CTransactionRef coinTx = coinsBlock.vtx[0];
+
+    CScript scriptPad = CScript() << OP_RETURN << std::vector<uint8_t>(100);
+    CMutableTransaction tx;
+    tx.vin = {CTxIn(
+        coinTx->GetId(), 0,
+        CScript() << std::vector(anyoneScript.begin(), anyoneScript.end()))};
+    tx.vout = {
+        CTxOut(1000 * SATOSHI, anyoneP2sh),
+        CTxOut(coinTx->vout[0].nValue - 10000 * SATOSHI, anyoneP2sh),
+    };
+    const MempoolAcceptResult result =
+        m_node.chainman->ProcessTransaction(MakeTransactionRef(tx));
+    BOOST_CHECK_EQUAL(result.m_result_type,
+                      MempoolAcceptResult::ResultType::VALID);
+    TxId txid = tx.GetId();
+
+    // Tx we look up coins for
+    chronik_bridge::Tx query_tx = {
+        .inputs = {
+            {.prev_out = {chronik::util::HashToArray(txid), 0}},
+            {.prev_out = {chronik::util::HashToArray(txid), 1}},
+            {.prev_out = {{}, 0x12345678}},
+        }};
+
+    // Do lookup
+    rust::Vec<chronik_bridge::OutPoint> not_found;
+    rust::Vec<chronik_bridge::OutPoint> coins_to_uncache;
+    bridge.lookup_spent_coins(query_tx, not_found, coins_to_uncache);
+
+    // One of the coins was not found
+    BOOST_CHECK_EQUAL(not_found.size(), 1);
+    BOOST_CHECK(not_found[0] == query_tx.inputs[2].prev_out);
+
+    // Mempool UTXOs aren't in the cache, so lookup_spent_coins thinks they need
+    // to be uncached, which seems weird but is intended behavior.
+    BOOST_CHECK_EQUAL(coins_to_uncache.size(), 2);
+    BOOST_CHECK(coins_to_uncache[0] == query_tx.inputs[0].prev_out);
+    BOOST_CHECK(coins_to_uncache[1] == query_tx.inputs[1].prev_out);
+    BOOST_CHECK(!coins_cache.HaveCoinInCache(COutPoint(txid, 0)));
+    BOOST_CHECK(!coins_cache.HaveCoinInCache(COutPoint(txid, 1)));
+
+    // lookup_spent_coins mutates our query_tx to set the queried coins
+    const rust::Vec<uint8_t> &script0 = query_tx.inputs[0].coin.output.script;
+    const rust::Vec<uint8_t> &script1 = query_tx.inputs[1].coin.output.script;
+    BOOST_CHECK_EQUAL(query_tx.inputs[0].coin.output.value, 1000);
+    BOOST_CHECK(CScript(script0.data(), script0.data() + script0.size()) ==
+                anyoneP2sh);
+    BOOST_CHECK_EQUAL(query_tx.inputs[1].coin.output.value,
+                      coinTx->vout[0].nValue / SATOSHI - 10000);
+    BOOST_CHECK(CScript(script1.data(), script1.data() + script1.size()) ==
+                anyoneP2sh);
+
+    // Mine tx
+    CreateAndProcessBlock({tx}, CScript() << OP_1,
+                          &chainman.ActiveChainstate());
+    // Coins are now in the cache
+    BOOST_CHECK(coins_cache.HaveCoinInCache(COutPoint(txid, 0)));
+    BOOST_CHECK(coins_cache.HaveCoinInCache(COutPoint(txid, 1)));
+
+    // Write cache to DB & clear cache
+    coins_cache.Flush();
+    BOOST_CHECK(!coins_cache.HaveCoinInCache(COutPoint(txid, 0)));
+    BOOST_CHECK(!coins_cache.HaveCoinInCache(COutPoint(txid, 1)));
+
+    // lookup puts the coins back into the cache
+    bridge.lookup_spent_coins(query_tx, not_found, coins_to_uncache);
+    BOOST_CHECK_EQUAL(coins_to_uncache.size(), 2);
+    BOOST_CHECK(coins_to_uncache[0] == query_tx.inputs[0].prev_out);
+    BOOST_CHECK(coins_to_uncache[1] == query_tx.inputs[1].prev_out);
+    BOOST_CHECK(coins_cache.HaveCoinInCache(COutPoint(txid, 0)));
+    BOOST_CHECK(coins_cache.HaveCoinInCache(COutPoint(txid, 1)));
+
+    // Now, we don't get any coins_to_uncache (because the call didn't add
+    // anything to it)
+    bridge.lookup_spent_coins(query_tx, not_found, coins_to_uncache);
+    BOOST_CHECK_EQUAL(coins_to_uncache.size(), 0);
+
+    // Call uncache_coins to uncache the 1st coin
+    const std::vector<chronik_bridge::OutPoint> uncache_outpoints{
+        query_tx.inputs[0].prev_out};
+    bridge.uncache_coins(
+        rust::Slice(uncache_outpoints.data(), uncache_outpoints.size()));
+    // Only the 2nd coin is now in cache
+    BOOST_CHECK(!coins_cache.HaveCoinInCache(COutPoint(txid, 0)));
+    BOOST_CHECK(coins_cache.HaveCoinInCache(COutPoint(txid, 1)));
+}
+
 BOOST_FIXTURE_TEST_CASE(test_load_block, TestChain100Setup) {
     const CChainParams &params = GetConfig().GetChainParams();
     const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);

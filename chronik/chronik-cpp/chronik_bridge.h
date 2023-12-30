@@ -29,6 +29,7 @@ namespace chronik_bridge {
 struct BlockInfo;
 struct Block;
 struct Tx;
+struct OutPoint;
 
 class block_index_not_found : public std::exception {
 public:
@@ -63,6 +64,10 @@ public:
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
 
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
+
+    void lookup_spent_coins(Tx &, rust::Vec<OutPoint> &not_found,
+                            rust::Vec<OutPoint> &coins_to_uncache) const;
+    void uncache_coins(rust::Slice<const OutPoint>) const;
 
     std::array<uint8_t, 32> broadcast_tx(rust::Slice<const uint8_t> raw_tx,
                                          int64_t max_fee) const;

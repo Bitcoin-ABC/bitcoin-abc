@@ -215,6 +215,50 @@ const CBlockIndex &ChronikBridge::find_fork(const CBlockIndex &index) const {
     return *fork;
 }
 
+void ChronikBridge::lookup_spent_coins(
+    Tx &tx, rust::Vec<OutPoint> &not_found,
+    rust::Vec<OutPoint> &coins_to_uncache) const {
+    not_found.clear();
+    coins_to_uncache.clear();
+    LOCK(cs_main);
+    CCoinsViewCache &coins_cache =
+        m_node.chainman->ActiveChainstate().CoinsTip();
+    CCoinsViewMemPool coin_view(&coins_cache, *m_node.mempool);
+    for (TxInput &input : tx.inputs) {
+        TxId txid = TxId(chronik::util::ArrayToHash(input.prev_out.txid));
+        COutPoint outpoint = COutPoint(txid, input.prev_out.out_idx);
+
+        // Remember if coin was already cached
+        const bool had_cached = coins_cache.HaveCoinInCache(outpoint);
+
+        ::Coin coin;
+        if (!coin_view.GetCoin(outpoint, coin)) {
+            not_found.push_back(input.prev_out);
+            continue;
+        }
+
+        if (!had_cached) {
+            // Only add if previously uncached.
+            // We don't check if the prev_out is now cached (which wouldn't be
+            // the case for a mempool UTXO), as uncaching an outpoint is cheap,
+            // so we save one extra cache lookup here.
+            coins_to_uncache.push_back(input.prev_out);
+        }
+        input.coin = BridgeCoin(coin);
+    }
+}
+
+void ChronikBridge::uncache_coins(
+    rust::Slice<const OutPoint> coins_to_uncache) const {
+    LOCK(cs_main);
+    CCoinsViewCache &coins_cache =
+        m_node.chainman->ActiveChainstate().CoinsTip();
+    for (const OutPoint &outpoint : coins_to_uncache) {
+        TxId txid = TxId(chronik::util::ArrayToHash(outpoint.txid));
+        coins_cache.Uncache(COutPoint(txid, outpoint.out_idx));
+    }
+}
+
 std::array<uint8_t, 32>
 ChronikBridge::broadcast_tx(rust::Slice<const uint8_t> raw_tx,
                             int64_t max_fee) const {

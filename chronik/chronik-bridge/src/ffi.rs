@@ -209,6 +209,30 @@ mod ffi_inner {
             block_index: &CBlockIndex,
         ) -> Result<&CBlockIndex>;
 
+        /// Lookup the spent coins of a tx and fill them in in-place.
+        /// - `not_found` will be the outpoints that couldn't be found in the
+        ///   node or the DB.
+        /// - `coins_to_uncache` will be the outpoints that need to be uncached
+        ///   if the tx doesn't end up being broadcast. This is so that clients
+        ///   can't fill our cache with useless old coins. It mirrors the
+        ///   behavior of `MemPoolAccept::PreChecks`, which uncaches the queried
+        ///   coins if they don't end up being spent.
+        fn lookup_spent_coins(
+            self: &ChronikBridge,
+            tx: &mut Tx,
+            not_found: &mut Vec<OutPoint>,
+            coins_to_uncache: &mut Vec<OutPoint>,
+        ) -> Result<()>;
+
+        /// Remove the coins from the coin cache.
+        /// This must be done after a call to `lookup_spent_coins` where the tx
+        /// wasn't broadcast, to avoid clients filling our cache with unneeded
+        /// coins.
+        fn uncache_coins(
+            self: &ChronikBridge,
+            coins: &[OutPoint],
+        ) -> Result<()>;
+
         /// Add the given tx to the mempool, and if that succeeds, broadcast it
         /// to all our peers.
         /// Also check the actual tx fee doesn't exceed max_fee.
