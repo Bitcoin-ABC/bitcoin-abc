@@ -11,6 +11,7 @@ mod group_utxos;
 pub mod merge;
 mod metadata;
 mod spent_by;
+pub mod token;
 mod txs;
 
 pub use self::block_stats::*;

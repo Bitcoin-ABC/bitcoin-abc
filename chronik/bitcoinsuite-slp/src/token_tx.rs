@@ -6,8 +6,8 @@
 
 use crate::{
     color::{FailedColoring, FailedParsing},
-    structs::{Amount, GenesisInfo, TokenMeta, TokenOutput, TxType},
-    verify::BurnError,
+    structs::{Amount, GenesisInfo, Token, TokenMeta, TokenOutput, TxType},
+    verify::{BurnError, SpentToken},
 };
 
 /// Verified token tx, with calculated burns and errors
@@ -67,4 +67,28 @@ pub struct TokenTxEntry {
     /// This is a list because a tx can have multiple failed coloring attempts
     /// per tx.
     pub failed_colorings: Vec<FailedColoring>,
+}
+
+impl TokenTx {
+    /// Turn the given [`TokenOutput`] into [`Token`] based on the [`TokenMeta`]
+    /// of the entries.
+    pub fn token(&self, token_output: &TokenOutput) -> Token {
+        Token {
+            meta: self.entries[token_output.token_idx].meta,
+            variant: token_output.variant,
+        }
+    }
+
+    /// Turn the given [`TokenOutput`] into [`SpentToken`] based on the
+    /// [`TokenMeta`] and `group_token_meta` of the entries
+    pub fn spent_token(&self, token_output: &TokenOutput) -> SpentToken {
+        let entry = &self.entries[token_output.token_idx];
+        SpentToken {
+            token: Token {
+                meta: entry.meta,
+                variant: token_output.variant,
+            },
+            group_token_meta: entry.group_token_meta,
+        }
+    }
 }

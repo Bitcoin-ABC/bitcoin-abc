@@ -45,6 +45,12 @@ pub const CF_SCRIPT_HISTORY_NUM_TXS: &str = "script_history_num_txs";
 pub const CF_SCRIPT_UTXO: &str = "script_utxo";
 /// Column family to store which outputs have been spent by which tx inputs.
 pub const CF_SPENT_BY: &str = "spent_by";
+/// Column family for genesis info by token_tx_num
+pub const CF_TOKEN_GENESIS_INFO: &str = "token_genesis_info";
+/// Column family for TokenMeta by token_tx_num
+pub const CF_TOKEN_META: &str = "token_meta";
+/// Column family for token tx data by tx
+pub const CF_TOKEN_TX: &str = "token_tx";
 /// Column family for the tx data.
 pub const CF_TX: &str = "tx";
 

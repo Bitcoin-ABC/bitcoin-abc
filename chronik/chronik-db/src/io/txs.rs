@@ -160,12 +160,12 @@ pub enum TxsError {
 
 use self::TxsError::*;
 
-fn tx_num_to_bytes(tx_num: TxNum) -> [u8; 8] {
+pub(crate) fn tx_num_to_bytes(tx_num: TxNum) -> [u8; 8] {
     // big-endian, so txs are sorted ascendingly
     tx_num.to_be_bytes()
 }
 
-fn bytes_to_tx_num(bytes: &[u8]) -> Result<TxNum> {
+pub(crate) fn bytes_to_tx_num(bytes: &[u8]) -> Result<TxNum> {
     Ok(TxNum::from_be_bytes(
         bytes
             .try_into()
