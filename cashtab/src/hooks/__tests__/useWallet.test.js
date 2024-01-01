@@ -5,7 +5,6 @@ import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings'
 import { isValidStoredWallet } from 'utils/cashMethods';
 import aliasSettings from 'config/alias';
 import { when } from 'jest-when';
-const assert = require('assert');
 
 test('Migrating legacy wallet on mainnet', async () => {
     const { result } = renderHook(() => useWallet());
@@ -28,7 +27,7 @@ test('Verify default Cashtab settings are initialized', async () => {
         cashtabSettings = await result.current.loadCashtabSettings();
     });
 
-    assert.deepEqual(cashtabSettings, cashtabDefaultConfig);
+    expect(cashtabSettings).toStrictEqual(cashtabDefaultConfig);
 });
 
 test('Verify handleUpdateWallet() correctly initializes the active wallet', async () => {
@@ -55,7 +54,7 @@ test('Verify handleUpdateWallet() correctly initializes the active wallet', asyn
         ...uninitializedWalletKeys,
     };
 
-    assert.strictEqual(isValidStoredWallet(fullWallet), true);
+    expect(isValidStoredWallet(fullWallet)).toBe(true);
 });
 
 test('Verify processChronikWsMsg() processes AddedToMempool events', async () => {
@@ -67,7 +66,7 @@ test('Verify processChronikWsMsg() processes AddedToMempool events', async () =>
     const walletState = result.current.wallet;
 
     // verify upon `AddedToMempool` events processChronikWsMsg() processes the wallet input arg
-    assert.notEqual(walletState, false);
+    expect(walletState).not.toBe(false);
 });
 
 test('processChronikWsMsg() refreshes alias prices when aliasPrices is null', async () => {
@@ -117,7 +116,7 @@ test('processChronikWsMsg() refreshes alias prices when aliasPrices is null', as
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
-    assert.deepEqual(result.current.aliasPrices, mockAliasServerResponse);
+    expect(result.current.aliasPrices).toStrictEqual(mockAliasServerResponse);
 });
 
 test('processChronikWsMsg() refreshes alias prices when aliasPrices exists, server and cashtab prices array length do not match', async () => {
@@ -227,7 +226,7 @@ test('processChronikWsMsg() refreshes alias prices when aliasPrices exists, serv
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
-    assert.deepEqual(result.current.aliasPrices, mockAliasServerResponse);
+    expect(result.current.aliasPrices).toEqual(mockAliasServerResponse);
 });
 
 test('processChronikWsMsg() does not refresh alias prices when aliasPrices exists, server and cashtab array length do match', async () => {
@@ -366,7 +365,7 @@ test('processChronikWsMsg() does not refresh alias prices when aliasPrices exist
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     // Verify upon `BlockConnected` events processChronikWsMsg() does not update the aliasPrices state var
-    assert.deepEqual(result.current.aliasPrices, mockExistingAliasPrices);
+    expect(result.current.aliasPrices).toStrictEqual(mockExistingAliasPrices);
 });
 
 test('Verify a processChronikWsMsg() new block event updates the `aliasServerError` state var upon a /prices/ endpoint error', async () => {
@@ -386,7 +385,9 @@ test('Verify a processChronikWsMsg() new block event updates the `aliasServerErr
     await result.current.processChronikWsMsg(mockWebsocketMsg);
 
     // Verify the `aliasServerError` state var in useWallet is updated
-    assert.deepEqual(result.current.aliasServerError, new Error(expectedError));
+    expect(result.current.aliasServerError).toStrictEqual(
+        new Error(expectedError),
+    );
 });
 
 test('Verify processChronikWsMsg() does not process events that are NOT BlockConnected or AddedToMempool', async () => {
@@ -399,8 +400,8 @@ test('Verify processChronikWsMsg() does not process events that are NOT BlockCon
     const fiatPriceState = result.current.fiatPrice;
 
     // Verify upon `Confirmed` events processChronikWsMsg() returns early and does not process the wallet and fiatPrice input args
-    assert.strictEqual(walletState, false);
-    assert.strictEqual(fiatPriceState, null);
+    expect(walletState).toBe(false);
+    expect(fiatPriceState).toBe(null);
 });
 
 test('Verify refreshAliases() updates the `aliases` state variable on a successful /address/ endpoint response', async () => {
@@ -438,7 +439,7 @@ test('Verify refreshAliases() updates the `aliases` state variable on a successf
     await result.current.refreshAliases(address);
 
     // Verify the `aliases` state var in useWallet is updated
-    assert.deepEqual(result.current.aliases, mockAliasServerResponse);
+    expect(result.current.aliases).toStrictEqual(mockAliasServerResponse);
 });
 
 test('Verify refreshAliases() updates the `aliasServerError` state variable upon an /address/ endpoint error', async () => {
@@ -462,5 +463,5 @@ test('Verify refreshAliases() updates the `aliasServerError` state variable upon
     await result.current.refreshAliases(address);
 
     // Verify the `aliasServerError` state var in useWallet is updated
-    assert.deepEqual(result.current.aliasServerError, expectedError.error);
+    expect(result.current.aliasServerError).toStrictEqual(expectedError.error);
 });
