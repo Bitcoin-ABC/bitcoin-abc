@@ -10,9 +10,7 @@ import 'antd/dist/antd.min.css';
 ReactDOM.render(
     <WalletProvider>
         <Router>
-            {process.env.REACT_APP_BUILD_ENV !== 'extension' && GA.init() && (
-                <GA.RouteTracker />
-            )}
+            {GA.init() && <GA.RouteTracker />}
             <App />
         </Router>
     </WalletProvider>,
