@@ -23,7 +23,6 @@ import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { Row, Col } from 'antd';
 import { getWalletState, fromSatoshisToXec } from 'utils/cashMethods';
-import { registerNewAlias } from 'utils/transactions';
 import {
     errorNotification,
     registerAliasNotification,
@@ -37,6 +36,9 @@ import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import appConfig from 'config/app';
 import { formatBalance } from 'utils/formatting';
 import aliasSettings from 'config/alias';
+import { explorer } from 'config/explorer';
+import { getAliasTargetOutput } from 'opreturn';
+import { sendXec } from 'transactions';
 
 export const CheckboxContainer = styled.div`
     text-align: left;
@@ -307,16 +309,25 @@ const Alias = ({ passLoadingStatus }) => {
                 `Alias ${aliasInput} is available. Broadcasting registration transaction.`,
             );
             try {
-                const result = await registerNewAlias(
+                const targetOutputs = [
+                    getAliasTargetOutput(aliasInput, aliasAddress),
+                    {
+                        address: aliasSettings.aliasPaymentAddress,
+                        value: aliasDetails.registrationFeeSats,
+                    },
+                ];
+
+                const txObj = await sendXec(
                     chronik,
                     wallet,
+                    targetOutputs,
                     appConfig.defaultFee,
-                    aliasInput,
-                    aliasAddress,
-                    aliasDetails.registrationFeeSats,
                 );
                 clearInputForms();
-                registerAliasNotification(result.explorerLink, aliasInput);
+                registerAliasNotification(
+                    `${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`,
+                    aliasInput,
+                );
                 // Append the newly broadcasted alias registration to pending list to
                 // ensure the alias refresh interval is running in useWallet.js
                 setAliases(previousAliases => ({
