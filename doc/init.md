@@ -85,7 +85,8 @@ Installing this .service file consists of copying it to the
 daemon-reload` in order to update the running systemd configuration.
 
 To start bitcoind, run `systemctl --user start bitcoind`, to tell systemd to
-start bitcoind at bootup run `systemctl --user enable bitcoind`, and to see the
+start bitcoind at bootup run
+`loginctl enable-linger && systemctl --user enable bitcoind`, and to see the
 current status run `systemctl --user status bitcoind`.
 
 ### OpenRC
