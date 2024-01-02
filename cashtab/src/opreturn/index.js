@@ -157,3 +157,27 @@ export const getAliasTargetOutput = (alias, address) => {
     // Create output
     return { value: 0, script };
 };
+
+/**
+ * Calculates the bytecount of the alias input
+ *
+ * @param {string} alias alias input from a text input field
+ * @returns {number} aliasInputByteSize the byte size of the alias input
+ */
+export const getAliasByteCount = alias => {
+    if (typeof alias !== 'string') {
+        // Make sure .trim() is available
+        throw new Error('alias input must be a string');
+    }
+    // Do not validate the specific alias as the user may type in invalid aliases
+    // We still want to return a size
+    if (alias.trim() === '') {
+        return 0;
+    }
+
+    // Get alias as utf8
+    const aliasUtf8Hex = Buffer.from(alias, 'utf8');
+
+    // Return bytecount
+    return aliasUtf8Hex.length;
+};

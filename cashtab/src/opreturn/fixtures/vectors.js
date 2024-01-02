@@ -156,4 +156,51 @@ export const opReturnVectors = {
             },
         ],
     },
+    aliastByteCounts: {
+        expectedReturns: [
+            { description: 'Alias with emoji', alias: '🙈', byteCount: 4 },
+            {
+                description: 'Alias with emoji and text',
+                alias: 'monkey🙈',
+                byteCount: 10,
+            },
+            {
+                description: 'Alias with special characters',
+                alias: 'monkey©®ʕ•́ᴥ•̀ʔっ♡',
+                byteCount: 33,
+            },
+            {
+                description: 'Alias with Korean text',
+                alias: '소주',
+                byteCount: 6,
+            },
+            {
+                description: 'Alias with Arabic text',
+                alias: 'محيط',
+                byteCount: 8,
+            },
+            {
+                description: 'Alias with Chinese text',
+                alias: '冰淇淋',
+                byteCount: 9,
+            },
+            {
+                description: 'Alias with mixed foreign alphabets and emoji',
+                alias: '🙈©冰소주',
+                byteCount: 15,
+            },
+            {
+                description: 'Alphanumeric valid v0 alias',
+                alias: 'justanormalalias',
+                byteCount: 16,
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'non-text input',
+                alias: null,
+                errorMsg: 'alias input must be a string',
+            },
+        ],
+    },
 };

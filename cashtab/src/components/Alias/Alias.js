@@ -28,7 +28,7 @@ import {
     registerAliasNotification,
 } from 'components/Common/Notifications';
 import { isAliasFormat, isValidAlias } from 'utils/validation';
-import { queryAliasServer, getAliasByteSize } from 'utils/aliasUtils';
+import { queryAliasServer } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 import { Space, Tag } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -37,7 +37,7 @@ import appConfig from 'config/app';
 import { formatBalance } from 'utils/formatting';
 import aliasSettings from 'config/alias';
 import { explorer } from 'config/explorer';
-import { getAliasTargetOutput } from 'opreturn';
+import { getAliasTargetOutput, getAliasByteCount } from 'opreturn';
 import { sendXec } from 'transactions';
 
 export const CheckboxContainer = styled.div`
@@ -360,7 +360,7 @@ const Alias = ({ passLoadingStatus }) => {
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
         const validAliasInput = isValidAlias(value);
-        const aliasInputByteSize = getAliasByteSize(value);
+        const aliasInputByteSize = getAliasByteCount(value);
         if (
             value &&
             value.trim() !== '' &&
@@ -573,7 +573,7 @@ const Alias = ({ passLoadingStatus }) => {
                                             }}
                                         />
                                         {(() => {
-                                            let aliasLength = getAliasByteSize(
+                                            let aliasLength = getAliasByteCount(
                                                 formData.aliasName,
                                             );
                                             if (

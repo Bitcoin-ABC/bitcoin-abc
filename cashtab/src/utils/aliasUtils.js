@@ -1,33 +1,4 @@
-import { parseOpReturn, generateOpReturnScript } from 'utils/cashMethods';
 import aliasSettings from 'config/alias';
-
-/**
- * Calculates the byte size of the alias input
- *
- * @param {string} aliasInputStr the alias input
- * @returns {number} aliasInputByteSize the byte size of the alias input
- */
-export const getAliasByteSize = aliasInputStr => {
-    if (!aliasInputStr || aliasInputStr.trim() === '') {
-        return 0;
-    }
-
-    // generate the OP_RETURN script
-    const opReturnData = generateOpReturnScript(
-        aliasInputStr,
-        false, // encryption use
-        false, // airdrop use
-        null, // airdrop use
-        null, // encrypted use
-        true, // alias registration flag
-    );
-    // extract the alias input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnAlias = parseOpReturn(hexString)[1]; // extract the alias
-    const aliasInputByteSize = opReturnAlias.length / 2; // calculate the byte size
-
-    return aliasInputByteSize;
-};
 
 /**
  * Queries the alias-server for alias related data via Fetch

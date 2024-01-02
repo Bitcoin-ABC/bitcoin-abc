@@ -5,6 +5,7 @@ import {
     getCashtabMsgTargetOutput,
     getAirdropTargetOutput,
     getAliasTargetOutput,
+    getAliasByteCount,
 } from 'opreturn';
 import { opReturnVectors } from '../fixtures/vectors';
 
@@ -87,6 +88,26 @@ describe('Alias registration target output building functions', () => {
             expect(() => getAliasTargetOutput(alias, address)).toThrow(
                 errorMsg,
             );
+        });
+    });
+});
+
+describe('Determines byte count of user input alias registrations', () => {
+    const { expectedReturns, expectedErrors } =
+        opReturnVectors.aliastByteCounts;
+
+    // Successfully calculates alias bytecounts
+    expectedReturns.forEach(expectedReturn => {
+        const { description, alias, byteCount } = expectedReturn;
+        it(`getAliasByteCount: ${description}`, () => {
+            expect(getAliasByteCount(alias)).toBe(byteCount);
+        });
+    });
+    // Error cases
+    expectedErrors.forEach(expectedError => {
+        const { description, alias, errorMsg } = expectedError;
+        it(`getAliasByteCount throws error for: ${description}`, () => {
+            expect(() => getAliasByteCount(alias)).toThrow(errorMsg);
         });
     });
 });
