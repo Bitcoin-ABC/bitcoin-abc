@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import { fromSatoshisToXec } from 'utils/cashMethods';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
@@ -96,11 +96,11 @@ export const shouldRejectAmountInput = (
 ) => {
     // Take cashAmount as input, a string from form input
     let error = false;
-    let testedAmount = new BigNumber(cashAmount);
+    let testedAmount = new BN(cashAmount);
 
     if (selectedCurrency !== appConfig.ticker) {
         // Ensure no more than appConfig.cashDecimals decimal places
-        testedAmount = new BigNumber(fiatToCrypto(cashAmount, fiatPrice));
+        testedAmount = new BN(fiatToCrypto(cashAmount, fiatPrice));
     }
 
     // Validate value for > 0
@@ -131,8 +131,8 @@ export const fiatToCrypto = (
     fiatPrice,
     cashDecimals = appConfig.cashDecimals,
 ) => {
-    let cryptoAmount = new BigNumber(fiatAmount)
-        .div(new BigNumber(fiatPrice))
+    let cryptoAmount = new BN(fiatAmount)
+        .div(new BN(fiatPrice))
         .toFixed(cashDecimals);
     return cryptoAmount;
 };
@@ -173,8 +173,8 @@ export const isValidTokenDecimals = tokenDecimals => {
 };
 
 export const isValidTokenInitialQty = (tokenInitialQty, tokenDecimals) => {
-    const minimumQty = new BigNumber(1 / 10 ** tokenDecimals);
-    const tokenIntialQtyBig = new BigNumber(tokenInitialQty);
+    const minimumQty = new BN(1 / 10 ** tokenDecimals);
+    const tokenIntialQtyBig = new BN(tokenInitialQty);
     return (
         tokenIntialQtyBig.gte(minimumQty) &&
         tokenIntialQtyBig.lt(100000000000) &&
@@ -541,8 +541,8 @@ export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
         maxAmount !== null &&
         typeof tokenBurnAmount !== 'undefined' &&
         typeof maxAmount !== 'undefined' &&
-        new BigNumber(tokenBurnAmount).gt(0) &&
-        new BigNumber(tokenBurnAmount).lte(maxAmount)
+        new BN(tokenBurnAmount).gt(0) &&
+        new BN(tokenBurnAmount).lte(maxAmount)
     );
 };
 
@@ -575,7 +575,7 @@ export const isValidXecAirdrop = xecAirdrop => {
         typeof xecAirdrop === 'string' &&
         xecAirdrop.length > 0 &&
         xecAirdrop.trim() != '' &&
-        new BigNumber(xecAirdrop).gt(0)
+        new BN(xecAirdrop).gt(0)
     );
 };
 
@@ -594,9 +594,7 @@ export const isValidAirdropOutputsArray = airdropOutputsArray => {
         let valueString = substring[1];
         // if the XEC being sent is less than dust sats or contains extra values per line
         if (
-            new BigNumber(valueString).lt(
-                fromSatoshisToXec(appConfig.dustSats),
-            ) ||
+            new BN(valueString).lt(fromSatoshisToXec(appConfig.dustSats)) ||
             substring.length !== 2
         ) {
             isValid = false;

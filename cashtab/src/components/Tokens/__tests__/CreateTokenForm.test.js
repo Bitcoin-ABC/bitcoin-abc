@@ -5,7 +5,7 @@ import { theme } from 'assets/styles/theme';
 import CreateTokenForm from 'components/Tokens/CreateTokenForm';
 import { walletWithBalancesAndTokensWithCorrectState } from '../../Home/__mocks__/walletAndBalancesMock';
 import { WalletContext } from 'utils/context';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import { createToken } from 'utils/transactions';
 import appConfig from 'config/app';
 
@@ -35,9 +35,9 @@ test('Wallet with XEC balances and tokens and state field', () => {
             <ThemeProvider theme={theme}>
                 <CreateTokenForm
                     createToken={createToken}
-                    disabled={new BigNumber(
+                    disabled={new BN(
                         walletWithBalancesAndTokensWithCorrectState.wallet.state.balances.totalBalanceInSatoshis,
-                    ).lt(new BigNumber(appConfig.etokenSats))}
+                    ).lt(new BN(appConfig.etokenSats))}
                 />
             </ThemeProvider>
         </WalletContext.Provider>,

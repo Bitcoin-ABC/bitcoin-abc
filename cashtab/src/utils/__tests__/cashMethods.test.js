@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import {
@@ -245,7 +245,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
     let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
         utxolib.networks.ecash,
     );
-    const satoshisToSendInput = new BigNumber(2184);
+    const satoshisToSendInput = new BN(2184);
     const feeInSatsPerByte = appConfig.defaultFee;
 
     // mock tx input
@@ -261,16 +261,14 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
     // mock tx output
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const singleSendValue = new BigNumber(
+    const singleSendValue = new BN(
         fromSatoshisToXec(
             mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
         ),
     );
-    const satoshisToSendOutput = fromXecToSatoshis(
-        new BigNumber(singleSendValue),
-    );
-    const txFee = new BigNumber(totalInputUtxoValue).minus(
-        new BigNumber(satoshisToSendOutput),
+    const satoshisToSendOutput = fromXecToSatoshis(new BN(singleSendValue));
+    const txFee = new BN(totalInputUtxoValue).minus(
+        new BN(satoshisToSendOutput),
     );
     const changeAddress = wallet.Path1899.cashAddress;
     const outputObj = generateTxOutput(
@@ -306,7 +304,7 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
         'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
     ];
-    const satoshisToSendInput = new BigNumber(900000);
+    const satoshisToSendInput = new BN(900000);
     const feeInSatsPerByte = appConfig.defaultFee;
 
     // mock tx input
@@ -325,15 +323,15 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to ma
         mockOneToManySendXecTxBuilderObj.transaction.inputs[1].value +
         mockOneToManySendXecTxBuilderObj.transaction.inputs[2].value;
     const singleSendValue = null;
-    const satoshisToSendOutput = new BigNumber(
+    const satoshisToSendOutput = new BN(
         mockOneToManySendXecTxBuilderObj.transaction.tx.outs[0].value +
             mockOneToManySendXecTxBuilderObj.transaction.tx.outs[1].value +
             mockOneToManySendXecTxBuilderObj.transaction.tx.outs[2].value,
     );
-    const txFee = new BigNumber(totalInputUtxoValue)
+    const txFee = new BN(totalInputUtxoValue)
         .minus(satoshisToSendOutput)
         .minus(
-            new BigNumber(
+            new BN(
                 mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
             ),
         ); // change value
@@ -597,7 +595,7 @@ it(`generateTokenTxInput() returns a valid object for a valid create token tx`, 
         mockCreateTokenTxBuilderObj.toString(),
     );
     expect(tokenInputObj.remainderXecValue).toStrictEqual(
-        new BigNumber(698999), // tokenInputObj.inputXecUtxos - appConfig.etokenSats 546 - txFee
+        new BN(698999), // tokenInputObj.inputXecUtxos - appConfig.etokenSats 546 - txFee
     );
 });
 
@@ -612,7 +610,7 @@ it(`generateTokenTxInput() returns a valid object for a valid send token tx`, as
         mockNonSlpUtxos,
         mockSlpUtxos,
         tokenId,
-        new BigNumber(500), // sending 500 of these tokens
+        new BN(500), // sending 500 of these tokens
         appConfig.defaultFee,
         txBuilder,
     );
@@ -621,7 +619,7 @@ it(`generateTokenTxInput() returns a valid object for a valid send token tx`, as
         [mockSlpUtxos[0]].concat([mockSlpUtxos[1]]), // mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500
     );
     expect(tokenInputObj.remainderTokenValue).toStrictEqual(
-        new BigNumber(6400), // token change is mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500 - [tokenAmount] 500
+        new BN(6400), // token change is mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500 - [tokenAmount] 500
     );
     expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
         mockSendTokenTxBuilderObj.toString(),
@@ -639,7 +637,7 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
         mockNonSlpUtxos,
         mockSlpUtxos,
         tokenId,
-        new BigNumber(500), // burning 500 of these tokens
+        new BN(500), // burning 500 of these tokens
         appConfig.defaultFee,
         txBuilder,
     );
@@ -648,7 +646,7 @@ it(`generateTokenTxInput() returns a valid object for a valid burn token tx`, as
         [mockSlpUtxos[0]].concat([mockSlpUtxos[1]]), // mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500
     );
     expect(tokenInputObj.remainderTokenValue).toStrictEqual(
-        new BigNumber(6400), // token change is mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500 - [tokenAmount] 500
+        new BN(6400), // token change is mockSlpUtxos[0] 400 + mockSlpUtxos[1] 6500 - [tokenAmount] 500
     );
     expect(tokenInputObj.txBuilder.toString()).toStrictEqual(
         mockBurnTokenTxBuilderObj.toString(),
@@ -667,7 +665,7 @@ it(`generateTokenTxOutput() returns a valid object for a valid create token tx`,
         'GENESIS',
         tokenSenderCashAddress,
         null, // optional, for SEND or BURN amount
-        new BigNumber(500), // remainder XEC value
+        new BN(500), // remainder XEC value
         configObj,
     );
 
@@ -689,10 +687,10 @@ it(`generateTokenTxOutput() returns a valid object for a valid send token tx`, a
         'SEND',
         tokenSenderCashAddress,
         mockSlpUtxos,
-        new BigNumber(500), // remainder XEC value
+        new BN(500), // remainder XEC value
         null, // only for genesis tx
         tokenRecipientTokenAddress, // recipient token address
-        new BigNumber(50),
+        new BN(50),
     );
 
     expect(tokenOutputObj.toString()).toStrictEqual(
@@ -712,10 +710,10 @@ it(`generateTokenTxOutput() returns a valid object for a valid burn token tx`, a
         'BURN',
         tokenSenderCashAddress,
         mockSlpUtxos,
-        new BigNumber(500), // remainder XEC value
+        new BN(500), // remainder XEC value
         null, // only for genesis tx
         null, // no token recipients for burn tx
-        new BigNumber(50),
+        new BN(50),
     );
 
     expect(tokenOutputObj.toString()).toStrictEqual(
@@ -730,7 +728,7 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
         utxolib.networks.ecash,
     );
     const destinationAddressAndValueArray = null;
-    const satoshisToSend = new BigNumber(2184);
+    const satoshisToSend = new BN(2184);
     const feeInSatsPerByte = appConfig.defaultFee;
 
     const inputObj = generateTxInput(
@@ -742,7 +740,7 @@ it(`generateTxInput() returns an input object for a valid one to one XEC tx`, as
         feeInSatsPerByte,
     );
     expect(inputObj.txBuilder).not.toStrictEqual(null);
-    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(700000));
+    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BN(700000));
     expect(inputObj.txFee).toStrictEqual(455);
     expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
 });
@@ -758,7 +756,7 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
         'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
     ];
-    const satoshisToSend = new BigNumber(900000);
+    const satoshisToSend = new BN(900000);
     const feeInSatsPerByte = appConfig.defaultFee;
 
     const inputObj = generateTxInput(
@@ -770,7 +768,7 @@ it(`generateTxInput() returns an input object for a valid one to many XEC tx`, a
         feeInSatsPerByte,
     );
     expect(inputObj.txBuilder).not.toStrictEqual(null);
-    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BigNumber(1400000));
+    expect(inputObj.totalInputUtxoValue).toStrictEqual(new BN(1400000));
     expect(inputObj.txFee).toStrictEqual(889);
     expect(inputObj.inputUtxos.length).not.toStrictEqual(0);
 });
@@ -782,7 +780,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid destina
         utxolib.networks.ecash,
     );
     const destinationAddressAndValueArray = null; // invalid since isOneToMany is true
-    const satoshisToSend = new BigNumber(900000);
+    const satoshisToSend = new BN(900000);
     const feeInSatsPerByte = appConfig.defaultFee;
 
     let thrownError;
@@ -812,7 +810,7 @@ it(`generateTxInput() throws error for a one to many XEC tx with invalid utxos i
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,3000',
         'ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,3000',
     ];
-    const satoshisToSend = new BigNumber(900000);
+    const satoshisToSend = new BN(900000);
     const feeInSatsPerByte = appConfig.defaultFee;
 
     let thrownError;
@@ -840,12 +838,10 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     );
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const satoshisToSend = fromXecToSatoshis(new BigNumber(singleSendValue));
+    const satoshisToSend = fromXecToSatoshis(new BN(singleSendValue));
     // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
     // no change output to be subtracted in this tx
-    const txFee = new BigNumber(totalInputUtxoValue).minus(
-        new BigNumber(satoshisToSend),
-    );
+    const txFee = new BN(totalInputUtxoValue).minus(new BN(satoshisToSend));
 
     const destinationAddressAndValueArray = null;
     let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
@@ -878,16 +874,16 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to many XEC 
         mockOneToManySendXecTxBuilderObj.transaction.inputs[0].value +
         mockOneToManySendXecTxBuilderObj.transaction.inputs[1].value +
         mockOneToManySendXecTxBuilderObj.transaction.inputs[2].value;
-    const satoshisToSend = new BigNumber(
+    const satoshisToSend = new BN(
         mockOneToManySendXecTxBuilderObj.transaction.tx.outs[0].value +
             mockOneToManySendXecTxBuilderObj.transaction.tx.outs[1].value +
             mockOneToManySendXecTxBuilderObj.transaction.tx.outs[2].value,
     );
     // for unit test purposes, calculate fee by subtracting satoshisToSend and change amount from totalInputUtxoValue
-    const txFee = new BigNumber(totalInputUtxoValue)
+    const txFee = new BN(totalInputUtxoValue)
         .minus(satoshisToSend)
         .minus(
-            new BigNumber(
+            new BN(
                 mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
             ),
         ); // change value
@@ -921,10 +917,10 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
     const singleSendValue = null; // invalid due to singleSendValue being mandatory when isOneToMany is false
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const satoshisToSend = fromXecToSatoshis(new BigNumber(singleSendValue));
+    const satoshisToSend = fromXecToSatoshis(new BN(singleSendValue));
     // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
     // no change output to be subtracted in this tx
-    const txFee = new BigNumber(totalInputUtxoValue).minus(satoshisToSend);
+    const txFee = new BN(totalInputUtxoValue).minus(satoshisToSend);
 
     const destinationAddressAndValueArray = null;
     let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
@@ -960,16 +956,16 @@ it(`generateTxOutput() throws an error on invalid input params for a one to many
         mockOneToManySendXecTxBuilderObj.transaction.inputs[0].value +
         mockOneToManySendXecTxBuilderObj.transaction.inputs[1].value +
         mockOneToManySendXecTxBuilderObj.transaction.inputs[2].value;
-    const satoshisToSend = new BigNumber(
+    const satoshisToSend = new BN(
         mockOneToManySendXecTxBuilderObj.transaction.tx.outs[0].value +
             mockOneToManySendXecTxBuilderObj.transaction.tx.outs[1].value +
             mockOneToManySendXecTxBuilderObj.transaction.tx.outs[2].value,
     );
     // for unit test purposes, calculate fee by subtracting satoshisToSend and change amount from totalInputUtxoValue
-    const txFee = new BigNumber(totalInputUtxoValue)
+    const txFee = new BN(totalInputUtxoValue)
         .minus(satoshisToSend)
         .minus(
-            new BigNumber(
+            new BN(
                 mockOneToManySendXecTxBuilderObj.transaction.tx.outs[3].value,
             ),
         ); // change value
@@ -1016,7 +1012,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
         cashaddr.toLegacy(outputAddressAndValue[0]), // address
-        parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
+        parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
     );
     const rawTxHex = signAndBuildTx(mockSingleInputUtxo, txBuilder, wallet);
     expect(rawTxHex).toStrictEqual(
@@ -1043,9 +1039,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
         const outputAddressAndValue = mockMultipleOutputs[i].split(',');
         txBuilder.addOutput(
             cashaddr.toLegacy(outputAddressAndValue[0]), // address
-            parseInt(
-                fromXecToSatoshis(new BigNumber(outputAddressAndValue[1])),
-            ), // value
+            parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
         );
     }
 
@@ -1074,7 +1068,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
         cashaddr.toLegacy(outputAddressAndValue[0]), // address
-        parseInt(fromXecToSatoshis(new BigNumber(outputAddressAndValue[1]))), // value
+        parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
     );
 
     const rawTxHex = signAndBuildTx(mockMultipleInputUtxos, txBuilder, wallet);
@@ -1103,9 +1097,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
         const outputAddressAndValue = mockMultipleOutputs[i].split(',');
         txBuilder.addOutput(
             cashaddr.toLegacy(outputAddressAndValue[0]), // address
-            parseInt(
-                fromXecToSatoshis(new BigNumber(outputAddressAndValue[1])),
-            ), // value
+            parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
         );
     }
 
@@ -1148,21 +1140,19 @@ it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
 
 describe('Correctly executes cash utility functions', () => {
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
-        expect(fromSatoshisToXec(1, 2)).toStrictEqual(new BigNumber(0.01));
+        expect(fromSatoshisToXec(1, 2)).toStrictEqual(new BN(0.01));
     });
     it(`Correctly converts largest base unit to smallest decimal for cashDecimals = 2`, () => {
         expect(fromSatoshisToXec(1000000012345678, 2)).toStrictEqual(
-            new BigNumber(10000000123456.78),
+            new BN(10000000123456.78),
         );
     });
     it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 8`, () => {
-        expect(fromSatoshisToXec(1, 8)).toStrictEqual(
-            new BigNumber(0.00000001),
-        );
+        expect(fromSatoshisToXec(1, 8)).toStrictEqual(new BN(0.00000001));
     });
     it(`Correctly converts largest base unit to smallest decimal for cashDecimals = 8`, () => {
         expect(fromSatoshisToXec(1000000012345678, 8)).toStrictEqual(
-            new BigNumber(10000000.12345678),
+            new BN(10000000.12345678),
         );
     });
     it(`Accepts a cachedWalletState that has not preserved BigNumber object types, and returns the same wallet state with BigNumber type re-instituted`, () => {

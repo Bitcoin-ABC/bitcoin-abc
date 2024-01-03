@@ -1,5 +1,5 @@
 // Chronik methods
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import {
     parseOpReturn,
     getHashArrayFromWallet,
@@ -69,26 +69,26 @@ export const getTokenStats = async (chronik, tokenId) => {
 
         // additional arithmetic to account for token decimals
         // circulating supply not provided by chronik, calculate via totalMinted - totalBurned
-        tokenResponseObj.circulatingSupply = new BigNumber(
+        tokenResponseObj.circulatingSupply = new BN(
             tokenResponseObj.tokenStats.totalMinted,
         )
-            .minus(new BigNumber(tokenResponseObj.tokenStats.totalBurned))
+            .minus(new BN(tokenResponseObj.tokenStats.totalBurned))
             .shiftedBy(-1 * tokenDecimals)
             .toString();
 
-        tokenResponseObj.tokenStats.totalMinted = new BigNumber(
+        tokenResponseObj.tokenStats.totalMinted = new BN(
             tokenResponseObj.tokenStats.totalMinted,
         )
             .shiftedBy(-1 * tokenDecimals)
             .toString();
 
-        tokenResponseObj.initialTokenQuantity = new BigNumber(
+        tokenResponseObj.initialTokenQuantity = new BN(
             tokenResponseObj.initialTokenQuantity,
         )
             .shiftedBy(-1 * tokenDecimals)
             .toString();
 
-        tokenResponseObj.tokenStats.totalBurned = new BigNumber(
+        tokenResponseObj.tokenStats.totalBurned = new BN(
             tokenResponseObj.tokenStats.totalBurned,
         )
             .shiftedBy(-1 * tokenDecimals)
@@ -221,7 +221,7 @@ export const getPreliminaryTokensArray = preliminarySlpUtxos => {
         if (token) {
             if (preliminarySlpUtxo.slpToken.amount) {
                 token.balance = token.balance.plus(
-                    new BigNumber(preliminarySlpUtxo.slpToken.amount),
+                    new BN(preliminarySlpUtxo.slpToken.amount),
                 );
             }
         } else {
@@ -229,11 +229,9 @@ export const getPreliminaryTokensArray = preliminarySlpUtxos => {
             token = {};
             token.tokenId = preliminarySlpUtxo.slpMeta.tokenId;
             if (preliminarySlpUtxo.slpToken.amount) {
-                token.balance = new BigNumber(
-                    preliminarySlpUtxo.slpToken.amount,
-                );
+                token.balance = new BN(preliminarySlpUtxo.slpToken.amount);
             } else {
-                token.balance = new BigNumber(0);
+                token.balance = new BN(0);
             }
             tokensById[preliminarySlpUtxo.slpMeta.tokenId] = token;
         }
@@ -383,7 +381,7 @@ export const finalizeSlpUtxos = (preliminarySlpUtxos, tokenInfoById) => {
         const thisTokenId = thisUtxo.slpMeta.tokenId;
         const { decimals } = tokenInfoById[thisTokenId];
         // Update balance according to decimals
-        thisUtxo.tokenQty = new BigNumber(thisUtxo.slpToken.amount)
+        thisUtxo.tokenQty = new BN(thisUtxo.slpToken.amount)
             .shiftedBy(-1 * decimals)
             .toString();
         // SLP utxos also require tokenId and decimals directly in the utxo object
@@ -475,8 +473,8 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     const { inputs, outputs } = tx;
     // Assign defaults
     let incoming = true;
-    let xecAmount = new BigNumber(0);
-    let etokenAmount = new BigNumber(0);
+    let xecAmount = new BN(0);
+    let etokenAmount = new BN(0);
     let isTokenBurn = false;
     let isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
     const isGenesisTx =
@@ -515,7 +513,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                 // Assume that any eToken tx with a burn is a burn tx
                 isTokenBurn = true;
                 try {
-                    const thisEtokenBurnAmount = new BigNumber(
+                    const thisEtokenBurnAmount = new BN(
                         thisInput.slpBurn.token.amount,
                     );
                     // Need to know the total output amount to compare to total input amount and tell if this is a burn transaction
@@ -674,7 +672,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             if (thisOutputReceivedAtHash160.includes(thisWalletHash160)) {
                 // If incoming tx, this is amount received by the user's wallet
                 // if outgoing tx (incoming === false), then this is a change amount
-                const thisOutputAmount = new BigNumber(thisOutput.value);
+                const thisOutputAmount = new BN(thisOutput.value);
                 xecAmount = incoming
                     ? xecAmount.plus(thisOutputAmount)
                     : xecAmount.minus(thisOutputAmount);
@@ -683,7 +681,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                 // Note: edge case this is a token tx that sends XEC to Cashtab recipient but token somewhere else
                 if (isEtokenTx && !isTokenBurn) {
                     try {
-                        const thisEtokenAmount = new BigNumber(
+                        const thisEtokenAmount = new BN(
                             thisOutput.slpToken.amount,
                         );
 
@@ -693,7 +691,7 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                                 : etokenAmount.minus(thisEtokenAmount);
                     } catch (err) {
                         // edge case described above; in this case there is zero eToken value for this Cashtab recipient in this output, so add 0
-                        etokenAmount.plus(new BigNumber(0));
+                        etokenAmount.plus(new BN(0));
                     }
                 }
             }
@@ -701,13 +699,11 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         // Output amounts not at your wallet are sent amounts if !incoming
         // Exception for eToken genesis transactions
         if (!incoming) {
-            const thisOutputAmount = new BigNumber(thisOutput.value);
+            const thisOutputAmount = new BN(thisOutput.value);
             xecAmount = xecAmount.plus(thisOutputAmount);
             if (isEtokenTx && !isGenesisTx && !isTokenBurn) {
                 try {
-                    const thisEtokenAmount = new BigNumber(
-                        thisOutput.slpToken.amount,
-                    );
+                    const thisEtokenAmount = new BN(thisOutput.slpToken.amount);
                     etokenAmount = etokenAmount.plus(thisEtokenAmount);
                 } catch (err) {
                     // NB the edge case described above cannot exist in an outgoing tx

@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 
 export const cachedUtxos = {
     nonSlpUtxos: [],
@@ -310,7 +310,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: 1,
                 c: [66, 10000000],
@@ -345,7 +345,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: 1,
                 c: [15],
@@ -380,7 +380,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: 0,
                 c: [1],
@@ -414,7 +414,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: 0,
                 c: [1],
@@ -448,7 +448,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: -8,
                 c: [1000000],
@@ -482,7 +482,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: 0,
                 c: [1],
@@ -516,7 +516,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: -8,
                 c: [1600000],
@@ -550,7 +550,7 @@ export const utxosLoadedFromCache = {
             },
             tokenId:
                 'd849fbb04ce77870deaf0e2d9a67146b055f6d8bba18285f5c5f662e20d23199',
-            balance: new BigNumber({
+            balance: new BN({
                 s: 1,
                 e: -9,
                 c: [100000],

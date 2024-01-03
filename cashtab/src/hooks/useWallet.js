@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import {
     loadStoredWallet,
     isValidStoredWallet,
@@ -956,7 +956,7 @@ const useWallet = () => {
                         });
 
                         // Calculate eToken amount with decimals
-                        eTokenAmountReceived = new BigNumber(
+                        eTokenAmountReceived = new BN(
                             parsedChronikTx.etokenAmount,
                         ).shiftedBy(-1 * genesisInfo.decimals);
 
@@ -1289,7 +1289,7 @@ const useWallet = () => {
         balances &&
         'totalBalance' in previousBalances &&
         'totalBalance' in balances &&
-        new BigNumber(balances.totalBalance)
+        new BN(balances.totalBalance)
             .minus(previousBalances.totalBalance)
             .gt(0) &&
         hasUpdated
@@ -1361,8 +1361,8 @@ const useWallet = () => {
             // Note that tokens[i].balance is of type BigNumber
             for (let i = 0; i < tokens.length; i += 1) {
                 if (
-                    new BigNumber(tokens[i].balance).gt(
-                        new BigNumber(previousTokens[i].balance),
+                    new BN(tokens[i].balance).gt(
+                        new BN(previousTokens[i].balance),
                     )
                 ) {
                     if (previousTokens[i].tokenId !== tokens[i].tokenId) {
@@ -1373,9 +1373,9 @@ const useWallet = () => {
                         // Also don't 'continue' ; this means you have sent a token, just stop iterating through
                         break;
                     }
-                    const receivedSlpQty = new BigNumber(
-                        tokens[i].balance,
-                    ).minus(new BigNumber(previousTokens[i].balance));
+                    const receivedSlpQty = new BN(tokens[i].balance).minus(
+                        new BN(previousTokens[i].balance),
+                    );
 
                     const receivedSlpTicker = tokens[i].info.tokenTicker;
                     const receivedSlpName = tokens[i].info.tokenName;

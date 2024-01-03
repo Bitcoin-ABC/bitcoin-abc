@@ -30,7 +30,7 @@ import usePrevious from 'hooks/usePrevious';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import { parseAddressForParams } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
@@ -118,7 +118,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
     const [queryStringText, setQueryStringText] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
-    const [eTokenBurnAmount, setETokenBurnAmount] = useState(new BigNumber(1));
+    const [eTokenBurnAmount, setETokenBurnAmount] = useState(new BN(1));
     const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
     const [burnTokenAmountError, setBurnTokenAmountError] = useState(false);
     const [burnConfirmationValid, setBurnConfirmationValid] = useState(null);
@@ -214,11 +214,9 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         // test if exceeds balance using BigNumber
         let isGreaterThanBalance = false;
         if (!isNaN(value)) {
-            const bigValue = new BigNumber(value);
+            const bigValue = new BN(value);
             // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
-            isGreaterThanBalance = bigValue.comparedTo(
-                new BigNumber(token.balance),
-            );
+            isGreaterThanBalance = bigValue.comparedTo(new BN(token.balance));
         }
 
         // Validate value for > 0
@@ -342,7 +340,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
 
     const handleEtokenBurnAmountChange = e => {
         const { value } = e.target;
-        const burnAmount = new BigNumber(value);
+        const burnAmount = new BN(value);
         setETokenBurnAmount(burnAmount);
 
         let error = false;
@@ -489,7 +487,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                         </AntdFormWrapper>
                     </Modal>
                     <BalanceHeaderToken
-                        balance={new BigNumber(token.balance)}
+                        balance={new BN(token.balance)}
                         ticker={token.info.tokenTicker}
                         cashtabSettings={cashtabSettings}
                         tokenDecimals={token.info.decimals}
@@ -693,7 +691,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                                         : 'Yes'}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Initial Quantity">
-                                                    {new BigNumber(
+                                                    {new BN(
                                                         tokenStats.initialTokenQuantity,
                                                     )
                                                         .toFormat(
@@ -702,7 +700,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                                         .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Total Burned">
-                                                    {new BigNumber(
+                                                    {new BN(
                                                         tokenStats.tokenStats.totalBurned,
                                                     )
                                                         .toFormat(
@@ -711,7 +709,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                                         .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Total Minted">
-                                                    {new BigNumber(
+                                                    {new BN(
                                                         tokenStats.tokenStats.totalMinted,
                                                     )
                                                         .toFormat(
@@ -720,7 +718,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                                         .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Circulating Supply">
-                                                    {new BigNumber(
+                                                    {new BN(
                                                         tokenStats.circulatingSupply,
                                                     )
                                                         .toFormat(

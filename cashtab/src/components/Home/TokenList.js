@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
 import { formatTokenBalance } from 'utils/formatting';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 
 const TokenList = ({ tokens }) => {
     return (
@@ -14,7 +14,7 @@ const TokenList = ({ tokens }) => {
                         ticker={token.info.tokenTicker}
                         tokenId={token.tokenId}
                         balance={formatTokenBalance(
-                            new BigNumber(token.balance),
+                            new BN(token.balance),
                             token.info.decimals,
                         )}
                     />

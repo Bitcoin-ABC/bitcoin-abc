@@ -4,10 +4,9 @@ import {
     isValidContactList,
     isValidBchAddress,
 } from 'utils/validation';
-import BigNumber from 'bignumber.js';
+import { BN, TokenType1 } from 'slp-mdm';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
-import * as slpMdm from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import appConfig from 'config/app';
@@ -24,13 +23,12 @@ export const generateBurnOpReturn = (tokenUtxos, burnQty) => {
         const decimals = tokenUtxos[0].decimals;
 
         // account for token decimals
-        const finalBurnTokenQty = new BigNumber(burnQty).times(10 ** decimals);
+        const finalBurnTokenQty = new BN(burnQty).times(10 ** decimals);
 
         // Calculate the total amount of tokens owned by the wallet.
         const totalTokens = tokenUtxos.reduce(
-            (tot, txo) =>
-                tot.plus(new BigNumber(txo.tokenQty).times(10 ** decimals)),
-            new BigNumber(0),
+            (tot, txo) => tot.plus(new BN(txo.tokenQty).times(10 ** decimals)),
+            new BN(0),
         );
 
         // calculate the token change
@@ -40,9 +38,7 @@ export const generateBurnOpReturn = (tokenUtxos, burnQty) => {
         // Generate the burn OP_RETURN as a Buffer
         // No need for separate .send() calls for change and non-change burns as
         // nil change values do not generate token outputs as the full balance is burnt
-        const script = slpMdm.TokenType1.send(tokenId, [
-            new slpMdm.BN(tokenChangeStr),
-        ]);
+        const script = TokenType1.send(tokenId, [new BN(tokenChangeStr)]);
 
         return script;
     } catch (err) {
@@ -63,14 +59,13 @@ export const generateSendOpReturn = (tokenUtxos, sendQty) => {
         const decimals = tokenUtxos[0].decimals;
 
         // account for token decimals
-        const finalSendTokenQty = new BigNumber(sendQty).times(10 ** decimals);
+        const finalSendTokenQty = new BN(sendQty).times(10 ** decimals);
         const finalSendTokenQtyStr = finalSendTokenQty.toString();
 
         // Calculate the total amount of tokens owned by the wallet.
         const totalTokens = tokenUtxos.reduce(
-            (tot, txo) =>
-                tot.plus(new BigNumber(txo.tokenQty).times(10 ** decimals)),
-            new BigNumber(0),
+            (tot, txo) => tot.plus(new BN(txo.tokenQty).times(10 ** decimals)),
+            new BN(0),
         );
 
         // calculate token change
@@ -82,17 +77,15 @@ export const generateSendOpReturn = (tokenUtxos, sendQty) => {
         if (tokenChange > 0) {
             outputs = 2;
             // Generate the OP_RETURN as a Buffer.
-            script = slpMdm.TokenType1.send(tokenId, [
-                new slpMdm.BN(finalSendTokenQtyStr),
-                new slpMdm.BN(tokenChangeStr),
+            script = TokenType1.send(tokenId, [
+                new BN(finalSendTokenQtyStr),
+                new BN(tokenChangeStr),
             ]);
         } else {
             // no token change needed
             outputs = 1;
             // Generate the OP_RETURN as a Buffer.
-            script = slpMdm.TokenType1.send(tokenId, [
-                new slpMdm.BN(finalSendTokenQtyStr),
-            ]);
+            script = TokenType1.send(tokenId, [new BN(finalSendTokenQtyStr)]);
         }
 
         return { script, outputs };
@@ -111,18 +104,18 @@ export const generateGenesisOpReturn = configObj => {
         }
 
         // adjust initial quantity for token decimals
-        const initialQty = new BigNumber(configObj.initialQty)
+        const initialQty = new BN(configObj.initialQty)
             .times(10 ** configObj.decimals)
             .toString();
 
-        const script = slpMdm.TokenType1.genesis(
+        const script = TokenType1.genesis(
             configObj.ticker,
             configObj.name,
             configObj.documentUrl,
             configObj.documentHash,
             configObj.decimals,
             configObj.mintBatonVout,
-            new slpMdm.BN(initialQty),
+            new BN(initialQty),
         );
 
         return script;
@@ -175,17 +168,17 @@ export const getCashtabByteCount = (p2pkhInputCount, p2pkhOutputCount) => {
     //     },
     // };
 
-    const inputCount = new BigNumber(p2pkhInputCount);
-    const outputCount = new BigNumber(p2pkhOutputCount);
-    const inputWeight = new BigNumber(148 * 4);
-    const outputWeight = new BigNumber(34 * 4);
-    const nonSegwitWeightConstant = new BigNumber(10 * 4);
-    let totalWeight = new BigNumber(0);
+    const inputCount = new BN(p2pkhInputCount);
+    const outputCount = new BN(p2pkhOutputCount);
+    const inputWeight = new BN(148 * 4);
+    const outputWeight = new BN(34 * 4);
+    const nonSegwitWeightConstant = new BN(10 * 4);
+    let totalWeight = new BN(0);
     totalWeight = totalWeight
         .plus(inputCount.times(inputWeight))
         .plus(outputCount.times(outputWeight))
         .plus(nonSegwitWeightConstant);
-    const byteCount = totalWeight.div(4).integerValue(BigNumber.ROUND_CEIL);
+    const byteCount = totalWeight.div(4).integerValue(BN.ROUND_CEIL);
 
     return Number(byteCount);
 };
@@ -206,7 +199,7 @@ export const generateTokenTxOutput = (
     tokenAction,
     legacyCashOriginAddress,
     tokenUtxosBeingSpent = [], // optional - send or burn tx only
-    remainderXecValue = new BigNumber(0), // optional - only if > dust
+    remainderXecValue = new BN(0), // optional - only if > dust
     tokenConfigObj = {}, // optional - genesis only
     tokenRecipientAddress = false, // optional - send tx only
     tokenAmount = false, // optional - send or burn amount for send/burn tx only
@@ -263,7 +256,7 @@ export const generateTokenTxOutput = (
         }
 
         // Send xec change to own address
-        if (remainderXecValue.gte(new BigNumber(appConfig.dustSats))) {
+        if (remainderXecValue.gte(new BN(appConfig.dustSats))) {
             txBuilder.addOutput(
                 cashaddr.toLegacy(legacyCashOriginAddress),
                 parseInt(remainderXecValue),
@@ -289,7 +282,7 @@ export const generateTxInput = (
     let txInputObj = {};
     const inputUtxos = [];
     let txFee = 0;
-    let totalInputUtxoValue = new BigNumber(0);
+    let totalInputUtxoValue = new BN(0);
     try {
         if (
             (isOneToMany && !destinationAddressAndValueArray) ||
@@ -346,9 +339,9 @@ export const generateTokenTxInput = (
     feeInSatsPerByte,
     txBuilder,
 ) => {
-    let totalXecInputUtxoValue = new BigNumber(0);
-    let remainderXecValue = new BigNumber(0);
-    let remainderTokenValue = new BigNumber(0);
+    let totalXecInputUtxoValue = new BN(0);
+    let remainderXecValue = new BN(0);
+    let remainderTokenValue = new BN(0);
     let totalXecInputUtxos = [];
     let txFee = 0;
     let tokenUtxosBeingSpent = [];
@@ -372,7 +365,7 @@ export const generateTokenTxInput = (
         for (let i = 0; i < totalXecUtxos.length; i++) {
             const thisXecUtxo = totalXecUtxos[i];
             totalXecInputUtxoValue = totalXecInputUtxoValue.plus(
-                new BigNumber(thisXecUtxo.value),
+                new BN(thisXecUtxo.value),
             );
             const vout = thisXecUtxo.outpoint.outIdx;
             const txid = thisXecUtxo.outpoint.txid;
@@ -385,11 +378,11 @@ export const generateTokenTxInput = (
             remainderXecValue =
                 tokenAction === 'GENESIS'
                     ? totalXecInputUtxoValue
-                          .minus(new BigNumber(appConfig.etokenSats))
-                          .minus(new BigNumber(txFee))
+                          .minus(new BN(appConfig.etokenSats))
+                          .minus(new BN(txFee))
                     : totalXecInputUtxoValue
-                          .minus(new BigNumber(appConfig.etokenSats * 2)) // one for token send/burn output, one for token change
-                          .minus(new BigNumber(txFee));
+                          .minus(new BN(appConfig.etokenSats * 2)) // one for token send/burn output, one for token change
+                          .minus(new BN(txFee));
 
             if (remainderXecValue.gte(0)) {
                 break;
@@ -401,8 +394,8 @@ export const generateTokenTxInput = (
         }
 
         let filteredTokenInputUtxos = [];
-        let finalTokenAmountSpent = new BigNumber(0);
-        let tokenAmountBeingSpent = new BigNumber(tokenAmount);
+        let finalTokenAmountSpent = new BN(0);
+        let tokenAmountBeingSpent = new BN(tokenAmount);
 
         if (tokenAction === 'SEND' || tokenAction === 'BURN') {
             // filter for token UTXOs matching the token being sent/burnt
@@ -425,7 +418,7 @@ export const generateTokenTxInput = (
             // collate token UTXOs to cover the token amount being sent/burnt
             for (let i = 0; i < filteredTokenInputUtxos.length; i++) {
                 finalTokenAmountSpent = finalTokenAmountSpent.plus(
-                    new BigNumber(filteredTokenInputUtxos[i].tokenQty),
+                    new BN(filteredTokenInputUtxos[i].tokenQty),
                 );
                 txBuilder.addInput(
                     filteredTokenInputUtxos[i].outpoint.txid,
@@ -439,7 +432,7 @@ export const generateTokenTxInput = (
 
             // calculate token change
             remainderTokenValue = finalTokenAmountSpent.minus(
-                new BigNumber(tokenAmount),
+                new BN(tokenAmount),
             );
             if (remainderTokenValue.lt(0)) {
                 throw new Error(
@@ -581,7 +574,7 @@ export const generateTxOutput = (
         }
 
         // amount to send back to the remainder address.
-        const remainder = new BigNumber(totalInputUtxoValue)
+        const remainder = new BN(totalInputUtxoValue)
             .minus(satoshisToSend)
             .minus(txFee);
         if (remainder.lt(0)) {
@@ -596,7 +589,7 @@ export const generateTxOutput = (
                 let outputAddress = destinationAddressAndValueArray[i]
                     .split(',')[0]
                     .trim();
-                let outputValue = new BigNumber(
+                let outputValue = new BN(
                     destinationAddressAndValueArray[i].split(',')[1],
                 );
                 txBuilder.addOutput(
@@ -613,7 +606,7 @@ export const generateTxOutput = (
         }
 
         // if a remainder exists, return to change address as the final output
-        if (remainder.gte(new BigNumber(appConfig.dustSats))) {
+        if (remainder.gte(new BN(appConfig.dustSats))) {
             txBuilder.addOutput(
                 cashaddr.toLegacy(changeAddress),
                 parseInt(remainder),
@@ -725,8 +718,8 @@ export const fromLegacyDecimals = (
 ) => {
     // Input 0.00000546 BCH
     // Output 5.46 XEC or 0.00000546 BCH, depending on appConfig.cashDecimals
-    const amountBig = new BigNumber(amount);
-    const conversionFactor = new BigNumber(10 ** (8 - cashDecimals));
+    const amountBig = new BN(amount);
+    const conversionFactor = new BN(10 ** (8 - cashDecimals));
     const amountSmallestDenomination = amountBig
         .times(conversionFactor)
         .toNumber();
@@ -737,8 +730,8 @@ export const fromSatoshisToXec = (
     amount,
     cashDecimals = appConfig.cashDecimals,
 ) => {
-    const amountBig = new BigNumber(amount);
-    const multiplier = new BigNumber(10 ** (-1 * cashDecimals));
+    const amountBig = new BN(amount);
+    const multiplier = new BN(10 ** (-1 * cashDecimals));
     const amountInBaseUnits = amountBig.times(multiplier);
     return amountInBaseUnits;
 };
@@ -755,11 +748,11 @@ export const fromXecToSatoshis = (
     // Validate
     // Input should be a BigNumber with no more decimal places than cashDecimals
     const isValidSendAmount =
-        BigNumber.isBigNumber(sendAmount) && sendAmount.dp() <= cashDecimals;
+        BN.isBigNumber(sendAmount) && sendAmount.dp() <= cashDecimals;
     if (!isValidSendAmount) {
         return false;
     }
-    const conversionFactor = new BigNumber(10 ** cashDecimals);
+    const conversionFactor = new BN(10 ** cashDecimals);
     const sendAmountSmallestDenomination = sendAmount.times(conversionFactor);
     return sendAmountSmallestDenomination;
 };
@@ -809,7 +802,7 @@ export const loadStoredWallet = walletStateFromStorage => {
             for (let i = 0; i < tokens.length; i += 1) {
                 const thisTokenBalance = tokens[i].balance;
                 thisTokenBalance._isBigNumber = true;
-                tokens[i].balance = new BigNumber(thisTokenBalance);
+                tokens[i].balance = new BN(thisTokenBalance);
             }
         }
     }
@@ -842,9 +835,8 @@ export const loadStoredWallet = walletStateFromStorage => {
 
 export const getWalletBalanceFromUtxos = nonSlpUtxos => {
     const totalBalanceInSatoshis = nonSlpUtxos.reduce(
-        (previousBalance, utxo) =>
-            previousBalance.plus(new BigNumber(utxo.value)),
-        new BigNumber(0),
+        (previousBalance, utxo) => previousBalance.plus(new BN(utxo.value)),
+        new BN(0),
     );
     return {
         totalBalanceInSatoshis: totalBalanceInSatoshis.toString(),
@@ -1135,7 +1127,7 @@ export function parseAddressForParams(addressString) {
         if (addrParams.has('amount')) {
             // Amount in XEC
             try {
-                amount = new BigNumber(
+                amount = new BN(
                     parseFloat(addrParams.get('amount')),
                 ).toString();
             } catch (err) {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { BalanceHeaderFiatWrap } from 'components/Common/Atoms';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 const FiatCurrencyToXEC = styled.p`
@@ -40,8 +40,8 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                                   }`
                                 : '$'}
                             {parseFloat(
-                                new BigNumber(balance)
-                                    .times(new BigNumber(fiatPrice))
+                                new BN(balance)
+                                    .times(new BN(fiatPrice))
                                     .toFixed(2),
                             ).toLocaleString()}{' '}
                             {settings
@@ -61,8 +61,8 @@ const BalanceHeaderFiat = ({ balance, settings, fiatPrice }) => {
                                   }`
                                 : '$'}
                             {parseFloat(
-                                new BigNumber(balance)
-                                    .times(new BigNumber(fiatPrice))
+                                new BN(balance)
+                                    .times(new BN(fiatPrice))
                                     .toFixed(2),
                             ).toLocaleString()}{' '}
                             {settings

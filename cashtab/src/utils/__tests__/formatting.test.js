@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import {
     formatDate,
     formatFiatBalance,
@@ -143,11 +143,11 @@ describe('Correctly executes formatting functions', () => {
         expect(formatTokenBalance(undefined, undefined)).toBe(undefined);
     });
     it(`test formatTokenBalance with valid balance & decimal inputs`, () => {
-        const testBalance = new BigNumber(100.00000001);
+        const testBalance = new BN(100.00000001);
         expect(formatTokenBalance(testBalance, 8)).toBe('100.00000001');
     });
     it(`returns undefined when passed invalid decimals parameter`, () => {
-        const testBalance = new BigNumber(100.00000001);
+        const testBalance = new BN(100.00000001);
         expect(formatTokenBalance(testBalance, 'cheese')).toBe(undefined);
     });
     it(`returns undefined when passed invalid balance parameter`, () => {
@@ -155,7 +155,7 @@ describe('Correctly executes formatting functions', () => {
         expect(formatTokenBalance(testBalance, 9)).toBe(undefined);
     });
     it(`maintains trailing zeros in balance per tokenDecimal parameter`, () => {
-        const testBalance = new BigNumber(10000);
+        const testBalance = new BN(10000);
         expect(formatTokenBalance(testBalance, 8)).toBe('10,000.00000000');
     });
 });

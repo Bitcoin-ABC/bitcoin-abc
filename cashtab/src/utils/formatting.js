@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import appConfig from 'config/app';
 export const formatDate = (dateString, userLocale = 'en') => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
@@ -85,7 +85,7 @@ export const formatTokenBalance = (
             tokenDecimal === undefined ||
             unformattedBalance === undefined ||
             typeof tokenDecimal !== 'number' ||
-            !BigNumber.isBigNumber(unformattedBalance)
+            !BN.isBigNumber(unformattedBalance)
         ) {
             return undefined;
         }
@@ -94,7 +94,7 @@ export const formatTokenBalance = (
         }
 
         // Use toFixed to get a string with the correct decimal places
-        formattedTokenBalance = new BigNumber(unformattedBalance).toFixed(
+        formattedTokenBalance = new BN(unformattedBalance).toFixed(
             tokenDecimal,
         );
         // formattedTokenBalance is converted into a number as toLocaleString does not work with a string

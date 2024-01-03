@@ -13,7 +13,7 @@ import {
 } from 'components/Common/Atoms';
 import ApiError from 'components/Common/ApiError';
 import WalletLabel from 'components/Common/WalletLabel.js';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
@@ -51,13 +51,13 @@ const Tokens = ({ passLoadingStatus }) => {
                 {apiError && <ApiError />}
                 <CreateTokenForm
                     createToken={createToken}
-                    disabled={new BigNumber(balances.totalBalanceInSatoshis).lt(
-                        new BigNumber(appConfig.dustSats),
+                    disabled={new BN(balances.totalBalanceInSatoshis).lt(
+                        new BN(appConfig.dustSats),
                     )}
                     passLoadingStatus={passLoadingStatus}
                 />
-                {new BigNumber(balances.totalBalanceInSatoshis).lt(
-                    new BigNumber(appConfig.dustSats),
+                {new BN(balances.totalBalanceInSatoshis).lt(
+                    new BN(appConfig.dustSats),
                 ) && (
                     <AlertMsg>
                         You need at least{' '}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import BigNumber from 'bignumber.js';
+import { BN } from 'slp-mdm';
 import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import {
@@ -148,7 +148,7 @@ const Airdrop = ({ passLoadingStatus }) => {
     // flag to reflect the ignore minimum etoken balance switch
     const [ignoreMinEtokenBalance, setIgnoreMinEtokenBalance] = useState(false);
     const [ignoreMinEtokenBalanceAmount, setIgnoreMinEtokenBalanceAmount] =
-        useState(new BigNumber(0));
+        useState(new BN(0));
     const [
         ignoreMinEtokenBalanceAmountIsValid,
         setIgnoreMinEtokenBalanceAmountIsValid,
@@ -179,7 +179,7 @@ const Airdrop = ({ passLoadingStatus }) => {
     const handleMinEtokenBalanceChange = e => {
         const { value } = e.target;
 
-        if (new BigNumber(value).gt(new BigNumber(0))) {
+        if (new BN(value).gt(new BN(0))) {
             setIgnoreMinEtokenBalanceAmountIsValid(true);
             setIgnoreMinEtokenBalanceAmountError(false);
         } else {
@@ -289,7 +289,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             const minEligibleBalance = ignoreMinEtokenBalanceAmount;
             // initial filtering of recipients with less than minimum eToken balance
             for (let [key, value] of airdropList) {
-                if (new BigNumber(value).isLessThan(minEligibleBalance)) {
+                if (new BN(value).isLessThan(minEligibleBalance)) {
                     airdropList.delete(key);
                 }
             }
@@ -310,26 +310,24 @@ const Airdrop = ({ passLoadingStatus }) => {
         if (ignoreRecipientsBelowDust) {
             // minimum airdrop threshold
             const minEligibleAirdrop = fromSatoshisToXec(appConfig.dustSats);
-            let initialTotalTokenAmongstRecipients = new BigNumber(0);
-            let initialTotalHolders = new BigNumber(airdropList.size); // amount of addresses that hold this eToken
+            let initialTotalTokenAmongstRecipients = new BN(0);
+            let initialTotalHolders = new BN(airdropList.size); // amount of addresses that hold this eToken
             setEtokenHolders(initialTotalHolders);
 
             // keep a cumulative total of each eToken holding in each address in airdropList
             airdropList.forEach(
                 index =>
                     (initialTotalTokenAmongstRecipients =
-                        initialTotalTokenAmongstRecipients.plus(
-                            new BigNumber(index),
-                        )),
+                        initialTotalTokenAmongstRecipients.plus(new BN(index))),
             );
 
-            let initialCircToAirdropRatio = new BigNumber(
-                formData.totalAirdrop,
-            ).div(initialTotalTokenAmongstRecipients);
+            let initialCircToAirdropRatio = new BN(formData.totalAirdrop).div(
+                initialTotalTokenAmongstRecipients,
+            );
 
             // initial filtering of recipients with less than minimum payout amount
             for (let [key, value] of airdropList) {
-                const proRataAirdrop = new BigNumber(value).multipliedBy(
+                const proRataAirdrop = new BN(value).multipliedBy(
                     initialCircToAirdropRatio,
                 );
                 if (proRataAirdrop.isLessThan(minEligibleAirdrop)) {
@@ -352,7 +350,7 @@ const Airdrop = ({ passLoadingStatus }) => {
 
         setAirdropCalcModalProgress(75);
 
-        let totalTokenAmongstRecipients = new BigNumber(0);
+        let totalTokenAmongstRecipients = new BN(0);
         let totalHolders = parseInt(airdropList.size); // amount of addresses that hold this eToken
         setEtokenHolders(totalHolders);
 
@@ -360,18 +358,18 @@ const Airdrop = ({ passLoadingStatus }) => {
         airdropList.forEach(
             index =>
                 (totalTokenAmongstRecipients = totalTokenAmongstRecipients.plus(
-                    new BigNumber(index),
+                    new BN(index),
                 )),
         );
 
-        let circToAirdropRatio = new BigNumber(0);
+        let circToAirdropRatio = new BN(0);
         let resultString = '';
 
         // generate the resulting recipients list based on distribution ratio
         if (equalDistributionRatio) {
-            const equalDividend = new BigNumber(
-                formData.totalAirdrop,
-            ).dividedBy(new BigNumber(totalHolders));
+            const equalDividend = new BN(formData.totalAirdrop).dividedBy(
+                new BN(totalHolders),
+            );
             airdropList.forEach(
                 (element, index) =>
                     (resultString +=
@@ -381,7 +379,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                         '\n'),
             );
         } else {
-            circToAirdropRatio = new BigNumber(formData.totalAirdrop).div(
+            circToAirdropRatio = new BN(formData.totalAirdrop).div(
                 totalTokenAmongstRecipients,
             );
             airdropList.forEach(
@@ -389,7 +387,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                     (resultString +=
                         convertEtokenToEcashAddr(index) +
                         ',' +
-                        new BigNumber(element)
+                        new BN(element)
                             .multipliedBy(circToAirdropRatio)
                             .decimalPlaces(appConfig.cashDecimals) +
                         '\n'),
