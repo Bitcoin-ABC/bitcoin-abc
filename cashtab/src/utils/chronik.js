@@ -2,14 +2,10 @@
 import BigNumber from 'bignumber.js';
 import {
     parseOpReturn,
-    convertToEncryptStruct,
     getHashArrayFromWallet,
-    getUtxoWif,
     convertEcashtoEtokenAddr,
     outputScriptToAddress,
 } from 'utils/cashMethods';
-import ecies from 'ecies-lite';
-import wif from 'wif';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import appConfig from 'config/app';
@@ -496,7 +492,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     let opReturnMessage = '';
     let isCashtabMessage = false;
     let isEncryptedMessage = false;
-    let decryptionSuccess = false;
     let replyAddress = '';
     let aliasFlag = false;
 
@@ -642,55 +637,9 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                     isEncryptedMessage = true;
                     continue; // skip to next output hex
                 }
-                // this is an encrypted Cashtab message
-                let msgString = parsedOpReturnArray[1];
-                let fundingWif, privateKeyObj, privateKeyBuff;
-                if (
-                    wallet &&
-                    wallet.state &&
-                    wallet.state.nonSlpUtxos &&
-                    wallet.state.nonSlpUtxos[0]
-                ) {
-                    fundingWif = getUtxoWif(
-                        wallet.state.nonSlpUtxos[0],
-                        wallet,
-                    );
-                    privateKeyObj = wif.decode(fundingWif);
-                    privateKeyBuff = privateKeyObj.privateKey;
-                    if (!privateKeyBuff) {
-                        isCashtabMessage = true;
-                        isEncryptedMessage = true;
-                        opReturnMessage = 'Private key extraction error';
-                        continue; // skip to next output hex without triggering an API error
-                    }
-                } else {
-                    break;
-                }
-
-                let structData;
-                let decryptedMessage;
-
-                try {
-                    // Convert the hex encoded message to a buffer
-                    const msgBuf = Buffer.from(msgString, 'hex');
-
-                    // Convert the bufer into a structured object.
-                    structData = convertToEncryptStruct(msgBuf);
-
-                    decryptedMessage = ecies.decrypt(
-                        privateKeyBuff,
-                        structData,
-                    );
-                    decryptionSuccess = true;
-                } catch (err) {
-                    console.log(
-                        `Decryption error in parseChronikTx${tx.txid}: ` + err,
-                    );
-                    decryptedMessage = 'Unable to decrypt this message';
-                }
                 isCashtabMessage = true;
                 isEncryptedMessage = true;
-                opReturnMessage = decryptedMessage;
+                opReturnMessage = 'Encrypted Cashtab Msg';
             } else if (
                 txType === opreturnConfig.appPrefixesHex.aliasRegistration
             ) {
@@ -831,7 +780,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             opReturnMessage: '',
             isCashtabMessage,
             isEncryptedMessage,
-            decryptionSuccess,
             replyAddress,
         };
     }
@@ -845,7 +793,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         opReturnMessage,
         isCashtabMessage,
         isEncryptedMessage,
-        decryptionSuccess,
         replyAddress,
         aliasFlag,
     };

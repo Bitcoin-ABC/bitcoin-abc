@@ -1,15 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP @generated
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Wallet with BCH balances 1`] = `
 Array [
   <div
-    className="sc-btzYZH jMTXaH"
+    className="sc-cmTdod gXOxSM"
   >
     <div
-      className="sc-kfGgVZ cdsuhv"
+      className="sc-hwwEjo jPkbkn"
     >
       <h4
-        className="sc-esjQYD ezHxVM"
+        className="sc-kPVwWT kNZAnC"
       >
         MigrationTestAlpha
       </h4>
@@ -51,10 +51,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-bYSBpT fkOMEu"
+      className="sc-btzYZH emKHAR"
     >
       <span
-        className="sc-iyvyFf dFHNeY"
+        className="sc-dfVpRl imfxmK"
       >
          
         0
@@ -66,10 +66,10 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cmTdod hmdHrJ"
+    className="sc-feJyhm lfjVYN"
   >
     <div
-      className="sc-ibxdXY wkYHn"
+      className="sc-kIPQKe izKukF"
     >
       <div />
       <span
@@ -104,13 +104,13 @@ Array [
 exports[`Wallet with BCH balances and tokens 1`] = `
 Array [
   <div
-    className="sc-btzYZH jMTXaH"
+    className="sc-cmTdod gXOxSM"
   >
     <div
-      className="sc-kfGgVZ cdsuhv"
+      className="sc-hwwEjo jPkbkn"
     >
       <h4
-        className="sc-esjQYD ezHxVM"
+        className="sc-kPVwWT kNZAnC"
       >
         MigrationTestAlpha
       </h4>
@@ -152,10 +152,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-bYSBpT fkOMEu"
+      className="sc-btzYZH emKHAR"
     >
       <span
-        className="sc-iyvyFf dFHNeY"
+        className="sc-dfVpRl imfxmK"
       >
          
         0
@@ -167,10 +167,10 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cmTdod hmdHrJ"
+    className="sc-feJyhm lfjVYN"
   >
     <div
-      className="sc-ibxdXY wkYHn"
+      className="sc-kIPQKe izKukF"
     >
       <div />
       <span
@@ -205,13 +205,13 @@ Array [
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 Array [
   <div
-    className="sc-btzYZH jMTXaH"
+    className="sc-cmTdod gXOxSM"
   >
     <div
-      className="sc-kfGgVZ cdsuhv"
+      className="sc-hwwEjo jPkbkn"
     >
       <h4
-        className="sc-esjQYD ezHxVM"
+        className="sc-kPVwWT kNZAnC"
       >
         MigrationTestAlpha
       </h4>
@@ -253,10 +253,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-bYSBpT fkOMEu"
+      className="sc-btzYZH emKHAR"
     >
       <span
-        className="sc-iyvyFf dFHNeY"
+        className="sc-dfVpRl imfxmK"
       >
          
         0.06
@@ -268,10 +268,10 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cmTdod hmdHrJ"
+    className="sc-feJyhm lfjVYN"
   >
     <div
-      className="sc-ibxdXY wkYHn"
+      className="sc-kIPQKe izKukF"
     >
       <div />
       <span
@@ -306,13 +306,13 @@ Array [
 exports[`Wallet without BCH balance 1`] = `
 Array [
   <div
-    className="sc-btzYZH jMTXaH"
+    className="sc-cmTdod gXOxSM"
   >
     <div
-      className="sc-kfGgVZ cdsuhv"
+      className="sc-hwwEjo jPkbkn"
     >
       <h4
-        className="sc-esjQYD ezHxVM"
+        className="sc-kPVwWT kNZAnC"
       >
         MigrationTestAlpha
       </h4>
@@ -354,10 +354,10 @@ Array [
       </div>
     </div>
     <div
-      className="sc-bYSBpT fkOMEu"
+      className="sc-btzYZH emKHAR"
     >
       <span
-        className="sc-iyvyFf dFHNeY"
+        className="sc-dfVpRl imfxmK"
       >
          
         0
@@ -369,10 +369,10 @@ Array [
   </div>,
   <br />,
   <div
-    className="sc-cmTdod hmdHrJ"
+    className="sc-feJyhm lfjVYN"
   >
     <div
-      className="sc-ibxdXY wkYHn"
+      className="sc-kIPQKe izKukF"
     >
       <div />
       <span

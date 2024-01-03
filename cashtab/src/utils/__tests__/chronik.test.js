@@ -244,7 +244,6 @@ it(`Successfully parses a staking rewards coinbase tx`, () => {
         airdropFlag: false,
         airdropTokenId: '',
         aliasFlag: false,
-        decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
@@ -265,7 +264,6 @@ it(`Successfully parses an incoming XEC tx`, () => {
         airdropFlag: false,
         airdropTokenId: '',
         aliasFlag: false,
-        decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
@@ -286,7 +284,6 @@ it(`Successfully parses an outgoing XEC tx`, () => {
         airdropFlag: false,
         airdropTokenId: '',
         aliasFlag: false,
-        decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
@@ -307,7 +304,6 @@ it(`Successfully parses an outgoing Alias Registration tx`, () => {
         airdropFlag: false,
         airdropTokenId: '',
         aliasFlag: true,
-        decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: 'bug2',
@@ -346,7 +342,6 @@ it(`Successfully parses an incoming eToken tx`, () => {
         etokenAmount: '12',
         airdropFlag: false,
         airdropTokenId: '',
-        decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
@@ -385,7 +380,6 @@ it(`Successfully parses an outgoing eToken tx`, () => {
         etokenAmount: '17',
         airdropFlag: false,
         airdropTokenId: '',
-        decryptionSuccess: false,
         isCashtabMessage: false,
         isEncryptedMessage: false,
         opReturnMessage: '',
@@ -426,7 +420,6 @@ it(`Successfully parses a genesis eToken tx`, () => {
         opReturnMessage: '',
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
     });
 });
@@ -464,7 +457,6 @@ it(`Successfully parses a received eToken tx with 9 decimal places`, () => {
         opReturnMessage: '',
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
@@ -486,7 +478,6 @@ it(`Correctly parses a received airdrop transaction`, () => {
         opReturnMessage: 'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
         isCashtabMessage: true,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduu04m37fwd',
     });
 });
@@ -508,7 +499,6 @@ it(`Correctly parses a sent encyrpted message transaction`, () => {
         opReturnMessage: 'Only the message recipient can view this',
         isCashtabMessage: true,
         isEncryptedMessage: true,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
     });
 });
@@ -526,10 +516,9 @@ it(`Correctly parses a received encrypted message transaction`, () => {
         airdropFlag: false,
         airdropTokenId: '',
         aliasFlag: false,
-        opReturnMessage: 'Test encrypted message',
+        opReturnMessage: 'Encrypted Cashtab Msg',
         isCashtabMessage: true,
         isEncryptedMessage: true,
-        decryptionSuccess: true,
         replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
@@ -568,7 +557,6 @@ it(`Correctly parses a token burn transaction`, () => {
         opReturnMessage: '',
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
     });
 });
@@ -609,7 +597,6 @@ it(`Correctly parses a token burn transaction with decimal places`, () => {
         opReturnMessage: '',
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
     });
 });
@@ -647,7 +634,6 @@ it(`Correctly parses received quantity for a received eToken address`, () => {
         opReturnMessage: '',
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
     });
 });
@@ -664,7 +650,6 @@ it(`Correctly parses an incoming eToken tx that sends only XEC to the Cashtab us
         opReturnMessage: '',
         isCashtabMessage: false,
         isEncryptedMessage: false,
-        decryptionSuccess: false,
         replyAddress: 'ecash:qzq2myl0727s9e3c8wnzgahl6u5arvnxp5fs9sem4x',
     });
 });

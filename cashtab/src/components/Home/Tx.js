@@ -243,25 +243,6 @@ const EncryptionMessageLabel = styled.span`
     color: ${props => props.theme.encryptionRed};
     white-space: nowrap;
 `;
-const UnauthorizedDecryptionMessage = styled.span`
-    text-align: left;
-    color: ${props => props.theme.encryptionRed};
-    white-space: nowrap;
-    font-style: italic;
-`;
-
-const DecryptedMessage = styled.div`
-    ${props =>
-        props.authorized
-            ? {
-                  color: `${props => props.theme.contrast}`,
-                  margin: '0',
-                  fontSize: '14px',
-                  marginBottom: '10px',
-                  overflowWrap: 'break-word',
-              }
-            : `${UnauthorizedDecryptionMessage}`}
-`;
 
 const TxInfo = styled.div`
     text-align: right;
@@ -954,37 +935,13 @@ const Tx = ({
                                                                             </ShowHideMessageButton>
                                                                         ) : (
                                                                             <>
-                                                                                <DecryptedMessage
-                                                                                    authorized={
-                                                                                        data
-                                                                                            .parsed
-                                                                                            .decryptionSuccess
-                                                                                    }
-                                                                                >
+                                                                                <p>
                                                                                     {
                                                                                         data
                                                                                             .parsed
                                                                                             .opReturnMessage
                                                                                     }
-                                                                                </DecryptedMessage>
-                                                                                {!addressesInContactList.includes(
-                                                                                    data
-                                                                                        .parsed
-                                                                                        .replyAddress,
-                                                                                ) &&
-                                                                                    // do not render 'Hide' button if msg cannot be decrypted
-                                                                                    data
-                                                                                        .parsed
-                                                                                        .decryptionSuccess && (
-                                                                                        <ShowHideMessageButton
-                                                                                            onClick={e => {
-                                                                                                e.stopPropagation();
-                                                                                                handleShowMessage();
-                                                                                            }}
-                                                                                        >
-                                                                                            Hide
-                                                                                        </ShowHideMessageButton>
-                                                                                    )}
+                                                                                </p>
                                                                             </>
                                                                         )}
                                                                     </>
@@ -1004,40 +961,6 @@ const Tx = ({
                                                                             .opReturnMessage
                                                                     }
                                                                 </p>
-                                                            ) : (
-                                                                ''
-                                                            )}
-                                                            {/*encrypted and wallet is authorized to view OP_RETURN Message*/}
-                                                            {data.parsed
-                                                                .opReturnMessage &&
-                                                            data.parsed
-                                                                .isEncryptedMessage &&
-                                                            data.parsed
-                                                                .decryptionSuccess ? (
-                                                                <p>
-                                                                    {
-                                                                        data
-                                                                            .parsed
-                                                                            .opReturnMessage
-                                                                    }
-                                                                </p>
-                                                            ) : (
-                                                                ''
-                                                            )}
-                                                            {/*encrypted but wallet is not authorized to view OP_RETURN Message*/}
-                                                            {data.parsed
-                                                                .opReturnMessage &&
-                                                            data.parsed
-                                                                .isEncryptedMessage &&
-                                                            !data.parsed
-                                                                .decryptionSuccess ? (
-                                                                <UnauthorizedDecryptionMessage>
-                                                                    {
-                                                                        data
-                                                                            .parsed
-                                                                            .opReturnMessage
-                                                                    }
-                                                                </UnauthorizedDecryptionMessage>
                                                             ) : (
                                                                 ''
                                                             )}
