@@ -12,44 +12,6 @@ import * as utxolib from '@bitgo/utxo-lib';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import appConfig from 'config/app';
 
-export const getMessageByteSize = (
-    msgInputStr,
-    encryptionFlag,
-    encryptedEj,
-) => {
-    if (!msgInputStr || msgInputStr.trim() === '') {
-        return 0;
-    }
-
-    // generate the OP_RETURN script
-    let opReturnData;
-    if (encryptionFlag && encryptedEj) {
-        opReturnData = generateOpReturnScript(
-            msgInputStr,
-            encryptionFlag, // encryption flag
-            false, // airdrop use
-            null, // airdrop use
-            encryptedEj, // serialized encryption data object
-            false, // alias registration flag
-        );
-    } else {
-        opReturnData = generateOpReturnScript(
-            msgInputStr,
-            encryptionFlag, // encryption use
-            false, // airdrop use
-            null, // airdrop use
-            null, // serialized encryption data object
-            false, // alias registration flag
-        );
-    }
-    // extract the msg input from the OP_RETURN script and check the backend size
-    const hexString = opReturnData.toString('hex'); // convert to hex
-    const opReturnMsg = parseOpReturn(hexString)[1]; // extract the message
-    const msgInputByteSize = opReturnMsg.length / 2; // calculate the byte size
-
-    return msgInputByteSize;
-};
-
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L217
 export const generateBurnOpReturn = (tokenUtxos, burnQty) => {
@@ -601,83 +563,6 @@ export const generateAliasOpReturnScript = (alias, address) => {
 
     // Push <addressVersionByte> and <addressPayload>
     script.push(Buffer.from(`${addressVersionByte}${hash}`, 'hex'));
-
-    return utxolib.script.compile(script);
-};
-/*
- * Generates an OP_RETURN script to reflect the various send XEC permutations
- * involving messaging, encryption, eToken IDs and airdrop flags.
- *
- * Returns the final encoded script object
- */
-export const generateOpReturnScript = (
-    optionalOpReturnMsg,
-    encryptionFlag,
-    airdropFlag,
-    airdropTokenId,
-    encryptedEj,
-    optionalAliasRegistrationFlag = false,
-) => {
-    // encrypted mesage is mandatory when encryptionFlag is true
-    // airdrop token id is mandatory when airdropFlag is true
-    if ((encryptionFlag && !encryptedEj) || (airdropFlag && !airdropTokenId)) {
-        throw new Error('Invalid OP RETURN script input');
-    }
-
-    // Note: script.push(Buffer.from(opreturnConfig.opReturnPrefixHex, 'hex')); actually evaluates to '016a'
-    // instead of keeping the hex string intact. This behavour is specific to the initial script array element.
-    // To get around this, the bch-js approach of directly using the opReturn prefix in decimal form for the initial entry is used here.
-    let script = [opreturnConfig.opReturnPrefixDec]; // initialize script with the OP_RETURN op code (6a) in decimal form (106)
-
-    try {
-        if (encryptionFlag) {
-            // if the user has opted to encrypt this message
-
-            // add the encrypted cashtab messaging prefix and encrypted msg to script
-            script.push(
-                Buffer.from(
-                    opreturnConfig.appPrefixesHex.cashtabEncrypted,
-                    'hex',
-                ), // 65746162
-            );
-
-            // add the encrypted message to script
-            script.push(Buffer.from(encryptedEj));
-        } else {
-            // this is an un-encrypted message
-
-            if (airdropFlag) {
-                // if this was routed from the airdrop component
-                // add the airdrop prefix to script
-                script.push(
-                    Buffer.from(opreturnConfig.appPrefixesHex.airdrop, 'hex'), // drop
-                );
-                // add the airdrop token ID to script
-                script.push(Buffer.from(airdropTokenId, 'hex'));
-            }
-
-            if (optionalAliasRegistrationFlag) {
-                script.push(
-                    Buffer.from(
-                        opreturnConfig.appPrefixesHex.aliasRegistration,
-                        'hex',
-                    ), // '.xec'
-                );
-            } else {
-                // add the cashtab prefix to script
-                script.push(
-                    Buffer.from(opreturnConfig.appPrefixesHex.cashtab, 'hex'), // 00746162
-                );
-            }
-            // add the un-encrypted message to script if supplied
-            if (optionalOpReturnMsg) {
-                script.push(Buffer.from(optionalOpReturnMsg));
-            }
-        }
-    } catch (err) {
-        console.log('Error in generateOpReturnScript(): ' + err);
-        throw err;
-    }
 
     return utxolib.script.compile(script);
 };

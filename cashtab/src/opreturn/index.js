@@ -55,6 +55,23 @@ export const getCashtabMsgTargetOutput = cashtabMsg => {
 };
 
 /**
+ * Calculates the bytecount of a Cashtab Msg as part of an OP_RETURN output
+ * Used to validate user input in Send.js
+ *
+ * @param {string} cashtabMsg alias input from a text input field
+ * @returns {number} aliasInputByteSize the byte size of the alias input
+ */
+export const getCashtabMsgByteCount = cashtabMsg => {
+    if (typeof cashtabMsg !== 'string') {
+        throw new Error('cashtabMsg must be a string');
+    }
+
+    // Cashtab msgs are utf8 encoded
+    const cashtabMsgScript = Buffer.from(cashtabMsg, 'utf8');
+    return cashtabMsgScript.length;
+};
+
+/**
  * Get targetOutput for an Airdrop tx OP_RETURN from token id and optional user message
  * Airdrop tx spec: <Airdrop Protocol Identifier> <tokenId> <optionalMsg>
  * @param {string} tokenId tokenId of the token receiving this airdrop tx

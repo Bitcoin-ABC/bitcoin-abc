@@ -16,7 +16,6 @@ import {
     isActiveWebsocket,
     getChangeAddressFromInputUtxos,
     generateAliasOpReturnScript,
-    generateOpReturnScript,
     generateTxInput,
     generateTxOutput,
     generateTokenTxInput,
@@ -33,7 +32,6 @@ import {
     generateBurnOpReturn,
     hash160ToAddress,
     outputScriptToAddress,
-    getMessageByteSize,
     parseAddressForParams,
     sumOneToManyXec,
     toSatoshis,
@@ -161,120 +159,6 @@ test('parseAddressForParams() returns valid address info for a valid prefix-less
     };
     const addressInfo = parseAddressForParams(inputString);
     expect(addressInfo).toStrictEqual(expectedObject);
-});
-
-it(`OP_RETURN msg byte length matches for an encrypted msg input with a single emoji`, () => {
-    const msgInput = '🙈';
-    const encryptedEjMock = {
-        type: 'Buffer',
-        data: [
-            2, 241, 30, 211, 127, 184, 181, 145, 219, 158, 127, 99, 178, 221,
-            90, 234, 194, 108, 152, 147, 60, 77, 74, 176, 112, 249, 23, 170,
-            186, 204, 20, 209, 135, 98, 156, 215, 47, 144, 123, 71, 111, 123,
-            199, 26, 89, 67, 76, 135, 250, 112, 226, 74, 182, 186, 79, 52, 15,
-            88, 214, 142, 141, 145, 103, 89, 66, 158, 107, 191, 144, 255, 139,
-            65, 21, 141, 128, 61, 33, 172, 31, 246, 145, 72, 62, 161, 173, 23,
-            249, 4, 79, 245, 183, 202, 115, 140, 0, 83, 42,
-        ],
-    };
-    const opReturnMsgByteLength = getMessageByteSize(
-        msgInput,
-        true,
-        encryptedEjMock,
-    );
-    expect(opReturnMsgByteLength).toStrictEqual(97);
-});
-
-it(`OP_RETURN msg byte length matches for an encrypted msg input with characters and emojis`, () => {
-    const msgInput = 'monkey🙈';
-    const encryptedEjMock = {
-        type: 'Buffer',
-        data: [
-            2, 74, 145, 240, 12, 210, 143, 66, 224, 155, 246, 106, 238, 186,
-            167, 192, 123, 39, 44, 165, 231, 97, 166, 149, 93, 121, 10, 107, 45,
-            12, 235, 45, 158, 251, 183, 245, 6, 206, 9, 153, 146, 208, 40, 156,
-            106, 3, 140, 137, 68, 126, 240, 70, 87, 131, 54, 91, 115, 164, 223,
-            109, 199, 173, 127, 106, 94, 82, 200, 83, 77, 157, 55, 195, 16, 17,
-            99, 1, 148, 226, 150, 243, 120, 133, 80, 17, 226, 109, 17, 154, 226,
-            59, 203, 36, 203, 230, 236, 12, 104,
-        ],
-    };
-    const opReturnMsgByteLength = getMessageByteSize(
-        msgInput,
-        true,
-        encryptedEjMock,
-    );
-    expect(opReturnMsgByteLength).toStrictEqual(97);
-});
-
-it(`OP_RETURN msg byte length matches for an encrypted msg input with special characters`, () => {
-    const msgInput = 'monkey©®ʕ•́ᴥ•̀ʔっ♡';
-    const encryptedEjMock = {
-        type: 'Buffer',
-        data: [
-            2, 137, 237, 42, 23, 72, 146, 79, 69, 190, 11, 115, 20, 173, 218,
-            99, 121, 188, 45, 14, 219, 135, 46, 91, 165, 121, 166, 149, 100,
-            140, 231, 143, 38, 1, 169, 226, 26, 136, 124, 82, 59, 223, 210, 65,
-            50, 241, 86, 155, 225, 85, 167, 213, 235, 24, 143, 118, 136, 87, 38,
-            161, 153, 18, 110, 198, 168, 196, 77, 250, 255, 2, 132, 13, 44, 44,
-            220, 93, 61, 73, 89, 160, 16, 247, 115, 174, 238, 80, 102, 26, 158,
-            44, 28, 173, 174, 3, 120, 130, 221, 220, 147, 143, 252, 137, 109,
-            143, 28, 106, 73, 253, 145, 161, 118, 109, 54, 95, 13, 137, 214,
-            253, 11, 238, 115, 89, 84, 241, 227, 103, 78, 246, 22,
-        ],
-    };
-    const opReturnMsgByteLength = getMessageByteSize(
-        msgInput,
-        true,
-        encryptedEjMock,
-    );
-    expect(opReturnMsgByteLength).toStrictEqual(129);
-});
-
-it(`OP_RETURN msg byte length matches for an encrypted msg input with a mixture of symbols, multilingual characters and emojis`, () => {
-    const msgInput = '🙈©冰소주';
-    const encryptedEjMock = {
-        type: 'Buffer',
-        data: [
-            3, 237, 190, 133, 5, 192, 187, 247, 209, 218, 154, 239, 194, 148,
-            24, 151, 26, 150, 97, 190, 245, 27, 226, 249, 75, 203, 36, 128, 170,
-            209, 250, 181, 239, 253, 242, 53, 181, 198, 37, 123, 236, 120, 192,
-            179, 194, 103, 119, 70, 108, 242, 144, 120, 52, 205, 123, 158, 244,
-            27, 127, 232, 106, 215, 201, 88, 22, 146, 129, 6, 35, 160, 147, 198,
-            131, 236, 202, 200, 137, 39, 80, 241, 168, 158, 211, 113, 123, 76,
-            89, 81, 82, 250, 220, 162, 226, 63, 154, 76, 23,
-        ],
-    };
-    const opReturnMsgByteLength = getMessageByteSize(
-        msgInput,
-        true,
-        encryptedEjMock,
-    );
-    expect(opReturnMsgByteLength).toStrictEqual(97);
-});
-
-it(`OP_RETURN msg byte length matches for a msg input with a single emoji`, () => {
-    const msgInput = '🙈';
-    const opReturnMsgByteLength = getMessageByteSize(msgInput);
-    expect(opReturnMsgByteLength).toStrictEqual(4);
-});
-
-it(`OP_RETURN msg byte length matches for a msg input with characters and emojis`, () => {
-    const msgInput = 'monkey🙈';
-    const opReturnMsgByteLength = getMessageByteSize(msgInput);
-    expect(opReturnMsgByteLength).toStrictEqual(10);
-});
-
-it(`OP_RETURN msg byte length matches for a msg input with special characters`, () => {
-    const msgInput = 'monkey©®ʕ•́ᴥ•̀ʔっ♡';
-    const opReturnMsgByteLength = getMessageByteSize(msgInput);
-    expect(opReturnMsgByteLength).toStrictEqual(33);
-});
-
-it(`OP_RETURN msg byte length matches for a msg input with a mixture of symbols, multilingual characters and emojis`, () => {
-    const msgInput = '🙈©冰소주';
-    const opReturnMsgByteLength = getMessageByteSize(msgInput);
-    expect(opReturnMsgByteLength).toStrictEqual(15);
 });
 
 it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
@@ -690,132 +574,6 @@ it('generateAliasOpReturnScript() correctly generates OP_RETURN script for a val
     // 6a042e7865630100077465737474776f1508d37c4c809fe9840e7bfa77b86bd47163f6fb6c60
 
     expect(aliasOutputScript.toString('hex')).toBe(aliasTxOpReturnOutputScript);
-});
-it('generateOpReturnScript() correctly generates an encrypted message script', () => {
-    const optionalOpReturnMsg = 'testing generateOpReturnScript()';
-    const encryptionFlag = true;
-    const airdropFlag = false;
-    const airdropTokenId = null;
-    const mockEncryptedEj =
-        '04688f9907fe3c7c0b78a73c4ab4f75e15e7e2b79641add519617086126fe6f6b1405a14eed48e90c9c8c0fc77f0f36984a78173e76ce51f0a44af94b59e9da703c9ff82758cfdb9cc46437d662423400fb731d3bfc1df0599279356ca261213fbb40d398c041e1bac966afed1b404581ab1bcfcde1fa039d53b7c7b70e8edf26d64bea9fbeed24cc80909796e6af5863707fa021f2a2ebaa2fe894904702be19d';
-
-    const encodedScript = generateOpReturnScript(
-        optionalOpReturnMsg,
-        encryptionFlag,
-        airdropFlag,
-        airdropTokenId,
-        mockEncryptedEj,
-    );
-    expect(encodedScript.toString('hex')).toBe(
-        '6a04657461624d420130343638386639393037666533633763306237386137336334616234663735653135653765326237393634316164643531393631373038363132366665366636623134303561313465656434386539306339633863306663373766306633363938346137383137336537366365353166306134346166393462353965396461373033633966663832373538636664623963633436343337643636323432333430306662373331643362666331646630353939323739333536636132363132313366626234306433393863303431653162616339363661666564316234303435383161623162636663646531666130333964353362376337623730653865646632366436346265613966626565643234636338303930393739366536616635383633373037666130323166326132656261613266653839343930343730326265313964',
-    );
-});
-
-it('generateOpReturnScript() correctly generates an un-encrypted non-airdrop message script', () => {
-    const optionalOpReturnMsg = 'testing generateOpReturnScript()';
-    const encryptionFlag = false;
-    const airdropFlag = false;
-
-    const encodedScript = generateOpReturnScript(
-        optionalOpReturnMsg,
-        encryptionFlag,
-        airdropFlag,
-    );
-    expect(encodedScript.toString('hex')).toBe(
-        '6a04007461622074657374696e672067656e65726174654f7052657475726e5363726970742829',
-    );
-});
-
-it('generateOpReturnScript() correctly generates an un-encrypted airdrop message script', () => {
-    const optionalOpReturnMsg = 'testing generateOpReturnScript()';
-    const encryptionFlag = false;
-    const airdropFlag = true;
-    const airdropTokenId =
-        '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
-
-    const encodedScript = generateOpReturnScript(
-        optionalOpReturnMsg,
-        encryptionFlag,
-        airdropFlag,
-        airdropTokenId,
-    );
-    expect(encodedScript.toString('hex')).toBe(
-        '6a0464726f70201c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e04007461622074657374696e672067656e65726174654f7052657475726e5363726970742829',
-    );
-});
-
-it('generateOpReturnScript() correctly generates an un-encrypted airdrop with no message script', () => {
-    const optionalOpReturnMsg = null;
-    const encryptionFlag = false;
-    const airdropFlag = true;
-    const airdropTokenId =
-        '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e';
-
-    const encodedScript = generateOpReturnScript(
-        optionalOpReturnMsg,
-        encryptionFlag,
-        airdropFlag,
-        airdropTokenId,
-    );
-    expect(encodedScript.toString('hex')).toBe(
-        '6a0464726f70201c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e0400746162',
-    );
-});
-
-it('generateOpReturnScript() correctly throws an error on an invalid encryption input', () => {
-    const optionalOpReturnMsg = null;
-    const encryptionFlag = true;
-    const airdropFlag = false;
-    const airdropTokenId = null;
-    const mockEncryptedEj = null; // invalid given encryptionFlag is true
-    let thrownError;
-
-    try {
-        generateOpReturnScript(
-            optionalOpReturnMsg,
-            encryptionFlag,
-            airdropFlag,
-            airdropTokenId,
-            mockEncryptedEj,
-        );
-    } catch (err) {
-        thrownError = err;
-    }
-    expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
-});
-
-it('generateOpReturnScript() correctly throws an error on an invalid airdrop input', () => {
-    const optionalOpReturnMsg = null;
-    const encryptionFlag = false;
-    const airdropFlag = true;
-    const airdropTokenId = null; // invalid given airdropFlag is true
-
-    let thrownError;
-
-    try {
-        generateOpReturnScript(
-            optionalOpReturnMsg,
-            encryptionFlag,
-            airdropFlag,
-            airdropTokenId,
-        );
-    } catch (err) {
-        thrownError = err;
-    }
-    expect(thrownError.message).toStrictEqual('Invalid OP RETURN script input');
-});
-
-it('generateOpReturnScript() correctly generates an alias registration script', () => {
-    const optionalOpReturnMsg = 'nfs'; // the alias name to be registered
-    const encodedScript = generateOpReturnScript(
-        optionalOpReturnMsg,
-        false,
-        false,
-        null,
-        null,
-        true, // alias registration flag
-    );
-    expect(encodedScript.toString('hex')).toBe('6a042e786563036e6673');
 });
 
 it(`generateTokenTxInput() returns a valid object for a valid create token tx`, async () => {

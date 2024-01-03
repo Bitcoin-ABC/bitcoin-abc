@@ -6,6 +6,7 @@ import {
     getAirdropTargetOutput,
     getAliasTargetOutput,
     getAliasByteCount,
+    getCashtabMsgByteCount,
 } from 'opreturn';
 import { opReturnVectors } from '../fixtures/vectors';
 
@@ -107,6 +108,26 @@ describe('Determines byte count of user input alias registrations', () => {
         const { description, alias, errorMsg } = expectedError;
         it(`getAliasByteCount throws error for: ${description}`, () => {
             expect(() => getAliasByteCount(alias)).toThrow(errorMsg);
+        });
+    });
+});
+
+describe('Determines bytecount of user input Cashtab Msg', () => {
+    const { expectedReturns, expectedErrors } =
+        opReturnVectors.cashtabMsgByteCounts;
+
+    // Successfully calculates Cashtab Msg bytecounts
+    expectedReturns.forEach(expectedReturn => {
+        const { description, cashtabMsg, byteCount } = expectedReturn;
+        it(`getCashtabMsgByteCount: ${description}`, () => {
+            expect(getCashtabMsgByteCount(cashtabMsg)).toBe(byteCount);
+        });
+    });
+    // Error cases
+    expectedErrors.forEach(expectedError => {
+        const { description, cashtabMsg, errorMsg } = expectedError;
+        it(`getCashtabMsgByteCount throws error for: ${description}`, () => {
+            expect(() => getCashtabMsgByteCount(cashtabMsg)).toThrow(errorMsg);
         });
     });
 });

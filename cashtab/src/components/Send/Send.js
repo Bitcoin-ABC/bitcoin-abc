@@ -45,14 +45,13 @@ import {
     TxLink,
     MsgBytesizeError,
 } from 'components/Common/Atoms';
-import {
-    getWalletState,
-    fromSatoshisToXec,
-    calcFee,
-    getMessageByteSize,
-} from 'utils/cashMethods';
+import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
 import { sendXec, getMultisendTargetOutputs } from 'transactions';
-import { getCashtabMsgTargetOutput, getAirdropTargetOutput } from 'opreturn';
+import {
+    getCashtabMsgTargetOutput,
+    getAirdropTargetOutput,
+    getCashtabMsgByteCount,
+} from 'opreturn';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
@@ -556,7 +555,7 @@ const SendBCH = ({ passLoadingStatus }) => {
     const handleMsgChange = e => {
         const { value } = e.target;
         let msgError = false;
-        const msgByteSize = getMessageByteSize(value);
+        const msgByteSize = getCashtabMsgByteCount(value);
 
         const maxSize =
             location && location.state && location.state.airdropTokenId

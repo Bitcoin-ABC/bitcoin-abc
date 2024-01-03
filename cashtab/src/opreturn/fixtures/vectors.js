@@ -203,4 +203,52 @@ export const opReturnVectors = {
             },
         ],
     },
+    cashtabMsgByteCounts: {
+        expectedReturns: [
+            {
+                description: 'a single emoji',
+                cashtabMsg: '🙈',
+                byteCount: 4,
+            },
+            {
+                description: 'msg input with characters and emojis',
+                cashtabMsg: 'monkey🙈',
+                byteCount: 10,
+            },
+            {
+                description: 'msg input with special characters',
+                cashtabMsg: 'monkey©®ʕ•́ᴥ•̀ʔっ♡',
+                byteCount: 33,
+            },
+            {
+                description:
+                    'msg input with a mixture of symbols, multilingual characters and emojis',
+                cashtabMsg: '🙈©冰소주',
+                byteCount: 15,
+            },
+            {
+                description: 'Alphanumeric string',
+                cashtabMsg: 'This is a Cashtab Msg',
+                byteCount: 21,
+            },
+            {
+                description: 'String with emojis',
+                cashtabMsg: '🙏📬🫡👀🕵️👑🎃🪖🐋🎯',
+                byteCount: 43,
+            },
+            {
+                description: 'String of max length for Cashtab Msg',
+                cashtabMsg:
+                    '00000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000100000000010000000001000000000112345',
+                byteCount: 215,
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'non-text input',
+                cashtabMsg: null,
+                errorMsg: 'cashtabMsg must be a string',
+            },
+        ],
+    },
 };
