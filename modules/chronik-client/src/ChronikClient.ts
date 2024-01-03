@@ -247,11 +247,6 @@ export interface WsConfig {
 
     /** Whether to automatically reconnect on disconnect, default true. */
     autoReconnect?: boolean;
-
-    /** Whether to ping at fixed intervals to improve odds of connection remaining long-lived, default true */
-    keepAlive?: boolean;
-
-    pingInterval?: ReturnType<typeof setInterval> | null;
 }
 
 /** WebSocket connection to Chronik. */
@@ -282,11 +277,6 @@ export class WsEndpoint {
     /** Whether to automatically reconnect on disconnect, default true. */
     public autoReconnect: boolean;
 
-    /** Whether to ping at fixed intervals to improve odds of connection remaining long-lived, default true */
-    public keepAlive: boolean;
-    /** The ping interval used for keepAlive. Stored here so it may be cleared. */
-    public pingInterval: ReturnType<typeof setInterval> | undefined;
-
     public ws: ws.WebSocket | undefined;
     public connected: Promise<ws.Event> | undefined;
     public manuallyClosed: boolean;
@@ -299,9 +289,6 @@ export class WsEndpoint {
         this.onEnd = config.onEnd;
         this.autoReconnect =
             config.autoReconnect !== undefined ? config.autoReconnect : true;
-        this.keepAlive =
-            config.keepAlive !== undefined ? config.keepAlive : true;
-        this.pingInterval = undefined;
         this.manuallyClosed = false;
         this.subs = [];
         this._proxyInterface = proxyInterface;

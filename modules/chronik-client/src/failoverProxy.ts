@@ -216,28 +216,6 @@ export class FailoverProxy {
         });
     }
 
-    /**
-     * Ping the websocket to improve odds of a long-lived connection
-     * @param wsEndpoint
-     */
-    private _ping(wsEndpoint: WsEndpoint) {
-        if (typeof wsEndpoint.ws !== 'undefined') {
-            if (wsEndpoint.ws.ping instanceof Function) {
-                // check that ws.ping() is available before calling it
-                // browser Websocket object does not support ping() like nodejs
-                // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
-                wsEndpoint.ws.ping();
-            } else if (wsEndpoint.subs.length > 0) {
-                // If we have no subs, no need to ping anyway
-                wsEndpoint.subUnsub(
-                    true,
-                    wsEndpoint.subs[0].scriptType,
-                    wsEndpoint.subs[0].scriptPayload,
-                );
-            }
-        }
-    }
-
     // Iterates through available websocket urls and attempts connection.
     // Upon a successful connection it handles the various websocket callbacks.
     // Upon an unsuccessful connection it iterates to the next websocket url in the array.
@@ -260,12 +238,6 @@ export class FailoverProxy {
                     }
                 };
                 ws.onclose = e => {
-                    if (wsEndpoint.keepAlive) {
-                        // clearInterval for pingInterval
-                        clearInterval(wsEndpoint.pingInterval);
-                        // reset pingInterval
-                        wsEndpoint.pingInterval = undefined;
-                    }
                     // End if manually closed or no auto-reconnect
                     if (
                         wsEndpoint.manuallyClosed ||
@@ -294,13 +266,6 @@ export class FailoverProxy {
                         resolve(msg);
                         if (wsEndpoint.onConnect !== undefined) {
                             wsEndpoint.onConnect(msg);
-                        }
-                        if (wsEndpoint.keepAlive) {
-                            const PING_INTERVAL_MS = 30000;
-                            wsEndpoint.pingInterval = setInterval(
-                                () => this._ping(wsEndpoint),
-                                PING_INTERVAL_MS,
-                            );
                         }
                     };
                 });

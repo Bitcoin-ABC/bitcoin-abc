@@ -520,18 +520,6 @@ describe('/ws', () => {
         });
         await promise;
     });
-    it('connects to the ws if keepAlive = false', async () => {
-        const promise = new Promise((resolve, rejects) => {
-            const ws = chronik.ws({ keepAlive: false });
-            ws.waitForOpen()
-                .then(() => {
-                    resolve({});
-                    ws.close();
-                })
-                .catch(err => rejects(err));
-        });
-        await promise;
-    });
     it('connects to a working ws in an array of broken ws', async () => {
         const halfBrokenChronik = new ChronikClient([
             'https://chronikaaaa.be.cash/xec',
