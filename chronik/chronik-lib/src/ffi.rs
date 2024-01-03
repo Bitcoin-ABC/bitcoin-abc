@@ -27,6 +27,8 @@ mod ffi_inner {
         /// Whether to output Chronik performance statistics into a perf/
         /// folder
         pub enable_perf_stats: bool,
+        /// Duration between WebSocket pings initiated by Chronik.
+        pub ws_ping_interval_secs: u64,
     }
 
     extern "Rust" {

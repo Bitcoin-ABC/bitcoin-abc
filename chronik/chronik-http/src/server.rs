@@ -5,6 +5,7 @@
 //! Module for [`ChronikServer`].
 
 use std::collections::HashMap;
+use std::time::Duration;
 use std::{net::SocketAddr, sync::Arc};
 
 use abc_rust_error::{Result, WrapErr};
@@ -35,6 +36,13 @@ pub type NodeRef = Arc<Node>;
 /// Ref-counted pause notifier for Chronik indexing
 pub type PauseNotifyRef = Arc<PauseNotify>;
 
+/// Settings to tune Chronik
+#[derive(Clone, Debug)]
+pub struct ChronikSettings {
+    /// Duration between WebSocket pings initiated by Chronik.
+    pub ws_ping_interval: Duration,
+}
+
 /// Params defining what and where to serve for [`ChronikServer`].
 #[derive(Clone, Debug)]
 pub struct ChronikServerParams {
@@ -46,6 +54,8 @@ pub struct ChronikServerParams {
     pub node: NodeRef,
     /// Handle for pausing/resuming indexing any updates from the node
     pub pause_notify: PauseNotifyRef,
+    /// Settings to tune Chronik
+    pub settings: ChronikSettings,
 }
 
 /// Chronik HTTP server, holding all the data/handles required to serve an
@@ -56,6 +66,7 @@ pub struct ChronikServer {
     indexer: ChronikIndexerRef,
     node: NodeRef,
     pause_notify: PauseNotifyRef,
+    settings: ChronikSettings,
 }
 
 /// Errors for [`ChronikServer`].
@@ -101,12 +112,18 @@ impl ChronikServer {
             indexer: params.indexer,
             node: params.node,
             pause_notify: params.pause_notify,
+            settings: params.settings,
         })
     }
 
     /// Serve a Chronik HTTP endpoint with the given parameters.
     pub async fn serve(self) -> Result<()> {
-        let app = Self::make_router(self.indexer, self.node, self.pause_notify);
+        let app = Self::make_router(
+            self.indexer,
+            self.node,
+            self.pause_notify,
+            self.settings,
+        );
         let servers = self
             .server_builders
             .into_iter()
@@ -128,6 +145,7 @@ impl ChronikServer {
         indexer: ChronikIndexerRef,
         node: NodeRef,
         pause_notify: PauseNotifyRef,
+        settings: ChronikSettings,
     ) -> Router {
         Router::new()
             .route("/blockchain-info", routing::get(handle_blockchain_info))
@@ -160,6 +178,7 @@ impl ChronikServer {
             .layer(Extension(indexer))
             .layer(Extension(node))
             .layer(Extension(pause_notify))
+            .layer(Extension(settings))
     }
 }
 
@@ -304,6 +323,7 @@ async fn handle_resume(
 async fn handle_ws(
     ws: WebSocketUpgrade,
     Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(settings): Extension<ChronikSettings>,
 ) -> impl IntoResponse {
-    ws.on_upgrade(|ws| handle_subscribe_socket(ws, indexer))
+    ws.on_upgrade(|ws| handle_subscribe_socket(ws, indexer, settings))
 }

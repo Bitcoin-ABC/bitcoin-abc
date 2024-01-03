@@ -4,7 +4,7 @@
 
 //! Module for [`handle_subscribe_socket`].
 
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
@@ -21,8 +21,9 @@ use thiserror::Error;
 use tokio::sync::broadcast;
 
 use crate::{
-    error::report_status_error, parse::parse_script_variant,
-    server::ChronikIndexerRef,
+    error::report_status_error,
+    parse::parse_script_variant,
+    server::{ChronikIndexerRef, ChronikSettings},
 };
 
 /// Errors for [`ChronikServer`].
@@ -59,10 +60,10 @@ enum WsSubType {
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
 type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
 
-#[derive(Default)]
 struct SubRecv {
     blocks: SubRecvBlocks,
     scripts: SubRecvScripts,
+    ws_ping_interval: Duration,
 }
 
 impl SubRecv {
@@ -70,6 +71,7 @@ impl SubRecv {
         tokio::select! {
             action = Self::recv_blocks(&mut self.blocks) => action,
             action = Self::recv_scripts(&mut self.scripts) => action,
+            action = Self::schedule_ping(self.ws_ping_interval) => action,
         }
     }
 
@@ -93,6 +95,12 @@ impl SubRecv {
             let (script_msg, _, _) = script_receivers.await;
             sub_script_msg_action(script_msg)
         }
+    }
+
+    async fn schedule_ping(ws_ping_interval: Duration) -> Result<WsAction> {
+        tokio::time::sleep(ws_ping_interval).await;
+        let ping_payload = b"Bitcoin ABC Chronik Indexer".to_vec();
+        Ok(WsAction::Message(ws::Message::Ping(ping_payload)))
     }
 
     async fn handle_sub(&mut self, sub: WsSub, indexer: &ChronikIndexerRef) {
@@ -179,7 +187,9 @@ fn sub_block_msg_action(
     block_msg: Result<BlockMsg, broadcast::error::RecvError>,
 ) -> Result<WsAction> {
     use proto::{ws_msg::MsgType, BlockMsgType::*};
-    let Ok(block_msg) = block_msg else { return Ok(WsAction::Nothing) };
+    let Ok(block_msg) = block_msg else {
+        return Ok(WsAction::Nothing);
+    };
     let block_msg_type = match block_msg.msg_type {
         BlockMsgType::Connected => BlkConnected,
         BlockMsgType::Disconnected => BlkDisconnected,
@@ -223,8 +233,13 @@ fn sub_script_msg_action(
 pub async fn handle_subscribe_socket(
     mut socket: WebSocket,
     indexer: ChronikIndexerRef,
+    settings: ChronikSettings,
 ) {
-    let mut recv = SubRecv::default();
+    let mut recv = SubRecv {
+        blocks: Default::default(),
+        scripts: Default::default(),
+        ws_ping_interval: settings.ws_ping_interval,
+    };
 
     loop {
         let sub_action = tokio::select! {

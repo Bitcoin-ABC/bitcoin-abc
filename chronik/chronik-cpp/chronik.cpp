@@ -4,11 +4,13 @@
 
 #include <chainparams.h>
 #include <chainparamsbase.h>
+#include <chrono>
 #include <config.h>
 #include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
 #include <util/system.h>
+#include <util/time.h>
 #include <util/translation.h>
 
 #include <chronik-cpp/chronik.h>
@@ -16,6 +18,15 @@
 #include <chronik-lib/src/ffi.rs.h>
 
 namespace chronik {
+
+// Duration between WebSocket pings initiated by Chronik.
+// 45s has been empirically established as a reliable duration for both browser
+// and NodeJS WebSockets.
+static constexpr std::chrono::seconds WS_PING_INTERVAL_DEFAULT{45s};
+
+// Ping duration is just 5s on regtest to speed up ping tests and make
+// functional tests more reliable.
+static constexpr std::chrono::seconds WS_PING_INTERVAL_REGTEST{5s};
 
 template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
     rust::Vec<T> vec;
@@ -26,7 +37,8 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
 
 bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
     const bool is_pause_allowed = gArgs.GetBoolArg("-chronikallowpause", false);
-    if (is_pause_allowed && !config.GetChainParams().IsTestChain()) {
+    const CChainParams params = config.GetChainParams();
+    if (is_pause_allowed && !params.IsTestChain()) {
         return InitError(_("Using -chronikallowpause on a mainnet chain is not "
                            "allowed for security reasons."));
     }
@@ -40,6 +52,10 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
             .wipe_db = fWipe,
             .is_pause_allowed = is_pause_allowed,
             .enable_perf_stats = gArgs.GetBoolArg("-chronikperfstats", false),
+            .ws_ping_interval_secs =
+                params.NetworkIDString() == CBaseChainParams::REGTEST
+                    ? uint64_t(count_seconds(WS_PING_INTERVAL_REGTEST))
+                    : uint64_t(count_seconds(WS_PING_INTERVAL_DEFAULT)),
         },
         config, node);
 }

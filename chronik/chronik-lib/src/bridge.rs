@@ -7,13 +7,16 @@
 use std::{
     net::{AddrParseError, IpAddr, SocketAddr},
     sync::Arc,
+    time::Duration,
 };
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::mem::MempoolTx;
-use chronik_http::server::{ChronikServer, ChronikServerParams};
+use chronik_http::server::{
+    ChronikServer, ChronikServerParams, ChronikSettings,
+};
 use chronik_indexer::{
     indexer::{ChronikIndexer, ChronikIndexerParams, Node},
     pause::Pause,
@@ -96,6 +99,11 @@ fn try_setup_chronik(
                 indexer,
                 node,
                 pause_notify: Arc::new(pause_notify),
+                settings: ChronikSettings {
+                    ws_ping_interval: Duration::from_secs(
+                        params.ws_ping_interval_secs,
+                    ),
+                },
             })
         }
     })?;
