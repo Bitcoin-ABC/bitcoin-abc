@@ -56,12 +56,16 @@ class ChronikAvalancheTest(BitcoinTestFramework):
             return node.isfinalblock(tip_expected)
 
         # Generate us a coin
-        coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
+        coinblockhash = self.generatetoaddress(
+            node, 1, ADDRESS_ECREG_P2SH_OP_TRUE, sync_fun=self.no_op
+        )[0]
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
         # Mature coin
-        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(
+            node, 100, ADDRESS_ECREG_UNSPENDABLE, sync_fun=self.no_op
+        )
 
         # Pick one node from the quorum for polling.
         quorum = get_quorum()
@@ -92,7 +96,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
 
         # Mine block
-        tip = self.generate(node, 1)[-1]
+        tip = self.generate(node, 1, sync_fun=self.no_op)[-1]
 
         # Not finalized yet
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
@@ -115,7 +119,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         assert_equal(chronik.tx(txid).ok().block.is_final, True)
 
         # Generate 10 blocks to invalidate, wait for Avalanche
-        new_block_hashes = self.generate(node, 10)
+        new_block_hashes = self.generate(node, 10, sync_fun=self.no_op)
         self.wait_until(lambda: has_finalized_tip(new_block_hashes[-1]))
         for block_hash in new_block_hashes:
             assert_equal(chronik.block(block_hash).ok().block_info.is_final, True)
@@ -131,7 +135,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
             assert_equal(chronik.block(block_hash).ok().block_info.is_final, False)
 
         # Have to mine another block until avalanche considers reconsidering
-        self.generate(node, 1)
+        self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(lambda: has_finalized_tip(new_block_hashes[-1]))
         for block_hash in new_block_hashes:
             assert_equal(chronik.block(block_hash).ok().block_info.is_final, True)
