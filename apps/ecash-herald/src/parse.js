@@ -163,8 +163,38 @@ module.exports = {
             });
         }
 
-        // At this point, if you haven't found the miner, you won't
         if (!minerInfo) {
+            // Test for the "last push" potential pool miner
+            // Probably a pool because
+            // - Different output script for each block
+            // - Coinbase script follows a pattern
+            //   - 36 characters
+            //   - then an accurate ascii push for the last string
+            // Even if not a pool, it's more useful to identify miners who fit this pattern
+            // by this push than by nothing at all
+            // e.g. the genesis block fits this pattern
+            const UNKNOWN_POOL_PAD_CHARS = 36;
+            try {
+                const lastPushdataAndPush = testedCoinbaseScript.slice(
+                    UNKNOWN_POOL_PAD_CHARS,
+                );
+                const { data } = consumeNextPush({
+                    remainingHex: lastPushdataAndPush,
+                });
+                if (containsOnlyPrintableAscii(data)) {
+                    return `unknown, ${Buffer.from(data, 'hex').toString(
+                        'ascii',
+                    )}`;
+                }
+            } catch (err) {
+                console.log(
+                    `Error parsing unknown miner as last push pool`,
+                    err,
+                );
+                // Don't know this miner
+                return 'unknown';
+            }
+            // Don't know this miner
             return 'unknown';
         }
 

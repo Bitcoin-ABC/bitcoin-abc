@@ -146,7 +146,7 @@ module.exports = [
             '04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73',
         payoutOutputScript:
             '4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac',
-        parsed: 'unknown',
+        parsed: 'unknown, 3/Jan/2009 Chancellor on brink of second bailout',
     },
     // Molepool.com
     {
@@ -229,5 +229,33 @@ module.exports = [
             '030c900c486174685359f0bc84593a22dfc02d55f9121478a99352c1575208aeb484c82cb15fbb752f9701151d000000',
         payoutOutputScript: 'some new payout address',
         parsed: 'Hathor-MM',
+    },
+    {
+        height: '825737',
+        coinbaseHex: '0389990c04be0697650060002d03f7f5010004656b7534',
+        payoutOutputScript:
+            '76a91488fd36dad8f1e49913502922c867fab9ce27092288ac',
+        parsed: 'unknown, eku4',
+    },
+    {
+        height: '826279',
+        coinbaseHex: '03a79b0c04f5769c650030000215dacb0200026638',
+        payoutOutputScript:
+            '76a914fe4e85f56ae06e5a67e402354f8f73cab8fc19ce88ac',
+        parsed: 'unknown, f8',
+    },
+    {
+        height: '826256',
+        coinbaseHex: '03909b0c0474679c65003000021796240200026135',
+        payoutOutputScript:
+            '76a914d4b32e161eec0cb2e63a6a0d82e79463fb7f9f6b88ac',
+        parsed: 'unknown, a5',
+    },
+    {
+        height: '825775',
+        coinbaseHex: '03af990c04e68197650060002dbb36000000026f78',
+        payoutOutputScript:
+            '76a91472dce9d2b169bfc20501b4dac5927b16bd6f71e388ac',
+        parsed: 'unknown, ox',
     },
 ];
