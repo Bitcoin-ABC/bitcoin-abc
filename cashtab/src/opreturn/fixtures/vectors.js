@@ -156,7 +156,7 @@ export const opReturnVectors = {
             },
         ],
     },
-    aliastByteCounts: {
+    aliasByteCounts: {
         expectedReturns: [
             { description: 'Alias with emoji', alias: '🙈', byteCount: 4 },
             {

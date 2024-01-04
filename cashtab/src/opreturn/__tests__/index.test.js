@@ -93,8 +93,7 @@ describe('Alias registration target output building functions', () => {
 });
 
 describe('Determines byte count of user input alias registrations', () => {
-    const { expectedReturns, expectedErrors } =
-        opReturnVectors.aliastByteCounts;
+    const { expectedReturns, expectedErrors } = opReturnVectors.aliasByteCounts;
 
     // Successfully calculates alias bytecounts
     expectedReturns.forEach(expectedReturn => {
