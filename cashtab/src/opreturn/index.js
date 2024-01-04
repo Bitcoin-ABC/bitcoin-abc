@@ -5,7 +5,11 @@
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
-import { isValidTokenId, isValidAlias } from 'utils/validation';
+import {
+    isValidTokenId,
+    isValidAlias,
+    isValidOpreturnParam,
+} from 'utils/validation';
 
 /**
  * Initialize an OP_RETURN script element in a way that utxolib.script.compile(script) accepts
@@ -197,4 +201,27 @@ export const getAliasByteCount = alias => {
 
     // Return bytecount
     return aliasUtf8Hex.length;
+};
+
+/**
+ * Get targetOutput for a bip21-set opreturn param
+ * Note that this function is creating the OP_RETURN script with raw hex
+ * it is not pushing and adding pushdata like other functions above that are "translating"
+ * human input into script
+ * @param {string} opreturnParam string
+ * @throws {error} if invalid input
+ * @returns {object} targetOutput, e.g. {value: 0, script: <encoded opparam>}
+ */
+export const getOpreturnParamTargetOutput = opreturnParam => {
+    if (!isValidOpreturnParam(opreturnParam)) {
+        throw new Error(`Invalid opreturnParam "${opreturnParam}"`);
+    }
+
+    // Add OP_RETURN ('6a')
+    opreturnParam = opReturn.opReturnPrefixHex + opreturnParam;
+
+    const script = utxolib.script.compile(Buffer.from(opreturnParam, 'hex'));
+
+    // Create output
+    return { value: 0, script };
 };
