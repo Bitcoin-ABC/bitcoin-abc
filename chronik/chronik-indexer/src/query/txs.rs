@@ -20,7 +20,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
-    query::{make_tx_proto, OutputsSpent},
+    query::{make_tx_proto, OutputsSpent, QueryTxError::*, TxTokenData},
 };
 
 /// Struct for querying txs from the db/mempool.
@@ -50,8 +50,6 @@ pub enum QueryTxError {
     ReadFailure(TxId),
 }
 
-use self::QueryTxError::*;
-
 impl<'a> QueryTxs<'a> {
     /// Query a tx by txid from the mempool or DB.
     pub fn tx_by_id(&self, txid: TxId) -> Result<proto::Tx> {
@@ -65,6 +63,8 @@ impl<'a> QueryTxs<'a> {
                 false,
                 None,
                 self.avalanche,
+                TxTokenData::from_mempool(self.mempool.tokens(), &tx.tx)
+                    .as_ref(),
             )),
             None => {
                 let tx_reader = TxReader::new(self.db)?;
@@ -77,12 +77,14 @@ impl<'a> QueryTxs<'a> {
                 let block = block_reader
                     .by_height(block_tx.block_height)?
                     .ok_or(DbTxHasNoBlock(txid))?;
-                let tx = ffi::load_tx(
-                    block.file_num,
-                    tx_entry.data_pos,
-                    tx_entry.undo_pos,
-                )
-                .wrap_err(ReadFailure(txid))?;
+                let tx = Tx::from(
+                    ffi::load_tx(
+                        block.file_num,
+                        tx_entry.data_pos,
+                        tx_entry.undo_pos,
+                    )
+                    .wrap_err(ReadFailure(txid))?,
+                );
                 let outputs_spent = OutputsSpent::query(
                     &spent_by_reader,
                     &tx_reader,
@@ -90,12 +92,13 @@ impl<'a> QueryTxs<'a> {
                     tx_num,
                 )?;
                 Ok(make_tx_proto(
-                    &Tx::from(tx),
+                    &tx,
                     &outputs_spent,
                     tx_entry.time_first_seen,
                     tx_entry.is_coinbase,
                     Some(&block),
                     self.avalanche,
+                    TxTokenData::from_db(self.db, tx_num, &tx)?.as_ref(),
                 ))
             }
         }

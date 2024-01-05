@@ -4,8 +4,12 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import unittest
+from typing import List, Optional
 
-from test_framework.script import CScript
+from test_framework.script import OP_RETURN, CScript
+
+# SLP integers are encoded as 64-bit big-endian integers
+SLP_INT_SIZE = 8
 
 
 class SlpScript(CScript):
@@ -28,6 +32,109 @@ class SlpScript(CScript):
             if 0 < other <= 16:
                 return bytes([1, other])
         return super()._coerce_instance(other)
+
+
+def slp_genesis(
+    *,
+    token_type: int,
+    token_ticker: bytes = b"",
+    token_name: bytes = b"",
+    token_document_url: bytes = b"",
+    token_document_hash: bytes = b"",
+    mint_baton_vout: Optional[int] = None,
+    mint_vault_scripthash: Optional[int] = None,
+    decimals: int = 0,
+    initial_mint_amount: int = 0,
+) -> SlpScript:
+    return SlpScript(
+        [
+            OP_RETURN,
+            b"SLP\0",
+            bytes([token_type]),
+            b"GENESIS",
+            token_ticker,
+            token_name,
+            token_document_url,
+            token_document_hash,
+            bytes([decimals]),
+            mint_vault_scripthash
+            or (bytes([mint_baton_vout]) if mint_baton_vout else b""),
+            initial_mint_amount.to_bytes(SLP_INT_SIZE, "big"),
+        ]
+    )
+
+
+def slp_mint(
+    *,
+    token_type: int,
+    token_id: str,
+    mint_baton_vout: Optional[int],
+    mint_amount: int,
+) -> SlpScript:
+    return SlpScript(
+        [
+            OP_RETURN,
+            b"SLP\0",
+            bytes([token_type]),
+            b"MINT",
+            bytes.fromhex(token_id),
+            bytes([mint_baton_vout]) if mint_baton_vout else b"",
+            mint_amount.to_bytes(SLP_INT_SIZE, "big"),
+        ]
+    )
+
+
+def slp_mint_vault(
+    *,
+    token_id: str,
+    mint_amounts: List[int],
+) -> SlpScript:
+    return SlpScript(
+        [
+            OP_RETURN,
+            b"SLP\0",
+            b"\x02",
+            b"MINT",
+            bytes.fromhex(token_id),
+        ]
+        + [mint_amount.to_bytes(SLP_INT_SIZE, "big") for mint_amount in mint_amounts]
+    )
+
+
+def slp_send(
+    *,
+    token_type: int,
+    token_id: str,
+    amounts: List[int],
+) -> SlpScript:
+    ops = [
+        OP_RETURN,
+        b"SLP\0",
+        bytes([token_type]),
+        b"SEND",
+        bytes.fromhex(token_id),
+    ]
+    for amount in amounts:
+        ops.append(amount.to_bytes(SLP_INT_SIZE, "big"))
+    return SlpScript(ops)
+
+
+def slp_burn(
+    *,
+    token_type: int,
+    token_id: str,
+    amount: int,
+) -> SlpScript:
+    return SlpScript(
+        [
+            OP_RETURN,
+            b"SLP\0",
+            bytes([token_type]),
+            b"BURN",
+            bytes.fromhex(token_id),
+            amount.to_bytes(SLP_INT_SIZE, "big"),
+        ]
+    )
 
 
 class TestFrameworkSlpScript(unittest.TestCase):

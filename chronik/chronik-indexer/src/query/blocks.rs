@@ -23,7 +23,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
-    query::{make_tx_proto, HashOrHeight, OutputsSpent},
+    query::{make_tx_proto, HashOrHeight, OutputsSpent, TxTokenData},
 };
 
 const MAX_BLOCKS_PAGE_SIZE: usize = 500;
@@ -195,12 +195,14 @@ impl<'a> QueryBlocks<'a> {
             let db_tx = tx_reader
                 .tx_by_tx_num(tx_num)?
                 .ok_or(BlockHasMissingTx(db_block.hash.clone(), tx_num))?;
-            let tx = ffi::load_tx(
-                db_block.file_num,
-                db_tx.entry.data_pos,
-                db_tx.entry.undo_pos,
-            )
-            .wrap_err(ReadFailure(db_tx.entry.txid))?;
+            let tx = Tx::from(
+                ffi::load_tx(
+                    db_block.file_num,
+                    db_tx.entry.data_pos,
+                    db_tx.entry.undo_pos,
+                )
+                .wrap_err(ReadFailure(db_tx.entry.txid))?,
+            );
             let outputs_spent = OutputsSpent::query(
                 &spent_by_reader,
                 &tx_reader,
@@ -208,12 +210,13 @@ impl<'a> QueryBlocks<'a> {
                 tx_num,
             )?;
             txs.push(make_tx_proto(
-                &Tx::from(tx),
+                &tx,
                 &outputs_spent,
                 db_tx.entry.time_first_seen,
                 db_tx.entry.is_coinbase,
                 Some(&db_block),
                 self.avalanche,
+                TxTokenData::from_db(self.db, tx_num, &tx)?.as_ref(),
             ));
         }
         let total_num_txs = (tx_range.end - tx_range.start) as usize;

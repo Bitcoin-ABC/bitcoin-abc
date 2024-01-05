@@ -21,7 +21,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
-    query::{make_tx_proto, OutputsSpent},
+    query::{make_tx_proto, OutputsSpent, TxTokenData},
 };
 
 /// Smallest allowed page size
@@ -269,6 +269,8 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 false,
                 None,
                 self.avalanche,
+                TxTokenData::from_mempool(self.mempool.tokens(), &entry.tx)
+                    .as_ref(),
             ));
         }
 
@@ -351,6 +353,11 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                         false,
                         None,
                         self.avalanche,
+                        TxTokenData::from_mempool(
+                            self.mempool.tokens(),
+                            &entry.tx,
+                        )
+                        .as_ref(),
                     ))
                 })
                 .collect::<Result<Vec<_>>>()?,
@@ -372,11 +379,11 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         let block = block_reader
             .by_height(block_tx.block_height)?
             .ok_or(MissingDbTxBlock(tx_num))?;
-        let tx = ffi::load_tx(
+        let tx = Tx::from(ffi::load_tx(
             block.file_num,
             block_tx.entry.data_pos,
             block_tx.entry.undo_pos,
-        )?;
+        )?);
         let outputs_spent = OutputsSpent::query(
             &spent_by_reader,
             &tx_reader,
@@ -384,12 +391,13 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             tx_num,
         )?;
         Ok(make_tx_proto(
-            &Tx::from(tx),
+            &tx,
             &outputs_spent,
             block_tx.entry.time_first_seen,
             block_tx.entry.is_coinbase,
             Some(&block),
             self.avalanche,
+            TxTokenData::from_db(self.db, tx_num, &tx)?.as_ref(),
         ))
     }
 }

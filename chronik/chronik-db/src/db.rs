@@ -16,7 +16,8 @@ use thiserror::Error;
 use crate::{
     groups::{ScriptHistoryWriter, ScriptUtxoWriter},
     io::{
-        BlockStatsWriter, BlockWriter, MetadataWriter, SpentByWriter, TxWriter,
+        token::TokenWriter, BlockStatsWriter, BlockWriter, MetadataWriter,
+        SpentByWriter, TxWriter,
     },
 };
 
@@ -90,6 +91,7 @@ impl Db {
         ScriptHistoryWriter::add_cfs(&mut cfs);
         ScriptUtxoWriter::add_cfs(&mut cfs);
         SpentByWriter::add_cfs(&mut cfs);
+        TokenWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 

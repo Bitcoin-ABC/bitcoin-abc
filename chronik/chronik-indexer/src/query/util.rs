@@ -19,7 +19,10 @@ use chronik_db::io::{
 use chronik_proto::proto;
 use thiserror::Error;
 
-use crate::avalanche::Avalanche;
+use crate::{
+    avalanche::Avalanche,
+    query::{QueryUtilError::*, TxTokenData},
+};
 
 /// Errors indicating something went wrong with reading txs.
 #[derive(Debug, Error, PartialEq)]
@@ -41,8 +44,6 @@ pub enum QueryUtilError {
     NotHashOrHeight(String),
 }
 
-use self::QueryUtilError::*;
-
 /// Make a [`proto::Tx`].
 pub(crate) fn make_tx_proto(
     tx: &Tx,
@@ -51,6 +52,7 @@ pub(crate) fn make_tx_proto(
     is_coinbase: bool,
     block: Option<&DbBlock>,
     avalanche: &Avalanche,
+    token: Option<&TxTokenData<'_>>,
 ) -> proto::Tx {
     proto::Tx {
         txid: tx.txid().to_vec(),
@@ -58,7 +60,8 @@ pub(crate) fn make_tx_proto(
         inputs: tx
             .inputs
             .iter()
-            .map(|input| {
+            .enumerate()
+            .map(|(input_idx, input)| {
                 let coin = input.coin.as_ref();
                 let (output_script, value) = coin
                     .map(|coin| {
@@ -71,6 +74,8 @@ pub(crate) fn make_tx_proto(
                     output_script,
                     value,
                     sequence_no: input.sequence,
+                    token: token
+                        .and_then(|token| token.input_token_proto(input_idx)),
                 }
             })
             .collect(),
@@ -84,6 +89,8 @@ pub(crate) fn make_tx_proto(
                 spent_by: outputs_spent
                     .spent_by(output_idx as u32)
                     .map(|spent_by| make_spent_by_proto(&spent_by)),
+                token: token
+                    .and_then(|token| token.output_token_proto(output_idx)),
             })
             .collect(),
         lock_time: tx.locktime,
@@ -93,6 +100,33 @@ pub(crate) fn make_tx_proto(
             timestamp: block.timestamp,
             is_final: avalanche.is_final_height(block.height),
         }),
+        token_entries: token.map_or(vec![], |token| token.entries_proto()),
+        token_failed_parsings: token.map_or(vec![], |token| {
+            token
+                .tx
+                .failed_parsings
+                .iter()
+                .map(|failed_parsing| proto::TokenFailedParsing {
+                    pushdata_idx: failed_parsing
+                        .pushdata_idx
+                        .map_or(-1, |idx| idx as i32),
+                    bytes: failed_parsing.bytes.to_vec(),
+                    error: failed_parsing.error.to_string(),
+                })
+                .collect()
+        }),
+        token_status: match token {
+            Some(token) => {
+                if token.tx.failed_parsings.is_empty()
+                    && token.tx.entries.iter().all(|entry| entry.is_normal())
+                {
+                    proto::TokenStatus::Normal as _
+                } else {
+                    proto::TokenStatus::NotNormal as _
+                }
+            }
+            None => proto::TokenStatus::NonToken as _,
+        },
         time_first_seen,
         size: tx.ser_len() as u32,
         is_coinbase,

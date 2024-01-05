@@ -6,7 +6,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use abc_rust_error::Result;
 use bimap::BiMap;
-use bitcoinsuite_slp::structs::{GenesisInfo, TokenMeta};
+use bitcoinsuite_slp::{
+    structs::{GenesisInfo, TokenMeta},
+    verify::SpentToken,
+};
 use rocksdb::WriteBatch;
 use thiserror::Error;
 
@@ -314,7 +317,6 @@ impl<'a> TokenWriter<'a> {
     }
 
     /// Add the column families used for SLPv2.
-    #[cfg(test)]
     pub(crate) fn add_cfs(columns: &mut Vec<rocksdb::ColumnFamilyDescriptor>) {
         columns.push(rocksdb::ColumnFamilyDescriptor::new(
             CF_TOKEN_GENESIS_INFO,
@@ -368,6 +370,36 @@ impl<'a> TokenReader<'a> {
     /// Look up the DB genesis data of a GENESIS token tx by [`TxNum`].
     pub fn genesis_info(&self, tx_num: TxNum) -> Result<Option<GenesisInfo>> {
         self.col.fetch_genesis_info(tx_num)
+    }
+
+    /// Look up the DbTokenTx by [`TxNum`] and the TokenMetas referenced by it.
+    pub fn spent_tokens_and_db_tx(
+        &self,
+        tx_num: TxNum,
+    ) -> Result<Option<(Vec<Option<SpentToken>>, DbTokenTx)>> {
+        let Some(db_token_tx) = self.token_tx(tx_num)? else {
+            return Ok(None);
+        };
+        let token_tx_nums = db_token_tx
+            .token_tx_nums
+            .iter()
+            .copied()
+            .collect::<BTreeSet<_>>();
+        let token_metas = self
+            .col
+            .fetch_token_metas(&token_tx_nums)?
+            .into_iter()
+            .collect::<BTreeMap<_, _>>();
+        let mut spent_inputs = Vec::with_capacity(db_token_tx.inputs.len());
+        for input in &db_token_tx.inputs {
+            spent_inputs.push(db_token_tx.spent_token(input, |tx_num| {
+                token_metas
+                    .get(&tx_num)
+                    .cloned()
+                    .ok_or(TokenTxNumNotFound(tx_num))
+            })?);
+        }
+        Ok(Some((spent_inputs, db_token_tx)))
     }
 }
 

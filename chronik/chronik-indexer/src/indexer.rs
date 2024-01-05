@@ -17,9 +17,9 @@ use chronik_db::{
     groups::{ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter},
     index_tx::prepare_indexed_txs,
     io::{
-        merge, BlockHeight, BlockReader, BlockStatsWriter, BlockTxs,
-        BlockWriter, DbBlock, MetadataReader, MetadataWriter, SchemaVersion,
-        SpentByWriter, TxEntry, TxWriter,
+        merge, token::TokenWriter, BlockHeight, BlockReader, BlockStatsWriter,
+        BlockTxs, BlockWriter, DbBlock, MetadataReader, MetadataWriter,
+        SchemaVersion, SpentByWriter, TxEntry, TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
 };
@@ -29,12 +29,13 @@ use tokio::sync::RwLock;
 
 use crate::{
     avalanche::Avalanche,
+    indexer::ChronikIndexerError::*,
     query::{QueryBlocks, QueryGroupHistory, QueryGroupUtxos, QueryTxs},
     subs::{BlockMsg, BlockMsgType, Subs},
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 8;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 9;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone)]
@@ -136,8 +137,6 @@ pub enum ChronikIndexerError {
     )]
     DatabaseOutdated(SchemaVersion),
 }
-
-use self::ChronikIndexerError::*;
 
 impl ChronikIndexer {
     /// Setup the indexer with the given parameters, e.g. open the DB etc.
@@ -297,7 +296,7 @@ impl ChronikIndexer {
         self.subs
             .get_mut()
             .handle_tx_event(&mempool_tx.tx, TxMsgType::AddedToMempool);
-        self.mempool.insert(mempool_tx)?;
+        self.mempool.insert(&self.db, mempool_tx)?;
         Ok(())
     }
 
@@ -327,6 +326,7 @@ impl ChronikIndexer {
         let script_utxo_writer =
             ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
+        let token_writer = TokenWriter::new(&self.db)?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(
             &mut batch,
@@ -352,6 +352,7 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
+        token_writer.insert(&mut batch, &index_txs)?;
         self.db.write_batch(batch)?;
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
@@ -383,6 +384,7 @@ impl ChronikIndexer {
         let script_utxo_writer =
             ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
+        let token_writer = TokenWriter::new(&self.db)?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(
             &mut batch,
@@ -407,6 +409,7 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
+        token_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
         let subs = self.subs.get_mut();

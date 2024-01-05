@@ -84,6 +84,13 @@ message Tx {
     uint32 size = 11;
     // Whether this tx is a coinbase tx
     bool is_coinbase = 12;
+    // Tokens involved in this txs
+    repeated TokenEntry token_entries = 13;
+    // Failed parsing attempts of this tx
+    repeated TokenFailedParsing token_failed_parsings = 14;
+    // Token status, i.e. whether this tx has any tokens or unintentional token burns
+    // or something unexpected, like failed parsings etc.
+    TokenStatus token_status = 15;
 }
 
 // UTXO of a script.
@@ -98,6 +105,8 @@ message ScriptUtxo {
     int64 value = 5;
     // Whether the UTXO has been finalized by Avalanche.
     bool is_final = 10;
+    // Token value attached to this UTXO
+    Token token = 11;
 }
 
 // COutPoint, points to a coin being spent by an input.
@@ -128,6 +137,8 @@ message TxInput {
     int64 value = 4;
     // nSequence of the input.
     uint32 sequence_no = 5;
+    // Token value attached to this input
+    Token token = 8;
 }
 
 // CTxOut, creates a new coin.
@@ -138,6 +149,8 @@ message TxOutput {
     bytes output_script = 2;
     // Which tx and input spent this output, if any.
     SpentBy spent_by = 4;
+    // Token value attached to this output
+    Token token = 5;
 }
 
 // Data about a block which a Tx is in.
@@ -150,6 +163,146 @@ message BlockMetadata {
     int64 timestamp = 3;
     // Whether the block has been finalized by Avalanche.
     bool is_final = 4;
+}
+
+// Status of a token tx
+enum TokenStatus {
+    // Tx involves no tokens whatsover, i.e. neither any burns nor any failed
+    // parsing/coloring or any tokens being created / moved.
+    TOKEN_STATUS_NON_TOKEN = 0;
+    // Tx involves tokens but no unintentional burns or failed parsings/colorings
+    TOKEN_STATUS_NORMAL = 1;
+    // Tx involves tokens but contains unintentional burns or failed parsings/colorings
+    TOKEN_STATUS_NOT_NORMAL = 2;
+}
+
+// ALP token type
+enum AlpTokenType {
+    // Standard ALP token type
+    ALP_TOKEN_TYPE_STANDARD = 0;
+}
+
+// SLP token type
+enum SlpTokenType {
+    // Unknown "0" token type
+    SLP_TOKEN_TYPE_NONE = 0;
+    // SLP V1 token type
+    SLP_TOKEN_TYPE_FUNGIBLE = 1;
+    // SLP V2 mint vault token type
+    SLP_TOKEN_TYPE_MINT_VAULT = 2;
+    // NFT1 group token type
+    SLP_TOKEN_TYPE_NFT1_GROUP = 0x81;
+    // NFT1 child token type
+    SLP_TOKEN_TYPE_NFT1_CHILD = 0x41;
+}
+
+// SLP/ALP token type
+message TokenType {
+    // SLP/ALP token type
+    oneof token_type {
+        // SLP token type. Can have unknown values for unknown token types
+        SlpTokenType slp = 1;
+        // ALP token type. Can have unknown values for unknown token types
+        AlpTokenType alp = 2;
+    }
+}
+
+// SLP/ALP tx type
+enum TokenTxType {
+    // No tx type, e.g. when input tokens are burned
+    NONE = 0;
+    // Unknown tx type, i.e. for unknown token types
+    UNKNOWN = 1;
+    // GENESIS tx
+    GENESIS = 2;
+    // SEND tx
+    SEND = 3;
+    // MINT tx
+    MINT = 4;
+    // BURN tx
+    BURN = 5;
+}
+
+// Token involved in a transaction
+message TokenEntry {
+    // Hex token_id (in big-endian, like usually displayed to users) of the token.
+    // This is not `bytes` because SLP and ALP use different endiannes, so to avoid
+    // this we use hex, which conventionally implies big-endian in a bitcoin context.
+    string token_id = 1;
+    // Token type of the token
+    TokenType token_type = 2;
+    // Tx type of the token; NONE if there's no section that introduced it (e.g. in an accidental burn)
+    TokenTxType tx_type = 3;
+    // For NFT1 Child tokens: group ID
+    string group_token_id = 4;
+    // Whether the validation rules have been violated for this section
+    bool is_invalid = 5;
+    // Human-readable error message of why this entry burned tokens
+    string burn_summary = 6;
+    // Human-readable error messages of why colorings failed
+    repeated TokenFailedColoring failed_colorings = 7;
+    // Number of actually burned tokens (as decimal integer string, e.g. "2000").
+    // This is because burns can exceed the 64-bit range of values and protobuf doesn't have a nice type to encode this.
+    string actual_burn_amount = 8;
+    // Burn amount the user explicitly opted into
+    uint64 intentional_burn = 9;
+    // Whether any mint batons have been burned of this token
+    bool burns_mint_batons = 10;
+}
+
+// Genesis info found in GENESIS txs of tokens
+message GenesisInfo {
+    // token_ticker of the token
+    bytes token_ticker = 1;
+    // token_name of the token
+    bytes token_name = 2;
+    // URL of the token
+    bytes url = 3;
+    // token_document_hash of the token (only on SLP)
+    bytes hash = 4;
+    // mint_vault_scripthash (only on SLP V2 Mint Vault)
+    bytes mint_vault_scripthash = 5;
+    // Arbitray payload data of the token (only on ALP)
+    bytes data = 6;
+    // auth_pubkey of the token (only on ALP)
+    bytes auth_pubkey = 7;
+    // decimals of the token, i.e. how many decimal places the token should be displayed with.
+    uint32 decimals = 8;
+}
+
+// Token coloring an input or output
+message Token {
+    // Hex token_id of the token, see `TokenInfo` for details
+    string token_id = 1;
+    // Token type of the token
+    TokenType token_type = 2;
+    // Index into `token_entries` for `Tx`. -1 for UTXOs
+    int32 entry_idx = 3;
+    // Base token amount of the input/output
+    uint64 amount = 4;
+    // Whether the token is a mint baton
+    bool is_mint_baton = 5;
+}
+
+// A report of a failed parsing attempt of SLP/ALP.
+// This should always indicate something went wrong when building the tx.
+message TokenFailedParsing {
+    // For ALP, the index of the pushdata in the OP_RETURN that failed parsing.
+    // -1 if the whole OP_RETURN failed, e.g. for SLP or eMPP
+    int32 pushdata_idx = 1;
+    // The bytes that failed parsing, useful for debugging
+    bytes bytes = 2;
+    // Human-readable message of what went wrong
+    string error = 3;
+}
+
+// A report of a failed coloring attempt of SLP/ALP.
+// This should always indicate something went wrong when building the tx.
+message TokenFailedColoring {
+    // For ALP, the index of the pushdata in the OP_RETURN that failed parsing.
+    int32 pushdata_idx = 1;
+    // Human-readable message of what went wrong
+    string error = 3;
 }
 
 // Page with txs

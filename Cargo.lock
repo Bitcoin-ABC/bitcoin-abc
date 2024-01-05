@@ -335,6 +335,7 @@ dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
  "bitcoinsuite-core",
+ "bitcoinsuite-slp",
  "chronik-bridge",
  "chronik-db",
  "chronik-proto",

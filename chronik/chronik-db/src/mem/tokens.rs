@@ -100,6 +100,9 @@ impl MempoolTokens {
         // 6. => Now the MINT is considered "valid", since validation is ran
         //    again and the GENESIS is in a previous block
         //
+        // Scenario 1 doesn't happen in practice, as currently the mempool is
+        // validated again on a disconnect.
+        //
         // However, because of the following reasons we choose to allow these
         // inconsistencies:
         // - These scenarios are rare
