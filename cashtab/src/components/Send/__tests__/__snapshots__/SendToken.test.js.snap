@@ -15,19 +15,19 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
   </div>
   <div
     className="ant-row"
-    style={Object {}}
+    style={{}}
     type="flex"
   >
     <div
       className="ant-col ant-col-24"
-      style={Object {}}
+      style={{}}
     >
       <form
         className="ant-form ant-form-horizontal"
         onReset={[Function]}
         onSubmit={[Function]}
         style={
-          Object {
+          {
             "width": "auto",
           }
         }
@@ -38,18 +38,18 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
           <div
             className="ant-form-item ant-form-item-with-help"
             style={
-              Object {
+              {
                 "marginBottom": "0px",
               }
             }
           >
             <div
               className="ant-row ant-form-item-row"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="ant-col ant-form-item-control"
-                style={Object {}}
+                style={{}}
               >
                 <div
                   className="ant-form-item-control-input"
@@ -163,11 +163,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
           >
             <div
               className="ant-row ant-form-item-row"
-              style={Object {}}
+              style={{}}
             >
               <div
                 className="ant-col ant-form-item-control"
-                style={Object {}}
+                style={{}}
               >
                 <div
                   className="ant-form-item-control-input"
@@ -233,7 +233,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
         <div
           style={
-            Object {
+            {
               "paddingTop": "12px",
             }
           }

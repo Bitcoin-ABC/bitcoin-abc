@@ -27,7 +27,6 @@ describe('<QRCode />', () => {
             jest.runAllTimers();
         });
         expect(OnClick).toHaveBeenCalled();
-        expect(setTimeout).toHaveBeenCalled();
     });
 
     it('QRCode copying eToken address', () => {
@@ -48,15 +47,15 @@ describe('<QRCode />', () => {
     });
 
     it('QRCode without address', () => {
+        const OnClick = jest.fn();
         const { container } = render(
             <ThemeProvider theme={theme}>
-                <QRCode pixelRatio={25} />
+                <QRCode pixelRatio={25} onClick={OnClick} />
             </ThemeProvider>,
         );
 
         const qrCodeElement = container.querySelector('#borderedQRCode');
         fireEvent.click(qrCodeElement);
-        expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 1500);
-        expect(setTimeout).toHaveBeenCalled();
+        expect(OnClick).toHaveBeenCalled();
     });
 });

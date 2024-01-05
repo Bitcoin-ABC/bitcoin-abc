@@ -15,7 +15,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       onReset={[Function]}
       onSubmit={[Function]}
       style={
-        Object {
+        {
           "width": "auto",
         }
       }
@@ -30,11 +30,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       >
         <div
           className="ant-row ant-form-item-row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="ant-col ant-form-item-control"
-            style={Object {}}
+            style={{}}
           >
             <div
               className="ant-form-item-control-input"
@@ -68,11 +68,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       >
         <div
           className="ant-row ant-form-item-row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="ant-col ant-form-item-control"
-            style={Object {}}
+            style={{}}
           >
             <div
               className="ant-form-item-control-input"
@@ -106,11 +106,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       >
         <div
           className="ant-row ant-form-item-row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="ant-col ant-form-item-control"
-            style={Object {}}
+            style={{}}
           >
             <div
               className="ant-form-item-control-input"
@@ -144,11 +144,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       >
         <div
           className="ant-row ant-form-item-row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="ant-col ant-form-item-control"
-            style={Object {}}
+            style={{}}
           >
             <div
               className="ant-form-item-control-input"
@@ -182,11 +182,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       >
         <div
           className="ant-row ant-form-item-row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="ant-col ant-form-item-control"
-            style={Object {}}
+            style={{}}
           >
             <div
               className="ant-form-item-control-input"
@@ -220,11 +220,11 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       >
         <div
           className="ant-row ant-form-item-row"
-          style={Object {}}
+          style={{}}
         >
           <div
             className="ant-col ant-form-item-control"
-            style={Object {}}
+            style={{}}
           >
             <div
               className="ant-form-item-control-input"
@@ -239,7 +239,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                     onDragOver={[Function]}
                     onDrop={[Function]}
                     style={
-                      Object {
+                      {
                         "backgroundColor": "#f4f4f4",
                         "height": undefined,
                       }
@@ -256,11 +256,12 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                     >
                       <input
                         accept=""
+                        disabled={false}
                         multiple={false}
                         onChange={[Function]}
                         onClick={[Function]}
                         style={
-                          Object {
+                          {
                             "display": "none",
                           }
                         }
@@ -294,7 +295,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                         </p>
                         <p
                           style={
-                            Object {
+                            {
                               "fontSize": "12px",
                             }
                           }
@@ -321,7 +322,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
     disabled={true}
     onClick={[Function]}
     style={
-      Object {
+      {
         "marginTop": "30px",
       }
     }

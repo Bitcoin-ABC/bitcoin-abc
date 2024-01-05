@@ -1,6 +1,5 @@
-const JSDOMEnvironment = require('jest-environment-jsdom');
-
-class CustomEnvironment extends JSDOMEnvironment {
+import JSDOMEnvironment from 'jest-environment-jsdom';
+export default class CustomEnvironment extends JSDOMEnvironment {
     constructor(config, context) {
         super(config, context);
         this.testPath = context.testPath;
@@ -21,5 +20,3 @@ class CustomEnvironment extends JSDOMEnvironment {
         return super.getVmContext();
     }
 }
-
-module.exports = CustomEnvironment;
