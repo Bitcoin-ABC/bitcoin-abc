@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_SUITE(cuckoocache_tests)
  */
 struct TestMapElement {
     struct KeyType {
-        std::array<uint8_t, 28> data;
+        std::array<uint8_t, 28> data{{0}};
 
         KeyType() = default;
         KeyType(const KeyType &rhs) = default;
