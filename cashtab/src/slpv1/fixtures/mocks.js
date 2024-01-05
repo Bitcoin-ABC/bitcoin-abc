@@ -107,6 +107,56 @@ export const covidUtxosNoChange = [
     },
 ];
 
+export const mockSendDecimals = [
+    {
+        slpToken: {
+            amount: '106000000000000',
+            isMintBaton: false,
+        },
+        tokenQty: '10600000000000',
+        tokenId:
+            '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
+        decimals: 1,
+        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    },
+    {
+        slpToken: {
+            amount: '106000000000000',
+            isMintBaton: false,
+        },
+        tokenQty: '10600000000000',
+        tokenId:
+            '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
+        decimals: 1,
+        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    },
+];
+
+export const mockSendDecimalsFoo = [
+    {
+        slpToken: {
+            amount: '106',
+            isMintBaton: false,
+        },
+        tokenQty: '10.6',
+        tokenId:
+            '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
+        decimals: 1,
+        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    },
+    {
+        slpToken: {
+            amount: '106',
+            isMintBaton: false,
+        },
+        tokenQty: '10.6',
+        tokenId:
+            '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
+        decimals: 1,
+        address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    },
+];
+
 export const mockBurnOpReturnTokenUtxos = [
     {
         outpoint: {

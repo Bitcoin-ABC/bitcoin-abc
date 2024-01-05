@@ -8,6 +8,8 @@ import {
     generateSendOpReturnMockUtxos,
     covidUtxosChange,
     covidUtxosNoChange,
+    mockSendDecimals,
+    mockSendDecimalsFoo,
     mockBurnOpReturnTokenUtxos,
     mockBurnAllTokenUtxos,
 } from './mocks';
@@ -112,6 +114,22 @@ export const slpv1Vectors = {
                 sendQty: '9999999500',
                 outputScriptHex:
                     '6a04534c500001010453454e44207bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b0800000002540be20c',
+            },
+            {
+                // Not a real tx
+                description: 'Token send with change output and decimals',
+                tokenUtxos: mockSendDecimals,
+                sendQty: '21000000000000',
+                outputScriptHex:
+                    '6a04534c500001010453454e44207bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b080000befe6f67200008000001d1a94a2000',
+            },
+            {
+                // Not a real tx
+                description: 'Token send with change output and decimals',
+                tokenUtxos: mockSendDecimalsFoo,
+                sendQty: '21',
+                outputScriptHex:
+                    '6a04534c500001010453454e44207bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b0800000000000000d2080000000000000002',
             },
         ],
         expectedErrors: [

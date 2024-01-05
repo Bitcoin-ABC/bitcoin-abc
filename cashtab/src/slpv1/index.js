@@ -57,19 +57,21 @@ export const getSlpSendTargetOutputs = (tokenUtxos, sendQty) => {
 
     // Calculate the total qty of this token in tokenUtxos
     const totalTokenQty = tokenUtxos.reduce(
-        (total, tokenUtxo) =>
-            total.plus(new BN(tokenUtxo.tokenQty).times(10 ** decimals)),
+        (total, tokenUtxo) => total.plus(new BN(tokenUtxo.slpToken.amount)),
         new BN(0),
     );
 
     if (totalTokenQty.lt(finalSendTokenQty)) {
         throw new Error(
-            `tokenUtxos have insufficient balance ${totalTokenQty.toLocaleString(
-                'en-us',
-                { minimumFractionationDigits: decimals },
-            )} to send ${finalSendTokenQty.toLocaleString('en-us', {
-                minimumFractionationDigits: decimals,
-            })}`,
+            `tokenUtxos have insufficient balance ${totalTokenQty
+                .shiftedBy(-1 * decimals)
+                .toLocaleString('en-us', {
+                    minimumFractionDigits: decimals,
+                })} to send ${finalSendTokenQty
+                .shiftedBy(-1 * decimals)
+                .toLocaleString('en-us', {
+                    minimumFractionDigits: decimals,
+                })}`,
         );
     }
 
