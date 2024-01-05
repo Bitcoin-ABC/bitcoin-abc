@@ -43,7 +43,7 @@ pub enum BurnError {
 
     /// SEND transfers cannot have more tokens in the outputs than are supplied
     /// in the inputs.
-    #[error("Insufficient token input output sum")]
+    #[error("Insufficient token input output sum: {actual} < {required}")]
     InsufficientInputSum {
         /// Required minimum inputs as specified in the outputs
         required: u128,
