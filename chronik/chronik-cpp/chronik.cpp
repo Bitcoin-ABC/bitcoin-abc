@@ -37,7 +37,7 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
 
 bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
     const bool is_pause_allowed = gArgs.GetBoolArg("-chronikallowpause", false);
-    const CChainParams params = config.GetChainParams();
+    const CChainParams &params = config.GetChainParams();
     if (is_pause_allowed && !params.IsTestChain()) {
         return InitError(_("Using -chronikallowpause on a mainnet chain is not "
                            "allowed for security reasons."));
