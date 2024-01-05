@@ -8,6 +8,8 @@ import {
     generateSendOpReturnMockUtxos,
     covidUtxosChange,
     covidUtxosNoChange,
+    mockBurnOpReturnTokenUtxos,
+    mockBurnAllTokenUtxos,
 } from './mocks';
 
 export const slpv1Vectors = {
@@ -127,6 +129,41 @@ export const slpv1Vectors = {
                 sendQty: '9999999501',
                 errorMsg:
                     'tokenUtxos have insufficient balance 9999999500 to send 9999999501',
+            },
+        ],
+    },
+    burnTxs: {
+        expectedReturns: [
+            {
+                // https://explorer.e.cash/tx/60a189da01e115776e9234429a6d2559d0e9ed49fc3e52f8a88341712571e3b7
+                description: 'Burn a fraction of balance',
+                tokenUtxos: mockBurnOpReturnTokenUtxos,
+                burnQty: '1000',
+                outputScriptHex:
+                    '6a04534c500001010453454e44204209be6bd48937263edef94ceaf77a417ab1b35b0c69559cfdf4a435e2bf1a88080000000002f969e0',
+            },
+            {
+                // https://explorer.e.cash/tx/3ec07567e5f205a312db3f7704d68a6d8ea9451a44ade3e4d9d3e75f59e681ec
+                description: 'Burn all balance',
+                tokenUtxos: mockBurnAllTokenUtxos,
+                burnQty: '888.00888888',
+                outputScriptHex:
+                    '6a04534c500001010453454e442056e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55080000000000000000',
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'burnQty is not a string',
+                tokenUtxos: mockBurnOpReturnTokenUtxos,
+                burnQty: 1000,
+                errorMsg: 'burnQty must be a string',
+            },
+            {
+                description: 'tokenUtxos insufficient to cover burnQty',
+                tokenUtxos: mockBurnOpReturnTokenUtxos,
+                burnQty: '500000.01',
+                errorMsg:
+                    'tokenUtxos have insufficient balance 500000 to burn 500000.01',
             },
         ],
     },

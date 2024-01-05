@@ -96,3 +96,53 @@ export const getSlpSendTargetOutputs = (tokenUtxos, sendQty) => {
         return [{ value: 0, script }];
     }
 };
+
+/**
+ * Get targetOutput(s) for a SLP v1 BURN tx
+ * Note: a burn tx is a special case of a send tx, where you only have a change output
+ * i.e., to burn all balance, say you have 100 BURN tokens
+ * you send yourself an etoken tx with output of 0 from input of 100. Now it's all burned.
+ * If you send that 100-balance utxo to yourself with an output of 99, now you've burned 1.
+ * @param {array} tokenUtxos the token utxos required to complete this tx
+ * @param {string} burnQty the amount of this token to be burned in this tx
+ * @throws {error} if invalid input params are passed to TokenType1.send
+ * @returns {object} targetOutput, e.g. {value: 0, script: <encoded slp burn script>}
+ */
+export const getSlpBurnTargetOutput = (tokenUtxos, burnQty) => {
+    if (typeof burnQty !== 'string') {
+        throw new Error('burnQty must be a string');
+    }
+    // Get tokenId and decimals from the tokenUtxo
+    const { tokenId, decimals } = tokenUtxos[0];
+
+    // Account for token decimals
+    const finalBurnTokenQty = new BN(burnQty).times(10 ** decimals);
+
+    // Calculate the total qty of this token in tokenUtxos
+    const totalTokenQty = tokenUtxos.reduce(
+        (total, tokenUtxo) => total.plus(new BN(tokenUtxo.slpToken.amount)),
+        new BN(0),
+    );
+
+    if (totalTokenQty.lt(finalBurnTokenQty)) {
+        throw new Error(
+            `tokenUtxos have insufficient balance ${totalTokenQty
+                .shiftedBy(-1 * decimals)
+                .toLocaleString('en-US', {
+                    minimumFractionDigits: decimals,
+                })} to burn ${finalBurnTokenQty
+                .shiftedBy(-1 * decimals)
+                .toLocaleString('en-US', {
+                    minimumFractionDigits: decimals,
+                })}`,
+        );
+    }
+
+    // Calculate token change
+    const tokenChange = totalTokenQty.minus(finalBurnTokenQty);
+
+    // Unlike getSlpSendTargetOutputs, you always return one change output here
+    // If tokenChange is 0, you are burning the full balance
+    const script = TokenType1.send(tokenId, [tokenChange]);
+    return { value: 0, script };
+};

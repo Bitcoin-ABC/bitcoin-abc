@@ -1,7 +1,11 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-import { getSlpGenesisTargetOutput, getSlpSendTargetOutputs } from 'slpv1';
+import {
+    getSlpGenesisTargetOutput,
+    getSlpSendTargetOutputs,
+    getSlpBurnTargetOutput,
+} from 'slpv1';
 import { slpv1Vectors } from '../fixtures/vectors';
 import appConfig from 'config/app';
 
@@ -78,6 +82,34 @@ describe('Generating etoken send tx target output(s)', () => {
         const { description, tokenUtxos, sendQty, errorMsg } = expectedError;
         it(`getSlpSendTargetOutputs throws error for: ${description}`, () => {
             expect(() => getSlpSendTargetOutputs(tokenUtxos, sendQty)).toThrow(
+                errorMsg,
+            );
+        });
+    });
+});
+
+describe('Generating etoken burn tx target output', () => {
+    const { expectedReturns, expectedErrors } = slpv1Vectors.burnTxs;
+
+    // Successfully created targetOutputs
+    expectedReturns.forEach(expectedReturn => {
+        const { description, tokenUtxos, burnQty, outputScriptHex } =
+            expectedReturn;
+        it(`getSlpBurnTargetOutput: ${description}`, () => {
+            const targetOutput = getSlpBurnTargetOutput(tokenUtxos, burnQty);
+            // Output value should be zero for OP_RETURN
+            expect(targetOutput.value).toBe(0);
+            // Test vs hex string as cannot store buffer type in vectors
+            expect(targetOutput.script.toString('hex')).toStrictEqual(
+                outputScriptHex,
+            );
+        });
+    });
+    // Error cases
+    expectedErrors.forEach(expectedError => {
+        const { description, tokenUtxos, burnQty, errorMsg } = expectedError;
+        it(`getSlpBurnTargetOutput throws error for: ${description}`, () => {
+            expect(() => getSlpBurnTargetOutput(tokenUtxos, burnQty)).toThrow(
                 errorMsg,
             );
         });
