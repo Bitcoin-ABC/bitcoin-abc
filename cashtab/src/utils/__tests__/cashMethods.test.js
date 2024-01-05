@@ -60,7 +60,10 @@ import {
     missingPublicKeyInPath1899Wallet,
     missingPublicKeyInPath145Wallet,
     missingPublicKeyInPath245Wallet,
-    notLegacyWallet,
+    notLegacyWalletWithXecPrefixes,
+    notLegacyWalletWithPath145OnBchPrefix,
+    notLegacyWalletWithPath1899OnBchPrefix,
+    notLegacyWalletWithPath245OnBchPrefix,
     missingHash160,
 } from '../__mocks__/mockLegacyWalletsUtils';
 
@@ -1194,7 +1197,24 @@ describe('Correctly executes cash utility functions', () => {
         expect(isLegacyMigrationRequired(missingHash160)).toBe(true);
     });
     it(`Recognizes a latest, current wallet that does not require migration`, () => {
-        expect(isLegacyMigrationRequired(notLegacyWallet)).toBe(false);
+        expect(isLegacyMigrationRequired(notLegacyWalletWithXecPrefixes)).toBe(
+            false,
+        );
+    });
+    it(`Recognizes a non-eCash prefixed Path245 address and requires migration`, () => {
+        expect(
+            isLegacyMigrationRequired(notLegacyWalletWithPath245OnBchPrefix),
+        ).toBe(true);
+    });
+    it(`Recognizes a non-eCash prefixed Path1899 address and requires migration`, () => {
+        expect(
+            isLegacyMigrationRequired(notLegacyWalletWithPath1899OnBchPrefix),
+        ).toBe(true);
+    });
+    it(`Recognizes a non-eCash prefixed Path145 address and requires migration`, () => {
+        expect(
+            isLegacyMigrationRequired(notLegacyWalletWithPath145OnBchPrefix),
+        ).toBe(true);
     });
 
     test('toHash160() converts a valid bitcoincash: prefix address to a hash160', () => {

@@ -993,7 +993,10 @@ export const isLegacyMigrationRequired = wallet => {
         !wallet.Path145.publicKey ||
         !wallet.Path145.hash160 ||
         !wallet.Path245.publicKey ||
-        !wallet.Path245.hash160
+        !wallet.Path245.hash160 ||
+        !wallet.Path1899.cashAddress.startsWith('ecash:') ||
+        !wallet.Path145.cashAddress.startsWith('ecash:') ||
+        !wallet.Path245.cashAddress.startsWith('ecash:')
     ) {
         return true;
     }
