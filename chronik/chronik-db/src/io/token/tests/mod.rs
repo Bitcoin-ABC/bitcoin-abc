@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-mod mock;
+pub(crate) mod mock;
 mod test_batch_alp;
 mod test_batch_burn;
 mod test_batch_common;

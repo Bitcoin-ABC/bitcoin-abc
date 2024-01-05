@@ -94,7 +94,7 @@ pub struct TokenReader<'a> {
 #[derive(Debug, Error, PartialEq)]
 pub enum TokenIndexError {
     /// token_tx_num was not found in the DB but should be there
-    #[error("Inconsistent DB: {0} not found")]
+    #[error("Inconsistent DB: Token TxNum {0} not found in DB")]
     TokenTxNumNotFound(TxNum),
 }
 
@@ -344,9 +344,25 @@ impl<'a> TokenReader<'a> {
         self.col.fetch_token_meta(token_tx_num)
     }
 
+    /// Batch-lookup a set of [`TokenMeta`]s by [`TxNum`].
+    pub fn token_metas(
+        &self,
+        token_tx_nums: &BTreeSet<TxNum>,
+    ) -> Result<Vec<(TxNum, TokenMeta)>> {
+        self.col.fetch_token_metas(token_tx_nums)
+    }
+
     /// Look up a the DB data of a token tx by [`TxNum`].
     pub fn token_tx(&self, tx_num: TxNum) -> Result<Option<DbTokenTx>> {
         self.col.fetch_token_tx(tx_num)
+    }
+
+    /// Batch-lookup a set of [`DbTokenTx`]s by [`TxNum`].
+    pub fn token_txs(
+        &self,
+        tx_nums: &BTreeSet<TxNum>,
+    ) -> Result<Vec<(TxNum, DbTokenTx)>> {
+        self.col.fetch_token_txs(tx_nums)
     }
 
     /// Look up the DB genesis data of a GENESIS token tx by [`TxNum`].

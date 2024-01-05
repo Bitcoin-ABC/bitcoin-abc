@@ -8,7 +8,7 @@ mod batch;
 mod data;
 mod io;
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 
 pub use crate::io::token::batch::*;
 pub use crate::io::token::data::*;

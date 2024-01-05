@@ -53,7 +53,7 @@ pub enum BurnError {
 }
 
 /// Token spent as an input
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SpentToken {
     /// Input token
     pub token: Token,

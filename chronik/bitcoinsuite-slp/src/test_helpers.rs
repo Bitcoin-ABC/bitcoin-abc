@@ -35,6 +35,12 @@ pub const TOKEN_ID3: TokenId = TokenId::new(TxId::new([3; 32]));
 pub const TOKEN_ID4: TokenId = TokenId::new(TxId::new([4; 32]));
 /// Token ID with all 5s
 pub const TOKEN_ID5: TokenId = TokenId::new(TxId::new([5; 32]));
+/// Token ID with all 6s
+pub const TOKEN_ID6: TokenId = TokenId::new(TxId::new([6; 32]));
+/// Token ID with all 7s
+pub const TOKEN_ID7: TokenId = TokenId::new(TxId::new([7; 32]));
+/// Token ID with all 8s
+pub const TOKEN_ID8: TokenId = TokenId::new(TxId::new([8; 32]));
 
 /// TxId with all 0s
 pub const EMPTY_TXID: TxId = TxId::new([0; 32]);
