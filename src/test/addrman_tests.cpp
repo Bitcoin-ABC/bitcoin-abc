@@ -1071,4 +1071,90 @@ BOOST_AUTO_TEST_CASE(load_addrman_corrupted) {
                       std::ios_base::failure);
 }
 
+BOOST_AUTO_TEST_CASE(addrman_is_terrible) {
+    AddrInfo addr_info{};
+    const auto now = Now<NodeSeconds>();
+    const auto addrman_horizon{30 * 24h};
+    const auto address_time_init{100000000s};
+    const int32_t addrman_retries{3};
+    const auto addrman_min_fail{7 * 24h};
+    const int32_t addrman_max_failures{10};
+
+    // AddrInfo is initially terrible (never tried, not seen recently)
+    BOOST_CHECK_EQUAL(
+        TicksSinceEpoch<std::chrono::seconds>(addr_info.m_last_try), 0);
+    BOOST_CHECK_EQUAL(TicksSinceEpoch<std::chrono::seconds>(addr_info.nTime),
+                      address_time_init.count());
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    // Things tried in the last minute are never considered terrible
+    addr_info.m_last_try = now - 60s;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    addr_info.m_last_try = now;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    // Not seen in recent history
+    addr_info.m_last_try = now - 61s;
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    addr_info.nTime = now - addrman_horizon - 1s;
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    // Seen recently
+    addr_info.nTime = now - addrman_horizon;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    addr_info.nTime = now;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    // Time in the recent enough future
+    addr_info.nTime = now + 1s;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    addr_info.nTime = now + 10min;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    // Time too far in the future
+    addr_info.nTime = now + 10min + 1s;
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    // Tried less than ADDRMAN_RETRIES times with never a success
+    addr_info.nTime = now;
+    BOOST_CHECK_EQUAL(
+        TicksSinceEpoch<std::chrono::seconds>(addr_info.m_last_success), 0);
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    for (int i = 0; i < addrman_retries; i++) {
+        addr_info.nAttempts = i;
+        BOOST_CHECK(!addr_info.IsTerrible());
+    }
+
+    // Tried ADDRMAN_RETRIES times with never a success
+    addr_info.nAttempts = addrman_retries;
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    // No recent success but less than ADDRMAN_MAX_FAILURES attempts in the
+    // last week
+    addr_info.m_last_success = NodeSeconds{1s};
+    for (int i = 0; i < addrman_max_failures; i++) {
+        addr_info.nAttempts = i;
+        BOOST_CHECK(!addr_info.IsTerrible());
+    }
+
+    // Too many failures in the last week
+    addr_info.nAttempts = addrman_max_failures;
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    addr_info.m_last_success = now - addrman_min_fail - 1s;
+    BOOST_CHECK(addr_info.IsTerrible());
+
+    // Recent success
+    addr_info.m_last_success = now;
+    BOOST_CHECK(!addr_info.IsTerrible());
+
+    addr_info.m_last_success = now - addrman_min_fail;
+    BOOST_CHECK(!addr_info.IsTerrible());
+}
+
 BOOST_AUTO_TEST_SUITE_END()
