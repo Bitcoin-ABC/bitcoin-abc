@@ -22,7 +22,7 @@ module.exports = {
         swap: { prefix: '53575000', app: 'SWaP' },
         fusion: { prefix: '46555a00', app: 'CashFusion' },
         fusionLegacy: { prefix: '5920070', app: 'CashFusion' },
-        slp2: { prefix: '534c5032', app: 'SLP v2' },
+        slp2: { prefix: '534c5032', app: 'ALP' },
         alias: { prefix: '2e786563', app: 'Alias (beta)' },
     },
     memo: {
