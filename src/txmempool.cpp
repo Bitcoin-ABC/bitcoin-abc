@@ -176,7 +176,7 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-void CTxMemPool::addUnchecked(const CTxMemPoolEntryRef &entry) {
+void CTxMemPool::addUnchecked(CTxMemPoolEntryRef entry) {
     // get a guaranteed unique id (in case tests re-use the same object)
     entry->SetEntryId(nextEntryId++);
 

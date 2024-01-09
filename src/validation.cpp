@@ -726,7 +726,8 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     const bool bypass_limits = args.m_bypass_limits;
 
     // Store transaction in memory
-    CTxMemPoolEntryRef entry = std::shared_ptr(std::move(ws.m_entry));
+    CTxMemPoolEntry *pentry = ws.m_entry.release();
+    auto entry = CTxMemPoolEntryRef::acquire(pentry);
     m_pool.addUnchecked(entry);
 
     // Trim mempool and check if tx was trimmed.

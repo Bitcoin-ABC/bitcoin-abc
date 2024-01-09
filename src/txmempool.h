@@ -12,6 +12,7 @@
 #include <indirectmap.h>
 #include <policy/packages.h>
 #include <primitives/transaction.h>
+#include <rcu.h>
 #include <sync.h>
 #include <util/hasher.h>
 
@@ -75,7 +76,7 @@ struct CompareIteratorById {
 };
 
 class CTxMemPoolEntry;
-using CTxMemPoolEntryRef = std::shared_ptr<CTxMemPoolEntry>;
+using CTxMemPoolEntryRef = RCUPtr<CTxMemPoolEntry>;
 
 /** \class CTxMemPoolEntry
  *
@@ -121,13 +122,23 @@ private:
     //! Track the height and time at which tx was final
     LockPoints lockPoints;
 
+    IMPLEMENT_RCU_REFCOUNT(uint64_t);
+
 public:
     CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee, int64_t time,
                     unsigned int entry_height, bool spends_coinbase,
                     int64_t sigchecks, LockPoints lp);
 
     CTxMemPoolEntry(const CTxMemPoolEntry &other) = delete;
-    CTxMemPoolEntry(CTxMemPoolEntry &&other) = default;
+    CTxMemPoolEntry(CTxMemPoolEntry &&other)
+        : entryId(other.entryId), tx(std::move(other.tx)),
+          m_parents(std::move(other.m_parents)),
+          m_children(std::move(other.m_children)), nFee(other.nFee),
+          nTxSize(other.nTxSize), nUsageSize(other.nUsageSize),
+          nTime(other.nTime), entryHeight(other.entryHeight),
+          spendsCoinbase(other.spendsCoinbase), sigChecks(other.sigChecks),
+          feeDelta(other.feeDelta), lockPoints(std::move(other.lockPoints)),
+          refcount(other.refcount.load()){};
 
     uint64_t GetEntryId() const { return entryId; }
     //! This should only be set by addUnchecked() before entry insertion into
@@ -456,7 +467,7 @@ public:
 
     // addUnchecked must update state for all parents of a given transaction,
     // updating child links as necessary.
-    void addUnchecked(const CTxMemPoolEntryRef &entry)
+    void addUnchecked(CTxMemPoolEntryRef entry)
         EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
 
     void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)

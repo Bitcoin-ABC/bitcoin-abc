@@ -14,11 +14,10 @@
 static void AddTx(const CTransactionRef &tx, const Amount &fee,
                   CTxMemPool &pool) EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs) {
     LockPoints lp;
-    pool.addUnchecked(
-        std::make_shared<CTxMemPoolEntry>(tx, fee, /* time */ 0,
-                                          /* height */ 1,
-                                          /* spendsCoinbase */ false,
-                                          /*_sigChecks=*/1, lp));
+    pool.addUnchecked(CTxMemPoolEntryRef::make(tx, fee, /*time=*/0,
+                                               /*height=*/1,
+                                               /*spendsCoinbase=*/false,
+                                               /*_sigChecks=*/1, lp));
 }
 
 static void RpcMempool(benchmark::Bench &bench) {

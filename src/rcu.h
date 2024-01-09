@@ -253,4 +253,13 @@ private:                                                                       \
                                                                                \
     template <typename> friend class ::RCUPtr
 
+/** Implement std::hash so RCUPtr can be used as a key for maps or sets */
+namespace std {
+template <typename T> struct hash<RCUPtr<T>> {
+    size_t operator()(const RCUPtr<T> &ptr) const noexcept {
+        return hash<decltype(ptr.get())>()(ptr.get());
+    }
+};
+} // end namespace std
+
 #endif // BITCOIN_RCU_H

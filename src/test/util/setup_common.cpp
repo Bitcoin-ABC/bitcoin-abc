@@ -432,7 +432,7 @@ TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx) const {
     CTxMemPoolEntry ret(tx, nFee, nTime, nHeight, spendsCoinbase, nSigChecks,
                         LockPoints());
     ret.SetEntryId(entryId);
-    return std::make_shared<CTxMemPoolEntry>(std::move(ret));
+    return CTxMemPoolEntryRef::make(std::move(ret));
 }
 
 /**
