@@ -29,9 +29,9 @@ module.exports = {
         [
             '76a914ce8c8cf69a922a607e8e03e27ec014fbc24882e088ac',
             {
-                miner: 'Hathor-MM',
-                // While Hathor-MM block coinbase scripts do contain "mm",
-                // this is judged insufficient to uniquely identify
+                miner: 'Anon c24882e0',
+                // This miner does tend to have 'mm' in the same position at the coinbase
+                // However we are not sure what this means, so ID only by the same receiving addr
                 coinbaseHexFragment: null,
             },
         ],
