@@ -969,6 +969,10 @@ module.exports = {
             default:
                 msg += `Unknown memo action`;
         }
+        // Test for msgs that are intended for non-XEC audience
+        if (msg.includes('BCH')) {
+            msg = `[check memo.cash for msg]`;
+        }
         return { app, msg };
     },
     /**
