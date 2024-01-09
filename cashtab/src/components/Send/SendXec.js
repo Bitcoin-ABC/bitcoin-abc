@@ -32,6 +32,7 @@ import {
     isValidEtokenAddress,
     isAliasFormat,
     isValidMultiSendUserInput,
+    shouldSendXecBeDisabled,
 } from 'utils/validation';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -634,6 +635,16 @@ const SendXec = ({ passLoadingStatus }) => {
 
     const priceApiError = fiatPrice === null && selectedCurrency !== 'XEC';
 
+    const disableSendButton = shouldSendXecBeDisabled(
+        formData,
+        balances,
+        apiError,
+        sendAmountError,
+        sendAddressError,
+        isMsgError,
+        priceApiError,
+        isOneToManyXECSend,
+    );
     return (
         <>
             <Modal
@@ -885,14 +896,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                     paddingTop: '1rem',
                                 }}
                             >
-                                {!balances.totalBalance ||
-                                apiError ||
-                                sendAmountError ||
-                                sendAddressError ||
-                                isMsgError ||
-                                priceApiError ||
-                                (!isOneToManyXECSend &&
-                                    isNaN(formData.value)) ? (
+                                {disableSendButton ? (
                                     <DisabledButton>Send</DisabledButton>
                                 ) : (
                                     <>

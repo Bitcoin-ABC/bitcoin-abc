@@ -704,3 +704,38 @@ export const isValidOpreturnParam = testedParam => {
         return false;
     }
 };
+
+/**
+ * Should the Send button be disabled on the SendXec screen
+ * @param {object} formData must have keys address: string and value: string
+ * @param {object} balances must have key totalBalance: string
+ * @param {boolean} apiError
+ * @param {false | string} sendBchAmountError
+ * @param {false | string} sendBchAddressError
+ * @param {false | string} isMsgError
+ * @param {boolean} priceApiError
+ * @param {boolean} isOneToManyXECSend
+ * @returns boolean
+ */
+export const shouldSendXecBeDisabled = (
+    formData,
+    balances,
+    apiError,
+    sendAmountError,
+    sendAddressError,
+    isMsgError,
+    priceApiError,
+    isOneToManyXECSend,
+) => {
+    return (
+        (formData.value === '' && formData.address === '') || // No user inputs
+        balances.totalBalance === '0' || // user has no funds
+        apiError || // API error
+        typeof sendAmountError === 'string' || // validation error for send amount
+        typeof sendAddressError === 'string' || // validation error for destinationa ddress
+        typeof isMsgError === 'string' || // validation error in Cashtab Msg
+        priceApiError || // we don't have a good price AND fiat currency is selected
+        (!isOneToManyXECSend &&
+            (isNaN(formData.value) || formData.value === ''))
+    ); // Value is blank or NaN and is expected to not be so
+};

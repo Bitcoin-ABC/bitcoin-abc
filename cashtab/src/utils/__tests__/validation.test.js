@@ -28,6 +28,7 @@ import {
     isValidSideshiftObj,
     isValidMultiSendUserInput,
     isValidOpreturnParam,
+    shouldSendXecBeDisabled,
 } from '../validation';
 import aliasSettings from 'config/alias';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -52,6 +53,7 @@ import {
 import { when } from 'jest-when';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
+import { validationVectors } from '../fixtures/vectors';
 
 describe('Validation utils', () => {
     it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
@@ -1103,5 +1105,39 @@ describe('Validation utils', () => {
     });
     it(`isValidOpreturnParam rejects a valid hex string that has uneven length (i.e., half a byte)`, () => {
         expect(isValidOpreturnParam('042e7')).toBe(false);
+    });
+});
+
+describe('Determining whether Send button should be disabled on SendXec screen', () => {
+    const { expectedReturns } = validationVectors.shouldDisableXecSend;
+
+    // Successfully created targetOutputs
+    expectedReturns.forEach(expectedReturn => {
+        const {
+            description,
+            formData,
+            balances,
+            apiError,
+            sendBchAmountError,
+            sendBchAddressError,
+            isMsgError,
+            priceApiError,
+            isOneToManyXECSend,
+            sendDisabled,
+        } = expectedReturn;
+        it(`shouldSendXecBeDisabled: ${description}`, () => {
+            expect(
+                shouldSendXecBeDisabled(
+                    formData,
+                    balances,
+                    apiError,
+                    sendBchAmountError,
+                    sendBchAddressError,
+                    isMsgError,
+                    priceApiError,
+                    isOneToManyXECSend,
+                ),
+            ).toBe(sendDisabled);
+        });
     });
 });
