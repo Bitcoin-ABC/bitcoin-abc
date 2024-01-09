@@ -483,6 +483,9 @@ const useWallet = () => {
             }
         }
 
+        // Sort alphabetically
+        savedWallets.sort((a, b) => a.name.localeCompare(b.name));
+
         setLoading(false);
         return savedWallets;
     };
