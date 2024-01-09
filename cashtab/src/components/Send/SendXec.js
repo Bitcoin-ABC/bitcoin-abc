@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import {
     AntdFormWrapper,
-    SendBchInput,
+    SendXecInput,
     DestinationAddressSingle,
     DestinationAddressMulti,
 } from 'components/Common/EnhancedInputs';
@@ -138,7 +138,7 @@ const PanelHeaderCtn = styled.div`
     gap: 1rem;
 `;
 
-const SendBCH = ({ passLoadingStatus }) => {
+const SendXec = ({ passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
     // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
 
@@ -178,8 +178,8 @@ const SendBCH = ({ passLoadingStatus }) => {
         airdropTokenId: '',
     });
     const [queryStringText, setQueryStringText] = useState(null);
-    const [sendBchAddressError, setSendBchAddressError] = useState(false);
-    const [sendBchAmountError, setSendBchAmountError] = useState(false);
+    const [sendAddressError, setSendAddressError] = useState(false);
+    const [sendAmountError, setSendAmountError] = useState(false);
     const [isMsgError, setIsMsgError] = useState(false);
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
@@ -482,11 +482,11 @@ const SendBCH = ({ passLoadingStatus }) => {
             }
         }
 
-        setSendBchAddressError(error);
+        setSendAddressError(error);
 
         // Set amount if it's in the query string
         if (amount !== null) {
-            // Set currency to BCHA
+            // Set currency to non-fiat
             setSelectedCurrency(appConfig.ticker);
 
             // Use this object to mimic user input and get validation for the value
@@ -496,7 +496,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                     value: amount,
                 },
             };
-            handleBchAmountChange(amountObj);
+            handleAmountChange(amountObj);
             setFormData({
                 ...formData,
                 value: amount,
@@ -515,7 +515,7 @@ const SendBCH = ({ passLoadingStatus }) => {
         let errorOrIsValid = isValidMultiSendUserInput(value);
 
         // If you get an error msg, set it. If validation is good, clear error msg.
-        setSendBchAddressError(
+        setSendAddressError(
             typeof errorOrIsValid === 'string' ? errorOrIsValid : false,
         );
 
@@ -528,23 +528,22 @@ const SendBCH = ({ passLoadingStatus }) => {
 
     const handleSelectedCurrencyChange = e => {
         setSelectedCurrency(e);
-        // Clear input field to prevent accidentally sending 1 BCH instead of 1 USD
+        // Clear input field to prevent accidentally sending 1 XEC instead of 1 USD
         setFormData(p => ({
             ...p,
             value: '',
         }));
     };
 
-    const handleBchAmountChange = e => {
+    const handleAmountChange = e => {
         const { value, name } = e.target;
-        let bchValue = value;
         const error = shouldRejectAmountInput(
-            bchValue,
+            value,
             selectedCurrency,
             fiatPrice,
             balances.totalBalance,
         );
-        setSendBchAmountError(error);
+        setSendAmountError(error);
 
         setFormData(p => ({
             ...p,
@@ -570,16 +569,16 @@ const SendBCH = ({ passLoadingStatus }) => {
 
     const onMax = async () => {
         // Clear amt error
-        setSendBchAmountError(false);
-        // Set currency to BCH
+        setSendAmountError(false);
+        // Set currency to XEC
         setSelectedCurrency(appConfig.ticker);
         try {
             const txFeeSats = calcFee(nonSlpUtxos);
 
-            const txFeeBch = txFeeSats / 10 ** appConfig.cashDecimals;
+            const txFeeXec = txFeeSats / 10 ** appConfig.cashDecimals;
             let value =
-                balances.totalBalance - txFeeBch >= 0
-                    ? (balances.totalBalance - txFeeBch).toFixed(
+                balances.totalBalance - txFeeXec >= 0
+                    ? (balances.totalBalance - txFeeXec).toFixed(
                           appConfig.cashDecimals,
                       )
                     : 0;
@@ -744,13 +743,11 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                     : scannerSupported
                                             }
                                             validateStatus={
-                                                sendBchAddressError
-                                                    ? 'error'
-                                                    : ''
+                                                sendAddressError ? 'error' : ''
                                             }
                                             help={
-                                                sendBchAddressError
-                                                    ? sendBchAddressError
+                                                sendAddressError
+                                                    ? sendAddressError
                                                     : ''
                                             }
                                             onScan={result =>
@@ -790,7 +787,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                             </TxLink>
                                         </AliasAddressPreviewLabel>
                                         <FormLabel>Amount</FormLabel>
-                                        <SendBchInput
+                                        <SendXecInput
                                             activeFiatCode={
                                                 cashtabSettings &&
                                                 cashtabSettings.fiatCurrency
@@ -798,13 +795,11 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                     : 'USD'
                                             }
                                             validateStatus={
-                                                sendBchAmountError
-                                                    ? 'error'
-                                                    : ''
+                                                sendAmountError ? 'error' : ''
                                             }
                                             help={
-                                                sendBchAmountError
-                                                    ? sendBchAmountError
+                                                sendAmountError
+                                                    ? sendAmountError
                                                     : ''
                                             }
                                             onMax={onMax}
@@ -816,7 +811,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                         : 0,
                                                 placeholder: 'Amount',
                                                 onChange: e =>
-                                                    handleBchAmountChange(e),
+                                                    handleAmountChange(e),
                                                 required: true,
                                                 value: formData.value,
                                                 disabled: priceApiError,
@@ -830,7 +825,7 @@ const SendBCH = ({ passLoadingStatus }) => {
                                                         e,
                                                     ),
                                             }}
-                                        ></SendBchInput>
+                                        ></SendXecInput>
                                     </DestinationAddressSingleCtn>
                                     {priceApiError && (
                                         <AlertMsg>
@@ -848,13 +843,11 @@ const SendBCH = ({ passLoadingStatus }) => {
                                     <DestinationAddressMultiCtn>
                                         <DestinationAddressMulti
                                             validateStatus={
-                                                sendBchAddressError
-                                                    ? 'error'
-                                                    : ''
+                                                sendAddressError ? 'error' : ''
                                             }
                                             help={
-                                                sendBchAddressError
-                                                    ? sendBchAddressError
+                                                sendAddressError
+                                                    ? sendAddressError
                                                     : ''
                                             }
                                             inputProps={{
@@ -897,8 +890,8 @@ const SendBCH = ({ passLoadingStatus }) => {
                             >
                                 {!balances.totalBalance ||
                                 apiError ||
-                                sendBchAmountError ||
-                                sendBchAddressError ||
+                                sendAmountError ||
+                                sendAddressError ||
                                 isMsgError ||
                                 priceApiError ||
                                 (!isOneToManyXECSend &&
@@ -996,14 +989,14 @@ in order to pass the rendering unit test in Send.test.js
 status => {console.log(status)} is an arbitrary stub function
 */
 
-SendBCH.defaultProps = {
+SendXec.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);
     },
 };
 
-SendBCH.propTypes = {
+SendXec.propTypes = {
     passLoadingStatus: PropTypes.func,
 };
 
-export default SendBCH;
+export default SendXec;

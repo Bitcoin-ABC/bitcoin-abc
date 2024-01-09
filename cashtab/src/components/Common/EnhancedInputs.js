@@ -164,7 +164,7 @@ export const CashtabCheckbox = styled(Checkbox)`
     }
 `;
 
-export const SendBchInput = ({
+export const SendXecInput = ({
     onMax,
     inputProps,
     selectProps,
@@ -251,7 +251,7 @@ export const SendBchInput = ({
     );
 };
 
-SendBchInput.propTypes = {
+SendXecInput.propTypes = {
     onMax: PropTypes.func,
     inputProps: PropTypes.object,
     selectProps: PropTypes.object,

@@ -20,7 +20,7 @@ import { theme } from 'assets/styles/theme';
 import Home from 'components/Home/Home';
 import Receive from 'components/Receive/Receive';
 import CreateToken from 'components/Etokens/CreateToken';
-import Send from 'components/Send/Send';
+import SendXec from 'components/Send/SendXec';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
 import Alias from 'components/Alias/Alias';
@@ -513,7 +513,7 @@ const App = () => {
                                     />
                                 </Route>
                                 <Route path="/send">
-                                    <Send
+                                    <SendXec
                                         passLoadingStatus={
                                             setLoadingUtxosAfterSend
                                         }
