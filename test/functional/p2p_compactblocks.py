@@ -869,31 +869,24 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         self.log.info("Testing SENDCMPCT p2p message... ")
         self.test_sendcmpct(self.test_node)
-        self.sync_blocks()
 
         self.log.info("Testing compactblock construction...")
         self.test_compactblock_construction(self.test_node)
-        self.sync_blocks()
 
         self.log.info("Testing compactblock requests... ")
         self.test_compactblock_requests(self.test_node)
-        self.sync_blocks()
 
         self.log.info("Testing getblocktxn requests...")
         self.test_getblocktxn_requests(self.test_node)
-        self.sync_blocks()
 
         self.log.info("Testing getblocktxn handler...")
         self.test_getblocktxn_handler(self.test_node)
-        self.sync_blocks()
 
         self.log.info("Testing compactblock requests/announcements not at chain tip...")
         self.test_compactblocks_not_at_tip(self.test_node)
-        self.sync_blocks()
 
         self.log.info("Testing handling of incorrect blocktxn responses...")
         self.test_incorrect_blocktxn_response(self.test_node)
-        self.sync_blocks()
 
         # End-to-end block relay tests
         self.log.info("Testing end-to-end block relay...")
@@ -908,7 +901,6 @@ class CompactBlocksTest(BitcoinTestFramework):
         self.test_compactblock_reconstruction_multiple_peers(
             self.test_node, self.additional_test_node
         )
-        self.sync_blocks()
 
         self.log.info("Testing invalid index in cmpctblock message...")
         self.test_invalid_cmpctblock_message()
