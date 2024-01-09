@@ -369,6 +369,11 @@ export const finalizeTokensArray = async (
         updatedTokenInfoById,
     );
 
+    // Sort tokens alphabetically by ticker
+    finalTokenArray.sort((a, b) =>
+        a.info.tokenTicker.localeCompare(b.info.tokenTicker),
+    );
+
     return { tokens: finalTokenArray, updatedTokenInfoById, newTokensToCache };
 };
 
