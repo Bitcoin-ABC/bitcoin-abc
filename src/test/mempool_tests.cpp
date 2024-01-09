@@ -513,21 +513,21 @@ BOOST_AUTO_TEST_CASE(GetModifiedFeeRateTest) {
 
     auto entryNormal = entry.Fee(1000 * SATOSHI).FromTx(tx);
     BOOST_CHECK_EQUAL(1000 * SATOSHI,
-                      entryNormal.GetModifiedFeeRate().GetFee(1000));
+                      entryNormal->GetModifiedFeeRate().GetFee(1000));
 
     // Add modified fee
-    CTxMemPoolEntry entryFeeModified = entry.Fee(1000 * SATOSHI).FromTx(tx);
-    entryFeeModified.UpdateFeeDelta(1000 * SATOSHI);
+    CTxMemPoolEntryRef entryFeeModified = entry.Fee(1000 * SATOSHI).FromTx(tx);
+    entryFeeModified->UpdateFeeDelta(1000 * SATOSHI);
     BOOST_CHECK_EQUAL(2000 * SATOSHI,
-                      entryFeeModified.GetModifiedFeeRate().GetFee(1000));
+                      entryFeeModified->GetModifiedFeeRate().GetFee(1000));
 
     // Excessive sigop count "modifies" size
-    CTxMemPoolEntry entrySizeModified =
+    CTxMemPoolEntryRef entrySizeModified =
         entry.Fee(1000 * SATOSHI)
             .SigChecks(2000 / DEFAULT_BYTES_PER_SIGCHECK)
             .FromTx(tx);
     BOOST_CHECK_EQUAL(500 * SATOSHI,
-                      entrySizeModified.GetModifiedFeeRate().GetFee(1000));
+                      entrySizeModified->GetModifiedFeeRate().GetFee(1000));
 }
 
 BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
@@ -563,18 +563,18 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
 
     // Same with fee delta.
     {
-        CTxMemPoolEntry entryA = entry.Fee(100 * SATOSHI).FromTx(a);
-        CTxMemPoolEntry entryB = entry.Fee(200 * SATOSHI).FromTx(b);
+        CTxMemPoolEntryRef entryA = entry.Fee(100 * SATOSHI).FromTx(a);
+        CTxMemPoolEntryRef entryB = entry.Fee(200 * SATOSHI).FromTx(b);
         // .. A and B have same modified fee, ordering is by lowest txid
-        entryA.UpdateFeeDelta(100 * SATOSHI);
+        entryA->UpdateFeeDelta(100 * SATOSHI);
         checkOrdering(entryB, entryA);
     }
     // .. A is first entering the mempool
-    CTxMemPoolEntry entryA = entry.Fee(100 * SATOSHI).EntryId(1).FromTx(a);
-    CTxMemPoolEntry entryB = entry.Fee(100 * SATOSHI).EntryId(2).FromTx(b);
+    CTxMemPoolEntryRef entryA = entry.Fee(100 * SATOSHI).EntryId(1).FromTx(a);
+    CTxMemPoolEntryRef entryB = entry.Fee(100 * SATOSHI).EntryId(2).FromTx(b);
     checkOrdering(entryA, entryB);
     // .. B has higher modified fee.
-    entryB.UpdateFeeDelta(1 * SATOSHI);
+    entryB->UpdateFeeDelta(1 * SATOSHI);
     checkOrdering(entryB, entryA);
 }
 

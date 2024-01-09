@@ -18,8 +18,8 @@ static void AddTx(const CTransactionRef &tx, CTxMemPool &pool)
     bool spendsCoinbase = false;
     unsigned int sigChecks = 1;
     LockPoints lp;
-    pool.addUnchecked(CTxMemPoolEntry(tx, 1000 * SATOSHI, nTime, nHeight,
-                                      spendsCoinbase, sigChecks, lp));
+    pool.addUnchecked(std::make_shared<CTxMemPoolEntry>(
+        tx, 1000 * SATOSHI, nTime, nHeight, spendsCoinbase, sigChecks, lp));
 }
 
 struct Available {

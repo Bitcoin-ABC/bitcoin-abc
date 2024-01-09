@@ -176,22 +176,20 @@ void CTxMemPool::AddTransactionsUpdated(unsigned int n) {
     nTransactionsUpdated += n;
 }
 
-void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn) {
-    CTxMemPoolEntry entry{entryIn};
+void CTxMemPool::addUnchecked(const CTxMemPoolEntryRef &entry) {
     // get a guaranteed unique id (in case tests re-use the same object)
-    entry.SetEntryId(nextEntryId++);
+    entry->SetEntryId(nextEntryId++);
 
     // Update transaction for any feeDelta created by PrioritiseTransaction
     {
         Amount feeDelta = Amount::zero();
-        ApplyDelta(entry.GetTx().GetId(), feeDelta);
-        entry.UpdateFeeDelta(feeDelta);
+        ApplyDelta(entry->GetTx().GetId(), feeDelta);
+        entry->UpdateFeeDelta(feeDelta);
     }
 
     // Add to memory pool without checking anything.
     // Used by AcceptToMemoryPool(), which DOES do all the appropriate checks.
-    auto [newit, inserted] =
-        mapTx.insert(std::make_shared<CTxMemPoolEntry>(entry));
+    auto [newit, inserted] = mapTx.insert(entry);
     // Sanity check: It is a programming error if insertion fails (uniqueness
     // invariants in mapTx are violated, etc)
     assert(inserted);
@@ -202,9 +200,9 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn) {
     // Update cachedInnerUsage to include contained transaction's usage.
     // (When we update the entry for in-mempool parents, memory usage will be
     // further updated.)
-    cachedInnerUsage += entry.DynamicMemoryUsage();
+    cachedInnerUsage += entry->DynamicMemoryUsage();
 
-    const CTransaction &tx = entry.GetTx();
+    const CTransaction &tx = entry->GetTx();
     std::set<TxId> setParentTransactions;
     for (const CTxIn &in : tx.vin) {
         mapNextTx.insert(std::make_pair(&in.prevout, &tx));
@@ -222,8 +220,8 @@ void CTxMemPool::addUnchecked(const CTxMemPoolEntry &entryIn) {
     UpdateParentsOf(true, newit);
 
     nTransactionsUpdated++;
-    totalTxSize += entry.GetTxSize();
-    m_total_fee += entry.GetFee();
+    totalTxSize += entry->GetTxSize();
+    m_total_fee += entry->GetFee();
 }
 
 void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {

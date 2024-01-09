@@ -494,7 +494,6 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     // Alias what we need out of ws
     TxValidationState &state = ws.m_state;
-    std::unique_ptr<CTxMemPoolEntry> &entry = ws.m_entry;
     // Coinbase is only valid in a block, not as a loose transaction.
     if (!CheckRegularTransaction(tx, state)) {
         // state filled in by CheckRegularTransaction.
@@ -652,12 +651,12 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
         return false;
     }
 
-    entry.reset(new CTxMemPoolEntry(
+    ws.m_entry = std::make_unique<CTxMemPoolEntry>(
         ptx, ws.m_base_fees, nAcceptTime,
         heightOverride ? heightOverride : m_active_chainstate.m_chain.Height(),
-        fSpendsCoinbase, ws.m_sig_checks_standard, lp));
+        fSpendsCoinbase, ws.m_sig_checks_standard, lp);
 
-    ws.m_vsize = entry->GetTxVirtualSize();
+    ws.m_vsize = ws.m_entry->GetTxVirtualSize();
 
     Amount mempoolRejectFee =
         m_pool
@@ -726,10 +725,9 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     TxValidationState &state = ws.m_state;
     const bool bypass_limits = args.m_bypass_limits;
 
-    std::unique_ptr<CTxMemPoolEntry> &entry = ws.m_entry;
-
-    // Store transaction in memory.
-    m_pool.addUnchecked(*entry);
+    // Store transaction in memory
+    CTxMemPoolEntryRef entry = std::shared_ptr(std::move(ws.m_entry));
+    m_pool.addUnchecked(entry);
 
     // Trim mempool and check if tx was trimmed.
     // If we are validating a package, don't trim here because we could evict a

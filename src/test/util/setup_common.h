@@ -16,6 +16,7 @@
 #include <pubkey.h>
 #include <random.h>
 #include <stdexcept>
+#include <txmempool.h>
 #include <util/check.h>
 #include <util/string.h>
 #include <util/system.h>
@@ -198,8 +199,6 @@ struct TestChain100Setup : public TestingSetup {
     CKey coinbaseKey;
 };
 
-class CTxMemPoolEntry;
-
 struct TestMemPoolEntryHelper {
     // Default values
     Amount nFee;
@@ -212,8 +211,8 @@ struct TestMemPoolEntryHelper {
     TestMemPoolEntryHelper()
         : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), nSigChecks(1) {}
 
-    CTxMemPoolEntry FromTx(const CMutableTransaction &tx) const;
-    CTxMemPoolEntry FromTx(const CTransactionRef &tx) const;
+    CTxMemPoolEntryRef FromTx(const CMutableTransaction &tx) const;
+    CTxMemPoolEntryRef FromTx(const CTransactionRef &tx) const;
 
     // Change the default value
     TestMemPoolEntryHelper &Fee(Amount _fee) {

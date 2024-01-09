@@ -422,17 +422,17 @@ TestChain100Setup::~TestChain100Setup() {
     SetMockTime(0);
 }
 
-CTxMemPoolEntry
+CTxMemPoolEntryRef
 TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) const {
     return FromTx(MakeTransactionRef(tx));
 }
 
-CTxMemPoolEntry
+CTxMemPoolEntryRef
 TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx) const {
     CTxMemPoolEntry ret(tx, nFee, nTime, nHeight, spendsCoinbase, nSigChecks,
                         LockPoints());
     ret.SetEntryId(entryId);
-    return ret;
+    return std::make_shared<CTxMemPoolEntry>(std::move(ret));
 }
 
 /**

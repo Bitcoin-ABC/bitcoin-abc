@@ -126,6 +126,9 @@ public:
                     unsigned int entry_height, bool spends_coinbase,
                     int64_t sigchecks, LockPoints lp);
 
+    CTxMemPoolEntry(const CTxMemPoolEntry &other) = delete;
+    CTxMemPoolEntry(CTxMemPoolEntry &&other) = default;
+
     uint64_t GetEntryId() const { return entryId; }
     //! This should only be set by addUnchecked() before entry insertion into
     //! mempool
@@ -453,7 +456,7 @@ public:
 
     // addUnchecked must update state for all parents of a given transaction,
     // updating child links as necessary.
-    void addUnchecked(const CTxMemPoolEntry &entry)
+    void addUnchecked(const CTxMemPoolEntryRef &entry)
         EXCLUSIVE_LOCKS_REQUIRED(cs, cs_main);
 
     void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)
