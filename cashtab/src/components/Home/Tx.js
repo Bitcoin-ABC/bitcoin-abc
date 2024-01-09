@@ -13,7 +13,7 @@ import {
     AliasIcon,
 } from 'components/Common/CustomIcons';
 import { formatBalance, formatDate } from 'utils/formatting';
-import TokenIcon from 'components/Tokens/TokenIcon';
+import TokenIcon from 'components/Etokens/TokenIcon';
 import { Collapse } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {

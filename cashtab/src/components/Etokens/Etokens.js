@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
 import { Link } from 'react-router-dom';
-import TokenList from 'components/Home/TokenList';
+import TokenList from './TokenList';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { WalletInfoCtn, ZeroBalanceHeader } from 'components/Common/Atoms';
@@ -90,7 +90,7 @@ const Etokens = () => {
                             <SidePaddingCtn>
                                 <CreateToken
                                     to={{
-                                        pathname: `/tokens`,
+                                        pathname: `/create-token`,
                                     }}
                                 >
                                     Create eToken

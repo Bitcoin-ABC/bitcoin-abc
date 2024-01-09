@@ -19,7 +19,7 @@ import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import Home from 'components/Home/Home';
 import Receive from 'components/Receive/Receive';
-import Tokens from 'components/Tokens/Tokens';
+import CreateToken from 'components/Etokens/CreateToken';
 import Send from 'components/Send/Send';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
@@ -505,8 +505,8 @@ const App = () => {
                                         }
                                     />
                                 </Route>
-                                <Route path="/tokens">
-                                    <Tokens
+                                <Route path="/create-token">
+                                    <CreateToken
                                         passLoadingStatus={
                                             setLoadingUtxosAfterSend
                                         }

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
 import { createToken } from 'utils/transactions';
-import CreateTokenForm from 'components/Tokens/CreateTokenForm';
+import CreateTokenForm from './CreateTokenForm';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
@@ -17,7 +17,7 @@ import { BN } from 'slp-mdm';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
-const Tokens = ({ passLoadingStatus }) => {
+const CreateToken = ({ passLoadingStatus }) => {
     const {
         wallet,
         apiError,
@@ -94,14 +94,14 @@ in order to pass the rendering unit test in Tokens.test.js
 status => {console.log(status)} is an arbitrary stub function
 */
 
-Tokens.defaultProps = {
+CreateToken.defaultProps = {
     passLoadingStatus: status => {
         console.log(status);
     },
 };
 
-Tokens.propTypes = {
+CreateToken.propTypes = {
     passLoadingStatus: PropTypes.func,
 };
 
-export default Tokens;
+export default CreateToken;
