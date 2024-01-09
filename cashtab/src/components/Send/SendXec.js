@@ -446,39 +446,36 @@ const SendXec = ({ passLoadingStatus }) => {
 
         // Is this valid address?
         if (!isValid) {
-            error = `Invalid address`;
-            // If valid address but token format
-            if (isValidEtokenAddress(address)) {
-                error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
-            }
-        }
-
-        // if input is invalid as an ecash address, check if it's a valid alias
-        // otherwise the invalid address error above will be displayed
-        const isAliasInput = isAliasFormat(address);
-        if (isAliasInput) {
-            // reset the invalid address check from above
-            error = false;
-
-            // extract alias without the `.xec`
-            const aliasName = address.slice(0, address.length - 4);
-
-            // retrieve the alias details for `aliasName` from alias-server
-            let aliasDetails;
-            try {
-                aliasDetails = await queryAliasServer('alias', aliasName);
-                if (!aliasDetails.address) {
-                    error =
-                        'eCash Alias does not exist or yet to receive 1 confirmation';
-                    setAliasInputAddress(false);
-                } else {
-                    // Valid address response returned
-                    setAliasInputAddress(aliasDetails.address);
+            // Check if this is an alias address
+            if (!isAliasFormat(address)) {
+                error = `Invalid address`;
+                // If valid address but token format
+                if (isValidEtokenAddress(address)) {
+                    error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
                 }
-            } catch (err) {
-                console.log(`handleAddressChange(): error retrieving alias`);
-                setAliasInputAddress(false);
-                errorNotification(null, 'Error retrieving alias info');
+            } else {
+                // extract alias without the `.xec`
+                const aliasName = address.slice(0, address.length - 4);
+
+                // retrieve the alias details for `aliasName` from alias-server
+                let aliasDetails;
+                try {
+                    aliasDetails = await queryAliasServer('alias', aliasName);
+                    if (!aliasDetails.address) {
+                        error =
+                            'eCash Alias does not exist or yet to receive 1 confirmation';
+                        setAliasInputAddress(false);
+                    } else {
+                        // Valid address response returned
+                        setAliasInputAddress(aliasDetails.address);
+                    }
+                } catch (err) {
+                    console.log(
+                        `handleAddressChange(): error retrieving alias`,
+                    );
+                    setAliasInputAddress(false);
+                    errorNotification(null, 'Error retrieving alias info');
+                }
             }
         }
 
