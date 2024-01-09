@@ -34,6 +34,13 @@ export class ChronikClientNode {
         const blockchainInfo = proto.BlockchainInfo.decode(data);
         return convertToBlockchainInfo(blockchainInfo);
     }
+
+    /** Fetch info about the current running chronik server */
+    public async chronikInfo(): Promise<ChronikInfo> {
+        const data = await this._proxyInterface.get(`/chronik-info`);
+        const chronikServerInfo = proto.ChronikInfo.decode(data);
+        return convertToChronikInfo(chronikServerInfo);
+    }
 }
 
 function convertToBlockchainInfo(
@@ -43,4 +50,18 @@ function convertToBlockchainInfo(
         tipHash: toHexRev(blockchainInfo.tipHash),
         tipHeight: blockchainInfo.tipHeight,
     };
+}
+
+function convertToChronikInfo(chronikInfo: proto.ChronikInfo): ChronikInfo {
+    if (chronikInfo.version === undefined) {
+        throw new Error('chronikInfo has no version');
+    }
+    return {
+        version: chronikInfo.version.length !== 0 ? chronikInfo.version : '',
+    };
+}
+
+/** Info about connected chronik server */
+export interface ChronikInfo {
+    version: string;
 }

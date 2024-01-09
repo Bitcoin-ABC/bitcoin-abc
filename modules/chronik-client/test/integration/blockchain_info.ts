@@ -1,8 +1,9 @@
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChildProcess, spawn } from 'node:child_process';
+import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import { ChronikClientNode } from '../../index';
+import initializeTestRunner from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -13,52 +14,7 @@ describe('/blockchain-info', () => {
     const statusEvent = new EventEmitter();
 
     before(async () => {
-        console.log('Starting test_runner');
-
-        testRunner = spawn(
-            'python3',
-            [
-                'test/functional/test_runner.py',
-                // Place the setup in the python file
-                'setup_scripts/chronik-client_blockchain_info',
-            ],
-            {
-                stdio: ['ipc'],
-                // Needs to be set dynamically (by CI ?) and the Bitcoin ABC
-                // node has to be built first.
-                cwd: process.env.BUILD_DIR || '.',
-            },
-        );
-        // Redirect stdout so we can see the messages from the test runner
-        testRunner?.stdout?.pipe(process.stdout);
-
-        testRunner.on('error', function (error) {
-            console.log('Test runner error, aborting: ' + error);
-            testRunner.kill();
-            process.exit(-1);
-        });
-
-        testRunner.on('exit', function (code, signal) {
-            // The test runner failed, make sure to propagate the error
-            if (code !== null && code !== undefined && code != 0) {
-                console.log('Test runner completed with code ' + code);
-                process.exit(code);
-            }
-
-            // The test runner was aborted by a signal, make sure to return an
-            // error
-            if (signal !== null && signal !== undefined) {
-                console.log('Test runner aborted by signal ' + signal);
-                process.exit(-2);
-            }
-
-            // In all other cases, let the test return its own status as
-            // expected
-        });
-
-        testRunner.on('spawn', function () {
-            console.log('Test runner started');
-        });
+        testRunner = initializeTestRunner('chronik-client_blockchain_info');
 
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
