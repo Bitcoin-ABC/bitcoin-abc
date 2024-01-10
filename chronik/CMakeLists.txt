@@ -3,6 +3,8 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_BITCOIN_CHRONIK_PLUGINS "Activate the plugin system for Chronik" OFF)
+
 find_package(Corrosion 0.3.0 REQUIRED)
 
 set(REQUIRED_RUST_VERSION "1.72.0")
@@ -28,6 +30,10 @@ find_program_or_fail(RUSTDOC_EXECUTABLE rustdoc
 )
 
 set(CHRONIK_CARGO_FLAGS --locked)
+
+if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+    set(CHRONIK_FEATURE_FLAGS --features plugins)
+endif()
 
 function(add_cargo_custom_target TARGET)
     add_custom_target(${TARGET}
@@ -80,7 +86,9 @@ add_crate_test_targets(chronik)
 # Compile Rust, generates chronik-lib-static
 corrosion_import_crate(
     MANIFEST_PATH "chronik-lib/Cargo.toml"
-    FLAGS ${CHRONIK_CARGO_FLAGS}
+    FLAGS
+        ${CHRONIK_CARGO_FLAGS}
+        ${CHRONIK_FEATURE_FLAGS}
 )
 
 # cxx crate generates some source files at this location
@@ -130,6 +138,13 @@ target_link_libraries(chronik
     chronik-bridge
     chronik-lib-static
 )
+
+# Plugins require us to link agains libpython
+if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+    find_package(Python COMPONENTS Interpreter Development)
+    message("Adding Python_LIBRARIES: ${Python_LIBRARIES}")
+    target_link_libraries(chronik ${Python_LIBRARIES})
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # mio crate (dependency of tokio) requires winternl.h, found in ntdll

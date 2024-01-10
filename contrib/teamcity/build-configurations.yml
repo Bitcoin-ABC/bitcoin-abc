@@ -214,6 +214,19 @@ builds:
       - - check
         - check-functional
 
+  build-chronik-plugins:
+    runOnDiffRegex:
+      - chronik/
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
+    targets:
+      - - check-crates
+      - - all
+        - install
+      - - check
+        - check-functional
+
   build-clang:
     Werror: true
     clang: true

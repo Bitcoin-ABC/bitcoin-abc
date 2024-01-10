@@ -12,6 +12,7 @@ members = [
     "chronik/chronik-http",
     "chronik/chronik-indexer",
     "chronik/chronik-lib",
+    "chronik/chronik-plugin",
     "chronik/chronik-proto",
     "chronik/chronik-util",
 ]

@@ -11,6 +11,9 @@ license = "MIT"
 # Compile to C-ABI
 crate-type = ["staticlib"]
 
+[features]
+plugins = ["chronik-plugin"]
+
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
@@ -31,6 +34,10 @@ thiserror = "1.0"
 
 # Async runtime
 tokio = { version = "1.32", features = ["sync", "rt", "rt-multi-thread"] }
+
+[dependencies.chronik-plugin]
+path = "../chronik-plugin"
+optional = true
 
 [build-dependencies]
 # Build scripts for the cxx crate
