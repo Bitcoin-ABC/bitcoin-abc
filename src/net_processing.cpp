@@ -7757,8 +7757,6 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
                                         const avalanche::ProofId &proofid,
                                         const NodeId nodeid) -> bool {
         if (isStaker) {
-            LogPrint(BCLog::AVALANCHE, "Saving remote proof %s\n",
-                     proofid.ToString());
             return g_avalanche->withPeerManager(
                 [&](avalanche::PeerManager &pm) {
                     return pm.saveRemoteProof(proofid, nodeid, true);
