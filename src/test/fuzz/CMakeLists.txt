@@ -8,13 +8,32 @@ define_property(GLOBAL
 )
 set_property(GLOBAL APPEND PROPERTY FUZZ_TARGETS bitcoin-fuzzers)
 
+include(SanitizeHelper)
+include(CheckCXXSourceCompiles)
 include(InstallationHelper)
-macro(add_fuzz_target TARGET EXE_NAME)
+function(add_fuzz_target TARGET EXE_NAME)
 	add_executable(${TARGET} EXCLUDE_FROM_ALL
 		fuzz.cpp
 		${ARGN}
 	)
 	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME ${EXE_NAME})
+
+	# Get the link options for this target and reuse them for checking if a
+	# main() is needed.
+	get_target_property(CMAKE_REQUIRED_LINK_OPTIONS ${TARGET} LINK_OPTIONS)
+
+	sanitize_c_cxx_definition("fuzz_target_builds_without_main_" ${TARGET} _builds_without_main)
+
+	# Try to compile without main to check if we need to provide one
+	check_cxx_source_compiles("
+		#include <cstdint>
+		#include <cstddef>
+		extern \"C\" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) { return 0; }
+	" ${_builds_without_main})
+
+	if(NOT ${_builds_without_main})
+		target_compile_definitions(${TARGET} PUBLIC PROVIDE_MAIN_FUNCTION)
+	endif()
 
 	target_link_libraries(${TARGET} server testutil rpcclient)
 	if(TARGET bitcoinconsensus-shared)
@@ -31,7 +50,7 @@ macro(add_fuzz_target TARGET EXE_NAME)
 		COMPONENT fuzzer
 		EXCLUDE_FROM_ALL
 	)
-endmacro()
+endfunction()
 
 function(add_regular_fuzz_targets)
 	foreach(_fuzz_test_name ${ARGN})
