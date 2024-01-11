@@ -95,6 +95,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                           <input
                             autoComplete="off"
                             className="ant-input"
+                            data-testid="destination-address-single"
                             hidden={null}
                             name="address"
                             onBlur={[Function]}
@@ -149,6 +150,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         >
           <a
             className="sc-gipzik iQaaeS"
+            data-testid="alias-address-preview"
             href="https://explorer.e.cash/address/false"
             rel="noreferrer"
             target="_blank"
@@ -192,6 +194,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                           />
                           <input
                             className="ant-input"
+                            data-testid="send-token-input"
                             hidden={null}
                             name="value"
                             onBlur={[Function]}

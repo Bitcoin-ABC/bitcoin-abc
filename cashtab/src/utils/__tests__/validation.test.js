@@ -30,7 +30,7 @@ import {
     isValidMultiSendUserInput,
     isValidOpreturnParam,
     shouldSendXecBeDisabled,
-    parseAddressForParams,
+    parseAddressInput,
 } from '../validation';
 import aliasSettings from 'config/alias';
 import { fromSatoshisToXec } from 'utils/cashMethods';
@@ -1117,15 +1117,15 @@ describe('Determining whether Send button should be disabled on SendXec screen',
     });
 });
 
-describe('Parses user input address strings with parseAddressForParams', () => {
+describe('Parses user input address strings with parseAddressInput', () => {
     const { expectedReturns } = validationVectors.parseAddressInputCases;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
         const { description, addressInput, parsedAddressInput } =
             expectedReturn;
-        it(`parseAddressForParams: ${description}`, () => {
-            expect(parseAddressForParams(addressInput)).toStrictEqual(
+        it(`parseAddressInput: ${description}`, () => {
+            expect(parseAddressInput(addressInput)).toStrictEqual(
                 parsedAddressInput,
             );
         });

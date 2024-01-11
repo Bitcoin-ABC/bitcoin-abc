@@ -7,7 +7,6 @@ import {
     message,
     Row,
     Col,
-    Alert,
     Descriptions,
     Modal,
     Button,
@@ -41,11 +40,9 @@ import {
     burnTokenNotification,
 } from 'components/Common/Notifications';
 import {
-    isValidXecAddress,
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
-    isValidAliasSendInput,
-    parseAddressForParams,
+    parseAddressInput,
 } from 'utils/validation';
 import { getTokenStats } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';
@@ -115,7 +112,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
     const previousWalletState = usePrevious(walletState);
 
     const [tokenStats, setTokenStats] = useState(null);
-    const [queryStringText, setQueryStringText] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
     const [eTokenBurnAmount, setETokenBurnAmount] = useState(new BN(1));
@@ -245,28 +241,26 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
         // validate for parameters
         // show warning that query strings are not supported
 
-        let error = false;
-        let addressString = value;
+        const parsedAddressInput = parseAddressInput(value);
+        const address = parsedAddressInput.address.value;
+        let renderedError = parsedAddressInput.address.error;
 
-        const addressInfo = parseAddressForParams(addressString);
-        const { address, queryString } = addressInfo;
-
-        // If query string,
-        // Show an alert that only amount and appConfig.ticker are supported
-        setQueryStringText(queryString);
-
-        const isValid =
-            isValidEtokenAddress(address) || isValidXecAddress(address);
-        // Is this valid address?
-        if (!isValid) {
-            error = 'Invalid address';
-        }
-
-        // if input is invalid as an ecash address, check if it's a valid alias
-        // otherwise the invalid address error above will be displayed
-        if (isValidAliasSendInput(address) === true) {
-            // reset the invalid address check from above
-            error = false;
+        if ('queryString' in parsedAddressInput) {
+            // Token sends do not support a queryString
+            // If you have one, this is the address validation error
+            renderedError = 'eToken sends do not support bip21 query strings';
+        } else if (
+            parsedAddressInput.address.error &&
+            isValidEtokenAddress(address)
+        ) {
+            // If address is a valid eToken address, no error
+            // We support sending to etoken: addresses on SendToken screen
+            renderedError = false;
+        } else if (
+            parsedAddressInput.address.isAlias &&
+            parsedAddressInput.address.error === false
+        ) {
+            // if input is a valid alias (except for server validation check)
 
             // extract alias without the `.xec`
             const aliasName = address.slice(0, address.length - 4);
@@ -276,7 +270,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             try {
                 aliasDetails = await queryAliasServer('alias', aliasName);
                 if (!aliasDetails.address) {
-                    error =
+                    renderedError =
                         'eCash Alias does not exist or yet to receive 1 confirmation';
                 } else {
                     // Valid address response returned
@@ -287,12 +281,12 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                     `handleTokenAddressChange(): error retrieving alias`,
                     err,
                 );
-                error = 'Error retrieving alias info';
-                errorNotification(null, error);
+                renderedError =
+                    'Error resolving alias at indexer, contact admin.';
             }
         }
 
-        setSendTokenAddressError(error);
+        setSendTokenAddressError(renderedError);
 
         setFormData(p => ({
             ...p,
@@ -530,6 +524,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                 />
                                 <AliasAddressPreviewLabel>
                                     <TxLink
+                                        data-testid="alias-address-preview"
                                         key={aliasInputAddress}
                                         href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                         target="_blank"
@@ -623,12 +618,6 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                     )}
                                 </div>
 
-                                {queryStringText && (
-                                    <Alert
-                                        message={`You are sending a transaction to an address including query parameters "${queryStringText}." Token transactions do not support query parameters and they will be ignored.`}
-                                        type="warning"
-                                    />
-                                )}
                                 {apiError && <ApiError />}
                             </Form>
                             {tokenStats !== null && (

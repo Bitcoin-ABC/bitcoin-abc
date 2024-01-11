@@ -779,26 +779,56 @@ export const shouldSendXecBeDisabled = (
  * opreturn - raw hex for opreturn output
  * @returns {object} addressInfo. Object with parsed params designed for use in Send.js
  */
-export function parseAddressForParams(addressString) {
+export function parseAddressInput(addressInput) {
     // Build return obj
-    const addressInfo = {
-        address: '',
-        queryString: null,
-        amount: null,
-        opreturn: null,
-        error: false,
+    const parsedAddressInput = {
+        address: { value: null, error: false, isAlias: false },
     };
+
+    // Reject non-string input
+    if (typeof addressInput !== 'string') {
+        parsedAddressInput.address.error = 'Address must be a string';
+        return parsedAddressInput;
+    }
+
     // Parse address string for parameters
-    const paramCheck = addressString.split('?');
+    const paramCheck = addressInput.split('?');
 
     let cleanAddress = paramCheck[0];
-    addressInfo.address = cleanAddress;
+
+    // Set cleanAddress to addressInfo.address.value even if validation fails
+    // If there is an error, this will be set later
+    parsedAddressInput.address.value = cleanAddress;
+
+    // Validate address
+    const isValidAddr = cashaddr.isValidCashAddress(cleanAddress, 'ecash');
+
+    // Is this valid address?
+    if (!isValidAddr) {
+        // Check if this is an alias address
+        if (isValidAliasSendInput(cleanAddress) !== true) {
+            if (meetsAliasSpec(cleanAddress) === true) {
+                // If it would be a valid alias except for the missing '.xec', this is a useful validation error
+                parsedAddressInput.address.error = `Aliases must end with '.xec'`;
+                parsedAddressInput.address.isAlias = true;
+            } else if (isValidEtokenAddress(cleanAddress)) {
+                // If it is, though, a valid eToken address
+                parsedAddressInput.address.error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
+            } else {
+                // If your address is not a valid address and not a valid alias format
+                parsedAddressInput.address.error = `Invalid address`;
+            }
+        } else {
+            parsedAddressInput.address.isAlias = true;
+        }
+    }
 
     // Check for parameters
-    // only the amount param is currently supported
     if (paramCheck.length > 1) {
+        // add other keys
+
         const queryString = paramCheck[1];
-        addressInfo.queryString = queryString;
+        parsedAddressInput.queryString = { value: queryString, error: false };
 
         // Note that URLSearchParams is not an array
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
@@ -810,8 +840,10 @@ export function parseAddressForParams(addressString) {
             Array.from(addrParams.keys()).length;
 
         if (duplicatedParams) {
-            addressInfo.error = `Supported bip21 params may not appear more than once`;
-            return addressInfo;
+            // In this case, we can't pass any values back for supported params,
+            // without changing the shape of addressInfo
+            parsedAddressInput.queryString.error = `bip21 parameters may not appear more than once`;
+            return parsedAddressInput;
         }
 
         const supportedParams = ['amount', 'opreturn'];
@@ -820,31 +852,33 @@ export function parseAddressForParams(addressString) {
         for (const paramKeyValue of addrParams) {
             const paramKey = paramKeyValue[0];
             if (!supportedParams.includes(paramKey)) {
-                // Any unsupported param results in an error
-                addressInfo.error = `Unsupported param "${paramKey}"`;
-                return addressInfo;
+                // queryString error
+                // Keep parsing for other params though
+                parsedAddressInput.queryString.error = `Unsupported param "${paramKey}"`;
             }
             if (paramKey === 'amount') {
                 // Handle Cashtab-supported bip21 param 'amount'
                 const amount = paramKeyValue[1];
+                parsedAddressInput.amount = { value: amount, error: false };
                 if (!isValidXecSendAmount(amount)) {
                     // amount must be a valid xec send amount
-                    addressInfo.error = `Invalid XEC send amount "${amount}"`;
-                    return addressInfo;
+                    parsedAddressInput.amount.error = `Invalid XEC send amount "${amount}"`;
                 }
-                addressInfo.amount = amount;
             }
             if (paramKey === 'opreturn') {
                 // Handle Cashtab-supported bip21 param 'opreturn'
                 const opreturnParam = paramKeyValue[1];
+                parsedAddressInput.opreturn = {
+                    value: opreturnParam,
+                    error: false,
+                };
                 if (!isValidOpreturnParam(opreturnParam)) {
                     // opreturn must be valid
-                    addressInfo.error = `Invalid opreturn param "${opreturnParam}"`;
-                    return addressInfo;
+                    parsedAddressInput.opreturn.error = `Invalid opreturn param "${opreturnParam}"`;
                 }
-                addressInfo.opreturn = opreturnParam;
             }
         }
     }
-    return addressInfo;
+
+    return parsedAddressInput;
 }

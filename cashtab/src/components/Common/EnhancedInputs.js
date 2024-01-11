@@ -211,6 +211,7 @@ export const SendXecInput = ({
                     <Input
                         style={{ width: '60%', textAlign: 'left' }}
                         type="number"
+                        data-testid="send-xec-input"
                         /*event.target.blur() is used as event.preventDefault() 
                         will not work on passive targets such as onWheel */
                         onWheel={event => event.target.blur()}
@@ -267,6 +268,7 @@ export const DestinationAmount = ({ onMax, inputProps, ...otherProps }) => {
                     /*event.target.blur() is used as event.preventDefault() 
                         will not work on passive targets such as onWheel */
                     onWheel={event => event.target.blur()}
+                    data-testid="send-token-input"
                     prefix={
                         <img
                             src={appConfig.logo}
@@ -322,6 +324,7 @@ export const DestinationAddressSingle = ({
                 <Input
                     prefix={<ThemedWalletOutlined />}
                     autoComplete="off"
+                    data-testid="destination-address-single"
                     addonAfter={
                         <ScanQRCode
                             loadWithCameraOpen={loadWithCameraOpen}

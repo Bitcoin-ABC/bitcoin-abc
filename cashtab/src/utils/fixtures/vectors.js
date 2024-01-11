@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 // Test vectors for validation functions
+import appConfig from 'config/app';
 
 export const validationVectors = {
     shouldDisableXecSend: {
@@ -266,118 +267,16 @@ export const validationVectors = {
     },
     parseAddressInputCases: {
         expectedReturns: [
+            // address only
             {
-                description: 'Valid querystring with no-decimal amount param',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500000',
+                description: 'Blank string',
+                addressInput: '',
                 parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: '500000',
-                    opreturn: null,
-                    error: false,
-                    queryString: 'amount=500000',
-                },
-            },
-            {
-                description: 'Valid querystring with decimals in amount param',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: '123.45',
-                    opreturn: null,
-                    error: false,
-                    queryString: 'amount=123.45',
-                },
-            },
-            {
-                description: 'Invalid queryString, repeated param',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45&amount=678.9',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: `Supported bip21 params may not appear more than once`,
-                    queryString: 'amount=123.45&amount=678.9',
-                },
-            },
-            {
-                description: 'Valid querystring with opreturn param',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn:
-                        '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                    error: false,
-                    queryString:
-                        'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                },
-            },
-            {
-                description: 'Invalid opreturn param',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: `Invalid opreturn param "notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d"`,
-                    queryString:
-                        'opreturn=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                },
-            },
-            {
-                description: 'Valid amount and opreturn params',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: '500',
-                    opreturn:
-                        '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                    error: false,
-                    queryString:
-                        'amount=500&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                },
-            },
-            {
-                description: 'Repeated opreturn param',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: `Supported bip21 params may not appear more than once`,
-                    queryString:
-                        'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                },
-            },
-            {
-                description: 'Invalid amount param (too many decimal places)',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.456',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: `Invalid XEC send amount "123.456"`,
-                    queryString: 'amount=123.456',
-                },
-            },
-            {
-                description: 'invalid querystring (unsupported params)',
-                addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?*&@^&%@amount=-500000',
-                parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: `Unsupported param "*"`,
-                    queryString: '*&@^&%@amount=-500000',
+                    address: {
+                        value: '',
+                        error: 'Invalid address',
+                        isAlias: false,
+                    },
                 },
             },
             {
@@ -385,22 +284,281 @@ export const validationVectors = {
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                 parsedAddressInput: {
-                    address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: false,
-                    queryString: null,
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
                 },
             },
             {
                 description: 'prefixless address input',
                 addressInput: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                 parsedAddressInput: {
-                    address: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    amount: null,
-                    opreturn: null,
-                    error: false,
-                    queryString: null,
+                    address: {
+                        value: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                },
+            },
+            // alias only
+            {
+                description: 'alias only and no querystring',
+                addressInput: 'chicken.xec',
+                parsedAddressInput: {
+                    address: {
+                        value: 'chicken.xec',
+                        error: false,
+                        isAlias: true,
+                    },
+                },
+            },
+            {
+                description: 'alias missing .xec suffix',
+                addressInput: 'chicken',
+                parsedAddressInput: {
+                    address: {
+                        value: 'chicken',
+                        error: `Aliases must end with '.xec'`,
+                        isAlias: true,
+                    },
+                },
+            },
+            // amount param only
+            {
+                description:
+                    'Valid address with valid amount param, no decimals',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500000',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '500000', error: false },
+                    queryString: { value: 'amount=500000', error: false },
+                },
+            },
+            {
+                description:
+                    'Valid address with valid amount param, with decimals',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '123.45', error: false },
+                    queryString: { value: 'amount=123.45', error: false },
+                },
+            },
+            {
+                description: 'Invalid address with valid amount param',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfg?amount=500000',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfg',
+                        error: 'Invalid address',
+                        isAlias: false,
+                    },
+                    amount: { value: '500000', error: false },
+                    queryString: { value: 'amount=500000', error: false },
+                },
+            },
+            {
+                description: 'etoken address with valid amount param',
+                addressInput:
+                    'etoken:qq9h6d0a5q65fgywv4ry64x04ep906mdkufhx2swv3?amount=500000',
+                parsedAddressInput: {
+                    address: {
+                        value: 'etoken:qq9h6d0a5q65fgywv4ry64x04ep906mdkufhx2swv3',
+                        error: `eToken addresses are not supported for ${appConfig.ticker} sends`,
+                        isAlias: false,
+                    },
+                    amount: { value: '500000', error: false },
+                    queryString: { value: 'amount=500000', error: false },
+                },
+            },
+            {
+                description:
+                    'Valid address with invalid amount param (too many decimal places)',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.456',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: {
+                        value: '123.456',
+                        error: `Invalid XEC send amount "123.456"`,
+                    },
+                    queryString: { value: 'amount=123.456', error: false },
+                },
+            },
+            {
+                description: 'Valid alias with valid amount param',
+                addressInput: 'chicken.xec?amount=125',
+                parsedAddressInput: {
+                    address: {
+                        value: 'chicken.xec',
+                        error: false,
+                        isAlias: true,
+                    },
+                    amount: { value: '125', error: false },
+                    queryString: { value: 'amount=125', error: false },
+                },
+            },
+            {
+                description: 'Invalid alias with valid amount param',
+                addressInput: 'chicken?amount=125',
+                parsedAddressInput: {
+                    address: {
+                        value: 'chicken',
+                        error: `Aliases must end with '.xec'`,
+                        isAlias: true,
+                    },
+                    amount: { value: '125', error: false },
+                    queryString: { value: 'amount=125', error: false },
+                },
+            },
+            // opreturn param only
+            {
+                description: 'Valid address with valid opreturn param',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    opreturn: {
+                        value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                    queryString: {
+                        value: 'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description: 'Valid alias with valid opreturn param',
+                addressInput:
+                    'chicken.xec?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                parsedAddressInput: {
+                    address: {
+                        value: 'chicken.xec',
+                        error: false,
+                        isAlias: true,
+                    },
+                    opreturn: {
+                        value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                    queryString: {
+                        value: 'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                },
+            },
+            {
+                description: 'Valid address with invalid opreturn param',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    opreturn: {
+                        value: 'notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: `Invalid opreturn param "notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d"`,
+                    },
+                    queryString: {
+                        value: 'opreturn=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                },
+            },
+            // Both opreturn and amount params
+            {
+                description: 'Valid amount and opreturn params',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: { value: '500', error: false },
+                    opreturn: {
+                        value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                    queryString: {
+                        value: 'amount=500&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: false,
+                    },
+                },
+            },
+
+            {
+                description: 'invalid querystring (unsupported params)',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?*&@^&%@amount=-500000',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    queryString: {
+                        value: '*&@^&%@amount=-500000',
+                        error: `Unsupported param "%@amount"`,
+                    },
+                },
+            },
+            // Querystring errors where no params can be returned
+            {
+                description: 'Invalid queryString, repeated param',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45&amount=678.9',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    queryString: {
+                        value: 'amount=123.45&amount=678.9',
+                        error: 'bip21 parameters may not appear more than once',
+                    },
+                },
+            },
+            {
+                description: 'Repeated opreturn param',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    queryString: {
+                        value: 'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        error: `bip21 parameters may not appear more than once`,
+                    },
                 },
             },
         ],

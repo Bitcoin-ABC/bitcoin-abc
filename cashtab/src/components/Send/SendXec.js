@@ -28,12 +28,9 @@ import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
     shouldRejectAmountInput,
-    isValidXecAddress,
-    isValidEtokenAddress,
-    isValidAliasSendInput,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
-    parseAddressForParams,
+    parseAddressInput,
 } from 'utils/validation';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -151,6 +148,10 @@ const PanelHeaderCtn = styled.div`
     gap: 1rem;
 `;
 
+const AmountSetByBip21Alert = styled.span`
+    color: ${props => props.theme.eCashPurple};
+`;
+
 const SendXec = ({ passLoadingStatus }) => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
     // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
@@ -195,12 +196,14 @@ const SendXec = ({ passLoadingStatus }) => {
         address: '',
         airdropTokenId: '',
     });
-    const [queryStringText, setQueryStringText] = useState(null);
     const [sendAddressError, setSendAddressError] = useState(false);
     const [sendAmountError, setSendAmountError] = useState(false);
     const [isMsgError, setIsMsgError] = useState(false);
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
+    const [parsedAddressInput, setParsedAddressInput] = useState(
+        parseAddressInput(''),
+    );
 
     // Support cashtab button from web pages
     const [txInfoFromUrl, setTxInfoFromUrl] = useState(false);
@@ -229,12 +232,11 @@ const SendXec = ({ passLoadingStatus }) => {
         });
         setOpReturnMsg(''); // OP_RETURN message has its own state field
         setAliasInputAddress(false); // clear alias address preview
+        setParsedAddressInput(parseAddressInput(''));
     };
 
     const checkForConfirmationBeforeSendXec = () => {
-        if (queryStringText !== null) {
-            setIsModalVisible(true);
-        } else if (cashtabSettings.sendModal) {
+        if (cashtabSettings.sendModal) {
             setIsModalVisible(cashtabSettings.sendModal);
         } else {
             // if the user does not have the send confirmation enabled in settings then send directly
@@ -455,57 +457,51 @@ const SendXec = ({ passLoadingStatus }) => {
     const handleAddressChange = async e => {
         setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
-        let error = false;
-        let addressString = value;
-        // parse address for parameters
-        const addressInfo = parseAddressForParams(addressString);
-        const { address, queryString, amount } = addressInfo;
+        const parsedAddressInput = parseAddressInput(value);
 
-        // validate address
-        const isValid = isValidXecAddress(addressInfo.address);
+        // Set in state as various param outputs determine app rendering
+        // For example, a valid amount param should disable user amount input
+        setParsedAddressInput(parsedAddressInput);
 
-        // Store query string in state (disable currency selection if loaded from query string)
-        setQueryStringText(queryString);
+        const address = parsedAddressInput.address.value;
+        let renderedSendToError = parsedAddressInput.address.error;
+        if (
+            'queryString' in parsedAddressInput &&
+            typeof parsedAddressInput.queryString.error === 'string'
+        ) {
+            // If you have a bad queryString, this should be the rendered error
+            renderedSendToError = parsedAddressInput.queryString.error;
+        } else if (
+            parsedAddressInput.address.isAlias &&
+            parsedAddressInput.address.error === false
+        ) {
+            // If we have a valid alias input, check the server for full validation
+            // extract alias without the `.xec`
+            const aliasName = address.slice(0, address.length - 4);
 
-        // Is this valid address?
-        if (!isValid) {
-            // Check if this is an alias address
-            if (isValidAliasSendInput(address) !== true) {
-                error = `Invalid address`;
-                // If valid address but token format
-                if (isValidEtokenAddress(address)) {
-                    error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
-                }
-            } else {
-                // extract alias without the `.xec`
-                const aliasName = address.slice(0, address.length - 4);
-
-                // retrieve the alias details for `aliasName` from alias-server
-                let aliasDetails;
-                try {
-                    aliasDetails = await queryAliasServer('alias', aliasName);
-                    if (!aliasDetails.address) {
-                        error =
-                            'eCash Alias does not exist or yet to receive 1 confirmation';
-                        setAliasInputAddress(false);
-                    } else {
-                        // Valid address response returned
-                        setAliasInputAddress(aliasDetails.address);
-                    }
-                } catch (err) {
-                    console.log(
-                        `handleAddressChange(): error retrieving alias`,
-                    );
+            // retrieve the alias details for `aliasName` from alias-server
+            let aliasDetails;
+            try {
+                aliasDetails = await queryAliasServer('alias', aliasName);
+                if (!aliasDetails.address) {
+                    renderedSendToError =
+                        'eCash Alias does not exist or yet to receive 1 confirmation';
                     setAliasInputAddress(false);
-                    errorNotification(null, 'Error retrieving alias info');
+                } else {
+                    // Valid address response returned
+                    setAliasInputAddress(aliasDetails.address);
                 }
+            } catch (err) {
+                setAliasInputAddress(false);
+                renderedSendToError =
+                    'Error resolving alias at indexer, contact admin.';
             }
         }
 
-        setSendAddressError(error);
+        setSendAddressError(renderedSendToError);
 
         // Set amount if it's in the query string
-        if (amount !== null) {
+        if ('amount' in parsedAddressInput) {
             // Set currency to non-fiat
             setSelectedCurrency(appConfig.ticker);
 
@@ -513,13 +509,13 @@ const SendXec = ({ passLoadingStatus }) => {
             let amountObj = {
                 target: {
                     name: 'value',
-                    value: amount,
+                    value: parsedAddressInput.amount.value,
                 },
             };
             handleAmountChange(amountObj);
             setFormData({
                 ...formData,
-                value: amount,
+                value: parsedAddressInput.amount.value,
             });
         }
 
@@ -692,14 +688,7 @@ const SendXec = ({ passLoadingStatus }) => {
                         </>
                     ) : (
                         `Are you sure you want to send ${formData.value}${' '}
-                  ${selectedCurrency} to ${
-                            queryStringText === null
-                                ? formData.address
-                                : formData.address.slice(
-                                      0,
-                                      formData.address.indexOf('?'),
-                                  )
-                        }?`
+                  ${selectedCurrency} to ${parsedAddressInput.address.value}?`
                     )}
                 </p>
             </Modal>
@@ -749,25 +738,27 @@ const SendXec = ({ passLoadingStatus }) => {
                             <SendAddressHeader>
                                 {' '}
                                 <FormLabel>Send to</FormLabel>
-                                {!txInfoFromUrl && (
-                                    <TextAreaLabel>
-                                        Multiple Recipients:&nbsp;&nbsp;
-                                        <Switch
-                                            defaultunchecked="true"
-                                            checked={isOneToManyXECSend}
-                                            onChange={() => {
-                                                setIsOneToManyXECSend(
-                                                    !isOneToManyXECSend,
-                                                );
-                                                // Do not persist multisend input to single send and vice versa
-                                                clearInputForms();
-                                            }}
-                                            style={{
-                                                marginBottom: '7px',
-                                            }}
-                                        />
-                                    </TextAreaLabel>
-                                )}
+                                {!txInfoFromUrl &&
+                                    !('queryString' in parsedAddressInput) && (
+                                        <TextAreaLabel>
+                                            Multiple Recipients:&nbsp;&nbsp;
+                                            <Switch
+                                                data-testid="multiple-recipients-switch"
+                                                defaultunchecked="true"
+                                                checked={isOneToManyXECSend}
+                                                onChange={() => {
+                                                    setIsOneToManyXECSend(
+                                                        !isOneToManyXECSend,
+                                                    );
+                                                    // Do not persist multisend input to single send and vice versa
+                                                    clearInputForms();
+                                                }}
+                                                style={{
+                                                    marginBottom: '7px',
+                                                }}
+                                            />
+                                        </TextAreaLabel>
+                                    )}
                             </SendAddressHeader>
                             <ExpandingAddressInputCtn open={isOneToManyXECSend}>
                                 <SendInputCtn>
@@ -815,6 +806,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                         <AliasAddressPreviewLabel>
                                             <TxLink
                                                 key={aliasInputAddress}
+                                                data-testid="alias-address-preview"
                                                 href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                                 target="_blank"
                                                 rel="noreferrer"
@@ -828,7 +820,18 @@ const SendXec = ({ passLoadingStatus }) => {
                                                     )}`}
                                             </TxLink>
                                         </AliasAddressPreviewLabel>
-                                        <FormLabel>Amount</FormLabel>
+                                        <FormLabel>
+                                            Amount{' '}
+                                            {'amount' in parsedAddressInput &&
+                                                parsedAddressInput.amount
+                                                    .value !== null && (
+                                                    <AmountSetByBip21Alert data-testid="bip-alert">
+                                                        {' '}
+                                                        (set by BIP21 query
+                                                        string)
+                                                    </AmountSetByBip21Alert>
+                                                )}
+                                        </FormLabel>
                                         <SendXecInput
                                             activeFiatCode={
                                                 cashtabSettings &&
@@ -860,12 +863,15 @@ const SendXec = ({ passLoadingStatus }) => {
                                                     priceApiError ||
                                                     (txInfoFromUrl !== false &&
                                                         txInfoFromUrl.value !==
-                                                            'null'),
+                                                            'null') ||
+                                                    'amount' in
+                                                        parsedAddressInput,
                                             }}
                                             selectProps={{
                                                 value: selectedCurrency,
                                                 disabled:
-                                                    queryStringText !== null ||
+                                                    'amount' in
+                                                        parsedAddressInput ||
                                                     txInfoFromUrl,
                                                 onChange: e =>
                                                     handleSelectedCurrencyChange(
@@ -936,7 +942,9 @@ const SendXec = ({ passLoadingStatus }) => {
                                 }}
                             >
                                 {disableSendButton ? (
-                                    <DisabledButton>Send</DisabledButton>
+                                    <DisabledButton data-testid="disabled-send">
+                                        Send
+                                    </DisabledButton>
                                 ) : (
                                     <PrimaryButton
                                         onClick={() => {
