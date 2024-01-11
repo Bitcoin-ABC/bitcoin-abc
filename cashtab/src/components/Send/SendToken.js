@@ -31,7 +31,6 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
-import { parseAddressForParams } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import { sendToken, burnToken } from 'utils/transactions';
@@ -46,6 +45,7 @@ import {
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
     isAliasFormat,
+    parseAddressForParams,
 } from 'utils/validation';
 import { getTokenStats } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';

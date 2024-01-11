@@ -19,11 +19,7 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import {
-    parseAddressForParams,
-    sumOneToManyXec,
-    toSatoshis,
-} from 'utils/cashMethods';
+import { sumOneToManyXec, toSatoshis } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
@@ -33,6 +29,7 @@ import {
     isAliasFormat,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
+    parseAddressForParams,
 } from 'utils/validation';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';

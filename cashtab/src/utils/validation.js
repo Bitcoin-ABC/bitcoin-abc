@@ -739,3 +739,82 @@ export const shouldSendXecBeDisabled = (
             (isNaN(formData.value) || formData.value === ''))
     ); // Value is blank or NaN and is expected to not be so
 };
+
+/**
+ * Parse an address string with bip21 params for use in Cashtab
+ * @param {string} addressString User input into the send field of Cashtab.
+ * Must be validated for bip21 and Cashtab supported features
+ * For now, Cashtab supports only
+ * amount - amount to be sent in XEC
+ * opreturn - raw hex for opreturn output
+ * @returns {object} addressInfo. Object with parsed params designed for use in Send.js
+ */
+export function parseAddressForParams(addressString) {
+    // Build return obj
+    const addressInfo = {
+        address: '',
+        queryString: null,
+        amount: null,
+        opreturn: null,
+        error: false,
+    };
+    // Parse address string for parameters
+    const paramCheck = addressString.split('?');
+
+    let cleanAddress = paramCheck[0];
+    addressInfo.address = cleanAddress;
+
+    // Check for parameters
+    // only the amount param is currently supported
+    if (paramCheck.length > 1) {
+        const queryString = paramCheck[1];
+        addressInfo.queryString = queryString;
+
+        // Note that URLSearchParams is not an array
+        // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+        const addrParams = new URLSearchParams(queryString);
+
+        // Check for duplicated params
+        const duplicatedParams =
+            new Set(addrParams.keys()).size !==
+            Array.from(addrParams.keys()).length;
+
+        if (duplicatedParams) {
+            addressInfo.error = `Supported bip21 params may not appear more than once`;
+            return addressInfo;
+        }
+
+        const supportedParams = ['amount', 'opreturn'];
+
+        // Iterate over params to check for valid and/or invalid params
+        for (const paramKeyValue of addrParams) {
+            const paramKey = paramKeyValue[0];
+            if (!supportedParams.includes(paramKey)) {
+                // Any unsupported param results in an error
+                addressInfo.error = `Unsupported param "${paramKey}"`;
+                return addressInfo;
+            }
+            if (paramKey === 'amount') {
+                // Handle Cashtab-supported bip21 param 'amount'
+                const amount = paramKeyValue[1];
+                if (!isValidXecSendAmount(amount)) {
+                    // amount must be a valid xec send amount
+                    addressInfo.error = `Invalid XEC send amount "${amount}"`;
+                    return addressInfo;
+                }
+                addressInfo.amount = amount;
+            }
+            if (paramKey === 'opreturn') {
+                // Handle Cashtab-supported bip21 param 'opreturn'
+                const opreturnParam = paramKeyValue[1];
+                if (!isValidOpreturnParam(opreturnParam)) {
+                    // opreturn must be valid
+                    addressInfo.error = `Invalid opreturn param "${opreturnParam}"`;
+                    return addressInfo;
+                }
+                addressInfo.opreturn = opreturnParam;
+            }
+        }
+    }
+    return addressInfo;
+}
