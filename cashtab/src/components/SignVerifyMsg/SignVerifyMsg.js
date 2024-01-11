@@ -29,8 +29,11 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
-import { parseAddressForParams } from 'utils/cashMethods';
-import { isValidXecAddress, isValidEtokenAddress } from 'utils/validation';
+import {
+    isValidXecAddress,
+    isValidEtokenAddress,
+    isAliasFormat,
+} from 'utils/validation';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
@@ -210,27 +213,26 @@ const SignVerifyMsg = () => {
     const handleMessageVerificationAddrChange = e => {
         const { value } = e.target;
         let error = false;
-        let addressString = value;
-        // parse address for parameters
-        const addressInfo = parseAddressForParams(addressString);
-        // validate address
-        const isValid = isValidXecAddress(addressInfo.address);
 
-        const { address } = addressInfo;
+        // validate address
+        const isValid = isValidXecAddress(value);
 
         // Is this valid address?
         if (!isValid) {
             error = `Invalid ${appConfig.ticker} address`;
             // If valid address but token format
-            if (isValidEtokenAddress(address)) {
+            if (isValidEtokenAddress(value)) {
                 error = `eToken addresses are not supported for signature verifications`;
+            }
+            if (isAliasFormat(value)) {
+                error = `aliases not supported for signature verifications`;
             }
             setMessageVerificationAddrIsValid(false);
         } else {
             setMessageVerificationAddrIsValid(true);
         }
         setMessageVerificationAddrError(error);
-        setMessageVerificationAddr(address);
+        setMessageVerificationAddr(value);
     };
 
     return (
