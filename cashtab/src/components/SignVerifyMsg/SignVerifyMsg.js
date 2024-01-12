@@ -32,7 +32,7 @@ import { PlusSquareOutlined } from '@ant-design/icons';
 import {
     isValidXecAddress,
     isValidEtokenAddress,
-    isAliasFormat,
+    isValidAliasSendInput,
 } from 'utils/validation';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
@@ -224,7 +224,7 @@ const SignVerifyMsg = () => {
             if (isValidEtokenAddress(value)) {
                 error = `eToken addresses are not supported for signature verifications`;
             }
-            if (isAliasFormat(value)) {
+            if (isValidAliasSendInput(value) === true) {
                 error = `aliases not supported for signature verifications`;
             }
             setMessageVerificationAddrIsValid(false);

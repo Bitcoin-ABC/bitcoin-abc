@@ -44,7 +44,7 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
-    isAliasFormat,
+    isValidAliasSendInput,
     parseAddressForParams,
 } from 'utils/validation';
 import { getTokenStats } from 'utils/chronik';
@@ -264,8 +264,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
 
         // if input is invalid as an ecash address, check if it's a valid alias
         // otherwise the invalid address error above will be displayed
-        const isAliasInput = isAliasFormat(address);
-        if (isAliasInput) {
+        if (isValidAliasSendInput(address) === true) {
             // reset the invalid address check from above
             error = false;
 

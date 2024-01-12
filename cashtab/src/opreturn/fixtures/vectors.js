@@ -146,7 +146,8 @@ export const opReturnVectors = {
                 description: 'Invalid alias',
                 alias: 'test_WITH_badchars',
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                errorMsg: 'Invalid alias "test_WITH_badchars"',
+                errorMsg:
+                    'Invalid alias "test_WITH_badchars": Alias may only contain lowercase characters a-z and 0-9',
             },
             {
                 description: 'Invalid address',

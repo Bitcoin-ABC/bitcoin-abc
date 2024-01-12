@@ -7,7 +7,7 @@ import cashaddr from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
 import {
     isValidTokenId,
-    isValidAlias,
+    meetsAliasSpec,
     isValidOpreturnParam,
 } from 'utils/validation';
 
@@ -130,8 +130,9 @@ export const getAirdropTargetOutput = (tokenId, airdropMsg = '') => {
  * @returns {object} targetOutput ready for transaction building, see sendXec function at src/transactions
  */
 export const getAliasTargetOutput = (alias, address) => {
-    if (!isValidAlias(alias)) {
-        throw new Error(`Invalid alias "${alias}"`);
+    const aliasMeetsSpec = meetsAliasSpec(alias);
+    if (meetsAliasSpec(alias) !== true) {
+        throw new Error(`Invalid alias "${alias}": ${aliasMeetsSpec}`);
     }
 
     let script = initializeScript();

@@ -12,6 +12,8 @@ import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
+import aliasSettings from 'config/alias';
+import { getAliasByteCount } from 'opreturn';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -37,7 +39,7 @@ export const isValidRecipient = async value => {
         return true;
     }
     // If not a valid XEC address, check if it's an alias
-    if (!isAliasFormat(value)) {
+    if (isValidAliasSendInput(value) !== true) {
         return false;
     }
     // extract alias without the `.xec`
@@ -52,19 +54,47 @@ export const isValidRecipient = async value => {
 };
 
 /**
- * Is input a valid alias
+ * Does a given string meet the spec of a valid ecash alias
+ * See spec a doc/standards/ecash-alias.md
+ * Note that an alias is only "valid" if it has been registered
+ * So here, we are only testing spec compliance
  * @param {string} inputStr
- * @returns {bool} false if alias is not alphanumeric or string
+ * @returns {true | string} true if isValid, string for reason why if not
  */
-export const isValidAlias = inputStr => {
+export const meetsAliasSpec = inputStr => {
     if (typeof inputStr !== 'string') {
-        return false;
+        return 'Alias input must be a string';
     }
-    return /^[a-z0-9]+$/.test(inputStr);
+    if (!/^[a-z0-9]+$/.test(inputStr)) {
+        return 'Alias may only contain lowercase characters a-z and 0-9';
+    }
+    const aliasByteCount = getAliasByteCount(inputStr);
+    if (aliasByteCount > aliasSettings.aliasMaxLength) {
+        return `Invalid bytecount ${aliasByteCount}. Alias be 1-21 bytes.`;
+    }
+    return true;
 };
 
-export const isAliasFormat = address => {
-    return address.slice(-4) === '.xec';
+/**
+ * Validate user input of an alias for cases that require the .xec suffix
+ * Note this only validates the format according to spec and requirements
+ * Must validate with indexer for associated ecash address before a tx is broadcast
+ * @param {string} sendToAliasInput
+ * @returns {true | string}
+ */
+export const isValidAliasSendInput = sendToAliasInput => {
+    // To send to an alias, a user must include the '.xec' extension
+    // This is to prevent confusion with alias platforms on other crypto networks
+    const aliasParts = sendToAliasInput.split('.');
+    const aliasName = aliasParts[0];
+    const aliasMeetsSpec = meetsAliasSpec(aliasName);
+    if (aliasMeetsSpec !== true) {
+        return aliasMeetsSpec;
+    }
+    if (aliasParts.length !== 2 || aliasParts[1] !== 'xec') {
+        return `Must include '.xec' suffix when sending to an eCash alias`;
+    }
+    return true;
 };
 
 export const validateMnemonic = (

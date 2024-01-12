@@ -22,7 +22,8 @@ import {
     parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
-    isValidAlias,
+    meetsAliasSpec,
+    isValidAliasSendInput,
     isProbablyNotAScam,
     isValidRecipient,
     isValidSideshiftObj,
@@ -1131,14 +1132,26 @@ describe('Parses user input address strings with parseAddressForParams', () => {
     });
 });
 
-describe('Validates user input for aliaes to be created (without .xec extension)', () => {
-    const { expectedReturns } = validationVectors.validAliasInputCases;
+describe('Returns true if a given input meets alias spec or expected error msg if it does not', () => {
+    const { expectedReturns } = validationVectors.meetsAliasSpecInputCases;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
-        const { description, aliasCreateInput, isValid } = expectedReturn;
-        it(`isValidAlias: ${description}`, () => {
-            expect(isValidAlias(aliasCreateInput)).toStrictEqual(isValid);
+        const { description, inputStr, response } = expectedReturn;
+        it(`meetsAliasSpec: ${description}`, () => {
+            expect(meetsAliasSpec(inputStr)).toBe(response);
+        });
+    });
+});
+
+describe('Validates user alias input on Send and SendToken screens', () => {
+    const { expectedReturns } = validationVectors.validAliasSendInputCases;
+
+    // Successfully created targetOutputs
+    expectedReturns.forEach(expectedReturn => {
+        const { description, sendToAliasInput, response } = expectedReturn;
+        it(`isValidAliasSendInput: ${description}`, () => {
+            expect(isValidAliasSendInput(sendToAliasInput)).toBe(response);
         });
     });
 });

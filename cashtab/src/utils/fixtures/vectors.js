@@ -149,56 +149,118 @@ export const validationVectors = {
             },
         ],
     },
-    validAliasInputCases: {
+    meetsAliasSpecInputCases: {
         expectedReturns: [
             {
                 description:
                     'returns true for a valid lowercase alphanumeric input',
-                aliasCreateInput: 'jasdf3873',
-                isValid: true,
+                inputStr: 'jasdf3873',
+                response: true,
             },
             {
                 description:
-                    'returns false for an uppercase alphanumeric input',
-                aliasCreateInput: 'jasDf3873',
-                isValid: false,
-            },
-            {
-                description: 'returns false for a non-english input',
-                aliasCreateInput: 'Glück',
-                isValid: false,
-            },
-            {
-                description: 'returns false for an emoji input',
-                aliasCreateInput: '😉',
-                isValid: false,
-            },
-            {
-                description: 'returns false for a special character input',
-                aliasCreateInput: '( ͡° ͜ʖ ͡°)',
-                isValid: false,
-            },
-            {
-                description: 'returns false for an empty string',
-                aliasCreateInput: '​',
-                isValid: false,
+                    'returns expected error if input contains uppercase char',
+                inputStr: 'jasDf3873',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
             },
             {
                 description:
-                    'returns false for a valid alphanumeric input with spaces',
-                aliasCreateInput: '​jasdf3873',
-                isValid: false,
+                    'returns expected error if input contains special char',
+                inputStr: 'Glück',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
+            },
+            {
+                description: 'returns expected error if input contains emoji',
+                inputStr: '😉',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
             },
             {
                 description:
-                    'returns false for a valid alphanumeric input with symbols',
-                aliasCreateInput: '​jasdf3873@#',
-                isValid: false,
+                    'returns expected error if input contains other special characters',
+                inputStr: '( ͡° ͜ʖ ͡°)',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
             },
             {
-                description: 'returns false for non-string input',
-                aliasCreateInput: { testAlias: 'string at key' },
-                isValid: false,
+                description:
+                    'returns expected error if input is an empty string',
+                inputStr: '​',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
+            },
+            {
+                description:
+                    'returns expected error if input contains an empty space',
+                inputStr: '​jasdf3873',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
+            },
+            {
+                description: 'returns expected error if input contains symbols',
+                inputStr: '​jasdf3873@#',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
+            },
+            {
+                description: 'returns expected error if input is not a string',
+                inputStr: { testAlias: 'string at key' },
+                response: 'Alias input must be a string',
+            },
+            {
+                description:
+                    'returns expected error if input contains underscores',
+                inputStr: 'test_WITH_badchars',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
+            },
+            {
+                description:
+                    'returns expected error if exceeds byte restriction',
+                inputStr: '0123456789012345678901',
+                response: `Invalid bytecount 22. Alias be 1-21 bytes.`,
+            },
+            {
+                description: 'returns true for an alias of max bytecount',
+                inputStr: '012345678901234567890',
+                response: true,
+            },
+        ],
+    },
+    validAliasSendInputCases: {
+        expectedReturns: [
+            {
+                description: 'Valid alias send input',
+                sendToAliasInput: 'chicken.xec',
+                response: true,
+            },
+            {
+                description: 'Valid alias missing prefix',
+                sendToAliasInput: 'chicken',
+                response: `Must include '.xec' suffix when sending to an eCash alias`,
+            },
+            {
+                description: 'Valid alias with double suffix',
+                sendToAliasInput: 'chicken.xec.xec',
+                response: `Must include '.xec' suffix when sending to an eCash alias`,
+            },
+            {
+                description: 'Valid alias with bad suffix',
+                sendToAliasInput: 'chicken.xe',
+                response: `Must include '.xec' suffix when sending to an eCash alias`,
+            },
+            {
+                description: 'Invalid alias (too long)',
+                sendToAliasInput: '0123456789012345678901.xec',
+                response: `Invalid bytecount 22. Alias be 1-21 bytes.`,
+            },
+            {
+                description: 'Invalid alias (nonalphanumeric)',
+                sendToAliasInput: 'Capitalized@.xec',
+                response:
+                    'Alias may only contain lowercase characters a-z and 0-9',
             },
         ],
     },

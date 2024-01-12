@@ -27,7 +27,7 @@ import {
     errorNotification,
     registerAliasNotification,
 } from 'components/Common/Notifications';
-import { isAliasFormat, isValidAlias } from 'utils/validation';
+import { meetsAliasSpec } from 'utils/validation';
 import { queryAliasServer } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 import { Space, Tag } from 'antd';
@@ -156,7 +156,7 @@ const Alias = ({ passLoadingStatus }) => {
             timeout = setTimeout(async function () {
                 // Retrieve alias details
                 let aliasDetailsResp;
-                if (isValidAlias(aliasInput.value)) {
+                if (meetsAliasSpec(aliasInput.value)) {
                     try {
                         // Note: aliasInput.value is used here as formData is not yet
                         // initialized at the point of useEffect execution
@@ -281,18 +281,6 @@ const Alias = ({ passLoadingStatus }) => {
         const aliasInput = formData.aliasName;
         const aliasAddress = formData.aliasAddress;
 
-        // check if the user is trying to essentially register chicken.xec.xec
-        const doubleExtensionInput = isAliasFormat(aliasInput);
-        if (doubleExtensionInput) {
-            errorNotification(
-                null,
-                'Please input an alias without the ".xec"',
-                'Alias extension check',
-            );
-            passLoadingStatus(false);
-            return;
-        }
-
         if (
             !aliasDetails.address &&
             !aliasDetails.error &&
@@ -359,20 +347,13 @@ const Alias = ({ passLoadingStatus }) => {
 
     const handleAliasNameInput = e => {
         const { name, value } = e.target;
-        const validAliasInput = isValidAlias(value);
-        const aliasInputByteSize = getAliasByteCount(value);
-        if (
-            value &&
-            value.trim() !== '' &&
-            aliasInputByteSize <= aliasSettings.aliasMaxLength &&
-            validAliasInput
-        ) {
+        const inputMeetsAliasSpec = meetsAliasSpec(value);
+        if (inputMeetsAliasSpec === true) {
             setIsValidAliasInput(true);
             setAliasValidationError(false);
         } else {
-            setAliasValidationError(
-                'Please enter an alias (lowercase a-z, 0-9) between 1 and 21 bytes',
-            );
+            // In this case, inputMeetsAliasSpec is a string explaining why not
+            setAliasValidationError(inputMeetsAliasSpec);
             setIsValidAliasInput(false);
         }
 

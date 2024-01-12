@@ -26,7 +26,7 @@ import {
     shouldRejectAmountInput,
     isValidXecAddress,
     isValidEtokenAddress,
-    isAliasFormat,
+    isValidAliasSendInput,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
     parseAddressForParams,
@@ -456,7 +456,7 @@ const SendXec = ({ passLoadingStatus }) => {
         // Is this valid address?
         if (!isValid) {
             // Check if this is an alias address
-            if (!isAliasFormat(address)) {
+            if (isValidAliasSendInput(address) !== true) {
                 error = `Invalid address`;
                 // If valid address but token format
                 if (isValidEtokenAddress(address)) {
