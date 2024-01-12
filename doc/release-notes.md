@@ -1,10 +1,7 @@
-# Bitcoin ABC 0.28.7 Release Notes
+# Bitcoin ABC 0.28.8 Release Notes
 
-Bitcoin ABC version 0.28.7 is now available from:
+Bitcoin ABC version 0.28.8 is now available from:
 
-  <https://download.bitcoinabc.org/0.28.7/>
+  <https://download.bitcoinabc.org/0.28.8/>
 
-This release includes the following features and fixes:
- - Prevent stalling the block downloads by dynamically adjusting the timeout.
-   This will help syncing the blockchain when the network connection speed is
-   low.
+This is a maintenance release with no user-visible change.
