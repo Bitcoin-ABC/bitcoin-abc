@@ -896,25 +896,13 @@ const SendXec = ({ passLoadingStatus }) => {
                                 {disableSendButton ? (
                                     <DisabledButton>Send</DisabledButton>
                                 ) : (
-                                    <>
-                                        {txInfoFromUrl ? (
-                                            <PrimaryButton
-                                                onClick={() =>
-                                                    checkForConfirmationBeforeSendXec()
-                                                }
-                                            >
-                                                Send
-                                            </PrimaryButton>
-                                        ) : (
-                                            <PrimaryButton
-                                                onClick={() => {
-                                                    checkForConfirmationBeforeSendXec();
-                                                }}
-                                            >
-                                                Send
-                                            </PrimaryButton>
-                                        )}
-                                    </>
+                                    <PrimaryButton
+                                        onClick={() => {
+                                            checkForConfirmationBeforeSendXec();
+                                        }}
+                                    >
+                                        Send
+                                    </PrimaryButton>
                                 )}
                             </div>
 
