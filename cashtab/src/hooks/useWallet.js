@@ -61,7 +61,7 @@ const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
 
 const useWallet = () => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
-        websocketConfig.websocketDisconnectedRefreshInterval,
+        TRIGGER_UTXO_REFRESH_INTERVAL_MS,
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
