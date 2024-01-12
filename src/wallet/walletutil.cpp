@@ -81,32 +81,39 @@ std::vector<fs::path> ListWalletDir() {
             continue;
         }
 
-        // Get wallet path relative to walletdir by removing walletdir from the
-        // wallet path. This can be replaced by
-        // boost::filesystem::lexically_relative once boost is bumped to 1.60.
-        const auto path_str = it->path().native().substr(offset);
-        const fs::path path{path_str.begin(), path_str.end()};
+        try {
+            // Get wallet path relative to walletdir by removing walletdir from
+            // the wallet path. This can be replaced by
+            // boost::filesystem::lexically_relative once boost is bumped
+            // to 1.60.
+            const auto path_str = it->path().native().substr(offset);
+            const fs::path path{path_str.begin(), path_str.end()};
 
-        if (it->status().type() == fs::file_type::directory &&
-            IsBerkeleyBtree(it->path() / "wallet.dat")) {
-            // Found a directory which contains wallet.dat btree file, add it as
-            // a wallet.
-            paths.emplace_back(path);
-        } else if (it.depth() == 0 &&
-                   it->symlink_status().type() == fs::file_type::regular &&
-                   IsBerkeleyBtree(it->path())) {
-            if (it->path().filename() == "wallet.dat") {
-                // Found top-level wallet.dat btree file, add top level
-                // directory "" as a wallet.
-                paths.emplace_back();
-            } else {
-                // Found top-level btree file not called wallet.dat. Current
-                // bitcoin software will never create these files but will allow
-                // them to be opened in a shared database environment for
-                // backwards compatibility. Add it to the list of available
-                // wallets.
+            if (it->status().type() == fs::file_type::directory &&
+                IsBerkeleyBtree(it->path() / "wallet.dat")) {
+                // Found a directory which contains wallet.dat btree file, add
+                // it as a wallet.
                 paths.emplace_back(path);
+            } else if (it.depth() == 0 &&
+                       it->symlink_status().type() == fs::file_type::regular &&
+                       IsBerkeleyBtree(it->path())) {
+                if (it->path().filename() == "wallet.dat") {
+                    // Found top-level wallet.dat btree file, add top level
+                    // directory "" as a wallet.
+                    paths.emplace_back();
+                } else {
+                    // Found top-level btree file not called wallet.dat. Current
+                    // bitcoin software will never create these files but will
+                    // allow them to be opened in a shared database environment
+                    // for backwards compatibility. Add it to the list of
+                    // available wallets.
+                    paths.emplace_back(path);
+                }
             }
+        } catch (const std::exception &e) {
+            LogPrintf("%s: Error scanning %s: %s\n", __func__,
+                      it->path().string(), e.what());
+            it.disable_recursion_pending();
         }
     }
 
