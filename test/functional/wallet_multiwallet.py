@@ -97,19 +97,20 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # rename wallet.dat to make sure plain wallet file paths (as opposed to
         # directory paths) can be loaded
-        os.rename(
-            wallet_dir(self.default_wallet_name, self.wallet_data_filename),
-            wallet_dir("w8"),
-        )
-
         # create another dummy wallet for use in testing backups later
-        self.start_node(0, ["-nowallet", f"-wallet={self.default_wallet_name}"])
+        self.start_node(0, ["-nowallet", "-wallet=empty", "-wallet=plain"])
+        node.createwallet("created")
         self.stop_nodes()
         empty_wallet = os.path.join(self.options.tmpdir, "empty.dat")
+        os.rename(wallet_file("empty"), empty_wallet)
+        shutil.rmtree(wallet_dir("empty"))
+        empty_created_wallet = os.path.join(self.options.tmpdir, "empty.created.dat")
         os.rename(
-            wallet_dir(self.default_wallet_name, self.wallet_data_filename),
-            empty_wallet,
+            wallet_dir("created", self.wallet_data_filename), empty_created_wallet
         )
+        shutil.rmtree(wallet_dir("created"))
+        os.rename(wallet_file("plain"), wallet_dir("w8"))
+        shutil.rmtree(wallet_dir("plain"))
 
         # restart node with a mix of wallet names:
         #   w1, w2, w3 - to verify new wallets created when non-existing paths specified
@@ -241,7 +242,7 @@ class MultiWalletTest(BitcoinTestFramework):
         self.restart_node(0, [f"-walletdir={competing_wallet_dir}"])
         exp_stderr = (
             r"Error: Error initializing wallet database environment"
-            r" \"\S+competing_walletdir\"!"
+            r" \"\S+competing_walletdir\S*\"!"
         )
         self.nodes[1].assert_start_raises_init_error(
             [f"-walletdir={competing_wallet_dir}"],
@@ -403,7 +404,7 @@ class MultiWalletTest(BitcoinTestFramework):
             "regtest",
             "wallets",
             "w1",
-            self.wallet_data_filename,
+            "wallet.dat",
         )
         assert_raises_rpc_error(
             -4,
@@ -415,20 +416,21 @@ class MultiWalletTest(BitcoinTestFramework):
 
         # Fail to load duplicate wallets by different ways (directory and
         # filepath)
-        path = os.path.join(
-            self.options.tmpdir,
-            "node0",
-            "regtest",
-            "wallets",
-            self.wallet_data_filename,
-        )
-        assert_raises_rpc_error(
-            -4,
-            "Wallet file verification failed. Refusing to load database. "
-            f"Data file '{path}' is already loaded.",
-            self.nodes[0].loadwallet,
-            self.wallet_data_filename,
-        )
+        if not self.options.descriptors:
+            path = os.path.join(
+                self.options.tmpdir,
+                "node0",
+                "regtest",
+                "wallets",
+                "wallet.dat",
+            )
+            assert_raises_rpc_error(
+                -4,
+                "Wallet file verification failed. Refusing to load database. "
+                f"Data file '{path}' is already loaded.",
+                self.nodes[0].loadwallet,
+                "wallet.dat",
+            )
 
         # Fail to load if one wallet is a copy of another
         assert_raises_rpc_error(
@@ -576,9 +578,16 @@ class MultiWalletTest(BitcoinTestFramework):
             rpc = self.nodes[0].get_wallet_rpc(wallet_name)
             addr = rpc.getnewaddress()
             backup = os.path.join(self.options.tmpdir, "backup.dat")
+            if os.path.exists(backup):
+                os.unlink(backup)
             rpc.backupwallet(backup)
             self.nodes[0].unloadwallet(wallet_name)
-            shutil.copyfile(empty_wallet, wallet_file(wallet_name))
+            shutil.copyfile(
+                empty_created_wallet
+                if wallet_name == self.default_wallet_name
+                else empty_wallet,
+                wallet_file(wallet_name),
+            )
             self.nodes[0].loadwallet(wallet_name)
             assert_equal(rpc.getaddressinfo(addr)["ismine"], False)
             self.nodes[0].unloadwallet(wallet_name)

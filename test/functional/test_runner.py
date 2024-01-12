@@ -138,7 +138,7 @@ TEST_PARAMS = {
     "wallet_labels.py": [["--descriptors"]],
     "wallet_listsinceblock.py": [["--descriptors"]],
     "wallet_listtransactions.py": [["--descriptors"]],
-    "wallet_multiwallet.py": [["--usecli"]],
+    "wallet_multiwallet.py": [["--usecli"], ["--descriptors"]],
     "wallet_txn_doublespend.py": [["--mineblock"]],
     "wallet_txn_clone.py": [["--mineblock"]],
     "wallet_watchonly.py": [["--usecli"]],
