@@ -173,14 +173,15 @@ const Footer = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 50px;
+    padding: 0;
     @media (max-width: 768px) {
         width: 100%;
-        padding: 0 20px;
     }
 `;
 
 const NavWrapper = styled.div`
+    width: 100%;
+    height: 100%;
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -191,6 +192,17 @@ const NavWrapper = styled.div`
 `;
 
 const NavIcon = styled.span`
+    @media (hover: hover) {
+        ${NavWrapper}:hover & {
+            background-color: ${props =>
+                props.clicked ? 'transparent' : props.theme.eCashPurple};
+            ::before,
+            ::after {
+                background-color: ${props => props.theme.eCashPurple};
+            }
+        }
+    }
+
     position: relative;
     background-color: ${props =>
         props.clicked ? 'transparent' : props.theme.buttons.primary.color};
@@ -223,7 +235,7 @@ const NavIcon = styled.span`
 const NavMenu = styled.div`
     position: fixed;
     float: right;
-    margin-right: 1px;
+    margin-right: 30px;
     bottom: 5rem;
     display: flex;
     width: 8.23rem;
@@ -259,9 +271,9 @@ const NavItem = styled.button`
     gap: 6px;
     cursor: pointer;
     &:hover {
-        color: ${props => props.theme.navActive};
+        color: ${props => props.theme.eCashPurple};
         svg {
-            fill: ${props => props.theme.navActive};
+            fill: ${props => props.theme.eCashPurple};
         }
     }
     svg {
@@ -289,6 +301,15 @@ export const NavButton = styled.button`
     :active {
         outline: none;
     }
+    @media (hover: hover) {
+        :hover {
+            svg {
+                fill: ${props => props.theme.eCashPurple};
+            }
+        }
+    }
+    width: 100%;
+    height: 100%;
     cursor: pointer;
     padding: 0;
     background: none;
