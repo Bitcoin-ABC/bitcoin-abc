@@ -41,6 +41,7 @@ add_executable(fuzz EXCLUDE_FROM_ALL
 	deserialize.cpp
 	eval_script.cpp
 	fee_rate.cpp
+	feefrac.cpp
 	fees.cpp
 	flatfile.cpp
 	float.cpp
