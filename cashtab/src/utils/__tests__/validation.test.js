@@ -139,33 +139,6 @@ describe('Validation utils', () => {
             ),
         ).toBe(true);
     });
-    it(`isValidAlias() returns true for a valid lowercase alphanumeric input`, () => {
-        expect(isValidAlias('jasdf3873')).toBe(true);
-    });
-    it(`isValidAlias() returns false for an uppercase alphanumeric input`, () => {
-        expect(isValidAlias('jasDf3873')).toBe(false);
-    });
-    it(`isValidAlias() returns false for a non-english input`, () => {
-        expect(isValidAlias('Glück')).toBe(false);
-    });
-    it(`isValidAlias() returns false for an emoji input`, () => {
-        expect(isValidAlias('😉')).toBe(false);
-    });
-    it(`isValidAlias() returns false for a special character input`, () => {
-        expect(isValidAlias('( ͡° ͜ʖ ͡°)')).toBe(false);
-    });
-    it(`isValidAlias() returns false for a zero width character input`, () => {
-        expect(isValidAlias('​')).toBe(false);
-    });
-    it(`isValidAlias() returns false for a valid alphanumeric input with spaces`, () => {
-        expect(isValidAlias('​jasdf3873 ')).toBe(false);
-    });
-    it(`isValidAlias() returns false for a valid alphanumeric input with symbols`, () => {
-        expect(isValidAlias('​jasdf3873@#')).toBe(false);
-    });
-    it(`isValidAlias() returns false for non-string input`, () => {
-        expect(isValidAlias({ testAlias: 'string at key' })).toBe(false);
-    });
     it(`validateMnemonic() returns true for a valid mnemonic`, () => {
         const mnemonic =
             'labor tail bulb distance estate collect lecture into smile differ yard legal';
@@ -1154,6 +1127,18 @@ describe('Parses user input address strings with parseAddressForParams', () => {
             expect(parseAddressForParams(addressInput)).toStrictEqual(
                 parsedAddressInput,
             );
+        });
+    });
+});
+
+describe('Validates user input for aliaes to be created (without .xec extension)', () => {
+    const { expectedReturns } = validationVectors.validAliasInputCases;
+
+    // Successfully created targetOutputs
+    expectedReturns.forEach(expectedReturn => {
+        const { description, aliasCreateInput, isValid } = expectedReturn;
+        it(`isValidAlias: ${description}`, () => {
+            expect(isValidAlias(aliasCreateInput)).toStrictEqual(isValid);
         });
     });
 });

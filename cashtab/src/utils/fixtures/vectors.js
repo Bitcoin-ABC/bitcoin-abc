@@ -149,6 +149,59 @@ export const validationVectors = {
             },
         ],
     },
+    validAliasInputCases: {
+        expectedReturns: [
+            {
+                description:
+                    'returns true for a valid lowercase alphanumeric input',
+                aliasCreateInput: 'jasdf3873',
+                isValid: true,
+            },
+            {
+                description:
+                    'returns false for an uppercase alphanumeric input',
+                aliasCreateInput: 'jasDf3873',
+                isValid: false,
+            },
+            {
+                description: 'returns false for a non-english input',
+                aliasCreateInput: 'Glück',
+                isValid: false,
+            },
+            {
+                description: 'returns false for an emoji input',
+                aliasCreateInput: '😉',
+                isValid: false,
+            },
+            {
+                description: 'returns false for a special character input',
+                aliasCreateInput: '( ͡° ͜ʖ ͡°)',
+                isValid: false,
+            },
+            {
+                description: 'returns false for an empty string',
+                aliasCreateInput: '​',
+                isValid: false,
+            },
+            {
+                description:
+                    'returns false for a valid alphanumeric input with spaces',
+                aliasCreateInput: '​jasdf3873',
+                isValid: false,
+            },
+            {
+                description:
+                    'returns false for a valid alphanumeric input with symbols',
+                aliasCreateInput: '​jasdf3873@#',
+                isValid: false,
+            },
+            {
+                description: 'returns false for non-string input',
+                aliasCreateInput: { testAlias: 'string at key' },
+                isValid: false,
+            },
+        ],
+    },
     parseAddressInputCases: {
         expectedReturns: [
             {
