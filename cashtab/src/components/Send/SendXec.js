@@ -70,6 +70,13 @@ const TextAreaLabel = styled.div`
     white-space: nowrap;
 `;
 
+const AppCreatedTxSummary = styled.div`
+    font-size: 24px;
+    margin-top: -33px;
+    padding: 0;
+    color: ${props => props.theme.eCashPurple};
+`;
+
 const AliasAddressPreviewLabel = styled.div`
     text-align: center;
     color: ${props => props.theme.forms.text};
@@ -212,7 +219,7 @@ const SendXec = ({ passLoadingStatus }) => {
     };
 
     const checkForConfirmationBeforeSendXec = () => {
-        if (txInfoFromUrl || queryStringText !== null) {
+        if (queryStringText !== null) {
             setIsModalVisible(true);
         } else if (cashtabSettings.sendModal) {
             setIsModalVisible(cashtabSettings.sendModal);
@@ -422,6 +429,10 @@ const SendXec = ({ passLoadingStatus }) => {
             );
             clearInputForms();
             setAirdropFlag(false);
+            if (txInfoFromUrl) {
+                // Close window after successful tx
+                window.close();
+            }
         } catch (err) {
             handleSendXecError(err, isOneToManyXECSend);
         }
@@ -714,32 +725,42 @@ const SendXec = ({ passLoadingStatus }) => {
                                 marginTop: '40px',
                             }}
                         >
+                            {txInfoFromUrl && (
+                                <AppCreatedTxSummary>
+                                    Webapp Tx Request
+                                </AppCreatedTxSummary>
+                            )}
+
                             <SendAddressHeader>
                                 {' '}
                                 <FormLabel>Send to</FormLabel>
-                                <TextAreaLabel>
-                                    Multiple Recipients:&nbsp;&nbsp;
-                                    <Switch
-                                        defaultunchecked="true"
-                                        checked={isOneToManyXECSend}
-                                        onChange={() => {
-                                            setIsOneToManyXECSend(
-                                                !isOneToManyXECSend,
-                                            );
-                                            // Do not persist multisend input to single send and vice versa
-                                            clearInputForms();
-                                        }}
-                                        style={{
-                                            marginBottom: '7px',
-                                        }}
-                                    />
-                                </TextAreaLabel>
+                                {!txInfoFromUrl && (
+                                    <TextAreaLabel>
+                                        Multiple Recipients:&nbsp;&nbsp;
+                                        <Switch
+                                            defaultunchecked="true"
+                                            checked={isOneToManyXECSend}
+                                            onChange={() => {
+                                                setIsOneToManyXECSend(
+                                                    !isOneToManyXECSend,
+                                                );
+                                                // Do not persist multisend input to single send and vice versa
+                                                clearInputForms();
+                                            }}
+                                            style={{
+                                                marginBottom: '7px',
+                                            }}
+                                        />
+                                    </TextAreaLabel>
+                                )}
                             </SendAddressHeader>
                             <ExpandingAddressInputCtn open={isOneToManyXECSend}>
                                 <SendInputCtn>
                                     <DestinationAddressSingleCtn>
                                         <DestinationAddressSingle
-                                            style={{ marginBottom: '0px' }}
+                                            style={{
+                                                marginBottom: '0px',
+                                            }}
                                             loadWithCameraOpen={
                                                 location &&
                                                 location.state &&
@@ -764,6 +785,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                                 })
                                             }
                                             inputProps={{
+                                                disabled: txInfoFromUrl,
                                                 placeholder:
                                                     aliasSettings.aliasEnabled
                                                         ? `Address or Alias`
@@ -819,12 +841,15 @@ const SendXec = ({ passLoadingStatus }) => {
                                                     handleAmountChange(e),
                                                 required: true,
                                                 value: formData.value,
-                                                disabled: priceApiError,
+                                                disabled:
+                                                    priceApiError ||
+                                                    txInfoFromUrl,
                                             }}
                                             selectProps={{
                                                 value: selectedCurrency,
                                                 disabled:
-                                                    queryStringText !== null,
+                                                    queryStringText !== null ||
+                                                    txInfoFromUrl,
                                                 onChange: e =>
                                                     handleSelectedCurrencyChange(
                                                         e,
