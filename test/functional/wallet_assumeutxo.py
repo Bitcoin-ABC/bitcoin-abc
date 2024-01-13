@@ -9,8 +9,6 @@ See feature_assumeutxo.py for background.
 - TODO: test loading a wallet (backup) on a pruned node
 
 """
-import contextlib
-
 from test_framework.descriptors import descsum_create
 from test_framework.messages import COIN
 from test_framework.test_framework import BitcoinTestFramework
@@ -208,13 +206,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         PAUSE_HEIGHT = FINAL_HEIGHT - 40
 
         self.log.info("Restarting node to stop at height %d", PAUSE_HEIGHT)
-
-        # FIXME This is triggering the address sanitizer, it needs to be
-        # investigated
-        with contextlib.suppress(AssertionError):
-            self.stop_node(1)
-
-        self.start_node(
+        self.restart_node(
             1, extra_args=[f"-stopatheight={PAUSE_HEIGHT}", *self.extra_args[1]]
         )
 
@@ -246,9 +238,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.log.info(
             "Ensuring wallet can be restored from a backup that was created before the snapshot height"
         )
-        # fixme: figure out why we can't reuse the wallet name w2 in the
-        #        following test (test_framework.authproxy.JSONRPCException: Wallet name already exists. (-8))
-        n1.restorewallet("w2_bis", "backup_w2.dat")
+        n1.restorewallet("w2", "backup_w2.dat")
         # Check balance of w2 wallet
         assert_equal(n1.getbalance(), 340_000_000)
 

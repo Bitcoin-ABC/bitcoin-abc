@@ -2978,6 +2978,8 @@ CWallet::Create(WalletContext &context, const std::string &name,
     walletInstance->TopUpKeyPool();
 
     if (chain && !AttachChain(walletInstance, *chain, error, warnings)) {
+        // Reset this pointer so that the wallet will actually be unloaded
+        walletInstance->m_chain_notifications_handler.reset();
         return nullptr;
     }
 
