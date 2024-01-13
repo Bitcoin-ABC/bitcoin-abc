@@ -66,3 +66,34 @@ opreturnparam       = "opreturn=" *hex
 -   The param must contain a valid hex string for a valid `OP_RETURN` output, not including the `OP_RETURN` `6a`. Hence, the hex string cannot exceed 222 bytes, and must follow the existing `OP_RETURN` spec.
 -   The param cannot be an empty string
 -   The `OP_RETURN` output will be the 0-index output
+-   In a multi-address URI, the `opreturn` param must appear in first position
+
+6. eCash supports multiple outputs
+
+-   Each additional output must include both a valid `addr` and valid `amount` for the URI to be valid.
+-   There is no spec limitation on the number of additional outputs a BIP21 URI may request. However, there are practical limitations. The node will not broadcast a transaction greater than 100KB, and QR codes cannot store more than 4,296 alphanumeric characters.
+-   Addresses may be repeated. You may send more than one output to the same address.
+-   If `opreturn` is specified, the output index of each specified output will be determined by its order in the URI. If no `opreturn` is specified, the output index of each specified output may not necessarily correspond to its order in the URI.
+
+Because BIP21 was originally designed for single-address transactions and a valid BIP21 URI begins with an address, the `addr` param is introduced for additional outputs.
+
+Additional outputs will be sent at the `nth` output index, where `n` is the order of appearance of the `addr` param.
+
+### Examples
+
+#### Bip-21 URI with no `opreturn` and 2 additional outputs
+
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=100&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=200&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=300`
+
+An amount of `100` XEC will be sent to `ecash:prf...z07` at the index 0, 1, or 2 output
+An amount of `200` XEC will be sent to `ecash:prf...z07` at the index 0, 1, or 2 output
+An amount of `300` XEC will be sent to `ecash:prf...z07` at the index 0, 1, or 2 output
+
+#### Bip-21 URI with `opreturn` and 2 additional outputs
+
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=100&opreturn=0401020304&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=200&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=300`
+
+An `OP_RETURN` output of `6a0401020304` at the index 0 output
+An amount of `100` XEC will be sent to `ecash:prf...z07` at the index 1 output
+An amount of `200` XEC will be sent to `ecash:prf...z07` at the index 2 output
+An amount of `300` XEC will be sent to `ecash:prf...z07` at the index 3 output
