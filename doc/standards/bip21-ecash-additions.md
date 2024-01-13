@@ -65,3 +65,4 @@ opreturnparam       = "opreturn=" *hex
 -   A URI string may include the `opreturn` param no more than once. A URI string include multiple `opreturn` params is invalid.
 -   The param must contain a valid hex string for a valid `OP_RETURN` output, not including the `OP_RETURN` `6a`. Hence, the hex string cannot exceed 222 bytes, and must follow the existing `OP_RETURN` spec.
 -   The param cannot be an empty string
+-   The `OP_RETURN` output will be the 0-index output
