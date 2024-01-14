@@ -432,6 +432,14 @@ const Tx = ({
             ? formatDate(data.timeFirstSeen, navigator.language)
             : formatDate(data.block.timestamp, navigator.language);
 
+    // Note that timeFirstSeen is in seconds and must be converted to ms to get an accurate time from new Date()
+    const txTime =
+        data.timeFirstSeen !== '0'
+            ? new Date(
+                  parseInt(`${data.timeFirstSeen}000`),
+              ).toLocaleTimeString()
+            : false;
+
     // A wallet migrating from bch-api tx history to chronik will get caught here for one update cycle
     let unparsedTx = false;
     if (!Object.keys(data).includes('parsed')) {
@@ -449,6 +457,7 @@ const Tx = ({
                         <ReceivedLabel>Unparsed</ReceivedLabel>
                         <br />
                         {txDate}
+                        {typeof txTime === 'string' && ` at ${txTime}`}
                     </DateType>
                     <TxInfo>Open in Explorer</TxInfo>
                 </TxWrapper>
@@ -582,7 +591,11 @@ const Tx = ({
                                                     )}
                                                 </ReceivedFromCtn>
                                             )}
-                                            <h4>{txDate}</h4>
+                                            <h4>
+                                                {txDate}
+                                                {typeof txTime === 'string' &&
+                                                    ` at ${txTime}`}
+                                            </h4>
                                         </LeftTextCtn>
                                         {data.parsed.isEtokenTx ? (
                                             <TokenInfo
