@@ -74,6 +74,18 @@ struct CompareIteratorById {
         return (*a)->GetTx().GetId() < (*b)->GetTx().GetId();
     }
 };
+/** Iterate txs in reverse-topological order */
+struct CompareIteratorByRevEntryId {
+    template <typename T>
+    bool operator()(const std::reference_wrapper<T> &a,
+                    const std::reference_wrapper<T> &b) const {
+        return a.get()->GetEntryId() > b.get()->GetEntryId();
+    }
+
+    template <typename T> bool operator()(const T &a, const T &b) const {
+        return (*a)->GetEntryId() > (*b)->GetEntryId();
+    }
+};
 
 class CTxMemPoolEntry;
 using CTxMemPoolEntryRef = RCUPtr<CTxMemPoolEntry>;
@@ -417,6 +429,7 @@ public:
 
     using txiter = indexed_transaction_set::nth_index<0>::type::const_iterator;
     typedef std::set<txiter, CompareIteratorById> setEntries;
+    typedef std::set<txiter, CompareIteratorByRevEntryId> setRevTopoEntries;
 
 private:
     void UpdateParent(txiter entry, txiter parent, bool add)

@@ -710,7 +710,10 @@ void CTxMemPool::RemoveStaged(const setEntries &stage,
                               MemPoolRemovalReason reason) {
     AssertLockHeld(cs);
     UpdateForRemoveFromMempool(stage);
-    for (txiter it : stage) {
+
+    // Remove txs in reverse-topological order
+    const setRevTopoEntries stageRevTopo(stage.begin(), stage.end());
+    for (txiter it : stageRevTopo) {
         removeUnchecked(it, reason);
     }
 }
