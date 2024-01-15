@@ -14,6 +14,7 @@ import {
     WarningOutlined,
     SwapOutlined,
     AppstoreAddOutlined,
+    FacebookOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { ReactComponent as Send } from 'assets/send.svg';
@@ -36,6 +37,7 @@ import { ReactComponent as Audit } from 'assets/audit.svg';
 import { ReactComponent as Mail } from 'assets/mail.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 import { ReactComponent as User } from 'assets/user.svg';
+import { ReactComponent as XLogo } from 'assets/xlogo.svg';
 import appConfig from 'config/app';
 
 export const CashReceivedNotificationIcon = () => (
@@ -173,6 +175,48 @@ export const ThemedSignAndVerifyMsg = styled(Audit)`
 export const ThemedUserProfileIcon = styled(User)`
     height: 33px;
     width: 30px;
+`;
+export const SocialContainer = styled.div`
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100px;
+`;
+export const SocialLink = styled.a`
+    width: 100%;
+    height: 100%;
+    @media (hover: hover) {
+        :hover {
+            svg {
+                fill: ${props => props.theme.eCashPurple};
+                path {
+                    fill: ${props => props.theme.eCashPurple};
+                }
+            }
+        }
+    }
+`;
+export const ThemedXIcon = styled(XLogo)`
+    height: 33px;
+    width: 30px;
+    margin-top: 5px;
+    path:hover {
+        fill: red;
+    }
+`;
+export const ThemedFacebookIcon = styled(FacebookOutlined)`
+    svg {
+        fill: ${props => props.theme.contrast} !important;
+    }
+    font-size: 42px;
+    @media (hover: hover) {
+        :hover {
+            svg {
+                fill: ${props => props.theme.eCashPurple} !important;
+            }
+        }
+    }
 `;
 export const ThemedAliasOutlined = styled(User)`
     fill: ${props => props.theme.icons.outlined} !important;

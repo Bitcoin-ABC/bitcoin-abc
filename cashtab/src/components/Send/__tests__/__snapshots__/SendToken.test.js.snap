@@ -4,10 +4,10 @@ exports[`Wallet with XEC balances and tokens 1`] = `null`;
 
 exports[`Wallet with XEC balances and tokens and state field 1`] = `
 <div
-  className="sc-gPEVay dOhwxg"
+  className="sc-csuQGl jJoCcv"
 >
   <div
-    className="sc-csuQGl fFnofI"
+    className="sc-jhAzac dVfipN"
   >
     6.001000000
      
@@ -33,7 +33,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         }
       >
         <div
-          className="sc-eHgmQL cFnff"
+          className="sc-cMljjf hLAWze"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -112,7 +112,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-kkGfuU cRGTNd"
+                            className="sc-cvbbAY gRnXOq"
                             onClick={[Function]}
                           >
                             <span
@@ -145,10 +145,10 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
           </div>
         </div>
         <div
-          className="sc-eqIVtm khwohh"
+          className="sc-kjoXOD kGyknS"
         >
           <a
-            className="sc-jDwBTQ dGROed"
+            className="sc-gipzik iQaaeS"
             href="https://explorer.e.cash/address/false"
             rel="noreferrer"
             target="_blank"
@@ -156,7 +156,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
         <br />
         <div
-          className="sc-eHgmQL cFnff"
+          className="sc-cMljjf hLAWze"
         >
           <div
             className="ant-form-item ant-form-item-with-help"
@@ -216,7 +216,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
                           className="ant-input-group-addon"
                         >
                           <span
-                            className="sc-cvbbAY losWJH"
+                            className="sc-jAaTju gZNdNw"
                             disabled={false}
                             onClick={[Function]}
                           >
@@ -239,7 +239,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
           }
         >
           <button
-            className="sc-jKJlTe jWeghZ"
+            className="sc-kkGfuU ORPKP"
             onClick={[Function]}
           >
             Send 

@@ -2,13 +2,13 @@
 
 exports[`Wallet with XEC balances and tokens and state field 1`] = `
 <div
-  className="sc-gisBJw hfDtmk"
+  className="sc-kgAjT bfANsX"
 >
   <h3>
     Create a Token
   </h3>
   <div
-    className="sc-kEYyzF gmlxVX"
+    className="sc-eHgmQL cFnff"
   >
     <form
       className="ant-form ant-form-horizontal ant-form-small"
@@ -21,7 +21,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
       }
     >
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-jhAzac evSNDH"
       >
         Token Name
       </label>
@@ -59,7 +59,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-jhAzac evSNDH"
       >
         Ticker
       </label>
@@ -97,7 +97,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-jhAzac evSNDH"
       >
         Decimals
       </label>
@@ -135,7 +135,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-jhAzac evSNDH"
       >
         Supply
       </label>
@@ -173,7 +173,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-jhAzac evSNDH"
       >
         Document URL
       </label>
@@ -211,7 +211,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
         </div>
       </div>
       <label
-        className="sc-csuQGl eweHsc"
+        className="sc-jhAzac evSNDH"
       >
         Add Image
       </label>
@@ -318,7 +318,7 @@ exports[`Wallet with XEC balances and tokens and state field 1`] = `
     </form>
   </div>
   <button
-    className="sc-jDwBTQ hqDRdp"
+    className="sc-gipzik esUrmS"
     disabled={true}
     onClick={[Function]}
     style={

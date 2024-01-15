@@ -3,13 +3,13 @@
 exports[`Wallet with BCH balances 1`] = `
 [
   <div
-    className="sc-cmTdod gXOxSM"
+    className="sc-bYSBpT exMyWZ"
   >
     <div
-      className="sc-hwwEjo jPkbkn"
+      className="sc-kIPQKe btXAAR"
     >
       <h4
-        className="sc-kPVwWT kNZAnC"
+        className="sc-eXEjpC XDWfK"
       >
         MigrationTestAlpha
       </h4>
@@ -47,10 +47,10 @@ exports[`Wallet with BCH balances 1`] = `
       </div>
     </div>
     <div
-      className="sc-btzYZH emKHAR"
+      className="sc-jtRfpW lemuei"
     >
       <span
-        className="sc-dfVpRl imfxmK"
+        className="sc-kPVwWT gQZcUW"
       >
          
         0
@@ -62,10 +62,10 @@ exports[`Wallet with BCH balances 1`] = `
   </div>,
   <br />,
   <div
-    className="sc-feJyhm lfjVYN"
+    className="sc-btzYZH hekFVg"
   >
     <div
-      className="sc-kIPQKe izKukF"
+      className="sc-iQKALj bMXeiW"
     >
       <div />
       <span
@@ -100,13 +100,13 @@ exports[`Wallet with BCH balances 1`] = `
 exports[`Wallet with BCH balances and tokens 1`] = `
 [
   <div
-    className="sc-cmTdod gXOxSM"
+    className="sc-bYSBpT exMyWZ"
   >
     <div
-      className="sc-hwwEjo jPkbkn"
+      className="sc-kIPQKe btXAAR"
     >
       <h4
-        className="sc-kPVwWT kNZAnC"
+        className="sc-eXEjpC XDWfK"
       >
         MigrationTestAlpha
       </h4>
@@ -144,10 +144,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `
       </div>
     </div>
     <div
-      className="sc-btzYZH emKHAR"
+      className="sc-jtRfpW lemuei"
     >
       <span
-        className="sc-dfVpRl imfxmK"
+        className="sc-kPVwWT gQZcUW"
       >
          
         0
@@ -159,10 +159,10 @@ exports[`Wallet with BCH balances and tokens 1`] = `
   </div>,
   <br />,
   <div
-    className="sc-feJyhm lfjVYN"
+    className="sc-btzYZH hekFVg"
   >
     <div
-      className="sc-kIPQKe izKukF"
+      className="sc-iQKALj bMXeiW"
     >
       <div />
       <span
@@ -197,13 +197,13 @@ exports[`Wallet with BCH balances and tokens 1`] = `
 exports[`Wallet with BCH balances and tokens and state field 1`] = `
 [
   <div
-    className="sc-cmTdod gXOxSM"
+    className="sc-bYSBpT exMyWZ"
   >
     <div
-      className="sc-hwwEjo jPkbkn"
+      className="sc-kIPQKe btXAAR"
     >
       <h4
-        className="sc-kPVwWT kNZAnC"
+        className="sc-eXEjpC XDWfK"
       >
         MigrationTestAlpha
       </h4>
@@ -241,10 +241,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
       </div>
     </div>
     <div
-      className="sc-btzYZH emKHAR"
+      className="sc-jtRfpW lemuei"
     >
       <span
-        className="sc-dfVpRl imfxmK"
+        className="sc-kPVwWT gQZcUW"
       >
          
         0.06
@@ -256,10 +256,10 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
   </div>,
   <br />,
   <div
-    className="sc-feJyhm lfjVYN"
+    className="sc-btzYZH hekFVg"
   >
     <div
-      className="sc-kIPQKe izKukF"
+      className="sc-iQKALj bMXeiW"
     >
       <div />
       <span
@@ -294,13 +294,13 @@ exports[`Wallet with BCH balances and tokens and state field 1`] = `
 exports[`Wallet without BCH balance 1`] = `
 [
   <div
-    className="sc-cmTdod gXOxSM"
+    className="sc-bYSBpT exMyWZ"
   >
     <div
-      className="sc-hwwEjo jPkbkn"
+      className="sc-kIPQKe btXAAR"
     >
       <h4
-        className="sc-kPVwWT kNZAnC"
+        className="sc-eXEjpC XDWfK"
       >
         MigrationTestAlpha
       </h4>
@@ -338,10 +338,10 @@ exports[`Wallet without BCH balance 1`] = `
       </div>
     </div>
     <div
-      className="sc-btzYZH emKHAR"
+      className="sc-jtRfpW lemuei"
     >
       <span
-        className="sc-dfVpRl imfxmK"
+        className="sc-kPVwWT gQZcUW"
       >
          
         0
@@ -353,10 +353,10 @@ exports[`Wallet without BCH balance 1`] = `
   </div>,
   <br />,
   <div
-    className="sc-feJyhm lfjVYN"
+    className="sc-btzYZH hekFVg"
   >
     <div
-      className="sc-kIPQKe izKukF"
+      className="sc-iQKALj bMXeiW"
     >
       <div />
       <span
@@ -390,18 +390,18 @@ exports[`Wallet without BCH balance 1`] = `
 
 exports[`Without wallet defined 1`] = `
 <div
-  className="sc-cMljjf yzuNU"
+  className="sc-iRbamj eFjXsW"
 >
   <h2>
     Welcome to Cashtab!
   </h2>
   <p
-    className="sc-jAaTju dRNmSH"
+    className="sc-jlyJG fbMjuz"
   >
     Cashtab is an
      
     <a
-      className="sc-jDwBTQ cKENCL"
+      className="sc-gipzik jWnIKY"
       href="https://github.com/bitcoin-abc/bitcoin-abc"
       rel="noreferrer"
       target="_blank"
@@ -414,7 +414,7 @@ exports[`Without wallet defined 1`] = `
     .
   </p>
   <button
-    className="sc-eHgmQL bqOmSo"
+    className="sc-cMljjf jWjHRF"
     onClick={[Function]}
   >
     <span
@@ -442,7 +442,7 @@ exports[`Without wallet defined 1`] = `
      New Wallet
   </button>
   <button
-    className="sc-cvbbAY eOLbDk"
+    className="sc-jAaTju itEcMR"
     onClick={[Function]}
   >
     <span

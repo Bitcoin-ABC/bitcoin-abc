@@ -50,6 +50,10 @@ import {
     ThemedTrashcanOutlined,
     ThemedEditOutlined,
     WarningIcon,
+    ThemedXIcon,
+    ThemedFacebookIcon,
+    SocialContainer,
+    SocialLink,
 } from 'components/Common/CustomIcons';
 import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
@@ -1900,6 +1904,23 @@ const Configure = ({ passLoadingStatus }) => {
                         onChange={handleUnknownSenderMsg}
                     />
                 </GeneralSettingsItem>
+                <StyledSpacer />
+                <SocialContainer>
+                    <SocialLink
+                        href="https://x.com/cashtabwallet"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <ThemedXIcon />
+                    </SocialLink>{' '}
+                    <SocialLink
+                        href="https://www.facebook.com/Cashtab"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <ThemedFacebookIcon />
+                    </SocialLink>
+                </SocialContainer>
             </StyledConfigure>
         </SidePaddingCtn>
     );
