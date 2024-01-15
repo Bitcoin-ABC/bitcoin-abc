@@ -19,6 +19,7 @@ Protocol identifiers below are listed how they appear in eCash transaction outpu
 | 65746162            | Cashtab Encrypted | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | https://cashtab.com/                                          | `<65746162> <encrypted utf8 msg>`            |
 | 64726f70            | Airdrop           | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | https://cashtab.com/                                          | `<64726f70> <tokenId of airdrop recipients>` |
 | 2E786563            | Namespace Alias   | Bitcoin ABC                         | ecash:pqnqv9lt7e5vjyp0w88zf2af0l92l8rxdg2jj94l5j | See ../standards/ecash-alias.md                               | See spec                                     |
+| 50415900            | PayButton         | Blockchain Ventures                 | ecash:qrmm7edwuj4jf7tnvygjyztyy0a0qxvl7quss2vxek | See ../standards/paybutton.md                                 | See spec                                     |
 
 ---
 
