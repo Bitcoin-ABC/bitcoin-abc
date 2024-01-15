@@ -107,13 +107,19 @@ fn test_verify_genesis_success_nft1_child() {
             &[spent_amount(meta(TOKEN_ID2, Nft1Group), 1)],
         ),
         TokenTx {
-            entries: vec![TokenTxEntry {
-                meta: meta(TOKEN_ID1, Nft1Child),
-                tx_type: Some(TxType::GENESIS),
-                genesis_info: Some(INFO.clone()),
-                group_token_meta: Some(meta(TOKEN_ID2, Nft1Group)),
-                ..empty_entry()
-            }],
+            entries: vec![
+                TokenTxEntry {
+                    meta: meta(TOKEN_ID1, Nft1Child),
+                    tx_type: Some(TxType::GENESIS),
+                    genesis_info: Some(INFO.clone()),
+                    group_token_meta: Some(meta(TOKEN_ID2, Nft1Group)),
+                    ..empty_entry()
+                },
+                TokenTxEntry {
+                    meta: meta(TOKEN_ID2, Nft1Group),
+                    ..empty_entry()
+                },
+            ],
             outputs: vec![None, token_amount::<0>(1)],
             failed_parsings: vec![],
         },

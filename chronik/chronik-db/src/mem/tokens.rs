@@ -651,6 +651,10 @@ mod tests {
                         actual_burn_amount: 1000,
                         ..empty_entry()
                     },
+                    TokenTxEntry {
+                        meta: meta_slp(TOKEN_ID5, Nft1Group),
+                        ..empty_entry()
+                    },
                 ],
                 outputs: vec![None, token_amount::<0>(1)],
                 failed_parsings: vec![],

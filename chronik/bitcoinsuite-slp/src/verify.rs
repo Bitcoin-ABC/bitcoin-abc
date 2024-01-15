@@ -80,6 +80,7 @@ struct BareBurn {
     burn_amount: u128,
     burns_mint_batons: bool,
     group_token_meta: Option<TokenMeta>,
+    is_invalid: bool,
 }
 
 impl VerifyContext<'_> {
@@ -162,7 +163,7 @@ impl VerifyContext<'_> {
                 tx_type: None,
                 genesis_info: None,
                 group_token_meta: bare_burn.group_token_meta,
-                is_invalid: true,
+                is_invalid: bare_burn.is_invalid,
                 intentional_burn_amount: None,
                 actual_burn_amount: bare_burn.burn_amount,
                 burns_mint_batons: bare_burn.burns_mint_batons,
@@ -400,21 +401,6 @@ impl VerifyContext<'_> {
         for (input_idx, input) in self.spent_tokens.iter().enumerate() {
             let Some(input) = input else { continue };
 
-            // We don't consider NFT1 GROUP inputs for NFT1 CHILD GENESIS a burn
-            // At this stage the validation that the first input is an NFT1
-            // GROUP token is already done, otherwise is_invalid would be true.
-            if input_idx == 0 {
-                if let Some(first_entry) = entries.get(0) {
-                    if first_entry.meta.token_type
-                        == TokenType::Slp(SlpTokenType::Nft1Child)
-                        && first_entry.tx_type == Some(TxType::GENESIS)
-                        && !first_entry.is_invalid
-                    {
-                        continue;
-                    }
-                }
-            }
-
             // Input has a corresponding mentioned section, not a bare burn
             if tx
                 .sections
@@ -429,7 +415,29 @@ impl VerifyContext<'_> {
                     burn_amount: 0,
                     burns_mint_batons: false,
                     group_token_meta: input.group_token_meta,
+                    is_invalid: false,
                 });
+
+            // We don't consider NFT1 GROUP inputs for NFT1 CHILD GENESIS a burn
+            // At this stage the validation that the first input is an NFT1
+            // GROUP token is already done, otherwise is_invalid would be true.
+            // We still create a bare burn entry so that we get a TokenTxEntry,
+            // but leave is_invalid at false and don't increment the burned
+            // amount.
+            if input_idx == 0 {
+                if let Some(first_entry) = entries.first() {
+                    if first_entry.meta.token_type
+                        == TokenType::Slp(SlpTokenType::Nft1Child)
+                        && first_entry.tx_type == Some(TxType::GENESIS)
+                        && !first_entry.is_invalid
+                    {
+                        continue;
+                    }
+                }
+            }
+
+            // All other bare burns are invalid
+            bare_burn.is_invalid = true;
             match input.token.variant {
                 TokenVariant::Amount(amount) => {
                     bare_burn.burn_amount += u128::from(amount)

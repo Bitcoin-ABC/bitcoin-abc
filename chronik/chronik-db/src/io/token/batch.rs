@@ -236,8 +236,10 @@ impl<'tx> BatchProcessor<'tx> {
             else {
                 continue;
             };
-            token_tx_nums.push(token_tx_num);
-            token_metas.push(entry.meta);
+            if !token_metas.iter().contains(&entry.meta) {
+                token_tx_nums.push(token_tx_num);
+                token_metas.push(entry.meta);
+            }
             entry.group_token_meta.and_then(|group_meta| {
                 let &tx_num = db_data.token_metas.get_by_right(&group_meta)?;
                 if !token_metas.iter().contains(&group_meta) {
