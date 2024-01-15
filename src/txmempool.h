@@ -12,8 +12,10 @@
 #include <indirectmap.h>
 #include <policy/packages.h>
 #include <primitives/transaction.h>
+#include <radix.h>
 #include <rcu.h>
 #include <sync.h>
+#include <uint256radixkey.h>
 #include <util/hasher.h>
 
 #include <boost/multi_index/hashed_index.hpp>
@@ -199,6 +201,15 @@ struct mempoolentry_txid {
     }
 };
 
+/**
+ * Radix tree adapter for storing a CTxMemPoolEntry as a tree element.
+ */
+struct MemPoolEntryRadixTreeAdapter {
+    Uint256RadixKey getId(const CTxMemPoolEntry &entry) const {
+        return entry.GetSharedTx()->GetId();
+    }
+};
+
 // used by the entry_time index
 struct CompareTxMemPoolEntryByEntryTime {
     bool operator()(const CTxMemPoolEntryRef &a,
@@ -290,7 +301,9 @@ enum class MemPoolRemovalReason {
     //! Removed for conflict with in-block transaction
     CONFLICT,
     //! Removed for replacement
-    REPLACED
+    REPLACED,
+    //! Removed by avalanche vote
+    AVALANCHE,
 };
 
 /**
@@ -430,6 +443,8 @@ public:
     using txiter = indexed_transaction_set::nth_index<0>::type::const_iterator;
     typedef std::set<txiter, CompareIteratorById> setEntries;
     typedef std::set<txiter, CompareIteratorByRevEntryId> setRevTopoEntries;
+
+    RadixTree<CTxMemPoolEntry, MemPoolEntryRadixTreeAdapter> finalizedTxs;
 
 private:
     void UpdateParent(txiter entry, txiter parent, bool add)
@@ -637,6 +652,16 @@ public:
     bool exists(const TxId &txid) const {
         LOCK(cs);
         return mapTx.count(txid) != 0;
+    }
+
+    bool setAvalancheFinalized(const CTxMemPoolEntryRef &tx)
+        EXCLUSIVE_LOCKS_REQUIRED(cs) {
+        return finalizedTxs.insert(tx);
+    }
+
+    bool isAvalancheFinalized(const TxId &txid) const {
+        LOCK(cs);
+        return finalizedTxs.get(txid) != nullptr;
     }
 
     CTransactionRef get(const TxId &txid) const;

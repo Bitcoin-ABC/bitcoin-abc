@@ -6093,6 +6093,9 @@ void PeerManagerImpl::ProcessMessage(
 
         bool shouldActivateBestChain = false;
 
+        const bool fPreConsensus =
+            gArgs.GetBoolArg("-avalanchepreconsensus", false);
+
         for (const auto &u : updates) {
             const avalanche::AnyVoteItem &item = u.getVoteItem();
 
@@ -6202,6 +6205,56 @@ void PeerManagerImpl::ProcessMessage(
                         // Fall back on Nakamoto consensus in the absence of
                         // Avalanche votes for other competing or descendant
                         // blocks.
+                        break;
+                }
+            }
+
+            if (!fPreConsensus) {
+                continue;
+            }
+
+            if (auto pitem = std::get_if<const CTransactionRef>(&item)) {
+                const CTransactionRef tx = *pitem;
+                assert(tx != nullptr);
+
+                const TxId &txid = tx->GetId();
+                logVoteUpdate(u, "tx", txid);
+
+                switch (u.getStatus()) {
+                    case avalanche::VoteStatus::Rejected:
+                        break;
+                    case avalanche::VoteStatus::Invalid: {
+                        // Remove from the mempool and the finalized tree, as
+                        // well as all the children txs.
+                        // FIXME Remember the tx has been invalidated so we
+                        // don't poll for it again and again.
+                        LOCK(m_mempool.cs);
+                        auto it = m_mempool.GetIter(txid);
+                        if (it.has_value()) {
+                            m_mempool.removeRecursive(
+                                *tx, MemPoolRemovalReason::AVALANCHE);
+                        }
+
+                        break;
+                    }
+                    case avalanche::VoteStatus::Accepted:
+                        break;
+                    case avalanche::VoteStatus::Finalized: {
+                        LOCK(m_mempool.cs);
+                        auto it = m_mempool.GetIter(txid);
+                        if (!it.has_value()) {
+                            LogPrint(BCLog::AVALANCHE,
+                                     "Error: finalized tx (%s) is not in the "
+                                     "mempool\n",
+                                     txid.ToString());
+                            break;
+                        }
+
+                        m_mempool.setAvalancheFinalized(**it);
+
+                        break;
+                    }
+                    case avalanche::VoteStatus::Stale:
                         break;
                 }
             }

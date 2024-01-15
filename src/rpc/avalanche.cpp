@@ -1420,6 +1420,7 @@ static RPCHelpMan isfinaltransaction() {
 
             const NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
+            const CTxMemPool &mempool = EnsureMemPool(node);
             const TxId txid = TxId(ParseHashV(request.params[0], "txid"));
             CBlockIndex *pindex = nullptr;
 
@@ -1442,8 +1443,8 @@ static RPCHelpMan isfinaltransaction() {
 
             BlockHash hash_block;
             const CTransactionRef tx = GetTransaction(
-                pindex, node.mempool.get(), txid,
-                config.GetChainParams().GetConsensus(), hash_block);
+                pindex, &mempool, txid, config.GetChainParams().GetConsensus(),
+                hash_block);
 
             if (!g_avalanche->isQuorumEstablished()) {
                 throw JSONRPCError(RPC_MISC_ERROR,
@@ -1461,8 +1462,8 @@ static RPCHelpMan isfinaltransaction() {
                     errmsg = "No such transaction found in the provided block.";
                 } else if (!g_txindex) {
                     errmsg = "No such transaction. Use -txindex or provide a "
-                             "block "
-                             "hash to enable blockchain transaction queries.";
+                             "block hash to enable blockchain transaction "
+                             "queries.";
                 } else if (!f_txindex_ready) {
                     errmsg = "No such transaction. Blockchain transactions are "
                              "still in the process of being indexed.";
@@ -1477,10 +1478,18 @@ static RPCHelpMan isfinaltransaction() {
                 pindex = chainman.m_blockman.LookupBlockIndex(hash_block);
             }
 
-            // The first 2 checks are redundant as we expect to throw a JSON RPC
-            // error for these cases, but they are almost free so they are kept
-            // as a safety net.
-            return tx != nullptr && !node.mempool->exists(txid) &&
+            if (!tx) {
+                // Tx not found, we should have raised an error at this stage
+                return false;
+            }
+
+            if (mempool.isAvalancheFinalized(txid)) {
+                // The transaction is finalized
+                return true;
+            }
+
+            // Return true if the tx is in a finalized block
+            return !node.mempool->exists(txid) &&
                    chainman.ActiveChainstate().IsBlockAvalancheFinalized(
                        pindex);
         },

@@ -19,7 +19,7 @@ from test_framework.messages import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, uint256_hex
+from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
@@ -170,9 +170,47 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_block(tip))
 
+        # Now we can focus on transactions
+        def has_finalized_tx(txid):
+            can_find_inv_in_poll(quorum, int(txid, 16))
+            return node.isfinaltransaction(txid)
+
+        def has_invalidated_tx(txid):
+            can_find_inv_in_poll(
+                quorum, int(txid, 16), response=AvalancheTxVoteError.INVALID
+            )
+            return txid not in node.getrawmempool()
+
         txid = wallet.send_self_transfer(from_node=node)["txid"]
         assert txid in node.getrawmempool()
-        self.wait_until(lambda: can_find_inv_in_poll(quorum, int(txid, 16)))
+        assert not node.isfinaltransaction(txid)
+        self.wait_until(lambda: has_finalized_tx(txid))
+        assert txid in node.getrawmempool()
+
+        self.log.info("Check the node drops transactions invalidated by avalanche")
+
+        parent_tx = wallet.send_self_transfer(from_node=node)
+        parent_txid = parent_tx["txid"]
+        child_tx = wallet.send_self_transfer(
+            from_node=node, utxo_to_spend=parent_tx["new_utxo"]
+        )
+        child_txid = child_tx["txid"]
+
+        assert parent_txid in node.getrawmempool()
+        assert child_txid in node.getrawmempool()
+        assert not node.isfinaltransaction(parent_txid)
+        assert not node.isfinaltransaction(child_txid)
+
+        self.wait_until(lambda: has_invalidated_tx(parent_txid))
+
+        assert parent_txid not in node.getrawmempool()
+        assert child_txid not in node.getrawmempool()
+        assert_raises_rpc_error(
+            -5, "No such transaction", node.isfinaltransaction, parent_txid
+        )
+        assert_raises_rpc_error(
+            -5, "No such transaction", node.isfinaltransaction, child_txid
+        )
 
 
 if __name__ == "__main__":

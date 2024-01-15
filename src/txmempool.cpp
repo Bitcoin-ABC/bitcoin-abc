@@ -5,6 +5,8 @@
 
 #include <txmempool.h>
 
+#include <avalanche/avalanche.h>
+#include <avalanche/processor.h>
 #include <chain.h>
 #include <chainparams.h> // for GetConsensus.
 #include <clientversion.h>
@@ -243,7 +245,10 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     }
 
     /* add logging because unchecked */
-    RemoveUnbroadcastTx((*it)->GetTx().GetId(), true);
+    const TxId &txid = (*it)->GetTx().GetId();
+    RemoveUnbroadcastTx(txid, true);
+
+    finalizedTxs.remove(txid);
 
     totalTxSize -= (*it)->GetTxSize();
     m_total_fee -= (*it)->GetFee();
