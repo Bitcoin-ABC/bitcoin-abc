@@ -9,4 +9,6 @@
 
 abc_rust_lint::lint! {
     pub mod context;
+    pub mod module;
+    pub mod script;
 }

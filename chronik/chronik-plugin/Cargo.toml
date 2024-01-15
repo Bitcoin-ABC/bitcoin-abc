@@ -10,6 +10,8 @@ rust-version.workspace = true
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
 
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+
 chronik-util = { path = "../chronik-util" }
 
-pyo3 = { version = "0.20", default-features = false }
+pyo3 = { version = "0.20" }
