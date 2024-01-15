@@ -21,11 +21,6 @@ export const roadmap = [
                 status: 'complete',
             },
             {
-                title: 'QUIC',
-                description: 'lightning fast network',
-                status: 'underway',
-            },
-            {
                 title: 'UTXO Commitments',
                 description: 'blockchain pruning, faster initial sync',
                 status: 'underway',
