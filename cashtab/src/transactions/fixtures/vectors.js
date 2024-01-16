@@ -398,3 +398,72 @@ export const getMultisendTargetOutputsVectors = {
         },
     ],
 };
+
+export const ignoreUnspendableUtxosVectors = {
+    expectedReturns: [
+        {
+            description: 'Array with no coinbase utxos returned unchanged',
+            chaintipBlockheight: 800000,
+            unfilteredUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+            ],
+            spendableUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+            ],
+        },
+        {
+            description:
+                'Array with immature coinbase utxo returned without immature coinbase utxo',
+            chaintipBlockheight: 800000,
+            unfilteredUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: true, blockHeight: 800000 },
+            ],
+            spendableUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+            ],
+        },
+        {
+            description:
+                'Array with some immature coinbase utxos and some mature coinbase utxos returned without immature coinbase utxo',
+            chaintipBlockheight: 800000,
+            unfilteredUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: true, blockHeight: 799900 }, // just mature
+                { isCoinbase: true, blockHeight: 800000 }, // immature
+                { isCoinbase: true, blockHeight: 799901 }, // immature
+                { isCoinbase: true, blockHeight: 799999 }, // immature
+            ],
+            spendableUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: true, blockHeight: 799900 }, // just mature
+            ],
+        },
+        {
+            description:
+                'If blockheight is zero, all coinbase utxos are removed',
+            chaintipBlockheight: 0,
+            unfilteredUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: true, blockHeight: 800000 },
+                { isCoinbase: true, blockHeight: 800000 },
+                { isCoinbase: true, blockHeight: 800000 },
+            ],
+            spendableUtxos: [
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+                { isCoinbase: false, blockHeight: 800000 },
+            ],
+        },
+    ],
+};

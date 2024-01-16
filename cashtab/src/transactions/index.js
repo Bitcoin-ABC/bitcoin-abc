@@ -57,6 +57,9 @@ export const sendXec = async (chronik, wallet, targetOutputs, feeRate) => {
     // Use only eCash utxos
     const utxos = wallet.state.nonSlpUtxos;
 
+    // Ignore immature coinbase utxos
+    // TODO implement ignoreUnspendableUtxos here
+
     let { inputs, outputs } = coinSelect(utxos, targetOutputs, feeRate);
 
     // Initialize TransactionBuilder
@@ -129,4 +132,26 @@ export const getMultisendTargetOutputs = userMultisendInput => {
         });
     }
     return targetOutputs;
+};
+
+/**
+ * Ignore coinbase utxos that do not have enough confirmations to be spendable
+ * TODO cache blockheight so you can ignore only unspendable coinbase utxos
+ * @param {array} unfilteredUtxos an array of chronik utxo objects
+ * @returns {array} an array of utxos without coinbase utxos
+ */
+export const ignoreUnspendableUtxos = (
+    unfilteredUtxos,
+    chaintipBlockheight,
+) => {
+    const COINBASE_REQUIRED_CONFS_TO_SPEND = 100;
+    return unfilteredUtxos.filter(unfilteredUtxo => {
+        return (
+            unfilteredUtxo.isCoinbase === false ||
+            (unfilteredUtxo.isCoinbase === true &&
+                chaintipBlockheight >=
+                    unfilteredUtxo.blockHeight +
+                        COINBASE_REQUIRED_CONFS_TO_SPEND)
+        );
+    });
 };

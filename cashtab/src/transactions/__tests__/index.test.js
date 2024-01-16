@@ -1,11 +1,16 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-import { sendXec, getMultisendTargetOutputs } from 'transactions';
+import {
+    sendXec,
+    getMultisendTargetOutputs,
+    ignoreUnspendableUtxos,
+} from 'transactions';
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import {
     sendXecVectors,
     getMultisendTargetOutputsVectors,
+    ignoreUnspendableUtxosVectors,
 } from '../fixtures/vectors';
 
 describe('Improved Cashtab transaction broadcasting function', () => {
@@ -72,6 +77,26 @@ describe('Forming multisend targetOutputs', () => {
             expect(() => getMultisendTargetOutputs(userMultisendInput)).toThrow(
                 msg,
             );
+        });
+    });
+});
+
+describe('Ignore unspendable coinbase utxos', () => {
+    // Unit test for each vector in fixtures for the ignoreUnspendableUtxos case
+    const { expectedReturns } = ignoreUnspendableUtxosVectors;
+
+    // Successfully built and broadcast txs
+    expectedReturns.forEach(async formedOutput => {
+        const {
+            description,
+            unfilteredUtxos,
+            chaintipBlockheight,
+            spendableUtxos,
+        } = formedOutput;
+        it(`ignoreUnspendableUtxos: ${description}`, () => {
+            expect(
+                ignoreUnspendableUtxos(unfilteredUtxos, chaintipBlockheight),
+            ).toStrictEqual(spendableUtxos);
         });
     });
 });
