@@ -9,7 +9,7 @@ use pyo3::{exceptions::PyValueError, prelude::*, types::PyBytes};
 
 /// Class for a Bitcoin Script
 #[pyclass(frozen)]
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Script {
     script: script::Script,
 }
@@ -36,6 +36,23 @@ impl Script {
 
 #[pymethods]
 impl Script {
+    /// Create a new [`Script`] from a `bytes` object.
+    #[new]
+    pub fn __init__(bytes: &PyBytes) -> Self {
+        Script::new(script::Script::new(bytes.as_bytes().to_vec().into()))
+    }
+
+    /// Check whether the two [`Script`] instances are equal.
+    pub fn __eq__(&self, other: &Script) -> bool {
+        self == other
+    }
+
+    /// Return a str representation of this [`Script`].
+    /// Uses the `b"..."` representation of the Rust `bytes` crate.
+    pub fn __repr__(&self) -> String {
+        format!("Script({:?})", self.script.bytecode())
+    }
+
     /// The serialized bytecode of the Script
     pub fn bytecode<'py>(&self, py: Python<'py>) -> &'py PyBytes {
         PyBytes::new(py, self.script.bytecode())
