@@ -80,6 +80,7 @@ const useWallet = () => {
     const [aliasPrices, setAliasPrices] = useState(null);
     const [aliasServerError, setAliasServerError] = useState(false);
     const [aliasIntervalId, setAliasIntervalId] = useState(null);
+    const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const { balances, tokens } = isValidStoredWallet(wallet)
         ? wallet.state
         : {
@@ -230,6 +231,17 @@ const useWallet = () => {
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
+        }
+
+        // Get chaintip height in separate try...catch
+        // If we don't get this value, we don't need to throw an API error
+        // Impact is we ignore all coinbase utxos in tx building
+        try {
+            let info = await chronik.blockchainInfo();
+            const { tipHeight } = info;
+            setChaintipBlockheight(tipHeight);
+        } catch (err) {
+            console.log(`Error fetching chaintipBlockheight`, err);
         }
     };
 
@@ -1503,6 +1515,7 @@ const useWallet = () => {
     return {
         chronik,
         wallet,
+        chaintipBlockheight,
         fiatPrice,
         loading,
         apiError,
