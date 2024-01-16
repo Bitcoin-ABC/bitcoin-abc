@@ -803,3 +803,5 @@ builds:
   preview-cashtab:
     docker:
       context: cashtab
+      build_args:
+        - "NGINX_CONF=nginx-preview.conf"

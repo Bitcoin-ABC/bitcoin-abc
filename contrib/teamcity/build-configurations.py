@@ -194,6 +194,10 @@ class BuildConfiguration:
                 else []
             )
 
+            docker_build_args = []
+            for arg in docker_config.get("build_args", []):
+                docker_build_args.extend(["--build-arg", arg])
+
             tag_name = "-".join([self.name, self.project_commit])
 
             # Docker build
@@ -201,7 +205,10 @@ class BuildConfiguration:
                 {
                     "bin": "docker",
                     "args": (
-                        ["build"] + dockerfile_args + ["-t", tag_name, str(context)]
+                        ["build"]
+                        + dockerfile_args
+                        + docker_build_args
+                        + ["-t", tag_name, str(context)]
                     ),
                 }
             )
