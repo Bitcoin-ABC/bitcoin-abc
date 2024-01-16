@@ -50,17 +50,28 @@ export const signInputs = (txBuilder, accounts, inputs) => {
  * @param {object} wallet Cashtab object that stores wallet information, see hooks/useWallet.js
  * @param {array} targetOutputs Array of objects containing keys for value and address, e.g. [{value: <satsToSend>, address: <destinationAddress>}]
  * @param {number} feeRate satoshis per byte
+ * @param {number} chaintipBlockheight the current chaintip blockheight
  * @throws {error} dust error, balance exceeded error, coinselect errors, and node broadcast errors
  * @returns {object} {hex: <rawTxInHex>, response: {txid: <broadcastTxid>}}
  */
-export const sendXec = async (chronik, wallet, targetOutputs, feeRate) => {
+export const sendXec = async (
+    chronik,
+    wallet,
+    targetOutputs,
+    feeRate,
+    chaintipBlockheight,
+) => {
     // Use only eCash utxos
     const utxos = wallet.state.nonSlpUtxos;
 
     // Ignore immature coinbase utxos
-    // TODO implement ignoreUnspendableUtxos here
+    const spendableUtxos = ignoreUnspendableUtxos(utxos, chaintipBlockheight);
 
-    let { inputs, outputs } = coinSelect(utxos, targetOutputs, feeRate);
+    let { inputs, outputs } = coinSelect(
+        spendableUtxos,
+        targetOutputs,
+        feeRate,
+    );
 
     // Initialize TransactionBuilder
     let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(

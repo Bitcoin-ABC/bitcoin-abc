@@ -19,7 +19,11 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { sumOneToManyXec, toSatoshis } from 'utils/cashMethods';
+import {
+    sumOneToManyXec,
+    toSatoshis,
+    getWalletBalanceFromUtxos,
+} from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
@@ -44,7 +48,11 @@ import {
     MsgBytesizeError,
 } from 'components/Common/Atoms';
 import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
-import { sendXec, getMultisendTargetOutputs } from 'transactions';
+import {
+    sendXec,
+    getMultisendTargetOutputs,
+    ignoreUnspendableUtxos,
+} from 'transactions';
 import {
     getCashtabMsgTargetOutput,
     getAirdropTargetOutput,
@@ -153,6 +161,7 @@ const SendXec = ({ passLoadingStatus }) => {
     const location = useLocation();
     const {
         wallet,
+        chaintipBlockheight,
         fiatPrice,
         apiError,
         cashtabSettings,
@@ -162,7 +171,11 @@ const SendXec = ({ passLoadingStatus }) => {
     } = ContextValue;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
-    // Modal settings
+    // Use spendable utxos instead of all nonSlpUtxos for onMax function
+    const spendableUtxos = ignoreUnspendableUtxos(
+        nonSlpUtxos,
+        chaintipBlockheight,
+    );
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
 
@@ -423,6 +436,7 @@ const SendXec = ({ passLoadingStatus }) => {
                 wallet,
                 targetOutputs,
                 appConfig.defaultFee,
+                chaintipBlockheight,
             );
             sendXecNotification(
                 `${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`,
@@ -579,12 +593,13 @@ const SendXec = ({ passLoadingStatus }) => {
         // Set currency to XEC
         setSelectedCurrency(appConfig.ticker);
         try {
-            const txFeeSats = calcFee(nonSlpUtxos);
+            const txFeeSats = calcFee(spendableUtxos);
+            const spendableBalance = getWalletBalanceFromUtxos(spendableUtxos);
 
             const txFeeXec = txFeeSats / 10 ** appConfig.cashDecimals;
             let value =
-                balances.totalBalance - txFeeXec >= 0
-                    ? (balances.totalBalance - txFeeXec).toFixed(
+                spendableBalance.totalBalance - txFeeXec >= 0
+                    ? (spendableBalance.totalBalance - txFeeXec).toFixed(
                           appConfig.cashDecimals,
                       )
                     : 0;

@@ -19,7 +19,15 @@ describe('Improved Cashtab transaction broadcasting function', () => {
 
     // Successfully built and broadcast txs
     txs.forEach(async tx => {
-        const { description, wallet, targetOutputs, feeRate, txid, hex } = tx;
+        const {
+            description,
+            wallet,
+            targetOutputs,
+            feeRate,
+            chaintipBlockheight,
+            txid,
+            hex,
+        } = tx;
         it(`sendXec: ${description}`, async () => {
             const chronik = new MockChronikClient();
             chronik.setMock('broadcastTx', {
@@ -27,7 +35,13 @@ describe('Improved Cashtab transaction broadcasting function', () => {
                 output: { txid },
             });
             expect(
-                await sendXec(chronik, wallet, targetOutputs, feeRate),
+                await sendXec(
+                    chronik,
+                    wallet,
+                    targetOutputs,
+                    feeRate,
+                    chaintipBlockheight,
+                ),
             ).toStrictEqual({ hex, response: { txid } });
         });
     });
