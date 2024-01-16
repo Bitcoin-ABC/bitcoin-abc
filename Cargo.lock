@@ -374,6 +374,7 @@ dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
  "bitcoinsuite-core",
+ "bitcoinsuite-slp",
  "chronik-util",
  "pyo3",
 ]

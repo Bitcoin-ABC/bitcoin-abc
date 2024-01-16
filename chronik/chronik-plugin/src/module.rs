@@ -21,6 +21,18 @@ pub fn chronik_plugin(py: Python<'_>, module: &PyModule) -> PyResult<()> {
         script_module,
         "import sys; sys.modules['chronik_plugin.script'] = script_module"
     );
+    PyModule::from_code(
+        py,
+        include_str!("token.py"),
+        "token.py",
+        "chronik_plugin.token",
+    )?;
+    PyModule::from_code(
+        py,
+        include_str!("tx.py"),
+        "tx.py",
+        "chronik_plugin.tx",
+    )?;
     Ok(())
 }
 
