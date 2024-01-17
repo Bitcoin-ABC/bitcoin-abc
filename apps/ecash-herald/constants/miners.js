@@ -99,5 +99,12 @@ module.exports = {
                 coinbaseHexFragment: '7370622e78797a', // ascii spb.xyz
             },
         ],
+        [
+            '76a91478b7743efa732c16c1b956f19fd5ec623e71981388ac',
+            {
+                miner: 'Cminors-Pools',
+                coinbaseHexFragment: '436d696e6f72732d506f6f6c73', // ascii Cminors-Pools
+            },
+        ],
     ],
 };

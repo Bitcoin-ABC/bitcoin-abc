@@ -258,4 +258,21 @@ module.exports = [
             '76a91472dce9d2b169bfc20501b4dac5927b16bd6f71e388ac',
         parsed: 'unknown, ox',
     },
+    // Parsed from coinbase hex fragment
+    {
+        height: '827550',
+        coinbaseHex:
+            '039ea00c0429c1a765088100001fa15a6800436d696e6f72732d506f6f6c7300fabe6d6df36f3ced97aac363e4f5202e4b39d539454d9d21c408df8ac4be8eb93660420b0100000000000000',
+        payoutOutputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+        parsed: 'Cminors-Pools',
+    },
+    // Both coinbase fragment and payout script
+    {
+        height: '827558',
+        coinbaseHex:
+            '03a6a00c04edcda76508810000d1209af801436d696e6f72732d506f6f6c7300fabe6d6dc86e6540b56678f671a630b0d148ed2c4247abd1640348ce0fa3b82b60cf60bb0100000000000000',
+        payoutOutputScript:
+            '76a91478b7743efa732c16c1b956f19fd5ec623e71981388ac',
+        parsed: 'Cminors-Pools',
+    },
 ];
