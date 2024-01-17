@@ -125,6 +125,7 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
         expectedIndex = pindex;
         expectedCallCount++;
         TestInterface::CallBlockFinalized(expectedIndex);
+        SyncWithValidationInterfaceQueue();
     };
 
     for (size_t i = 0; i < 10; i++) {
@@ -151,17 +152,20 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
 
     expectedIndex = nullptr;
     BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(expectedIndex));
+    SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, expectedCallCount);
 
     expectedIndex = tip;
     expectedCallCount++;
     BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip));
+    SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, expectedCallCount);
 
     // Successive calls won't call the validation again, because the block is
     // already finalized.
     for (size_t i = 0; i < 10; i++) {
         BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip));
+        SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, expectedCallCount);
     }
 }
