@@ -858,10 +858,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                                 value: formData.value,
                                                 disabled:
                                                     priceApiError ||
-                                                    (typeof (
-                                                        txInfoFromUrl !==
-                                                        'undefined'
-                                                    ) &&
+                                                    (txInfoFromUrl !== false &&
                                                         txInfoFromUrl.value !==
                                                             'null'),
                                             }}
