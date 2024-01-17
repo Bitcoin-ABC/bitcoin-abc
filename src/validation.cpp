@@ -6544,23 +6544,45 @@ Chainstate &ChainstateManager::InitializeChainstate(CTxMemPool *mempool) {
     return destroyed && !fs::exists(db_path);
 }
 
-bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
-                                         const SnapshotMetadata &metadata,
-                                         bool in_memory) {
+util::Result<void> ChainstateManager::ActivateSnapshot(
+    AutoFile &coins_file, const SnapshotMetadata &metadata, bool in_memory) {
     BlockHash base_blockhash = metadata.m_base_blockhash;
+    int base_blockheight = metadata.m_base_blockheight;
 
     if (this->SnapshotBlockhash()) {
-        LogPrintf("[snapshot] can't activate a snapshot-based chainstate more "
-                  "than once\n");
-        return false;
+        return util::Error{Untranslated(
+            "Can't activate a snapshot-based chainstate more than once")};
     }
 
     {
         LOCK(::cs_main);
+
+        if (!GetParams().AssumeutxoForBlockhash(base_blockhash).has_value()) {
+            auto available_heights = GetParams().GetAvailableSnapshotHeights();
+            std::string heights_formatted =
+                Join(available_heights, ", ",
+                     [&](const auto &i) { return ToString(i); });
+            return util::Error{strprintf(
+                Untranslated("assumeutxo block hash in snapshot metadata not "
+                             "recognized (hash: %s, height: %s). The following "
+                             "snapshot heights are available: %s."),
+                base_blockhash.ToString(), base_blockheight,
+                heights_formatted)};
+        }
+
+        CBlockIndex *snapshot_start_block =
+            m_blockman.LookupBlockIndex(base_blockhash);
+        if (!snapshot_start_block) {
+            return util::Error{strprintf(
+                Untranslated("The base block header (%s) must appear in the "
+                             "headers chain. Make sure all headers are "
+                             "syncing, and call loadtxoutset again."),
+                base_blockhash.ToString())};
+        }
+
         if (Assert(m_active_chainstate->GetMempool())->size() > 0) {
-            LogPrintf("[snapshot] can't activate a snapshot when mempool not "
-                      "empty\n");
-            return false;
+            return util::Error{Untranslated(
+                "Can't activate a snapshot when mempool not empty.")};
         }
     }
 
@@ -6616,8 +6638,7 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
     }
 
     auto cleanup_bad_snapshot =
-        [&](const char *reason) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
-            LogPrintf("[snapshot] activation failed - %s\n", reason);
+        [&](bilingual_str &&reason) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             this->MaybeRebalanceCaches();
 
             // PopulateAndValidateSnapshot can return (in error) before the
@@ -6638,13 +6659,13 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
                         fs::PathToString(*snapshot_datadir)));
                 }
             }
-            return false;
+            return util::Error{std::move(reason)};
         };
 
     if (!this->PopulateAndValidateSnapshot(*snapshot_chainstate, coins_file,
                                            metadata)) {
         LOCK(::cs_main);
-        return cleanup_bad_snapshot("population failed");
+        return cleanup_bad_snapshot(Untranslated("population failed"));
     }
 
     // cs_main required for rest of snapshot activation.
@@ -6656,13 +6677,15 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
     // useless chainstate.
     if (!CBlockIndexWorkComparator()(ActiveTip(),
                                      snapshot_chainstate->m_chain.Tip())) {
-        return cleanup_bad_snapshot("work does not exceed active chainstate");
+        return cleanup_bad_snapshot(
+            Untranslated("work does not exceed active chainstate"));
     }
     // If not in-memory, persist the base blockhash for use during subsequent
     // initialization.
     if (!in_memory) {
         if (!node::WriteSnapshotBaseBlockhash(*snapshot_chainstate)) {
-            return cleanup_bad_snapshot("could not write base blockhash");
+            return cleanup_bad_snapshot(
+                Untranslated("could not write base blockhash"));
         }
     }
 
@@ -6687,7 +6710,7 @@ bool ChainstateManager::ActivateSnapshot(AutoFile &coins_file,
                   (1000 * 1000));
 
     this->MaybeRebalanceCaches();
-    return true;
+    return {};
 }
 
 static void FlushSnapshotToDisk(CCoinsViewCache &coins_cache,

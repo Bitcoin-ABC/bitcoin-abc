@@ -133,12 +133,12 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
         new_active.m_chain.SetTip(*(tip->pprev));
     }
 
-    bool res = node.chainman->ActivateSnapshot(auto_infile, metadata,
+    auto res = node.chainman->ActivateSnapshot(auto_infile, metadata,
                                                in_memory_chainstate);
 
     // Restore the old tip.
     new_active.m_chain.SetTip(*tip);
-    return res;
+    return !!res;
 }
 
 #endif // BITCOIN_TEST_UTIL_CHAINSTATE_H

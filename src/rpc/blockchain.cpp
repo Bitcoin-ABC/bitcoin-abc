@@ -3077,8 +3077,9 @@ static RPCHelpMan loadtxoutset() {
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
-            fs::path path{AbsPathForConfigVal(
-                EnsureArgsman(node), fs::u8path(request.params[0].get_str()))};
+            const fs::path path{
+                AbsPathForConfigVal(EnsureArgsman(node),
+                                    fs::u8path(self.Arg<std::string>("path")))};
 
             FILE *file{fsbridge::fopen(path, "rb")};
             AutoFile afile{file};
@@ -3097,41 +3098,14 @@ static RPCHelpMan loadtxoutset() {
                     strprintf("Unable to parse metadata: %s", e.what()));
             }
 
-            BlockHash base_blockhash = metadata.m_base_blockhash;
-            int base_blockheight = metadata.m_base_blockheight;
-            if (!chainman.GetParams()
-                     .AssumeutxoForBlockhash(base_blockhash)
-                     .has_value()) {
-                auto available_heights =
-                    chainman.GetParams().GetAvailableSnapshotHeights();
-                std::string heights_formatted =
-                    Join(available_heights, ", ",
-                         [&](const auto &i) { return ToString(i); });
+            auto activation_result{
+                chainman.ActivateSnapshot(afile, metadata, false)};
+            if (!activation_result) {
                 throw JSONRPCError(
                     RPC_INTERNAL_ERROR,
-                    strprintf("Unable to load UTXO snapshot, "
-                              "assumeutxo block hash in snapshot metadata not "
-                              "recognized (hash: %s, height: %s). The "
-                              "following snapshot heights are available: %s.",
-                              base_blockhash.ToString(), base_blockheight,
-                              heights_formatted));
-            }
-            CBlockIndex *snapshot_start_block = WITH_LOCK(
-                ::cs_main,
-                return chainman.m_blockman.LookupBlockIndex(base_blockhash));
-
-            if (!snapshot_start_block) {
-                throw JSONRPCError(
-                    RPC_INTERNAL_ERROR,
-                    strprintf("The base block header (%s) must appear in the "
-                              "headers chain. Make sure all headers are "
-                              "synced, and call this RPC again.",
-                              base_blockhash.ToString()));
-            }
-            if (!chainman.ActivateSnapshot(afile, metadata, false)) {
-                throw JSONRPCError(RPC_INTERNAL_ERROR,
-                                   "Unable to load UTXO snapshot " +
-                                       fs::PathToString(path));
+                    strprintf("Unable to load UTXO snapshot: %s. (%s)",
+                              util::ErrorString(activation_result).original,
+                              path.u8string()));
             }
 
             // Because we can't provide historical blocks during tip or
@@ -3143,13 +3117,10 @@ static RPCHelpMan loadtxoutset() {
             // set it.
             node.connman->AddLocalServices(NODE_NETWORK_LIMITED);
 
-            CBlockIndex *new_tip{
-                WITH_LOCK(::cs_main, return chainman.ActiveTip())};
-
             UniValue result(UniValue::VOBJ);
             result.pushKV("coins_loaded", metadata.m_coins_count);
-            result.pushKV("tip_hash", new_tip->GetBlockHash().ToString());
-            result.pushKV("base_height", new_tip->nHeight);
+            result.pushKV("tip_hash", metadata.m_base_blockhash.ToString());
+            result.pushKV("base_height", metadata.m_base_blockheight);
             result.pushKV("path", fs::PathToString(path));
             return result;
         },
