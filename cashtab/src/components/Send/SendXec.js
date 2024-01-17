@@ -858,7 +858,12 @@ const SendXec = ({ passLoadingStatus }) => {
                                                 value: formData.value,
                                                 disabled:
                                                     priceApiError ||
-                                                    txInfoFromUrl,
+                                                    (typeof (
+                                                        txInfoFromUrl !==
+                                                        'undefined'
+                                                    ) &&
+                                                        txInfoFromUrl.value !==
+                                                            'null'),
                                             }}
                                             selectProps={{
                                                 value: selectedCurrency,
