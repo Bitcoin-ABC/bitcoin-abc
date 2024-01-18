@@ -52,4 +52,40 @@ export default {
             },
         ],
     },
+    toXec: {
+        expectedReturns: [
+            {
+                description: 'Total XEC supply',
+                satoshis: 2100000000000000,
+                xec: 21000000000000,
+            },
+            {
+                description: 'Total XEC supply less 1 satoshi',
+                satoshis: 2099999999999999,
+                xec: 20999999999999.99,
+            },
+            {
+                description: '0 is 0',
+                satoshis: 0,
+                xec: 0,
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Bad XEC amount, too many decimal places',
+                satoshis: 100.123,
+                errorMsg: 'Input param satoshis must be an integer',
+            },
+        ],
+    },
+    toSatoshis: {
+        expectedErrors: [
+            {
+                description: 'Bad XEC amount, too many decimal places',
+                xec: 100.123,
+                errorMsg:
+                    'Result not an integer. Check input for valid XEC amount.',
+            },
+        ],
+    },
 };
