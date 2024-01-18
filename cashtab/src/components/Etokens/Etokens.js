@@ -5,10 +5,6 @@ import { WalletContext } from 'utils/context';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
 import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
-import { WalletInfoCtn, ZeroBalanceHeader } from 'components/Common/Atoms';
-import WalletLabel from 'components/Common/WalletLabel';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 
@@ -39,15 +35,9 @@ const CreateToken = styled(Link)`
 
 const Etokens = () => {
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        loading,
-        cashtabSettings,
-        changeCashtabSettings,
-        fiatPrice,
-    } = ContextValue;
+    const { wallet, loading } = ContextValue;
     const walletState = getWalletState(wallet);
-    const { balances, tokens } = walletState;
+    const { tokens } = walletState;
     return (
         <>
             {loading ? (
@@ -56,36 +46,6 @@ const Etokens = () => {
                 <>
                     {wallet && wallet.Path1899 ? (
                         <EtokensCtn>
-                            <WalletInfoCtn>
-                                <WalletLabel
-                                    name={wallet.name}
-                                    cashtabSettings={cashtabSettings}
-                                    changeCashtabSettings={
-                                        changeCashtabSettings
-                                    }
-                                ></WalletLabel>
-                                {!balances.totalBalance ? (
-                                    <ZeroBalanceHeader>
-                                        You currently have 0 {appConfig.ticker}
-                                        <br />
-                                        Deposit some funds to use this feature
-                                    </ZeroBalanceHeader>
-                                ) : (
-                                    <>
-                                        <BalanceHeader
-                                            balance={balances.totalBalance}
-                                            ticker={appConfig.ticker}
-                                            cashtabSettings={cashtabSettings}
-                                        />
-
-                                        <BalanceHeaderFiat
-                                            balance={balances.totalBalance}
-                                            settings={cashtabSettings}
-                                            fiatPrice={fiatPrice}
-                                        />
-                                    </>
-                                )}
-                            </WalletInfoCtn>
                             <br />
                             <SidePaddingCtn>
                                 <CreateToken

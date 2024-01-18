@@ -15,11 +15,8 @@ const { TextArea } = Input;
 import { Row, Col, Switch } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import { errorNotification } from 'components/Common/Notifications';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
-    getWalletState,
     convertEtokenToEcashAddr,
     convertEcashtoEtokenAddr,
     convertToEcashPrefix,
@@ -34,12 +31,7 @@ import {
 } from 'validation';
 import { CustomSpinner } from 'components/Common/CustomIcons';
 import * as etokenList from 'etoken-list';
-import {
-    ZeroBalanceHeader,
-    SidePaddingCtn,
-    WalletInfoCtn,
-} from 'components/Common/Atoms';
-import WalletLabel from 'components/Common/WalletLabel.js';
+import { SidePaddingCtn } from 'components/Common/Atoms';
 import { Link } from 'react-router-dom';
 import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
@@ -86,16 +78,8 @@ const StyledModal = styled(Modal)`
 
 const Airdrop = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        fiatPrice,
-        cashtabSettings,
-        chronik,
-        changeCashtabSettings,
-    } = ContextValue;
+    const { wallet, chronik } = ContextValue;
     const location = useLocation();
-    const walletState = getWalletState(wallet);
-    const { balances } = walletState;
     const [isAirdropCalcModalVisible, setIsAirdropCalcModalVisible] =
         useState(false);
     const [airdropCalcModalProgress, setAirdropCalcModalProgress] = useState(0); // the dynamic % progress bar
@@ -498,35 +482,6 @@ const Airdrop = ({ passLoadingStatus }) => {
 
     return (
         <>
-            <WalletInfoCtn>
-                <WalletLabel
-                    name={wallet.name}
-                    cashtabSettings={cashtabSettings}
-                    changeCashtabSettings={changeCashtabSettings}
-                ></WalletLabel>
-                {!balances.totalBalance ? (
-                    <ZeroBalanceHeader>
-                        You currently have 0 {appConfig.ticker}
-                        <br />
-                        Deposit some funds to use this feature
-                    </ZeroBalanceHeader>
-                ) : (
-                    <>
-                        <BalanceHeader
-                            balance={balances.totalBalance}
-                            ticker={appConfig.ticker}
-                            cashtabSettings={cashtabSettings}
-                        />
-                        {fiatPrice !== null && (
-                            <BalanceHeaderFiat
-                                balance={balances.totalBalance}
-                                settings={cashtabSettings}
-                                fiatPrice={fiatPrice}
-                            />
-                        )}
-                    </>
-                )}
-            </WalletInfoCtn>
             <StyledModal
                 title="Querying the eCash blockchain"
                 open={isAirdropCalcModalVisible}

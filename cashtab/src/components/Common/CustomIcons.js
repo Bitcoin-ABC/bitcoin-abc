@@ -240,7 +240,7 @@ export const LoadingBlock = styled.div`
 
 export const CashLoader = () => (
     <LoadingBlock>
-        <LoadingOutlined />
+        <LoadingOutlined data-testid="cash-loader" />
     </LoadingBlock>
 );
 

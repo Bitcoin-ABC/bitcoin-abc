@@ -2,13 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import PropTypes from 'prop-types';
-import WalletLabel from 'components/Common/WalletLabel.js';
-import {
-    ZeroBalanceHeader,
-    SidePaddingCtn,
-    WalletInfoCtn,
-    AlertMsg,
-} from 'components/Common/Atoms';
+import { SidePaddingCtn, AlertMsg } from 'components/Common/Atoms';
 import { PendingAliasWarningIcon } from 'components/Common/CustomIcons';
 import {
     AntdFormWrapper,
@@ -19,8 +13,6 @@ import {
 import { AliasRegisterIcon } from 'components/Common/CustomIcons';
 import { Form, Modal } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { Row, Col } from 'antd';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
@@ -85,10 +77,7 @@ const Alias = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const {
         wallet,
-        fiatPrice,
-        cashtabSettings,
         chronik,
-        changeCashtabSettings,
         cashtabCache,
         refreshAliases,
         aliases,
@@ -492,35 +481,6 @@ const Alias = ({ passLoadingStatus }) => {
                     !aliasAddressValidationError &&
                     ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${wallet.Path1899?.cashAddress}.`}
             </Modal>
-            <WalletInfoCtn>
-                <WalletLabel
-                    name={wallet.name}
-                    cashtabSettings={cashtabSettings}
-                    changeCashtabSettings={changeCashtabSettings}
-                ></WalletLabel>
-                {!balances.totalBalance ? (
-                    <ZeroBalanceHeader>
-                        You currently have 0 {appConfig.ticker}
-                        <br />
-                        Deposit some funds to use this feature
-                    </ZeroBalanceHeader>
-                ) : (
-                    <>
-                        <BalanceHeader
-                            balance={balances.totalBalance}
-                            ticker={appConfig.ticker}
-                            cashtabSettings={cashtabSettings}
-                        />
-                        {fiatPrice !== null && (
-                            <BalanceHeaderFiat
-                                balance={balances.totalBalance}
-                                settings={cashtabSettings}
-                                fiatPrice={fiatPrice}
-                            />
-                        )}
-                    </>
-                )}
-            </WalletInfoCtn>
             <SidePaddingCtn>
                 <Row type="flex">
                     <Col span={24}>

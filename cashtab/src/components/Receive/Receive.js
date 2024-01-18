@@ -5,12 +5,6 @@ import { WalletContext } from 'utils/context';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { QRCode } from 'components/Common/QRCode';
 import { LoadingCtn } from 'components/Common/Atoms';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
-import { WalletInfoCtn, ZeroBalanceHeader } from 'components/Common/Atoms';
-import WalletLabel from 'components/Common/WalletLabel';
-import { getWalletState } from 'utils/cashMethods';
-import appConfig from 'config/app';
 
 const QrCodeCtn = styled.div``;
 
@@ -29,43 +23,9 @@ export const ReceiveCtn = styled.div`
     }
 `;
 
-const ReceiveWithWalletPresent = ({
-    wallet,
-    cashtabSettings,
-    balances,
-    fiatPrice,
-    changeCashtabSettings,
-}) => {
+const ReceiveWithWalletPresent = ({ wallet }) => {
     return (
         <ReceiveCtn>
-            <WalletInfoCtn>
-                <WalletLabel
-                    name={wallet.name}
-                    cashtabSettings={cashtabSettings}
-                    changeCashtabSettings={changeCashtabSettings}
-                ></WalletLabel>
-                {!balances.totalBalance ? (
-                    <ZeroBalanceHeader>
-                        You currently have 0 {appConfig.ticker}
-                        <br />
-                        Deposit some funds to use this feature
-                    </ZeroBalanceHeader>
-                ) : (
-                    <>
-                        <BalanceHeader
-                            balance={balances.totalBalance}
-                            ticker={appConfig.ticker}
-                            cashtabSettings={cashtabSettings}
-                        />
-
-                        <BalanceHeaderFiat
-                            balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
-                        />
-                    </>
-                )}
-            </WalletInfoCtn>
             {wallet && wallet.Path1899 && (
                 <QrCodeCtn>
                     <QRCode
@@ -80,16 +40,7 @@ const ReceiveWithWalletPresent = ({
 
 const Receive = () => {
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        previousWallet,
-        loading,
-        cashtabSettings,
-        changeCashtabSettings,
-        fiatPrice,
-    } = ContextValue;
-    const walletState = getWalletState(wallet);
-    const { balances } = walletState;
+    const { wallet, previousWallet, loading } = ContextValue;
     return (
         <>
             {loading ? (
@@ -98,13 +49,7 @@ const Receive = () => {
                 <>
                     {(wallet && wallet.Path1899) ||
                     (previousWallet && previousWallet.path1899) ? (
-                        <ReceiveWithWalletPresent
-                            wallet={wallet}
-                            cashtabSettings={cashtabSettings}
-                            balances={balances}
-                            fiatPrice={fiatPrice}
-                            changeCashtabSettings={changeCashtabSettings}
-                        />
+                        <ReceiveWithWalletPresent wallet={wallet} />
                     ) : (
                         <OnBoarding />
                     )}
@@ -115,20 +60,7 @@ const Receive = () => {
 };
 
 ReceiveWithWalletPresent.propTypes = {
-    balances: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-    fiatPrice: PropTypes.number,
     wallet: PropTypes.object,
-    cashtabSettings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSender: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
-        }),
-        PropTypes.bool,
-    ]),
-    changeCashtabSettings: PropTypes.func,
 };
 
 export default Receive;

@@ -6,13 +6,8 @@ import { WalletContext } from 'utils/context';
 import {
     TokenParamLabel,
     MessageVerificationParamLabel,
-    WalletInfoCtn,
-    ZeroBalanceHeader,
     SidePaddingCtn,
 } from 'components/Common/Atoms';
-import WalletLabel from 'components/Common/WalletLabel.js';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
     errorNotification,
     messageSignedNotification,
@@ -24,7 +19,7 @@ import {
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
 const { TextArea } = Input;
-import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
+import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
@@ -73,10 +68,7 @@ const SignatureValidation = styled.div`
 
 const SignVerifyMsg = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, cashtabSettings, changeCashtabSettings } =
-        ContextValue;
-    const walletState = getWalletState(wallet);
-    const { balances } = walletState;
+    const { wallet } = ContextValue;
     const [messageSignature, setMessageSignature] = useState('');
     const [showConfirmMsgToSign, setShowConfirmMsgToSign] = useState(false);
     const [msgToSign, setMsgToSign] = useState('');
@@ -233,34 +225,6 @@ const SignVerifyMsg = () => {
 
     return (
         <Wrapper>
-            <WalletInfoCtn>
-                <WalletLabel
-                    name={wallet.name}
-                    cashtabSettings={cashtabSettings}
-                    changeCashtabSettings={changeCashtabSettings}
-                ></WalletLabel>
-                {!balances.totalBalance ? (
-                    <ZeroBalanceHeader>
-                        You currently have 0 {appConfig.ticker}
-                        <br />
-                        Deposit some funds to use this feature
-                    </ZeroBalanceHeader>
-                ) : (
-                    <>
-                        <BalanceHeader
-                            balance={balances.totalBalance}
-                            ticker={appConfig.ticker}
-                            cashtabSettings={cashtabSettings}
-                        />
-
-                        <BalanceHeaderFiat
-                            balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
-                        />
-                    </>
-                )}
-            </WalletInfoCtn>{' '}
             <SidePaddingCtn>
                 <Modal
                     title={`Please review and confirm your message to be signed using this wallet.`}

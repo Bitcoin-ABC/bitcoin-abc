@@ -15,6 +15,8 @@ const appConfig = {
     dustSats: 550,
     etokenSats: 546,
     cashDecimals: 2,
+    fiatDecimals: 2,
+    pricePrecisionDecimals: 8,
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,

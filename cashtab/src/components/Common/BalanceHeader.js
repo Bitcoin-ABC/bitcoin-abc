@@ -1,42 +1,130 @@
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { formatBalance } from 'utils/formatting';
-import { BalanceHeaderWrap } from 'components/Common/Atoms';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import appConfig from 'config/app';
+import { toXec } from 'wallet';
+import { cashtabSettings as defaultCashtabSettings } from 'config/cashtabSettings';
+import { CashLoader } from 'components/Common/CustomIcons';
+import PropTypes from 'prop-types';
 
-const HiddenBalanceCtn = styled.span`
-    font-size: 28px;
+export const BalanceXec = styled.div`
     width: 100%;
+    font-size: 28px;
     margin-bottom: 0px;
-    color: transparent;
-    text-shadow: 0 0 15px #fff;
     font-weight: bold;
     line-height: 1.4em;
     @media (max-width: 768px) {
         font-size: 24px;
     }
+    color: ${props =>
+        props.balanceVisible ? 'transparent' : props.theme.contrast};
+    text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
 `;
-const BalanceHeader = ({ balance, ticker, cashtabSettings }) => {
-    return (
-        <BalanceHeaderWrap>
-            {cashtabSettings && cashtabSettings.balanceVisible ? (
-                <span data-testid="balance-header-rendered">
-                    {formatBalance(balance)} {ticker}{' '}
-                </span>
-            ) : (
-                <HiddenBalanceCtn>
-                    {' '}
-                    {formatBalance(balance)} {ticker}{' '}
-                </HiddenBalanceCtn>
+export const BalanceFiat = styled.div`
+    width: 100%;
+    font-size: 16px;
+    @media (max-width: 768px) {
+        font-size: 16px;
+    }
+    color: ${props =>
+        props.balanceVisible ? 'transparent' : props.theme.contrast};
+    text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
+`;
+
+const EcashPrice = styled.p`
+    margin: 0 auto;
+    padding: 0;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: ${props => props.theme.lightWhite};
+`;
+
+const BalanceHeader = ({
+    balanceSats = null,
+    cashtabSettings = defaultCashtabSettings,
+    fiatPrice = null,
+    userLocale = 'en-US',
+}) => {
+    // If navigator.language is undefined, default to en-US
+    userLocale = typeof userLocale === 'undefined' ? 'en-US' : userLocale;
+
+    const renderBalanceHeader = Number.isInteger(balanceSats);
+    const renderFiatValues = typeof fiatPrice === 'number';
+
+    let balanceXec,
+        formattedBalanceXec,
+        formattedBalanceFiat,
+        formattedExchangeRate;
+    if (renderBalanceHeader) {
+        // Display XEC balance formatted for user's browser locale
+        balanceXec = toXec(balanceSats);
+
+        formattedBalanceXec = balanceXec.toLocaleString(userLocale, {
+            minimumFractionDigits: appConfig.cashDecimals,
+            maximumFractionDigits: appConfig.cashDecimals,
+        });
+
+        if (renderFiatValues) {
+            // Display fiat balance formatted for user's browser locale
+            formattedBalanceFiat = (balanceXec * fiatPrice).toLocaleString(
+                userLocale,
+                {
+                    minimumFractionDigits: appConfig.fiatDecimals,
+                    maximumFractionDigits: appConfig.fiatDecimals,
+                },
+            );
+
+            // Display exchange rate formatted for user's browser locale
+            formattedExchangeRate = fiatPrice.toLocaleString(userLocale, {
+                minimumFractionDigits: appConfig.pricePrecisionDecimals,
+                maximumFractionDigits: appConfig.pricePrecisionDecimals,
+            });
+        }
+    }
+
+    // Render a spinner if the balance is not loaded
+    return !renderBalanceHeader ? (
+        <CashLoader />
+    ) : (
+        <>
+            <BalanceXec
+                data-testid="balance-xec"
+                balanceVisible={cashtabSettings.balanceVisible === false}
+            >
+                {formattedBalanceXec} {appConfig.ticker}{' '}
+            </BalanceXec>
+            {renderFiatValues && (
+                <>
+                    <BalanceFiat
+                        data-testid="balance-fiat"
+                        balanceVisible={
+                            cashtabSettings.balanceVisible === false
+                        }
+                    >
+                        {
+                            supportedFiatCurrencies[
+                                cashtabSettings.fiatCurrency
+                            ].symbol
+                        }
+                        {formattedBalanceFiat}&nbsp;
+                        {supportedFiatCurrencies[
+                            cashtabSettings.fiatCurrency
+                        ].slug.toUpperCase()}
+                    </BalanceFiat>
+                    <EcashPrice data-testid="ecash-price">
+                        1 {appConfig.ticker} = {formattedExchangeRate}{' '}
+                        {cashtabSettings.fiatCurrency.toUpperCase()}
+                    </EcashPrice>
+                </>
             )}
-        </BalanceHeaderWrap>
+        </>
     );
 };
 
-// balance may be a string (XEC balance) or a BigNumber object (token balance)
 BalanceHeader.propTypes = {
-    balance: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
-    ticker: PropTypes.string,
+    match: PropTypes.string,
+    balanceSats: null | PropTypes.number,
     cashtabSettings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
@@ -47,6 +135,8 @@ BalanceHeader.propTypes = {
         }),
         PropTypes.bool,
     ]),
+    fiatPrice: null | PropTypes.number,
+    userLocale: PropTypes.string,
 };
 
 export default BalanceHeader;

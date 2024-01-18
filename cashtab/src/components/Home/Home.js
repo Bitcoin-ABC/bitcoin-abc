@@ -5,15 +5,8 @@ import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { Link } from 'react-router-dom';
 import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
-import {
-    LoadingCtn,
-    WalletInfoCtn,
-    SidePaddingCtn,
-} from 'components/Common/Atoms';
+import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
-import WalletLabel from 'components/Common/WalletLabel.js';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import { isValidSideshiftObj } from 'validation';
 
@@ -129,35 +122,17 @@ const WalletInfo = () => {
         cashtabSettings,
         contactList,
         cashtabCache,
-        changeCashtabSettings,
     } = ContextValue;
     const walletState = getWalletState(wallet);
-    const { balances, parsedTxHistory } = walletState;
+    const { parsedTxHistory } = walletState;
     const sideshift = window.sideshift;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     return (
         <>
-            <WalletInfoCtn data-testid="wallet-info-ctn">
-                <WalletLabel
-                    name={wallet.name}
-                    cashtabSettings={cashtabSettings}
-                    changeCashtabSettings={changeCashtabSettings}
-                ></WalletLabel>
-                <BalanceHeader
-                    balance={balances.totalBalance}
-                    ticker={appConfig.ticker}
-                    cashtabSettings={cashtabSettings}
-                />
-                <BalanceHeaderFiat
-                    balance={balances.totalBalance}
-                    settings={cashtabSettings}
-                    fiatPrice={fiatPrice}
-                />
-            </WalletInfoCtn>
             {apiError && <ApiError />}
             <br />
-            <SidePaddingCtn>
+            <SidePaddingCtn data-testid="home-ctn">
                 <TxHistoryCtn data-testid="tx-history-ctn">
                     <TxHistory
                         txs={
@@ -190,7 +165,10 @@ const WalletInfo = () => {
                             <br />
                             <br />
                             {isValidSideshiftObj(sideshift) && (
-                                <SmartButton onClick={() => sideshift.show()}>
+                                <SmartButton
+                                    data-testid="sideshift-btn"
+                                    onClick={() => sideshift.show()}
+                                >
                                     Exchange to XEC via SideShift
                                 </SmartButton>
                             )}

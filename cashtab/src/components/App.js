@@ -32,7 +32,7 @@ import NotFound from 'components/NotFound';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'utils/context';
-import { isValidStoredWallet } from 'utils/cashMethods';
+import { isValidStoredWallet, getWalletState } from 'utils/cashMethods';
 import {
     Route,
     Redirect,
@@ -48,6 +48,9 @@ import aliasSettings from 'config/alias';
 import WebApp from './AppModes/WebApp';
 import Extension from './AppModes/Extension';
 import ExtensionHeader from './Common/ExtensionHeader';
+import { WalletInfoCtn } from 'components/Common/Atoms';
+import WalletLabel from 'components/Common/WalletLabel.js';
+import BalanceHeader from 'components/Common/BalanceHeader';
 
 const ExtensionFrame = createGlobalStyle`
     html, body {
@@ -416,7 +419,15 @@ const NavHeader = styled.div`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, loading } = ContextValue;
+    const {
+        wallet,
+        cashtabSettings,
+        changeCashtabSettings,
+        fiatPrice,
+        loading,
+    } = ContextValue;
+    const walletState = getWalletState(wallet);
+    const { balances } = walletState;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
     const [updatingWalletInfo, setUpdatingWalletInfo] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
@@ -515,6 +526,30 @@ const App = () => {
                                     </>
                                 )}
                             </HeaderCtn>
+                            {wallet !== false && (
+                                <WalletInfoCtn data-testid="wallet-info-ctn">
+                                    <WalletLabel
+                                        name={wallet.name}
+                                        cashtabSettings={cashtabSettings}
+                                        changeCashtabSettings={
+                                            changeCashtabSettings
+                                        }
+                                    ></WalletLabel>
+                                    <BalanceHeader
+                                        balanceSats={
+                                            typeof balances.totalBalanceInSatoshis ===
+                                            'string'
+                                                ? parseInt(
+                                                      balances.totalBalanceInSatoshis,
+                                                  )
+                                                : null
+                                        }
+                                        cashtabSettings={cashtabSettings}
+                                        fiatPrice={fiatPrice}
+                                        locale={navigator.language}
+                                    />
+                                </WalletInfoCtn>
+                            )}
                             <Switch>
                                 <Route path="/wallet">
                                     <Home />

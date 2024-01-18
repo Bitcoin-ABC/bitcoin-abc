@@ -29,13 +29,9 @@ import {
     shouldSendXecBeDisabled,
     parseAddressInput,
 } from 'validation';
-import BalanceHeader from 'components/Common/BalanceHeader';
-import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {
-    ZeroBalanceHeader,
     ConvertAmount,
     AlertMsg,
-    WalletInfoCtn,
     SidePaddingCtn,
     FormLabel,
     TxLink,
@@ -56,7 +52,6 @@ import {
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
-import WalletLabel from 'components/Common/WalletLabel.js';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
@@ -169,7 +164,6 @@ const SendXec = ({ passLoadingStatus }) => {
         fiatPrice,
         apiError,
         cashtabSettings,
-        changeCashtabSettings,
         chronik,
         cashtabCache,
     } = ContextValue;
@@ -714,34 +708,6 @@ const SendXec = ({ passLoadingStatus }) => {
                     )}
                 </p>
             </Modal>
-            <WalletInfoCtn>
-                <WalletLabel
-                    name={wallet.name}
-                    cashtabSettings={cashtabSettings}
-                    changeCashtabSettings={changeCashtabSettings}
-                ></WalletLabel>
-                {!balances.totalBalance ? (
-                    <ZeroBalanceHeader>
-                        You currently have 0 {appConfig.ticker}
-                        <br />
-                        Deposit some funds to use this feature
-                    </ZeroBalanceHeader>
-                ) : (
-                    <>
-                        <BalanceHeader
-                            balance={balances.totalBalance}
-                            ticker={appConfig.ticker}
-                            cashtabSettings={cashtabSettings}
-                        />
-
-                        <BalanceHeaderFiat
-                            balance={balances.totalBalance}
-                            settings={cashtabSettings}
-                            fiatPrice={fiatPrice}
-                        />
-                    </>
-                )}
-            </WalletInfoCtn>
             <SidePaddingCtn>
                 <Row type="flex">
                     <Col span={24}>

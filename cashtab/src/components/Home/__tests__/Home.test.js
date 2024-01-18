@@ -58,6 +58,13 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
+// Mock a valid sideshift object in window
+window.sideshift = {
+    show: jest.fn(),
+    hide: jest.fn(),
+    addEventListener: jest.fn(),
+};
+
 describe('<Home /> if wallet has balance and tx history', () => {
     it('Renders the loading component while loading', async () => {
         render(
@@ -70,13 +77,13 @@ describe('<Home /> if wallet has balance and tx history', () => {
             </Router>,
         );
 
-        // WalletInfo component is not rendered
-        expect(screen.queryByTestId('wallet-info-ctn')).not.toBeInTheDocument();
+        // Home component is not rendered
+        expect(screen.queryByTestId('home-ctn')).not.toBeInTheDocument();
 
         // Loading ctn is rendered
         expect(screen.queryByTestId('loading-ctn')).toBeInTheDocument();
     });
-    it('Renders the Home screen with correct balance and no API error', async () => {
+    it('Renders the Home screen with no API error', async () => {
         render(
             <Router>
                 <WalletContext.Provider value={walletWithBalancesMockNew}>
@@ -87,20 +94,16 @@ describe('<Home /> if wallet has balance and tx history', () => {
             </Router>,
         );
 
-        // WalletInfo component is rendered
-        expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
-        // Balance is rendered
-        const balanceSpan = screen.getByTestId('balance-header-rendered');
-        expect(balanceSpan).toBeInTheDocument();
-        // Balance matches wallet
-        expect(balanceSpan).toHaveTextContent(`9,513.12 XEC`);
+        // Home component is rendered
+        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
+
         // API Error is not rendered if no API error
         expect(screen.queryByTestId('api-error')).not.toBeInTheDocument();
 
         // Tx history is rendered
         expect(screen.getByTestId('tx-history-ctn')).toBeInTheDocument();
     });
-    it('Renders the Home screen with correct balance and API error', async () => {
+    it('Renders the Home screen with API error', async () => {
         render(
             <Router>
                 <WalletContext.Provider value={contextWithApiError}>
@@ -111,13 +114,9 @@ describe('<Home /> if wallet has balance and tx history', () => {
             </Router>,
         );
 
-        // WalletInfo component is rendered
-        expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
-        // Balance is rendered
-        const balanceSpan = screen.getByTestId('balance-header-rendered');
-        expect(balanceSpan).toBeInTheDocument();
-        // Balance matches wallet
-        expect(balanceSpan).toHaveTextContent(`9,513.12 XEC`);
+        // Home component is rendered
+        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
+
         // API Error is rendered
         expect(screen.queryByTestId('api-error')).toBeInTheDocument();
     });
@@ -132,15 +131,14 @@ describe('<Home /> if wallet has balance and tx history', () => {
             </Router>,
         );
 
-        // WalletInfo component is rendered
-        expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
-        // Balance is rendered
-        const balanceSpan = screen.getByTestId('balance-header-rendered');
-        expect(balanceSpan).toBeInTheDocument();
-        // Balance matches wallet
-        expect(balanceSpan).toHaveTextContent(`0 XEC`);
+        // Home component is rendered
+        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
+
         // API Error is not rendered if no API error
         expect(screen.queryByTestId('api-error')).not.toBeInTheDocument();
+
+        // Sideshift button is rendered
+        expect(screen.queryByTestId('sideshift-btn')).toBeInTheDocument();
     });
     it('Renders the onboarding screen for a new wallet', async () => {
         render(
