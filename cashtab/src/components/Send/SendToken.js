@@ -43,7 +43,7 @@ import {
     isValidEtokenAddress,
     isValidEtokenBurnAmount,
     parseAddressInput,
-} from 'utils/validation';
+} from 'validation';
 import { getTokenStats } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';

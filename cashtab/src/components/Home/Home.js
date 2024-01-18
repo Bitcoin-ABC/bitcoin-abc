@@ -15,7 +15,7 @@ import {
 import { getWalletState } from 'utils/cashMethods';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import { SmartButton } from 'components/Common/PrimaryButton';
-import { isValidSideshiftObj } from 'utils/validation';
+import { isValidSideshiftObj } from 'validation';
 
 import appConfig from 'config/app';
 

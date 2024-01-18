@@ -3,7 +3,7 @@ import {
     isValidEtokenAddress,
     isValidContactList,
     isValidBchAddress,
-} from 'utils/validation';
+} from 'validation';
 import { BN, TokenType1 } from 'slp-mdm';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';

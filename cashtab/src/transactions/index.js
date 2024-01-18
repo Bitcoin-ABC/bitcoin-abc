@@ -5,7 +5,7 @@
 import * as utxolib from '@bitgo/utxo-lib';
 import { coinSelect } from 'ecash-coinselect';
 import cashaddr from 'ecashaddrjs';
-import { isValidMultiSendUserInput } from 'utils/validation';
+import { isValidMultiSendUserInput } from 'validation';
 import { toSatoshis } from 'utils/cashMethods';
 
 /**

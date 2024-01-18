@@ -17,7 +17,7 @@ import {
     isValidContactList,
     parseInvalidSettingsForMigration,
     parseInvalidCashtabCacheForMigration,
-} from 'utils/validation';
+} from 'validation';
 import localforage from 'localforage';
 import {
     xecReceivedNotification,

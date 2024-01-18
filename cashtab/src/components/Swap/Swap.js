@@ -12,7 +12,7 @@ import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import WalletLabel from 'components/Common/WalletLabel';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import { isValidSideshiftObj } from 'utils/validation';
+import { isValidSideshiftObj } from 'validation';
 import { AlertMsg } from 'components/Common/Atoms';
 import appConfig from 'config/app';
 

@@ -31,31 +31,26 @@ import {
     isValidOpreturnParam,
     shouldSendXecBeDisabled,
     parseAddressInput,
-} from '../validation';
-import aliasSettings from 'config/alias';
-import { fromSatoshisToXec } from 'utils/cashMethods';
+} from 'validation';
 import {
     validXecAirdropList,
     invalidXecAirdropList,
     invalidXecAirdropListMultipleInvalidValues,
     invalidXecAirdropListMultipleValidValues,
-} from '../__mocks__/mockXecAirdropRecipients';
-
-import {
     validXecAirdropExclusionList,
     invalidXecAirdropExclusionList,
-} from '../__mocks__/mockXecAirdropExclusionList';
-import {
     validCashtabCache,
     cashtabCacheWithOneBadTokenId,
     cashtabCacheWithDecimalNotNumber,
     cashtabCacheWithTokenNameNotString,
     cashtabCacheWithMissingTokenName,
-} from 'utils/__mocks__/mockCashtabCache';
+} from 'validation/fixtures/mocks';
+import vectors from 'validation/fixtures/vectors';
 import { when } from 'jest-when';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
-import { validationVectors } from '../fixtures/vectors';
+import aliasSettings from 'config/alias';
+import { fromSatoshisToXec } from 'utils/cashMethods';
 
 describe('Validation utils', () => {
     it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
@@ -1084,7 +1079,7 @@ describe('Validation utils', () => {
 });
 
 describe('Determining whether Send button should be disabled on SendXec screen', () => {
-    const { expectedReturns } = validationVectors.shouldDisableXecSend;
+    const { expectedReturns } = vectors.shouldDisableXecSend;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
@@ -1118,7 +1113,7 @@ describe('Determining whether Send button should be disabled on SendXec screen',
 });
 
 describe('Parses user input address strings with parseAddressInput', () => {
-    const { expectedReturns } = validationVectors.parseAddressInputCases;
+    const { expectedReturns } = vectors.parseAddressInputCases;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
@@ -1133,7 +1128,7 @@ describe('Parses user input address strings with parseAddressInput', () => {
 });
 
 describe('Returns true if a given input meets alias spec or expected error msg if it does not', () => {
-    const { expectedReturns } = validationVectors.meetsAliasSpecInputCases;
+    const { expectedReturns } = vectors.meetsAliasSpecInputCases;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
@@ -1145,7 +1140,7 @@ describe('Returns true if a given input meets alias spec or expected error msg i
 });
 
 describe('Validates user alias input on Send and SendToken screens', () => {
-    const { expectedReturns } = validationVectors.validAliasSendInputCases;
+    const { expectedReturns } = vectors.validAliasSendInputCases;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {

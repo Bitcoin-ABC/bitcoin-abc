@@ -31,7 +31,7 @@ import {
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
     parseAddressInput,
-} from 'utils/validation';
+} from 'validation';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import {

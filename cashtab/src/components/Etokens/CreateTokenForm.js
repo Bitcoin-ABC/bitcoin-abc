@@ -15,7 +15,7 @@ import {
     isValidTokenInitialQty,
     isValidTokenDocumentUrl,
     isProbablyNotAScam,
-} from 'utils/validation';
+} from 'validation';
 import {
     PlusSquareOutlined,
     UploadOutlined,

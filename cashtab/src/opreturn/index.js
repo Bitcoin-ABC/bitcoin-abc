@@ -9,7 +9,7 @@ import {
     isValidTokenId,
     meetsAliasSpec,
     isValidOpreturnParam,
-} from 'utils/validation';
+} from 'validation';
 
 /**
  * Initialize an OP_RETURN script element in a way that utxolib.script.compile(script) accepts

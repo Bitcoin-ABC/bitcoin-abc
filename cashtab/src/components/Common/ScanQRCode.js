@@ -5,8 +5,7 @@ import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
 import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { parseAddressInput } from 'utils/validation';
-import { isValidEtokenAddress } from 'utils/validation';
+import { parseAddressInput, isValidEtokenAddress } from 'validation';
 
 const StyledScanQRCode = styled.span`
     display: block;

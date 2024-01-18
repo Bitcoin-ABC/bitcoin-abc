@@ -14,7 +14,7 @@ import PrimaryButton, {
     SmartButton,
 } from 'components/Common/PrimaryButton';
 import { Event } from 'utils/GoogleAnalytics';
-import { validateMnemonic } from 'utils/validation';
+import { validateMnemonic } from 'validation';
 import appConfig from 'config/app';
 
 export const WelcomeCtn = styled.div`

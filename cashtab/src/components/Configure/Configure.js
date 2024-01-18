@@ -63,7 +63,7 @@ import {
     isValidNewWalletNameLength,
     validateMnemonic,
     isValidRecipient,
-} from 'utils/validation';
+} from 'validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';

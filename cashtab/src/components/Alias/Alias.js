@@ -27,7 +27,7 @@ import {
     errorNotification,
     registerAliasNotification,
 } from 'components/Common/Notifications';
-import { meetsAliasSpec } from 'utils/validation';
+import { meetsAliasSpec } from 'validation';
 import { queryAliasServer } from 'utils/aliasUtils';
 import cashaddr from 'ecashaddrjs';
 import { Space, Tag } from 'antd';

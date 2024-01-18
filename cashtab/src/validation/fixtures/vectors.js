@@ -5,7 +5,7 @@
 // Test vectors for validation functions
 import appConfig from 'config/app';
 
-export const validationVectors = {
+export default {
     shouldDisableXecSend: {
         expectedReturns: [
             {

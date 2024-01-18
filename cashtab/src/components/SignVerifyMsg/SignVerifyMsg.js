@@ -33,7 +33,7 @@ import {
     isValidXecAddress,
     isValidEtokenAddress,
     isValidAliasSendInput,
-} from 'utils/validation';
+} from 'validation';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';

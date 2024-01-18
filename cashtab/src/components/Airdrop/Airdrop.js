@@ -31,7 +31,7 @@ import {
     isValidXecAirdrop,
     isValidAirdropOutputsArray,
     isValidAirdropExclusionArray,
-} from 'utils/validation';
+} from 'validation';
 import { CustomSpinner } from 'components/Common/CustomIcons';
 import * as etokenList from 'etoken-list';
 import {
