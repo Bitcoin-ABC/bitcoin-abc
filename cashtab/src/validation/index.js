@@ -35,7 +35,7 @@ export const isValidSideshiftObj = sideshiftObj => {
 // Parses whether the value is a valid eCash address
 // or a valid and registered alias
 export const isValidRecipient = async value => {
-    if (isValidXecAddress(value)) {
+    if (cashaddr.isValidCashAddress(value, 'ecash')) {
         return true;
     }
     // If not a valid XEC address, check if it's an alias
@@ -303,7 +303,7 @@ export const isValidContactList = contactList => {
         ) {
             // Address must be a valid XEC address, name must be a string
             if (
-                isValidXecAddress(contactObj.address) &&
+                cashaddr.isValidCashAddress(contactObj.address, 'ecash') &&
                 typeof contactObj.name === 'string'
             ) {
                 continue;
@@ -392,141 +392,6 @@ export const isValidCashtabCache = cashtabCache => {
     }
 
     return true;
-};
-
-export const isValidXecAddress = addr => {
-    /* 
-    Returns true for a valid XEC address
-
-    Valid XEC address:
-    - May or may not have prefix `ecash:`
-    - Checksum must validate for prefix `ecash:`
-    
-    An eToken address is not considered a valid XEC address
-    */
-
-    if (!addr) {
-        return false;
-    }
-
-    let isValidXecAddress;
-    let isPrefixedXecAddress;
-
-    // Check for possible prefix
-    if (addr.includes(':')) {
-        // Test for 'ecash:' prefix
-        isPrefixedXecAddress = addr.slice(0, 6) === 'ecash:';
-        // Any address including ':' that doesn't start explicitly with 'ecash:' is invalid
-        if (!isPrefixedXecAddress) {
-            isValidXecAddress = false;
-            return isValidXecAddress;
-        }
-    } else {
-        isPrefixedXecAddress = false;
-    }
-
-    // If no prefix, assume it is checksummed for an ecash: prefix
-    const testedXecAddr = isPrefixedXecAddress ? addr : `ecash:${addr}`;
-
-    try {
-        const decoded = cashaddr.decode(testedXecAddr);
-        if (decoded.prefix === 'ecash') {
-            isValidXecAddress = true;
-        }
-    } catch (err) {
-        isValidXecAddress = false;
-    }
-    return isValidXecAddress;
-};
-
-export const isValidBchAddress = addr => {
-    /* 
-    Returns true for a valid BCH address
-
-    Valid BCH address:
-    - May or may not have prefix `bitcoincash:`
-    - Checksum must validate for prefix `bitcoincash:`
-    
-    A simple ledger address is not considered a valid bitcoincash address
-    */
-
-    if (!addr) {
-        return false;
-    }
-
-    let isValidBchAddress;
-    let isPrefixedBchAddress;
-
-    // Check for possible prefix
-    if (addr.includes(':')) {
-        // Test for 'ecash:' prefix
-        isPrefixedBchAddress = addr.slice(0, 12) === 'bitcoincash:';
-        // Any address including ':' that doesn't start explicitly with 'bitcoincash:' is invalid
-        if (!isPrefixedBchAddress) {
-            isValidBchAddress = false;
-            return isValidBchAddress;
-        }
-    } else {
-        isPrefixedBchAddress = false;
-    }
-
-    // If no prefix, assume it is checksummed for an bitcoincash: prefix
-    const testedXecAddr = isPrefixedBchAddress ? addr : `bitcoincash:${addr}`;
-
-    try {
-        const decoded = cashaddr.decode(testedXecAddr);
-        if (decoded.prefix === 'bitcoincash') {
-            isValidBchAddress = true;
-        }
-    } catch (err) {
-        isValidBchAddress = false;
-    }
-    return isValidBchAddress;
-};
-
-export const isValidEtokenAddress = addr => {
-    /* 
-    Returns true for a valid eToken address
-
-    Valid eToken address:
-    - May or may not have prefix `etoken:`
-    - Checksum must validate for prefix `etoken:`
-    
-    An XEC address is not considered a valid eToken address
-    */
-
-    if (!addr) {
-        return false;
-    }
-
-    let isValidEtokenAddress;
-    let isPrefixedEtokenAddress;
-
-    // Check for possible prefix
-    if (addr.includes(':')) {
-        // Test for 'etoken:' prefix
-        isPrefixedEtokenAddress = addr.slice(0, 7) === 'etoken:';
-        // Any token address including ':' that doesn't start explicitly with 'etoken:' is invalid
-        if (!isPrefixedEtokenAddress) {
-            isValidEtokenAddress = false;
-            return isValidEtokenAddress;
-        }
-    } else {
-        isPrefixedEtokenAddress = false;
-    }
-
-    // If no prefix, assume it is checksummed for an etoken: prefix
-    const testedEtokenAddr = isPrefixedEtokenAddress ? addr : `etoken:${addr}`;
-
-    try {
-        const decoded = cashaddr.decode(testedEtokenAddr);
-        if (decoded.prefix === 'etoken') {
-            isValidEtokenAddress = true;
-        }
-    } catch (err) {
-        isValidEtokenAddress = false;
-    }
-    return isValidEtokenAddress;
 };
 
 /**
@@ -646,7 +511,7 @@ export const isValidAirdropExclusionArray = airdropExclusionArray => {
 
     // parse and validate each address in array
     for (let i = 0; i < addressStringArray.length; i++) {
-        if (!isValidXecAddress(addressStringArray[i])) {
+        if (!cashaddr.isValidCashAddress(addressStringArray[i], 'ecash')) {
             return false;
         }
     }
@@ -686,7 +551,7 @@ export const isValidMultiSendUserInput = userMultisendInput => {
         }
 
         const address = addressAndValueThisLine[0].trim();
-        const isValidAddress = isValidXecAddress(address);
+        const isValidAddress = cashaddr.isValidCashAddress(address, 'ecash');
 
         if (!isValidAddress) {
             return `Invalid address "${address}" at line ${i + 1}`;
@@ -811,7 +676,7 @@ export function parseAddressInput(addressInput) {
                 // If it would be a valid alias except for the missing '.xec', this is a useful validation error
                 parsedAddressInput.address.error = `Aliases must end with '.xec'`;
                 parsedAddressInput.address.isAlias = true;
-            } else if (isValidEtokenAddress(cleanAddress)) {
+            } else if (cashaddr.isValidCashAddress(cleanAddress, 'etoken')) {
                 // If it is, though, a valid eToken address
                 parsedAddressInput.address.error = `eToken addresses are not supported for ${appConfig.ticker} sends`;
             } else {

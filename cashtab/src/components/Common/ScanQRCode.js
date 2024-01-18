@@ -5,7 +5,8 @@ import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
 import { errorNotification } from './Notifications';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/library';
-import { parseAddressInput, isValidEtokenAddress } from 'validation';
+import { parseAddressInput } from 'validation';
+import cashaddr from 'ecashaddrjs';
 
 const StyledScanQRCode = styled.span`
     display: block;
@@ -50,7 +51,7 @@ const ScanQRCode = ({
 
         if (
             parsedAddressInput.address.error === false ||
-            isValidEtokenAddress(content)
+            cashaddr.isValidCashAddress(content, 'etoken')
         ) {
             // If what scanner reads from QR code is a valid eCash or eToken address
             type = 'address';

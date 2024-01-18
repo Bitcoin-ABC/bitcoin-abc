@@ -39,11 +39,7 @@ import {
     errorNotification,
     burnTokenNotification,
 } from 'components/Common/Notifications';
-import {
-    isValidEtokenAddress,
-    isValidEtokenBurnAmount,
-    parseAddressInput,
-} from 'validation';
+import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
 import { getTokenStats } from 'utils/chronik';
 import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
@@ -52,6 +48,7 @@ import { token as tokenConfig } from 'config/token';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
 import aliasSettings from 'config/alias';
+import cashaddr from 'ecashaddrjs';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -251,7 +248,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             renderedError = 'eToken sends do not support bip21 query strings';
         } else if (
             parsedAddressInput.address.error &&
-            isValidEtokenAddress(address)
+            cashaddr.isValidCashAddress(address, 'etoken')
         ) {
             // If address is a valid eToken address, no error
             // We support sending to etoken: addresses on SendToken screen

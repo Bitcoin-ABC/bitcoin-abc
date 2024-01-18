@@ -29,11 +29,7 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { SmartButton } from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
-import {
-    isValidXecAddress,
-    isValidEtokenAddress,
-    isValidAliasSendInput,
-} from 'validation';
+import { isValidAliasSendInput } from 'validation';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
@@ -215,13 +211,13 @@ const SignVerifyMsg = () => {
         let error = false;
 
         // validate address
-        const isValid = isValidXecAddress(value);
+        const isValid = cashaddr.isValidCashAddress(value, 'ecash');
 
         // Is this valid address?
         if (!isValid) {
             error = `Invalid ${appConfig.ticker} address`;
             // If valid address but token format
-            if (isValidEtokenAddress(value)) {
+            if (cashaddr.isValidCashAddress(value, 'etoken')) {
                 error = `eToken addresses are not supported for signature verifications`;
             }
             if (isValidAliasSendInput(value) === true) {

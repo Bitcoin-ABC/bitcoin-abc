@@ -1,9 +1,4 @@
-import {
-    isValidXecAddress,
-    isValidEtokenAddress,
-    isValidContactList,
-    isValidBchAddress,
-} from 'validation';
+import { isValidContactList } from 'validation';
 import { BN, TokenType1 } from 'slp-mdm';
 import cashaddr from 'ecashaddrjs';
 import bs58 from 'bs58';
@@ -454,29 +449,6 @@ export const generateTokenTxInput = (
     };
 };
 
-export const getChangeAddressFromInputUtxos = (inputUtxos, wallet) => {
-    if (!inputUtxos || !wallet) {
-        throw new Error('Invalid getChangeAddressFromWallet input parameter');
-    }
-
-    // Assume change address is input address of utxo at index 0
-    let changeAddress;
-
-    // Validate address
-    try {
-        changeAddress = inputUtxos[0].address;
-        if (
-            !isValidXecAddress(changeAddress) &&
-            !isValidBchAddress(changeAddress)
-        ) {
-            throw new Error('Invalid change address');
-        }
-    } catch (err) {
-        throw new Error('Invalid input utxo');
-    }
-    return changeAddress;
-};
-
 /**
  * Get the total XEC amount sent in a one-to-many XEC tx
  * @param {array} destinationAddressAndValueArray
@@ -887,7 +859,7 @@ export function convertEtokenToEcashAddr(eTokenAddress) {
     }
 
     // Confirm input is a valid eToken address
-    const isValidInput = isValidEtokenAddress(eTokenAddress);
+    const isValidInput = cashaddr.isValidCashAddress(eTokenAddress, 'etoken');
     if (!isValidInput) {
         return new Error(
             `cashMethods.convertToEcashAddr() error: ${eTokenAddress} is not a valid etoken address`,
@@ -941,7 +913,7 @@ export function convertToEcashPrefix(bitcoincashPrefixedAddress) {
 }
 
 export function convertEcashtoEtokenAddr(eCashAddress) {
-    const isValidInput = isValidXecAddress(eCashAddress);
+    const isValidInput = cashaddr.isValidCashAddress(eCashAddress, 'ecash');
     if (!isValidInput) {
         return new Error(`${eCashAddress} is not a valid ecash address`);
     }
