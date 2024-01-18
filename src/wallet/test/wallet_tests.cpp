@@ -54,7 +54,8 @@ static std::shared_ptr<CWallet> TestLoadWallet(WalletContext &context) {
 }
 
 static void TestUnloadWallet(std::shared_ptr<CWallet> &&wallet) {
-    SyncWithValidationInterfaceQueue();
+    // Calls SyncWithValidationInterfaceQueue
+    wallet->chain().waitForNotificationsIfTipChanged(BlockHash{});
     wallet->m_chain_notifications_handler.reset();
     WaitForDeleteWallet(std::move(wallet));
 }
@@ -818,7 +819,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
     // transactionAddedToMempool notifications, and create block and mempool
     // transactions paying to the wallet
     std::promise<void> promise;
-    CallFunctionInValidationInterfaceQueue(
+    m_node.validation_signals->CallFunctionInValidationInterfaceQueue(
         [&promise] { promise.get_future().wait(); });
     std::string error;
     m_coinbase_txns.push_back(
@@ -851,7 +852,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
     // Unblock notification queue and make sure stale blockConnected and
     // transactionAddedToMempool events are processed
     promise.set_value();
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(addtx_count, 4);
 
     TestUnloadWallet(std::move(wallet));
@@ -882,7 +883,7 @@ BOOST_FIXTURE_TEST_CASE(CreateWallet, TestChain100Setup) {
             BOOST_CHECK(m_node.chain->broadcastTransaction(
                 GetConfig(), MakeTransactionRef(mempool_tx),
                 DEFAULT_TRANSACTION_MAXFEE, false, error));
-            SyncWithValidationInterfaceQueue();
+            m_node.validation_signals->SyncWithValidationInterfaceQueue();
         });
     wallet = TestLoadWallet(context);
     BOOST_CHECK_EQUAL(addtx_count, 4);
@@ -920,7 +921,7 @@ BOOST_FIXTURE_TEST_CASE(ZapSelectTx, TestChain100Setup) {
     CreateAndProcessBlock({block_tx},
                           GetScriptForRawPubKey(coinbaseKey.GetPubKey()));
 
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
 
     {
         auto block_id = block_tx.GetId();

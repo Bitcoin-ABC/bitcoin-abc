@@ -50,7 +50,8 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
                           address_mine.value_or(ADDRESS_WATCHONLY));
         generatetoaddress(config, test_setup->m_node, ADDRESS_WATCHONLY);
     }
-    SyncWithValidationInterfaceQueue();
+    // Calls SyncWithValidationInterfaceQueue
+    wallet.chain().waitForNotificationsIfTipChanged(BlockHash{uint256::ZERO});
 
     // Cache
     auto bal = GetBalance(wallet);

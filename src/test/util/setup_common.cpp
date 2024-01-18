@@ -147,7 +147,7 @@ CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
         // Default to always checking mempool regardless of
         // chainparams.DefaultConsistencyChecks for tests
         .check_ratio = 1,
-        .signals = &GetMainSignals(),
+        .signals = node.validation_signals.get(),
     };
     const auto err{ApplyArgsManOptions(
         *node.args, ::GetConfig().GetChainParams(), mempool_opts)};
@@ -166,7 +166,9 @@ ChainTestingSetup::ChainTestingSetup(
     m_node.scheduler->m_service_thread =
         std::thread(util::TraceThread, "scheduler",
                     [&] { m_node.scheduler->serviceQueue(); });
-    GetMainSignals().RegisterBackgroundSignalScheduler(*m_node.scheduler);
+    m_node.validation_signals = std::make_unique<CMainSignals>();
+    m_node.validation_signals->RegisterBackgroundSignalScheduler(
+        *m_node.scheduler);
 
     m_node.mempool =
         std::make_unique<CTxMemPool>(config, MemPoolOptionsForTest(m_node));
@@ -180,7 +182,7 @@ ChainTestingSetup::ChainTestingSetup(
         .adjusted_time_callback = GetAdjustedTime,
         .check_block_index = true,
         .notifications = *m_node.notifications,
-        .signals = &GetMainSignals(),
+        .signals = m_node.validation_signals.get(),
         .worker_threads_num = 2,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);
@@ -205,13 +207,15 @@ ChainTestingSetup::~ChainTestingSetup() {
     if (m_node.scheduler) {
         m_node.scheduler->stop();
     }
-    GetMainSignals().FlushBackgroundCallbacks();
-    GetMainSignals().UnregisterBackgroundSignalScheduler();
+
+    m_node.validation_signals->FlushBackgroundCallbacks();
+    m_node.validation_signals->UnregisterBackgroundSignalScheduler();
     m_node.connman.reset();
     m_node.banman.reset();
     m_node.addrman.reset();
     m_node.args = nullptr;
     m_node.mempool.reset();
+    m_node.validation_signals.reset();
     m_node.scheduler.reset();
     m_node.chainman.reset();
 }

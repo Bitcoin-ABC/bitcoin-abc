@@ -271,8 +271,9 @@ void Shutdown(NodeContext &node) {
 
     // Because these depend on each-other, we make sure that neither can be
     // using the other before destroying them.
-    if (node.peerman) {
-        UnregisterValidationInterface(node.peerman.get());
+    if (node.peerman && node.validation_signals) {
+        node.validation_signals->UnregisterValidationInterface(
+            node.peerman.get());
     }
     if (node.connman) {
         node.connman->Stop();
@@ -317,7 +318,9 @@ void Shutdown(NodeContext &node) {
 
     // After there are no more peers/RPC left to give us new data which may
     // generate CValidationInterface callbacks, flush them...
-    GetMainSignals().FlushBackgroundCallbacks();
+    if (node.validation_signals) {
+        node.validation_signals->FlushBackgroundCallbacks();
+    }
 
 #if ENABLE_CHRONIK
     if (node.args->GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
@@ -361,17 +364,23 @@ void Shutdown(NodeContext &node) {
 
 #if ENABLE_ZMQ
     if (g_zmq_notification_interface) {
-        UnregisterValidationInterface(g_zmq_notification_interface.get());
+        if (node.validation_signals) {
+            node.validation_signals->UnregisterValidationInterface(
+                g_zmq_notification_interface.get());
+        }
         g_zmq_notification_interface.reset();
     }
 #endif
 
     node.chain_clients.clear();
-    UnregisterAllValidationInterfaces();
-    GetMainSignals().UnregisterBackgroundSignalScheduler();
+    if (node.validation_signals) {
+        node.validation_signals->UnregisterAllValidationInterfaces();
+        node.validation_signals->UnregisterBackgroundSignalScheduler();
+    }
     node.kernel.reset();
     node.mempool.reset();
     node.chainman.reset();
+    node.validation_signals.reset();
     node.scheduler.reset();
 
     try {
@@ -2257,7 +2266,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         },
         std::chrono::minutes{5});
 
-    GetMainSignals().RegisterBackgroundSignalScheduler(*node.scheduler);
+    assert(!node.validation_signals);
+    node.validation_signals = std::make_unique<CMainSignals>();
+    auto &validation_signals = *node.validation_signals;
+    validation_signals.RegisterBackgroundSignalScheduler(*node.scheduler);
 
     /**
      * Register RPC commands regardless of -server setting so they will be
@@ -2567,7 +2579,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         });
 
     if (g_zmq_notification_interface) {
-        RegisterValidationInterface(g_zmq_notification_interface.get());
+        validation_signals.RegisterValidationInterface(
+            g_zmq_notification_interface.get());
     }
 #endif
 
@@ -2584,7 +2597,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         .datadir = args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
         .notifications = *node.notifications,
-        .signals = &GetMainSignals(),
+        .signals = &validation_signals,
     };
     // no error can happen, already checked in AppInitParameterInteraction
     Assert(!ApplyArgsManOptions(args, chainman_opts));
@@ -2627,7 +2640,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     CTxMemPool::Options mempool_opts{
         .check_ratio = chainparams.DefaultConsistencyChecks() ? 1 : 0,
-        .signals = &GetMainSignals(),
+        .signals = &validation_signals,
     };
     if (const auto err{ApplyArgsManOptions(args, chainparams, mempool_opts)}) {
         return InitError(*err);
@@ -2671,7 +2684,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
             // Drain the validation interface queue to ensure that the old
             // indexes don't have any pending work.
-            SyncWithValidationInterfaceQueue();
+            Assert(node.validation_signals)->SyncWithValidationInterfaceQueue();
 
             for (auto *index : node.indexes) {
                 index->Interrupt();
@@ -2802,7 +2815,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.peerman = PeerManager::make(*node.connman, *node.addrman,
                                      node.banman.get(), chainman, *node.mempool,
                                      node.avalanche.get(), peerman_opts);
-    RegisterValidationInterface(node.peerman.get());
+    validation_signals.RegisterValidationInterface(node.peerman.get());
 
     // Encoded addresses using cashaddr instead of base58.
     // We do this by default to avoid confusion with BTC addresses.

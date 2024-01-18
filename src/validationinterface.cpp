@@ -104,8 +104,6 @@ public:
     }
 };
 
-static CMainSignals g_signals;
-
 CMainSignals::CMainSignals() {}
 
 CMainSignals::~CMainSignals() {}
@@ -132,9 +130,6 @@ size_t CMainSignals::CallbacksPending() {
     return m_internals->m_schedulerClient.CallbacksPending();
 }
 
-CMainSignals &GetMainSignals() {
-    return g_signals;
-}
 
 void CMainSignals::RegisterSharedValidationInterface(
     std::shared_ptr<CValidationInterface> callbacks) {
@@ -340,29 +335,4 @@ void CMainSignals::TransactionInvalidated(
     };
     ENQUEUE_AND_LOG_EVENT(event, "%s: txid=%s", __func__,
                           tx->GetId().ToString());
-}
-
-// These functions are temporary and will be removed in the following commit
-void RegisterValidationInterface(CValidationInterface *callbacks) {
-    GetMainSignals().RegisterValidationInterface(callbacks);
-}
-void UnregisterValidationInterface(CValidationInterface *callbacks) {
-    GetMainSignals().UnregisterValidationInterface(callbacks);
-}
-void UnregisterAllValidationInterfaces() {
-    GetMainSignals().UnregisterAllValidationInterfaces();
-}
-void RegisterSharedValidationInterface(
-    std::shared_ptr<CValidationInterface> callbacks) {
-    GetMainSignals().RegisterSharedValidationInterface(callbacks);
-}
-void UnregisterSharedValidationInterface(
-    std::shared_ptr<CValidationInterface> callbacks) {
-    GetMainSignals().UnregisterSharedValidationInterface(callbacks);
-}
-void CallFunctionInValidationInterfaceQueue(std::function<void()> func) {
-    GetMainSignals().CallFunctionInValidationInterfaceQueue(func);
-}
-void SyncWithValidationInterfaceQueue() {
-    GetMainSignals().SyncWithValidationInterfaceQueue();
 }

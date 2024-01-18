@@ -427,7 +427,7 @@ async fn handle_broadcast_tx(
     drop(indexer);
     // Block for indexer being synced before returning so the user can query
     // the broadcast txs right away
-    ffi::sync_with_validation_interface_queue();
+    node.bridge.sync_with_validation_interface_queue();
     let mut broadcast_result = broadcast_result?;
     broadcast_result
         .wait_for_finalization(timeout_finalization)
@@ -461,7 +461,7 @@ async fn handle_broadcast_txs(
     drop(indexer);
     // Block for indexer being synced before returning so the user can query
     // the broadcast txs right away
-    ffi::sync_with_validation_interface_queue();
+    node.bridge.sync_with_validation_interface_queue();
     let mut broadcast_result = broadcast_result?;
     broadcast_result
         .wait_for_finalization(timeout_finalization)

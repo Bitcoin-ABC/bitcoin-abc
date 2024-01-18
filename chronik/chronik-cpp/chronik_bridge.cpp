@@ -483,6 +483,10 @@ bool ChronikBridge::get_feerate_info(std::array<uint8_t, 32> mempool_txid,
     return true;
 }
 
+void ChronikBridge::sync_with_validation_interface_queue() const {
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(node);
 }
@@ -540,10 +544,6 @@ int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb) {
 
 int64_t default_max_raw_tx_fee_rate_per_kb() {
     return node::DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK() / SATOSHI;
-}
-
-void sync_with_validation_interface_queue() {
-    SyncWithValidationInterfaceQueue();
 }
 
 bool init_error(const rust::Str msg) {

@@ -118,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager, TestChain100Setup) {
 
     // Let scheduler events finish running to avoid accessing memory that is
     // going to be unloaded
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
 }
 
 //! Test rebalancing the caches associated with each chainstate.
@@ -401,7 +401,7 @@ struct SnapshotTestSetup : TestChain100Setup {
             }
             // Process all callbacks referring to the old manager before wiping
             // it.
-            SyncWithValidationInterfaceQueue();
+            m_node.validation_signals->SyncWithValidationInterfaceQueue();
             LOCK(::cs_main);
             chainman.ResetChainstates();
             BOOST_CHECK_EQUAL(chainman.GetAll().size(), 0);
@@ -412,7 +412,7 @@ struct SnapshotTestSetup : TestChain100Setup {
                 .datadir = m_args.GetDataDirNet(),
                 .adjusted_time_callback = GetAdjustedTime,
                 .notifications = *m_node.notifications,
-                .signals = &GetMainSignals(),
+                .signals = m_node.validation_signals.get(),
             };
             node::ApplyArgsManOptions(*m_node.args, chainman_opts);
             const BlockManager::Options blockman_opts{

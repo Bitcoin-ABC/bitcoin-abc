@@ -7040,9 +7040,11 @@ void PeerManagerImpl::ProcessMessage(
                                      "block from index\n");
                             break;
                         }
-
-                        WITH_LOCK(cs_main, GetMainSignals().BlockInvalidated(
-                                               pindex, pblock));
+                        if (m_chainman.m_options.signals) {
+                            LOCK(cs_main);
+                            m_chainman.m_options.signals->BlockInvalidated(
+                                pindex, pblock);
+                        }
                     } break;
                     case avalanche::VoteStatus::Accepted: {
                         LOCK(cs_main);
@@ -7280,8 +7282,10 @@ void PeerManagerImpl::ProcessMessage(
 
                             AddToCompactExtraTransactions(tx);
 
-                            GetMainSignals().TransactionInvalidated(tx,
-                                                                    spentCoins);
+                            if (m_mempool.m_signals) {
+                                m_mempool.m_signals->TransactionInvalidated(
+                                    tx, spentCoins);
+                            }
                         }
 
                         break;

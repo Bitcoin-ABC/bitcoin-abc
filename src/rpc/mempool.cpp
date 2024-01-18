@@ -92,7 +92,8 @@ static RPCHelpMan sendrawtransaction() {
             }
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return tx->GetHash().GetHex();
         },

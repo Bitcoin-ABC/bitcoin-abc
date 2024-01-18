@@ -23,9 +23,13 @@ public:
                                rust::Box<chronik_bridge::Chronik> chronik_box)
         : m_node(node), m_chronik(std::move(chronik_box)) {}
 
-    void Register() { RegisterValidationInterface(this); }
+    void Register() {
+        m_node.validation_signals->RegisterValidationInterface(this);
+    }
 
-    void Unregister() { UnregisterValidationInterface(this); }
+    void Unregister() {
+        m_node.validation_signals->UnregisterValidationInterface(this);
+    }
 
     bool StopChronik() {
         try {

@@ -452,8 +452,10 @@ static RPCHelpMan syncwithvalidationinterfacequeue() {
                     HelpExampleRpc("syncwithvalidationinterfacequeue", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            SyncWithValidationInterfaceQueue();
-            return NullUniValue;
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
+            return UniValue::VNULL;
         },
     };
 }
@@ -1649,7 +1651,8 @@ static RPCHelpMan preciousblock() {
             }
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
@@ -1700,7 +1703,8 @@ static RPCHelpMan invalidateblock() {
 
             InvalidateBlock(chainman, node.avalanche.get(), hash);
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
@@ -1755,7 +1759,8 @@ RPCHelpMan parkblock() {
             }
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
@@ -1808,7 +1813,8 @@ static RPCHelpMan reconsiderblock() {
             ReconsiderBlock(chainman, node.avalanche.get(), hash);
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },
@@ -1875,7 +1881,8 @@ RPCHelpMan unparkblock() {
             }
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(node.validation_signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return NullUniValue;
         },

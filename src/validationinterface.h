@@ -22,21 +22,8 @@ class CBlock;
 class CBlockIndex;
 struct CBlockLocator;
 class Coin;
-class CValidationInterface;
 class CScheduler;
 enum class MemPoolRemovalReason;
-
-void RegisterValidationInterface(CValidationInterface *callbacks);
-void UnregisterValidationInterface(CValidationInterface *callbacks);
-void UnregisterAllValidationInterfaces();
-
-void RegisterSharedValidationInterface(
-    std::shared_ptr<CValidationInterface> callbacks);
-void UnregisterSharedValidationInterface(
-    std::shared_ptr<CValidationInterface> callbacks);
-
-void CallFunctionInValidationInterfaceQueue(std::function<void()> func);
-void SyncWithValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main);
 
 /**
  * Implement this to subscribe to events generated in validation
@@ -272,7 +259,5 @@ public:
         const CTransactionRef &tx,
         std::shared_ptr<const std::vector<Coin>> spent_coins);
 };
-
-CMainSignals &GetMainSignals();
 
 #endif // BITCOIN_VALIDATIONINTERFACE_H

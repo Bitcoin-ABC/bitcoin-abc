@@ -1156,7 +1156,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(poll_inflight_timeout, P, VoteItemProviders) {
     // This would fail the test for blocks
     setArg("-avalanchestakingpreconsensus", "0");
 
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     bilingual_str error;
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
@@ -1535,7 +1535,7 @@ BOOST_AUTO_TEST_CASE(destructor) {
     // the check.
     schedulerThread = std::thread(std::bind(&CScheduler::serviceQueue, &s));
 
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     // Destroy the processor.
     m_node.avalanche.reset();
 
@@ -1705,7 +1705,7 @@ BOOST_AUTO_TEST_CASE(quorum_detection) {
     setArg("-avamasterkey", EncodeSecret(key));
     setArg("-avaproof", localProof->ToHex());
 
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     bilingual_str error;
     ChainstateManager &chainman = *Assert(m_node.chainman);
     m_node.avalanche = Processor::MakeProcessor(
@@ -2000,7 +2000,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
         {AVALANCHE_FINALIZATION_SCORE + 4, AVALANCHE_FINALIZATION_SCORE - 6},
     };
 
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     bilingual_str error;
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(),
@@ -2530,7 +2530,7 @@ BOOST_AUTO_TEST_CASE(local_proof_status) {
     setArg("-avalanchepeerreplacementcooldown", "0");
     setArg("-avaproofstakeutxoconfirmations", "3");
 
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     bilingual_str error;
     ChainstateManager &chainman = *Assert(m_node.chainman);
     m_node.avalanche = Processor::MakeProcessor(
@@ -2672,7 +2672,7 @@ BOOST_AUTO_TEST_CASE(reconcileOrFinalize) {
 }
 
 BOOST_AUTO_TEST_CASE(stake_contenders) {
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     bilingual_str error;
     m_node.avalanche = Processor::MakeProcessor(
         *m_node.args, *m_node.chain, m_node.connman.get(),

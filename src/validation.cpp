@@ -3540,7 +3540,7 @@ static void LimitValidationInterfaceQueue(CMainSignals &signals)
     AssertLockNotHeld(cs_main);
 
     if (signals.CallbacksPending() > 10) {
-        SyncWithValidationInterfaceQueue();
+        signals.SyncWithValidationInterfaceQueue();
     }
 }
 

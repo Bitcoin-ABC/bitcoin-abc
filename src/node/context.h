@@ -19,6 +19,7 @@ class AddrMan;
 class BanMan;
 class BaseIndex;
 class CConnman;
+class CMainSignals;
 class CScheduler;
 class CTxMemPool;
 class ChainstateManager;
@@ -67,7 +68,10 @@ struct NodeContext {
     interfaces::WalletClient *wallet_client{nullptr};
     std::unique_ptr<CScheduler> scheduler;
     std::function<void()> rpc_interruption_point = [] {};
+    //! Issues blocking calls about sync status, errors and warnings
     std::unique_ptr<KernelNotifications> notifications;
+    //! Issues calls about blocks and transactions
+    std::unique_ptr<CMainSignals> validation_signals;
     std::atomic<int> exit_status{EXIT_SUCCESS};
 
     std::unique_ptr<avalanche::Processor> avalanche;

@@ -476,18 +476,20 @@ namespace {
     class NotificationsHandlerImpl : public Handler {
     public:
         explicit NotificationsHandlerImpl(
+            CMainSignals &signals,
             std::shared_ptr<Chain::Notifications> notifications)
-            : m_proxy(std::make_shared<NotificationsProxy>(
-                  std::move(notifications))) {
-            RegisterSharedValidationInterface(m_proxy);
+            : m_signals{signals}, m_proxy{std::make_shared<NotificationsProxy>(
+                                      std::move(notifications))} {
+            m_signals.RegisterSharedValidationInterface(m_proxy);
         }
         ~NotificationsHandlerImpl() override { disconnect(); }
         void disconnect() override {
             if (m_proxy) {
-                UnregisterSharedValidationInterface(m_proxy);
+                m_signals.UnregisterSharedValidationInterface(m_proxy);
                 m_proxy.reset();
             }
         }
+        CMainSignals &m_signals;
         std::shared_ptr<NotificationsProxy> m_proxy;
     };
 
@@ -748,7 +750,7 @@ namespace {
         std::unique_ptr<Handler> handleNotifications(
             std::shared_ptr<Notifications> notifications) override {
             return std::make_unique<NotificationsHandlerImpl>(
-                std::move(notifications));
+                validation_signals(), std::move(notifications));
         }
         void
         waitForNotificationsIfTipChanged(const BlockHash &old_tip) override {
@@ -759,7 +761,7 @@ namespace {
                     return;
                 }
             }
-            SyncWithValidationInterfaceQueue();
+            validation_signals().SyncWithValidationInterfaceQueue();
         }
 
         std::unique_ptr<Handler>
@@ -817,6 +819,9 @@ namespace {
         }
         const CChainParams &params() const override { return m_params; }
         NodeContext *context() override { return &m_node; }
+        CMainSignals &validation_signals() {
+            return *Assert(m_node.validation_signals);
+        }
         NodeContext &m_node;
         const CChainParams &m_params;
     };

@@ -44,7 +44,7 @@ void initialize_process_message() {
     for (int i = 0; i < 2 * COINBASE_MATURITY; i++) {
         MineBlock(GetConfig(), g_setup->m_node, CScript() << OP_TRUE);
     }
-    SyncWithValidationInterfaceQueue();
+    g_setup->m_node.validation_signals->SyncWithValidationInterfaceQueue();
 }
 
 void fuzz_target(const std::vector<uint8_t> &buffer,
@@ -80,7 +80,7 @@ void fuzz_target(const std::vector<uint8_t> &buffer,
             GetTime<std::chrono::microseconds>(), std::atomic<bool>{false});
     } catch (const std::ios_base::failure &) {
     }
-    SyncWithValidationInterfaceQueue();
+    g_setup->m_node.validation_signals->SyncWithValidationInterfaceQueue();
     g_setup->m_node.connman->StopNodes();
 }
 

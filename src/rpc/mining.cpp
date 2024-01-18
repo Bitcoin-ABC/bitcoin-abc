@@ -202,7 +202,8 @@ static UniValue generateBlocks(ChainstateManager &chainman,
     }
 
     // Block to make sure wallet/indexers sync before returning
-    SyncWithValidationInterfaceQueue();
+    CHECK_NONFATAL(chainman.m_options.signals)
+        ->SyncWithValidationInterfaceQueue();
 
     return blockHashes;
 }
@@ -487,7 +488,8 @@ static RPCHelpMan generateblock() {
             }
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(chainman.m_options.signals)
+                ->SyncWithValidationInterfaceQueue();
 
             UniValue obj(UniValue::VOBJ);
             obj.pushKV("hash", block_hash.GetHex());
@@ -1352,13 +1354,15 @@ static RPCHelpMan submitblock() {
             bool new_block;
             auto sc =
                 std::make_shared<submitblock_StateCatcher>(block.GetHash());
-            RegisterSharedValidationInterface(sc);
+            CHECK_NONFATAL(chainman.m_options.signals)
+                ->RegisterSharedValidationInterface(sc);
             bool accepted = chainman.ProcessNewBlock(blockptr,
                                                      /*force_processing=*/true,
                                                      /*min_pow_checked=*/true,
                                                      /*new_block=*/&new_block,
                                                      node.avalanche.get());
-            UnregisterSharedValidationInterface(sc);
+            CHECK_NONFATAL(chainman.m_options.signals)
+                ->UnregisterSharedValidationInterface(sc);
             if (!new_block && accepted) {
                 return "duplicate";
             }
@@ -1368,7 +1372,8 @@ static RPCHelpMan submitblock() {
             }
 
             // Block to make sure wallet/indexers sync before returning
-            SyncWithValidationInterfaceQueue();
+            CHECK_NONFATAL(chainman.m_options.signals)
+                ->SyncWithValidationInterfaceQueue();
 
             return BIP22ValidationResult(config, sc->state);
         },

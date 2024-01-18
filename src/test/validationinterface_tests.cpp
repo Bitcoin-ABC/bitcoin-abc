@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(unregister_validation_interface_race) {
         const CBlock block_dummy;
         BlockValidationState state_dummy;
         while (generate) {
-            GetMainSignals().BlockChecked(block_dummy, state_dummy);
+            m_node.validation_signals->BlockChecked(block_dummy, state_dummy);
         }
     }};
 
@@ -37,8 +37,10 @@ BOOST_AUTO_TEST_CASE(unregister_validation_interface_race) {
         // keep going for about 1 sec, which is 250k iterations
         for (int i = 0; i < 250000; i++) {
             auto subscriber = std::make_shared<TestSubscriberNoop>();
-            RegisterSharedValidationInterface(subscriber);
-            UnregisterSharedValidationInterface(subscriber);
+            m_node.validation_signals->RegisterSharedValidationInterface(
+                subscriber);
+            m_node.validation_signals->UnregisterSharedValidationInterface(
+                subscriber);
         }
         // tell the other thread we are done
         generate = false;
@@ -52,6 +54,7 @@ BOOST_AUTO_TEST_CASE(unregister_validation_interface_race) {
 class TestInterface : public CValidationInterface {
 public:
     TestInterface(
+        CMainSignals &signals,
         std::function<void()> onBlockChecked_call = nullptr,
         std::function<void(const CBlockIndex *)> onBlockFinalized_call =
             nullptr,
@@ -75,7 +78,7 @@ public:
           m_onTransactionFinalized_call(std::move(onTransactionFinalized_call)),
           m_onTransactionInvalidated_call(
               std::move(onTransactionInvalidated_call)),
-          m_on_destroy(std::move(on_destroy)) {}
+          m_on_destroy(std::move(on_destroy)), m_signals{signals} {}
     virtual ~TestInterface() {
         if (m_on_destroy) {
             m_on_destroy();
@@ -87,10 +90,10 @@ public:
             m_onBlockChecked_call();
         }
     }
-    static void CallBlockChecked() {
+    void CallBlockChecked() {
         CBlock block;
         BlockValidationState state;
-        GetMainSignals().BlockChecked(block, state);
+        m_signals.BlockChecked(block, state);
     }
 
     void BlockFinalized(const CBlockIndex *pindex) override {
@@ -99,8 +102,8 @@ public:
         }
     }
 
-    static void CallBlockFinalized(const CBlockIndex *pindex) {
-        GetMainSignals().BlockFinalized(pindex);
+    void CallBlockFinalized(const CBlockIndex *pindex) {
+        m_signals.BlockFinalized(pindex);
     }
 
     void BlockInvalidated(const CBlockIndex *pindex,
@@ -110,10 +113,9 @@ public:
         }
     }
 
-    static void
-    CallBlockInvalidated(const CBlockIndex *pindex,
-                         const std::shared_ptr<const CBlock> &block) {
-        GetMainSignals().BlockInvalidated(pindex, block);
+    void CallBlockInvalidated(const CBlockIndex *pindex,
+                              const std::shared_ptr<const CBlock> &block) {
+        m_signals.BlockInvalidated(pindex, block);
     }
 
     void TransactionAddedToMempool(
@@ -126,12 +128,11 @@ public:
         }
     }
 
-    static void CallTransactionAddedToMempool(
+    void CallTransactionAddedToMempool(
         const CTransactionRef &tx,
         std::shared_ptr<const std::vector<Coin>> spent_coins,
         uint64_t mempool_sequence) {
-        GetMainSignals().TransactionAddedToMempool(tx, spent_coins,
-                                                   mempool_sequence);
+        m_signals.TransactionAddedToMempool(tx, spent_coins, mempool_sequence);
     }
 
     void TransactionFinalized(const CTransactionRef &tx) override {
@@ -140,8 +141,8 @@ public:
         }
     }
 
-    static void CallTransactionFinalized(const CTransactionRef &tx) {
-        GetMainSignals().TransactionFinalized(tx);
+    void CallTransactionFinalized(const CTransactionRef &tx) {
+        m_signals.TransactionFinalized(tx);
     }
 
     void TransactionInvalidated(
@@ -152,10 +153,10 @@ public:
         }
     }
 
-    static void CallTransactionInvalidated(
+    void CallTransactionInvalidated(
         const CTransactionRef &tx,
         std::shared_ptr<const std::vector<Coin>> spent_coins) {
-        GetMainSignals().TransactionInvalidated(tx, spent_coins);
+        m_signals.TransactionInvalidated(tx, spent_coins);
     }
 
     std::function<void()> m_onBlockChecked_call;
@@ -171,6 +172,7 @@ public:
                        std::shared_ptr<const std::vector<Coin>>)>
         m_onTransactionInvalidated_call;
     std::function<void()> m_on_destroy;
+    CMainSignals &m_signals;
 };
 
 // Regression test to ensure UnregisterAllValidationInterfaces calls don't
@@ -178,34 +180,41 @@ public:
 // https://github.com/bitcoin/bitcoin/pull/18551
 BOOST_AUTO_TEST_CASE(unregister_all_during_call) {
     bool destroyed = false;
-    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
+    auto shared{std::make_shared<TestInterface>(
+        *m_node.validation_signals,
         [&] {
             // First call should decrements reference count 2 -> 1
-            UnregisterAllValidationInterfaces();
+            m_node.validation_signals->UnregisterAllValidationInterfaces();
             BOOST_CHECK(!destroyed);
             // Second call should not decrement reference count 1 -> 0
-            UnregisterAllValidationInterfaces();
+            m_node.validation_signals->UnregisterAllValidationInterfaces();
             BOOST_CHECK(!destroyed);
         },
         nullptr, nullptr, nullptr, nullptr, nullptr,
-        [&] { destroyed = true; }));
-    TestInterface::CallBlockChecked();
+        [&] { destroyed = true; })};
+    m_node.validation_signals->RegisterSharedValidationInterface(shared);
+    BOOST_CHECK(shared.use_count() == 2);
+    shared->CallBlockChecked();
+    BOOST_CHECK(shared.use_count() == 1);
+    BOOST_CHECK(!destroyed);
+    shared.reset();
     BOOST_CHECK(destroyed);
 }
 
 BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
     uint32_t callCount = 0;
     const CBlockIndex *calledIndex;
-    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
-        nullptr, [&](const CBlockIndex *pindex) {
+    auto shared{std::make_shared<TestInterface>(
+        *m_node.validation_signals, nullptr, [&](const CBlockIndex *pindex) {
             callCount++;
             calledIndex = pindex;
-        }));
+        })};
+    m_node.validation_signals->RegisterSharedValidationInterface(shared);
 
     for (size_t i = 0; i < 10; i++) {
-        TestInterface::CallBlockFinalized(nullptr);
+        shared->CallBlockFinalized(nullptr);
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 10);
     BOOST_CHECK_EQUAL(calledIndex, nullptr);
 
@@ -220,8 +229,8 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
     callCount = 0;
     CBlockIndex *pindex = tip;
     while (pindex) {
-        TestInterface::CallBlockFinalized(pindex);
-        SyncWithValidationInterfaceQueue();
+        shared->CallBlockFinalized(pindex);
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(calledIndex, pindex);
         pindex = pindex->pprev;
     }
@@ -244,7 +253,7 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
         BOOST_CHECK(
             !activeChainState.AvalancheFinalizeBlock(nullptr, *avalanche));
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 0);
     BOOST_CHECK_EQUAL(calledIndex, nullptr);
 
@@ -252,7 +261,7 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
         LOCK(::cs_main);
         BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 1);
     BOOST_CHECK_EQUAL(calledIndex, tip);
 
@@ -264,7 +273,7 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
             BOOST_CHECK(
                 activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
         }
-        SyncWithValidationInterfaceQueue();
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 1);
         BOOST_CHECK_EQUAL(calledIndex, tip);
     }
@@ -274,19 +283,20 @@ BOOST_FIXTURE_TEST_CASE(block_invalidated, TestChain100Setup) {
     uint32_t callCount = 0;
     const CBlockIndex *calledIndex;
     std::shared_ptr<const CBlock> calledBlock;
-    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
-        nullptr, nullptr,
+    auto shared{std::make_shared<TestInterface>(
+        *m_node.validation_signals, nullptr, nullptr,
         [&](const CBlockIndex *pindex,
             const std::shared_ptr<const CBlock> &block) {
             callCount++;
             calledIndex = pindex;
             calledBlock = block;
-        }));
+        })};
+    m_node.validation_signals->RegisterSharedValidationInterface(shared);
 
     for (size_t i = 0; i < 10; i++) {
-        TestInterface::CallBlockInvalidated(nullptr, nullptr);
+        shared->CallBlockInvalidated(nullptr, nullptr);
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 10);
     BOOST_CHECK_EQUAL(calledIndex, nullptr);
     BOOST_CHECK_EQUAL(calledBlock, nullptr);
@@ -295,9 +305,9 @@ BOOST_FIXTURE_TEST_CASE(block_invalidated, TestChain100Setup) {
 
     CBlockIndex index;
     for (size_t i = 0; i < 10; i++) {
-        TestInterface::CallBlockInvalidated(&index, nullptr);
+        shared->CallBlockInvalidated(&index, nullptr);
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 10);
     BOOST_CHECK_EQUAL(calledIndex, &index);
     BOOST_CHECK_EQUAL(calledBlock, nullptr);
@@ -306,9 +316,9 @@ BOOST_FIXTURE_TEST_CASE(block_invalidated, TestChain100Setup) {
 
     auto block = std::make_shared<const CBlock>();
     for (size_t i = 0; i < 10; i++) {
-        TestInterface::CallBlockInvalidated(nullptr, block);
+        shared->CallBlockInvalidated(nullptr, block);
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 10);
     BOOST_CHECK_EQUAL(calledIndex, nullptr);
     BOOST_CHECK_EQUAL(calledBlock, block);
@@ -316,9 +326,9 @@ BOOST_FIXTURE_TEST_CASE(block_invalidated, TestChain100Setup) {
     callCount = 0;
 
     for (size_t i = 0; i < 10; i++) {
-        TestInterface::CallBlockInvalidated(&index, block);
+        shared->CallBlockInvalidated(&index, block);
     }
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 10);
     BOOST_CHECK_EQUAL(calledIndex, &index);
     BOOST_CHECK_EQUAL(calledBlock, block);
@@ -329,8 +339,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_added_to_mempool, TestChain100Setup) {
     TxId calledTxId;
     std::shared_ptr<const std::vector<Coin>> calledSpentCoins;
     uint64_t calledMempoolSequence{0};
-    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
-        nullptr, nullptr, nullptr,
+    auto shared{std::make_shared<TestInterface>(
+        *m_node.validation_signals, nullptr, nullptr, nullptr,
         [&](const CTransactionRef &tx,
             std::shared_ptr<const std::vector<Coin>> spentCoins,
             uint64_t mempool_sequence) {
@@ -339,7 +349,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_added_to_mempool, TestChain100Setup) {
             calledSpentCoins = spentCoins;
             calledMempoolSequence = mempool_sequence;
         },
-        nullptr, nullptr));
+        nullptr, nullptr)};
+    m_node.validation_signals->RegisterSharedValidationInterface(shared);
 
     CMutableTransaction mtx;
     mtx.nVersion = 2;
@@ -367,8 +378,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_added_to_mempool, TestChain100Setup) {
     {
         CTransactionRef tx = MakeTransactionRef(mtx);
         for (size_t i = 0; i < 10; i++) {
-            TestInterface::CallTransactionAddedToMempool(tx, spentCoins, i);
-            SyncWithValidationInterfaceQueue();
+            shared->CallTransactionAddedToMempool(tx, spentCoins, i);
+            m_node.validation_signals->SyncWithValidationInterfaceQueue();
 
             BOOST_CHECK_EQUAL(callCount, i + 1);
             BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
@@ -397,8 +408,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_added_to_mempool, TestChain100Setup) {
             coinsViewCache.AddCoin(_outpoint, coin, false);
         }
         calledSpentCoins.reset();
-        TestInterface::CallTransactionAddedToMempool(tx, spentCoins, 100 + i);
-        SyncWithValidationInterfaceQueue();
+        shared->CallTransactionAddedToMempool(tx, spentCoins, 100 + i);
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
 
         BOOST_CHECK_EQUAL(callCount, i + 1);
         BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
@@ -418,8 +429,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_added_to_mempool, TestChain100Setup) {
     {
         CTransactionRef tx = MakeTransactionRef(mtx);
         for (size_t i = 0; i < 10; i++) {
-            TestInterface::CallTransactionAddedToMempool(tx, nullptr, 200 + i);
-            SyncWithValidationInterfaceQueue();
+            shared->CallTransactionAddedToMempool(tx, nullptr, 200 + i);
+            m_node.validation_signals->SyncWithValidationInterfaceQueue();
             BOOST_CHECK_EQUAL(callCount, i + 1);
             BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
             BOOST_CHECK_EQUAL(calledMempoolSequence, 200 + i);
@@ -431,11 +442,13 @@ BOOST_FIXTURE_TEST_CASE(transaction_added_to_mempool, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
     uint32_t callCount = 0;
     std::vector<TxId> calledTxIds;
-    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
-        nullptr, nullptr, nullptr, nullptr, [&](const CTransactionRef &tx) {
+    auto shared{std::make_shared<TestInterface>(
+        *m_node.validation_signals, nullptr, nullptr, nullptr, nullptr,
+        [&](const CTransactionRef &tx) {
             callCount++;
             calledTxIds.push_back(tx->GetId());
-        }));
+        })};
+    m_node.validation_signals->RegisterSharedValidationInterface(shared);
 
     CMutableTransaction mtx;
     mtx.nVersion = 2;
@@ -450,9 +463,9 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
     {
         CTransactionRef tx = MakeTransactionRef(mtx);
         for (size_t i = 0; i < 10; i++) {
-            TestInterface::CallTransactionFinalized(tx);
+            shared->CallTransactionFinalized(tx);
         }
-        SyncWithValidationInterfaceQueue();
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 10);
         BOOST_CHECK_EQUAL(calledTxIds[9], tx->GetId());
     }
@@ -464,8 +477,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
         mtx.vin[0] = CTxIn(COutPoint{TxId(FastRandomContext().rand256()), 0});
         CTransactionRef tx = MakeTransactionRef(mtx);
 
-        TestInterface::CallTransactionFinalized(tx);
-        SyncWithValidationInterfaceQueue();
+        shared->CallTransactionFinalized(tx);
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
 
         BOOST_CHECK_EQUAL(callCount, i + 1);
         BOOST_CHECK_EQUAL(calledTxIds[i], tx->GetId());
@@ -498,7 +511,7 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 1);
         BOOST_CHECK_EQUAL(finalizedTxIds[0], tx->GetId());
 
-        SyncWithValidationInterfaceQueue();
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, i + 1);
         BOOST_CHECK_EQUAL(calledTxIds[i], tx->GetId());
 
@@ -513,7 +526,7 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
         }
         BOOST_CHECK_EQUAL(finalizedTxIds.size(), 0);
 
-        SyncWithValidationInterfaceQueue();
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, i + 1);
         BOOST_CHECK_EQUAL(calledTxIds[i], tx->GetId());
     }
@@ -548,7 +561,7 @@ BOOST_FIXTURE_TEST_CASE(transaction_finalized, TestChain100Setup) {
             *m_node.chainman->ActiveChain().Tip(), finalizedTxIds));
     }
     BOOST_CHECK_EQUAL(finalizedTxIds.size(), 10);
-    SyncWithValidationInterfaceQueue();
+    m_node.validation_signals->SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 10);
 
     // Check that all the txids finalization callbacks were called. Ordering is
@@ -566,14 +579,15 @@ BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {
     uint32_t callCount = 0;
     TxId calledTxId;
     std::shared_ptr<const std::vector<Coin>> calledSpentCoins;
-    RegisterSharedValidationInterface(std::make_shared<TestInterface>(
-        nullptr, nullptr, nullptr, nullptr, nullptr,
+    auto shared{std::make_shared<TestInterface>(
+        *m_node.validation_signals, nullptr, nullptr, nullptr, nullptr, nullptr,
         [&](const CTransactionRef &tx,
             std::shared_ptr<const std::vector<Coin>> spentCoins) {
             callCount++;
             calledTxId = tx->GetId();
             calledSpentCoins = spentCoins;
-        }));
+        })};
+    m_node.validation_signals->RegisterSharedValidationInterface(shared);
 
     CMutableTransaction mtx;
     mtx.nVersion = 2;
@@ -601,9 +615,9 @@ BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {
     {
         CTransactionRef tx = MakeTransactionRef(mtx);
         for (size_t i = 0; i < 10; i++) {
-            TestInterface::CallTransactionInvalidated(tx, spentCoins);
+            shared->CallTransactionInvalidated(tx, spentCoins);
         }
-        SyncWithValidationInterfaceQueue();
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 10);
         BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
         BOOST_CHECK_EQUAL(calledSpentCoins->size(), 1);
@@ -628,8 +642,8 @@ BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {
             coinsViewCache.AddCoin(_outpoint, coin, false);
         }
         calledSpentCoins.reset();
-        TestInterface::CallTransactionInvalidated(tx, spentCoins);
-        SyncWithValidationInterfaceQueue();
+        shared->CallTransactionInvalidated(tx, spentCoins);
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
 
         BOOST_CHECK_EQUAL(callCount, i + 1);
         BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
@@ -647,9 +661,9 @@ BOOST_FIXTURE_TEST_CASE(transaction_invalidated, TestChain100Setup) {
     {
         CTransactionRef tx = MakeTransactionRef(mtx);
         for (size_t i = 0; i < 10; i++) {
-            TestInterface::CallTransactionInvalidated(tx, nullptr);
+            shared->CallTransactionInvalidated(tx, nullptr);
         }
-        SyncWithValidationInterfaceQueue();
+        m_node.validation_signals->SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 10);
         BOOST_CHECK_EQUAL(calledTxId, tx->GetId());
         BOOST_CHECK(!calledSpentCoins);

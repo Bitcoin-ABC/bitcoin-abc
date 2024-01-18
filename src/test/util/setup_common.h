@@ -240,7 +240,8 @@ template <class T> struct WithAvalanche : public T {
 
     ~WithAvalanche() {
         m_connman->ClearTestNodes();
-        SyncWithValidationInterfaceQueue();
+        Assert(T::m_node.validation_signals)
+            ->SyncWithValidationInterfaceQueue();
 
         ArgsManager &argsman = *Assert(T::m_node.args);
         for (const std::string &key : m_overridden_args) {

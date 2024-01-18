@@ -85,6 +85,8 @@ int main(int argc, char *argv[]) {
     scheduler.m_service_thread = std::thread(util::TraceThread, "scheduler",
                                              [&] { scheduler.serviceQueue(); });
 
+    CMainSignals validation_signals{};
+
     // Gather some entropy once per minute.
     scheduler.scheduleEvery(
         [] {
@@ -93,7 +95,7 @@ int main(int argc, char *argv[]) {
         },
         std::chrono::minutes{1});
 
-    GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
+    validation_signals.RegisterBackgroundSignalScheduler(scheduler);
 
     class KernelNotifications : public kernel::Notifications {
     public:
@@ -137,7 +139,7 @@ int main(int argc, char *argv[]) {
         .datadir = abs_datadir,
         .adjusted_time_callback = NodeClock::now,
         .notifications = *notifications,
-        .signals = &GetMainSignals(),
+        .signals = &validation_signals,
     };
     const node::BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),
@@ -259,12 +261,11 @@ int main(int argc, char *argv[]) {
 
         bool new_block;
         auto sc = std::make_shared<submitblock_StateCatcher>(block.GetHash());
-        RegisterSharedValidationInterface(sc);
-        bool accepted = chainman.ProcessNewBlock(blockptr,
-                                                 /*force_processing=*/true,
-                                                 /*min_pow_checked=*/true,
-                                                 /*new_block=*/&new_block);
-        UnregisterSharedValidationInterface(sc);
+        validation_signals.RegisterSharedValidationInterface(sc);
+        bool accepted = chainman.ProcessNewBlock(
+            blockptr, /*force_processing=*/true, /*min_pow_checked=*/true,
+            /*new_block=*/&new_block);
+        validation_signals.UnregisterSharedValidationInterface(sc);
         if (!new_block && accepted) {
             std::cerr << "Duplicate" << std::endl;
             break;
@@ -332,7 +333,7 @@ epilogue:
         chainman.m_thread_load.join();
     }
 
-    GetMainSignals().FlushBackgroundCallbacks();
+    validation_signals.FlushBackgroundCallbacks();
     {
         LOCK(cs_main);
         for (Chainstate *chainstate : chainman.GetAll()) {
@@ -342,5 +343,5 @@ epilogue:
             }
         }
     }
-    GetMainSignals().UnregisterBackgroundSignalScheduler();
+    validation_signals.UnregisterBackgroundSignalScheduler();
 }

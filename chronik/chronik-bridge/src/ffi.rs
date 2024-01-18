@@ -374,7 +374,7 @@ mod ffi_inner {
 
         /// Calls `SyncWithValidationInterfaceQueue` from validationinterface.h
         /// to make sure wallet/indexes are synced.
-        fn sync_with_validation_interface_queue();
+        fn sync_with_validation_interface_queue(self: &ChronikBridge);
 
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.

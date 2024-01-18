@@ -112,6 +112,8 @@ public:
                           int64_t &modified_fee_rate_sats_per_kb,
                           uint32_t &virtual_size_bytes) const
         EXCLUSIVE_LOCKS_REQUIRED(!m_node.mempool->cs);
+
+    void sync_with_validation_interface_queue() const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
@@ -134,8 +136,6 @@ rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed);
 int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb);
 
 int64_t default_max_raw_tx_fee_rate_per_kb();
-
-void sync_with_validation_interface_queue();
 
 bool init_error(const rust::Str msg);
 
