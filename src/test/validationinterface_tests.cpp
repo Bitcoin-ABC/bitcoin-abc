@@ -110,63 +110,64 @@ BOOST_AUTO_TEST_CASE(unregister_all_during_call) {
 
 BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
     uint32_t callCount = 0;
-    uint32_t expectedCallCount = 0;
-    CBlockIndex *expectedIndex;
+    const CBlockIndex *calledIndex;
     RegisterSharedValidationInterface(std::make_shared<TestInterface>(
         nullptr,
         [&](const CBlockIndex *pindex) {
             callCount++;
-            BOOST_CHECK_EQUAL(callCount, expectedCallCount);
-            BOOST_CHECK_EQUAL(pindex, expectedIndex);
+            calledIndex = pindex;
         },
         nullptr));
 
-    auto checkBlockFinalizedCall = [&](CBlockIndex *pindex) {
-        expectedIndex = pindex;
-        expectedCallCount++;
-        TestInterface::CallBlockFinalized(expectedIndex);
-        SyncWithValidationInterfaceQueue();
-    };
-
     for (size_t i = 0; i < 10; i++) {
-        checkBlockFinalizedCall(nullptr);
+        TestInterface::CallBlockFinalized(nullptr);
     }
+    SyncWithValidationInterfaceQueue();
+    BOOST_CHECK_EQUAL(callCount, 10);
+    BOOST_CHECK_EQUAL(calledIndex, nullptr);
 
-    CBlockIndex *pindex = WITH_LOCK(m_node.chainman->GetMutex(),
-                                    return m_node.chainman->ActiveTip());
+    CBlockIndex *tip = WITH_LOCK(m_node.chainman->GetMutex(),
+                                 return m_node.chainman->ActiveTip());
+    int tipHeight = WITH_LOCK(m_node.chainman->GetMutex(),
+                              return m_node.chainman->ActiveHeight());
+
     // If pindex is null the following test is pointless
-    BOOST_CHECK_NE(pindex, nullptr);
+    BOOST_CHECK_NE(tip, nullptr);
 
+    callCount = 0;
+    CBlockIndex *pindex = tip;
     while (pindex) {
-        checkBlockFinalizedCall(pindex);
+        TestInterface::CallBlockFinalized(pindex);
+        SyncWithValidationInterfaceQueue();
+        BOOST_CHECK_EQUAL(calledIndex, pindex);
         pindex = pindex->pprev;
     }
 
     // Make sure the test function was actually called
-    BOOST_CHECK_EQUAL(callCount, expectedCallCount);
+    BOOST_CHECK_EQUAL(callCount, tipHeight + 1);
 
     // Check calling from AvalancheFinalizedBlock
     Chainstate &activeChainState = m_node.chainman->ActiveChainstate();
-    CBlockIndex *tip = WITH_LOCK(m_node.chainman->GetMutex(),
-                                 return m_node.chainman->ActiveTip());
 
-    expectedIndex = nullptr;
-    BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(expectedIndex));
+    callCount = 0;
+    calledIndex = nullptr;
+    BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(nullptr));
     SyncWithValidationInterfaceQueue();
-    BOOST_CHECK_EQUAL(callCount, expectedCallCount);
+    BOOST_CHECK_EQUAL(callCount, 0);
+    BOOST_CHECK_EQUAL(calledIndex, nullptr);
 
-    expectedIndex = tip;
-    expectedCallCount++;
     BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip));
     SyncWithValidationInterfaceQueue();
-    BOOST_CHECK_EQUAL(callCount, expectedCallCount);
+    BOOST_CHECK_EQUAL(callCount, 1);
+    BOOST_CHECK_EQUAL(calledIndex, tip);
 
     // Successive calls won't call the validation again, because the block is
     // already finalized.
     for (size_t i = 0; i < 10; i++) {
         BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip));
         SyncWithValidationInterfaceQueue();
-        BOOST_CHECK_EQUAL(callCount, expectedCallCount);
+        BOOST_CHECK_EQUAL(callCount, 1);
+        BOOST_CHECK_EQUAL(calledIndex, tip);
     }
 }
 
