@@ -138,7 +138,7 @@ const WalletInfo = () => {
 
     return (
         <>
-            <WalletInfoCtn>
+            <WalletInfoCtn data-testid="wallet-info-ctn">
                 <WalletLabel
                     name={wallet.name}
                     cashtabSettings={cashtabSettings}
@@ -158,7 +158,7 @@ const WalletInfo = () => {
             {apiError && <ApiError />}
             <br />
             <SidePaddingCtn>
-                <TxHistoryCtn>
+                <TxHistoryCtn data-testid="tx-history-ctn">
                     <TxHistory
                         txs={
                             Array.isArray(parsedTxHistory)
@@ -209,7 +209,7 @@ const Home = () => {
     return (
         <>
             {loading ? (
-                <LoadingCtn />
+                <LoadingCtn data-testid="loading-ctn" />
             ) : (
                 <>
                     {(wallet && wallet.Path1899) ||

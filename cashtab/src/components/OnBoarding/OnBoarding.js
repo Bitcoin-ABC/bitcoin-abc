@@ -96,7 +96,7 @@ const OnBoarding = () => {
     }
 
     return (
-        <WelcomeCtn>
+        <WelcomeCtn data-testid="onboarding">
             <h2>Welcome to Cashtab!</h2>
             <WelcomeText>
                 Cashtab is an{' '}

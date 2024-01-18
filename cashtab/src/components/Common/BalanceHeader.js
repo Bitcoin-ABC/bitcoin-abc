@@ -20,7 +20,7 @@ const BalanceHeader = ({ balance, ticker, cashtabSettings }) => {
     return (
         <BalanceHeaderWrap>
             {cashtabSettings && cashtabSettings.balanceVisible ? (
-                <span>
+                <span data-testid="balance-header-rendered">
                     {formatBalance(balance)} {ticker}{' '}
                 </span>
             ) : (
