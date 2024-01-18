@@ -22,7 +22,7 @@ reqparam       = "req-" qchar *qchar [ "=" *qchar ]
 
 eCash modifications
 
-1.  `bitcoin` prefix is replaced by `ecash`. `ecashaddress` must be a valid cashaddr format ecash address with an `ecash` prefix.
+1.  `bitcoin` prefix is replaced by the standard `ecash` prefix of the leading ecash address. The URI must begin with a valid `ecash:`-prefixed cash address.
 
 ```
 // BTC
@@ -71,6 +71,7 @@ opreturnparam       = "op_return_raw=" *hex
 6. eCash supports multiple outputs
 
 -   Each additional output must include both a valid `addr` and valid `amount` for the URI to be valid.
+-   `addr` values must be valid cashaddresses that pass checksum validation for the `ecash` prefix. The prefix itself is not required.
 -   There is no spec limitation on the number of additional outputs a BIP21 URI may request. However, there are practical limitations. The node will not broadcast a transaction greater than 100KB, and QR codes cannot store more than 4,296 alphanumeric characters.
 -   Addresses may be repeated. You may send more than one output to the same address.
 -   If `op_return_raw` is specified, the output index of each specified output will be determined by its order in the URI. If no `op_return_raw` is specified, the output index of each specified output may not necessarily correspond to its order in the URI.
@@ -83,7 +84,7 @@ Additional outputs will be sent at the `nth` output index, where `n` is the orde
 
 #### Bip-21 URI with no `op_return_raw` and 2 additional outputs
 
-`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=100&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=200&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=300`
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=100&addr=prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=200&addr=prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=300`
 
 An amount of `100` XEC will be sent to `ecash:prf...z07` at the index 0, 1, or 2 output
 An amount of `200` XEC will be sent to `ecash:prf...z07` at the index 0, 1, or 2 output
@@ -91,7 +92,7 @@ An amount of `300` XEC will be sent to `ecash:prf...z07` at the index 0, 1, or 2
 
 #### Bip-21 URI with `op_return_raw` and 2 additional outputs
 
-`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=100&op_return_raw=0401020304&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=200&addr=ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=300`
+`ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07?amount=100&op_return_raw=0401020304&addr=prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=200&addr=prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07&amount=300`
 
 An `OP_RETURN` output of `6a0401020304` at the index 0 output
 An amount of `100` XEC will be sent to `ecash:prf...z07` at the index 1 output
