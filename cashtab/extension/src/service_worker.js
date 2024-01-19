@@ -1,6 +1,6 @@
 const extension = require('extensionizer');
 
-const NOTIFICATION_HEIGHT = 650;
+const NOTIFICATION_HEIGHT = 750;
 const NOTIFICATION_WIDTH = 450;
 const EXTENSION_DEV_ID = 'aleabaopoakgpbijdnicepefdiglggfl';
 const EXTENSION_PROD_ID = 'obldfcmebhllhjlhjbnghaipekcppeag';
