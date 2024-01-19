@@ -45,6 +45,7 @@ import getRoundImg from 'utils/icons/roundImage';
 import getResizedImage from 'utils/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
+import { createToken } from 'utils/transactions';
 const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`
@@ -66,7 +67,7 @@ export const CreateTokenCtn = styled.div`
     }
 `;
 
-const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
+const CreateTokenForm = ({ passLoadingStatus }) => {
     const { wallet, chronik } = React.useContext(WalletContext);
 
     // eToken icon adds
@@ -496,315 +497,288 @@ const CreateTokenForm = ({ createToken, disabled, passLoadingStatus }) => {
                     : newTokenDocumentUrl}
                 <br />
             </Modal>
-            <CreateTokenCtn>
+            <CreateTokenCtn data-testid="create-token-form-ctn">
                 <h3>Create a Token</h3>
-                {!disabled && (
-                    <>
-                        <AntdFormWrapper>
-                            <Form
-                                size="small"
+                <AntdFormWrapper>
+                    <Form
+                        size="small"
+                        style={{
+                            width: 'auto',
+                        }}
+                    >
+                        <FormLabel>Token Name</FormLabel>
+                        <Form.Item
+                            validateStatus={
+                                tokenNameError === '' ? '' : 'error'
+                            }
+                            help={
+                                tokenNameError === ''
+                                    ? ''
+                                    : tokenNameError === 'Validation Error'
+                                    ? 'Token name must be a valid string between 1 and 68 characters long.'
+                                    : tokenNameError === 'Blacklisted Error'
+                                    ? 'Token name must not conflict with existing crypto or fiat'
+                                    : ''
+                            }
+                        >
+                            <Input
+                                placeholder="Enter a name for your token"
+                                name="newTokenName"
+                                value={newTokenName}
+                                onChange={e => handleNewTokenNameInput(e)}
+                            />
+                        </Form.Item>
+                        <FormLabel>Ticker</FormLabel>
+                        <Form.Item
+                            validateStatus={
+                                tokenTickerError === '' ? '' : 'error'
+                            }
+                            help={
+                                tokenTickerError === ''
+                                    ? ''
+                                    : tokenTickerError === 'Validation Error'
+                                    ? 'Ticker must be a valid string between 1 and 12 characters long'
+                                    : tokenTickerError === 'Blacklisted Error'
+                                    ? 'Token ticker must not conflict with existing crypto or fiat'
+                                    : ''
+                            }
+                        >
+                            <Input
+                                placeholder="Enter a ticker for your token"
+                                name="newTokenTicker"
+                                value={newTokenTicker}
+                                onChange={e => handleNewTokenTickerInput(e)}
+                            />
+                        </Form.Item>
+                        <FormLabel>Decimals</FormLabel>
+                        <Form.Item
+                            validateStatus={
+                                newTokenDecimalsIsValid === null ||
+                                newTokenDecimalsIsValid
+                                    ? ''
+                                    : 'error'
+                            }
+                            help={
+                                newTokenDecimalsIsValid === null ||
+                                newTokenDecimalsIsValid
+                                    ? ''
+                                    : 'Token decimals must be an integer between 0 and 9'
+                            }
+                        >
+                            <Input
+                                placeholder="Enter number of decimal places"
+                                name="newTokenDecimals"
+                                type="number"
+                                value={newTokenDecimals}
+                                onChange={e => handleNewTokenDecimalsInput(e)}
+                            />
+                        </Form.Item>
+                        <FormLabel>Supply</FormLabel>
+                        <Form.Item
+                            validateStatus={
+                                newTokenInitialQtyIsValid === null ||
+                                newTokenInitialQtyIsValid
+                                    ? ''
+                                    : 'error'
+                            }
+                            help={
+                                newTokenInitialQtyIsValid === null ||
+                                newTokenInitialQtyIsValid
+                                    ? ''
+                                    : 'Token supply must be greater than 0 and less than 100,000,000,000. Token supply decimal places cannot exceed token decimal places.'
+                            }
+                        >
+                            <Input
+                                placeholder="Enter the fixed supply of your token"
+                                name="newTokenInitialQty"
+                                type="number"
+                                value={newTokenInitialQty}
+                                onChange={e => handleNewTokenInitialQtyInput(e)}
+                            />
+                        </Form.Item>
+                        <FormLabel>Document URL</FormLabel>
+                        <Form.Item
+                            validateStatus={
+                                newTokenDocumentUrlIsValid === null ||
+                                newTokenDocumentUrlIsValid
+                                    ? ''
+                                    : 'error'
+                            }
+                            help={
+                                newTokenDocumentUrlIsValid === null ||
+                                newTokenDocumentUrlIsValid
+                                    ? ''
+                                    : 'Must be valid URL. Cannot exceed 68 characters.'
+                            }
+                        >
+                            <Input
+                                placeholder="Enter a website for your token"
+                                name="newTokenDocumentUrl"
+                                value={newTokenDocumentUrl}
+                                onChange={e =>
+                                    handleNewTokenDocumentUrlInput(e)
+                                }
+                            />
+                        </Form.Item>
+                        <FormLabel>Add Image</FormLabel>
+                        <Form.Item>
+                            <Dragger
+                                multiple={false}
+                                beforeUpload={beforeTokenIconUpload}
+                                customRequest={({ onSuccess }) =>
+                                    setTimeout(() => {
+                                        onSuccess('ok', null);
+                                    }, 0)
+                                }
+                                onChange={handleChangeTokenIconUpload}
+                                onRemove={() => false}
+                                fileList={tokenIconFileList}
+                                name="tokenIcon"
                                 style={{
-                                    width: 'auto',
+                                    backgroundColor: '#f4f4f4',
                                 }}
                             >
-                                <FormLabel>Token Name</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        tokenNameError === '' ? '' : 'error'
-                                    }
-                                    help={
-                                        tokenNameError === ''
-                                            ? ''
-                                            : tokenNameError ===
-                                              'Validation Error'
-                                            ? 'Token name must be a valid string between 1 and 68 characters long.'
-                                            : tokenNameError ===
-                                              'Blacklisted Error'
-                                            ? 'Token name must not conflict with existing crypto or fiat'
-                                            : ''
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter a name for your token"
-                                        name="newTokenName"
-                                        value={newTokenName}
-                                        onChange={e =>
-                                            handleNewTokenNameInput(e)
-                                        }
+                                {imageUrl ? (
+                                    <img
+                                        src={imageUrl}
+                                        alt="avatar"
+                                        style={{ width: '128px' }}
                                     />
-                                </Form.Item>
-                                <FormLabel>Ticker</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        tokenTickerError === '' ? '' : 'error'
-                                    }
-                                    help={
-                                        tokenTickerError === ''
-                                            ? ''
-                                            : tokenTickerError ===
-                                              'Validation Error'
-                                            ? 'Ticker must be a valid string between 1 and 12 characters long'
-                                            : tokenTickerError ===
-                                              'Blacklisted Error'
-                                            ? 'Token ticker must not conflict with existing crypto or fiat'
-                                            : ''
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter a ticker for your token"
-                                        name="newTokenTicker"
-                                        value={newTokenTicker}
-                                        onChange={e =>
-                                            handleNewTokenTickerInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                                <FormLabel>Decimals</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        newTokenDecimalsIsValid === null ||
-                                        newTokenDecimalsIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        newTokenDecimalsIsValid === null ||
-                                        newTokenDecimalsIsValid
-                                            ? ''
-                                            : 'Token decimals must be an integer between 0 and 9'
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter number of decimal places"
-                                        name="newTokenDecimals"
-                                        type="number"
-                                        value={newTokenDecimals}
-                                        onChange={e =>
-                                            handleNewTokenDecimalsInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                                <FormLabel>Supply</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        newTokenInitialQtyIsValid === null ||
-                                        newTokenInitialQtyIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        newTokenInitialQtyIsValid === null ||
-                                        newTokenInitialQtyIsValid
-                                            ? ''
-                                            : 'Token supply must be greater than 0 and less than 100,000,000,000. Token supply decimal places cannot exceed token decimal places.'
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter the fixed supply of your token"
-                                        name="newTokenInitialQty"
-                                        type="number"
-                                        value={newTokenInitialQty}
-                                        onChange={e =>
-                                            handleNewTokenInitialQtyInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                                <FormLabel>Document URL</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        newTokenDocumentUrlIsValid === null ||
-                                        newTokenDocumentUrlIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        newTokenDocumentUrlIsValid === null ||
-                                        newTokenDocumentUrlIsValid
-                                            ? ''
-                                            : 'Must be valid URL. Cannot exceed 68 characters.'
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter a website for your token"
-                                        name="newTokenDocumentUrl"
-                                        value={newTokenDocumentUrl}
-                                        onChange={e =>
-                                            handleNewTokenDocumentUrlInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                                <FormLabel>Add Image</FormLabel>
-                                <Form.Item>
-                                    <Dragger
-                                        multiple={false}
-                                        beforeUpload={beforeTokenIconUpload}
-                                        customRequest={({ onSuccess }) =>
-                                            setTimeout(() => {
-                                                onSuccess('ok', null);
-                                            }, 0)
-                                        }
-                                        onChange={handleChangeTokenIconUpload}
-                                        onRemove={() => false}
-                                        fileList={tokenIconFileList}
-                                        name="tokenIcon"
-                                        style={{
-                                            backgroundColor: '#f4f4f4',
-                                        }}
-                                    >
-                                        {imageUrl ? (
-                                            <img
-                                                src={imageUrl}
-                                                alt="avatar"
-                                                style={{ width: '128px' }}
+                                ) : (
+                                    <>
+                                        {' '}
+                                        <UploadOutlined />
+                                        <p>
+                                            Click, or drag file to this area to
+                                            upload
+                                        </p>
+                                        <p style={{ fontSize: '12px' }}>
+                                            Only jpg or png accepted
+                                        </p>
+                                    </>
+                                )}
+                            </Dragger>
+
+                            {!loading && tokenIcon && (
+                                <>
+                                    <Tooltip title={tokenIcon.name}>
+                                        <Typography.Paragraph
+                                            ellipsis
+                                            style={{
+                                                lineHeight: 'normal',
+                                                textAlign: 'center',
+                                                cursor: 'pointer',
+                                            }}
+                                            onClick={() =>
+                                                setShowCropModal(true)
+                                            }
+                                        >
+                                            <PaperClipOutlined />
+                                            {tokenIcon.name}
+                                        </Typography.Paragraph>
+                                        <Typography.Paragraph
+                                            ellipsis
+                                            style={{
+                                                lineHeight: 'normal',
+                                                textAlign: 'center',
+                                                marginBottom: '10px',
+                                                cursor: 'pointer',
+                                            }}
+                                            onClick={() =>
+                                                setShowCropModal(true)
+                                            }
+                                        >
+                                            Click here to crop or zoom your icon
+                                        </Typography.Paragraph>
+                                    </Tooltip>{' '}
+                                </>
+                            )}
+
+                            <CropControlModal
+                                style={{
+                                    textAlign: 'left',
+                                }}
+                                expand={showCropModal}
+                                onClick={() => null}
+                                renderExpanded={() => (
+                                    <>
+                                        {' '}
+                                        <CropperContainer>
+                                            <Cropper
+                                                showGrid={false}
+                                                zoomWithScroll={false}
+                                                image={rawImageUrl}
+                                                crop={crop}
+                                                zoom={zoom}
+                                                rotation={rotation}
+                                                cropShape={
+                                                    roundSelection
+                                                        ? 'round'
+                                                        : 'rect'
+                                                }
+                                                aspect={1 / 1}
+                                                onCropChange={setCrop}
+                                                onCropComplete={onCropComplete}
+                                                onZoomChange={setZoom}
+                                                onRotationChange={setRotation}
+                                                style={{ top: '80px' }}
                                             />
-                                        ) : (
-                                            <>
-                                                {' '}
-                                                <UploadOutlined />
-                                                <p>
-                                                    Click, or drag file to this
-                                                    area to upload
-                                                </p>
-                                                <p style={{ fontSize: '12px' }}>
-                                                    Only jpg or png accepted
-                                                </p>
-                                            </>
-                                        )}
-                                    </Dragger>
+                                        </CropperContainer>
+                                        <ControlsContainer>
+                                            <Switch
+                                                id="cropSwitch"
+                                                checkedChildren="Square"
+                                                unCheckedChildren="Round"
+                                                name="cropShape"
+                                                onChange={checked =>
+                                                    setRoundSelection(!checked)
+                                                }
+                                            />{' '}
+                                            <br />
+                                            {'Zoom:'}
+                                            <Slider
+                                                defaultValue={1}
+                                                onChange={zoom => setZoom(zoom)}
+                                                min={1}
+                                                max={10}
+                                                step={0.1}
+                                            />
+                                            {'Rotation:'}
+                                            <Slider
+                                                defaultValue={0}
+                                                onChange={rotation =>
+                                                    setRotation(rotation)
+                                                }
+                                                min={0}
+                                                max={360}
+                                                step={1}
+                                            />
+                                            <Button
+                                                id="cropControlsConfirm"
+                                                onClick={() =>
+                                                    showCroppedImage() &&
+                                                    onClose()
+                                                }
+                                            >
+                                                OK
+                                            </Button>
+                                        </ControlsContainer>
+                                    </>
+                                )}
+                                onClose={onClose}
+                            />
+                        </Form.Item>
+                    </Form>
+                </AntdFormWrapper>
 
-                                    {!loading && tokenIcon && (
-                                        <>
-                                            <Tooltip title={tokenIcon.name}>
-                                                <Typography.Paragraph
-                                                    ellipsis
-                                                    style={{
-                                                        lineHeight: 'normal',
-                                                        textAlign: 'center',
-                                                        cursor: 'pointer',
-                                                    }}
-                                                    onClick={() =>
-                                                        setShowCropModal(true)
-                                                    }
-                                                >
-                                                    <PaperClipOutlined />
-                                                    {tokenIcon.name}
-                                                </Typography.Paragraph>
-                                                <Typography.Paragraph
-                                                    ellipsis
-                                                    style={{
-                                                        lineHeight: 'normal',
-                                                        textAlign: 'center',
-                                                        marginBottom: '10px',
-                                                        cursor: 'pointer',
-                                                    }}
-                                                    onClick={() =>
-                                                        setShowCropModal(true)
-                                                    }
-                                                >
-                                                    Click here to crop or zoom
-                                                    your icon
-                                                </Typography.Paragraph>
-                                            </Tooltip>{' '}
-                                        </>
-                                    )}
-
-                                    <CropControlModal
-                                        style={{
-                                            textAlign: 'left',
-                                        }}
-                                        expand={showCropModal}
-                                        onClick={() => null}
-                                        renderExpanded={() => (
-                                            <>
-                                                {' '}
-                                                <CropperContainer>
-                                                    <Cropper
-                                                        showGrid={false}
-                                                        zoomWithScroll={false}
-                                                        image={rawImageUrl}
-                                                        crop={crop}
-                                                        zoom={zoom}
-                                                        rotation={rotation}
-                                                        cropShape={
-                                                            roundSelection
-                                                                ? 'round'
-                                                                : 'rect'
-                                                        }
-                                                        aspect={1 / 1}
-                                                        onCropChange={setCrop}
-                                                        onCropComplete={
-                                                            onCropComplete
-                                                        }
-                                                        onZoomChange={setZoom}
-                                                        onRotationChange={
-                                                            setRotation
-                                                        }
-                                                        style={{ top: '80px' }}
-                                                    />
-                                                </CropperContainer>
-                                                <ControlsContainer>
-                                                    <Switch
-                                                        id="cropSwitch"
-                                                        checkedChildren="Square"
-                                                        unCheckedChildren="Round"
-                                                        name="cropShape"
-                                                        onChange={checked =>
-                                                            setRoundSelection(
-                                                                !checked,
-                                                            )
-                                                        }
-                                                    />{' '}
-                                                    <br />
-                                                    {'Zoom:'}
-                                                    <Slider
-                                                        defaultValue={1}
-                                                        onChange={zoom =>
-                                                            setZoom(zoom)
-                                                        }
-                                                        min={1}
-                                                        max={10}
-                                                        step={0.1}
-                                                    />
-                                                    {'Rotation:'}
-                                                    <Slider
-                                                        defaultValue={0}
-                                                        onChange={rotation =>
-                                                            setRotation(
-                                                                rotation,
-                                                            )
-                                                        }
-                                                        min={0}
-                                                        max={360}
-                                                        step={1}
-                                                    />
-                                                    <Button
-                                                        id="cropControlsConfirm"
-                                                        onClick={() =>
-                                                            showCroppedImage() &&
-                                                            onClose()
-                                                        }
-                                                    >
-                                                        OK
-                                                    </Button>
-                                                </ControlsContainer>
-                                            </>
-                                        )}
-                                        onClose={onClose}
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
-
-                        <SmartButton
-                            onClick={() => setShowConfirmCreateToken(true)}
-                            disabled={!tokenGenesisDataIsValid}
-                            style={{ marginTop: '30px' }}
-                        >
-                            <PlusSquareOutlined />
-                            &nbsp;Create eToken
-                        </SmartButton>
-                    </>
-                )}
+                <SmartButton
+                    onClick={() => setShowConfirmCreateToken(true)}
+                    disabled={!tokenGenesisDataIsValid}
+                    style={{ marginTop: '30px' }}
+                >
+                    <PlusSquareOutlined />
+                    &nbsp;Create eToken
+                </SmartButton>
             </CreateTokenCtn>
         </>
     );

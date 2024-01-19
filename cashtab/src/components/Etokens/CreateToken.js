@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
-import { createToken } from 'utils/transactions';
 import CreateTokenForm from './CreateTokenForm';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -47,19 +46,12 @@ const CreateToken = ({ passLoadingStatus }) => {
                     fiatPrice={fiatPrice}
                 />
             </WalletInfoCtn>
-            <SidePaddingCtn>
+            <SidePaddingCtn data-testid="create-token-ctn">
                 {apiError && <ApiError />}
-                <CreateTokenForm
-                    createToken={createToken}
-                    disabled={new BN(balances.totalBalanceInSatoshis).lt(
-                        new BN(appConfig.dustSats),
-                    )}
-                    passLoadingStatus={passLoadingStatus}
-                />
                 {new BN(balances.totalBalanceInSatoshis).lt(
                     new BN(appConfig.dustSats),
-                ) && (
-                    <AlertMsg>
+                ) ? (
+                    <AlertMsg data-testid="insufficient-balance-for-tokens">
                         You need at least{' '}
                         {fromSatoshisToXec(appConfig.dustSats).toString()}{' '}
                         {appConfig.ticker} (
@@ -81,6 +73,8 @@ const CreateToken = ({ passLoadingStatus }) => {
                             : 'USD'}
                         ) to create a token
                     </AlertMsg>
+                ) : (
+                    <CreateTokenForm passLoadingStatus={passLoadingStatus} />
                 )}
             </SidePaddingCtn>
         </>

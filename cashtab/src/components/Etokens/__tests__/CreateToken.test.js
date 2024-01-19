@@ -1,10 +1,13 @@
 import React from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import CreateTokenForm from '../CreateTokenForm';
+import CreateToken from '../CreateToken';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { WalletContext } from 'utils/context';
-import { walletWithEnoughXecToMakeAToken } from '../fixtures/mocks';
+import {
+    walletWithEnoughXecToMakeAToken,
+    walletWithoutEnoughXecToMakeAToken,
+} from '../fixtures/mocks';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
@@ -52,21 +55,55 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
-describe('<CreateTokenForm />', () => {
-    it('Renders the component', async () => {
+describe('<CreateToken />', () => {
+    it('If wallet has sufficient XEC, renders component and CreateTokenForm', async () => {
         render(
             <Router>
                 <WalletContext.Provider value={walletWithEnoughXecToMakeAToken}>
                     <ThemeProvider theme={theme}>
-                        <CreateTokenForm />
+                        <CreateToken />
                     </ThemeProvider>
                 </WalletContext.Provider>
             </Router>,
         );
 
         // Renders the component
+        expect(screen.queryByTestId('create-token-ctn')).toBeInTheDocument();
+
+        // Renders CreateTokenForm, as this wallet has sufficient balance to create a token
         expect(
             screen.queryByTestId('create-token-form-ctn'),
+        ).toBeInTheDocument();
+
+        // Does not render insufficient balance alert
+        expect(
+            screen.queryByTestId('insufficient-balance-for-tokens'),
+        ).not.toBeInTheDocument();
+    });
+    it('If wallet has insufficient XEC, renders component but does not render CreateTokenForm', async () => {
+        render(
+            <Router>
+                <WalletContext.Provider
+                    value={walletWithoutEnoughXecToMakeAToken}
+                >
+                    <ThemeProvider theme={theme}>
+                        <CreateToken />
+                    </ThemeProvider>
+                </WalletContext.Provider>
+            </Router>,
+        );
+
+        // Renders the component
+        expect(screen.queryByTestId('create-token-ctn')).toBeInTheDocument();
+
+        // Renders CreateTokenForm, as this wallet has sufficient balance to create a token
+        expect(
+            screen.queryByTestId('create-token-form-ctn'),
+        ).not.toBeInTheDocument();
+
+        // Renders expected alert
+        expect(
+            screen.queryByTestId('insufficient-balance-for-tokens'),
         ).toBeInTheDocument();
     });
 });
