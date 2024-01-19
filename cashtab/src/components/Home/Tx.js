@@ -427,18 +427,28 @@ const Tx = ({
     const handleShowMessage = () => {
         setDisplayedMessage(!displayedMessage);
     };
-    const txDate =
-        data.timeFirstSeen !== '0'
-            ? formatDate(data.timeFirstSeen, navigator.language)
-            : formatDate(data.block.timestamp, navigator.language);
-
-    // Note that timeFirstSeen is in seconds and must be converted to ms to get an accurate time from new Date()
-    const txTime =
-        data.timeFirstSeen !== '0'
-            ? new Date(
-                  parseInt(`${data.timeFirstSeen}000`),
-              ).toLocaleTimeString()
-            : false;
+    let txDate, txTime;
+    if (data.timeFirstSeen === '0') {
+        // If chronik does not have a timeFirstSeen for this tx
+        if (!('block' in data)) {
+            // If it is also unconfirmed, we have nothing to go on here
+            // Do not render txDate or txTime
+            txDate = false;
+            txTime = false;
+        } else {
+            // If it is confirmed, use the block timestamp
+            txDate = formatDate(data.block.timestamp, navigator.language);
+            txTime = new Date(
+                parseInt(`${data.block.timestamp}000`),
+            ).toLocaleTimeString();
+        }
+    } else {
+        // If it is unconfirmed and we have data.timeFirstSeen, use that
+        txDate = formatDate(data.timeFirstSeen, navigator.language);
+        txTime = new Date(
+            parseInt(`${data.timeFirstSeen}000`),
+        ).toLocaleTimeString();
+    }
 
     // A wallet migrating from bch-api tx history to chronik will get caught here for one update cycle
     let unparsedTx = false;
@@ -515,7 +525,7 @@ const Tx = ({
                                             </>
                                         )}
 
-                                        <LeftTextCtn>
+                                        <LeftTextCtn data-testid="left-txt-ctn">
                                             {!data.parsed.incoming ? (
                                                 <>
                                                     {data.parsed.isEtokenTx &&
