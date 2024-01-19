@@ -85,3 +85,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 ## Changelog
 
 0.10.1 - Deprecate client-side ping keepAlive. Server-side is now available.
+0.11.0 - Add support for `chronikInfo()` method to `ChronikClientNode`
