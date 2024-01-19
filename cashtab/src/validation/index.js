@@ -711,7 +711,7 @@ export function parseAddressInput(addressInput) {
             return parsedAddressInput;
         }
 
-        const supportedParams = ['amount', 'opreturn'];
+        const supportedParams = ['amount', 'op_return_raw'];
 
         // Iterate over params to check for valid and/or invalid params
         for (const paramKeyValue of addrParams) {
@@ -730,16 +730,16 @@ export function parseAddressInput(addressInput) {
                     parsedAddressInput.amount.error = `Invalid XEC send amount "${amount}"`;
                 }
             }
-            if (paramKey === 'opreturn') {
-                // Handle Cashtab-supported bip21 param 'opreturn'
+            if (paramKey === 'op_return_raw') {
+                // Handle Cashtab-supported bip21 param 'op_return_raw'
                 const opreturnParam = paramKeyValue[1];
-                parsedAddressInput.opreturn = {
+                parsedAddressInput.op_return_raw = {
                     value: opreturnParam,
                     error: false,
                 };
                 if (!isValidOpreturnParam(opreturnParam)) {
                     // opreturn must be valid
-                    parsedAddressInput.opreturn.error = `Invalid opreturn param "${opreturnParam}"`;
+                    parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param "${opreturnParam}"`;
                 }
             }
         }

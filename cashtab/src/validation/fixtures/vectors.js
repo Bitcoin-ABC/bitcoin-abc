@@ -430,70 +430,70 @@ export default {
             },
             // opreturn param only
             {
-                description: 'Valid address with valid opreturn param',
+                description: 'Valid address with valid op_return_raw param',
                 addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
                         isAlias: false,
                     },
-                    opreturn: {
+                    op_return_raw: {
                         value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                     queryString: {
-                        value: 'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        value: 'op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                 },
             },
             {
-                description: 'Valid alias with valid opreturn param',
+                description: 'Valid alias with valid op_return_raw param',
                 addressInput:
-                    'chicken.xec?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                    'chicken.xec?op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
                         error: false,
                         isAlias: true,
                     },
-                    opreturn: {
+                    op_return_raw: {
                         value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                     queryString: {
-                        value: 'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        value: 'op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                 },
             },
             {
-                description: 'Valid address with invalid opreturn param',
+                description: 'Valid address with invalid op_return_raw param',
                 addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?op_return_raw=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
                         error: false,
                         isAlias: false,
                     },
-                    opreturn: {
+                    op_return_raw: {
                         value: 'notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-                        error: `Invalid opreturn param "notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d"`,
+                        error: `Invalid op_return_raw param "notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d"`,
                     },
                     queryString: {
-                        value: 'opreturn=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        value: 'op_return_raw=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                 },
             },
-            // Both opreturn and amount params
+            // Both op_return_raw and amount params
             {
-                description: 'Valid amount and opreturn params',
+                description: 'Valid amount and op_return_raw params',
                 addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -501,12 +501,12 @@ export default {
                         isAlias: false,
                     },
                     amount: { value: '500', error: false },
-                    opreturn: {
+                    op_return_raw: {
                         value: '042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                     queryString: {
-                        value: 'amount=500&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        value: 'amount=500&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: false,
                     },
                 },
@@ -546,9 +546,9 @@ export default {
                 },
             },
             {
-                description: 'Repeated opreturn param',
+                description: 'Repeated op_return_raw param',
                 addressInput:
-                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -556,7 +556,7 @@ export default {
                         isAlias: false,
                     },
                     queryString: {
-                        value: 'opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&opreturn=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                        value: 'op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
                         error: `bip21 parameters may not appear more than once`,
                     },
                 },
