@@ -1,152 +1,320 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event';
+import SendToken from '../SendToken';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import SendToken from 'components/Send/SendToken';
-import {
-    walletWithBalancesAndTokens,
-    walletWithBalancesAndTokensWithCorrectState,
-} from '../../Home/__mocks__/walletAndBalancesMock';
+import { mockWalletContext } from '../fixtures/mocks';
 import { WalletContext } from 'utils/context';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
+import { when } from 'jest-when';
+import aliasSettings from 'config/alias';
 
-beforeEach(() => {
-    // Mock method not implemented in JSDOM
-    // See reference at https://jestjs.io/docs/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
-    Object.defineProperty(window, 'matchMedia', {
-        writable: true,
-        value: jest.fn().mockImplementation(query => ({
-            matches: false,
-            media: query,
-            onchange: null,
-            addListener: jest.fn(), // Deprecated
-            removeListener: jest.fn(), // Deprecated
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            dispatchEvent: jest.fn(),
-        })),
-    });
-});
-
-test('Wallet with XEC balances and tokens', () => {
-    const component = renderer.create(
-        <WalletContext.Provider value={walletWithBalancesAndTokens}>
-            <ThemeProvider theme={theme}>
-                <Router>
-                    <SendToken
-                        tokenId={
-                            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
-                        }
-                    />
-                </Router>
-            </ThemeProvider>
-        </WalletContext.Provider>,
-    );
-    let tree = component.toJSON();
-    expect(tree).toMatchSnapshot();
-});
-
-test('Wallet with XEC balances and tokens and state field', () => {
-    const component = renderer.create(
-        <WalletContext.Provider
-            value={walletWithBalancesAndTokensWithCorrectState}
-        >
-            <ThemeProvider theme={theme}>
-                <Router>
-                    <SendToken
-                        tokenId={
-                            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
-                        }
-                    />
-                </Router>
-            </ThemeProvider>
-        </WalletContext.Provider>,
-    );
-    let tree = component.toJSON();
-    expect(tree).toMatchSnapshot();
-});
-
-test('Without wallet defined', () => {
-    const withoutWalletDefinedMock = {
-        wallet: {},
-        balances: { totalBalance: 0 },
-        loading: false,
+function mockFunction() {
+    const original = jest.requireActual('react-router-dom');
+    return {
+        ...original,
+        useLocation: jest.fn().mockReturnValue({
+            pathname: '/another-route',
+            search: '',
+            hash: '',
+            state: null,
+            key: '5nvxpbdafa',
+        }),
     };
-    const component = renderer.create(
-        <WalletContext.Provider value={withoutWalletDefinedMock}>
+}
+
+jest.mock('react-router-dom', () => mockFunction());
+
+// https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
+Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(), // Deprecated
+        removeListener: jest.fn(), // Deprecated
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+    })),
+});
+
+// https://stackoverflow.com/questions/64813447/cannot-read-property-addlistener-of-undefined-react-testing-library
+window.matchMedia = query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+});
+
+const TestSendTokenScreen = (
+    <BrowserRouter>
+        <WalletContext.Provider value={mockWalletContext}>
             <ThemeProvider theme={theme}>
-                <Router>
-                    <SendToken
-                        tokenId={
-                            'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba'
-                        }
-                    />
-                </Router>
+                <SendToken tokenId="3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109" />
             </ThemeProvider>
-        </WalletContext.Provider>,
-    );
-    let tree = component.toJSON();
-    expect(tree).toMatchSnapshot();
-});
-
-test('Verify the SendToken component successfully initializes', async () => {
-    const { result } = renderHook(() => (
-        // Wallet context mock needed here as the `SendToken(tokenId)` call won't instantiate without a wallet object present
-        <WalletContext.Provider value={walletWithBalancesAndTokens}>
-            SendToken(`bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba`)
         </WalletContext.Provider>
-    ));
+    </BrowserRouter>
+);
 
-    // Extract component state at the point of initialization
-    let initializedSendToken;
-    await act(async () => {
-        initializedSendToken = await result.current;
+describe('<SendToken />', () => {
+    it('Renders the SendToken screen with send address input', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+        const amountInputEl = screen.getByTestId('send-token-input');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+        expect(amountInputEl).toBeInTheDocument();
+
+        // Inputs are not disabled
+        expect(addressInputEl).toHaveProperty('disabled', false);
+        expect(amountInputEl).toHaveProperty('disabled', false);
+
+        // No validation errors before input
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
     });
+    it('Accepts a valid ecash: prefixed address', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
 
-    // Ensure component state is not null
-    expect(initializedSendToken).not.toBeNull();
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
 
-    // Ensure successful initialization of SendToken component props
-    const expectedSendTokenProps = [
-        'wallet',
-        'balances',
-        'tokens',
-        'loading',
-        'cashtabCache',
-    ];
-    const validSendTokenProps = expectedSendTokenProps.every(prop =>
-        Object.prototype.hasOwnProperty.call(
-            initializedSendToken.props.value,
-            prop,
-        ),
-    );
-    expect(validSendTokenProps).toBe(true);
-});
+        // The user enters a valid address
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await userEvent.type(addressInputEl, addressInput);
 
-test('Verify the SendToken component throws error on missing Wallet object', () => {
-    const { result } = renderHook(() =>
-        // No wallet context mock provided
-        SendToken(
-            `bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba`,
-        ),
-    );
-    // React/Jest dynamically generates the `((cov_1erx5eord5(...).s[16]++)`
-    // portion of the expected error message:
-    // `Cannot destructure property 'wallet' of ((cov_1erx5eord5(...).s[16]++) _react.default.useContext(...)) as it is undefined.`
-    // at the time of test execution, hence this error test case only checks that
-    // the error message string contains `Cannot destructure property 'wallet'`
-    expect(result.error.message).toEqual(
-        expect.stringContaining(`Cannot destructure property 'wallet' of`),
-    );
-});
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
 
-test('Verify the SendToken component throws error on missing token ID', async () => {
-    const { result } = renderHook(() =>
-        // No token id provided as input
-        SendToken(),
-    );
-    expect(result.error.message).toBe(
-        `Cannot destructure property 'tokenId' of 'undefined' as it is undefined.`,
-    );
+        // No validation errors before input
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+    });
+    it('Accepts a valid etoken: prefixed address', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        // The user enters a valid address
+        const addressInput =
+            'etoken:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvgvv3p0vd';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // No validation errors before input
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+    });
+    it('Accepts a valid alias', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        const alias = 'twelvechar12';
+        const expectedResolvedAddress =
+            'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj';
+
+        // mock the fetch call to alias-server's '/alias' endpoint
+        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+        global.fetch = jest.fn();
+        when(fetch)
+            .calledWith(fetchUrl)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        alias: 'twelvechar12',
+                        address: expectedResolvedAddress,
+                        txid: '166b21d4631e2a6ec6110061f351c9c3bfb3a8d4e6919684df7e2824b42b0ffe',
+                        blockheight: 792419,
+                    }),
+            });
+
+        // The user enters a valid alias
+        const addressInput = 'twelvechar12.xec';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // No validation errors before input
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // The alias address preview renders the expected address preview
+        const aliasAddrPreview = screen.queryByTestId('alias-address-preview');
+        expect(aliasAddrPreview).toBeInTheDocument();
+        expect(aliasAddrPreview).toHaveTextContent(
+            `${expectedResolvedAddress.slice(
+                0,
+                10,
+            )}...${expectedResolvedAddress.slice(-5)}`,
+        );
+    });
+    it('Displays a validation error for an invalid address', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        // The user enters an invalid address
+        const addressInput = 'not a valid address';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // Error div exists and has expected error
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).toBeInTheDocument();
+        expect(addressValidationErrorDiv).toHaveTextContent('Invalid address');
+    });
+    it('Displays a validation error for an alias without .xec suffix', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        // The user enters a potentially valid alias without .xec suffix
+        const addressInput = 'chicken';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // Error div exists and has expected error
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).toBeInTheDocument();
+        expect(addressValidationErrorDiv).toHaveTextContent(
+            `Aliases must end with '.xec'`,
+        );
+    });
+    it('Displays a validation error for valid alias that has not yet been registered', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        const alias = 'notregistered';
+
+        // mock the fetch call to alias-server's '/alias' endpoint
+        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+        global.fetch = jest.fn();
+        when(fetch)
+            .calledWith(fetchUrl)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        alias: 'notregistered',
+                        isRegistered: false,
+                        pending: [],
+                        registrationFeeSats: 551,
+                        processedBlockheight: 827598,
+                    }),
+            });
+
+        // The user enters a valid alias
+        const addressInput = `${alias}.xec`;
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // Error div exists and has expected error
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).toBeInTheDocument();
+        expect(addressValidationErrorDiv).toHaveTextContent(
+            `eCash Alias does not exist or yet to receive 1 confirmation`,
+        );
+    });
+    it('Displays expected error if alias server gives a bad response', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        const alias = 'servererror';
+
+        // mock the fetch call to alias-server's '/alias' endpoint
+        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${alias}`;
+        global.fetch = jest.fn();
+        when(fetch)
+            .calledWith(fetchUrl)
+            .mockResolvedValue({
+                json: () => Promise.reject(new Error('some error')),
+            });
+
+        // The user enters a valid alias
+        const addressInput = `${alias}.xec`;
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // Error div exists and has expected error
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).toBeInTheDocument();
+        expect(addressValidationErrorDiv).toHaveTextContent(
+            `Error resolving alias at indexer, contact admin.`,
+        );
+    });
+    it('Displays a validation error if the user includes any query string', async () => {
+        const { container } = render(TestSendTokenScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+
+        // Input fields are rendered
+        expect(addressInputEl).toBeInTheDocument();
+
+        // The user enters an ivalid address
+        const addressInput =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=5000';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // Error div exists and has expected error
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).toBeInTheDocument();
+        expect(addressValidationErrorDiv).toHaveTextContent(
+            'eToken sends do not support bip21 query strings',
+        );
+    });
 });
