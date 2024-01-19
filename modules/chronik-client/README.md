@@ -87,3 +87,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 0.10.1 - Deprecate client-side ping keepAlive. Server-side is now available.
 0.11.0 - Add support for `chronikInfo()` method to `ChronikClientNode`
 0.11.1 - Do not try next server if error is unrelated to server failure
+0.12.0 - Add support for `block(hashOrHeight)` and `blocks(startHeight, endHeight)` methods to `ChronikClientNode`
