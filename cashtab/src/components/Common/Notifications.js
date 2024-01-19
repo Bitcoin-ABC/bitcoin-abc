@@ -33,7 +33,12 @@ const sendXecNotification = link => {
     notification.success({
         message: 'Success',
         description: (
-            <a href={link} target="_blank" rel="noopener noreferrer">
+            <a
+                data-testid="send-xec-notification"
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 <Paragraph>
                     Transaction successful. Click to view in block explorer.
                 </Paragraph>

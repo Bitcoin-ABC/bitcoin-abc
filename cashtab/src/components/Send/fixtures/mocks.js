@@ -1,3 +1,5 @@
+import { cashtabSettings } from 'config/cashtabSettings';
+
 export const walletWithXecAndTokens = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
@@ -796,4 +798,5 @@ export const walletWithXecAndTokens = {
 
 export const mockWalletContext = {
     wallet: walletWithXecAndTokens,
+    cashtabSettings,
 };

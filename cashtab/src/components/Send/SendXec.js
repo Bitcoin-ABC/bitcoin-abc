@@ -54,6 +54,7 @@ import {
     getCashtabMsgTargetOutput,
     getAirdropTargetOutput,
     getCashtabMsgByteCount,
+    getOpreturnParamTargetOutput,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
@@ -150,6 +151,11 @@ const PanelHeaderCtn = styled.div`
 
 const AmountSetByBip21Alert = styled.span`
     color: ${props => props.theme.eCashPurple};
+`;
+const OpReturnRawSetByBip21Alert = styled.div`
+    color: ${props => props.theme.eCashPurple};
+    padding: 12px;
+    overflow-wrap: break-word;
 `;
 
 const SendXec = ({ passLoadingStatus }) => {
@@ -392,6 +398,15 @@ const SendXec = ({ passLoadingStatus }) => {
         } else if (opReturnMsg !== false && opReturnMsg !== '') {
             // If not an airdrop msg, add opReturnMsg as a Cashtab Msg, if it exists
             targetOutputs.push(getCashtabMsgTargetOutput(opReturnMsg));
+        } else if (
+            'op_return_raw' in parsedAddressInput &&
+            parsedAddressInput.op_return_raw.error === false
+        ) {
+            targetOutputs.push(
+                getOpreturnParamTargetOutput(
+                    parsedAddressInput.op_return_raw.value,
+                ),
+            );
         }
 
         if (isOneToManyXECSend) {
@@ -440,6 +455,7 @@ const SendXec = ({ passLoadingStatus }) => {
                 appConfig.defaultFee,
                 chaintipBlockheight,
             );
+
             sendXecNotification(
                 `${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`,
             );
@@ -496,6 +512,15 @@ const SendXec = ({ passLoadingStatus }) => {
                 renderedSendToError =
                     'Error resolving alias at indexer, contact admin.';
             }
+        }
+
+        // Handle errors in op_return_raw as an address error if no other error is set
+        if (
+            renderedSendToError === false &&
+            'op_return_raw' in parsedAddressInput &&
+            typeof parsedAddressInput.op_return_raw.error === 'string'
+        ) {
+            renderedSendToError = parsedAddressInput.op_return_raw.error;
         }
 
         setSendAddressError(renderedSendToError);
@@ -935,7 +960,13 @@ const SendXec = ({ passLoadingStatus }) => {
                                     )}
                                 </AmountPreviewCtn>
                             </ExpandingAddressInputCtn>
-
+                            {'op_return_raw' in parsedAddressInput && (
+                                <OpReturnRawSetByBip21Alert data-testid="op-return-raw-set-alert">
+                                    Hex OP_RETURN &quot;
+                                    {parsedAddressInput.op_return_raw.value}
+                                    &quot; set by BIP21
+                                </OpReturnRawSetByBip21Alert>
+                            )}
                             <div
                                 style={{
                                     paddingTop: '1rem',
@@ -947,6 +978,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                     </DisabledButton>
                                 ) : (
                                     <PrimaryButton
+                                        data-testid="send-it"
                                         onClick={() => {
                                             checkForConfirmationBeforeSendXec();
                                         }}
@@ -955,60 +987,64 @@ const SendXec = ({ passLoadingStatus }) => {
                                     </PrimaryButton>
                                 )}
                             </div>
-
-                            <CustomCollapseCtn
-                                panelHeader={
-                                    <PanelHeaderCtn>
-                                        <ThemedMailOutlined /> Message
-                                    </PanelHeaderCtn>
-                                }
-                                optionalDefaultActiveKey={
-                                    location &&
-                                    location.state &&
-                                    location.state.replyAddress
-                                        ? ['1']
-                                        : ['0']
-                                }
-                                optionalKey="1"
-                            >
-                                <AntdFormWrapper
-                                    style={{
-                                        marginBottom: '20px',
-                                    }}
+                            {!('op_return_raw' in parsedAddressInput) && (
+                                <CustomCollapseCtn
+                                    data-testid="cashtab-msg-collapse"
+                                    panelHeader={
+                                        <PanelHeaderCtn>
+                                            <ThemedMailOutlined /> Message
+                                        </PanelHeaderCtn>
+                                    }
+                                    optionalDefaultActiveKey={
+                                        location &&
+                                        location.state &&
+                                        location.state.replyAddress
+                                            ? ['1']
+                                            : ['0']
+                                    }
+                                    optionalKey="1"
                                 >
-                                    <Alert
+                                    <AntdFormWrapper
                                         style={{
-                                            marginBottom: '10px',
+                                            marginBottom: '20px',
                                         }}
-                                        description="Please note this message will be public."
-                                        type="warning"
-                                        showIcon
-                                    />
-                                    <TextArea
-                                        name="opReturnMsg"
-                                        placeholder={
-                                            location &&
-                                            location.state &&
-                                            location.state.airdropTokenId
-                                                ? `(max ${
-                                                      opreturnConfig.cashtabMsgByteLimit -
-                                                      localAirdropTxAddedBytes
-                                                  } bytes)`
-                                                : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
-                                        }
-                                        value={opReturnMsg ? opReturnMsg : ''}
-                                        onChange={e => handleMsgChange(e)}
-                                        onKeyDown={e =>
-                                            e.keyCode == 13
-                                                ? e.preventDefault()
-                                                : ''
-                                        }
-                                    />
-                                    <MsgBytesizeError>
-                                        {isMsgError ? isMsgError : ''}
-                                    </MsgBytesizeError>
-                                </AntdFormWrapper>
-                            </CustomCollapseCtn>
+                                    >
+                                        <Alert
+                                            style={{
+                                                marginBottom: '10px',
+                                            }}
+                                            description="Please note this message will be public."
+                                            type="warning"
+                                            showIcon
+                                        />
+                                        <TextArea
+                                            name="opReturnMsg"
+                                            placeholder={
+                                                location &&
+                                                location.state &&
+                                                location.state.airdropTokenId
+                                                    ? `(max ${
+                                                          opreturnConfig.cashtabMsgByteLimit -
+                                                          localAirdropTxAddedBytes
+                                                      } bytes)`
+                                                    : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
+                                            }
+                                            value={
+                                                opReturnMsg ? opReturnMsg : ''
+                                            }
+                                            onChange={e => handleMsgChange(e)}
+                                            onKeyDown={e =>
+                                                e.keyCode == 13
+                                                    ? e.preventDefault()
+                                                    : ''
+                                            }
+                                        />
+                                        <MsgBytesizeError>
+                                            {isMsgError ? isMsgError : ''}
+                                        </MsgBytesizeError>
+                                    </AntdFormWrapper>
+                                </CustomCollapseCtn>
+                            )}
                             {apiError && <ApiError />}
                         </Form>
                     </Col>

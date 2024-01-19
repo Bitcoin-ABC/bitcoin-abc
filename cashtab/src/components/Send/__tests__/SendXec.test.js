@@ -10,6 +10,8 @@ import { WalletContext } from 'utils/context';
 import { BrowserRouter } from 'react-router-dom';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
+import { MockChronikClient } from '../../../../../apps/mock-chronik-client';
+import { explorer } from 'config/explorer';
 
 function mockFunction() {
     const original = jest.requireActual('react-router-dom');
@@ -676,5 +678,276 @@ describe('<SendXec />', () => {
         // The Bip21Alert span is not rendered as there is no amount param
         const bip21Alert = screen.queryByTestId('bip-alert');
         expect(bip21Alert).not.toBeInTheDocument();
+
+        // The Cashtab Message collapse is rendered as there is no op_return_raw param
+        expect(
+            screen.queryByTestId('cashtab-message-collapse'),
+        ).not.toBeInTheDocument();
+    });
+    it('Pass a valid address and bip21 query string with op_return_raw param to Send To field', async () => {
+        const { container } = render(TestSendXecScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+        const amountInputEl = screen.getByTestId('send-xec-input');
+
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?op_return_raw=0401020304';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // The multiple recipients switch is not rendered
+        expect(
+            screen.queryByTestId('multiple-recipients-switch'),
+        ).not.toBeInTheDocument();
+
+        // Amount input is untouched
+        expect(amountInputEl).toHaveValue(null);
+
+        // The amount input is not disabled because it is set by a bip21 query string
+        expect(amountInputEl).toHaveProperty('disabled', false);
+
+        // No validation errors
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // The Send button is disabled because amount is not entered
+        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+
+        // The Bip21Alert amount span is not rendered
+        const bip21Alert = screen.queryByTestId('bip-alert');
+        expect(bip21Alert).not.toBeInTheDocument();
+
+        // The Cashtab Message collapse is not rendered because op_return_raw is set
+        expect(
+            screen.queryByTestId('cashtab-message-collapse'),
+        ).not.toBeInTheDocument();
+
+        // The Bip21Alert op_return_raw span is rendered
+        const opReturnRawAlert = screen.getByTestId('op-return-raw-set-alert');
+        expect(opReturnRawAlert).toBeInTheDocument();
+
+        // Alert renders the set hex string
+        expect(opReturnRawAlert).toHaveTextContent(
+            `Hex OP_RETURN "0401020304" set by BIP21`,
+        );
+    });
+    it('Pass a valid address and bip21 query string with valid amount and op_return_raw params to Send To field', async () => {
+        const { container } = render(TestSendXecScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+        const amountInputEl = screen.getByTestId('send-xec-input');
+
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=0401020304';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // The multiple recipients switch is not rendered
+        expect(
+            screen.queryByTestId('multiple-recipients-switch'),
+        ).not.toBeInTheDocument();
+
+        // Amount input is the valid amount param value
+        expect(amountInputEl).toHaveValue(500);
+
+        // The amount input is disabled because it is set by a bip21 query string
+        expect(amountInputEl).toHaveProperty('disabled', true);
+
+        // No validation errors
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // The Send button is enabled as we have valid address and amount params
+        expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
+
+        // The Bip21Alert span is rendered
+        const bip21Alert = screen.getByTestId('bip-alert');
+        expect(bip21Alert).toBeInTheDocument();
+
+        // The Cashtab Message collapse is not rendered
+        expect(
+            screen.queryByTestId('cashtab-message-collapse'),
+        ).not.toBeInTheDocument();
+
+        // The Bip21Alert op_return_raw span is rendered
+        const opReturnRawAlert = screen.getByTestId('op-return-raw-set-alert');
+        expect(opReturnRawAlert).toBeInTheDocument();
+
+        // Alert renders the set hex string
+        expect(opReturnRawAlert).toHaveTextContent(
+            `Hex OP_RETURN "0401020304" set by BIP21`,
+        );
+    });
+    it('Pass a valid address and bip21 query string with valid amount and invalid op_return_raw params to Send To field', async () => {
+        const { container } = render(TestSendXecScreen);
+        const addressInputEl = screen.getByTestId('destination-address-single');
+        const amountInputEl = screen.getByTestId('send-xec-input');
+
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=notahexstring';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // The multiple recipients switch is not rendered
+        expect(
+            screen.queryByTestId('multiple-recipients-switch'),
+        ).not.toBeInTheDocument();
+
+        // Amount input is the valid amount param value
+        expect(amountInputEl).toHaveValue(500);
+
+        // The amount input is disabled because it is set by a bip21 query string
+        expect(amountInputEl).toHaveProperty('disabled', true);
+
+        // Check for antd error div
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).toBeInTheDocument();
+        expect(addressValidationErrorDiv).toHaveTextContent(
+            'Invalid op_return_raw param "notahexstring"',
+        );
+
+        // The Send button is disabled as we have valid address and amount params
+        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+
+        // The Bip21Alert span is rendered
+        const bip21Alert = screen.getByTestId('bip-alert');
+        expect(bip21Alert).toBeInTheDocument();
+
+        // The Cashtab Message collapse is not rendered
+        expect(
+            screen.queryByTestId('cashtab-message-collapse'),
+        ).not.toBeInTheDocument();
+
+        // The Bip21Alert op_return_raw span is rendered
+        const opReturnRawAlert = screen.getByTestId('op-return-raw-set-alert');
+        expect(opReturnRawAlert).toBeInTheDocument();
+
+        // Alert renders the set hex string
+        expect(opReturnRawAlert).toHaveTextContent(
+            `Hex OP_RETURN "notahexstring" set by BIP21`,
+        );
+    });
+    it('Clicking "Send" will send a valid tx with op_return_raw after entry of a valid address and bip21 query string with valid amount and op_return_raw params to Send To field', async () => {
+        const mockedChronik = new MockChronikClient();
+
+        // Can check in electrum for opreturn and amount
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206d45893e238b7e30110d4e0d47e63204a7d6347169547bebad5200be510b8790022014eb3457545423b9eb04aec14e28551548c011ee3544cb40619063dfbb20a1c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac417b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '79e6afc28d4149c51c4e2a32c05c57fb59c1c164fde1afc655590ce99ed70cb8';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+        const mockWalletContextWithChronik = JSON.parse(
+            JSON.stringify(mockWalletContext),
+        );
+        mockWalletContextWithChronik.chronik = mockedChronik;
+        mockWalletContextWithChronik.chaintipBlockheight = 800000;
+        const { container } = render(
+            <BrowserRouter>
+                <WalletContext.Provider value={mockWalletContextWithChronik}>
+                    <ThemeProvider theme={theme}>
+                        <SendXec />
+                    </ThemeProvider>
+                </WalletContext.Provider>
+            </BrowserRouter>,
+        );
+        const addressInputEl = screen.getByTestId('destination-address-single');
+        const amountInputEl = screen.getByTestId('send-xec-input');
+
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
+        await userEvent.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // The multiple recipients switch is not rendered
+        expect(
+            screen.queryByTestId('multiple-recipients-switch'),
+        ).not.toBeInTheDocument();
+
+        // Amount input is the valid amount param value
+        expect(amountInputEl).toHaveValue(17);
+
+        // The amount input is disabled because it is set by a bip21 query string
+        expect(amountInputEl).toHaveProperty('disabled', true);
+
+        // No validation errors
+        const addressValidationErrorDiv = container.querySelector(
+            '[class="ant-form-item-explain-error"]',
+        );
+        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // The Send button is enabled as we have valid address and amount params
+        expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
+
+        // The Bip21Alert span is rendered
+        const bip21Alert = screen.getByTestId('bip-alert');
+        expect(bip21Alert).toBeInTheDocument();
+
+        // The Cashtab Message collapse is not rendered
+        expect(
+            screen.queryByTestId('cashtab-message-collapse'),
+        ).not.toBeInTheDocument();
+
+        // The Bip21Alert op_return_raw span is rendered
+        const opReturnRawAlert = screen.getByTestId('op-return-raw-set-alert');
+        expect(opReturnRawAlert).toBeInTheDocument();
+
+        // Alert renders the set hex string
+        expect(opReturnRawAlert).toHaveTextContent(
+            `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
+        );
+
+        // Click Send
+        await userEvent.click(screen.getByTestId('send-it'), addressInput);
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = screen.queryByTestId(
+            'send-xec-notification',
+        );
+        expect(txSuccessNotification).toBeInTheDocument();
+        expect(txSuccessNotification).toHaveAttribute(
+            'href',
+            `${explorer.blockExplorerUrl}/tx/${txid}`,
+        );
+        // The op_return_raw set alert is now removed
+        expect(
+            screen.queryByTestId('op-return-raw-set-alert'),
+        ).not.toBeInTheDocument();
+        // The amount input is no longer disabled
+        expect(amountInputEl).toHaveProperty('disabled', false);
+        // Amount input is reset
+        expect(amountInputEl).toHaveValue(null);
+
+        // The multiple recipients switch is now rendered
+        expect(
+            screen.queryByTestId('multiple-recipients-switch'),
+        ).toBeInTheDocument();
+
+        // TODO
+        /*
+        Some behavior for after tx success that is confirmed in manual testing is not seen here
+        e.g. collapse should be re-rendered, address input should be cleared
+        Run into errors with the test, to be troubleshooted
+
+        Even with this issue, tests are tremendously helpful
+        */
     });
 });
