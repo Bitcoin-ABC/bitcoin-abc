@@ -126,12 +126,12 @@ export class FailoverProxy {
                 this._workingIndex = index;
                 return response;
             } catch (err) {
-                if (
-                    err instanceof Error &&
-                    (err.message.includes(`getaddrinfo ENOTFOUND`) ||
-                        err.message.includes(`Failed getting ${path}`))
-                ) {
+                if (err instanceof Error && 'code' in err) {
                     // Server outage, skip to next url in loop
+                    // Connection error msgs have a 'code' key of 'ECONNREFUSED'
+                    // Error messages from the chronik server (i.e. error
+                    // messages that should not trigger a 'try next server'
+                    // attempt) are of the chronik proto Error type, which has no 'code' key
                     continue;
                 }
                 // Throw upon all other valid error responses from chronik

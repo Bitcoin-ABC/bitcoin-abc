@@ -38,10 +38,20 @@ describe('/chronik-info', () => {
         await once(statusEvent, 'ready');
     });
 
-    it('gives us the chronik info', async () => {
+    it('gives us the chronik info and throws expected error on bad server connection', async () => {
+        const chronikUrl = await chronik_url;
         const EXPECTED_CHRONIK_VERSION = '0.1.0';
         const chronik = new ChronikClientNode(await chronik_url);
         const chronikInfo = await chronik.chronikInfo();
         expect(chronikInfo.version).to.eql(EXPECTED_CHRONIK_VERSION);
+
+        // Throws expected error if called on bad server
+
+        // Create a ChronikClientNode instance with a bad server URL
+        const badChronik = new ChronikClientNode([`${chronikUrl}5`]);
+        await expect(badChronik.chronikInfo()).to.be.rejectedWith(
+            Error,
+            'Error connecting to known Chronik instances',
+        );
     });
 });

@@ -44,11 +44,21 @@ describe('/blockchain-info', () => {
 
     const REGTEST_CHAIN_INIT_HEIGHT = 200;
 
-    it('gives us the blockchain info', async () => {
-        const chronik = new ChronikClientNode(await chronik_url);
+    it('gives us the blockchain info + throws expected error on bad connection', async () => {
+        const chronikUrl = await chronik_url;
+        const chronik = new ChronikClientNode(chronikUrl);
         const blockchainInfo = await chronik.blockchainInfo();
         expect(blockchainInfo.tipHash.length).to.eql(64);
         expect(blockchainInfo.tipHeight).to.eql(REGTEST_CHAIN_INIT_HEIGHT);
+
+        // Throws expected error if called on bad server
+
+        // Create a ChronikClientNode instance with a bad server URL
+        const badChronik = new ChronikClientNode([`${chronikUrl}5`]);
+        await expect(badChronik.blockchainInfo()).to.be.rejectedWith(
+            Error,
+            'Error connecting to known Chronik instances',
+        );
     });
     it('gives us the blockchain info with 10 more blocks', async () => {
         const chronik = new ChronikClientNode(await chronik_url);
