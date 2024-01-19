@@ -603,6 +603,11 @@ bool TestBlockValidity(
 bool HasValidProofOfWork(const std::vector<CBlockHeader> &headers,
                          const Consensus::Params &consensusParams);
 
+/**
+ * Check if a block has been mutated (with respect to its merkle root).
+ */
+bool IsBlockMutated(const CBlock &block);
+
 /** Return the sum of the work on a given set of headers */
 arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader> &headers);
 

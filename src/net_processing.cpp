@@ -6502,6 +6502,20 @@ void PeerManagerImpl::ProcessMessage(
         LogPrint(BCLog::NET, "received block %s peer=%d\n",
                  pblock->GetHash().ToString(), pfrom.GetId());
 
+        const CBlockIndex *prev_block{
+            WITH_LOCK(m_chainman.GetMutex(),
+                      return m_chainman.m_blockman.LookupBlockIndex(
+                          pblock->hashPrevBlock))};
+
+        if (IsBlockMutated(/*block=*/*pblock)) {
+            LogPrintLevel(BCLog::NET, BCLog::Level::Debug,
+                          "Received mutated block from peer=%d\n", peer->m_id);
+            Misbehaving(*peer, 100, "mutated block");
+            WITH_LOCK(cs_main,
+                      RemoveBlockRequest(pblock->GetHash(), peer->m_id));
+            return;
+        }
+
         // Process all blocks from whitelisted peers, even if not requested,
         // unless we're still syncing with the network. Such an unrequested
         // block may still be processed, subject to the conditions in
@@ -6522,8 +6536,6 @@ void PeerManagerImpl::ProcessMessage(
             mapBlockSource.emplace(hash, std::make_pair(pfrom.GetId(), true));
 
             // Check work on this block against our anti-dos thresholds.
-            const CBlockIndex *prev_block =
-                m_chainman.m_blockman.LookupBlockIndex(pblock->hashPrevBlock);
             if (prev_block &&
                 prev_block->nChainWork +
                         CalculateHeadersWork({pblock->GetBlockHeader()}) >=
