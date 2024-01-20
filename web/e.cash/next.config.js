@@ -46,6 +46,39 @@ const nextConfig = {
             },
         ];
     },
+    async headers() {
+        return [
+            {
+                source: '/(.*?)',
+                headers: [
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains; preload',
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: '"DENY" always',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: '"nosniff" always',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=()',
+                    },
+                    {
+                        key: 'Content-Security-Policy-Report-Only',
+                        value: `default-src https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`,
+                    },
+                ],
+            },
+        ];
+    },
 };
 
 module.exports = nextConfig;
