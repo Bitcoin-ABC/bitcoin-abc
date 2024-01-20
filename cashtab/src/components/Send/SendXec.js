@@ -19,11 +19,8 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import {
-    sumOneToManyXec,
-    toSatoshis,
-    getWalletBalanceFromUtxos,
-} from 'utils/cashMethods';
+import { toSatoshis } from 'wallet';
+import { sumOneToManyXec, getWalletBalanceFromUtxos } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,

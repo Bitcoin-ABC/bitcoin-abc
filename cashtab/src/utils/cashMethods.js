@@ -465,18 +465,6 @@ export const sumOneToManyXec = destinationAddressAndValueArray => {
     }, 0);
 };
 
-/**
- * Return an integer that is the given amountXEC in satoshis
- * @param {Number} amountXec
- * @returns {Integer} satoshis
- */
-export const toSatoshis = amountXec => {
-    const SATOSHIS_PER_XEC = 100;
-    // Math.round returns the nearest integer value
-    // e.g. in JS, 151.52 * 100 = 15152.000000000002
-    // We need to return 15152
-    return Math.round(SATOSHIS_PER_XEC * amountXec);
-};
 /*
  * Generates an OP_RETURN script for a version 0 alias registration tx
  *

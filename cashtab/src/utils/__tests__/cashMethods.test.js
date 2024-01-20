@@ -32,7 +32,6 @@ import {
     hash160ToAddress,
     outputScriptToAddress,
     sumOneToManyXec,
-    toSatoshis,
 } from 'utils/cashMethods';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
 import {
@@ -1481,20 +1480,5 @@ describe('Correctly executes cash utility functions', () => {
             thrownError = err;
         }
         expect(thrownError.message).toBe('Parsed hash160 is incorrect length');
-    });
-    it(`toSatoshis returns expected integers for all possible decimal places at extreme limit of XEC supply`, () => {
-        const xecMaxSupply = 21000000000000;
-        const xecMaxSupplyLessOne = xecMaxSupply - 1;
-        for (let i = 1; i < 100; i += 1) {
-            const thisDecimal = parseFloat((i / 100).toFixed(2));
-            const testValue = xecMaxSupplyLessOne + thisDecimal;
-            const result = toSatoshis(testValue);
-            // Confirm you get an integer
-            expect(Number.isInteger(result)).toBe(true);
-            // Confirm you aren't rounding to the wrong decimal
-            expect(result.toString().slice(-2)).toBe(
-                thisDecimal.toFixed(2).slice(-2),
-            );
-        }
     });
 });
