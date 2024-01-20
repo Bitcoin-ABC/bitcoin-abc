@@ -46,7 +46,7 @@ Breaking this down
 
 `6a` - OP_RETURN
 `04` - Pushdata of the Protocol Identifier, `50415900`
-`50415900` - PayButton protocol identifier, ascii "PAY"
+`50415900` - PayButton protocol identifier, ascii `PAY`+`0x00`
 `00` - Version 0, pushed as `OP_0`
 `08` - pushdata for the data payload, signifying this tx has 8 bytes of data
 `0102030405060708` - data payload
