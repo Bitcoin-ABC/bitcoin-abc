@@ -47,7 +47,7 @@ import { when } from 'jest-when';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
-import { fromSatoshisToXec } from 'utils/cashMethods';
+import { toXec } from 'wallet';
 
 describe('Validation utils', () => {
     it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
@@ -185,32 +185,25 @@ describe('Validation utils', () => {
             expectedValidationError,
         );
     });
-    it(`Returns error if ${
-        appConfig.ticker
-    } send amount is less than ${fromSatoshisToXec(
+    it(`Returns error if ${appConfig.ticker} send amount is less than ${toXec(
         appConfig.dustSats,
     ).toString()} minimum`, () => {
-        const expectedValidationError = `Send amount must be at least ${fromSatoshisToXec(
+        const expectedValidationError = `Send amount must be at least ${toXec(
             appConfig.dustSats,
         ).toString()} ${appConfig.ticker}`;
         expect(
             shouldRejectAmountInput(
-                (
-                    fromSatoshisToXec(appConfig.dustSats).toString() -
-                    0.00000001
-                ).toString(),
+                (toXec(appConfig.dustSats).toString() - 0.00000001).toString(),
                 appConfig.ticker,
                 20.0,
                 3,
             ),
         ).toBe(expectedValidationError);
     });
-    it(`Returns error if ${
-        appConfig.ticker
-    } send amount is less than ${fromSatoshisToXec(
+    it(`Returns error if ${appConfig.ticker} send amount is less than ${toXec(
         appConfig.dustSats,
     ).toString()} minimum in fiat currency`, () => {
-        const expectedValidationError = `Send amount must be at least ${fromSatoshisToXec(
+        const expectedValidationError = `Send amount must be at least ${toXec(
             appConfig.dustSats,
         ).toString()} ${appConfig.ticker}`;
         expect(
@@ -407,15 +400,11 @@ describe('Validation utils', () => {
         ).toBe(false);
     });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
-        const testXecSendAmount = fromSatoshisToXec(
-            appConfig.dustSats,
-        ).toString();
+        const testXecSendAmount = toXec(appConfig.dustSats).toString();
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum`, () => {
-        const testXecSendAmount = (
-            fromSatoshisToXec(appConfig.dustSats) + 1.75
-        ).toString();
+        const testXecSendAmount = (toXec(appConfig.dustSats) + 1.75).toString();
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount rejects zero`, () => {
@@ -436,9 +425,7 @@ describe('Validation utils', () => {
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
     });
     it(`isValidXecSendAmount accepts arbitrary number above dust minimum as a string`, () => {
-        const testXecSendAmount = `${
-            fromSatoshisToXec(appConfig.dustSats) + 1.75
-        }`;
+        const testXecSendAmount = `${toXec(appConfig.dustSats) + 1.75}`;
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
     });
     it(`isValidXecSendAmount rejects null`, () => {

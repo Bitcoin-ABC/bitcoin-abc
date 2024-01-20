@@ -2,7 +2,6 @@ import { BN } from 'slp-mdm';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import {
-    fromSatoshisToXec,
     flattenContactList,
     loadStoredWallet,
     isValidStoredWallet,
@@ -19,7 +18,6 @@ import {
     generateTxOutput,
     generateTokenTxInput,
     signAndBuildTx,
-    fromXecToSatoshis,
     getWalletBalanceFromUtxos,
     signUtxosByAddress,
     generateTokenTxOutput,
@@ -33,6 +31,7 @@ import {
     outputScriptToAddress,
     sumOneToManyXec,
 } from 'utils/cashMethods';
+import { toXec, toSatoshis } from 'wallet';
 import { validAddressArrayInput } from '../__mocks__/mockAddressArray';
 import {
     mockGenesisOpReturnScript,
@@ -215,12 +214,10 @@ it(`signUtxosByAddress() successfully returns a txBuilder object for a one to on
     // mock tx output
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const singleSendValue = new BN(
-        fromSatoshisToXec(
-            mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
-        ),
+    const singleSendValue = toXec(
+        mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
     );
-    const satoshisToSendOutput = fromXecToSatoshis(new BN(singleSendValue));
+    const satoshisToSendOutput = toSatoshis(singleSendValue);
     const txFee = new BN(totalInputUtxoValue).minus(
         new BN(satoshisToSendOutput),
     );
@@ -681,12 +678,12 @@ it(`generateTxOutput() returns a txBuilder instance for a valid one to one XEC t
     // txbuilder output params
     const { destinationAddress, wallet } = sendBCHMock;
     const isOneToMany = false;
-    const singleSendValue = fromSatoshisToXec(
-        mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value,
+    const singleSendValue = new BN(
+        toXec(mockOneToOneSendXecTxBuilderObj.transaction.tx.outs[0].value),
     );
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const satoshisToSend = fromXecToSatoshis(new BN(singleSendValue));
+    const satoshisToSend = new BN(toSatoshis(singleSendValue));
     // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
     // no change output to be subtracted in this tx
     const txFee = new BN(totalInputUtxoValue).minus(new BN(satoshisToSend));
@@ -765,7 +762,7 @@ it(`generateTxOutput() throws an error on invalid input params for a one to one 
     const singleSendValue = null; // invalid due to singleSendValue being mandatory when isOneToMany is false
     const totalInputUtxoValue =
         mockOneToOneSendXecTxBuilderObj.transaction.inputs[0].value;
-    const satoshisToSend = fromXecToSatoshis(new BN(singleSendValue));
+    const satoshisToSend = null;
     // for unit test purposes, calculate fee by subtracting satoshisToSend from totalInputUtxoValue
     // no change output to be subtracted in this tx
     const txFee = new BN(totalInputUtxoValue).minus(satoshisToSend);
@@ -860,7 +857,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
         cashaddr.toLegacy(outputAddressAndValue[0]), // address
-        parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
+        toSatoshis(outputAddressAndValue[1]), // value
     );
     const rawTxHex = signAndBuildTx(mockSingleInputUtxo, txBuilder, wallet);
     expect(rawTxHex).toStrictEqual(
@@ -887,7 +884,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with a single in
         const outputAddressAndValue = mockMultipleOutputs[i].split(',');
         txBuilder.addOutput(
             cashaddr.toLegacy(outputAddressAndValue[0]), // address
-            parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
+            toSatoshis(outputAddressAndValue[1]), // value
         );
     }
 
@@ -916,7 +913,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
     const outputAddressAndValue = mockSingleOutput.split(',');
     txBuilder.addOutput(
         cashaddr.toLegacy(outputAddressAndValue[0]), // address
-        parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
+        toSatoshis(outputAddressAndValue[1]), // value
     );
 
     const rawTxHex = signAndBuildTx(mockMultipleInputUtxos, txBuilder, wallet);
@@ -945,7 +942,7 @@ it(`signAndBuildTx() successfully returns a raw tx hex for a tx with multiple in
         const outputAddressAndValue = mockMultipleOutputs[i].split(',');
         txBuilder.addOutput(
             cashaddr.toLegacy(outputAddressAndValue[0]), // address
-            parseInt(fromXecToSatoshis(new BN(outputAddressAndValue[1]))), // value
+            toSatoshis(outputAddressAndValue[1]), // value
         );
     }
 
@@ -987,22 +984,6 @@ it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
 });
 
 describe('Correctly executes cash utility functions', () => {
-    it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 2`, () => {
-        expect(fromSatoshisToXec(1, 2)).toStrictEqual(new BN(0.01));
-    });
-    it(`Correctly converts largest base unit to smallest decimal for cashDecimals = 2`, () => {
-        expect(fromSatoshisToXec(1000000012345678, 2)).toStrictEqual(
-            new BN(10000000123456.78),
-        );
-    });
-    it(`Correctly converts smallest base unit to smallest decimal for cashDecimals = 8`, () => {
-        expect(fromSatoshisToXec(1, 8)).toStrictEqual(new BN(0.00000001));
-    });
-    it(`Correctly converts largest base unit to smallest decimal for cashDecimals = 8`, () => {
-        expect(fromSatoshisToXec(1000000012345678, 8)).toStrictEqual(
-            new BN(10000000.12345678),
-        );
-    });
     it(`Accepts a cachedWalletState that has not preserved BigNumber object types, and returns the same wallet state with BigNumber type re-instituted`, () => {
         expect(loadStoredWallet(cachedUtxos)).toStrictEqual(
             utxosLoadedFromCache,

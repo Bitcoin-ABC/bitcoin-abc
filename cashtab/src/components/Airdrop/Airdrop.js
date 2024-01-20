@@ -21,10 +21,10 @@ import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     getWalletState,
     convertEtokenToEcashAddr,
-    fromSatoshisToXec,
     convertEcashtoEtokenAddr,
     convertToEcashPrefix,
 } from 'utils/cashMethods';
+import { toXec } from 'wallet';
 import { getMintAddress } from 'utils/chronik';
 import {
     isValidTokenId,
@@ -309,7 +309,7 @@ const Airdrop = ({ passLoadingStatus }) => {
         // if the ignore minimum payment threshold option is enabled
         if (ignoreRecipientsBelowDust) {
             // minimum airdrop threshold
-            const minEligibleAirdrop = fromSatoshisToXec(appConfig.dustSats);
+            const minEligibleAirdrop = new BN(toXec(appConfig.dustSats));
             let initialTotalTokenAmongstRecipients = new BN(0);
             let initialTotalHolders = new BN(airdropList.size); // amount of addresses that hold this eToken
             setEtokenHolders(initialTotalHolders);
@@ -655,7 +655,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                             />
                                             &ensp;Ignore airdrops below min.
                                             payment (
-                                            {fromSatoshisToXec(
+                                            {toXec(
                                                 appConfig.dustSats,
                                             ).toString()}{' '}
                                             XEC)
@@ -780,7 +780,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                                         <Alert
                                                             description={
                                                                 'At least one airdrop is below the minimum ' +
-                                                                fromSatoshisToXec(
+                                                                toXec(
                                                                     appConfig.dustSats,
                                                                 ).toString() +
                                                                 ' XEC dust. Please increase the total XEC airdrop.'

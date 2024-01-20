@@ -19,7 +19,7 @@ import {
     errorNotification,
 } from 'components/Common/Notifications';
 import { isMobile, isIOS, isSafari } from 'react-device-detect';
-import { toSatoshis } from 'wallet';
+import { toSatoshis, toXec } from 'wallet';
 import { sumOneToManyXec, getWalletBalanceFromUtxos } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
@@ -41,7 +41,7 @@ import {
     TxLink,
     MsgBytesizeError,
 } from 'components/Common/Atoms';
-import { getWalletState, fromSatoshisToXec, calcFee } from 'utils/cashMethods';
+import { getWalletState, calcFee } from 'utils/cashMethods';
 import {
     sendXec,
     getMultisendTargetOutputs,
@@ -274,7 +274,7 @@ const SendXec = ({ passLoadingStatus }) => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                value: `${fromSatoshisToXec(appConfig.dustSats).toString()}`,
+                value: `${toXec(appConfig.dustSats).toString()}`,
             });
         }
 

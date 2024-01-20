@@ -5,6 +5,7 @@ import bs58 from 'bs58';
 import * as utxolib from '@bitgo/utxo-lib';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import appConfig from 'config/app';
+import { toXec, toSatoshis } from 'wallet';
 
 // function is based on BCH-JS' generateBurnOpReturn() however it's been trimmed down for Cashtab use
 // Reference: https://github.com/Permissionless-Software-Foundation/bch-js/blob/62e56c832b35731880fe448269818b853c76dd80/src/slp/tokentype1.js#L217
@@ -554,14 +555,14 @@ export const generateTxOutput = (
                 );
                 txBuilder.addOutput(
                     cashaddr.toLegacy(outputAddress),
-                    parseInt(fromXecToSatoshis(outputValue)),
+                    toSatoshis(outputValue.toNumber()),
                 );
             }
         } else {
             // for one to one mode, add output w/ single address and amount to send
             txBuilder.addOutput(
                 cashaddr.toLegacy(destinationAddress),
-                parseInt(fromXecToSatoshis(singleSendValue)),
+                toSatoshis(singleSendValue),
             );
         }
 
@@ -686,37 +687,6 @@ export const fromLegacyDecimals = (
     return amountSmallestDenomination;
 };
 
-export const fromSatoshisToXec = (
-    amount,
-    cashDecimals = appConfig.cashDecimals,
-) => {
-    const amountBig = new BN(amount);
-    const multiplier = new BN(10 ** (-1 * cashDecimals));
-    const amountInBaseUnits = amountBig.times(multiplier);
-    return amountInBaseUnits;
-};
-
-export const fromXecToSatoshis = (
-    sendAmount,
-    cashDecimals = appConfig.cashDecimals,
-) => {
-    // Replace the BCH.toSatoshi method with an equivalent function that works for arbitrary decimal places
-    // Example, for an 8 decimal place currency like Bitcoin
-    // Input: a BigNumber of the amount of Bitcoin to be sent
-    // Output: a BigNumber of the amount of satoshis to be sent, or false if input is invalid
-
-    // Validate
-    // Input should be a BigNumber with no more decimal places than cashDecimals
-    const isValidSendAmount =
-        BN.isBigNumber(sendAmount) && sendAmount.dp() <= cashDecimals;
-    if (!isValidSendAmount) {
-        return false;
-    }
-    const conversionFactor = new BN(10 ** cashDecimals);
-    const sendAmountSmallestDenomination = sendAmount.times(conversionFactor);
-    return sendAmountSmallestDenomination;
-};
-
 export const flattenContactList = contactList => {
     /*
     Converts contactList from array of objects of type {address: <valid XEC address>, name: <string>} to array of addresses only
@@ -800,7 +770,7 @@ export const getWalletBalanceFromUtxos = nonSlpUtxos => {
     );
     return {
         totalBalanceInSatoshis: totalBalanceInSatoshis.toString(),
-        totalBalance: fromSatoshisToXec(totalBalanceInSatoshis).toString(),
+        totalBalance: toXec(totalBalanceInSatoshis.toNumber()).toString(),
     };
 };
 

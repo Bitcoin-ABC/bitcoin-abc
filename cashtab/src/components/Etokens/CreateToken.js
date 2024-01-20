@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
-import { fromSatoshisToXec, getWalletState } from 'utils/cashMethods';
+import { getWalletState } from 'utils/cashMethods';
+import { toXec } from 'wallet';
 import CreateTokenForm from './CreateTokenForm';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
@@ -52,8 +53,7 @@ const CreateToken = ({ passLoadingStatus }) => {
                     new BN(appConfig.dustSats),
                 ) ? (
                     <AlertMsg data-testid="insufficient-balance-for-tokens">
-                        You need at least{' '}
-                        {fromSatoshisToXec(appConfig.dustSats).toString()}{' '}
+                        You need at least {toXec(appConfig.dustSats).toString()}{' '}
                         {appConfig.ticker} (
                         {cashtabSettings
                             ? `${
@@ -62,10 +62,7 @@ const CreateToken = ({ passLoadingStatus }) => {
                                   ].symbol
                               }`
                             : '$'}
-                        {(
-                            fromSatoshisToXec(appConfig.dustSats).toString() *
-                            fiatPrice
-                        ).toFixed(4)}{' '}
+                        {(toXec(appConfig.dustSats) * fiatPrice).toFixed(4)}{' '}
                         {cashtabSettings
                             ? `${supportedFiatCurrencies[
                                   cashtabSettings.fiatCurrency

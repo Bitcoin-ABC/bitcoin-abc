@@ -1,5 +1,5 @@
 import { BN } from 'slp-mdm';
-import { fromSatoshisToXec } from 'utils/cashMethods';
+import { toXec } from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import {
@@ -138,8 +138,8 @@ export const shouldRejectAmountInput = (
         error = 'Amount must be a number';
     } else if (testedAmount.lte(0)) {
         error = 'Amount must be greater than 0';
-    } else if (testedAmount.lt(fromSatoshisToXec(appConfig.dustSats))) {
-        error = `Send amount must be at least ${fromSatoshisToXec(
+    } else if (testedAmount.lt(toXec(appConfig.dustSats))) {
+        error = `Send amount must be at least ${toXec(
             appConfig.dustSats,
         ).toString()} ${appConfig.ticker}`;
     } else if (testedAmount.gt(totalCashBalance)) {
@@ -424,8 +424,7 @@ export const isValidXecSendAmount = xecSendAmount => {
     }
     return (
         !isNaN(parseFloat(xecSendAmount)) &&
-        parseFloat(xecSendAmount) >=
-            fromSatoshisToXec(appConfig.dustSats).toNumber()
+        parseFloat(xecSendAmount) >= toXec(appConfig.dustSats)
     );
 };
 
@@ -489,7 +488,7 @@ export const isValidAirdropOutputsArray = airdropOutputsArray => {
         let valueString = substring[1];
         // if the XEC being sent is less than dust sats or contains extra values per line
         if (
-            new BN(valueString).lt(fromSatoshisToXec(appConfig.dustSats)) ||
+            new BN(valueString).lt(toXec(appConfig.dustSats)) ||
             substring.length !== 2
         ) {
             isValid = false;

@@ -22,7 +22,8 @@ import { SmartButton } from 'components/Common/PrimaryButton';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import BalanceHeaderFiat from 'components/Common/BalanceHeaderFiat';
 import { Row, Col } from 'antd';
-import { getWalletState, fromSatoshisToXec } from 'utils/cashMethods';
+import { getWalletState } from 'utils/cashMethods';
+import { toXec } from 'wallet';
 import {
     errorNotification,
     registerAliasNotification,
@@ -34,7 +35,6 @@ import { Space, Tag } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import appConfig from 'config/app';
-import { formatBalance } from 'utils/formatting';
 import aliasSettings from 'config/alias';
 import { explorer } from 'config/explorer';
 import { getAliasTargetOutput, getAliasByteCount } from 'opreturn';
@@ -461,31 +461,33 @@ const Alias = ({ passLoadingStatus }) => {
                 onOk={handleOk}
                 onCancel={handleCancel}
             >
-                {!aliasWarningMsg && (
-                    <AliasAvailable>
-                        {`The alias ${
-                            formData.aliasName
-                        } is available and can be registered for ${formatBalance(
-                            fromSatoshisToXec(aliasDetails.registrationFeeSats),
-                        )} XEC. Proceed with registration?`}
-                    </AliasAvailable>
-                )}
-                {aliasWarningMsg !== false && (
-                    <>
-                        <b>
-                            <AlertMsg>
-                                {` Warning: ${aliasWarningMsg}`}
-                                <br />
-                                <br />
-                                {` Continue the registration anyway for ${formatBalance(
-                                    fromSatoshisToXec(
+                {!aliasWarningMsg &&
+                    aliasDetails &&
+                    Number.isInteger(aliasDetails.registrationFeeSats) && (
+                        <AliasAvailable>
+                            {`The alias ${
+                                formData.aliasName
+                            } is available and can be registered for ${toXec(
+                                aliasDetails.registrationFeeSats,
+                            ).toLocaleString()} XEC. Proceed with registration?`}
+                        </AliasAvailable>
+                    )}
+                {aliasWarningMsg !== false &&
+                    aliasDetails &&
+                    Number.isInteger(aliasDetails.registrationFeeSats) && (
+                        <>
+                            <b>
+                                <AlertMsg>
+                                    {` Warning: ${aliasWarningMsg}`}
+                                    <br />
+                                    <br />
+                                    {` Continue the registration anyway for ${toXec(
                                         aliasDetails.registrationFeeSats,
-                                    ),
-                                )} XEC?`}
-                            </AlertMsg>
-                        </b>
-                    </>
-                )}
+                                    ).toLocaleString()} XEC?`}
+                                </AlertMsg>
+                            </b>
+                        </>
+                    )}
                 {!useThisAddressChecked &&
                     !aliasAddressValidationError &&
                     ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${wallet.Path1899?.cashAddress}.`}
@@ -576,15 +578,11 @@ const Alias = ({ passLoadingStatus }) => {
                                                 // this price parsing logic to use the new ws for blockheight comparisons.
                                                 // Intention is to reverse loop through `aliasPrices.prices` and parse for
                                                 // the latest array entry that has a startHeight within the chain's tipHeight.
-                                                let aliasPriceXec =
-                                                    formatBalance(
-                                                        fromSatoshisToXec(
-                                                            aliasPrices
-                                                                .prices[0].fees[
-                                                                aliasLength
-                                                            ],
-                                                        ),
-                                                    );
+                                                let aliasPriceXec = toXec(
+                                                    aliasPrices.prices[0].fees[
+                                                        aliasLength
+                                                    ],
+                                                ).toLocaleString();
                                                 return (
                                                     <AliasAvailable>
                                                         This {aliasLength} byte

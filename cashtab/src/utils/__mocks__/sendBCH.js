@@ -1,4 +1,4 @@
-import { fromSatoshisToXec } from 'utils/cashMethods';
+import { toXec } from 'wallet';
 import appConfig from 'config/app';
 
 export default {
@@ -39,7 +39,7 @@ export default {
     },
     destinationAddress:
         'bitcoincash:qr2npxqwznhp7gphatcqzexeclx0hhwdxg386ez36n',
-    sendAmount: fromSatoshisToXec(appConfig.dustSats).toString(),
+    sendAmount: toXec(appConfig.dustSats).toString(),
     expectedTxId:
         '7a39961bbd7e27d804fb3169ef38a83234710fbc53897a4eb0c98454854a26d1',
     expectedHex: [
