@@ -193,7 +193,6 @@ class TestUtil(unittest.TestCase):
             {
                 "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
                 "message": "electrum test",
-                "memo": "electrum test",
             },
         )
         self._do_test_parse_URI(
@@ -201,7 +200,6 @@ class TestUtil(unittest.TestCase):
             {
                 "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
                 "message": "electrum test",
-                "memo": "electrum test",
             },
         )
 
@@ -249,7 +247,6 @@ class TestUtil(unittest.TestCase):
                 "amount": 1004,
                 "label": "electrum-test",
                 "message": "electrum test",
-                "memo": "electrum test",
                 "r": "http://domain.tld/page",
                 "test": "none",
             },
@@ -267,7 +264,6 @@ class TestUtil(unittest.TestCase):
                 "amount": 1004,
                 "label": "electrum-test",
                 "message": "electrum test",
-                "memo": "electrum test",
                 "r": "http://domain.tld/page",
                 "test": "none",
             },

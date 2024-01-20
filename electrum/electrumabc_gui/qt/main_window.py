@@ -2922,9 +2922,7 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             return
         self.show_send_tab()
         r = out.get("r")
-        sig = out.get("sig")
-        name = out.get("name")
-        if r or (name and sig):
+        if r:
             self.prepare_for_payment_request()
             return
         address = out.get("address")
