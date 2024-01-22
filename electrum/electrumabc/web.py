@@ -29,7 +29,8 @@ import re
 import shutil
 import sys
 import threading
-import urllib
+import urllib.parse
+import urllib.request
 from typing import Dict, Union
 
 from . import bitcoin, networks
