@@ -57,11 +57,11 @@ const nextConfig = {
                     },
                     {
                         key: 'X-Frame-Options',
-                        value: '"DENY" always',
+                        value: 'DENY',
                     },
                     {
                         key: 'X-Content-Type-Options',
-                        value: '"nosniff" always',
+                        value: 'nosniff',
                     },
                     {
                         key: 'Referrer-Policy',
