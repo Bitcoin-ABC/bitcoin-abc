@@ -2,7 +2,8 @@
 
 import unittest
 
-from ..web import parse_URI
+from ..address import Address
+from ..web import DuplicateKeyInURIError, create_URI, parse_URI
 
 
 class TestParseURI(unittest.TestCase):
@@ -150,6 +151,110 @@ class TestParseURI(unittest.TestCase):
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&"
             "amount=30.0",
         )
+
+    def test_op_return(self):
+        self._do_test(
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return_raw=04deadbeef",
+            {
+                "address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                "op_return_raw": "04deadbeef",
+            },
+        )
+        self._do_test(
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=payment%20for%20invoice%20%2342-1337",
+            {
+                "address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                "op_return": "payment for invoice #42-1337",
+            },
+        )
+
+        with self.assertRaises(DuplicateKeyInURIError):
+            parse_URI(
+                "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=spam&op_return_raw=04deadbeef",
+                strict=True,
+            )
+
+        # without strict, op_return_raw is ignored
+        self._do_test(
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=spam&op_return_raw=04deadbeef",
+            {
+                "address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                "op_return": "spam",
+            },
+        )
+
+
+class TestCreateURI(unittest.TestCase):
+    def _do_test(self, args, kwargs, expected_uri: str):
+        # create_URI(addr, amount, message, *, op_return=None, op_return_raw=None, net=None)
+        result = create_URI(*args, **kwargs)
+        self.assertEqual(expected_uri, result)
+
+    def test_address(self):
+        self._do_test(
+            args=[
+                Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"),
+                None,
+                "",
+            ],
+            kwargs={},
+            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+        )
+
+    def test_address_amount(self):
+        self._do_test(
+            args=[
+                Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"),
+                103,
+                "",
+            ],
+            kwargs={},
+            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?amount=1.03",
+        )
+
+    def test_addr_amount_message(self):
+        self._do_test(
+            args=[
+                Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"),
+                1004,
+                "electrum test",
+            ],
+            kwargs={},
+            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?amount=10.04&message=electrum%20test",
+        )
+
+    def test_op_return(self):
+        self._do_test(
+            args=[
+                Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"),
+                None,
+                "",
+            ],
+            kwargs={"op_return": "payment for invoice #42-1337"},
+            # fixme: the current implementation does not escape special chars
+            #        in op_return (see how it is done for message)
+            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=payment for invoice #42-1337",
+        )
+
+        self._do_test(
+            args=[
+                Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"),
+                None,
+                "",
+            ],
+            kwargs={"op_return_raw": "04deadbeef"},
+            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return_raw=04deadbeef",
+        )
+
+        # cannot specify both op_return and op_return_raw
+        with self.assertRaises(ValueError):
+            create_URI(
+                Address.from_string("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"),
+                None,
+                "",
+                op_return="spam",
+                op_return_raw="04deadbeef",
+            )
 
 
 if __name__ == "__main__":
