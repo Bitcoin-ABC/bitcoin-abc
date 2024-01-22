@@ -54,4 +54,3 @@ DummyConfig::DummyConfig(std::unique_ptr<CChainParams> chainParamsIn)
 void DummyConfig::SetChainParams(std::string net) {
     chainParams = CreateChainParams(net);
 }
-

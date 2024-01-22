@@ -25,8 +25,7 @@ class MinerFundTest(BitcoinTestFramework):
             [
                 "-enableminerfund",
             ],
-            [
-            ],
+            [],
         ]
 
     def run_for_ratio(self, ratio):
