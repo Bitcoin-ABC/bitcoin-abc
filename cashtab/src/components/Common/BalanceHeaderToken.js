@@ -1,13 +1,25 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { formatTokenBalance } from 'utils/formatting';
-import { BalanceHeaderWrap } from 'components/Common/Atoms';
+import styled from 'styled-components';
+
+const TokenBalance = styled.div`
+    color: ${props => props.theme.contrast};
+    width: 100%;
+    font-size: 28px;
+    font-weight: bold;
+    padding: 12px;
+    line-height: 1.4em;
+    @media (max-width: 768px) {
+        font-size: 24px;
+    }
+`;
 
 const BalanceHeaderToken = ({ balance, ticker, tokenDecimals }) => {
     return (
-        <BalanceHeaderWrap>
+        <TokenBalance>
             {formatTokenBalance(balance, tokenDecimals)} {ticker}
-        </BalanceHeaderWrap>
+        </TokenBalance>
     );
 };
 

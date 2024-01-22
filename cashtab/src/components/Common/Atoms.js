@@ -46,18 +46,6 @@ export const WalletInfoCtn = styled.div`
     padding: 12px 20px;
 `;
 
-export const BalanceHeaderWrap = styled.div`
-    color: ${props => props.theme.contrast};
-    width: 100%;
-    font-size: 28px;
-    margin-bottom: 0px;
-    font-weight: bold;
-    line-height: 1.4em;
-    @media (max-width: 768px) {
-        font-size: 24px;
-    }
-`;
-
 export const TokenParamLabel = styled.span`
     font-weight: bold;
 `;
