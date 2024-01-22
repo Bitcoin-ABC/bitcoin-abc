@@ -6,15 +6,15 @@ import Image from 'next/image';
 import SubPageHero from '/components/sub-page-hero';
 import { Container, GradientSpacer } from '/components/atoms';
 import walletAnimation from '/public/animations/wallet.json';
-import { wallets, hardwareWallets } from '/data/wallets.js';
+import { wallets } from '/data/wallets.js';
 import ExternalLink from '/components/external-link';
 import {
+    WalletListCtn,
     WalletCardCtn,
-    FlexCtn,
-    ImageCtn,
     TextCtn,
-    OuterImageCtn,
-    TitleBox,
+    ImageCtn,
+    DetailsTitle,
+    DetailsCtn,
 } from '/styles/pages/wallets.js';
 
 /**
@@ -23,27 +23,39 @@ import {
  */
 function WalletCard({ props }) {
     return (
-        <ExternalLink href={props.link} key={props.name}>
-            <WalletCardCtn>
-                <FlexCtn>
-                    <OuterImageCtn>
-                        <ImageCtn>
-                            <Image
-                                src={props.image}
-                                alt={props.name}
-                                fill
-                                sizes="250px"
-                            />
-                        </ImageCtn>
-                    </OuterImageCtn>
-                    <TextCtn>
-                        <h4>{props.name}</h4>
-                        <p>{props.text}</p>
-                        <h5>Check it Out</h5>
-                    </TextCtn>
-                </FlexCtn>
-            </WalletCardCtn>
-        </ExternalLink>
+        <WalletCardCtn>
+            <ExternalLink href={props.link} key={props.name}>
+                <ImageCtn>
+                    <Image
+                        src={props.image}
+                        alt={props.name}
+                        fill
+                        sizes="250px"
+                    />
+                </ImageCtn>
+                <TextCtn>{props.text}</TextCtn>
+                {props.features && (
+                    <>
+                        <DetailsTitle accent>Supports</DetailsTitle>
+                        <DetailsCtn accent>
+                            {props.features.map((item, index) => (
+                                <div key={index}>{item}</div>
+                            ))}
+                        </DetailsCtn>
+                    </>
+                )}
+                {props.availableOn && (
+                    <>
+                        <DetailsTitle>Available on</DetailsTitle>
+                        <DetailsCtn>
+                            {props.availableOn.map((item, index) => (
+                                <div key={index}>{item}</div>
+                            ))}
+                        </DetailsCtn>
+                    </>
+                )}
+            </ExternalLink>
+        </WalletCardCtn>
     );
 }
 
@@ -67,15 +79,12 @@ export default function Wallets() {
             </SubPageHero>
             <GradientSpacer />
 
-            <Container narrow>
-                <TitleBox>Wallets</TitleBox>
-                {wallets.map((wallet, index) => (
-                    <WalletCard props={wallet} key={index} />
-                ))}
-                <TitleBox>Hardware Wallets</TitleBox>
-                {hardwareWallets.map((wallet, index) => (
-                    <WalletCard props={wallet} key={index} />
-                ))}
+            <Container>
+                <WalletListCtn>
+                    {wallets.map((wallet, index) => (
+                        <WalletCard props={wallet} key={index} />
+                    ))}
+                </WalletListCtn>
             </Container>
         </Layout>
     );

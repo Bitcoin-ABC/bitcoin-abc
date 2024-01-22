@@ -5,110 +5,112 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { getAnimationSettings } from '/styles/framer-motion';
 
-export const FlexCtn = styled.div`
+export const WalletListCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
-    ${props => props.theme.breakpoint.medium} {
-        flex-direction: column;
-    }
+    flex-wrap: wrap;
+    align-items: stretch;
 `;
 
-export const OuterImageCtn = styled.div`
-    width: 420px;
-    height: 140px;
-    padding: 0 20px;
-    position: relative;
-    border: 1px solid ${props => props.theme.colors.gridlines};
-    display: flex;
-    align-items: center;
-    ${props => props.theme.breakpoint.medium} {
+export const WalletCardCtn = styled.div`
+    width: 33.333%;
+    margin-bottom: 40px;
+    display: inline-block;
+    padding: 15px;
+
+    > a {
         width: 100%;
-        height: 120px;
-        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+        padding: 40px;
+        border: 2px solid ${props => props.theme.colors.primary};
+        background-color: rgba(0, 0, 0, 0.51);
+        height: 100%;
+        :hover {
+            border-color: ${props => props.theme.colors.contrast};
+            background-color: rgba(0, 0, 0, 0.75);
+        }
+
+        @media (max-width: 1330px) {
+            padding: 30px;
+        }
+    }
+
+    @media (max-width: 1330px) {
+        width: 50%;
+        padding: 10px;
+    }
+
+    @media (max-width: 800px) {
+        width: 100%;
+        margin-bottom: 10px;
     }
 `;
 
 export const ImageCtn = styled.div`
     width: 100%;
-    height: 80px;
-    padding: 20px;
+    height: 50px;
     position: relative;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: flex-start;
+    @media (max-width: 800px) {
+        height: 40px;
+    }
 
     img {
         object-fit: contain;
+        width: unset !important;
+        max-width: 100%;
+        left: 0;
     }
 `;
 
 export const TextCtn = styled.div`
     width: 100%;
-    padding: 0 0 0 30px;
     color: ${props => props.theme.colors.contrast};
     position: relative;
-
-    h4 {
-        font-size: 28px;
-        margin: 0 0 10px 0;
-        line-height: 1em;
-        transition: all ease-in-out 200ms;
-    }
-
-    p {
-        margin: 0;
-        font-size: 16px;
-        opacity: 0.6;
-    }
-
-    h5 {
-        text-transform: uppercase;
-        color: ${props => props.theme.colors.primaryLight};
-        margin: 0;
-        margin-top: 10px;
-        font-size: 14px;
-    }
-
-    ${props => props.theme.breakpoint.medium} {
-        padding: 0 0 0 0;
-    }
-`;
-
-export const WalletCardCtn = styled(motion.div).attrs(() =>
-    getAnimationSettings(),
-)`
-    width: 100%;
-    margin-bottom: 50px;
-    display: inline-block;
-    padding: 30px 0;
-    transition: background-color ease-in-out 200ms;
-    border-radius: 5px;
-
-    ${props => props.theme.breakpoint.medium} {
-        margin-bottom: 90px;
-    }
-
-    :hover {
-        background-color: ${props => props.theme.colors.walletHover};
-    }
-
-    :hover ${TextCtn} {
-        h4 {
-            color: ${props => props.theme.colors.primaryLight};
-        }
-    }
-`;
-
-export const TitleBox = styled(motion.div).attrs(() => getAnimationSettings())`
-    width: 100%;
-    border-left: 3px solid ${props => props.theme.colors.primary};
-    background-image: linear-gradient(
-        90deg,
-        ${props => props.theme.colors.black},
-        transparent 93%
-    );
-    margin-top: 40px;
-    margin-bottom: 40px;
-    padding: 10px 20px;
     font-size: 16px;
-    text-transform: uppercase;
-    margin-bottom: 50px;
+    margin-bottom: 30px;
+    line-height: 1.8em;
+    border-top: 1px solid rgba(255, 255, 255, 0.6);
+    padding-top: 20px;
+`;
+
+export const DetailsTitle = styled.div`
+    font-size: 12px;
+    color: ${props =>
+        props.accent
+            ? props.theme.colors.accent
+            : props.theme.colors.primaryLight};
+    opacity: 0.6;
+`;
+
+export const DetailsCtn = styled.div`
+    color: ${props =>
+        props.accent
+            ? props.theme.colors.accent
+            : props.theme.colors.primaryLight};
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: ${props => (props.accent ? '15px' : '')};
+
+    > div {
+        margin-right: 5px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    > div:not(:first-child) {
+        border-left: 1px solid
+            ${props =>
+                props.accent
+                    ? props.theme.colors.accent
+                    : props.theme.colors.primary};
+        padding-left: 5px;
+    }
 `;
