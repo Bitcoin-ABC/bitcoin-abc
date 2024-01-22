@@ -3,7 +3,6 @@ import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import {
     flattenContactList,
-    loadStoredWallet,
     isValidStoredWallet,
     fromLegacyDecimals,
     convertToEcashPrefix,
@@ -40,10 +39,7 @@ import {
     mockBurnOpReturnScript,
     mockBurnOpReturnTokenUtxos,
 } from '../__mocks__/mockOpReturnScript';
-import {
-    cachedUtxos,
-    utxosLoadedFromCache,
-} from '../__mocks__/mockCachedUtxos';
+import { utxosLoadedFromCache } from '../__mocks__/mockCachedUtxos';
 import {
     pre20221123validStoredWallet,
     invalidStoredWallet,
@@ -984,19 +980,6 @@ it(`signAndBuildTx() throws error on a null inputUtxo param`, () => {
 });
 
 describe('Correctly executes cash utility functions', () => {
-    it(`Accepts a cachedWalletState that has not preserved BigNumber object types, and returns the same wallet state with BigNumber type re-instituted`, () => {
-        expect(loadStoredWallet(cachedUtxos)).toStrictEqual(
-            utxosLoadedFromCache,
-        );
-    });
-    it(`loadStoredWallet accepts undefined wallet state as input and outputs a zero balance wallet state`, () => {
-        expect(loadStoredWallet(undefined)).toStrictEqual({
-            balances: {
-                totalBalanceInSatoshis: '0',
-                totalBalance: '0',
-            },
-        });
-    });
     it(`Correctly determines a wallet's balance from its set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
             getWalletBalanceFromUtxos(

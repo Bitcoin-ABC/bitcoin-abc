@@ -3,7 +3,6 @@ import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import { BN } from 'slp-mdm';
 import {
-    loadStoredWallet,
     isValidStoredWallet,
     isLegacyMigrationRequired,
     getHashArrayFromWallet,
@@ -109,10 +108,6 @@ const useWallet = () => {
         const wallet = await getWallet();
         // If wallet object in storage is valid, use it to set state on startup
         if (isValidStoredWallet(wallet)) {
-            // Convert all the token balance figures to big numbers
-            const liveWalletState = loadStoredWallet(wallet.state);
-            wallet.state = liveWalletState;
-
             setWallet(wallet);
             return setLoading(false);
         }
@@ -566,11 +561,6 @@ const useWallet = () => {
                 return false;
             }
         }
-
-        // Convert all the token balance figures to big numbers
-        // localforage does not preserve BigNumber type; loadStoredWallet restores BigNumber type
-        const liveWalletState = loadStoredWallet(walletToActivate.state);
-        walletToActivate.state = liveWalletState;
         console.log(`Returning walletToActivate ${walletToActivate.name}`);
         return walletToActivate;
     };
