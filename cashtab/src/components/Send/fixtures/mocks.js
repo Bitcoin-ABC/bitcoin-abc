@@ -1,4 +1,5 @@
 import { cashtabSettings } from 'config/cashtabSettings';
+import cashtabCache from 'config/cashtabCache';
 
 export const walletWithXecAndTokens = {
     mnemonic:
@@ -799,4 +800,5 @@ export const walletWithXecAndTokens = {
 export const mockWalletContext = {
     wallet: walletWithXecAndTokens,
     cashtabSettings,
+    cashtabCache,
 };

@@ -851,7 +851,9 @@ const SendXec = ({ passLoadingStatus }) => {
                                                     priceApiError ||
                                                     (txInfoFromUrl !== false &&
                                                         txInfoFromUrl.value !==
-                                                            'null') ||
+                                                            'null' &&
+                                                        txInfoFromUrl.value !==
+                                                            'undefined') ||
                                                     'amount' in
                                                         parsedAddressInput,
                                             }}
