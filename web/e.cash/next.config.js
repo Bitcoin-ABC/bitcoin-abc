@@ -72,7 +72,7 @@ const nextConfig = {
                         value: 'camera=(), microphone=()',
                     },
                     {
-                        key: 'Content-Security-Policy-Report-Only',
+                        key: 'Content-Security-Policy',
                         value: `default-src https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`,
                     },
                 ],
