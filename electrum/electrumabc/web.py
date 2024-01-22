@@ -161,7 +161,7 @@ def create_URI(addr, amount, message, *, op_return=None, op_return_raw=None, net
     if message:
         query.append(f"message={urllib.parse.quote(message)}")
     if op_return:
-        query.append(f"op_return={str(op_return)}")
+        query.append(f"op_return={urllib.parse.quote(str(op_return))}")
     if op_return_raw:
         query.append(f"op_return_raw={str(op_return_raw)}")
     p = urllib.parse.ParseResult(

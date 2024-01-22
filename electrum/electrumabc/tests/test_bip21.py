@@ -231,9 +231,7 @@ class TestCreateURI(unittest.TestCase):
                 "",
             ],
             kwargs={"op_return": "payment for invoice #42-1337"},
-            # fixme: the current implementation does not escape special chars
-            #        in op_return (see how it is done for message)
-            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=payment for invoice #42-1337",
+            expected_uri="ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=payment%20for%20invoice%20%2342-1337",
         )
 
         self._do_test(
