@@ -45,7 +45,7 @@ import {
     utxosLoadedFromCache,
 } from '../__mocks__/mockCachedUtxos';
 import {
-    validStoredWallet,
+    pre20221123validStoredWallet,
     invalidStoredWallet,
     invalidpreChronikStoredWallet,
     validStoredWalletAfter20221123Streamline,
@@ -1002,15 +1002,15 @@ describe('Correctly executes cash utility functions', () => {
             getWalletBalanceFromUtxos(
                 validStoredWalletAfter20221123Streamline.state.nonSlpUtxos,
             ),
-        ).toStrictEqual(validStoredWallet.state.balances);
+        ).toStrictEqual(pre20221123validStoredWallet.state.balances);
     });
     it(`Correctly determines a wallet's zero balance from its empty set of non-eToken utxos (nonSlpUtxos)`, () => {
         expect(
             getWalletBalanceFromUtxos(utxosLoadedFromCache.nonSlpUtxos),
         ).toStrictEqual(utxosLoadedFromCache.balances);
     });
-    it(`Recognizes a stored wallet as valid if it has all required fields prior to 20221123 updated format`, () => {
-        expect(isValidStoredWallet(validStoredWallet)).toBe(true);
+    it(`A wallet with format from before the 20221123 migration is invalid`, () => {
+        expect(isValidStoredWallet(pre20221123validStoredWallet)).toBe(false);
     });
     it(`Recognizes a stored wallet as valid if it has all required fields in 20221123 updated format`, () => {
         expect(

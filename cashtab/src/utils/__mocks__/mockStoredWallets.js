@@ -1,4 +1,4 @@
-export const validStoredWallet = {
+export const pre20221123validStoredWallet = {
     mnemonic: 'Nope',
     name: 'TripDos',
     Path245: {
