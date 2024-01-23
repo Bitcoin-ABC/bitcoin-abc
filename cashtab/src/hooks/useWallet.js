@@ -32,7 +32,7 @@ import {
     finalizeSlpUtxos,
     getTxHistoryChronik,
     parseChronikTx,
-} from 'utils/chronik';
+} from 'chronik';
 import { queryAliasServer } from 'utils/aliasUtils';
 import { ChronikClient } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';

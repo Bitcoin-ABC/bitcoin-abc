@@ -40,7 +40,7 @@ import {
     burnTokenNotification,
 } from 'components/Common/Notifications';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
-import { getTokenStats } from 'utils/chronik';
+import { getTokenStats } from 'chronik';
 import { formatDate } from 'utils/formatting';
 import styled, { css } from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';

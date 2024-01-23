@@ -8,7 +8,7 @@ import {
     sortAndTrimChronikTxHistory,
     parseChronikTx,
     getMintAddress,
-} from 'utils/chronik';
+} from 'chronik';
 import {
     mockChronikUtxos,
     mockOrganizedUtxosByType,
@@ -23,11 +23,11 @@ import {
     mockPreliminarySlpUtxos,
     mockFinalizedSlpUtxos,
     mockTokenInfoById,
-} from '../__mocks__/chronikUtxos';
+} from '../fixtures/chronikUtxos';
 import {
     mockChronikTokenResponse,
     mockGetTokenStatsReturn,
-} from '../__mocks__/mockChronikTokenStats';
+} from '../fixtures/mockChronikTokenStats';
 import {
     mockTxHistoryOfAllAddresses,
     mockFlatTxHistoryNoUnconfirmed,
@@ -57,7 +57,7 @@ import {
     mockSwapWallet,
     mockSwapTx,
     coinbaseTx,
-} from '../__mocks__/chronikTxHistory';
+} from '../fixtures/chronikTxHistory';
 import {
     mintingTxTabCash,
     mintingAddressTabCash,
@@ -67,7 +67,7 @@ import {
     mintingAddressAlita,
     mintingAddressBuxSelfMint,
     mintingTxBuxSelfMint,
-} from '../__mocks__/chronikMintTxs';
+} from '../fixtures/chronikMintTxs';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
 

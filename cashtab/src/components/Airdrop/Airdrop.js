@@ -22,7 +22,7 @@ import {
     convertToEcashPrefix,
 } from 'utils/cashMethods';
 import { toXec } from 'wallet';
-import { getMintAddress } from 'utils/chronik';
+import { getMintAddress } from 'chronik';
 import {
     isValidTokenId,
     isValidXecAirdrop,
