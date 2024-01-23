@@ -87,7 +87,7 @@
     "dependencies": {
         "@ant-design/icons": "^4.3.0",
         "@bitgo/utxo-lib": "^8.0.0",
-        "@zxing/library": "0.8.0",
+        "@zxing/browser": "^0.1.4",
         "antd": "^4.9.3",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",

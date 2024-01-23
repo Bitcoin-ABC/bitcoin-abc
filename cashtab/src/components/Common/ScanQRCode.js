@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Alert, Modal } from 'antd';
 import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
-import { errorNotification } from './Notifications';
 import styled from 'styled-components';
-import { BrowserQRCodeReader } from '@zxing/library';
-import { parseAddressInput } from 'validation';
-import cashaddr from 'ecashaddrjs';
+import { BrowserQRCodeReader } from '@zxing/browser';
+import {
+    NotFoundException,
+    FormatException,
+    ChecksumException,
+} from '@zxing/library';
 
 const StyledScanQRCode = styled.span`
     display: block;
@@ -31,82 +33,83 @@ const ScanQRCode = ({
     onScan = () => null,
     ...otherProps
 }) => {
+    const [codeReaderControls, setCodeReaderControls] = useState(null);
     const [visible, setVisible] = useState(loadWithCameraOpen);
     const [error, setError] = useState(false);
-    const [activeCodeReader, setActiveCodeReader] = useState(null);
 
-    const teardownCodeReader = codeReader => {
-        if (codeReader !== null) {
-            codeReader.reset();
-            codeReader.stop();
-            codeReader = null;
-            setActiveCodeReader(codeReader);
-        }
-    };
-
-    const parseContent = content => {
-        let type = 'unknown';
-        let values = {};
-        const parsedAddressInput = parseAddressInput(content);
-
-        if (
-            parsedAddressInput.address.error === false ||
-            cashaddr.isValidCashAddress(content, 'etoken')
-        ) {
-            // If what scanner reads from QR code is a valid eCash or eToken address
-            type = 'address';
-            values = {
-                address: content,
-            };
-        }
-        return { type, values };
-    };
+    const codeReader = new BrowserQRCodeReader();
 
     const scanForQrCode = async () => {
-        const codeReader = new BrowserQRCodeReader();
-        setActiveCodeReader(codeReader);
+        // https://www.npmjs.com/package/@zxing/browser
 
-        try {
-            // Need to execute this before you can decode input
-            // eslint-disable-next-line no-unused-vars
-            const videoInputDevices = await codeReader.getVideoInputDevices();
+        const controls = await codeReader.decodeFromVideoDevice(
+            // This is the video input device ID
+            // If undefined, app will use the user's default device
+            undefined,
+            'test-area-qr-code-webcam',
+            (result, error, controls) => {
+                if (error) {
+                    // If an error is raised
+                    if (
+                        error instanceof NotFoundException ||
+                        error instanceof FormatException ||
+                        error instanceof ChecksumException
+                    ) {
+                        // These are the three subclasses of the ReaderException class in original Java implementation
+                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/ReaderException.html
 
-            let result = { type: 'unknown', values: {} };
+                        // NotFoundException error
+                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/NotFoundException.html
+                        // The camera is scanning for a QR code every 0.5s
+                        // It throws this error if it doesn't find one
 
-            while (result.type !== 'address') {
-                const content = await codeReader.decodeFromInputVideoDevice(
-                    undefined,
-                    'test-area-qr-code-webcam',
-                );
-                result = parseContent(content.text);
-                if (result.type !== 'address') {
-                    errorNotification(
-                        content.text,
-                        `${content.text} is not a valid eCash address`,
-                        `${content.text} is not a valid eCash address`,
-                    );
+                        // FormatException
+                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/FormatException.html
+                        // This can occur if the camera reads a non-QR code, or misreads a QR code
+                        // In either case, we want to keep scanning
+
+                        // ChecksumException
+                        // https://zxing.github.io/zxing/apidocs/com/google/zxing/ChecksumException.html
+                        // In this case, it is not returning anything, so just keep scanning until you get it right
+                        // This happens when the camera misreads a barcode even if the checksum was good
+                        // Since no result is returned in this case, we want to keep scanning and ignore error
+                        return;
+                    }
+                    // Other errors come from input device, permissions
+                    // These are issues where the user should be notified that the scanning
+                    // ain't gonna work
+                    console.log(`Error scanning for QR code`, error);
+                    // The error will be displayed in the modal area
+                    setError(error);
+
+                    // Stop scanning
+                    return controls.stop();
                 }
-            }
-            // When you scan a valid address, stop scanning and fill form
-            // Hide the scanner
-            setVisible(false);
-            onScan(result.values.address);
-            return teardownCodeReader(codeReader);
-        } catch (err) {
-            console.log(`Error in QR scanner:`);
-            console.log(err);
-            console.log(JSON.stringify(err.message));
-            setError(err);
-            return teardownCodeReader(codeReader);
-        }
+
+                if (typeof result !== 'undefined') {
+                    // Pass the result to the Send To input field
+                    // We will pass the result of any scanned QR code
+                    // and allow validation in SendXec and SendToken to handle
+                    onScan(result.text);
+                    // Stop the camera
+                    controls.stop();
+                    // Hide the scanning modal
+                    return setVisible(false);
+                }
+            },
+        );
+        // Add to state so you can call controls.stop() if the user closes the modal
+        setCodeReaderControls(controls);
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!visible) {
             setError(false);
-            // Stop the camera if user closes modal
-            if (activeCodeReader !== null) {
-                teardownCodeReader(activeCodeReader);
+            if (
+                codeReaderControls !== null &&
+                typeof codeReaderControls !== 'undefined'
+            ) {
+                codeReaderControls.stop();
             }
         } else {
             scanForQrCode();
@@ -116,14 +119,16 @@ const ScanQRCode = ({
     return (
         <>
             <StyledScanQRCode
+                data-testid="scan-qr-code"
                 {...otherProps}
                 onClick={() => setVisible(!visible)}
             >
                 <ThemedQrcodeOutlined />
             </StyledScanQRCode>
             <StyledModal
+                data-testid="scan-qr-code-modal"
                 title="Scan QR code"
-                open={visible}
+                open={visible === true}
                 onCancel={() => setVisible(false)}
                 footer={null}
             >
@@ -133,15 +138,11 @@ const ScanQRCode = ({
                             <>
                                 <Alert
                                     message="Error"
-                                    description="Error in QR scanner. Please ensure your camera is not in use. Due to Apple restrictions on third-party browsers, you must use Safari browser for QR code scanning on an iPhone."
+                                    description={`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}
                                     type="error"
                                     showIcon
                                     style={{ textAlign: 'left' }}
                                 />
-                                {/*
-                <p>{mobileError}</p>
-                <p>{mobileErrorMsg}</p>
-                */}
                             </>
                         ) : (
                             <QRPreview id="test-area-qr-code-webcam"></QRPreview>
