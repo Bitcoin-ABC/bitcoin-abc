@@ -35,7 +35,6 @@ from typing import Dict, Union
 
 from . import bitcoin, networks
 from .address import Address
-from .constants import WHITELISTED_PREFIXES
 from .i18n import _
 from .printerror import print_error
 from .util import bfh, do_in_main_thread, format_satoshis_plain
@@ -188,7 +187,7 @@ def urldecode(url):
 def parseable_schemes(net=None) -> tuple:
     if net is None:
         net = networks.net
-    return tuple(WHITELISTED_PREFIXES)
+    return (net.CASHADDR_PREFIX,)
 
 
 class ExtraParametersInURIWarning(RuntimeWarning):

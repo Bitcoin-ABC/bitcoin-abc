@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import List, Mapping, Sequence
+from typing import Mapping, Sequence
 
 PROJECT_NAME: str = "Electrum ABC"
 PROJECT_NAME_NO_SPACES = "ElectrumABC"
@@ -69,18 +69,6 @@ CASHADDR_TESTNET_PREFIX = "ectest"
 CASHADDR_TESTNET_PREFIX_BCH = "bchtest"
 CASHADDR_REGTEST_PREFIX = "ecregtest"
 CASHADDR_REGTEST_PREFIX_BCH = "bchreg"
-
-WHITELISTED_PREFIXES: List[str] = [CASHADDR_PREFIX, CASHADDR_PREFIX_BCH]
-
-WHITELISTED_TESTNET_PREFIXES: List[str] = [
-    CASHADDR_TESTNET_PREFIX,
-    CASHADDR_TESTNET_PREFIX_BCH,
-]
-
-WHITELISTED_REGTEST_PREFIXES: List[str] = [
-    CASHADDR_REGTEST_PREFIX,
-    CASHADDR_REGTEST_PREFIX_BCH,
-]
 
 PROOF_DUST_THRESHOLD: int = XEC.unit_to_satoshis(Decimal("100_000_000.00"))
 """Lowest amount in satoshis that can be used as stake in a proof."""

@@ -208,7 +208,7 @@ class Commands:
         a legacy or a Cash Address and both forms will be returned as a JSON
         dict."""
         try:
-            addr = Address.from_string(address)
+            addr = Address.from_string(address, support_arbitrary_prefix=True)
         except Exception as e:
             raise AddressError(f"Invalid address: {address}") from e
         return {

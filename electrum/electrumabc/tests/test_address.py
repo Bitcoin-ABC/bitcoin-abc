@@ -56,10 +56,14 @@ class TestAddressFromString(unittest.TestCase):
         self._test_addr(Address.from_string(LEGACY_ADDRESS))
 
     def test_from_bch_cashaddr(self):
-        self._test_addr(Address.from_string(BCH_CASHADDR_WITH_PREFIX))
-        self._test_addr(Address.from_string(BCH_CASHADDR_NO_PREFIX))
-        self._test_addr(Address.from_string(BCH_CASHADDR_WITH_PREFIX.upper()))
-        self._test_addr(Address.from_string(BCH_CASHADDR_NO_PREFIX.upper()))
+        self._test_addr(
+            Address.from_string(BCH_CASHADDR_WITH_PREFIX, support_arbitrary_prefix=True)
+        )
+        self._test_addr(
+            Address.from_string(
+                BCH_CASHADDR_WITH_PREFIX.upper(), support_arbitrary_prefix=True
+            )
+        )
 
     def test_from_ecashaddr(self):
         self._test_addr(Address.from_string(ECASHADDR_WITH_PREFIX))
@@ -73,11 +77,11 @@ class TestAddressFromString(unittest.TestCase):
 
     def test_from_bch_cashaddr_tesnet(self):
         self._test_addr(
-            Address.from_string(BCH_CASHADDR_WITH_PREFIX_TESTNET, net=networks.TestNet),
-            networks.TestNet,
-        )
-        self._test_addr(
-            Address.from_string(BCH_CASHADDR_NO_PREFIX_TESTNET, net=networks.TestNet),
+            Address.from_string(
+                BCH_CASHADDR_WITH_PREFIX_TESTNET,
+                net=networks.TestNet,
+                support_arbitrary_prefix=True,
+            ),
             networks.TestNet,
         )
 

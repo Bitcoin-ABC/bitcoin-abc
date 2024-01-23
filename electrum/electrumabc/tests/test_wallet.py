@@ -114,7 +114,7 @@ class TestCreateRestoreWallet(WalletTestCase):
         self.assertEqual(text, wallet.keystore.get_seed(password))
         self.assertEqual(encrypt_file, wallet.storage.is_encrypted())
         self.assertEqual(
-            Address.from_string("qrrqa5sv8xrg7lrq3l4c3ememxfwwsa09gcgf0r5jf"),
+            Address.from_string("qrrqa5sv8xrg7lrq3l4c3ememxfwwsa09gp9aycw57"),
             wallet.get_receiving_addresses()[0],
         )
 
@@ -124,7 +124,7 @@ class TestCreateRestoreWallet(WalletTestCase):
         wallet: StandardWallet = d["wallet"]
         self.assertEqual(text, wallet.keystore.get_master_public_key())
         self.assertEqual(
-            Address.from_string("qzrseeup3rhehuaf9e6nr3sgm6t5eegufu96l404mu"),
+            Address.from_string("qzrseeup3rhehuaf9e6nr3sgm6t5eegufuuht750at"),
             wallet.get_receiving_addresses()[0],
         )
 
@@ -134,16 +134,16 @@ class TestCreateRestoreWallet(WalletTestCase):
         wallet: StandardWallet = d["wallet"]
         self.assertEqual(text, wallet.keystore.get_master_private_key(password=None))
         self.assertEqual(
-            Address.from_string("qr2q6aadv6nxmqwjt8qmax76yqp09mlqzq5jsz5fe9"),
+            Address.from_string("qr2q6aadv6nxmqwjt8qmax76yqp09mlqzqdlyf0nlj"),
             wallet.get_receiving_addresses()[0],
         )
 
     def test_restore_wallet_from_text_addresses(self):
-        text = "qr2q6aadv6nxmqwjt8qmax76yqp09mlqzq5jsz5fe9"
+        text = "qr2q6aadv6nxmqwjt8qmax76yqp09mlqzqdlyf0nlj"
         d = restore_wallet_from_text(text, path=self.wallet_path, config=self.config)
         wallet: AbstractWallet = d["wallet"]
         self.assertEqual(
-            Address.from_string("qr2q6aadv6nxmqwjt8qmax76yqp09mlqzq5jsz5fe9"),
+            Address.from_string("qr2q6aadv6nxmqwjt8qmax76yqp09mlqzqdlyf0nlj"),
             wallet.get_receiving_addresses()[0],
         )
         self.assertEqual(1, len(wallet.get_receiving_addresses()))
@@ -154,7 +154,7 @@ class TestCreateRestoreWallet(WalletTestCase):
         wallet: AbstractWallet = d["wallet"]
         addr0 = wallet.get_receiving_addresses()[0]
         self.assertEqual(
-            Address.from_string("qzrseeup3rhehuaf9e6nr3sgm6t5eegufu96l404mu"), addr0
+            Address.from_string("qzrseeup3rhehuaf9e6nr3sgm6t5eegufuuht750at"), addr0
         )
         self.assertEqual(
             "Kz7FS9Adyj6RgSVGx5YLjZPanUhuze4yvcziZ1qLA24a3GJJZvBr",

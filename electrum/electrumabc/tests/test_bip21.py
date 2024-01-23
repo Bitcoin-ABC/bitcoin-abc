@@ -3,7 +3,15 @@
 import unittest
 
 from ..address import Address
-from ..web import DuplicateKeyInURIError, create_URI, parse_URI
+from ..networks import MainNet, RegtestNet, TestNet
+from ..web import (
+    BadSchemeError,
+    BadURIParameter,
+    DuplicateKeyInURIError,
+    create_URI,
+    parse_URI,
+    parseable_schemes,
+)
 
 
 class TestParseURI(unittest.TestCase):
@@ -13,12 +21,26 @@ class TestParseURI(unittest.TestCase):
 
     def test_address(self):
         self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"},
-        )
-        self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
             {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"},
+        )
+
+    def test_testnet(self):
+        with self.assertRaises(BadSchemeError):
+            parse_URI("ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme", net=TestNet)
+
+        with self.assertRaises(BadURIParameter):
+            # correct prefix with bad checksum
+            parse_URI("ectest:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme", net=TestNet)
+
+        self.assertEqual(
+            parse_URI("ectest:qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg", net=TestNet),
+            {"address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg"},
+        )
+
+        self.assertEqual(
+            parse_URI("qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg", net=TestNet),
+            {"address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg"},
         )
 
     def test_only_address(self):
@@ -29,22 +51,11 @@ class TestParseURI(unittest.TestCase):
 
     def test_address_label(self):
         self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?label=electrum%20test",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "label": "electrum test"},
-        )
-        self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?label=electrum%20test",
             {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "label": "electrum test"},
         )
 
     def test_address_message(self):
-        self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?message=electrum%20test",
-            {
-                "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-                "message": "electrum test",
-            },
-        )
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?message=electrum%20test",
             {
@@ -55,22 +66,11 @@ class TestParseURI(unittest.TestCase):
 
     def test_address_amount(self):
         self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=1.03",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "amount": 103},
-        )
-        self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=1.03",
             {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "amount": 103},
         )
 
     def test_address_request_url(self):
-        self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?r=http://domain.tld/page?h%3D2a8628fc2fbe",
-            {
-                "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-                "r": "http://domain.tld/page?h=2a8628fc2fbe",
-            },
-        )
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?r=http://domain.tld/page?h%3D2a8628fc2fbe",
             {
@@ -81,27 +81,11 @@ class TestParseURI(unittest.TestCase):
 
     def test_ignore_args(self):
         self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?test=test",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "test": "test"},
-        )
-        self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?test=test",
             {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "test": "test"},
         )
 
     def test_multiple_args(self):
-        self._do_test(
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=10.04&label=electrum-test&message=electrum%20test&test=none&r=http://domain.tld/page",
-            {
-                "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-                "amount": 1004,
-                "label": "electrum-test",
-                "message": "electrum test",
-                "r": "http://domain.tld/page",
-                "test": "none",
-            },
-        )
-
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?"
             "amount=10.04&"
@@ -121,16 +105,11 @@ class TestParseURI(unittest.TestCase):
 
     def test_no_address_request_url(self):
         self._do_test(
-            "bitcoincash:?r=http://domain.tld/page?h%3D2a8628fc2fbe",
-            {"r": "http://domain.tld/page?h=2a8628fc2fbe"},
-        )
-        self._do_test(
             "ecash:?r=http://domain.tld/page?h%3D2a8628fc2fbe",
             {"r": "http://domain.tld/page?h=2a8628fc2fbe"},
         )
 
     def test_invalid_address(self):
-        self.assertRaises(Exception, parse_URI, "bitcoincash:invalidaddress")
         self.assertRaises(Exception, parse_URI, "ecash:invalidaddress")
 
     def test_invalid(self):
@@ -140,11 +119,6 @@ class TestParseURI(unittest.TestCase):
 
     def test_parameter_polution(self):
         # amount specified twice
-        self.assertRaises(
-            Exception,
-            parse_URI,
-            "bitcoincash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&amount=30.0",
-        )
         self.assertRaises(
             Exception,
             parse_URI,
@@ -253,6 +227,17 @@ class TestCreateURI(unittest.TestCase):
                 op_return="spam",
                 op_return_raw="04deadbeef",
             )
+
+
+class TestParseableSchemes(unittest.TestCase):
+    def test_mainnet(self):
+        self.assertEqual(parseable_schemes(MainNet), ("ecash",))
+
+    def test_testnet(self):
+        self.assertEqual(parseable_schemes(TestNet), ("ectest",))
+
+    def test_regtest(self):
+        self.assertEqual(parseable_schemes(RegtestNet), ("ecregtest",))
 
 
 if __name__ == "__main__":

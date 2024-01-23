@@ -246,3 +246,19 @@ def test_signtransaction(fulcrum_service):  # noqa: F811
         ),
     )
     assert success
+
+
+def test_addressconvert(fulcrum_service):  # noqa: F811
+    cashaddr_no_prefix = "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt"
+    cashaddr = "ecregtest:" + cashaddr_no_prefix
+    cashaddr_bch = "bchreg:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqha9s37tt"
+    legacy_addr = "mfWxJ45yp2SFn7UciZyNpvDKrzbhyfKrY8"
+    for addr_str in (cashaddr, cashaddr_no_prefix, cashaddr_bch, legacy_addr):
+        res = poll_for_answer(
+            EC_DAEMON_RPC_URL, request("addressconvert", params={"address": addr_str})
+        )
+        assert res == {
+            "cashaddr": cashaddr,
+            "bitcoincashaddr": cashaddr_bch,
+            "legacy": legacy_addr,
+        }

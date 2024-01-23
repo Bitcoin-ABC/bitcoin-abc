@@ -47,14 +47,14 @@ class TestUtil(unittest.TestCase):
         txi0, txi1 = tx.txinputs()
         self.assertEqual(
             txi0.address,
-            Address.from_cashaddr_string("qz252dlyuzfqk7k35f57csamlgxc23ahz5y4vks7sj"),
+            Address.from_cashaddr_string("qz252dlyuzfqk7k35f57csamlgxc23ahz5accatyk9"),
         )
         self.assertEqual(txi0.get_value(), 496232)
         self.assertEqual(txi0.sequence, 0xFFFFFFFF)
 
         self.assertEqual(
             txi1.address,
-            Address.from_cashaddr_string("qpxdupul7xfz3u0l43tm9klwywe3hgvfhg980xl69e"),
+            Address.from_cashaddr_string("qpxdupul7xfz3u0l43tm9klwywe3hgvfhgu2mdyqrw"),
         )
         self.assertEqual(txi1.get_value(), 9121485)
         self.assertEqual(txi1.sequence, 0xFFFFFFFF)
@@ -69,6 +69,6 @@ class TestUtil(unittest.TestCase):
 
         self.assertEqual(
             txo1.destination,
-            Address.from_cashaddr_string("qzsa5a30lhr73v9nd3k4fvn47h5fkfnq05urp4w8kc"),
+            Address.from_cashaddr_string("qzsa5a30lhr73v9nd3k4fvn47h5fkfnq059w474as0"),
         )
         self.assertEqual(txo1.value, 27387354)

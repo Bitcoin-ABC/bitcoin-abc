@@ -41,11 +41,6 @@ from .bitcoin import (
     minikey_to_private_key,
     push_script_bytes,
 )
-from .constants import (
-    WHITELISTED_PREFIXES,
-    WHITELISTED_REGTEST_PREFIXES,
-    WHITELISTED_TESTNET_PREFIXES,
-)
 from .util import cachedproperty
 
 _sha256 = hashlib.sha256
@@ -366,7 +361,8 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
     FMT_LEGACY = "Legacy"
 
     # We keep this for now for the address converter tool and hw wallets, but it
-    # can no longer be shown in the rest of the UI.
+    # can no longer be shown in the rest of the UI and is no longer supported in
+    # the "Pay to" field.
     FMT_CASHADDR_BCH = "CashAddr BCH"
 
     # Default to CashAddr
@@ -411,20 +407,11 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
         support_arbitrary_prefix: bool = False,
     ):
         """Construct from a cashaddress string.
-        If the prefix is not specified, "ecash:" and "bitcoincash:" are tried.
         :return: Instance of :class:`Address`
         """
         if net is None:
             net = networks.net
         string = string.lower()
-
-        whitelisted_prefixes = (
-            WHITELISTED_REGTEST_PREFIXES
-            if net.REGTEST
-            else WHITELISTED_TESTNET_PREFIXES
-            if net.TESTNET
-            else WHITELISTED_PREFIXES
-        )
 
         if ":" in string:
             # Case of prefix being specified
@@ -433,28 +420,16 @@ class Address(namedtuple("AddressTuple", "hash160 kind"), DestinationType):
             except ValueError as e:
                 raise AddressError(str(e))
 
-            if not support_arbitrary_prefix and prefix not in whitelisted_prefixes:
+            if not support_arbitrary_prefix and prefix != net.CASHADDR_PREFIX:
                 raise AddressError(f"address has unexpected prefix {prefix}")
         else:
-            # The input string can omit the prefix, in which case
-            # we try supported prefixes
-            prefix, kind, addr_hash = None, None, None
-            errors = []
-            for p in whitelisted_prefixes:
-                full_string = ":".join([p, string])
-                try:
-                    prefix, kind, addr_hash = cashaddr.decode(full_string)
-                except ValueError as e:
-                    errors.append(str(e))
-                else:
-                    # accept the first valid address
-                    break
-            if len(errors) >= len(whitelisted_prefixes):
+            full_string = ":".join([net.CASHADDR_PREFIX, string])
+            try:
+                prefix, kind, addr_hash = cashaddr.decode(full_string)
+            except ValueError as e:
                 raise AddressError(
-                    "Unable to decode CashAddr with supported prefixes.\n\n".join(
-                        [f"{err}" for err in errors]
-                    )
-                    + "\n"
+                    f"Unable to decode CashAddr with supported prefix '{net.CASHADDR_PREFIX}'."
+                    f"\n\n{str(e)}\n"
                 )
 
         if kind == cashaddr.PUBKEY_TYPE:
