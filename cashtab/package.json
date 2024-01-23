@@ -84,11 +84,6 @@
         ],
         "resetMocks": true
     },
-    "babel": {
-        "presets": [
-            "react-app"
-        ]
-    },
     "dependencies": {
         "@ant-design/icons": "^4.3.0",
         "@bitgo/utxo-lib": "^8.0.0",
