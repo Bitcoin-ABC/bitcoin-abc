@@ -988,6 +988,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             # configuration file broadcast the fulcrum donation address
             spv_prefix = "Fulcrum developers"
             host = "https://github.com/cculianu/Fulcrum"
+            # convert to an ecash: address
+            spv_address = "ecash:qplw0d304x9fshz420lkvys2jxup38m9syzms3d4vs"
         else:
             spv_prefix = _("Blockchain Server")
             host = self.network.get_parameters()[0]
@@ -2460,7 +2462,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             if ":" in line and line.lower().startswith(
                 networks.net.CASHADDR_PREFIX + ":"
             ):
-                line = line.split(":", 1)[1]  # strip bitcoincash: prefix
+                # strip ecash: prefix
+                line = line.split(":", 1)[1]
             if "," in line:
                 line = line.split(",", 1)[
                     0
@@ -2496,7 +2499,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         for line in self.payto_e.lines():
             line = line.strip()
             if line.lower().startswith(networks.net.CASHADDR_PREFIX + ":"):
-                line = line.split(":", 1)[1]  # strip "bitcoincash:" prefix
+                # strip "ecash:" prefix
+                line = line.split(":", 1)[1]
             if "," in line:
                 # if address, amount line, strip address out and ignore rest
                 line = line.split(",", 1)[0]
