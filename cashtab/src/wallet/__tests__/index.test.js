@@ -1,5 +1,5 @@
 import { getBalanceSats, toXec, toSatoshis } from 'wallet';
-import vectors from './fixtures/vectors';
+import vectors from '../fixtures/vectors';
 
 describe('Calculates total balance in satoshis from a valid set of chronik utxos', () => {
     const { expectedReturns, expectedErrors } = vectors.getBalanceSatsVectors;
