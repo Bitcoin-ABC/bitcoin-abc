@@ -295,7 +295,7 @@ public:
                   bilingual_str &error);
 
     bool addToReconcile(const AnyVoteItem &item)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     /**
      * Wrapper around the addToReconcile for proofs that adds back the
      * finalization flag to the peer if it is not polled due to being recently
@@ -307,7 +307,7 @@ public:
     int getConfidence(const AnyVoteItem &item) const;
 
     bool isRecentlyFinalized(const uint256 &itemId) const
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     void clearFinalizedItems() EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
 
     // TODO: Refactor the API to remove the dependency on avalanche/protocol.h
@@ -434,7 +434,7 @@ private:
         bool operator()(const CTransactionRef &tx) const;
     };
     bool isWorthPolling(const AnyVoteItem &item) const
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
 
     struct GetLocalAcceptance {
         const Processor &processor;

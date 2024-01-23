@@ -1197,6 +1197,8 @@ bool Processor::IsWorthPolling::operator()(const CBlockIndex *pindex) const {
 }
 
 bool Processor::IsWorthPolling::operator()(const ProofRef &proof) const {
+    // Avoid lock order issues cs_main -> cs_peerManager
+    AssertLockNotHeld(::cs_main);
     AssertLockNotHeld(processor.cs_peerManager);
 
     const ProofId &proofid = proof->getId();
