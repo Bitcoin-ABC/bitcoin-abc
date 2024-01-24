@@ -134,6 +134,11 @@ public:
     NotificationsHandler(Processor *p) : m_processor(p) {}
 
     void updatedBlockTip() override { m_processor->updatedBlockTip(); }
+
+    void transactionAddedToMempool(const CTransactionRef &tx,
+                                   uint64_t mempool_sequence) override {
+        m_processor->transactionAddedToMempool(tx);
+    }
 };
 
 Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
@@ -144,7 +149,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      double minQuorumConnectedScoreRatioIn,
                      int64_t minAvaproofsNodeCountIn,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn,
-                     Amount stakeUtxoDustThreshold)
+                     Amount stakeUtxoDustThreshold, bool preConsensus)
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
       chainman(chainmanIn), mempool(mempoolIn),
       voteRecords(RWCollection<VoteMap>(VoteMap(VoteMapComparator(mempool)))),
@@ -156,7 +161,7 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
       minAvaproofsNodeCount(minAvaproofsNodeCountIn),
       staleVoteThreshold(staleVoteThresholdIn),
-      staleVoteFactor(staleVoteFactorIn) {
+      staleVoteFactor(staleVoteFactorIn), m_preConsensus(preConsensus) {
     // Make sure we get notified of chain state changes.
     chainNotificationsHandler =
         chain.handleNotifications(std::make_shared<NotificationsHandler>(this));
@@ -392,7 +397,9 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         std::move(peerData), std::move(sessionKey),
         Proof::amountToScore(minQuorumStake), minQuorumConnectedStakeRatio,
         minAvaproofsNodeCount, staleVoteThreshold, staleVoteFactor,
-        stakeUtxoDustThreshold));
+        stakeUtxoDustThreshold,
+        argsman.GetBoolArg("-avalanchepreconsensus",
+                           DEFAULT_AVALANCHE_PRECONSENSUS)));
 }
 
 static bool isNull(const AnyVoteItem &item) {
@@ -993,6 +1000,12 @@ void Processor::updatedBlockTip() {
     auto registeredProofs = registerProofs();
     for (const auto &proof : registeredProofs) {
         reconcileOrFinalize(proof);
+    }
+}
+
+void Processor::transactionAddedToMempool(const CTransactionRef &tx) {
+    if (m_preConsensus) {
+        addToReconcile(tx);
     }
 }
 

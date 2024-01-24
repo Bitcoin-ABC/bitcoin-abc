@@ -22,6 +22,7 @@
 #include <primitives/transaction.h>
 #include <rwcollection.h>
 #include <util/variant.h>
+#include <validationinterface.h>
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -277,13 +278,16 @@ class Processor final : public NetEventsInterface {
     std::unordered_map<BlockHash, StakingReward, SaltedUint256Hasher>
         stakingRewards GUARDED_BY(cs_stakingRewards);
 
+    const bool m_preConsensus{false};
+
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CTxMemPool *mempoolIn,
               CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
               CKey sessionKeyIn, uint32_t minQuorumTotalScoreIn,
               double minQuorumConnectedScoreRatioIn,
               int64_t minAvaproofsNodeCountIn, uint32_t staleVoteThresholdIn,
-              uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn);
+              uint32_t staleVoteFactorIn, Amount stakeUtxoDustThresholdIn,
+              bool preConsensus);
 
 public:
     ~Processor();
@@ -388,6 +392,8 @@ public:
 private:
     void updatedBlockTip()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_finalizedItems);
+    void transactionAddedToMempool(const CTransactionRef &tx)
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizedItems);
     void runEventLoop()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
                                  !cs_finalizedItems);

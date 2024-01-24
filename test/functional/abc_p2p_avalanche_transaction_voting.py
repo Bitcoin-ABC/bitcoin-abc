@@ -5,7 +5,7 @@
 """Test avalanche transaction voting."""
 import random
 
-from test_framework.avatools import get_ava_p2p_interface
+from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.key import ECPubKey
 from test_framework.messages import (
     MSG_TX,
@@ -19,7 +19,7 @@ from test_framework.messages import (
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, uint256_hex
 from test_framework.wallet import MiniWallet
 
 QUORUM_NODE_COUNT = 16
@@ -91,7 +91,8 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
                 get_ava_p2p_interface(self, node) for _ in range(0, QUORUM_NODE_COUNT)
             ]
 
-        _ = get_quorum()
+        quorum = get_quorum()
+        assert node.getavalancheinfo()["ready_to_poll"]
 
         poll_node.send_poll(tx_ids, MSG_TX)
         assert_response(
@@ -151,6 +152,27 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         poll_node.send_poll([orphan_txid], MSG_TX)
         assert_response([AvalancheVote(AvalancheTxVoteError.ORPHAN, orphan_txid)])
+
+        self.log.info("Check the node polls for transactions added to the mempool")
+
+        # Let's clean up the non transaction inventories from our avalanche polls
+        def has_finalized_proof(proofid):
+            can_find_inv_in_poll(quorum, proofid)
+            return node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
+
+        for q in quorum:
+            self.wait_until(lambda: has_finalized_proof(q.proof.proofid))
+
+        def has_finalized_block(block_hash):
+            can_find_inv_in_poll(quorum, int(block_hash, 16))
+            return node.isfinalblock(block_hash)
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_block(tip))
+
+        txid = wallet.send_self_transfer(from_node=node)["txid"]
+        assert txid in node.getrawmempool()
+        self.wait_until(lambda: can_find_inv_in_poll(quorum, int(txid, 16)))
 
 
 if __name__ == "__main__":
