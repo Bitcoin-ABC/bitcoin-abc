@@ -8,7 +8,6 @@ import {
     getHashArrayFromWallet,
     isActiveWebsocket,
     getWalletBalanceFromUtxos,
-    toHash160,
 } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
@@ -93,11 +92,11 @@ const useWallet = () => {
         const node = masterHDNode.derivePath(path);
         const publicKey = node.publicKey.toString('hex');
         const cashAddress = cashaddr.encode('ecash', 'P2PKH', node.identifier);
-        const hash160 = toHash160(cashAddress);
+        const { hash } = cashaddr.decode(cashAddress, true);
 
         return {
             publicKey,
-            hash160,
+            hash160: hash,
             cashAddress,
             fundingWif: node.toWIF(),
         };

@@ -1,7 +1,6 @@
 import { isValidContactList } from 'validation';
 import { BN, TokenType1 } from 'slp-mdm';
 import cashaddr from 'ecashaddrjs';
-import bs58 from 'bs58';
 import * as utxolib from '@bitgo/utxo-lib';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import appConfig from 'config/app';
@@ -833,24 +832,6 @@ export function convertEcashtoEtokenAddr(eCashAddress) {
         return new Error('eCash to eToken address conversion error');
     }
     return eTokenAddress;
-}
-
-// converts ecash, etoken, bitcoincash and simpleledger addresses to hash160
-export function toHash160(addr) {
-    try {
-        // decode address hash
-        const { hash } = cashaddr.decode(addr);
-        // encode the address hash to legacy format (bitcoin)
-        const legacyAdress = bs58.encode(hash);
-        // convert legacy to hash160
-        const addrHash160 = Buffer.from(bs58.decode(legacyAdress)).toString(
-            'hex',
-        );
-        return addrHash160;
-    } catch (err) {
-        console.log('Error converting address to hash160');
-        throw err;
-    }
 }
 
 export const isLegacyMigrationRequired = wallet => {
