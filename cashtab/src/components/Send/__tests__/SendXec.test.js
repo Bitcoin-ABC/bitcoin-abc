@@ -102,63 +102,6 @@ describe('<SendXec />', () => {
         );
         expect(addressValidationErrorDiv).not.toBeInTheDocument();
     });
-    it('Renders the SendXec screen with send address input filled in if loaded from URL params', async () => {
-        const destinationAddress =
-            'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
-        const hash = `#/send?address=${destinationAddress}&value=undefined`;
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash,
-            },
-            writable: true, // possibility to override
-        });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-        const disabledSend = screen.getByTestId('disabled-send');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-
-        // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(destinationAddress);
-
-        expect(amountInputEl).toBeInTheDocument();
-
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByTestId('multiple-recipients-switch'),
-        ).not.toBeInTheDocument();
-
-        // The address input is disabled
-        expect(addressInputEl).toHaveProperty('disabled', true);
-        // The amount input is not disabled
-        expect(amountInputEl).toHaveProperty('disabled', false);
-
-        // The Bip21Alert span is not rendered
-        // NB that queryByTestId (vs getByTestId) should be used
-        // for components that may not be in the doc at all
-        // Otherwise will throw an error
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
-
-        // The Send button is disabled because no amount is entered
-        expect(disabledSend).toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
-        );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
-
-        // Unset the window location so it does not impact other tests in this file
-        Object.defineProperty(window, 'location', {
-            value: {
-                hash: undefined,
-            },
-            writable: true, // possibility to override
-        });
-    });
     it('Pass valid address to Send To field', async () => {
         const { container } = render(TestSendXecScreen);
         const addressInputEl = screen.getByTestId('destination-address-single');
@@ -933,6 +876,8 @@ describe('<SendXec />', () => {
 
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
+        // The 'Send To' input field is not disabled
+        expect(addressInputEl).toHaveProperty('disabled', false);
 
         // The multiple recipients switch is not rendered
         expect(

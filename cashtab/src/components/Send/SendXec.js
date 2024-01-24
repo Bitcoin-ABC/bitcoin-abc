@@ -320,29 +320,89 @@ const SendXec = ({ passLoadingStatus }) => {
             return;
         }
 
-        const txInfoArr = window.location.hash.split('?')[1].split('&');
-
-        // Iterate over this to create object
+        // Get everything after the first ? mark
+        const hashRoute = window.location.hash;
+        // The "+1" is because we want to also omit the first question mark
+        // So we need to slice at 1 character past it
+        const txInfoStr = hashRoute.slice(hashRoute.indexOf('?') + 1);
         const txInfo = {};
-        for (let i = 0; i < txInfoArr.length; i += 1) {
-            let txInfoKeyValue = txInfoArr[i].split('=');
-            let key = txInfoKeyValue[0];
-            let value = txInfoKeyValue[1];
-            txInfo[key] = value;
-        }
-        console.log(`txInfo from page params`, txInfo);
-        setTxInfoFromUrl(txInfo);
-        populateFormsFromUrl(txInfo);
-    }, [cashtabCache]);
 
-    function populateFormsFromUrl(txInfo) {
-        if (txInfo && txInfo.address && txInfo.value) {
-            setFormData({
-                address: txInfo.address,
-                value: txInfo.value,
-            });
+        // If bip21 is the first param, parse the whole string as a bip21 param string
+        const parseAllAsBip21 = txInfoStr.startsWith('bip21');
+
+        if (parseAllAsBip21) {
+            // Cashtab requires param string to start with bip21 if this is requesting bip21 validation
+            txInfo.bip21 = txInfoStr.slice('bip21='.length);
+        } else {
+            // Parse for legacy amount and value params
+            const legacyParams = new URLSearchParams(txInfoStr);
+            // Check for duplicated params
+            const duplicatedParams =
+                new Set(legacyParams.keys()).size !==
+                Array.from(legacyParams.keys()).length;
+            if (!duplicatedParams) {
+                const supportedLegacyParams = ['address', 'value'];
+                // Iterate over
+                for (const paramKeyValue of legacyParams) {
+                    const paramKey = paramKeyValue[0];
+                    if (!supportedLegacyParams.includes(paramKey)) {
+                        // ignore unsupported params
+                        continue;
+                    }
+                    txInfo[paramKey] = paramKeyValue[1];
+                }
+            }
         }
-    }
+        // Only set txInfoFromUrl if you have valid legacy params or bip21
+        let validUrlParams =
+            (parseAllAsBip21 && 'bip21' in txInfo) ||
+            // Good if we have both address and value
+            ('address' in txInfo && 'value' in txInfo) ||
+            // Good if we have address and no value
+            ('address' in txInfo && !('value' in txInfo));
+        // If we 'value' key with no address, no good
+        // Note: because only the address and value keys are handled below,
+        // it's not an issue if we get all kinds of other garbage params
+
+        if (validUrlParams) {
+            // This is a tx request from the URL
+            setTxInfoFromUrl(txInfo);
+            if (parseAllAsBip21) {
+                handleAddressChange({
+                    target: {
+                        name: 'address',
+                        value: txInfo.bip21,
+                    },
+                });
+            } else {
+                // Enter address into input field and trigger handleAddressChange for validation
+                handleAddressChange({
+                    target: {
+                        name: 'address',
+                        value: txInfo.address,
+                    },
+                });
+                if (
+                    'value' in txInfo &&
+                    !Number.isNaN(parseFloat(txInfo.value))
+                ) {
+                    // Only update the amount field if txInfo.value is a good input
+                    // Sometimes we want this field to be adjusted by the user, e.g. a donation amount
+
+                    // Do not populate the field if the value param is not parseable as a number
+                    // the strings 'undefined' and 'null', which PayButton passes to signify 'no amount', fail this test
+
+                    // TODO deprecate this support once PayButton and cashtab-components do not require it
+                    handleAmountChange({
+                        target: {
+                            name: 'value',
+                            value: txInfo.value,
+                        },
+                    });
+                }
+            }
+        }
+    }, [cashtabCache]);
 
     function handleSendXecError(errorObj, oneToManyFlag) {
         // Set loading to false here as well, as balance may not change depending on where error occured in try loop
@@ -718,7 +778,7 @@ const SendXec = ({ passLoadingStatus }) => {
                             }}
                         >
                             {txInfoFromUrl && (
-                                <AppCreatedTxSummary>
+                                <AppCreatedTxSummary data-testid="app-created-tx">
                                     Webapp Tx Request
                                 </AppCreatedTxSummary>
                             )}
@@ -850,6 +910,8 @@ const SendXec = ({ passLoadingStatus }) => {
                                                 disabled:
                                                     priceApiError ||
                                                     (txInfoFromUrl !== false &&
+                                                        'value' in
+                                                            txInfoFromUrl &&
                                                         txInfoFromUrl.value !==
                                                             'null' &&
                                                         txInfoFromUrl.value !==
