@@ -4,6 +4,10 @@
 process.env.BABEL_ENV = 'development';
 process.env.NODE_ENV = 'development';
 
+// Do not generate sourcemaps. Many dependencies do not have them and npm start will be crowded
+// with warnings about their unavailability, obscuring error msgs
+process.env.GENERATE_SOURCEMAP = 'false';
+
 // Makes the script crash on unhandled rejections instead of silently
 // ignoring them. In the future, promise rejections that are not handled will
 // terminate the Node.js process with a non-zero exit code.
