@@ -532,7 +532,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-maxmempool=<n>",
                    strprintf("Keep the transaction memory pool below <n> "
                              "megabytes (default: %u)",
-                             DEFAULT_MAX_MEMPOOL_SIZE),
+                             DEFAULT_MAX_MEMPOOL_SIZE_MB),
                    ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg("-maxorphantx=<n>",
                    strprintf("Keep at most <n> unconnectable transactions in "
@@ -1849,7 +1849,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
 
     // mempool limits
     int64_t nMempoolSizeMax =
-        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000;
     // FIXME: this legacy limit comes from the DEFAULT_DESCENDANT_SIZE_LIMIT
     // (101) that was enforced before the wellington activation. While it's
     // still a good idea to have some minimum mempool size, using this value as
@@ -2401,7 +2401,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         CalculateCacheSizes(args, g_enabled_filter_types.size());
 
     int64_t nMempoolSizeMax =
-        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+        args.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000;
     LogPrintf("Cache configuration:\n");
     LogPrintf("* Using %.1f MiB for block index database\n",
               cache_sizes.block_tree_db * (1.0 / 1024 / 1024));

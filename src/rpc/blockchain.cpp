@@ -1895,7 +1895,7 @@ UniValue MempoolInfoToJSON(const CTxMemPool &pool) {
     ret.pushKV("usage", (int64_t)pool.DynamicMemoryUsage());
     ret.pushKV("total_fee", pool.GetTotalFee());
     size_t maxmempool =
-        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
+        gArgs.GetIntArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE_MB) * 1000000;
     ret.pushKV("maxmempool", (int64_t)maxmempool);
     ret.pushKV(
         "mempoolminfee",
