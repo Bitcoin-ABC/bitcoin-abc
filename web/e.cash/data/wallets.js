@@ -42,6 +42,13 @@ export const wallets = [
         features: ['eTokens', 'Message Signing', 'Multi-sig wallets'],
     },
     {
+        name: 'Arctic Wallet',
+        text: 'Arctic Wallet is a non-custodial crypto wallet built on the principles of decentralization and privacy supporting eCash (XEC). With Arctic Wallet, you can send, receive and store XEC safely and securely. Arctic wallet is available for desktop and mobile platforms.',
+        image: '/images/artic-wallet.png',
+        link: 'https://arcticwallet.io/',
+        availableOn: ['iOS', 'Android', 'Desktop'],
+    },
+    {
         name: 'Unstoppable Wallet',
         text: 'A privacy-oriented non-custodial wallet for eCash (XEC). Unstoppable is a highly secure, decentralized, and open-source wallet, available for Android and iOS smartphones.',
         image: '/images/unstoppable-wallet.png',
