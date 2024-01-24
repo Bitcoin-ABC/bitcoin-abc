@@ -62,6 +62,9 @@ static constexpr double AVALANCHE_DEFAULT_MIN_AVAPROOFS_NODE_COUNT = 8;
 /** Default for -persistavapeers */
 static constexpr bool DEFAULT_PERSIST_AVAPEERS{true};
 
+/** Default for -avalanchepreconsensus */
+static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{false};
+
 /**
  * Global avalanche instance.
  */

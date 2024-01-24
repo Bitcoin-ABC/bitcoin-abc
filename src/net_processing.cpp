@@ -5974,7 +5974,8 @@ void PeerManagerImpl::ProcessMessage(
             // If inv's type is known, get a vote for its hash
             switch (inv.type) {
                 case MSG_TX: {
-                    if (gArgs.GetBoolArg("-avalanchepreconsensus", false)) {
+                    if (gArgs.GetBoolArg("-avalanchepreconsensus",
+                                         DEFAULT_AVALANCHE_PRECONSENSUS)) {
                         vote = WITH_LOCK(cs_main, return GetAvalancheVoteForTx(
                                                       TxId(inv.hash)));
                     }
