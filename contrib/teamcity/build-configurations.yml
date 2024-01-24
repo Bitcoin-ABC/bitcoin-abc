@@ -794,6 +794,8 @@ builds:
     docker:
       context: web/e.cash
       port: 3000
+      build_args:
+        - "PREVIEW_BUILD=next.preview.js"
 
   preview-explorer:
     docker:
