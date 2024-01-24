@@ -1,10 +1,12 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2023-2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
-// Define header
 const headerArray = [
-    ` Copyright (c) ${new Date().getFullYear()} The Bitcoin developers`,
+    {
+        pattern:
+            '^ Copyright \\(c\\) [2][0-9]{3}([-][2][0-9]{3})? The Bitcoin developers$',
+        template: ` Copyright (c) 2023-${new Date().getFullYear()} The Bitcoin developers`,
+    },
     ' Distributed under the MIT software license, see the accompanying',
     ' file COPYING or http://www.opensource.org/licenses/mit-license.php.',
 ];
@@ -27,15 +29,6 @@ module.exports = {
     plugins: ['header'],
     ignorePatterns: ['__mocks__/'],
     rules: {
-        'header/header': [
-            2,
-            'line',
-            [
-                ' Copyright (c) 2023 The Bitcoin developers',
-                ' Distributed under the MIT software license, see the accompanying',
-                ' file COPYING or http://www.opensource.org/licenses/mit-license.php.',
-            ],
-            1,
-        ],
+        'header/header': [2, 'line', headerArray, 1],
     },
 };
