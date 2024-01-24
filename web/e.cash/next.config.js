@@ -73,7 +73,10 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: `default-src https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`,
+                        value:
+                            process.env.NODE_ENV === 'development'
+                                ? `default-src 'self' https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`
+                                : `default-src https: wss: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data:;`,
                     },
                 ],
             },
