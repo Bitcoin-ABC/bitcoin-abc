@@ -2584,6 +2584,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         .datadir = args.GetDataDirNet(),
         .adjusted_time_callback = GetAdjustedTime,
         .notifications = *node.notifications,
+        .signals = &GetMainSignals(),
     };
     // no error can happen, already checked in AppInitParameterInteraction
     Assert(!ApplyArgsManOptions(args, chainman_opts));
@@ -2626,6 +2627,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     CTxMemPool::Options mempool_opts{
         .check_ratio = chainparams.DefaultConsistencyChecks() ? 1 : 0,
+        .signals = &GetMainSignals(),
     };
     if (const auto err{ApplyArgsManOptions(args, chainparams, mempool_opts)}) {
         return InitError(*err);

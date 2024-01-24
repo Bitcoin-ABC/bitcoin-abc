@@ -831,13 +831,15 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     auto spentCoins = GetSpentCoins(ws.m_ptx, m_view);
     Assume(spentCoins.has_value());
 
-    GetMainSignals().TransactionAddedToMempool(
-        ws.m_ptx,
-        // Spent coins should never be null, but better be safe than sorry.
-        spentCoins.has_value()
-            ? std::make_shared<const std::vector<Coin>>(std::move(*spentCoins))
-            : nullptr,
-        m_pool.GetAndIncrementSequence());
+    if (m_pool.m_signals) {
+        m_pool.m_signals->TransactionAddedToMempool(
+            ws.m_ptx,
+            // Spent coins should never be null, but better be safe than sorry.
+            spentCoins.has_value() ? std::make_shared<const std::vector<Coin>>(
+                                         std::move(*spentCoins))
+                                   : nullptr,
+            m_pool.GetAndIncrementSequence());
+    }
 
     // Trim mempool and check if tx was trimmed.
     // If we are validating a package, don't trim here because we could evict a
@@ -939,7 +941,7 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
                                        ATMPArgs &args) {
     AssertLockHeld(cs_main);
     // mempool "read lock" (held through
-    // GetMainSignals().TransactionAddedToMempool())
+    // m_pool.m_signals->TransactionAddedToMempool())
     LOCK(m_pool.cs);
 
     const CBlockIndex *tip = m_active_chainstate.m_chain.Tip();
@@ -2758,10 +2760,10 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             }
         }
 
-        if (full_flush_completed) {
+        if (full_flush_completed && m_chainman.m_options.signals) {
             // Update best block in wallet (so we can detect restored wallets).
-            GetMainSignals().ChainStateFlushed(this->GetRole(),
-                                               m_chain.GetLocator());
+            m_chainman.m_options.signals->ChainStateFlushed(
+                this->GetRole(), m_chain.GetLocator());
         }
     } catch (const std::runtime_error &e) {
         return FatalError(m_chainman.GetNotifications(), state,
@@ -2937,7 +2939,9 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
     UpdateTip(pindexDelete->pprev);
     // Let wallets know transactions went from 1-confirmed to
     // 0-confirmed or conflicted:
-    GetMainSignals().BlockDisconnected(pblock, pindexDelete);
+    if (m_chainman.m_options.signals) {
+        m_chainman.m_options.signals->BlockDisconnected(pblock, pindexDelete);
+    }
     return true;
 }
 
@@ -2995,7 +2999,9 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view,
                                BlockValidationOptions(m_chainman.GetConfig()),
                                &blockFees);
-        GetMainSignals().BlockChecked(blockConnecting, state);
+        if (m_chainman.m_options.signals) {
+            m_chainman.m_options.signals->BlockChecked(blockConnecting, state);
+        }
         if (!rv) {
             if (state.IsInvalid()) {
                 InvalidBlockFound(pindexNew, state);
@@ -3154,7 +3160,10 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         m_chainman.MaybeCompleteSnapshotValidation();
     }
 
-    GetMainSignals().BlockConnected(chainstate_role, pthisBlock, pindexNew);
+    if (m_chainman.m_options.signals) {
+        m_chainman.m_options.signals->BlockConnected(chainstate_role,
+                                                     pthisBlock, pindexNew);
+    }
     return true;
 }
 
@@ -3526,10 +3535,11 @@ static bool NotifyHeaderTip(ChainstateManager &chainman)
     return fNotify;
 }
 
-static void LimitValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main) {
+static void LimitValidationInterfaceQueue(CMainSignals &signals)
+    LOCKS_EXCLUDED(cs_main) {
     AssertLockNotHeld(cs_main);
 
-    if (GetMainSignals().CallbacksPending() > 10) {
+    if (signals.CallbacksPending() > 10) {
         SyncWithValidationInterfaceQueue();
     }
 }
@@ -3572,7 +3582,9 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         // Note that if a validationinterface callback ends up calling
         // ActivateBestChain this may lead to a deadlock! We should
         // probably have a DEBUG_LOCKORDER test for this in the future.
-        LimitValidationInterfaceQueue();
+        if (m_chainman.m_options.signals) {
+            LimitValidationInterfaceQueue(*m_chainman.m_options.signals);
+        }
 
         std::vector<const CBlockIndex *> blocksToReconcile;
         bool blocks_connected = false;
@@ -3664,8 +3676,10 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                 if (this == &m_chainman.ActiveChainstate() &&
                     pindexFork != pindexNewTip) {
                     // Notify ValidationInterface subscribers
-                    GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork,
-                                                     still_in_ibd);
+                    if (m_chainman.m_options.signals) {
+                        m_chainman.m_options.signals->UpdatedBlockTip(
+                            pindexNewTip, pindexFork, still_in_ibd);
+                    }
 
                     // Always notify the UI if a new block tip was connected
                     if (kernel::IsInterrupted(
@@ -4216,7 +4230,9 @@ bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex,
         m_avalancheFinalizedBlockIndex = pindex;
     }
 
-    GetMainSignals().BlockFinalized(pindex);
+    if (m_chainman.m_options.signals) {
+        m_chainman.m_options.signals->BlockFinalized(pindex);
+    }
 
     return true;
 }
@@ -5033,8 +5049,9 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
     // Header is valid/has work and the merkle tree is good.
     // Relay now, but if it does not build on our best tip, let the
     // SendMessages loop relay it.
-    if (!IsInitialBlockDownload() && ActiveTip() == pindex->pprev) {
-        GetMainSignals().NewPoWValidBlock(pindex, pblock);
+    if (!IsInitialBlockDownload() && ActiveTip() == pindex->pprev &&
+        m_options.signals) {
+        m_options.signals->NewPoWValidBlock(pindex, pblock);
     }
 
     // Write block to history file
@@ -5111,7 +5128,9 @@ bool ChainstateManager::ProcessNewBlock(
         }
 
         if (!ret) {
-            GetMainSignals().BlockChecked(*block, state);
+            if (m_options.signals) {
+                m_options.signals->BlockChecked(*block, state);
+            }
             LogError("%s: AcceptBlock FAILED (%s)\n", __func__,
                      state.ToString());
             return false;

@@ -137,6 +137,7 @@ int main(int argc, char *argv[]) {
         .datadir = abs_datadir,
         .adjusted_time_callback = NodeClock::now,
         .notifications = *notifications,
+        .signals = &GetMainSignals(),
     };
     const node::BlockManager::Options blockman_opts{
         .chainparams = chainman_opts.config.GetChainParams(),

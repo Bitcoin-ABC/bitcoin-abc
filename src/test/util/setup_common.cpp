@@ -147,6 +147,7 @@ CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
         // Default to always checking mempool regardless of
         // chainparams.DefaultConsistencyChecks for tests
         .check_ratio = 1,
+        .signals = &GetMainSignals(),
     };
     const auto err{ApplyArgsManOptions(
         *node.args, ::GetConfig().GetChainParams(), mempool_opts)};
@@ -179,6 +180,7 @@ ChainTestingSetup::ChainTestingSetup(
         .adjusted_time_callback = GetAdjustedTime,
         .check_block_index = true,
         .notifications = *m_node.notifications,
+        .signals = &GetMainSignals(),
         .worker_threads_num = 2,
     };
     ApplyArgsManOptions(*m_node.args, chainman_opts);

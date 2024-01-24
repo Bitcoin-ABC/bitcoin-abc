@@ -42,6 +42,7 @@ class CBlockIndex;
 class CChain;
 class Chainstate;
 class ChainstateManager;
+class CMainSignals;
 class Config;
 
 namespace Consensus {
@@ -358,6 +359,8 @@ public:
     const bool m_permit_bare_multisig;
     const std::optional<unsigned> m_max_datacarrier_bytes;
     const bool m_require_standard;
+
+    CMainSignals *const m_signals;
 
     /**
      * Create a new CTxMemPool.

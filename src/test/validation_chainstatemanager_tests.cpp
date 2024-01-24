@@ -412,6 +412,7 @@ struct SnapshotTestSetup : TestChain100Setup {
                 .datadir = m_args.GetDataDirNet(),
                 .adjusted_time_callback = GetAdjustedTime,
                 .notifications = *m_node.notifications,
+                .signals = &GetMainSignals(),
             };
             node::ApplyArgsManOptions(*m_node.args, chainman_opts);
             const BlockManager::Options blockman_opts{

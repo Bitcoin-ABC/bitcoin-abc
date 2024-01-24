@@ -10,6 +10,8 @@
 #include <chrono>
 #include <cstdint>
 
+class CMainSignals;
+
 /** Default for -maxmempool, maximum megabytes of mempool memory usage */
 static constexpr unsigned int DEFAULT_MAX_MEMPOOL_SIZE_MB{300};
 /**
@@ -50,6 +52,8 @@ struct MemPoolOptions {
                                    : std::nullopt};
     bool permit_bare_multisig{DEFAULT_PERMIT_BAREMULTISIG};
     bool require_standard{true};
+
+    CMainSignals *signals{nullptr};
 };
 } // namespace kernel
 

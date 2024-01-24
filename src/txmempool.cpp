@@ -126,7 +126,7 @@ CTxMemPool::CTxMemPool(const Config &config, const Options &opts)
       m_dust_relay_feerate{opts.dust_relay_feerate},
       m_permit_bare_multisig{opts.permit_bare_multisig},
       m_max_datacarrier_bytes{opts.max_datacarrier_bytes},
-      m_require_standard{opts.require_standard} {
+      m_require_standard{opts.require_standard}, m_signals{opts.signals} {
     // lock free clear
     _clear();
 }
@@ -204,13 +204,13 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
 
     const TxId &txid = (*it)->GetTx().GetId();
 
-    if (reason != MemPoolRemovalReason::BLOCK) {
+    if (reason != MemPoolRemovalReason::BLOCK && m_signals) {
         // Notify clients that a transaction has been removed from the mempool
         // for any reason except being included in a block. Clients interested
         // in transactions included in blocks can subscribe to the
         // BlockConnected notification.
-        GetMainSignals().TransactionRemovedFromMempool(
-            (*it)->GetSharedTx(), reason, mempool_sequence);
+        m_signals->TransactionRemovedFromMempool((*it)->GetSharedTx(), reason,
+                                                 mempool_sequence);
 
         if (auto removed_tx = finalizedTxs.remove(txid)) {
             m_finalizedTxsFitter.removeTxUnchecked(removed_tx->GetTxSize(),
@@ -323,7 +323,6 @@ void CTxMemPool::removeConflicts(const CTransaction &tx) {
  */
 void CTxMemPool::updateFeeForBlock() {
     AssertLockHeld(cs);
-
     lastRollingFeeUpdate = GetTime();
     blockSinceLastRollingFeeBump = true;
 }
@@ -642,8 +641,9 @@ bool CTxMemPool::setAvalancheFinalized(const CTxMemPoolEntryRef &tx,
 
             finalizedTxIds.push_back((*ancestor_it)->GetTx().GetId());
 
-            GetMainSignals().TransactionFinalized(
-                (*ancestor_it)->GetSharedTx());
+            if (m_signals) {
+                m_signals->TransactionFinalized((*ancestor_it)->GetSharedTx());
+            }
         }
     }
 
