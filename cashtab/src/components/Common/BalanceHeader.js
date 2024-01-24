@@ -123,8 +123,7 @@ const BalanceHeader = ({
 };
 
 BalanceHeader.propTypes = {
-    match: PropTypes.string,
-    balanceSats: null | PropTypes.number,
+    balanceSats: PropTypes.number,
     cashtabSettings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
@@ -135,7 +134,7 @@ BalanceHeader.propTypes = {
         }),
         PropTypes.bool,
     ]),
-    fiatPrice: null | PropTypes.number,
+    fiatPrice: PropTypes.number,
     userLocale: PropTypes.string,
 };
 
