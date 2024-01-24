@@ -60,6 +60,7 @@ module.exports = {
         fusion: '⚛️',
         cashtabMsg: '🖋',
         cashtabEncrypted: '🔏',
+        payButton: '🛒',
         swap: '🤳',
         airdrop: '🪂',
         unknown: '❓',

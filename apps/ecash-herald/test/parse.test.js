@@ -36,6 +36,7 @@ const {
     slp2TxVectors,
     aliasRegistrations,
     cashtabMsgs,
+    payButtonTxs,
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
@@ -96,6 +97,17 @@ describe('parse.js functions', function () {
             const { hex, stackArray, msg } = cashtabMsgs[i];
             assert.deepEqual(parseOpReturn(hex), {
                 app: opReturn.knownApps.cashtabMsg.app,
+                msg,
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles PayButton txs', function () {
+        for (let i = 0; i < payButtonTxs.length; i += 1) {
+            const { hex, stackArray, msg } = payButtonTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.payButton.app,
                 msg,
                 stackArray,
                 tokenId: false,

@@ -24,6 +24,7 @@ module.exports = {
         fusionLegacy: { prefix: '5920070', app: 'CashFusion' },
         slp2: { prefix: '534c5032', app: 'ALP' },
         alias: { prefix: '2e786563', app: 'Alias (beta)' },
+        payButton: { prefix: '50415900', app: 'PayButton' },
     },
     memo: {
         'prefix': '6d',

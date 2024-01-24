@@ -595,6 +595,36 @@ module.exports = {
                 }
                 break;
             }
+            case opReturn.knownApps.payButton.prefix: {
+                app = opReturn.knownApps.payButton.app;
+                // PayButton v0
+                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
+                // <lokad> <OP_0> <data> <nonce>
+                // The data could be interesting, ignore the rest
+                if (stackArray.length >= 3) {
+                    // Version byte is at index 1
+                    const payButtonTxVersion = stackArray[1];
+                    if (payButtonTxVersion !== '00') {
+                        msg = `Unsupported version: 0x${payButtonTxVersion}`;
+                    } else {
+                        const dataPush = stackArray[2];
+                        if (dataPush === '00') {
+                            // Per spec, PayButton txs with no data push OP_0 in this position
+                            msg = 'no data';
+                        } else {
+                            // Data is utf8 encoded
+                            msg = prepareStringForTelegramHTML(
+                                Buffer.from(stackArray[2], 'hex').toString(
+                                    'utf8',
+                                ),
+                            );
+                        }
+                    }
+                } else {
+                    msg = '[off spec]';
+                }
+                break;
+            }
             default: {
                 // If you do not recognize the protocol identifier, just print the pushes in hex
                 // If it is an app or follows a pattern, can be added later
@@ -1354,6 +1384,10 @@ module.exports = {
                     }
                     case opReturn.knownApps.alias.app: {
                         appEmoji = emojis.alias;
+                        break;
+                    }
+                    case opReturn.knownApps.payButton.app: {
+                        appEmoji = emojis.payButton;
                         break;
                     }
                     case opReturn.knownApps.cashtabMsg.app: {

@@ -1,8 +1,9 @@
 // Copyright (c) 2023 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-// @generated
 'use strict';
+// Disable as these are "used" to match the expected tg format
+/* eslint no-useless-escape: 0 */
 const opReturn = require('../../constants/op_return');
 module.exports = {
     // https://github.com/vinarmani/swap-protocol/blob/master/swap-protocol-spec.md
@@ -535,6 +536,46 @@ module.exports = {
                 '000b7d35fda03544a08e65464d54cfae4257eb6db7',
             ],
             msg: 'Invalid alias registration',
+        },
+    ],
+    payButtonTxs: [
+        // on spec tx with no data
+        {
+            txid: 'd1e7036e920ac9c2f50495641a4b9771c6c8f1e932304a5865096a6d3a514303',
+            hex: '04504159000000089057dd10be17a66a',
+            stackArray: ['50415900', '00', '00', '9057dd10be17a66a'],
+            msg: 'no data',
+        },
+        // on spec tx with data
+        {
+            txid: 'd1e7036e920ac9c2f50495641a4b9771c6c8f1e932304a5865096a6d3a514303',
+            hex: '045041590000087465737464617461089057dd10be17a66a',
+            stackArray: [
+                '50415900',
+                '00',
+                '7465737464617461',
+                '9057dd10be17a66a',
+            ],
+            msg: 'testdata',
+        },
+        // Unsupported version
+        {
+            txid: 'd1e7036e920ac9c2f50495641a4b9771c6c8f1e932304a5865096a6d3a514303',
+            hex: '04504159000101087465737464617461089057dd10be17a66a',
+            stackArray: [
+                '50415900',
+                '01',
+                '7465737464617461',
+                '9057dd10be17a66a',
+            ],
+            msg: 'Unsupported version: 0x01',
+        },
+        // Tx does not have enough pushes to parse
+        {
+            txid: 'd1e7036e920ac9c2f50495641a4b9771c6c8f1e932304a5865096a6d3a514303',
+            hex: '04504159000101',
+            stackArray: ['50415900', '01'],
+            msg: '[off spec]',
         },
     ],
 };
