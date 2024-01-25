@@ -119,9 +119,7 @@ const useWallet = () => {
         // Check if walletRefreshInterval is set to TRIGGER_UTXO_REFRESH_INTERVAL_MS, i.e. this was called by websocket tx detection
         if (walletRefreshInterval === TRIGGER_UTXO_REFRESH_INTERVAL_MS) {
             // If so, set it back to the usual refresh rate
-            setWalletRefreshInterval(
-                websocketConfig.websocketConnectedRefreshInterval,
-            );
+            setWalletRefreshInterval(websocketConfig.websocketRefreshInterval);
         }
         try {
             if (!wallet) {
@@ -999,12 +997,11 @@ const useWallet = () => {
                         console.log(`Chronik websocket connected`, e);
                         console.log(
                             `Websocket connected, adjusting wallet refresh interval to ${
-                                websocketConfig.websocketConnectedRefreshInterval /
-                                1000
+                                websocketConfig.websocketRefreshInterval / 1000
                             }s`,
                         );
                         setWalletRefreshInterval(
-                            websocketConfig.websocketConnectedRefreshInterval,
+                            websocketConfig.websocketRefreshInterval,
                         );
                     },
                 });
