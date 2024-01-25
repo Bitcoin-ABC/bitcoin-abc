@@ -522,7 +522,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     // Is it already in the memory pool?
     if (m_pool.exists(txid)) {
-        return state.Invalid(TxValidationResult::TX_CONFLICT,
+        return state.Invalid(TxValidationResult::TX_DUPLICATE,
                              "txn-already-in-mempool");
     }
 
@@ -531,7 +531,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
         auto itConflicting = m_pool.mapNextTx.find(txin.prevout);
         if (itConflicting != m_pool.mapNextTx.end()) {
             // Disable replacement feature for good
-            return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
+            return state.Invalid(TxValidationResult::TX_CONFLICT,
                                  "txn-mempool-conflict");
         }
     }
@@ -556,7 +556,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
                 // Optimistically just do efficient check of cache for
                 // outputs.
                 if (coins_cache.HaveCoinInCache(COutPoint(txid, out))) {
-                    return state.Invalid(TxValidationResult::TX_CONFLICT,
+                    return state.Invalid(TxValidationResult::TX_DUPLICATE,
                                          "txn-already-known");
                 }
             }
@@ -879,8 +879,8 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
                   "its outputs are already spent in the "
                   "mempool\n",
                   __func__, txid.ToString());
-        ws.m_state.Invalid(TxValidationResult::TX_CONFLICT,
-                           "txn-mempool-conflict");
+        ws.m_state.Invalid(TxValidationResult::TX_CHILD_BEFORE_PARENT,
+                           "txn-child-before-parent");
         return MempoolAcceptResult::Failure(ws.m_state);
     }
 

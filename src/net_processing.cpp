@@ -2484,7 +2484,9 @@ bool PeerManagerImpl::MaybePunishNodeForTx(NodeId nodeid,
         case TxValidationResult::TX_NOT_STANDARD:
         case TxValidationResult::TX_MISSING_INPUTS:
         case TxValidationResult::TX_PREMATURE_SPEND:
+        case TxValidationResult::TX_DUPLICATE:
         case TxValidationResult::TX_CONFLICT:
+        case TxValidationResult::TX_CHILD_BEFORE_PARENT:
         case TxValidationResult::TX_MEMPOOL_POLICY:
         case TxValidationResult::TX_NO_MEMPOOL:
             break;

@@ -32,12 +32,17 @@ enum class TxValidationResult {
     //! transaction spends a coinbase too early, or violates locktime/sequence
     //! locks
     TX_PREMATURE_SPEND,
+    /** Tx already in mempool or in the chain. */
+    TX_DUPLICATE,
     /**
-     * Tx already in mempool or conflicts with a tx in the chain
-     * Currently this is only used if the transaction already exists in the
-     * mempool or on chain.
+     * Tx conflicts with another mempool tx, i.e. spends the same coin.
      */
     TX_CONFLICT,
+    /**
+     * This tx outputs are already spent in the mempool. This should never
+     * happen and is a symptom of a mempool bug/corruption.
+     */
+    TX_CHILD_BEFORE_PARENT,
     //! violated mempool's fee/size/descendant/etc limits
     TX_MEMPOOL_POLICY,
     //! this node does not have a mempool so can't validate the transaction
