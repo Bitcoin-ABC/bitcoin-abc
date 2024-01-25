@@ -70,6 +70,10 @@ import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import appConfig from 'config/app';
 const { Panel } = Collapse;
 
+const VersionContainer = styled.div`
+    color: ${props => props.theme.contrast};
+`;
+
 const SWRow = styled.div`
     border-radius: 3px;
     padding: 10px 0;
@@ -1921,6 +1925,15 @@ const Configure = ({ passLoadingStatus }) => {
                         <ThemedFacebookIcon />
                     </SocialLink>
                 </SocialContainer>
+
+                {typeof process.env.REACT_APP_VERSION === 'string' && (
+                    <>
+                        <StyledSpacer />
+                        <VersionContainer>
+                            v{process.env.REACT_APP_VERSION}
+                        </VersionContainer>
+                    </>
+                )}
             </StyledConfigure>
         </SidePaddingCtn>
     );
