@@ -15,6 +15,7 @@ import {
     SwapOutlined,
     AppstoreAddOutlined,
     FacebookOutlined,
+    GithubOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
 import { ReactComponent as Send } from 'assets/send.svg';
@@ -181,7 +182,7 @@ export const SocialContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100px;
+    width: 200px;
 `;
 export const SocialLink = styled.a`
     width: 100%;
@@ -206,6 +207,19 @@ export const ThemedXIcon = styled(XLogo)`
     }
 `;
 export const ThemedFacebookIcon = styled(FacebookOutlined)`
+    svg {
+        fill: ${props => props.theme.contrast} !important;
+    }
+    font-size: 42px;
+    @media (hover: hover) {
+        :hover {
+            svg {
+                fill: ${props => props.theme.eCashPurple} !important;
+            }
+        }
+    }
+`;
+export const ThemedGithubIcon = styled(GithubOutlined)`
     svg {
         fill: ${props => props.theme.contrast} !important;
     }

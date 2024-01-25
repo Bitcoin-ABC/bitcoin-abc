@@ -52,6 +52,7 @@ import {
     WarningIcon,
     ThemedXIcon,
     ThemedFacebookIcon,
+    ThemedGithubIcon,
     SocialContainer,
     SocialLink,
 } from 'components/Common/CustomIcons';
@@ -1923,6 +1924,13 @@ const Configure = ({ passLoadingStatus }) => {
                         rel="noreferrer"
                     >
                         <ThemedFacebookIcon />
+                    </SocialLink>
+                    <SocialLink
+                        href="https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <ThemedGithubIcon />
                     </SocialLink>
                 </SocialContainer>
 
