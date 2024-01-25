@@ -65,7 +65,7 @@ function encode(prefix, type, hash) {
  *
  * @static
  * @param {string} address Address to decode. E.g.: 'ecash:qpm2qsznhks23z7629mms6s4cwef74vcwva87rkuu2'.
- * @param {returnHashAsString} bool User may ask for the hash160 be returned as a string instead of a uint8array
+ * @param {chronikReady} bool Return hash160 as a string, and return type as lowercase. Inputs expected by chronik.
  * @returns {object}
  * @throws {ValidationError}
  */
