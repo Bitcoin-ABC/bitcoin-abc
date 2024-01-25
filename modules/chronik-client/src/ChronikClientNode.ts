@@ -1,7 +1,7 @@
 import * as proto from '../proto/chronikNode';
-import { BlockchainInfo } from './ChronikClient';
+import { BlockchainInfo, OutPoint } from './ChronikClient';
 import { FailoverProxy } from './failoverProxy';
-import { toHexRev } from './hex';
+import { toHex, toHexRev } from './hex';
 
 /**
  * Client to access an in-node Chronik instance.
@@ -49,6 +49,19 @@ export class ChronikClientNode {
         return convertToBlock(block);
     }
 
+    /** Fetch the tx history of a block given hash or height. */
+    public async blockTxs(
+        hashOrHeight: string | number,
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/block-txs/${hashOrHeight}?page=${page}&page_size=${pageSize}`,
+        );
+        const blockTxs = proto.TxHistoryPage.decode(data);
+        return convertToTxHistoryPage(blockTxs);
+    }
+
     /**
      * Fetch block info of a range of blocks.
      * `startHeight` and `endHeight` are inclusive ranges.
@@ -62,6 +75,13 @@ export class ChronikClientNode {
         );
         const blocks = proto.Blocks.decode(data);
         return blocks.blocks.map(convertToBlockInfo);
+    }
+
+    /** Fetch tx details given the txid. */
+    public async tx(txid: string): Promise<Tx_InNode> {
+        const data = await this._proxyInterface.get(`/tx/${txid}`);
+        const tx = proto.Tx.decode(data);
+        return convertToTx(tx);
     }
 }
 
@@ -92,6 +112,18 @@ function convertToBlock(block: proto.Block): Block_InNode {
     };
 }
 
+function convertToTxHistoryPage(
+    blockTxs: proto.TxHistoryPage,
+): TxHistoryPage_InNode {
+    const { txs, numPages, numTxs } = blockTxs;
+    const convertedTxs = txs.map(convertToTx);
+    return {
+        txs: convertedTxs,
+        numPages,
+        numTxs,
+    };
+}
+
 function convertToBlockInfo(block: proto.BlockInfo): BlockInfo_InNode {
     return {
         ...block,
@@ -106,6 +138,62 @@ function convertToBlockInfo(block: proto.BlockInfo): BlockInfo_InNode {
         sumCoinbaseOutputSats: parseInt(block.sumCoinbaseOutputSats),
         sumNormalOutputSats: parseInt(block.sumNormalOutputSats),
         sumBurnedSats: parseInt(block.sumBurnedSats),
+    };
+}
+
+function convertToTx(tx: proto.Tx): Tx_InNode {
+    return {
+        txid: toHexRev(tx.txid),
+        version: tx.version,
+        inputs: tx.inputs.map(convertToTxInput),
+        outputs: tx.outputs.map(convertToTxOutput),
+        lockTime: tx.lockTime,
+        block:
+            tx.block !== undefined ? convertToBlockMeta(tx.block) : undefined,
+        timeFirstSeen: parseInt(tx.timeFirstSeen),
+        size: tx.size,
+        isCoinbase: tx.isCoinbase,
+    };
+}
+
+function convertToTxInput(input: proto.TxInput): TxInput_InNode {
+    if (input.prevOut === undefined) {
+        throw new Error('Invalid proto, no prevOut');
+    }
+    return {
+        prevOut: {
+            txid: toHexRev(input.prevOut.txid),
+            outIdx: input.prevOut.outIdx,
+        },
+        inputScript: toHex(input.inputScript),
+        outputScript:
+            input.outputScript.length > 0
+                ? toHex(input.outputScript)
+                : undefined,
+        value: parseInt(input.value),
+        sequenceNo: input.sequenceNo,
+    };
+}
+
+function convertToTxOutput(output: proto.TxOutput): TxOutput_InNode {
+    return {
+        value: parseInt(output.value),
+        outputScript: toHex(output.outputScript),
+        spentBy:
+            output.spentBy !== undefined
+                ? {
+                      txid: toHexRev(output.spentBy.txid),
+                      outIdx: output.spentBy.inputIdx,
+                  }
+                : undefined,
+    };
+}
+
+function convertToBlockMeta(block: proto.BlockMetadata): BlockMetadata_InNode {
+    return {
+        height: block.height,
+        hash: toHexRev(block.hash),
+        timestamp: parseInt(block.timestamp),
     };
 }
 
@@ -153,4 +241,88 @@ export interface BlockInfo_InNode {
 export interface Block_InNode {
     /** Contains the blockInfo object defined above */
     blockInfo: BlockInfo_InNode;
+}
+
+/** A page of in-node chronik tx history */
+export interface TxHistoryPage_InNode {
+    /** Txs of the page */
+    txs: Tx_InNode[];
+    /** How many pages there are total */
+    numPages: number;
+    /** How many txs there are total */
+    numTxs: number;
+}
+
+/** A transaction on the blockchain or in the mempool. */
+export interface Tx_InNode {
+    /** Transaction ID. */
+    txid: string;
+    /** `version` field of the transaction. */
+    version: number;
+    /** Inputs of this transaction. */
+    inputs: TxInput_InNode[];
+    /** Outputs of this transaction. */
+    outputs: TxOutput_InNode[];
+    /** `locktime` field of the transaction, tx is not valid before this time. */
+    lockTime: number;
+    /** Block data for this tx, or undefined if not mined yet. */
+    block: BlockMetadata_InNode | undefined;
+    /**
+     * UNIX timestamp when this tx has first been seen in the mempool.
+     * 0 if unknown -> make sure to check.
+     */
+    timeFirstSeen: number;
+    /** Serialized size of the tx. */
+    size: number;
+    /** Whether this tx is a coinbase tx. */
+    isCoinbase: boolean;
+}
+
+/** Input of a tx, spends an output of a previous tx. */
+export interface TxInput_InNode {
+    /** Points to an output spent by this input. */
+    prevOut: OutPoint;
+    /**
+     * Script unlocking the output, in hex encoding.
+     * Aka. `scriptSig` in bitcoind parlance.
+     */
+    inputScript: string;
+    /**
+     * Script of the output, in hex encoding.
+     * Aka. `scriptPubKey` in bitcoind parlance.
+     */
+    outputScript: string | undefined;
+    /** Value of the output spent by this input, in satoshis. */
+    value: number;
+    /** `sequence` field of the input; can be used for relative time locking. */
+    sequenceNo: number;
+}
+
+/** Output of a tx, creates new UTXOs. */
+export interface TxOutput_InNode {
+    /** Value of the output, in satoshis. */
+    value: number;
+    /**
+     * Script of this output, locking the coins.
+     * Aka. `scriptPubKey` in bitcoind parlance.
+     */
+    outputScript: string;
+    /**
+     * Transaction & input index spending this output, or undefined if
+     * unspent.
+     */
+    spentBy: OutPoint | undefined;
+}
+
+/** Metadata of a block, used in transaction data. */
+export interface BlockMetadata_InNode {
+    /** Height of the block. */
+    height: number;
+    /** Hash of the block. */
+    hash: string;
+    /**
+     * Timestamp of the block; useful if `timeFirstSeen` of a transaction is
+     * unknown.
+     */
+    timestamp: number;
 }
