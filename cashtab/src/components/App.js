@@ -169,7 +169,7 @@ const Footer = styled.div`
     z-index: 2;
     height: 80px;
     border-top: 1px solid rgba(255, 255, 255, 0.5);
-    background-color: ${props => props.theme.footerBackground};
+    background-color: ${props => props.theme.headerAndFooterBg};
     position: fixed;
     bottom: 0;
     width: 500px;
@@ -177,6 +177,21 @@ const Footer = styled.div`
     align-items: center;
     justify-content: space-between;
     padding: 0;
+    @media (max-width: 768px) {
+        width: 100%;
+    }
+`;
+
+const Header = styled.div`
+    z-index: 2;
+
+    background-color: ${props => props.theme.headerAndFooterBg};
+    position: sticky;
+    top: 0;
+    width: 500px;
+    align-items: center;
+    justify-content: space-between;
+
     @media (max-width: 768px) {
         width: 100%;
     }
@@ -474,82 +489,87 @@ const App = () => {
                 <CustomApp>
                     <WalletBody>
                         <WalletCtn>
-                            <HeaderCtn>
-                                {process.env.REACT_APP_BUILD_ENV ===
-                                'extension' ? (
-                                    <ExtensionHeader
-                                        selectedKey={selectedKey}
-                                    />
-                                ) : (
-                                    <CashtabLogo src={Cashtab} alt="cashtab" />
+                            <Header>
+                                <HeaderCtn>
+                                    {process.env.REACT_APP_BUILD_ENV ===
+                                    'extension' ? (
+                                        <ExtensionHeader
+                                            selectedKey={selectedKey}
+                                        />
+                                    ) : (
+                                        <CashtabLogo
+                                            src={Cashtab}
+                                            alt="cashtab"
+                                        />
+                                    )}
+                                    {selectedKey === 'airdrop' && (
+                                        <NavHeader>
+                                            Airdrop
+                                            <AirdropIcon />
+                                        </NavHeader>
+                                    )}
+                                    {selectedKey === 'configure' && (
+                                        <NavHeader>
+                                            Settings
+                                            <SettingsIcon />
+                                        </NavHeader>
+                                    )}
+                                    {selectedKey === 'signverifymsg' && (
+                                        <NavHeader>
+                                            {' '}
+                                            Sign & Verify Msg
+                                            <ThemedSignAndVerifyMsg />
+                                        </NavHeader>
+                                    )}
+                                    {process.env.REACT_APP_BUILD_ENV !==
+                                        'extension' && (
+                                        <>
+                                            {selectedKey === 'swap' && (
+                                                <NavHeader>
+                                                    {' '}
+                                                    Swap
+                                                    <SwapIcon />
+                                                </NavHeader>
+                                            )}
+                                        </>
+                                    )}
+                                    {process.env.REACT_APP_BUILD_ENV !==
+                                        'extension' && (
+                                        <>
+                                            {hasTab && (
+                                                <EasterEgg
+                                                    src={TabCash}
+                                                    alt="tabcash"
+                                                />
+                                            )}
+                                        </>
+                                    )}
+                                </HeaderCtn>
+                                {wallet !== false && (
+                                    <WalletInfoCtn data-testid="wallet-info-ctn">
+                                        <WalletLabel
+                                            name={wallet.name}
+                                            cashtabSettings={cashtabSettings}
+                                            changeCashtabSettings={
+                                                changeCashtabSettings
+                                            }
+                                        ></WalletLabel>
+                                        <BalanceHeader
+                                            balanceSats={
+                                                typeof balances.totalBalanceInSatoshis ===
+                                                'string'
+                                                    ? parseInt(
+                                                          balances.totalBalanceInSatoshis,
+                                                      )
+                                                    : null
+                                            }
+                                            cashtabSettings={cashtabSettings}
+                                            fiatPrice={fiatPrice}
+                                            locale={navigator.language}
+                                        />
+                                    </WalletInfoCtn>
                                 )}
-                                {selectedKey === 'airdrop' && (
-                                    <NavHeader>
-                                        Airdrop
-                                        <AirdropIcon />
-                                    </NavHeader>
-                                )}
-                                {selectedKey === 'configure' && (
-                                    <NavHeader>
-                                        Settings
-                                        <SettingsIcon />
-                                    </NavHeader>
-                                )}
-                                {selectedKey === 'signverifymsg' && (
-                                    <NavHeader>
-                                        {' '}
-                                        Sign & Verify Msg
-                                        <ThemedSignAndVerifyMsg />
-                                    </NavHeader>
-                                )}
-                                {process.env.REACT_APP_BUILD_ENV !==
-                                    'extension' && (
-                                    <>
-                                        {selectedKey === 'swap' && (
-                                            <NavHeader>
-                                                {' '}
-                                                Swap
-                                                <SwapIcon />
-                                            </NavHeader>
-                                        )}
-                                    </>
-                                )}
-                                {process.env.REACT_APP_BUILD_ENV !==
-                                    'extension' && (
-                                    <>
-                                        {hasTab && (
-                                            <EasterEgg
-                                                src={TabCash}
-                                                alt="tabcash"
-                                            />
-                                        )}
-                                    </>
-                                )}
-                            </HeaderCtn>
-                            {wallet !== false && (
-                                <WalletInfoCtn data-testid="wallet-info-ctn">
-                                    <WalletLabel
-                                        name={wallet.name}
-                                        cashtabSettings={cashtabSettings}
-                                        changeCashtabSettings={
-                                            changeCashtabSettings
-                                        }
-                                    ></WalletLabel>
-                                    <BalanceHeader
-                                        balanceSats={
-                                            typeof balances.totalBalanceInSatoshis ===
-                                            'string'
-                                                ? parseInt(
-                                                      balances.totalBalanceInSatoshis,
-                                                  )
-                                                : null
-                                        }
-                                        cashtabSettings={cashtabSettings}
-                                        fiatPrice={fiatPrice}
-                                        locale={navigator.language}
-                                    />
-                                </WalletInfoCtn>
-                            )}
+                            </Header>
                             <Switch>
                                 <Route path="/wallet">
                                     <Home />

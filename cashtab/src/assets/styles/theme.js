@@ -7,7 +7,7 @@ export const theme = {
     backgroundColor: '#d5d5d7',
     walletBackground: '#152b45',
     walletInfoContainer: '#255173',
-    footerBackground: '#152b45',
+    headerAndFooterBg: '#152b45',
     navActive: '#00ABE7',
     encryptionRed: '#DC143C',
     genesisGreen: '#00e781',
