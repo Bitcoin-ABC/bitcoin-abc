@@ -20,6 +20,7 @@ import {
     incomingEtokenTwo,
     swapTx,
     mockSwapWallet,
+    aliasOffSpec,
 } from './mocks';
 
 export default {
@@ -130,6 +131,14 @@ export default {
                 tokenInfoById: txHistoryTokenInfoById,
                 parsed: swapTx.parsed,
             },
+            {
+                description: 'Pre-spec alias registration (now off spec)',
+                tx: aliasOffSpec.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: aliasOffSpec.parsed,
+            },
+
             // todo current airdrop format
             // todo cashtab msg
             // todo alias bug

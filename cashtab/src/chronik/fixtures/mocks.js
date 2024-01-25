@@ -12984,3 +12984,69 @@ export const swapTx = {
         replyAddress: 'ecash:qzq2myl0727s9e3c8wnzgahl6u5arvnxp5fs9sem4x',
     },
 };
+export const aliasOffSpec = {
+    tx: {
+        txid: '7b265a49e0bd5fe0c5e4b4aec634a25dd85656766a035b6e436c415538c43d90',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '1be4bb9f820d60a82f6eb86a32ca9442700f180fc94469bca2ded9129f5dce88',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '47304402205af9cf7ddb8412803b8e884dbd5cb02535ffc266fd5c6afb3e48e7425e7b215b0220799688d330130e4c7c7ffa33d9310e0bbc6fd820bbe26f7f47f52c17d79d6d4d4121022658400e1f93f3f491b6b8e98c0af1f45e30dd6a328894b7ea0569e0182c1e77',
+                outputScript:
+                    '76a914bc4932372bf33d57b3a21b2b2636919bc83a87a788ac',
+                value: '3962985',
+                sequenceNo: 4294967294,
+            },
+        ],
+        outputs: [
+            {
+                value: '0',
+                outputScript: '6a042e7865630d616e64616e6f746865726f6e65',
+            },
+            {
+                value: '551',
+                outputScript:
+                    '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
+                spentBy: {
+                    txid: '33805053250ab648e231ea61a70fc4027765c184c112cc0b83f05f7c9db6a4c5',
+                    outIdx: 12,
+                },
+            },
+            {
+                value: '3961979',
+                outputScript:
+                    '76a914bc4932372bf33d57b3a21b2b2636919bc83a87a788ac',
+                spentBy: {
+                    txid: 'f299dfce0030f9a0cf6d104b95182d973cf46111cfb3daaebb62b44c25d3f134',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        block: {
+            height: 778616,
+            hash: '00000000000000000fc2761e52b21752aee12a0f36b339f669a195b00a4a172e',
+            timestamp: '1675967591',
+        },
+        timeFirstSeen: '1675967197',
+        size: 254,
+        isCoinbase: false,
+        network: 'XEC',
+    },
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: true,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'off-spec alias registration',
+        replyAddress: 'ecash:qz7yjv3h90en64an5gdjkf3kjxdusw585u9j5rqxcg',
+        xecAmount: '0',
+    },
+};
