@@ -620,7 +620,7 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                              g_dust, reason));
 
     // Disallowed nVersion
-    t.nVersion = -1;
+    t.nVersion = std::numeric_limits<uint32_t>::max();
     reason.clear();
     BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
                               g_bare_multi, g_dust, reason));

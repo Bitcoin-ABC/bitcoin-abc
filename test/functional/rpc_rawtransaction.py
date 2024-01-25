@@ -828,10 +828,10 @@ class RawTransactionsTest(BitcoinTestFramework):
 
         # Test the minimum transaction version number that fits in a signed
         # 32-bit integer.
-        # As transaction version is unsigned, this should convert to its
+        # As transaction version is serialized unsigned, this should convert to its
         # unsigned equivalent.
         tx = CTransaction()
-        tx.nVersion = -0x80000000
+        tx.nVersion = 0x80000000
         rawtx = ToHex(tx)
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)
         assert_equal(decrawtx["version"], 0x80000000)
@@ -843,6 +843,20 @@ class RawTransactionsTest(BitcoinTestFramework):
         rawtx = ToHex(tx)
         decrawtx = self.nodes[0].decoderawtransaction(rawtx)
         assert_equal(decrawtx["version"], 0x7FFFFFFF)
+
+        # Test the minimum transaction version number that fits in an unsigned 32-bit integer.
+        tx = CTransaction()
+        tx.nVersion = 0
+        rawtx = ToHex(tx)
+        decrawtx = self.nodes[0].decoderawtransaction(rawtx)
+        assert_equal(decrawtx["version"], 0)
+
+        # Test the maximum transaction version number that fits in an unsigned 32-bit integer.
+        tx = CTransaction()
+        tx.nVersion = 0xFFFFFFFF
+        rawtx = tx.serialize().hex()
+        decrawtx = self.nodes[0].decoderawtransaction(rawtx)
+        assert_equal(decrawtx["version"], 0xFFFFFFFF)
 
         self.log.info("sendrawtransaction/testmempoolaccept with maxfeerate")
 

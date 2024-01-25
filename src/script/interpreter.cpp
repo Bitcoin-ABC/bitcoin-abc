@@ -1736,7 +1736,7 @@ bool GenericTransactionSignatureChecker<T>::CheckSequence(
 
     // Fail if the transaction's version number is not set high enough to
     // trigger BIP 68 rules.
-    if (static_cast<uint32_t>(txTo->nVersion) < 2) {
+    if (txTo->nVersion < 2) {
         return false;
     }
 

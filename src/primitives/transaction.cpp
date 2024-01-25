@@ -40,10 +40,10 @@ std::string CTxOut::ToString() const {
 }
 
 CMutableTransaction::CMutableTransaction()
-    : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
+    : nVersion{CTransaction::CURRENT_VERSION}, nLockTime{0} {}
 CMutableTransaction::CMutableTransaction(const CTransaction &tx)
-    : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion),
-      nLockTime(tx.nLockTime) {}
+    : vin(tx.vin), vout(tx.vout), nVersion{tx.nVersion},
+      nLockTime{tx.nLockTime} {}
 
 static uint256 ComputeCMutableTransactionHash(const CMutableTransaction &tx) {
     return (HashWriter{} << tx).GetHash();
@@ -95,7 +95,7 @@ unsigned int CTransaction::GetTotalSize() const {
 
 std::string CTransaction::ToString() const {
     std::string str;
-    str += strprintf("CTransaction(txid=%s, ver=%d, vin.size=%u, vout.size=%u, "
+    str += strprintf("CTransaction(txid=%s, ver=%u, vin.size=%u, vout.size=%u, "
                      "nLockTime=%u)\n",
                      GetId().ToString().substr(0, 10), nVersion, vin.size(),
                      vout.size(), nLockTime);

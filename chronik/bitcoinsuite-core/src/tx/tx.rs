@@ -50,7 +50,7 @@ pub struct Tx {
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct TxMut {
     /// nVersion of the tx.
-    pub version: i32,
+    pub version: u32,
     /// Tx inputs.
     pub inputs: Vec<TxInput>,
     /// Tx outputs.

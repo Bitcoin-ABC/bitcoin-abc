@@ -224,10 +224,7 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
               std::function<bool(const CTxOut &)> is_change_func) {
     entry.pushKV("txid", tx.GetId().GetHex());
     entry.pushKV("hash", tx.GetHash().GetHex());
-    // Transaction version is actually unsigned in consensus checks, just
-    // signed in memory, so cast to unsigned before giving it to the user.
-    entry.pushKV("version",
-                 static_cast<int64_t>(static_cast<uint32_t>(tx.nVersion)));
+    entry.pushKV("version", tx.nVersion);
     entry.pushKV("size", (int)::GetSerializeSize(tx));
     entry.pushKV("locktime", (int64_t)tx.nLockTime);
 

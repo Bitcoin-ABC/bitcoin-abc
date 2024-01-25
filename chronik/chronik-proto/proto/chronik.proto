@@ -85,7 +85,7 @@ message Tx {
     // TxId (little-endian) of the tx
     bytes txid = 1;
     // nVersion
-    int32 version = 2;
+    uint32 version = 2;
     // Inputs of the tx (aka. `vin`)
     repeated TxInput inputs = 3;
     // Outputs of the tx (aka. `vout`)

@@ -423,7 +423,7 @@ class CTransaction:
             self.nLockTime = tx.nLockTime
 
     def deserialize(self, f):
-        self.nVersion = int.from_bytes(f.read(4), "little", signed=True)
+        self.nVersion = int.from_bytes(f.read(4), "little")
         self.vin = deser_vector(f, CTxIn)
         self.vout = deser_vector(f, CTxOut)
         self.nLockTime = int.from_bytes(f.read(4), "little")
@@ -436,7 +436,7 @@ class CTransaction:
 
     def serialize(self) -> bytes:
         return (
-            self.nVersion.to_bytes(4, "little", signed=True)
+            self.nVersion.to_bytes(4, "little")
             + ser_vector(self.vin)
             + ser_vector(self.vout)
             + self.nLockTime.to_bytes(4, "little")

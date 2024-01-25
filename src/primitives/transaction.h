@@ -159,7 +159,7 @@ class CMutableTransaction;
 
 /**
  * Basic transaction serialization format:
- * - int32_t nVersion
+ * - uint32_t nVersion
  * - std::vector<CTxIn> vin
  * - std::vector<CTxOut> vout
  * - uint32_t nLockTime
@@ -192,11 +192,11 @@ inline void SerializeTransaction(const TxType &tx, Stream &s) {
 class CTransaction {
 public:
     // Default transaction version.
-    static constexpr int32_t CURRENT_VERSION = 2;
+    static constexpr uint32_t CURRENT_VERSION{2};
 
     // Consensus: Valid min/max for nVersion, enforced as a consensus rule after
     // Wellington.
-    static constexpr int32_t MIN_VERSION = 1, MAX_VERSION = 2;
+    static constexpr uint32_t MIN_VERSION = 1, MAX_VERSION = 2;
 
     // The local variables are made const to prevent unintended modification
     // without updating the cached hash value. However, CTransaction is not
@@ -205,7 +205,7 @@ public:
     // structure, including the hash.
     const std::vector<CTxIn> vin;
     const std::vector<CTxOut> vout;
-    const int32_t nVersion;
+    const uint32_t nVersion;
     const uint32_t nLockTime;
 
 private:
@@ -275,7 +275,7 @@ class CMutableTransaction {
 public:
     std::vector<CTxIn> vin;
     std::vector<CTxOut> vout;
-    int32_t nVersion;
+    uint32_t nVersion;
     uint32_t nLockTime;
 
     CMutableTransaction();

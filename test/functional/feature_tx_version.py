@@ -22,7 +22,17 @@ from test_framework.txtools import pad_tx
 from test_framework.util import assert_greater_than_or_equal
 
 OK_VERSIONS = [1, 2]
-BAD_VERSIONS = [-0x80000000, -0x7FFFFFFF, -2, -1, 0, 3, 7, 0x100, 0x7FFFFFFF]
+BAD_VERSIONS = [
+    0x80000000,
+    0x80000001,
+    0xFFFFFFFE,
+    0xFFFFFFFF,
+    0,
+    3,
+    7,
+    0x100,
+    0x7FFFFFFF,
+]
 
 START_TIME = 1_900_000_000
 

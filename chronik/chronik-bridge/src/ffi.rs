@@ -75,7 +75,7 @@ mod ffi_inner {
         /// TxId of the tx.
         pub txid: [u8; 32],
         /// nVersion of the tx.
-        pub version: i32,
+        pub version: u32,
         /// Tx inputs.
         pub inputs: Vec<TxInput>,
         /// Tx outputs.
