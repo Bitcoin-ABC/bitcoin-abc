@@ -5,6 +5,7 @@ import { WalletContext } from 'utils/context';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { QRCode } from 'components/Common/QRCode';
 import { LoadingCtn } from 'components/Common/Atoms';
+import useWindowDimensions from 'hooks/useWindowDimensions';
 
 const QrCodeCtn = styled.div``;
 
@@ -16,21 +17,39 @@ export const ReceiveCtn = styled.div`
         margin-top: 10px;
     }
     ${QrCodeCtn} {
-        margin-top: 12%;
-        @media (max-width: 1000px) {
-            margin-top: 8%;
-        }
+        padding-top: 12px;
     }
 `;
 
 const ReceiveWithWalletPresent = ({ wallet }) => {
+    // Get device window width
+    // Size the QR code depending on device width
+    const { width, height } = useWindowDimensions();
+
+    const getQrCodeWidth = windowWidthPx => {
+        const CASHTAB_FULLSCREEN_WIDTH = 500;
+        if (windowWidthPx > CASHTAB_FULLSCREEN_WIDTH) {
+            // Good width for no scrolling, taking all available space
+            return 420;
+        }
+        // Extension or related
+        /// Weird height to see normally so make this a tightly-focused condition
+        if (width <= 400 && height <= 600) {
+            return 250;
+        }
+        // Otherwise return with constant padding relative to width
+        const CASHTAB_MOBILE_QR_PADDING = 75;
+        return windowWidthPx - CASHTAB_MOBILE_QR_PADDING;
+    };
     return (
-        <ReceiveCtn>
+        <ReceiveCtn data-testid="receive-ctn">
             {wallet && wallet.Path1899 && (
-                <QrCodeCtn>
+                <QrCodeCtn data-testid="qr-code-ctn">
                     <QRCode
                         id="borderedQRCode"
                         address={wallet.Path1899.cashAddress}
+                        size={getQrCodeWidth(width)}
+                        logoSizePx={width > 500 ? 48 : 24}
                     />
                 </QrCodeCtn>
             )}
@@ -44,7 +63,7 @@ const Receive = () => {
     return (
         <>
             {loading ? (
-                <LoadingCtn />
+                <LoadingCtn data-testid="rcv-loading" />
             ) : (
                 <>
                     {(wallet && wallet.Path1899) ||

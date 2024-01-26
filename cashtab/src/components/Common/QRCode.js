@@ -10,7 +10,7 @@ export const StyledRawQRCode = styled(RawQRCode)`
     cursor: pointer;
     border-radius: 10px;
     background: ${props => props.theme.qr.background};
-    margin: 24px;
+    margin: 12px;
     path:first-child {
         fill: ${props => props.theme.qr.background};
     }
@@ -19,13 +19,12 @@ export const StyledRawQRCode = styled(RawQRCode)`
     }
     @media (max-width: 768px) {
         border-radius: 18px;
-        width: 170px;
-        height: 170px;
     }
 `;
 
 const Copied = styled.div`
-    font-size: 18px;
+    font-size: 24px;
+    font-family: 'Roboto Mono', monospace;
     font-weight: bold;
     width: 100%;
     text-align: center;
@@ -36,21 +35,10 @@ const Copied = styled.div`
     position: absolute;
     top: 65px;
     padding: 30px 0;
-    @media (max-width: 768px) {
-        top: 52px;
-        padding: 20px 0;
-    }
 `;
 const PrefixLabel = styled.span`
     text-align: right;
-    font-weight: bold;
     color: ${props => props.theme.eCashBlue};
-    @media (max-width: 768px) {
-        font-size: 12px;
-    }
-    @media (max-width: 400px) {
-        font-size: 10px;
-    }
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -59,14 +47,7 @@ const PrefixLabel = styled.span`
     user-select: none;
 `;
 const AddressHighlightTrim = styled.span`
-    font-weight: bold;
     color: ${props => props.theme.contrast};
-    @media (max-width: 768px) {
-        font-size: 12px;
-    }
-    @media (max-width: 400px) {
-        font-size: 10px;
-    }
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -75,8 +56,10 @@ const AddressHighlightTrim = styled.span`
     user-select: none;
 `;
 
-const CustomInput = styled.div`
-    font-size: 14px;
+const ReceiveAddressHolder = styled.div`
+    width: 100%;
+    font-size: 30px;
+    font-weight: bold;
     color: ${props => props.theme.lightWhite};
     text-align: center;
     cursor: pointer;
@@ -113,28 +96,23 @@ const CustomInput = styled.div`
         background: transparent;
         color: ${props => props.theme.contrast};
     }
-    @media (max-width: 768px) {
-        font-size: 10px;
-        input {
-            font-size: 10px;
-            margin-bottom: 10px;
-        }
-    }
-    @media (max-width: 400px) {
-        font-size: 7px;
-        input {
-            font-size: 10px;
-            margin-bottom: 10px;
-        }
-    }
 `;
 
-export const QRCode = ({ address, size = 210, onClick = () => null }) => {
+const DisplayCopiedAddress = styled.span`
+    font-size: 24px;
+    word-wrap: break-word;
+`;
+
+export const QRCode = ({
+    address,
+    size = 210,
+    logoSizePx = 36,
+    onClick = () => null,
+}) => {
     address = address ? convertToEcashPrefix(address) : '';
 
     const [visible, setVisible] = useState(false);
-    const trimAmount = 8;
-    const address_trim = address ? address.length - trimAmount : '';
+    const trimAmount = 3;
     const addressSplit = address ? address.split(':') : [''];
     const addressPrefix = addressSplit[0];
     const prefixLength = addressPrefix.length + 1;
@@ -147,6 +125,20 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
         onClick(evt);
     };
 
+    const getCopiedAddressBlocks = (address, sliceSize) => {
+        const lineCount = Math.ceil(address.length / sliceSize);
+        const lines = [];
+        for (let i = 0; i < lineCount; i += 1) {
+            const thisLine = (
+                <div style={{ display: 'block' }} key={`address_slice_${i}`}>
+                    {address.slice(i * sliceSize, i * sliceSize + sliceSize)}
+                </div>
+            );
+            lines.push(thisLine);
+        }
+        return lines;
+    };
+
     return (
         <CopyToClipboard data={address}>
             <div
@@ -157,12 +149,19 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
                 }}
             >
                 <div style={{ position: 'relative' }} onClick={handleOnClick}>
-                    <Copied style={{ display: visible ? null : 'none' }}>
-                        Copied <br />
-                        <span style={{ fontSize: '12px' }}>{address}</span>
+                    <Copied
+                        data-testid="qr-code-copied"
+                        style={{ display: visible ? null : 'none' }}
+                    >
+                        Address Copied to Clipboard
+                        <br />
+                        <DisplayCopiedAddress>
+                            {getCopiedAddressBlocks(address, 6)}
+                        </DisplayCopiedAddress>
                     </Copied>
 
                     <StyledRawQRCode
+                        data-testid="raw-qr-code"
                         id="borderedQRCode"
                         value={address || ''}
                         size={size}
@@ -172,14 +171,14 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
                             src: appConfig.logo,
                             x: null,
                             y: null,
-                            height: 24,
-                            width: 24,
+                            height: logoSizePx,
+                            width: logoSizePx,
                             excavate: true,
                         }}
                     />
 
                     {address && (
-                        <CustomInput className="notranslate">
+                        <ReceiveAddressHolder className="notranslate">
                             <input
                                 readOnly
                                 value={address}
@@ -195,14 +194,11 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
                                     prefixLength + trimAmount,
                                 )}
                             </AddressHighlightTrim>
-                            {address.slice(
-                                prefixLength + trimAmount,
-                                address_trim,
-                            )}
+                            {'...'}
                             <AddressHighlightTrim>
                                 {address.slice(-trimAmount)}
                             </AddressHighlightTrim>
-                        </CustomInput>
+                        </ReceiveAddressHolder>
                     )}
                 </div>
             </div>
@@ -213,5 +209,6 @@ export const QRCode = ({ address, size = 210, onClick = () => null }) => {
 QRCode.propTypes = {
     address: PropTypes.string,
     size: PropTypes.number,
+    logoSizePx: PropTypes.number,
     onClick: PropTypes.func,
 };
