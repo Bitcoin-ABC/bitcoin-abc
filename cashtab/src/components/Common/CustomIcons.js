@@ -14,7 +14,6 @@ import {
     WarningOutlined,
     SwapOutlined,
     AppstoreAddOutlined,
-    FacebookOutlined,
     GithubOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
@@ -39,6 +38,7 @@ import { ReactComponent as Mail } from 'assets/mail.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 import { ReactComponent as User } from 'assets/user.svg';
 import { ReactComponent as XLogo } from 'assets/xlogo.svg';
+import { ReactComponent as Facebook } from 'assets/Facebook_Logo.svg';
 import appConfig from 'config/app';
 
 export const CashReceivedNotificationIcon = () => (
@@ -182,8 +182,11 @@ export const SocialContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 200px;
+    width: 220px;
+    height: 42px;
 `;
+
+// The :not(#F) is so the F in the Facebook logo is not filled on hover
 export const SocialLink = styled.a`
     width: 100%;
     height: 100%;
@@ -191,7 +194,7 @@ export const SocialLink = styled.a`
         :hover {
             svg {
                 fill: ${props => props.theme.eCashPurple};
-                path {
+                path:not(#F) {
                     fill: ${props => props.theme.eCashPurple};
                 }
             }
@@ -199,25 +202,12 @@ export const SocialLink = styled.a`
     }
 `;
 export const ThemedXIcon = styled(XLogo)`
-    height: 33px;
-    width: 30px;
-    margin-top: 5px;
-    path:hover {
-        fill: red;
-    }
+    height: 42px;
+    width: 100%;
 `;
-export const ThemedFacebookIcon = styled(FacebookOutlined)`
-    svg {
-        fill: ${props => props.theme.contrast} !important;
-    }
-    font-size: 42px;
-    @media (hover: hover) {
-        :hover {
-            svg {
-                fill: ${props => props.theme.eCashPurple} !important;
-            }
-        }
-    }
+export const ThemedFacebookIcon = styled(Facebook)`
+    height: 42px;
+    width: 100%;
 `;
 export const ThemedGithubIcon = styled(GithubOutlined)`
     svg {
