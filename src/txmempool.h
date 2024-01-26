@@ -562,33 +562,6 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
-     * Calculate all in-mempool ancestors of a set of transactions not already
-     * in the mempool and check ancestor and descendant limits. Heuristics are
-     * used to estimate the ancestor and descendant count of all entries if the
-     * package were to be added to the mempool.  The limits are applied to the
-     * union of all package transactions. For example, if the package has 3
-     * transactions and limitAncestorCount = 50, the union of all 3 sets of
-     * ancestors (including the transactions themselves) must be <= 47.
-     * @param[in]       package                 Transaction package being
-     *     evaluated for acceptance to mempool. The transactions need not be
-     *     direct ancestors/descendants of each other.
-     * @param[in]       limitAncestorCount      Max number of txns including
-     *     ancestors.
-     * @param[in]       limitAncestorSize       Max size including ancestors.
-     * @param[in]       limitDescendantCount    Max number of txns including
-     *     descendants.
-     * @param[in]       limitDescendantSize     Max size including descendants.
-     * @param[out]      errString               Populated with error reason if
-     *     a limit is hit.
-     */
-    bool CheckPackageLimits(const Package &package, uint64_t limitAncestorCount,
-                            uint64_t limitAncestorSize,
-                            uint64_t limitDescendantCount,
-                            uint64_t limitDescendantSize,
-                            std::string &errString) const
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
-
-    /**
      * Populate setDescendants with all in-mempool descendants of hash.
      * Assumes that setDescendants includes all in-mempool descendants of
      * anything already in it.
