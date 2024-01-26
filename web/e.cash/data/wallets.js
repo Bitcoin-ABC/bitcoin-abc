@@ -16,7 +16,7 @@ export const wallets = [
         image: '/images/electrum-abc.png',
         link: 'https://www.bitcoinabc.org/electrum/',
         availableOn: ['Desktop'],
-        features: ['eTokens', 'Message Signing', 'Multi-sig wallets'],
+        features: ['Message Signing', 'Multi-sig wallets'],
     },
     {
         name: 'RaiPay',
