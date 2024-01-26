@@ -8,7 +8,6 @@ import {
     convertToEcashPrefix,
     isLegacyMigrationRequired,
     convertEtokenToEcashAddr,
-    parseOpReturn,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
     isActiveWebsocket,
@@ -58,28 +57,6 @@ import {
     notLegacyWalletWithPath245OnBchPrefix,
     missingHash160,
 } from '../__mocks__/mockLegacyWalletsUtils';
-
-import {
-    shortCashtabMessageInputHex,
-    longCashtabMessageInputHex,
-    shortExternalMessageInputHex,
-    longExternalMessageInputHex,
-    shortSegmentedExternalMessageInputHex,
-    longSegmentedExternalMessageInputHex,
-    mixedSegmentedExternalMessageInputHex,
-    mockParsedShortCashtabMessageArray,
-    mockParsedLongCashtabMessageArray,
-    mockParsedShortExternalMessageArray,
-    mockParsedLongExternalMessageArray,
-    mockParsedShortSegmentedExternalMessageArray,
-    mockParsedLongSegmentedExternalMessageArray,
-    mockParsedMixedSegmentedExternalMessageArray,
-    eTokenInputHex,
-    mockParsedETokenOutputArray,
-    mockAirdropHexOutput,
-    mockParsedAirdropMessageArray,
-} from '../__mocks__/mockOpReturnParsedArray';
-
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
 import sendBCHMock from '../__mocks__/sendBCH';
 import {
@@ -106,7 +83,6 @@ import {
     mockMultipleOutputs,
 } from '../__mocks__/mockTxBuilderData';
 import createTokenMock from '../__mocks__/createToken';
-import { opReturn as opreturnConfig } from 'config/opreturn';
 import appConfig from 'config/app';
 
 it(`generateSendOpReturn() returns correct script object for valid tokenUtxo and send quantity`, () => {
@@ -1070,64 +1046,6 @@ describe('Correctly executes cash utility functions', () => {
         expect(
             isLegacyMigrationRequired(notLegacyWalletWithPath145OnBchPrefix),
         ).toBe(true);
-    });
-
-    test('parseOpReturn() successfully parses a short cashtab message', async () => {
-        const result = parseOpReturn(shortCashtabMessageInputHex);
-        expect(result).toStrictEqual(mockParsedShortCashtabMessageArray);
-    });
-
-    test('parseOpReturn() successfully parses a long cashtab message where an additional PUSHDATA1 is present', async () => {
-        const result = parseOpReturn(longCashtabMessageInputHex);
-        expect(result).toStrictEqual(mockParsedLongCashtabMessageArray);
-    });
-
-    test('parseOpReturn() successfully parses a short external message', async () => {
-        const result = parseOpReturn(shortExternalMessageInputHex);
-        expect(result).toStrictEqual(mockParsedShortExternalMessageArray);
-    });
-
-    test('parseOpReturn() successfully parses a long external message where an additional PUSHDATA1 is present', async () => {
-        const result = parseOpReturn(longExternalMessageInputHex);
-        expect(result).toStrictEqual(mockParsedLongExternalMessageArray);
-    });
-
-    test('parseOpReturn() successfully parses an external message that is segmented into separate short parts', async () => {
-        const result = parseOpReturn(shortSegmentedExternalMessageInputHex);
-        expect(result).toStrictEqual(
-            mockParsedShortSegmentedExternalMessageArray,
-        );
-    });
-
-    test('parseOpReturn() successfully parses an external message that is segmented into separate long parts', async () => {
-        const result = parseOpReturn(longSegmentedExternalMessageInputHex);
-        expect(result).toStrictEqual(
-            mockParsedLongSegmentedExternalMessageArray,
-        );
-    });
-
-    test('parseOpReturn() successfully parses an external message that is segmented into separate long and short parts', async () => {
-        const result = parseOpReturn(mixedSegmentedExternalMessageInputHex);
-        expect(result).toStrictEqual(
-            mockParsedMixedSegmentedExternalMessageArray,
-        );
-    });
-
-    test('parseOpReturn() successfully parses an eToken output', async () => {
-        const result = parseOpReturn(eTokenInputHex);
-        expect(result).toStrictEqual(mockParsedETokenOutputArray);
-    });
-
-    test('parseOpReturn() successfully parses an airdrop transaction', async () => {
-        const result = parseOpReturn(mockAirdropHexOutput);
-        // verify the hex output is parsed correctly
-        expect(result).toStrictEqual(mockParsedAirdropMessageArray);
-        // verify airdrop hex prefix is contained in the array returned from parseOpReturn()
-        expect(
-            result.find(
-                element => element === opreturnConfig.appPrefixesHex.airdrop,
-            ),
-        ).toStrictEqual(opreturnConfig.appPrefixesHex.airdrop);
     });
 
     test('convertEtokenToEcashAddr successfully converts a valid eToken address to eCash', async () => {

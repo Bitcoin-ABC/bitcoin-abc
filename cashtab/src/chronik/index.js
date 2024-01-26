@@ -1,7 +1,6 @@
 // Chronik methods
 import { BN } from 'slp-mdm';
 import {
-    parseOpReturn,
     getHashArrayFromWallet,
     convertEcashtoEtokenAddr,
     outputScriptToAddress,
@@ -9,6 +8,7 @@ import {
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import appConfig from 'config/app';
+import { getStackArray } from 'ecash-script';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -489,7 +489,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         tx.slpTxData.slpMeta.txType === 'GENESIS';
 
     // Initialize required variables
-    let substring = '';
     let airdropFlag = false;
     let airdropTokenId = '';
     let opReturnMessage = '';
@@ -579,104 +578,79 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     for (let i = 0; i < outputs.length; i += 1) {
         const thisOutput = outputs[i];
         const thisOutputReceivedAtHash160 = thisOutput.outputScript;
-        // Check for OP_RETURN msg
+
         if (
-            thisOutput.value === '0' &&
-            typeof thisOutput.slpToken === 'undefined'
+            thisOutputReceivedAtHash160.startsWith(
+                opreturnConfig.opReturnPrefixHex,
+            )
         ) {
-            let hex = thisOutputReceivedAtHash160;
-            let parsedOpReturnArray = parseOpReturn(hex);
+            // If this is an OP_RETURN output, parse it
+            const stackArray = getStackArray(thisOutputReceivedAtHash160);
 
-            if (!parsedOpReturnArray) {
-                console.log(
-                    'useBCH.parsedTxData() error: parsed array is empty',
-                );
-                break;
-            }
+            const lokad = stackArray[0];
+            switch (lokad) {
+                case opreturnConfig.appPrefixesHex.airdrop: {
+                    // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
+                    // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
+                    airdropFlag = true;
+                    // index 0 is drop prefix, 1 is the token Id, 2 is msg prefix, 3 is msg
+                    airdropTokenId =
+                        stackArray.length >= 2 ? stackArray[1] : 'N/A';
 
-            let message = '';
-            let txType = parsedOpReturnArray[0];
-
-            if (txType === opreturnConfig.appPrefixesHex.airdrop) {
-                // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
-                // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
-                airdropFlag = true;
-                // index 0 is drop prefix, 1 is the token Id, 2 is msg prefix, 3 is msg
-                airdropTokenId = parsedOpReturnArray[1];
-                txType = parsedOpReturnArray[2];
-
-                // remove the first two elements of airdrop prefix and token id from array so the array parsing logic below can remain unchanged
-                parsedOpReturnArray.splice(0, 2);
-                // index 0 now becomes msg prefix, 1 becomes the msg
-            }
-
-            if (txType === opreturnConfig.appPrefixesHex.cashtab) {
-                // if this is an alias registration, render accordingly
-                // isAliasRegistration = true;
-
-                // this is a Cashtab message
-                try {
-                    opReturnMessage = Buffer.from(
-                        parsedOpReturnArray[1],
-                        'hex',
-                    );
-                    isCashtabMessage = true;
-                } catch (err) {
-                    // soft error if an unexpected or invalid cashtab hex is encountered
-                    opReturnMessage = '';
-                    console.log(
-                        'useBCH.parsedTxData() error: invalid cashtab msg hex: ' +
-                            parsedOpReturnArray[1],
-                    );
+                    // Legacy airdrops used to add the Cashtab Msg lokad before a msg
+                    if (stackArray.length >= 3) {
+                        // If there are pushes beyond the token id, we have a msg
+                        isCashtabMessage = true;
+                        if (
+                            stackArray[2] ===
+                                opreturnConfig.appPrefixesHex.cashtab &&
+                            stackArray.length >= 4
+                        ) {
+                            // Legacy airdrops also pushed hte cashtab msg lokad before the msg
+                            opReturnMessage = Buffer.from(stackArray[3], 'hex');
+                        } else {
+                            opReturnMessage = Buffer.from(stackArray[2], 'hex');
+                        }
+                    }
+                    break;
                 }
-            } else if (
-                txType === opreturnConfig.appPrefixesHex.cashtabEncrypted
-            ) {
-                if (!incoming) {
-                    // outgoing encrypted messages currently can not be decrypted by sender's wallet since the message is encrypted with the recipient's pub key
-                    opReturnMessage =
-                        'Only the message recipient can view this';
+                case opreturnConfig.appPrefixesHex.cashtab: {
+                    isCashtabMessage = true;
+                    if (stackArray.length >= 2) {
+                        opReturnMessage = Buffer.from(stackArray[1], 'hex');
+                    } else {
+                        opReturnMessage = 'off-spec Cashtab Msg';
+                    }
+                    break;
+                }
+                case opreturnConfig.appPrefixesHex.cashtabEncrypted: {
+                    // Encrypted Cashtab msgs are deprecated, set a standard msg
                     isCashtabMessage = true;
                     isEncryptedMessage = true;
-                    continue; // skip to next output hex
+                    opReturnMessage = 'Encrypted Cashtab Msg';
+                    break;
                 }
-                isCashtabMessage = true;
-                isEncryptedMessage = true;
-                opReturnMessage = 'Encrypted Cashtab Msg';
-            } else if (
-                txType === opreturnConfig.appPrefixesHex.aliasRegistration
-            ) {
-                // if this is an alias registration transaction
-                aliasFlag = true;
-                if (parsedOpReturnArray.length >= 3) {
+                case opreturnConfig.appPrefixesHex.aliasRegistration: {
+                    aliasFlag = true;
+                    if (stackArray.length >= 3) {
+                        opReturnMessage = Buffer.from(stackArray[2], 'hex');
+                    } else {
+                        opReturnMessage = 'off-spec alias registration';
+                    }
+                    break;
+                }
+                default: {
+                    // utf8 decode
                     opReturnMessage = Buffer.from(
-                        parsedOpReturnArray[2],
+                        thisOutputReceivedAtHash160,
                         'hex',
                     );
-                } else {
-                    opReturnMessage = 'off-spec alias registration';
-                }
-            } else {
-                // this is an externally generated message
-                message = txType; // index 0 is the message content in this instance
 
-                // if there is more than one part to the external message
-                const arrayLength = parsedOpReturnArray.length;
-                for (let i = 1; i < arrayLength; i++) {
-                    message = message + parsedOpReturnArray[i];
-                }
-
-                try {
-                    opReturnMessage = Buffer.from(message, 'hex');
-                } catch (err) {
-                    // soft error if an unexpected or invalid cashtab hex is encountered
-                    opReturnMessage = '';
-                    console.log(
-                        `Error in parseChronikTx(${tx.txid}): invalid external msg hex: ` +
-                            substring,
-                    );
+                    break;
                 }
             }
+            // Continue to the next output, we do not need to parse values for OP_RETURN outputs
+            continue;
         }
         // Find amounts at your wallet's addresses
         for (let j = 0; j < walletHash160s.length; j += 1) {

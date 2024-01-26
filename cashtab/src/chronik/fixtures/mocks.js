@@ -12464,7 +12464,7 @@ export const outgoingEncryptedMsg = {
         airdropFlag: false,
         airdropTokenId: '',
         aliasFlag: false,
-        opReturnMessage: 'Only the message recipient can view this',
+        opReturnMessage: 'Encrypted Cashtab Msg',
         isCashtabMessage: true,
         isEncryptedMessage: true,
         replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
