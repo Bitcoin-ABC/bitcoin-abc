@@ -6,6 +6,5 @@
 
 // note: time is in ms
 export const websocket = {
-    websocketDisconnectedRefreshInterval: 5000,
     websocketConnectedRefreshInterval: 10000,
 };

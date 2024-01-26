@@ -1537,13 +1537,6 @@ const useWallet = () => {
         },
         activateWallet: async (currentlyActiveWallet, walletToActivate) => {
             setLoading(true);
-            // Make sure that the wallet update interval is not called on the former wallet before this function completes
-            console.log(
-                `Suspending wallet update interval while new wallet is activated`,
-            );
-            setWalletRefreshInterval(
-                websocketConfig.websocketDisconnectedRefreshInterval,
-            );
             const newWallet = await activateWallet(
                 currentlyActiveWallet,
                 walletToActivate,
