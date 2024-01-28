@@ -8,11 +8,7 @@ import {
     MessageVerificationParamLabel,
     SidePaddingCtn,
 } from 'components/Common/Atoms';
-import {
-    errorNotification,
-    messageSignedNotification,
-    generalNotification,
-} from 'components/Common/Notifications';
+import { notification } from 'antd';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -109,13 +105,20 @@ const SignVerifyMsg = () => {
                 .toString('base64');
 
             setMessageSignature(messageSignature);
-            messageSignedNotification(messageSignature);
+            notification.success({
+                message: 'Message Signature Generated',
+                description: messageSignature,
+            });
         } catch (err) {
             let message;
             if (!err.error && !err.message) {
                 message = err.message || err.error || JSON.stringify(err);
             }
-            errorNotification(err, message, 'Message Signing Error');
+            notification.error({
+                message: 'Message Signing Error',
+                description: message,
+                duration: appConfig.notificationDurationLong,
+            });
             throw err;
         }
         // Hide the modal
@@ -144,21 +147,24 @@ const SignVerifyMsg = () => {
                 utxolib.networks.ecash.messagePrefix,
             );
         } catch (err) {
-            errorNotification(
-                err,
-                'Error',
-                'Unable to execute signature verification',
-            );
+            notification.error({
+                message: 'Error',
+                description: 'Unable to execute signature verification',
+                duration: appConfig.notificationDurationLong,
+            });
         }
 
         if (verification) {
-            generalNotification('Signature successfully verified', 'Verified');
+            notification.success({
+                message: 'Verified',
+                description: 'Signature successfully verified',
+            });
         } else {
-            errorNotification(
-                'Error',
-                'Signature does not match address and message',
-                'Called from SignVerifyMsg.js on invalid message signing',
-            );
+            notification.error({
+                message: 'Error',
+                description: 'Signature does not match address and message',
+                duration: appConfig.notificationDurationLong,
+            });
         }
 
         setShowConfirmMsgToVerify(false);
@@ -246,6 +252,7 @@ const SignVerifyMsg = () => {
                             <Form.Item>
                                 <SignMessageLabel>Message:</SignMessageLabel>
                                 <TextArea
+                                    data-testid="sign-message-textarea"
                                     name="signMessage"
                                     onChange={e => handleSignMsgChange(e)}
                                     showCount
@@ -290,6 +297,7 @@ const SignVerifyMsg = () => {
                                     )}
                             </Form.Item>
                             <SmartButton
+                                data-testid="sign-message-button"
                                 onClick={() => setShowConfirmMsgToSign(true)}
                                 disabled={!signMessageIsValid}
                             >
@@ -355,6 +363,7 @@ const SignVerifyMsg = () => {
                                     Message:
                                 </VerifyMessageLabel>
                                 <TextArea
+                                    data-testid="verify-message-textarea"
                                     name="verifyMessage"
                                     onChange={e => handleVerifyMsgChange(e)}
                                     showCount
@@ -392,6 +401,7 @@ const SignVerifyMsg = () => {
                                     Signature:
                                 </VerifyMessageLabel>
                                 <TextArea
+                                    data-testid="verify-message-signature"
                                     name="verifySignature"
                                     onChange={e => handleVerifySigChange(e)}
                                     showCount
@@ -401,6 +411,7 @@ const SignVerifyMsg = () => {
                                 </SignatureValidation>
                             </Form.Item>
                             <SmartButton
+                                data-testid="verify-message-button"
                                 onClick={() => setShowConfirmMsgToVerify(true)}
                                 disabled={
                                     !messageVerificationAddrIsValid ||

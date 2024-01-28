@@ -5,7 +5,6 @@ import {
     TokenReceivedNotificationIcon,
     ThemedUserProfileIcon,
 } from 'components/Common/CustomIcons';
-import { MessageSignedNotificationIcon } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
@@ -172,14 +171,6 @@ const errorNotification = (error, message, stringDescribingCallEvent) => {
     });
 };
 
-const messageSignedNotification = msgSignature => {
-    notification.success({
-        message: 'Message Signature Generated',
-        description: msgSignature,
-        icon: <MessageSignedNotificationIcon />,
-    });
-};
-
 const generalNotification = (data, msgStr) => {
     notification.success({
         message: msgStr,
@@ -197,7 +188,6 @@ export {
     xecReceivedNotificationWebsocket,
     eTokenReceivedNotification,
     errorNotification,
-    messageSignedNotification,
     generalNotification,
     burnTokenNotification,
 };

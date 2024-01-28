@@ -57,15 +57,6 @@ export const TokenReceivedNotificationIcon = () => (
         preview={false}
     />
 );
-
-export const MessageSignedNotificationIcon = () => (
-    <Image
-        src={appConfig.tokenLogo}
-        height={'33px'}
-        width={'30px'}
-        preview={false}
-    />
-);
 export const ThemedBurnOutlined = styled(FireOutlined)`
     color: ${props => props.theme.eCashPurple} !important;
 `;

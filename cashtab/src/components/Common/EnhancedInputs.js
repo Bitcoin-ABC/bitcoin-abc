@@ -352,6 +352,7 @@ export const DestinationAddressSingleWithoutQRScan = ({
         <AntdFormWrapper>
             <Form.Item {...otherProps}>
                 <Input
+                    data-testid="destination-address-single-without-qrscan"
                     prefix={<ThemedWalletOutlined />}
                     autoComplete="off"
                     {...inputProps}
