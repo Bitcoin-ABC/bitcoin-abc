@@ -1080,6 +1080,8 @@ BOOST_AUTO_TEST_CASE(addrman_is_terrible) {
     const auto addrman_min_fail{7 * 24h};
     const int32_t addrman_max_failures{10};
 
+    SetMockTime(now.time_since_epoch());
+
     // AddrInfo is initially terrible (never tried, not seen recently)
     BOOST_CHECK_EQUAL(
         TicksSinceEpoch<std::chrono::seconds>(addr_info.m_last_try), 0);
