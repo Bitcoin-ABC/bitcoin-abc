@@ -114,7 +114,7 @@ extern \"C\" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) { retu
 " ${_builds_without_main})
 
 if(NOT ${_builds_without_main})
-target_compile_definitions(fuzz PRIVATE PROVIDE_MAIN_FUNCTION)
+target_compile_definitions(fuzz PRIVATE PROVIDE_FUZZ_MAIN_FUNCTION)
 endif()
 
 target_link_libraries(fuzz server testutil rpcclient)
