@@ -21,6 +21,12 @@ import {
     swapTx,
     mockSwapWallet,
     aliasOffSpec,
+    PayButtonNoDataYesNonce,
+    PayButtonYesDataYesNonce,
+    PayButtonBadVersion,
+    PayButtonOffSpec,
+    PayButtonEmpty,
+    PayButtonYesDataNoNonce,
 } from './mocks';
 
 export default {
@@ -138,10 +144,49 @@ export default {
                 tokenInfoById: txHistoryTokenInfoById,
                 parsed: aliasOffSpec.parsed,
             },
-
-            // todo current airdrop format
-            // todo cashtab msg
-            // todo alias bug
+            {
+                description: 'PayButton tx with no data and payment id',
+                tx: PayButtonNoDataYesNonce.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: PayButtonNoDataYesNonce.parsed,
+            },
+            {
+                description: 'PayButton tx with data and payment id',
+                tx: PayButtonYesDataYesNonce.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: PayButtonYesDataYesNonce.parsed,
+            },
+            {
+                description: 'PayButton tx with no data and no payment id',
+                tx: PayButtonEmpty.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: PayButtonEmpty.parsed,
+            },
+            {
+                description: 'PayButton tx with data and no payment id',
+                tx: PayButtonYesDataNoNonce.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: PayButtonYesDataNoNonce.parsed,
+            },
+            {
+                description: 'PayButton tx with unsupported version number',
+                tx: PayButtonBadVersion.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: PayButtonBadVersion.parsed,
+            },
+            {
+                description:
+                    'Paybutton tx that does not have spec number of pushes',
+                tx: PayButtonOffSpec.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: PayButtonOffSpec.parsed,
+            },
         ],
         expectedErrors: [],
     },

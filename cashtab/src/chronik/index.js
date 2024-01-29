@@ -639,6 +639,34 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
                     }
                     break;
                 }
+                case opreturnConfig.appPrefixesHex.paybutton: {
+                    // Paybutton tx
+                    // For now, Cashtab only supports version 0 PayButton txs
+                    // ref doc/standards/paybutton.md
+                    // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
+
+                    // <lokad> <version> <data> <paymentId>
+
+                    if (stackArray.length !== 4) {
+                        opReturnMessage = 'off-spec PayButton tx';
+                        break;
+                    }
+                    if (stackArray[1] !== '00') {
+                        opReturnMessage = `Unsupported version PayButton tx: ${stackArray[1]}`;
+                        break;
+                    }
+                    const dataHex = stackArray[2];
+                    const nonceHex = stackArray[3];
+
+                    opReturnMessage = `PayButton${
+                        nonceHex !== '00' ? ` (${nonceHex})` : ''
+                    }${
+                        dataHex !== '00'
+                            ? `: ${Buffer.from(dataHex, 'hex').toString()}`
+                            : ''
+                    }`;
+                    break;
+                }
                 default: {
                     // utf8 decode
                     opReturnMessage = Buffer.from(
@@ -719,6 +747,9 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
     // Get decimal info for correct etokenAmount
     let genesisInfo = {};
 
+    // Convert opReturnMessage to string
+    opReturnMessage = Buffer.from(opReturnMessage).toString();
+
     if (isEtokenTx) {
         // Get token genesis info from cache
         let decimals = 0;
@@ -742,9 +773,6 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
         }
     }
     etokenAmount = etokenAmount.toString();
-
-    // Convert opReturnMessage to string
-    opReturnMessage = Buffer.from(opReturnMessage).toString();
 
     // Return eToken specific fields if eToken tx
     if (isEtokenTx) {

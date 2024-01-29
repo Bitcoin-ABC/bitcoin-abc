@@ -13050,3 +13050,209 @@ export const aliasOffSpec = {
         xecAmount: '0',
     },
 };
+export const PayButtonNoDataYesNonce = {
+    tx: {
+        txid: 'f2ca747f0780c6cda32a43418b4dd55112b709577f64436d80ab1a38e4f2787a',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '00bfb4625325fe6e6a3ce34eb3ed7214167644e2eca892db207a44ea3262effc',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '411b57cfa0bcc8e1f1c02f0dfed248688bf1e337e75d9c2775324e55b5d6d2085260303c3f77437d7bc0f1533ea816e7c8e4b77175ff3c9e61ce2e21b5e1dc95014121027a70b0f8b59cbb83a64cacbf4fca79e5c9a4f655f325d0936ed4eebced3cb8aa',
+                outputScript:
+                    '76a91403c63d3a52cde136da8858e9d0ffaa810cb6639288ac',
+                value: '7146',
+                sequenceNo: 4294967294,
+            },
+        ],
+        outputs: [
+            {
+                value: '0',
+                outputScript: '6a0450415900000008d980190d13019567',
+            },
+            {
+                value: '1800',
+                outputScript:
+                    '76a914f66d2760b20dc7a47d9cf1a2b2f49749bf7093f688ac',
+            },
+            {
+                value: '3876',
+                outputScript:
+                    '76a91401bfce4ff373b108bd65b4da08de621ade85adb588ac',
+            },
+        ],
+        lockTime: 0,
+        block: {
+            height: 828922,
+            hash: '0000000000000000018b4f795d767bce0438dedf67d2904e35da7d746065af1a',
+            timestamp: '1706323334',
+        },
+        timeFirstSeen: '0',
+        size: 245,
+        isCoinbase: false,
+        network: 'XEC',
+    },
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'PayButton (d980190d13019567)',
+        replyAddress: 'ecash:qqpuv0f62tx7zdk63pvwn58l42qsednrjgnt0czndd',
+        xecAmount: '0',
+    },
+};
+export const PayButtonYesDataYesNonce = {
+    tx: {
+        txid: '952dd66d7145330d8d3b2f09abbee33344e8aa65b7483cfaa9d278ec55379e29',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '37a740f89ab6c212f211150f35fb1e12cd80f287b825126eed262999ea4264b8',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41fc1401150778a0d47d5279ccdaa13298cfa43e25d8d37d37570291207a92098beefa8fb25b8fb9cb2c4d7b5f98b7ff377c54932e0e67f4db2fc127ed86e01b1a4121024b60abfca9302b9bf5731faca03fd4f0b06391621a4cd1d57fffd6f1179bb9ba',
+                outputScript:
+                    '76a914e628f12f1e911c9f20ec2eeb1847e3a2ffad5fcc88ac',
+                value: '3403110',
+                sequenceNo: 4294967294,
+            },
+        ],
+        outputs: [
+            {
+                value: '0',
+                outputScript:
+                    '6a04504159000008f09f9882f09f918d0869860643e4dc4c88',
+            },
+            {
+                value: '3392102',
+                outputScript:
+                    '76a914e573dd89a61f8daeb56bf5b5fb5d7cd86e31ab2e88ac',
+            },
+            {
+                value: '9490',
+                outputScript:
+                    '76a914697ae72b062557fa69f9d4d09182529da368ab6988ac',
+            },
+        ],
+        lockTime: 0,
+        block: {
+            height: 828920,
+            hash: '00000000000000000d6a683b11a6bdaab4b79b15f100daa9361d02207667de1d',
+            timestamp: '1706323234',
+        },
+        timeFirstSeen: '0',
+        size: 253,
+        isCoinbase: false,
+        network: 'XEC',
+    },
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'PayButton (69860643e4dc4c88): 😂👍',
+        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
+        xecAmount: '0',
+    },
+};
+
+// No data no payment id
+const PayButtonEmptyTx = JSON.parse(
+    JSON.stringify(PayButtonYesDataYesNonce.tx),
+);
+// Create a tx with 00 in paymentId and nonce spaces
+PayButtonEmptyTx.outputs[0].outputScript = '6a0450415900000000';
+export const PayButtonEmpty = {
+    tx: PayButtonEmptyTx,
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'PayButton',
+        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
+        xecAmount: '0',
+    },
+};
+// data and no payment id
+const PayButtonYesDataNoNonceTx = JSON.parse(
+    JSON.stringify(PayButtonYesDataYesNonce.tx),
+);
+// Create a tx with 00 in paymentId and nonce spaces
+PayButtonYesDataNoNonceTx.outputs[0].outputScript =
+    '6a0450415900000e6f6e6c792064617461206865726500';
+export const PayButtonYesDataNoNonce = {
+    tx: PayButtonYesDataNoNonceTx,
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'PayButton: only data here',
+        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
+        xecAmount: '0',
+    },
+};
+
+// Off spec paybutton tx
+const PayButtonOffSpecTx = JSON.parse(
+    JSON.stringify(PayButtonYesDataYesNonce.tx),
+);
+// Create a tx with 3 pushes instead of expected 4
+PayButtonOffSpecTx.outputs[0].outputScript = '6a04504159000008f09f9882f09f918d';
+export const PayButtonOffSpec = {
+    tx: PayButtonOffSpecTx,
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'off-spec PayButton tx',
+        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
+        xecAmount: '0',
+    },
+};
+
+// Unsupported version paybutton tx
+const PayButtonBadVersionTx = JSON.parse(
+    JSON.stringify(PayButtonYesDataYesNonce.tx),
+);
+// Force a version 1 tx
+PayButtonBadVersionTx.outputs[0].outputScript =
+    '6a0450415900010108f09f9882f09f918d0869860643e4dc4c88';
+export const PayButtonBadVersion = {
+    tx: PayButtonBadVersionTx,
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'Unsupported version PayButton tx: 01',
+        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
+        xecAmount: '0',
+    },
+};
