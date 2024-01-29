@@ -19,7 +19,8 @@ const TestingSetup *g_setup;
 } // namespace
 
 void initialize_load_external_block_file() {
-    static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
+    static const auto testing_setup =
+        MakeNoLogFileContext<const TestingSetup>();
     g_setup = testing_setup.get();
 }
 

@@ -39,7 +39,8 @@ bool operator==(const Coin &a, const Coin &b) {
 } // namespace
 
 void initialize_coins_view() {
-    static const auto testing_setup = MakeFuzzingContext<const TestingSetup>();
+    static const auto testing_setup =
+        MakeNoLogFileContext<const TestingSetup>();
     g_setup = testing_setup.get();
 }
 

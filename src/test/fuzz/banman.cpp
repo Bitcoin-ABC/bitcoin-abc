@@ -30,7 +30,7 @@ ConsumeBanTimeOffset(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 } // namespace
 
 void initialize_banman() {
-    static const auto testing_setup = MakeFuzzingContext<>();
+    static const auto testing_setup = MakeNoLogFileContext<>();
 }
 
 FUZZ_TARGET_INIT(banman, initialize_banman) {

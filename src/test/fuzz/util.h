@@ -304,8 +304,8 @@ inline CNode ConsumeNode(FuzzedDataProvider &fuzzed_data_provider) noexcept {
 
 template <class T = const BasicTestingSetup>
 std::unique_ptr<T>
-MakeFuzzingContext(const std::string &chain_name = CBaseChainParams::REGTEST,
-                   const std::vector<const char *> &extra_args = {}) {
+MakeNoLogFileContext(const std::string &chain_name = CBaseChainParams::REGTEST,
+                     const std::vector<const char *> &extra_args = {}) {
     // Prepend default arguments for fuzzing
     const std::vector<const char *> arguments = Cat(
         {
