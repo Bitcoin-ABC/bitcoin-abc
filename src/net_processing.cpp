@@ -2519,7 +2519,6 @@ bool PeerManagerImpl::MaybePunishNodeForTx(NodeId nodeid,
             }
             return true;
         // Conflicting (but not necessarily invalid) data or different policy:
-        case TxValidationResult::TX_RECENT_CONSENSUS_CHANGE:
         case TxValidationResult::TX_INPUTS_NOT_STANDARD:
         case TxValidationResult::TX_NOT_STANDARD:
         case TxValidationResult::TX_MISSING_INPUTS:

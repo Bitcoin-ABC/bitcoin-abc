@@ -18,11 +18,6 @@ enum class TxValidationResult {
     TX_RESULT_UNSET = 0,
     //! invalid by consensus rules
     TX_CONSENSUS,
-    /**
-     * Invalid by a recent change to consensus rules.
-     * Currently unused as there are no such consensus rule changes.
-     */
-    TX_RECENT_CONSENSUS_CHANGE,
     //! inputs failed policy rules
     TX_INPUTS_NOT_STANDARD,
     //! otherwise didn't meet our local policy rules
