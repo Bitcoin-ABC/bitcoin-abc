@@ -194,6 +194,24 @@ struct TestChain100Setup : public TestingSetup {
 
     ~TestChain100Setup();
 
+    /**
+     * Create transactions spending from m_coinbase_txns. These transactions
+     * will only spend coins that exist in the current chain, but may be
+     * premature coinbase spends, have missing signatures, or violate some other
+     * consensus rules. They should only be used for testing mempool
+     * consistency. All transactions will have some random number of inputs and
+     * outputs (between 1 and 24). Transactions may or may not be dependent upon
+     * each other; if dependencies exit, every parent will always be somewhere
+     * in the list before the child so each transaction can be submitted in the
+     * same order they appear in the list.
+     * @param[in]   submit      When true, submit transactions to the mempool.
+     *                          When false, return them but don't submit them.
+     * @returns A vector of transactions that can be submitted to the mempool.
+     */
+    std::vector<CTransactionRef> PopulateMempool(FastRandomContext &det_rand,
+                                                 size_t num_transactions,
+                                                 bool submit);
+
     // For convenience, coinbase transactions.
     std::vector<CTransactionRef> m_coinbase_txns;
     // private/public key needed to spend coinbase transactions.
