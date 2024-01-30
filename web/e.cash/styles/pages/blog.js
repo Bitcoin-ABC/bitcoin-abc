@@ -190,6 +190,17 @@ export const PostBorder = styled.div`
     img {
         width: 100%;
     }
+
+    pre {
+        text-wrap: wrap;
+        overflow-wrap: break-word;
+        word-break: break-all;
+        padding: 20px;
+        font-size: 16px;
+        border: 1px solid ${props => props.theme.colors.primaryLight};
+        background-color: ${props => props.theme.colors.black};
+        color: ${props => props.theme.colors.primaryLight};
+    }
 `;
 
 export const MainPostImage = styled.div`
