@@ -450,9 +450,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			bitcoin-qt
 	)
 
-	include(DoOrFail)
-	find_program_or_fail(CMAKE_OTOOL "otool")
-
 	set(QT_BASE_TRANSLATIONS
 		"ar" "bg" "ca" "cs" "da" "de" "es" "fa" "fi" "fr" "gd" "gl" "he" "hu"
 		"it" "ja" "ko" "lt" "lv" "pl" "pt" "ru" "sk" "sl" "sv" "uk" "zh_CN"
@@ -503,7 +500,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 			"${APP_DIST_DIR}"
 			"${APP_DSSTORE}"
 		COMMAND
-			"OTOOL=${CMAKE_OTOOL}"
+			"OBJDUMP=${CMAKE_OBJDUMP}"
 			"${Python_EXECUTABLE}"
 			"${MACDEPLOYQTPLUS}"
 			"${STRIPPED_BUNDLE}"
@@ -533,6 +530,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	)
 
 	if(CMAKE_CROSSCOMPILING)
+		include(DoOrFail)
 		find_program_or_fail(ZIP_EXECUTABLE zip)
 
 		set(ZIP_ARCHIVE_NAME "${OSX_VOLNAME}.zip")

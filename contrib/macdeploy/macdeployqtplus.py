@@ -85,7 +85,7 @@ class FrameworkInfo(object):
     bundleBinaryDirectory = "Contents/MacOS"
 
     @classmethod
-    def fromOtoolLibraryLine(cls, line: str) -> Optional["FrameworkInfo"]:
+    def fromLibraryLine(cls, line: str) -> Optional["FrameworkInfo"]:
         # Note: line must be trimmed
         if line == "":
             return None
@@ -101,7 +101,7 @@ class FrameworkInfo(object):
 
         m = cls.reOLine.match(line)
         if m is None:
-            raise RuntimeError(f"otool line could not be parsed: {line}")
+            raise RuntimeError(f"Line could not be parsed: {line}")
 
         path = m.group(1)
 
@@ -136,7 +136,7 @@ class FrameworkInfo(object):
                 i += 1
             if i == len(parts):
                 raise RuntimeError(
-                    f"Could not find .framework or .dylib in otool line: {line}"
+                    f"Could not find .framework or .dylib in line: {line}"
                 )
 
             info.frameworkName = parts[i]
@@ -218,27 +218,30 @@ class DeploymentInfo(object):
 
 
 def getFrameworks(binaryPath: str, verbose: int) -> List[FrameworkInfo]:
+    objdump = os.getenv("OBJDUMP", "objdump")
     if verbose:
-        print(f"Inspecting with otool: {binaryPath}")
-    otoolbin = os.getenv("OTOOL", "otool")
-    otool = run(
-        [otoolbin, "-L", binaryPath], stdout=PIPE, stderr=PIPE, universal_newlines=True
+        print(f"Inspecting with {objdump}: {binaryPath}")
+    output = run(
+        [objdump, "--macho", "--dylibs-used", binaryPath],
+        stdout=PIPE,
+        stderr=PIPE,
+        text=True,
     )
-    if otool.returncode != 0:
-        sys.stderr.write(otool.stderr)
+    if output.returncode != 0:
+        sys.stderr.write(output.stderr)
         sys.stderr.flush()
-        raise RuntimeError(f"otool failed with return code {otool.returncode}")
+        raise RuntimeError(f"{objdump} failed with return code {output.returncode}")
 
-    otoolLines = otool.stdout.split("\n")
-    otoolLines.pop(0)  # First line is the inspected binary
+    lines = output.stdout.split("\n")
+    lines.pop(0)  # First line is the inspected binary
     if ".framework" in binaryPath or binaryPath.endswith(".dylib"):
         # Frameworks and dylibs list themselves as a dependency.
-        otoolLines.pop(0)
+        lines.pop(0)
 
     libraries = []
-    for line in otoolLines:
+    for line in lines:
         line = line.replace("@loader_path", os.path.dirname(binaryPath))
-        info = FrameworkInfo.fromOtoolLibraryLine(line.strip())
+        info = FrameworkInfo.fromLibraryLine(line.strip())
         if info is not None:
             if verbose:
                 print("Found framework:")
