@@ -179,12 +179,7 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
             node.sendavalancheproof(proof.serialize().hex())
             assert uint256_hex(proof.proofid) in node.getavalancheproofs()["valid"]
 
-        node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
-
-        outbound.wait_until(lambda: outbound.last_message.get("getavaproofs"))
-        with p2p_lock:
-            outbound.last_message = {}
-        outbound.send_and_ping(compactproofs_msg)
+        trigger_avaproofs(compactproofs_msg)
 
         # Now the proofs should be all present
         assert_remote_proofs(
