@@ -763,7 +763,7 @@ const SendXec = ({ passLoadingStatus }) => {
                     )}
                 </p>
             </Modal>
-            <SidePaddingCtn>
+            <SidePaddingCtn data-testid="send-xec-ctn">
                 <Row type="flex">
                     <Col span={24}>
                         <Form

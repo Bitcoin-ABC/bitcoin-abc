@@ -492,7 +492,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                 <Progress percent={airdropCalcModalProgress} />
             </StyledModal>
             <br />
-            <SidePaddingCtn>
+            <SidePaddingCtn data-testid="airdrop-ctn">
                 <Row type="flex">
                     <Col span={24}>
                         <CustomCollapseCtn

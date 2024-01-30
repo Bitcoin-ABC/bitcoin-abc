@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import App from 'components/App';
 import { ThemeProvider } from 'styled-components';
@@ -9,7 +10,7 @@ import {
     newCashtabUserContext,
 } from 'components/fixtures/mocks';
 import { WalletContext } from 'utils/context';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 function mockFunction() {
     const original = jest.requireActual('react-router-dom');
@@ -55,6 +56,97 @@ window.matchMedia = query => ({
 });
 
 describe('<App />', () => {
+    it('Renders 404 on a bad route', async () => {
+        render(
+            <MemoryRouter initialEntries={['/not-a-route']}>
+                <WalletContext.Provider value={mockWalletContext}>
+                    <ThemeProvider theme={theme}>
+                        <App />
+                    </ThemeProvider>
+                </WalletContext.Provider>
+            </MemoryRouter>,
+        );
+
+        // We get the 404
+        expect(screen.queryByTestId('not-found')).toBeInTheDocument();
+    });
+    it('Navigation menu routes to expected components', async () => {
+        render(
+            <BrowserRouter>
+                <WalletContext.Provider value={mockWalletContext}>
+                    <ThemeProvider theme={theme}>
+                        <App />
+                    </ThemeProvider>
+                </WalletContext.Provider>
+            </BrowserRouter>,
+        );
+        const user = userEvent.setup();
+
+        // Default route is home
+        expect(screen.queryByTestId('home-ctn')).toBeInTheDocument();
+
+        // Navigate to Send screen
+        await user.click(screen.queryByTestId('nav-btn-send'));
+
+        // Now we see the Send screen
+        expect(screen.queryByTestId('send-xec-ctn')).toBeInTheDocument();
+
+        // Navigate to eTokens screen
+        await user.click(screen.queryByTestId('nav-btn-etokens'));
+
+        // Now we see the eTokens screen
+        expect(screen.queryByTestId('etokens-ctn')).toBeInTheDocument();
+
+        // Navigate to Receive screen
+        await user.click(screen.queryByTestId('nav-btn-receive'));
+
+        // Now we see the Receive screen
+        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+
+        // We do not expect to see hamburger menu items before the menu is clicked
+        // This is handled by dynamic css changes, so test that
+        expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
+            `max-height: 0`,
+        );
+
+        // Click the hamburger menu
+        await user.click(screen.queryByTestId('hamburger'));
+
+        // Now we see these items
+        expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
+            `max-height: 100rem`,
+        );
+
+        // Navigate to Airdrop screen
+        await user.click(screen.queryByTestId('nav-btn-airdrop'));
+
+        // Now we see the Airdrop screen
+        expect(screen.queryByTestId('airdrop-ctn')).toBeInTheDocument();
+
+        // The hamburger menu closes on nav
+        expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
+            `max-height: 0`,
+        );
+
+        // ... but, we can still click these items with the testing library, so we do
+        // Navigate to Swap screen
+        await user.click(screen.queryByTestId('nav-btn-swap'));
+
+        // Now we see the Swap screen
+        expect(screen.queryByTestId('swap-ctn')).toBeInTheDocument();
+
+        // Navigate to SignVerifyMsg screen
+        await user.click(screen.queryByTestId('nav-btn-signverifymsg'));
+
+        // Now we see the SignVerifyMsg screen
+        expect(screen.queryByTestId('signverifymsg-ctn')).toBeInTheDocument();
+
+        // Navigate to Settings screen
+        await user.click(screen.queryByTestId('nav-btn-configure'));
+
+        // Now we see the Settings screen
+        expect(screen.queryByTestId('configure-ctn')).toBeInTheDocument();
+    });
     it('Renders the App screen showing normal wallet info for a created wallet', async () => {
         render(
             <BrowserRouter>

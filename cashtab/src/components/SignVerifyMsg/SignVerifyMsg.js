@@ -225,7 +225,7 @@ const SignVerifyMsg = () => {
 
     return (
         <Wrapper>
-            <SidePaddingCtn>
+            <SidePaddingCtn data-testid="signverifymsg-ctn">
                 <Modal
                     title={`Please review and confirm your message to be signed using this wallet.`}
                     open={showConfirmMsgToSign}

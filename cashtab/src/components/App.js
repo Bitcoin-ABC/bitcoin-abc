@@ -659,6 +659,7 @@ const App = () => {
                                 </NavButton>
 
                                 <NavButton
+                                    data-testid="nav-btn-send"
                                     active={selectedKey === 'send'}
                                     onClick={() => history.push('/send')}
                                 >
@@ -669,6 +670,7 @@ const App = () => {
                                     />
                                 </NavButton>
                                 <NavButton
+                                    data-testid="nav-btn-etokens"
                                     active={selectedKey === 'etokens'}
                                     onClick={() => history.push('/etokens')}
                                 >
@@ -679,15 +681,23 @@ const App = () => {
                                     />
                                 </NavButton>
                                 <NavButton
+                                    data-testid="nav-btn-receive"
                                     active={selectedKey === 'receive'}
                                     onClick={() => history.push('receive')}
                                 >
                                     <ReceiveIcon />
                                 </NavButton>
-                                <NavWrapper onClick={handleNavMenuClick}>
+                                <NavWrapper
+                                    data-testid="hamburger"
+                                    onClick={handleNavMenuClick}
+                                >
                                     <NavIcon clicked={navMenuClicked} />
-                                    <NavMenu open={navMenuClicked}>
+                                    <NavMenu
+                                        data-testid="hamburger-menu"
+                                        open={navMenuClicked}
+                                    >
                                         <NavItem
+                                            data-testid="nav-btn-airdrop"
                                             active={selectedKey === 'airdrop'}
                                             onClick={() =>
                                                 history.push('/airdrop')
@@ -700,6 +710,7 @@ const App = () => {
                                         {process.env.REACT_APP_BUILD_ENV !==
                                             'extension' && (
                                             <NavItem
+                                                data-testid="nav-btn-swap"
                                                 active={selectedKey === 'swap'}
                                                 onClick={() =>
                                                     history.push('/swap')
@@ -711,6 +722,7 @@ const App = () => {
                                             </NavItem>
                                         )}
                                         <NavItem
+                                            data-testid="nav-btn-signverifymsg"
                                             active={
                                                 selectedKey === 'signverifymsg'
                                             }
@@ -734,6 +746,7 @@ const App = () => {
                                             </NavItem>
                                         )}
                                         <NavItem
+                                            data-testid="nav-btn-configure"
                                             active={selectedKey === 'configure'}
                                             onClick={() =>
                                                 history.push('/configure')

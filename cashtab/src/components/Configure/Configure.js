@@ -1235,7 +1235,7 @@ const Configure = ({ passLoadingStatus }) => {
     };
 
     return (
-        <SidePaddingCtn>
+        <SidePaddingCtn data-testid="configure-ctn">
             <StyledConfigure>
                 {savedWalletContactModal && (
                     <Modal

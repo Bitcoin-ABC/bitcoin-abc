@@ -45,7 +45,7 @@ const Etokens = () => {
             ) : (
                 <>
                     {wallet && wallet.Path1899 ? (
-                        <EtokensCtn>
+                        <EtokensCtn data-testid="etokens-ctn">
                             <br />
                             <SidePaddingCtn>
                                 <CreateToken

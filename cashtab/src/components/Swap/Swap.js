@@ -21,7 +21,7 @@ const Swap = () => {
         <>
             <br />
 
-            <SidePaddingCtn>
+            <SidePaddingCtn data-testid="swap-ctn">
                 <CustomCollapseCtn panelHeader="SideShift">
                     {isValidSideshiftObj(sideshift) ? (
                         <>
