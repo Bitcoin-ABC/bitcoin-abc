@@ -5,31 +5,12 @@ import {
     TokenReceivedNotificationIcon,
     ThemedUserProfileIcon,
 } from 'components/Common/CustomIcons';
-import Paragraph from 'antd/lib/typography/Paragraph';
 import { MessageSignedNotificationIcon } from 'components/Common/CustomIcons';
-import { isMobile } from 'react-device-detect';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
-const getDeviceNotificationStyle = () => {
-    if (isMobile) {
-        const notificationStyle = {
-            width: '100%',
-            marginTop: '10%',
-        };
-        return notificationStyle;
-    }
-    if (!isMobile) {
-        const notificationStyle = {
-            width: '100%',
-        };
-        return notificationStyle;
-    }
-};
-
 // Success Notifications:
 const sendXecNotification = link => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Success',
         description: (
@@ -39,93 +20,70 @@ const sendXecNotification = link => {
                 target="_blank"
                 rel="noopener noreferrer"
             >
-                <Paragraph>
-                    Transaction successful. Click to view in block explorer.
-                </Paragraph>
+                Transaction successful. Click to view in block explorer.
             </a>
         ),
         duration: appConfig.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
 const registerAliasNotification = (link, alias) => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Success',
         description: (
             <a href={link} target="_blank" rel="noopener noreferrer">
-                <Paragraph>
-                    Alias `{alias}` registration pending 1 confirmation.
-                </Paragraph>
+                Alias `{alias}` registration pending 1 confirmation.
             </a>
         ),
         duration: appConfig.notificationDurationShort,
         icon: <ThemedUserProfileIcon />,
-        style: notificationStyle,
     });
 };
 
 const createTokenNotification = link => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Success',
         description: (
             <a href={link} target="_blank" rel="noopener noreferrer">
-                <Paragraph>
-                    Token created! Click to view in block explorer.
-                </Paragraph>
+                Token created! Click to view in block explorer.
             </a>
         ),
         icon: <TokenReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
 const tokenIconSubmitSuccess = () => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Success',
-        description: (
-            <Paragraph>Your eToken icon was successfully submitted.</Paragraph>
-        ),
+        description: `Your eToken icon was successfully submitted.`,
         icon: <TokenReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
 const sendTokenNotification = link => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Success',
         description: (
             <a href={link} target="_blank" rel="noopener noreferrer">
-                <Paragraph>
-                    Transaction successful. Click to view in block explorer.
-                </Paragraph>
+                Transaction successful. Click to view in block explorer.
             </a>
         ),
         duration: appConfig.notificationDurationShort,
         icon: <TokenReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
 const burnTokenNotification = link => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Success',
         description: (
             <a href={link} target="_blank" rel="noopener noreferrer">
-                <Paragraph>
-                    eToken burn successful. Click to view in block explorer.
-                </Paragraph>
+                eToken burn successful. Click to view in block explorer.
             </a>
         ),
         duration: appConfig.notificationDurationLong,
         icon: <TokenReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
@@ -135,19 +93,17 @@ const xecReceivedNotification = (
     cashtabSettings,
     fiatPrice,
 ) => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Transaction received',
-        description: (
-            <Paragraph>
-                +{' '}
-                {parseFloat(
+        description: ` 
+                ${parseFloat(
                     Number(
                         balances.totalBalance - previousBalances.totalBalance,
                     ).toFixed(appConfig.cashDecimals),
-                ).toLocaleString()}{' '}
-                {appConfig.ticker}{' '}
-                {cashtabSettings &&
+                ).toLocaleString()} 
+                ${appConfig.ticker} 
+                ${
+                    cashtabSettings &&
                     cashtabSettings.fiatCurrency &&
                     `(${
                         supportedFiatCurrencies[cashtabSettings.fiatCurrency]
@@ -159,12 +115,11 @@ const xecReceivedNotification = (
                         ) * fiatPrice
                     ).toFixed(
                         appConfig.cashDecimals,
-                    )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
-            </Paragraph>
-        ),
+                    )} ${cashtabSettings.fiatCurrency.toUpperCase()})`
+                }
+            `,
         duration: appConfig.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
@@ -173,25 +128,23 @@ const xecReceivedNotificationWebsocket = (
     cashtabSettings,
     fiatPrice,
 ) => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'eCash received',
-        description: (
-            <Paragraph>
-                + {xecAmount.toLocaleString()} {appConfig.ticker}{' '}
-                {cashtabSettings &&
+        description: `
+                ${xecAmount.toLocaleString()} ${appConfig.ticker} 
+                ${
+                    cashtabSettings &&
                     cashtabSettings.fiatCurrency &&
                     `(${
                         supportedFiatCurrencies[cashtabSettings.fiatCurrency]
                             .symbol
                     }${(xecAmount * fiatPrice).toFixed(
                         appConfig.cashDecimals,
-                    )} ${cashtabSettings.fiatCurrency.toUpperCase()})`}
-            </Paragraph>
-        ),
+                    )} ${cashtabSettings.fiatCurrency.toUpperCase()})`
+                }
+            `,
         duration: appConfig.notificationDurationShort,
         icon: <CashReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
@@ -200,49 +153,37 @@ const eTokenReceivedNotification = (
     receivedSlpQty,
     receivedSlpName,
 ) => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
-        description: (
-            <Paragraph>
-                You received {receivedSlpQty.toString()} {receivedSlpName}
-            </Paragraph>
-        ),
+        description: `You received ${receivedSlpQty.toString()} ${receivedSlpName}`,
         duration: appConfig.notificationDurationShort,
         icon: <TokenReceivedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
 // Error Notification:
 
 const errorNotification = (error, message, stringDescribingCallEvent) => {
-    const notificationStyle = getDeviceNotificationStyle();
     console.log(error, message, stringDescribingCallEvent);
     notification.error({
         message: 'Error',
         description: message,
         duration: appConfig.notificationDurationLong,
-        style: notificationStyle,
     });
 };
 
 const messageSignedNotification = msgSignature => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: 'Message Signature Generated',
-        description: <Paragraph>{msgSignature}</Paragraph>,
+        description: msgSignature,
         icon: <MessageSignedNotificationIcon />,
-        style: notificationStyle,
     });
 };
 
 const generalNotification = (data, msgStr) => {
-    const notificationStyle = getDeviceNotificationStyle();
     notification.success({
         message: msgStr,
         description: data,
-        style: notificationStyle,
     });
 };
 
