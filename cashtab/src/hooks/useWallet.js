@@ -102,19 +102,6 @@ const useWallet = () => {
         };
     };
 
-    const loadWalletFromStorageOnStartup = async setWallet => {
-        // get wallet object from localforage
-        const wallet = await getWallet();
-        // If wallet object in storage is valid, use it to set state on startup
-        if (isValidStoredWallet(wallet)) {
-            setWallet(wallet);
-            return setLoading(false);
-        }
-        console.log(`Active wallet is not valid, loading params from API`);
-        // Loading will remain true until API calls populate this legacy wallet
-        setWallet(wallet);
-    };
-
     const update = async ({ wallet }) => {
         // Check if walletRefreshInterval is set to TRIGGER_UTXO_REFRESH_INTERVAL_MS, i.e. this was called by websocket tx detection
         if (walletRefreshInterval === TRIGGER_UTXO_REFRESH_INTERVAL_MS) {
@@ -1080,10 +1067,6 @@ const useWallet = () => {
         return setChronikWebsocket(ws);
     };
 
-    const handleUpdateWallet = async setWallet => {
-        await loadWalletFromStorageOnStartup(setWallet);
-    };
-
     const loadCashtabSettings = async () => {
         // get settings object from localforage
         let localSettings;
@@ -1451,7 +1434,7 @@ const useWallet = () => {
     };
 
     const cashtabBootup = async () => {
-        handleUpdateWallet(setWallet);
+        setWallet(await getWallet());
         await loadContactList();
         await loadCashtabCache();
         const initialSettings = await loadCashtabSettings();
@@ -1559,7 +1542,6 @@ const useWallet = () => {
         renameSavedWallet,
         renameActiveWallet,
         deleteWallet,
-        handleUpdateWallet,
         processChronikWsMsg,
     };
 };
