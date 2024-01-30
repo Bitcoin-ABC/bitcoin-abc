@@ -1509,6 +1509,7 @@ const useWallet = () => {
     return {
         chronik,
         wallet,
+        walletRefreshInterval,
         chaintipBlockheight,
         fiatPrice,
         loading,
