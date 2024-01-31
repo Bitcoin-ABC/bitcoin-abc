@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import RawQRCode from 'qrcode.react';
+import QRCodeSVG from 'qrcode.react';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from './CopyToClipboard';
 import appConfig from 'config/app';
 
-export const StyledRawQRCode = styled(RawQRCode)`
+export const CustomQRCode = styled(QRCodeSVG)`
     cursor: pointer;
     border-radius: 10px;
     background: ${props => props.theme.qr.background};
@@ -160,7 +160,7 @@ export const QRCode = ({
                         </DisplayCopiedAddress>
                     </Copied>
 
-                    <StyledRawQRCode
+                    <CustomQRCode
                         data-testid="raw-qr-code"
                         id="borderedQRCode"
                         value={address || ''}
