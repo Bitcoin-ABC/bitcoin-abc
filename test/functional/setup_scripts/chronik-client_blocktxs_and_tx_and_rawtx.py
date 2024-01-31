@@ -33,13 +33,14 @@ class ChronikClient_Block_Setup(SetupFramework):
         yield True
 
         self.log.info("Step 1: Broadcast ten txs")
-        txids = []
+        txs_and_rawtxs = {}
         for x in range(10):
             txid = self.nodes[0].sendtoaddress(
                 self.nodes[0].getnewaddress(), (x + 1) * 1000000
             )
-            txids.append(txid)
-        send_ipc_message({"txids": txids})
+            rawtx = self.nodes[0].getrawtransaction(txid)
+            txs_and_rawtxs[txid] = rawtx
+        send_ipc_message({"txs_and_rawtxs": txs_and_rawtxs})
         assert_equal(node.getblockcount(), 200)
         yield True
 

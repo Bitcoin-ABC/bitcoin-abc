@@ -11,11 +11,13 @@ chai.use(chaiAsPromised);
 describe('Get blocktxs and tx', () => {
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
-    let chronik_txids: Promise<Array<string>>;
+    let chronik_txs_and_rawtxs: Promise<{ [key: string]: string }>;
     const statusEvent = new EventEmitter();
 
     before(async () => {
-        testRunner = initializeTestRunner('chronik-client_blocktxs_and_tx');
+        testRunner = initializeTestRunner(
+            'chronik-client_blocktxs_and_tx_and_rawtx',
+        );
 
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
@@ -24,9 +26,9 @@ describe('Get blocktxs and tx', () => {
                     resolve([message.chronik]);
                 });
             }
-            if (message && message.txids) {
-                chronik_txids = new Promise(resolve => {
-                    resolve(message.txids);
+            if (message && message.txs_and_rawtxs) {
+                chronik_txs_and_rawtxs = new Promise(resolve => {
+                    resolve(message.txs_and_rawtxs);
                 });
             }
 
@@ -51,7 +53,8 @@ describe('Get blocktxs and tx', () => {
     const REGTEST_CHAIN_INIT_HEIGHT = 200;
 
     // Populate in step where setup script broadcasts txs
-    let txidsBroadcastInTest: Array<string> = [];
+    let txsAndRawTxsBroadcastInTest: { [key: string]: string } = {};
+    let broadcastTxids: string[] = [];
 
     it('New regtest chain', async () => {
         const chronikUrl = await chronik_url;
@@ -92,11 +95,21 @@ describe('Get blocktxs and tx', () => {
         // It's the same as getting it from blockTxs
         expect(coinbaseTx).to.deep.equal(tx);
 
+        // Gives us a coinbase rawTx by txid
+        const rawTx = await chronik.rawTx(coinbaseTx.txid);
+        expect(typeof rawTx.rawTx).to.eql('string');
+
         // Calling for a tx with an invalid txid throws expected error
         const notTxid = 'thisIsNotATxid';
         await expect(chronik.tx(notTxid)).to.be.rejectedWith(
             Error,
             `Failed getting /tx/${notTxid} (): 400: Not a txid: ${notTxid}`,
+        );
+
+        // Calling for a rawTx with an invalid txid throws expected error
+        await expect(chronik.rawTx(notTxid)).to.be.rejectedWith(
+            Error,
+            `Failed getting /raw-tx/${notTxid} (): 400: Not a txid: ${notTxid}`,
         );
 
         // Calling for a tx with a txid that does not exist throws expected error
@@ -106,19 +119,29 @@ describe('Get blocktxs and tx', () => {
             Error,
             `Failed getting /tx/${nonExistentTxid} (): 404: Transaction ${nonExistentTxid} not found in the index`,
         );
+
+        // Calling for a rawTx with a txid that does not exist throws expected error
+        await expect(chronik.rawTx(nonExistentTxid)).to.be.rejectedWith(
+            Error,
+            `Failed getting /raw-tx/${nonExistentTxid} (): 404: Transaction ${nonExistentTxid} not found in the index`,
+        );
     });
     it('After some txs have been broadcast', async () => {
         const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
-        txidsBroadcastInTest = await chronik_txids;
+        txsAndRawTxsBroadcastInTest = await chronik_txs_and_rawtxs;
+        broadcastTxids = Object.keys(txsAndRawTxsBroadcastInTest);
 
-        // Gives us a tx by txid
-        for (const txid of txidsBroadcastInTest) {
+        // Gives us a tx by txid, and gets the corresponding rawtx
+        for (const txid of broadcastTxids) {
             const tx = await chronik.tx(txid);
             // For unconfirmed txs, the block key is undefined
             expect(typeof tx.block).to.eql('undefined');
             // We get the tx we called
             expect(tx.txid).to.eql(txid);
+            // Gets the rawTx
+            const rawTx = await chronik.rawTx(txid);
+            expect(rawTx.rawTx).to.eql(txsAndRawTxsBroadcastInTest[txid]);
         }
     });
     it('After these txs are mined', async () => {
@@ -134,12 +157,15 @@ describe('Get blocktxs and tx', () => {
         );
 
         // Gives us a tx by txid
-        for (const txid of txidsBroadcastInTest) {
+        for (const txid of broadcastTxids) {
             const tx = await chronik.tx(txid);
             // For confirmed txs, we have a block key
             expect(tx.block?.height).to.eql(blockFromHeight.blockInfo.height);
             // We get the tx we called
             expect(tx.txid).to.eql(txid);
+            // Gets the rawTx
+            const rawTx = await chronik.rawTx(txid);
+            expect(rawTx.rawTx).to.eql(txsAndRawTxsBroadcastInTest[txid]);
         }
 
         // These txs are in the just-mined block
@@ -158,7 +184,7 @@ describe('Get blocktxs and tx', () => {
             blockTxsByHeight.txs.map(thisTx => {
                 return thisTx.txid;
             }),
-        ).to.have.all.members(txidsBroadcastInTest);
+        ).to.have.all.members(broadcastTxids);
 
         // We can customize pageSize for blockTxs
         const customPageSize = 3;
@@ -205,12 +231,15 @@ describe('Get blocktxs and tx', () => {
         );
 
         // Gives us a tx by txid
-        for (const txid of txidsBroadcastInTest) {
+        for (const txid of broadcastTxids) {
             const tx = await chronik.tx(txid);
             // Txs are back in the mempool and no longer have a block key
             expect(typeof tx.block).to.eql('undefined');
             // We get the tx we called
             expect(tx.txid).to.eql(txid);
+            // Gets the rawTx
+            const rawTx = await chronik.rawTx(txid);
+            expect(rawTx.rawTx).to.eql(txsAndRawTxsBroadcastInTest[txid]);
         }
     });
 });

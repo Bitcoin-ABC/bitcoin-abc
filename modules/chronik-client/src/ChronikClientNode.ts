@@ -83,6 +83,13 @@ export class ChronikClientNode {
         const tx = proto.Tx.decode(data);
         return convertToTx(tx);
     }
+
+    /** Fetch tx details given the txid. */
+    public async rawTx(txid: string): Promise<RawTx> {
+        const data = await this._proxyInterface.get(`/raw-tx/${txid}`);
+        const rawTx = proto.RawTx.decode(data);
+        return convertToRawTx(rawTx);
+    }
 }
 
 function convertToBlockchainInfo(
@@ -197,6 +204,12 @@ function convertToBlockMeta(block: proto.BlockMetadata): BlockMetadata_InNode {
     };
 }
 
+function convertToRawTx(rawTx: proto.RawTx): RawTx {
+    return {
+        rawTx: toHex(rawTx.rawTx),
+    };
+}
+
 /** Info about connected chronik server */
 export interface ChronikInfo {
     version: string;
@@ -251,6 +264,11 @@ export interface TxHistoryPage_InNode {
     numPages: number;
     /** How many txs there are total */
     numTxs: number;
+}
+
+/** The hex bytes of a raw tx */
+export interface RawTx {
+    rawTx: string;
 }
 
 /** A transaction on the blockchain or in the mempool. */
