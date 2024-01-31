@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import SendXec from '../SendXec';
@@ -924,24 +924,26 @@ describe('<SendXec />', () => {
         const txSuccessNotification = screen.queryByTestId(
             'send-xec-notification',
         );
-        expect(txSuccessNotification).toBeInTheDocument();
-        expect(txSuccessNotification).toHaveAttribute(
-            'href',
-            `${explorer.blockExplorerUrl}/tx/${txid}`,
-        );
-        // The op_return_raw set alert is now removed
-        expect(
-            screen.queryByTestId('op-return-raw-set-alert'),
-        ).not.toBeInTheDocument();
-        // The amount input is no longer disabled
-        expect(amountInputEl).toHaveProperty('disabled', false);
-        // Amount input is reset
-        expect(amountInputEl).toHaveValue(null);
+        waitFor(() => {
+            expect(txSuccessNotification).toBeInTheDocument();
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            );
+            // The op_return_raw set alert is now removed
+            expect(
+                screen.queryByTestId('op-return-raw-set-alert'),
+            ).not.toBeInTheDocument();
+            // The amount input is no longer disabled
+            expect(amountInputEl).toHaveProperty('disabled', false);
+            // Amount input is reset
+            expect(amountInputEl).toHaveValue(null);
 
-        // The multiple recipients switch is now rendered
-        expect(
-            screen.queryByTestId('multiple-recipients-switch'),
-        ).toBeInTheDocument();
+            // The multiple recipients switch is now rendered
+            expect(
+                screen.queryByTestId('multiple-recipients-switch'),
+            ).toBeInTheDocument();
+        });
 
         // TODO
         /*

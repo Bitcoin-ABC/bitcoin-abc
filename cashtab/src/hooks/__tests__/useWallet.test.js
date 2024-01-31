@@ -1,5 +1,5 @@
 import useWallet from '../useWallet';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
 import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
 import aliasSettings from 'config/alias';
