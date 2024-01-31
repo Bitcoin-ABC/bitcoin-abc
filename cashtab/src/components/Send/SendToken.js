@@ -26,7 +26,6 @@ import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { Redirect } from 'react-router-dom';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import usePrevious from 'hooks/usePrevious';
-import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
@@ -124,11 +123,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
     const { width } = useWindowDimensions();
     // Load with QR code open if device is mobile and NOT iOS + anything but safari
     const scannerSupported =
-        cashtabSettings &&
-        cashtabSettings.autoCameraOn === true &&
-        width < 769 &&
-        isMobile &&
-        !(isIOS && !isSafari);
+        cashtabSettings && cashtabSettings.autoCameraOn === true && width < 769;
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({

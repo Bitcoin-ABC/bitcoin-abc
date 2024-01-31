@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "1.0.11",
+    "version": "1.0.12",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -101,7 +101,6 @@
         "localforage": "^1.9.0",
         "qrcode.react": "^1.0.0",
         "react": "^17.0.2",
-        "react-device-detect": "^1.15.0",
         "react-dom": "^17.0.2",
         "react-easy-crop": "^3.5.3",
         "react-ga": "^3.3.0",

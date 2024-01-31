@@ -67,7 +67,6 @@ import {
 } from 'validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import useWindowDimensions from 'hooks/useWindowDimensions';
-import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import appConfig from 'config/app';
 const { Panel } = Collapse;
 
@@ -567,7 +566,7 @@ const Configure = ({ passLoadingStatus }) => {
         useState(null);
     const { width } = useWindowDimensions();
 
-    const scannerSupported = width < 769 && isMobile && !(isIOS && !isSafari);
+    const scannerSupported = width < 769;
 
     useEffect(async () => {
         // Update savedWallets every time the active wallet changes

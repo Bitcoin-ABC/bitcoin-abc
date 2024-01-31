@@ -18,7 +18,6 @@ import {
     sendXecNotification,
     errorNotification,
 } from 'components/Common/Notifications';
-import { isMobile, isIOS, isSafari } from 'react-device-detect';
 import { toSatoshis, toXec } from 'wallet';
 import { sumOneToManyXec, getWalletBalanceFromUtxos } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
@@ -182,11 +181,7 @@ const SendXec = ({ passLoadingStatus }) => {
     const { width } = useWindowDimensions();
     // Load with QR code open if device is mobile and NOT iOS + anything but safari
     const scannerSupported =
-        cashtabSettings &&
-        cashtabSettings.autoCameraOn === true &&
-        width < 769 &&
-        isMobile &&
-        !(isIOS && !isSafari);
+        cashtabSettings && cashtabSettings.autoCameraOn === true && width < 769;
 
     const [formData, setFormData] = useState({
         value: '',
