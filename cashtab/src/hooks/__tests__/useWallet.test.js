@@ -73,7 +73,9 @@ test('processChronikWsMsg() refreshes alias prices when aliasPrices is null', as
             json: () => Promise.resolve(mockAliasServerResponse),
         });
 
-    await result.current.processChronikWsMsg(mockWebsocketMsg);
+    await act(async () => {
+        await result.current.processChronikWsMsg(mockWebsocketMsg);
+    });
 
     // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
     expect(result.current.aliasPrices).toStrictEqual(mockAliasServerResponse);
@@ -183,7 +185,9 @@ test('processChronikWsMsg() refreshes alias prices when aliasPrices exists, serv
             json: () => Promise.resolve(mockAliasServerResponse),
         });
 
-    await result.current.processChronikWsMsg(mockWebsocketMsg);
+    await act(async () => {
+        await result.current.processChronikWsMsg(mockWebsocketMsg);
+    });
 
     // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
     expect(result.current.aliasPrices).toEqual(mockAliasServerResponse);
@@ -312,7 +316,9 @@ test('processChronikWsMsg() does not refresh alias prices when aliasPrices exist
     };
 
     // Mock the existing aliasPrices state value
-    result.current.setAliasPrices(mockExistingAliasPrices);
+    await act(async () => {
+        result.current.setAliasPrices(mockExistingAliasPrices);
+    });
 
     // Mock the fetch call to alias-server's '/prices' endpoint
     global.fetch = jest.fn();
@@ -322,7 +328,9 @@ test('processChronikWsMsg() does not refresh alias prices when aliasPrices exist
             json: () => Promise.resolve(mockAliasServerResponse),
         });
 
-    await result.current.processChronikWsMsg(mockWebsocketMsg);
+    await act(async () => {
+        await result.current.processChronikWsMsg(mockWebsocketMsg);
+    });
 
     // Verify upon `BlockConnected` events processChronikWsMsg() does not update the aliasPrices state var
     expect(result.current.aliasPrices).toStrictEqual(mockExistingAliasPrices);
@@ -342,7 +350,9 @@ test('Verify a processChronikWsMsg() new block event updates the `aliasServerErr
             json: () => Promise.resolve('not a valid prices response'),
         });
 
-    await result.current.processChronikWsMsg(mockWebsocketMsg);
+    await act(async () => {
+        await result.current.processChronikWsMsg(mockWebsocketMsg);
+    });
 
     // Verify the `aliasServerError` state var in useWallet is updated
     expect(result.current.aliasServerError).toStrictEqual(
@@ -382,7 +392,9 @@ test('Verify refreshAliases() updates the `aliases` state variable on a successf
         });
 
     // Execute the refreshAliases function with the mocked alias-server call
-    await result.current.refreshAliases(address);
+    await act(async () => {
+        await result.current.refreshAliases(address);
+    });
 
     // Verify the `aliases` state var in useWallet is updated
     expect(result.current.aliases).toStrictEqual(mockAliasServerResponse);
@@ -406,7 +418,9 @@ test('Verify refreshAliases() updates the `aliasServerError` state variable upon
         });
 
     // Execute the refreshAliases function with the mocked alias-server call
-    await result.current.refreshAliases(address);
+    await act(async () => {
+        await result.current.refreshAliases(address);
+    });
 
     // Verify the `aliasServerError` state var in useWallet is updated
     expect(result.current.aliasServerError).toStrictEqual(expectedError.error);
