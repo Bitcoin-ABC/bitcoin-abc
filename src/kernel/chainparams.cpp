@@ -488,12 +488,12 @@ public:
             {// For use by test/functional/feature_assumeutxo.py
              .height = 299,
              .hash_serialized =
-                 AssumeutxoHash{uint256S("0x5e2a15df4f3bca0253b969a9759de891ed5"
-                                         "1230bba5f35eec5417833059a11bf")},
-             .nChainTx = 300,
+                 AssumeutxoHash{uint256S("0xa966794ed5a2f9debaefc7ca48dbc5d5e12"
+                                         "a89ff9fe45bd00ec5732d074580a9")},
+             .nChainTx = 334,
              .blockhash =
-                 BlockHash{uint256S("0x2bf928ee2d8839f1fe328afa507e5a03e5fc7528"
-                                    "ea57e047bd4d02a92bfeb827")}},
+                 BlockHash{uint256S("0x118a7d5473bccce9b314789e14ce426fc65fb09d"
+                                    "feda0131032bb6d86ed2fd0b")}},
         };
 
         chainTxData = ChainTxData{0, 0, 0};
