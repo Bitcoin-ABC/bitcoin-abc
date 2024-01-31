@@ -110,24 +110,7 @@ const Alias = ({ passLoadingStatus }) => {
         passLoadingStatus(false);
     }, [balances.totalBalance]);
 
-    useEffect(async () => {
-        // only run this useEffect block if wallet or cashtabCache is defined
-        if (
-            !wallet ||
-            typeof wallet === 'undefined' ||
-            !wallet.Path1899 ||
-            !cashtabCache ||
-            typeof cashtabCache === 'undefined'
-        ) {
-            return;
-        }
-        passLoadingStatus(true);
-
-        // Default to registering the user's active wallet
-        // Must be called in this useEffect to ensure that wallet is loaded
-        // Call with this function to ensure that checkbox state and checkbox are updated
-        handleDefaultAddressCheckboxChange({ target: { checked: true } });
-
+    const handleAliasWalletChange = async () => {
         if (wallet.Path1899.cashAddress) {
             await refreshAliases(wallet.Path1899.cashAddress);
         }
@@ -170,6 +153,28 @@ const Alias = ({ passLoadingStatus }) => {
         });
 
         passLoadingStatus(false);
+    };
+
+    useEffect(() => {
+        // only run this useEffect block if wallet or cashtabCache is defined
+        if (
+            !wallet ||
+            typeof wallet === 'undefined' ||
+            !wallet.Path1899 ||
+            !cashtabCache ||
+            typeof cashtabCache === 'undefined'
+        ) {
+            return;
+        }
+        passLoadingStatus(true);
+
+        // Default to registering the user's active wallet
+        // Must be called in this useEffect to ensure that wallet is loaded
+        // Call with this function to ensure that checkbox state and checkbox are updated
+        handleDefaultAddressCheckboxChange({ target: { checked: true } });
+
+        // passLoadingStatus(false) will be called after awaiting expected methods
+        handleAliasWalletChange();
     }, [wallet.name]);
 
     const clearInputForms = () => {

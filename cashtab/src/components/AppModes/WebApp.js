@@ -110,8 +110,7 @@ const WebApp = () => {
         return window && window.bitcoinAbc && window.bitcoinAbc === 'cashtab';
     };
 
-    useEffect(async () => {
-        checkForPersistentStorage();
+    const handleExtensionStatus = async () => {
         if (appConfig.monitorExtension) {
             const extensionInstalled = await getExtensionInstallationStatus();
             // TODO if false and other conditions are met, show popup advertising browser extension
@@ -121,6 +120,11 @@ const WebApp = () => {
                 }`,
             );
         }
+    };
+
+    useEffect(() => {
+        checkForPersistentStorage();
+        handleExtensionStatus();
     }, []);
     // Note: none of the above functionality requires rendering, so return null
     return null;

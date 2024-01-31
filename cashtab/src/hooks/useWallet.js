@@ -1450,12 +1450,16 @@ const useWallet = () => {
         }
     };
 
-    useEffect(async () => {
+    const cashtabBootup = async () => {
         handleUpdateWallet(setWallet);
         await loadContactList();
         await loadCashtabCache();
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
+    };
+
+    useEffect(() => {
+        cashtabBootup();
     }, []);
 
     /*
@@ -1465,11 +1469,11 @@ const useWallet = () => {
     want to run initializeWebsocket(chronik, wallet, fiatPrice) when a new unique wallet
     is selected, not when the active wallet changes state
     */
-    useEffect(async () => {
-        await initializeWebsocket(chronik, wallet, fiatPrice);
+    useEffect(() => {
+        initializeWebsocket(chronik, wallet, fiatPrice);
     }, [chronik, wallet.mnemonic, fiatPrice]);
 
-    useEffect(async () => {
+    const refreshAliasesOnStartup = async () => {
         // Initialize a new periodic refresh of aliases which ONLY calls the API if
         // there are pending aliases since confirmed aliases would not change over time
         // The interval is also only initialized if there are no other intervals present.
@@ -1496,6 +1500,10 @@ const useWallet = () => {
                 return () => clearInterval(intervalId);
             }
         }
+    };
+
+    useEffect(() => {
+        refreshAliasesOnStartup();
     }, [aliases?.pending?.length]);
 
     return {

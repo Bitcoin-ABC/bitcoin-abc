@@ -568,10 +568,10 @@ const Configure = ({ passLoadingStatus }) => {
 
     const scannerSupported = width < 769;
 
-    useEffect(async () => {
+    useEffect(() => {
         // Update savedWallets every time the active wallet changes
         // Use wallet.name and not wallet as the dep param, since wallet changes every time new txs come in or update function from useWallet.js runs
-        await updateSavedWallets(wallet);
+        updateSavedWallets(wallet);
     }, [wallet.name]);
 
     useEffect(() => {
@@ -579,21 +579,7 @@ const Configure = ({ passLoadingStatus }) => {
         passLoadingStatus(false);
     }, [savedWallets]);
 
-    useEffect(async () => {
-        const detectedBrowserLang = navigator.language;
-        if (!detectedBrowserLang.includes('en-')) {
-            setShowTranslationWarning(true);
-        }
-
-        if (
-            location &&
-            location.state &&
-            location.state.showRenameWalletModal
-        ) {
-            setShowRenameWalletModal(true);
-            setWalletToBeRenamed(wallet);
-        }
-
+    const handleContactListRouting = async () => {
         // if this was routed from Home screen's Add to Contact link
         if (location && location.state && location.state.contactToAdd) {
             let tempContactListArray;
@@ -704,6 +690,24 @@ const Configure = ({ passLoadingStatus }) => {
 
             setContactListArray(loadContactListStatus);
         }
+    };
+
+    useEffect(() => {
+        const detectedBrowserLang = navigator.language;
+        if (!detectedBrowserLang.includes('en-')) {
+            setShowTranslationWarning(true);
+        }
+
+        if (
+            location &&
+            location.state &&
+            location.state.showRenameWalletModal
+        ) {
+            setShowRenameWalletModal(true);
+            setWalletToBeRenamed(wallet);
+        }
+
+        handleContactListRouting();
     }, []);
 
     // Need this function to ensure that savedWallets are updated on new wallet creation
