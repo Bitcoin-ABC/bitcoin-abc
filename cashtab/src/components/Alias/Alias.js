@@ -139,10 +139,9 @@ const Alias = ({ passLoadingStatus }) => {
 
         // Track when the user stops typing into the aliasName input field for at least
         // 'aliasSettings.aliasKeyUpTimeoutMs' and make an API call to check the alias status
-        let timeout;
         const aliasInput = document.getElementsByName('aliasName')[0];
         aliasInput?.addEventListener('keyup', function () {
-            timeout = setTimeout(async function () {
+            setTimeout(async function () {
                 // Retrieve alias details
                 let aliasDetailsResp;
                 if (meetsAliasSpec(aliasInput.value)) {
@@ -171,11 +170,6 @@ const Alias = ({ passLoadingStatus }) => {
         });
 
         passLoadingStatus(false);
-
-        // Clear timeout when this component unmounts
-        return () => {
-            clearTimeout(timeout);
-        };
     }, [wallet.name]);
 
     const clearInputForms = () => {
