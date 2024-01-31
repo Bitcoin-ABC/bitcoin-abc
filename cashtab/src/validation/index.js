@@ -281,15 +281,14 @@ export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
     return migratedCashtabCache;
 };
 
+/**
+ * Check if an array is a valid Cashtab contact list
+ * A valid contact list is an array of objects
+ * An empty contact list looks like [{}]
+ * @param {array} contactList
+ * @returns {bool}
+ */
 export const isValidContactList = contactList => {
-    /* 
-    A valid contact list is an array of objects
-    An empty contact list looks like [{}]
-    
-    Although a valid contact list does not contain duplicated addresses, this is not checked here.
-    This is checked for when contacts are added. Duplicate addresses will not break the app if a user
-    somehow sideloads a contact list with everything valid except some addresses are duplicated.
-    */
     if (!Array.isArray(contactList)) {
         return false;
     }
@@ -302,9 +301,11 @@ export const isValidContactList = contactList => {
             'name' in contactObj
         ) {
             // Address must be a valid XEC address, name must be a string
+            const { address, name } = contactObj;
             if (
-                cashaddr.isValidCashAddress(contactObj.address, 'ecash') &&
-                typeof contactObj.name === 'string'
+                (cashaddr.isValidCashAddress(address, 'ecash') ||
+                    isValidAliasSendInput(address)) &&
+                typeof name === 'string'
             ) {
                 continue;
             }

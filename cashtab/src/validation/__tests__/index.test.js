@@ -603,55 +603,6 @@ describe('Validation utils', () => {
     it(`isValidAirdropExclusionArray rejects a null airdrop exclusion list`, () => {
         expect(isValidAirdropExclusionArray(null)).toBe(false);
     });
-    it(`isValidContactList accepts default empty contactList`, () =>
-        expect(isValidContactList([{}])).toBe(true));
-    it(`isValidContactList rejects array of more than one empty object`, () =>
-        expect(isValidContactList([{}, {}])).toBe(false));
-    it(`isValidContactList accepts a contact list of length 1 with valid XEC address and name`, () =>
-        expect(
-            isValidContactList([
-                {
-                    address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-                    name: 'Alpha',
-                },
-            ]),
-        ).toBe(true));
-    it(`isValidContactList accepts a contact list of length > 1 with valid XEC addresses and names`, () =>
-        expect(
-            isValidContactList([
-                {
-                    address: 'ecash:qpdkc5p7f25hwkxsr69m3evlj4h7wqq9xcgmjc8sxr',
-                    name: 'Alpha',
-                },
-                {
-                    address: 'ecash:qpq235n3l3u6ampc8slapapnatwfy446auuv64ylt2',
-                    name: 'Beta',
-                },
-                {
-                    address: 'ecash:qz50e58nkeg2ej2f34z6mhwylp6ven8emy8pp52r82',
-                    name: 'Gamma',
-                },
-            ]),
-        ).toBe(true));
-    it(`isValidContactList rejects a contact list of length > 1 with valid XEC addresses and names but an empty object included`, () =>
-        expect(
-            isValidContactList([
-                {},
-                {
-                    address: 'ecash:qpdkc5p7f25hwkxsr69m3evlj4h7wqq9xcgmjc8sxr',
-                    name: 'Alpha',
-                },
-                {
-                    address: 'ecash:qpq235n3l3u6ampc8slapapnatwfy446auuv64ylt2',
-                    name: 'Beta',
-                },
-                {
-                    address: 'ecash:qz50e58nkeg2ej2f34z6mhwylp6ven8emy8pp52r82',
-                    name: 'Gamma',
-                },
-            ]),
-        ).toBe(false));
-
     it('parseInvalidCashtabCacheForMigration updates an invalid cashtabCache object and keeps existing valid cache params intact', () =>
         expect(
             parseInvalidCashtabCacheForMigration({
@@ -995,6 +946,16 @@ describe('Validates user alias input on Send and SendToken screens', () => {
         const { description, sendToAliasInput, response } = expectedReturn;
         it(`isValidAliasSendInput: ${description}`, () => {
             expect(isValidAliasSendInput(sendToAliasInput)).toBe(response);
+        });
+    });
+});
+
+describe('Validating Cashtab Contact Lists', () => {
+    const { expectedReturns } = vectors.isValidContactList;
+    expectedReturns.forEach(expectedReturn => {
+        const { description, contactList, isValid } = expectedReturn;
+        it(`isValidContactList: ${description}`, () => {
+            expect(isValidContactList(contactList)).toBe(isValid);
         });
     });
 });
