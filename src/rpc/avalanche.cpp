@@ -1501,7 +1501,7 @@ static RPCHelpMan reconsideravalancheproof() {
         "reconsideravalancheproof",
         "Reconsider a known avalanche proof.\n",
         {
-            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+            {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The hex encoded avalanche proof."},
         },
         RPCResult{
