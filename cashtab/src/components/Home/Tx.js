@@ -313,11 +313,14 @@ const TokenTxAmtReceived = styled(TokenTxAmt)`
     color: ${props => props.theme.eCashBlue} !important;
 `;
 
-const TokenName = styled.h4`
+const TokenName = styled.div`
     text-align: right;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0px;
 `;
 
 const TxWrapper = styled.div`
@@ -399,7 +402,7 @@ const TxLink = styled.a`
     color: ${props => props.theme.primary};
 `;
 
-const NotInContactsAlert = styled.h4`
+const NotInContactsAlert = styled.div`
     color: ${props => props.theme.forms.error} !important;
     font-style: italic;
 `;

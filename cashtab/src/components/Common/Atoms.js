@@ -42,7 +42,6 @@ export const FormLabel = styled.label`
 
 export const WalletInfoCtn = styled.div`
     background: ${props => props.theme.walletInfoContainer};
-    width: 100%;
     padding: 12px 20px;
 `;
 

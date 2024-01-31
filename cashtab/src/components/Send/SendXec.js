@@ -96,9 +96,10 @@ const SendInputCtn = styled.div`
     }
 `;
 
-const LocaleFormattedValue = styled.h3`
+const LocaleFormattedValue = styled.div`
     color: ${props => props.theme.contrast};
     font-weight: bold;
+    font-size: 1.17em;
     margin-bottom: 0;
 `;
 

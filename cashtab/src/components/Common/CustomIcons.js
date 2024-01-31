@@ -43,8 +43,8 @@ import appConfig from 'config/app';
 
 export const CashReceivedNotificationIcon = () => (
     <Image
-        height={'33px'}
-        width={'30px'}
+        height={'24px'}
+        width={'24px'}
         src={appConfig.logo}
         preview={false}
     />
@@ -52,8 +52,8 @@ export const CashReceivedNotificationIcon = () => (
 export const TokenReceivedNotificationIcon = () => (
     <Image
         src={appConfig.tokenLogo}
-        height={'33px'}
-        width={'30px'}
+        height={'24px'}
+        width={'24px'}
         preview={false}
     />
 );

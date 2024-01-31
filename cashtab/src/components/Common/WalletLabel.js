@@ -14,7 +14,7 @@ const LabelCtn = styled.div`
     }
 `;
 
-const WalletName = styled.h4`
+const WalletName = styled.div`
     font-size: 16px;
     display: inline-block;
     color: ${props => props.theme.lightWhite};

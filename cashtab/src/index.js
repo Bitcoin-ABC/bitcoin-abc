@@ -5,7 +5,6 @@ import App from './components/App';
 import { WalletProvider } from './utils/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from './utils/GoogleAnalytics';
-import 'antd/dist/antd.min.css';
 
 ReactDOM.render(
     <WalletProvider>

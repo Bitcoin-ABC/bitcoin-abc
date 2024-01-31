@@ -25,7 +25,7 @@ const CreateToken = styled(Link)`
     margin-top: 10px;
     margin-bottom: 20px;
     display: inline-block;
-    width: 100%;
+    width: 200px;
     :hover {
         background: ${props => props.theme.eCashPurple};
         border-color: ${props => props.theme.eCashPurple};

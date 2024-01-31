@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import 'antd/dist/antd.less';
 import PropTypes from 'prop-types';
 import { Spin } from 'antd';
 import {

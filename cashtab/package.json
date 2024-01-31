@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "1.0.20",
+    "version": "1.0.21",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -85,10 +85,10 @@
         "resetMocks": true
     },
     "dependencies": {
-        "@ant-design/icons": "^4.3.0",
+        "@ant-design/icons": "^5.3.0",
         "@bitgo/utxo-lib": "^8.0.0",
         "@zxing/browser": "^0.1.4",
-        "antd": "^4.9.3",
+        "antd": "^5.13.3",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",
         "bitcoinjs-message": "^2.2.0",

@@ -238,8 +238,8 @@ export const SendXecInput = ({
                     <InputNumberAddonText
                         style={{
                             width: '10%',
-                            height: '55px',
-                            lineHeight: '55px',
+                            height: '53px',
+                            lineHeight: '53px',
                         }}
                         disabled={!!(inputProps || {}).disabled}
                         onClick={!(inputProps || {}).disabled && onMax}
