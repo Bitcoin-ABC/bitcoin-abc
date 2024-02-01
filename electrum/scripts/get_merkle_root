@@ -35,9 +35,9 @@ import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from electrumabc.interface import Connection, Interface
-from electrumabc.printerror import set_verbosity
-from electrumabc.simple_config import SimpleConfig
+from electrumabc.interface import Connection, Interface  # noqa: E402
+from electrumabc.printerror import set_verbosity  # noqa: E402
+from electrumabc.simple_config import SimpleConfig  # noqa: E402
 
 MAX_MESSAGE_BYTES = 1024 * 1024 * 32
 

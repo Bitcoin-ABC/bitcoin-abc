@@ -53,8 +53,7 @@ from electrumabc.commands import (
     preprocess_cmdline_args,
     prompt_password,
 )
-from electrumabc.constants import PORTABLE_DATA_DIR, PROJECT_NAME, SCRIPT_NAME
-from electrumabc.i18n import _
+from electrumabc.constants import PORTABLE_DATA_DIR, SCRIPT_NAME
 from electrumabc.json_util import json_decode, json_encode
 from electrumabc.keystore import bip44_derivation_xec
 from electrumabc.migrate_data import update_config

@@ -33,7 +33,10 @@
         "flake8": {
             "type": "flake8",
             "version": ">=5.0",
-            "include": "(\\.py$)",
+            "include": [
+                "(\\.py$)",
+                "(^electrum/electrum-abc$)"
+            ],
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
