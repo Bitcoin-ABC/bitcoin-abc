@@ -49,7 +49,7 @@ export const CashReceivedNotificationIcon = () => (
         preview={false}
     />
 );
-export const TokenReceivedNotificationIcon = () => (
+export const TokenNotificationIcon = () => (
     <Image
         src={appConfig.tokenLogo}
         height={'24px'}

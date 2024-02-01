@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import SendToken from '../SendToken';
@@ -10,6 +10,8 @@ import { WalletContext } from 'utils/context';
 import { BrowserRouter } from 'react-router-dom';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
+import { MockChronikClient } from '../../../../../apps/mock-chronik-client';
+import { explorer } from 'config/explorer';
 
 function mockFunction() {
     const original = jest.requireActual('react-router-dom');
@@ -68,7 +70,7 @@ describe('<SendToken />', () => {
     it('Renders the SendToken screen with send address input', async () => {
         const { container } = render(TestSendTokenScreen);
         const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-token-input');
+        const amountInputEl = screen.getByTestId('token-amount-input');
 
         // Input fields are rendered
         expect(addressInputEl).toBeInTheDocument();
@@ -316,5 +318,60 @@ describe('<SendToken />', () => {
         expect(addressValidationErrorDiv).toHaveTextContent(
             'eToken sends do not support bip21 query strings',
         );
+    });
+    it('Renders the send token notification upon successful broadcast', async () => {
+        const mockedChronik = new MockChronikClient();
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206d45893e238b7e30110d4e0d47e63204a7d6347169547bebad5200be510b8790022014eb3457545423b9eb04aec14e28551548c011ee3544cb40619063dfbb20a1c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac417b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '79e6afc28d4149c51c4e2a32c05c57fb59c1c164fde1afc655590ce99ed70cb8';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+        const mockWalletContextWithChronik = JSON.parse(
+            JSON.stringify(mockWalletContext),
+        );
+        mockWalletContextWithChronik.chronik = mockedChronik;
+        mockWalletContextWithChronik.chaintipBlockheight = 800000;
+        render(
+            <BrowserRouter>
+                <WalletContext.Provider value={mockWalletContextWithChronik}>
+                    <ThemeProvider theme={theme}>
+                        <SendToken tokenId="3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109" />
+                    </ThemeProvider>
+                </WalletContext.Provider>
+            </BrowserRouter>,
+        );
+
+        // The user enters a valid address and send amount
+        const addressInputEl = screen.getByTestId('destination-address-single');
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        const amountInputEl = screen.getByTestId('token-amount-input');
+        const amountInput = '1';
+        await userEvent.type(addressInputEl, addressInput);
+        await userEvent.type(amountInputEl, amountInput);
+
+        // Ensure the notification is NOT rendered prior to sending
+        const initialSendTokenSuccessNotification = screen.queryByTestId(
+            'send-token-notification',
+        );
+        expect(initialSendTokenSuccessNotification).not.toBeInTheDocument();
+
+        // Click the Send token button
+        const sendTokenBtn = screen.getByTestId('send-token-btn');
+        await userEvent.click(sendTokenBtn);
+
+        const sendTokenSuccessNotification = screen.queryByTestId(
+            'send-token-notification',
+        );
+        waitFor(() => {
+            // Verify notification triggered
+            expect(sendTokenSuccessNotification).toBeInTheDocument();
+            expect(sendTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            );
+        });
     });
 });

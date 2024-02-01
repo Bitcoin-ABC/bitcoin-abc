@@ -2,8 +2,8 @@ import * as React from 'react';
 import { notification } from 'antd';
 import {
     CashReceivedNotificationIcon,
-    TokenReceivedNotificationIcon,
     ThemedUserProfileIcon,
+    TokenNotificationIcon,
 } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
@@ -18,52 +18,6 @@ const registerAliasNotification = (link, alias) => {
         ),
         duration: appConfig.notificationDurationShort,
         icon: <ThemedUserProfileIcon />,
-    });
-};
-
-const createTokenNotification = link => {
-    notification.success({
-        message: 'Success',
-        description: (
-            <a href={link} target="_blank" rel="noopener noreferrer">
-                Token created! Click to view in block explorer.
-            </a>
-        ),
-        icon: <TokenReceivedNotificationIcon />,
-    });
-};
-
-const tokenIconSubmitSuccess = () => {
-    notification.success({
-        message: 'Success',
-        description: `Your eToken icon was successfully submitted.`,
-        icon: <TokenReceivedNotificationIcon />,
-    });
-};
-
-const sendTokenNotification = link => {
-    notification.success({
-        message: 'Success',
-        description: (
-            <a href={link} target="_blank" rel="noopener noreferrer">
-                Transaction successful. Click to view in block explorer.
-            </a>
-        ),
-        duration: appConfig.notificationDurationShort,
-        icon: <TokenReceivedNotificationIcon />,
-    });
-};
-
-const burnTokenNotification = link => {
-    notification.success({
-        message: 'Success',
-        description: (
-            <a href={link} target="_blank" rel="noopener noreferrer">
-                eToken burn successful. Click to view in block explorer.
-            </a>
-        ),
-        duration: appConfig.notificationDurationLong,
-        icon: <TokenReceivedNotificationIcon />,
     });
 };
 
@@ -137,7 +91,7 @@ const eTokenReceivedNotification = (
         message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
         description: `You received ${receivedSlpQty.toString()} ${receivedSlpName}`,
         duration: appConfig.notificationDurationShort,
-        icon: <TokenReceivedNotificationIcon />,
+        icon: <TokenNotificationIcon />,
     });
 };
 
@@ -161,13 +115,9 @@ const generalNotification = (data, msgStr) => {
 
 export {
     registerAliasNotification,
-    createTokenNotification,
-    tokenIconSubmitSuccess,
-    sendTokenNotification,
     xecReceivedNotification,
     xecReceivedNotificationWebsocket,
     eTokenReceivedNotification,
     errorNotification,
     generalNotification,
-    burnTokenNotification,
 };

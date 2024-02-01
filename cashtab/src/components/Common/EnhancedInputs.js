@@ -268,7 +268,7 @@ export const DestinationAmount = ({ onMax, inputProps, ...otherProps }) => {
                     /*event.target.blur() is used as event.preventDefault() 
                         will not work on passive targets such as onWheel */
                     onWheel={event => event.target.blur()}
-                    data-testid="send-token-input"
+                    data-testid="token-amount-input"
                     prefix={
                         <img
                             src={appConfig.logo}

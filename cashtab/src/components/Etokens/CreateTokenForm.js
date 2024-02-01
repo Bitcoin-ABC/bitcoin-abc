@@ -34,11 +34,6 @@ import {
     Switch,
 } from 'antd';
 import { TokenParamLabel, FormLabel } from 'components/Common/Atoms';
-import {
-    createTokenNotification,
-    tokenIconSubmitSuccess,
-    errorNotification,
-} from 'components/Common/Notifications';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from 'utils/icons/cropImage';
 import getRoundImg from 'utils/icons/roundImage';
@@ -47,6 +42,8 @@ import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
 import { createToken } from 'utils/transactions';
 const { Dragger } = Upload;
+import { notification } from 'antd';
+import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 
 export const CreateTokenCtn = styled.div`
     margin-top: 20px;
@@ -420,14 +417,18 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                 }
             }
 
-            tokenIconSubmitSuccess();
+            notification.success({
+                message: 'Success',
+                description: `Your eToken icon was successfully submitted.`,
+                icon: <TokenNotificationIcon />,
+            });
         } catch (err) {
             console.error(err.message);
-            errorNotification(
-                err,
-                err.message,
-                'Submitting icon for approval while creating a new eToken',
-            );
+            notification.error({
+                message: 'Submitting icon for approval',
+                description: err.message,
+                duration: appConfig.notificationDurationLong,
+            });
         }
     };
     const createPreviewedToken = async () => {
@@ -459,7 +460,20 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                 appConfig.defaultFee,
                 configObj,
             );
-            createTokenNotification(link);
+            notification.success({
+                message: 'Success',
+                description: (
+                    <a
+                        data-testid="create-token-notification"
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Token created! Click to view in block explorer.
+                    </a>
+                ),
+                icon: <TokenNotificationIcon />,
+            });
 
             // If this eToken has an icon, upload to server
             if (tokenIcon !== '') {
@@ -468,7 +482,11 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop
             passLoadingStatus(false);
-            errorNotification(e, JSON.stringify(e), 'Creating eToken');
+            notification.error({
+                message: 'Creating eToken',
+                description: JSON.stringify(e),
+                duration: appConfig.notificationDurationLong,
+            });
         }
         // Hide the modal
         setShowConfirmCreateToken(false);
@@ -522,6 +540,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
+                                data-testid="token-name-input"
                                 placeholder="Enter a name for your token"
                                 name="newTokenName"
                                 value={newTokenName}
@@ -544,6 +563,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
+                                data-testid="token-ticker-input"
                                 placeholder="Enter a ticker for your token"
                                 name="newTokenTicker"
                                 value={newTokenTicker}
@@ -566,6 +586,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
+                                data-testid="token-decimals-input"
                                 placeholder="Enter number of decimal places"
                                 name="newTokenDecimals"
                                 type="number"
@@ -589,6 +610,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
+                                data-testid="token-supply-input"
                                 placeholder="Enter the fixed supply of your token"
                                 name="newTokenInitialQty"
                                 type="number"
@@ -612,6 +634,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
+                                data-testid="token-url-input"
                                 placeholder="Enter a website for your token"
                                 name="newTokenDocumentUrl"
                                 value={newTokenDocumentUrl}
@@ -772,6 +795,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                 </AntdFormWrapper>
 
                 <SmartButton
+                    data-testid="create-token-btn"
                     onClick={() => setShowConfirmCreateToken(true)}
                     disabled={!tokenGenesisDataIsValid}
                     style={{ marginTop: '30px' }}

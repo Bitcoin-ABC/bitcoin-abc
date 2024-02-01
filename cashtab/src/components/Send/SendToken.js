@@ -33,11 +33,6 @@ import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import { sendToken, burnToken } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
-import {
-    sendTokenNotification,
-    errorNotification,
-    burnTokenNotification,
-} from 'components/Common/Notifications';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
 import { getTokenStats } from 'chronik';
 import { formatDate } from 'utils/formatting';
@@ -48,6 +43,9 @@ import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'utils/aliasUtils';
 import aliasSettings from 'config/alias';
 import cashaddr from 'ecashaddrjs';
+import { notification } from 'antd';
+import { TokenNotificationIcon } from 'components/Common/CustomIcons';
+import appConfig from 'config/app';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -142,7 +140,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             },
         );
     }
-    // Clears address and amount fields following sendTokenNotification
+    // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
         setFormData({
             value: '',
@@ -187,11 +185,29 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                 tokenReceiverAddress: cleanAddress,
                 amount: value,
             });
-            sendTokenNotification(link);
+            notification.success({
+                message: 'Success',
+                description: (
+                    <a
+                        data-testid="send-token-notification"
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Transaction successful. Click to view in block explorer.
+                    </a>
+                ),
+                duration: appConfig.notificationDurationShort,
+                icon: <TokenNotificationIcon />,
+            });
             clearInputForms();
         } catch (e) {
             passLoadingStatus(false);
-            errorNotification(e, JSON.stringify(e), 'Sending eToken');
+            notification.error({
+                message: 'Sending eToken',
+                description: JSON.stringify(e),
+                duration: appConfig.notificationDurationLong,
+            });
         }
     }
 
@@ -365,7 +381,21 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                 tokenId: tokenId,
                 amount: eTokenBurnAmount,
             });
-            burnTokenNotification(link);
+            notification.success({
+                message: 'Success',
+                description: (
+                    <a
+                        data-testid="burn-token-notification"
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        eToken burn successful. Click to view in block explorer.
+                    </a>
+                ),
+                duration: appConfig.notificationDurationLong,
+                icon: <TokenNotificationIcon />,
+            });
             clearInputForms();
             setShowConfirmBurnEtoken(false);
             setConfirmationOfEtokenToBeBurnt('');
@@ -373,7 +403,11 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             setShowConfirmBurnEtoken(false);
             passLoadingStatus(false);
             setConfirmationOfEtokenToBeBurnt('');
-            errorNotification(e, JSON.stringify(e), 'Burning eToken');
+            notification.error({
+                message: 'Burning eToken',
+                description: JSON.stringify(e),
+                duration: appConfig.notificationDurationLong,
+            });
         }
     }
 
@@ -601,6 +635,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                         </>
                                     ) : (
                                         <PrimaryButton
+                                            data-testid="send-token-btn"
                                             onClick={() =>
                                                 checkForConfirmationBeforeSendEtoken()
                                             }
@@ -741,6 +776,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                                         }}
                                                     />
                                                     <Button
+                                                        data-testid="burn-token-btn"
                                                         type="primary"
                                                         onClick={
                                                             handleBurnAmountInput
