@@ -5,7 +5,7 @@ set -euxo pipefail
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
 ELECTRUM_DIR="${TOPLEVEL}"/electrum
-CHECKPOINTS_SCRIPT="${ELECTRUM_DIR}"/scripts/get_merkle_root
+CHECKPOINTS_SCRIPT="${ELECTRUM_DIR}"/scripts/get_merkle_root.py
 CHECKPOINT_JSON_FILE_MAINNET="${ELECTRUM_DIR}"/electrumabc/checkpoint.json
 CHECKPOINT_JSON_FILE_TESTNET="${ELECTRUM_DIR}"/electrumabc/checkpoint_testnet.json
 

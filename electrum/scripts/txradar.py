@@ -6,7 +6,7 @@ import util
 try:
     tx = sys.argv[1]
 except Exception:
-    print("usage: txradar txid")
+    print("usage: txradar.py txid")
     sys.exit(1)
 
 peers = util.get_peers()

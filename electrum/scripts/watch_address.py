@@ -1,10 +1,9 @@
-#!/usr/bin/env python
-
-# A simple script that connects to a server and displays block headers
+#!/usr/bin/env python3
 
 import sys
 import time
 
+from electrumabc.address import Address
 from electrumabc.json_util import json_encode
 from electrumabc.network import Network
 from electrumabc.printerror import print_msg
@@ -14,6 +13,12 @@ from electrumabc.simple_config import SimpleConfig
 def callback(response):
     print_msg(json_encode(response.get("result")))
 
+
+try:
+    addr = Address.from_string(sys.argv[1])
+except Exception:
+    print("usage: watch_address.py <bitcoin_address>")
+    sys.exit(1)
 
 # start network
 c = SimpleConfig()
@@ -28,10 +33,9 @@ if not network.is_connected():
     print_msg("daemon is not connected")
     sys.exit(1)
 
-
 # 2. send the subscription
-network.send([("server.version", ["block_headers script", "1.2"])], callback)
-network.send([("blockchain.headers.subscribe", [])], callback)
+sh = addr.to_scripthash_hex()
+network.send([("blockchain.scripthash.subscribe", [sh])], callback)
 
 # 3. wait for results
 while network.is_connected():

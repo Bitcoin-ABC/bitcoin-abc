@@ -10,7 +10,7 @@ from electrumabc.printerror import print_msg
 try:
     addr = sys.argv[1]
 except Exception:
-    print("usage: get_history <bitcoin_address>")
+    print("usage: get_history.py <bitcoin_address>")
     sys.exit(1)
 
 n = Network()

@@ -147,5 +147,5 @@ print_if_verbose(f"Found merkle root for block height {checkpoint}:")
 print(merkle_root)
 
 if args.json_output is not None:
-    with open(args.json_output, "w") as f:
+    with open(args.json_output, "w", encoding="utf-8") as f:
         json.dump({"height": checkpoint, "merkle_root": merkle_root}, f)
