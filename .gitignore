@@ -97,3 +97,4 @@ secrets.js
 # GUIX
 /output/
 /var/
+web/e.cash/public/rss.xml
