@@ -1071,8 +1071,8 @@ class AvalancheProofVoteResponse(IntEnum):
 class AvalancheTxVoteError(IntEnum):
     ACCEPTED = 0
     INVALID = 1
-    ORPHAN = 2
     UNKNOWN = -1
+    ORPHAN = -2
 
 
 class AvalancheVote:

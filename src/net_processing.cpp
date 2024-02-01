@@ -4269,7 +4269,7 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
 
     // Orphan tx
     if (m_orphanage.HaveTx(id)) {
-        return 2;
+        return -2;
     }
 
     // Unknown tx
