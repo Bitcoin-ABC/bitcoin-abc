@@ -36,6 +36,7 @@ import time
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from electrumabc.interface import Connection, Interface
+from electrumabc.printerror import set_verbosity
 from electrumabc.simple_config import SimpleConfig
 
 MAX_MESSAGE_BYTES = 1024 * 1024 * 32
@@ -54,7 +55,13 @@ parser.add_argument(
 )
 parser.add_argument("-s", "--server", default="electrum.bitcoinabc.org:50002:s")
 parser.add_argument("--json-output", help="Path to output file. If specified, write the checkpoint height and merkle root to this file.")
-parser.add_argument("-v", "--verbose", action="store_true")
+parser.add_argument(
+    "-v",
+    "--verbose",
+    action="count",
+    default=0,
+    help="Set verbosity level (0, 1 or 2)."
+)
 args = parser.parse_args(sys.argv[1:])
 
 
@@ -63,6 +70,9 @@ def print_if_verbose(msg: str):
         return
     print(msg)
 
+
+# Define if we want to see Electrum ABC's verbose logs
+set_verbosity(args.verbose >= 2)
 
 config = SimpleConfig()
 
