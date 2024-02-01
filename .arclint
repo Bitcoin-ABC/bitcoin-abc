@@ -19,7 +19,10 @@
         "black": {
             "type": "black",
             "version": ">=22.8.0",
-            "include": "(\\.py$)",
+            "include": [
+                "(\\.py$)",
+                "(^electrum/electrum-abc$)"
+            ],
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",

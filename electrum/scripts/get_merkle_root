@@ -54,13 +54,16 @@ parser.add_argument(
     ),
 )
 parser.add_argument("-s", "--server", default="electrum.bitcoinabc.org:50002:s")
-parser.add_argument("--json-output", help="Path to output file. If specified, write the checkpoint height and merkle root to this file.")
+parser.add_argument(
+    "--json-output",
+    help="Path to output file. If specified, write the checkpoint height and merkle root to this file.",
+)
 parser.add_argument(
     "-v",
     "--verbose",
     action="count",
     default=0,
-    help="Set verbosity level (0, 1 or 2)."
+    help="Set verbosity level (0, 1 or 2).",
 )
 args = parser.parse_args(sys.argv[1:])
 
