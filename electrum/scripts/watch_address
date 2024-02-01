@@ -4,10 +4,10 @@ import sys
 import time
 
 from electrumabc.address import Address
+from electrumabc.json_util import json_encode
 from electrumabc.network import Network
 from electrumabc.printerror import print_msg
 from electrumabc.simple_config import SimpleConfig
-from electrumabc.json_util import json_encode
 
 
 def callback(response):

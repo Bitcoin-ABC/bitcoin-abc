@@ -308,7 +308,10 @@
         "lint-python-isort": {
             "type": "lint-python-isort",
             "version": ">=5.6.4",
-            "include": "(\\.py$)",
+            "include": [
+                "(\\.py$)",
+                "(^electrum/electrum-abc$)"
+            ],
             "exclude": [
                 "(^contrib/gitian-builder/)",
                 "(^contrib/apple-sdk-tools/)",
