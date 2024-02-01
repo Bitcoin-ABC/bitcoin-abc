@@ -8,16 +8,15 @@ import {
     DestinationAddressSingle,
     DestinationAddressMulti,
 } from 'components/Common/EnhancedInputs';
-import { ThemedMailOutlined } from 'components/Common/CustomIcons';
+import {
+    ThemedMailOutlined,
+    CashReceivedNotificationIcon,
+} from 'components/Common/CustomIcons';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, { DisabledButton } from 'components/Common/PrimaryButton';
 import useWindowDimensions from 'hooks/useWindowDimensions';
-import {
-    sendXecNotification,
-    errorNotification,
-} from 'components/Common/Notifications';
 import { toSatoshis, toXec } from 'wallet';
 import { sumOneToManyXec, getWalletBalanceFromUtxos } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
@@ -57,7 +56,7 @@ import { queryAliasServer } from 'utils/aliasUtils';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
-
+import { notification } from 'antd';
 const { TextArea } = Input;
 
 const TextAreaLabel = styled.div`
@@ -416,11 +415,14 @@ const SendXec = ({ passLoadingStatus }) => {
                 errorObj.message || errorObj.error || JSON.stringify(errorObj);
         }
 
-        if (oneToManyFlag) {
-            errorNotification(errorObj, message, 'Sending XEC one to many');
-        } else {
-            errorNotification(errorObj, message, 'Sending XEC');
-        }
+        const title = `Error sending XEC${
+            oneToManyFlag ? ' to multiple recipients' : ''
+        }`;
+        notification.error({
+            message: title,
+            description: message,
+            duration: appConfig.notificationDurationLong,
+        });
     }
 
     async function send() {
@@ -503,9 +505,22 @@ const SendXec = ({ passLoadingStatus }) => {
                 chaintipBlockheight,
             );
 
-            sendXecNotification(
-                `${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`,
-            );
+            notification.success({
+                message: 'Success',
+                description: (
+                    <a
+                        data-testid="send-xec-notification"
+                        href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Transaction successful. Click to view in block explorer.
+                    </a>
+                ),
+                duration: appConfig.notificationDurationShort,
+                icon: <CashReceivedNotificationIcon />,
+            });
+
             clearInputForms();
             setAirdropFlag(false);
             if (txInfoFromUrl) {

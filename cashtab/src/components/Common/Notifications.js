@@ -8,25 +8,6 @@ import {
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
-// Success Notifications:
-const sendXecNotification = link => {
-    notification.success({
-        message: 'Success',
-        description: (
-            <a
-                data-testid="send-xec-notification"
-                href={link}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Transaction successful. Click to view in block explorer.
-            </a>
-        ),
-        duration: appConfig.notificationDurationShort,
-        icon: <CashReceivedNotificationIcon />,
-    });
-};
-
 const registerAliasNotification = (link, alias) => {
     notification.success({
         message: 'Success',
@@ -179,7 +160,6 @@ const generalNotification = (data, msgStr) => {
 };
 
 export {
-    sendXecNotification,
     registerAliasNotification,
     createTokenNotification,
     tokenIconSubmitSuccess,
