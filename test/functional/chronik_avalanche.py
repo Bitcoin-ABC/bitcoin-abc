@@ -102,10 +102,16 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         assert_equal(chronik.block(tip).ok().block_info.is_final, False)
         assert_equal(chronik.tx(txid).ok().block.is_final, False)
 
+        def chronik_wait_for_block_final(block_hash):
+            self.wait_until(lambda: chronik.block(tip).ok().block_info.is_final)
+
+        def chronik_wait_for_tx_final(txid):
+            self.wait_until(lambda: chronik.tx(txid).ok().block.is_final)
+
         # After we wait, both block and tx are finalized
         self.wait_until(lambda: has_finalized_tip(tip))
-        assert_equal(chronik.block(tip).ok().block_info.is_final, True)
-        assert_equal(chronik.tx(txid).ok().block.is_final, True)
+        chronik_wait_for_block_final(tip)
+        chronik_wait_for_tx_final(txid)
 
         # Restarting "wipes" the finalization status of blocks...
         self.restart_node(0, self.extra_args[0] + ["-chronikreindex"])
@@ -115,22 +121,24 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         # ...so we establish a new quorum and poll again
         quorum = get_quorum()
         self.wait_until(lambda: has_finalized_tip(tip))
-        assert_equal(chronik.block(tip).ok().block_info.is_final, True)
-        assert_equal(chronik.tx(txid).ok().block.is_final, True)
+        chronik_wait_for_block_final(tip)
+        chronik_wait_for_tx_final(txid)
 
         # Generate 10 blocks to invalidate, wait for Avalanche
         new_block_hashes = self.generate(node, 10, sync_fun=self.no_op)
         self.wait_until(lambda: has_finalized_tip(new_block_hashes[-1]))
         for block_hash in new_block_hashes:
-            assert_equal(chronik.block(block_hash).ok().block_info.is_final, True)
+            chronik_wait_for_block_final(block_hash)
 
         # After invalidation, blocks not found
         node.invalidateblock(new_block_hashes[0])
+        node.syncwithvalidationinterfacequeue()
         for block_hash in new_block_hashes:
             chronik.block(block_hash).err(404)
 
         # After reconsidering, blocks are not final again
         node.reconsiderblock(new_block_hashes[-1])
+        node.syncwithvalidationinterfacequeue()
         for block_hash in new_block_hashes:
             assert_equal(chronik.block(block_hash).ok().block_info.is_final, False)
 
@@ -138,7 +146,7 @@ class ChronikAvalancheTest(BitcoinTestFramework):
         self.generate(node, 1, sync_fun=self.no_op)
         self.wait_until(lambda: has_finalized_tip(new_block_hashes[-1]))
         for block_hash in new_block_hashes:
-            assert_equal(chronik.block(block_hash).ok().block_info.is_final, True)
+            chronik_wait_for_block_final(block_hash)
 
 
 if __name__ == "__main__":
