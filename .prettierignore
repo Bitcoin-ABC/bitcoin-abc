@@ -22,3 +22,6 @@ yarn-error.log*
 
 #yml markup files
 *.yml
+
+#markdown files with special formatting
+CONTRIBUTING.md
