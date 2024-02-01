@@ -198,6 +198,16 @@ cd bitcoin-abc
 [sudo] npm install -g eslint
 ```
 
+Some repositories have a `.nvmrc` file which specifies the version of node expected.
+For example, to work in Cashtab,
+
+```
+cd bitcoin-abc/cashtab
+nvm use
+```
+
+The specified version of nodejs will be installed and used.
+
 To work on the extension, you will need `browserify`
 
 ```

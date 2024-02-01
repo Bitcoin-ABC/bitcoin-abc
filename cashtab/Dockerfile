@@ -3,7 +3,7 @@
 # 2) nginx stage to serve frontend assets
 
 # Stage 1
-FROM node:16-buster-slim AS builder
+FROM node:20-buster-slim AS builder
 
 WORKDIR /app
 
