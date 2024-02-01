@@ -28,9 +28,12 @@ the 50th block before the server tip if no height is specified.
 
 import argparse
 import json
+import os
 import queue
 import sys
 import time
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from electrumabc.interface import Connection, Interface
 from electrumabc.simple_config import SimpleConfig
