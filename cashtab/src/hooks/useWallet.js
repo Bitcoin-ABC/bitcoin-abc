@@ -60,7 +60,7 @@ const useWallet = chronik => {
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
-    const [contactList, setContactList] = useState([{}]);
+    const [contactList, setContactList] = useState([]);
     const [cashtabSettings, setCashtabSettings] = useState(false);
     const [cashtabCache, setCashtabCache] = useState(defaultCashtabCache);
     const [fiatPrice, setFiatPrice] = useState(null);
@@ -1113,24 +1113,25 @@ const useWallet = chronik => {
             localContactList = await localforage.getItem('contactList');
             // If there is no keyvalue pair in localforage with key 'contactList'
             if (localContactList === null) {
-                // Use an array containing a single empty object
-                localforage.setItem('contactList', [{}]);
-                setContactList([{}]);
-                return [{}];
+                // Use an array
+                localforage.setItem('contactList', []);
+                setContactList([]);
+                return [];
             }
         } catch (err) {
             console.log(`Error getting contactList`, err);
-            setContactList([{}]);
-            return [{}];
+            setContactList([]);
+            return [];
         }
         // If you found an object in localforage at the contactList key, make sure it's valid
         if (isValidContactList(localContactList)) {
             setContactList(localContactList);
             return localContactList;
         }
-        // if not valid, also set to default
-        setContactList([{}]);
-        return [{}];
+        // if not valid, set to empty
+        await localforage.setItem('contactList', []);
+        setContactList([]);
+        return [];
     };
 
     const loadCashtabCache = async () => {

@@ -243,7 +243,7 @@ describe('<App />', () => {
             await screen.findByTestId('wallet-info-ctn'),
         ).toBeInTheDocument();
     });
-    it('Adding a contact from Configure.js adds it to localforage and wallet context', async () => {
+    it('Adding a contact to Configure.js from clicking on tx history adds it to localforage and wallet context', async () => {
         // Add wallet with an incoming Cashtab msg to localforage
         await localforage.setItem(
             'wallet',
@@ -279,7 +279,7 @@ describe('<App />', () => {
 
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual([{}]);
+        expect(storedContacts).toStrictEqual([]);
 
         // Click the button
         await userEvent.click(addToContactsBtn);
@@ -298,6 +298,105 @@ describe('<App />', () => {
 
         // localforage has been updated with this newly added contact
         expect(storedContactListNow).toStrictEqual(newContactList);
+    });
+    it('Adding a contact to an existing contactList by clicking on tx history adds it to localforage and wallet context', async () => {
+        // Add wallet with an incoming Cashtab msg to localforage
+        await localforage.setItem(
+            'wallet',
+            freshWalletWithOneIncomingCashtabMsg,
+        );
+        // Populate the contactList
+        const initialContactList = [
+            {
+                address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                name: 'echo',
+            },
+        ];
+        await localforage.setItem('contactList', initialContactList);
+
+        // Get mocked chronik client with expected API results for this wallet
+        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
+
+        render(
+            <WalletProvider chronik={mockedChronik}>
+                <MemoryRouter initialEntries={['/wallet']}>
+                    <ThemeProvider theme={theme}>
+                        <App />
+                    </ThemeProvider>
+                </MemoryRouter>
+            </WalletProvider>,
+        );
+
+        // Open the collapse
+        await waitFor(async () => {
+            const contactListCollapseButton = screen
+                .queryByTestId('tx-collapse')
+                .querySelector('.ant-collapse-header');
+            await userEvent.click(contactListCollapseButton);
+        });
+
+        // Get the "Add to contacts" button of tx
+        const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
+
+        // We do not see the configure screen before clicking the button
+        expect(screen.queryByTestId('configure-ctn')).not.toBeInTheDocument();
+
+        // Confirm expected initial state of localforage
+        const storedContacts = await localforage.getItem('contactList');
+        expect(storedContacts).toStrictEqual(initialContactList);
+
+        // Click the button
+        await userEvent.click(addToContactsBtn);
+
+        // Now we see the Configure screen
+        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+
+        // localforage has been updated with this newly added contact
+        await waitFor(async () =>
+            expect(await localforage.getItem('contactList')).toStrictEqual([
+                {
+                    address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    name: 'echo',
+                },
+                {
+                    address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
+                    name: 'qphlh',
+                },
+            ]),
+        );
+    });
+    it('A user with legacy blank contactList in localstorage is migrated on startup', async () => {
+        // Add wallet with an incoming Cashtab msg to localforage
+        await localforage.setItem(
+            'wallet',
+            freshWalletWithOneIncomingCashtabMsg,
+        );
+        const LEGACY_EMPTY_CONTACT_LIST = [{}];
+        await localforage.setItem('contactList', LEGACY_EMPTY_CONTACT_LIST);
+
+        // Get mocked chronik client with expected API results for this wallet
+        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
+
+        render(
+            <WalletProvider chronik={mockedChronik}>
+                <MemoryRouter initialEntries={['/wallet']}>
+                    <ThemeProvider theme={theme}>
+                        <App />
+                    </ThemeProvider>
+                </MemoryRouter>
+            </WalletProvider>,
+        );
+
+        // Wait for cashtabbootup, so that loadContactList has been called
+        // Wallet-info is rendered
+        expect(
+            await screen.findByTestId('wallet-info-ctn'),
+        ).toBeInTheDocument();
+
+        // localforage has been updated with the new format for an empty contact list
+        await waitFor(async () =>
+            expect(await localforage.getItem('contactList')).toStrictEqual([]),
+        );
     });
     it('Clicking "reply" on a Cashtab Msg correctly populates the SendXec to address and amount fields', async () => {
         // Add wallet with an incoming Cashtab msg to localforage

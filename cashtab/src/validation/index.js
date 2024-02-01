@@ -292,38 +292,27 @@ export const isValidContactList = contactList => {
     if (!Array.isArray(contactList)) {
         return false;
     }
-    for (let i = 0; i < contactList.length; i += 1) {
-        const contactObj = contactList[i];
+    for (const contact of contactList) {
         // Must have keys 'address' and 'name'
         if (
-            typeof contactObj === 'object' &&
-            'address' in contactObj &&
-            'name' in contactObj
+            typeof contact === 'object' &&
+            'address' in contact &&
+            'name' in contact
         ) {
             // Address must be a valid XEC address, name must be a string
-            const { address, name } = contactObj;
+            const { address, name } = contact;
             if (
                 (cashaddr.isValidCashAddress(address, 'ecash') ||
                     isValidAliasSendInput(address)) &&
                 typeof name === 'string'
             ) {
+                // This contact is valid
                 continue;
             }
-            return false;
-        } else {
-            // Check for empty object in an array of length 1, the default blank contactList
-            if (
-                contactObj &&
-                Object.keys(contactObj).length === 0 &&
-                Object.getPrototypeOf(contactObj) === Object.prototype &&
-                contactList.length === 1
-            ) {
-                // [{}] is valid, default blank
-                // But a list with random blanks is not valid
-                return true;
-            }
+            // Any single invalid contact makes the whole list invalid
             return false;
         }
+        return false;
     }
     // If you get here, it's good
     return true;

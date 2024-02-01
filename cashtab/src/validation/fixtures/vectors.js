@@ -566,8 +566,13 @@ export default {
     isValidContactList: {
         expectedReturns: [
             {
-                description: 'Empty contact list',
+                description: 'Legacy empty contact list',
                 contactList: [{}],
+                isValid: false,
+            },
+            {
+                description: 'Empty contact list',
+                contactList: [],
                 isValid: true,
             },
             {

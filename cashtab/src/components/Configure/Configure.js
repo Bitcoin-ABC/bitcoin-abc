@@ -474,8 +474,8 @@ const Configure = ({ passLoadingStatus }) => {
         getSavedWallets,
         cashtabSettings,
         changeCashtabSettings,
-        getContactListFromLocalForage,
         updateContactList,
+        contactList,
     } = ContextValue;
 
     const location = useLocation();
@@ -538,8 +538,6 @@ const Configure = ({ passLoadingStatus }) => {
 
     const [isValidMnemonic, setIsValidMnemonic] = useState(null);
 
-    const [contactListArray, setContactListArray] = useState([{}]);
-
     const [showRenameContactModal, setShowRenameContactModal] = useState(false);
     const [contactToBeRenamed, setContactToBeRenamed] = useState(null); //object
     const [newContactNameIsValid, setNewContactNameIsValid] = useState(null);
@@ -582,113 +580,35 @@ const Configure = ({ passLoadingStatus }) => {
     const handleContactListRouting = async () => {
         // if this was routed from Home screen's Add to Contact link
         if (location && location.state && location.state.contactToAdd) {
-            let tempContactListArray;
-
-            try {
-                tempContactListArray = await getContactListFromLocalForage();
-            } catch (err) {
-                console.log('Error in getContactListFromLocalForage()');
-                console.log(err);
-            }
-
             // set default name for contact and sender as address
             let newContactObj = {
                 name: location.state.contactToAdd.substring(6, 11),
                 address: location.state.contactToAdd,
             };
 
-            if (!tempContactListArray || tempContactListArray.length === 0) {
-                // no existing contact list in local storage
+            // Check to see if the contact exists
+            const contactExists = contactList.find(
+                contact => contact.address === newContactObj.address,
+            );
 
-                tempContactListArray = [{}]; // instantiates to mitigate null pointer issues
-                tempContactListArray.push(newContactObj);
-                tempContactListArray.shift(); // remove the initial entry from instantiation
+            if (typeof contactExists !== 'undefined') {
+                // Contact already exists
+                errorNotification(
+                    null,
+                    location.state.contactToAdd +
+                        ' already exists in the Contact List',
+                    'handleManualAddContactModalOk() error',
+                );
+            } else {
+                contactList.push(newContactObj);
+
+                // Update localforage and state
+                await updateContactList(contactList);
                 generalNotification(
                     location.state.contactToAdd + ' added to Contact List',
                     'Success',
                 );
-            } else {
-                // contact list exists in local storage
-
-                // check if address already exists in contact list
-                let duplicateContact = false;
-                let tempContactListArrayLength = tempContactListArray.length;
-                for (let i = 0; i < tempContactListArrayLength; i++) {
-                    if (
-                        tempContactListArray[i].address ===
-                        location.state.contactToAdd
-                    ) {
-                        errorNotification(
-                            null,
-                            location.state.contactToAdd +
-                                ' already exists in the Contact List',
-                            'handleManualAddContactModalOk() error',
-                        );
-                        duplicateContact = true;
-                        break;
-                    }
-                }
-
-                // in the edge case of a fresh new wallet on a fresh new browser, remove the initialization entry to avoid an undefined contact in array
-                if (
-                    tempContactListArray &&
-                    tempContactListArray[0].address === undefined
-                ) {
-                    tempContactListArray.shift();
-                }
-
-                // if address does not exist on the contact list, add it
-                if (!duplicateContact) {
-                    tempContactListArray.push(newContactObj);
-                    generalNotification(
-                        location.state.contactToAdd + ' added to Contact List',
-                        'Success',
-                    );
-                }
             }
-
-            // update local storage
-            let updateContactListStatus;
-            try {
-                updateContactListStatus = await updateContactList(
-                    tempContactListArray,
-                );
-            } catch (err) {
-                console.log('Error in updateContactList()');
-                console.log(err);
-            }
-
-            if (!updateContactListStatus) {
-                errorNotification(
-                    null,
-                    'Error updating contact list in localforage',
-                    'Updating localforage with contact list',
-                );
-            }
-
-            // commit to state for local operations
-            setContactListArray(tempContactListArray);
-        } else {
-            // if this was just standard routing between cashtab components
-            // i.e. Not via the Add to contacts action
-
-            let loadContactListStatus;
-            try {
-                loadContactListStatus = await getContactListFromLocalForage();
-            } catch (err) {
-                console.log('Error in getContactListFromLocalForage()');
-                console.log(err);
-            }
-
-            // in the edge case of a fresh new wallet on a fresh new browser, remove the initialization entry to avoid an undefined contact in array
-            if (
-                loadContactListStatus &&
-                loadContactListStatus[0].address === undefined
-            ) {
-                loadContactListStatus.shift();
-            }
-
-            setContactListArray(loadContactListStatus);
         }
     };
 
@@ -910,37 +830,19 @@ const Configure = ({ passLoadingStatus }) => {
         setShowRenameContactModal(false);
     };
 
-    const renameContactByName = async contactObj => {
+    const renameContactByName = async contact => {
         // obtain reference to the contact object in the array
-        let contactObjToUpdate = contactListArray.find(
-            element => element.address === contactObj.address,
+        let contactToUpdate = contactList.find(
+            element => element.address === contact.address,
         );
 
         // if a match was found
-        if (contactObjToUpdate) {
+        if (typeof contactToUpdate !== 'undefined') {
             // update the contact name
-            contactObjToUpdate.name = confirmationOfContactToBeRenamed;
+            contactToUpdate.name = confirmationOfContactToBeRenamed;
 
-            // update local object array and local storage
-            setContactListArray(contactListArray);
-
-            let updateContactListStatus;
-            try {
-                updateContactListStatus = await updateContactList(
-                    contactListArray,
-                );
-            } catch (err) {
-                console.log('Error in updateContactList()');
-                console.log(err);
-            }
-
-            if (!updateContactListStatus) {
-                errorNotification(
-                    null,
-                    'Unable to update localforage with updated contact list',
-                    'Updating localforage with contact list',
-                );
-            }
+            // Update localforage and state
+            await updateContactList(contactList);
         } else {
             errorNotification(
                 null,
@@ -967,7 +869,7 @@ const Configure = ({ passLoadingStatus }) => {
         }
 
         // filter contact from local contact list array
-        const filteredContactList = contactListArray.filter(
+        const filteredContactList = contactList.filter(
             element => element.address === contactAddress,
         );
 
@@ -984,38 +886,16 @@ const Configure = ({ passLoadingStatus }) => {
         }
 
         // filter contact from local contact list array
-        const updatedContactList = contactListArray.filter(
+        const updatedContactList = contactList.filter(
             element => element.address !== contactAddress,
         );
 
-        // update local list
-        setContactListArray(updatedContactList);
-
-        // commit updated list to local storage
-        let updateContactListStatus;
-        try {
-            updateContactListStatus = await updateContactList(
-                updatedContactList,
-            );
-        } catch (err) {
-            console.log('Error in updateContactList()');
-            console.log(err);
-        }
-
-        if (updateContactListStatus) {
-            generalNotification(
-                contactAddressToDelete + ' removed from Contact List',
-                'Success',
-            );
-        } else {
-            errorNotification(
-                null,
-                'Error removing ' +
-                    contactAddressToDelete +
-                    ' from Contact List',
-                'Updating localforage with contact list',
-            );
-        }
+        // Update localforage and state
+        await updateContactList(updatedContactList);
+        generalNotification(
+            contactAddressToDelete + ' removed from Contact List',
+            'Success',
+        );
     };
 
     const handleDeleteContact = contactAddress => {
@@ -1084,55 +964,31 @@ const Configure = ({ passLoadingStatus }) => {
     };
 
     const handleAddSavedWalletAsContactOk = async () => {
-        let duplicateContact = false;
-        let tempContactListArray = contactListArray;
-
-        let newContactObj = {
-            name: manualContactName,
-            address: manualContactAddress,
-        };
-
-        if (!tempContactListArray || tempContactListArray.length === 0) {
-            // no existing contact list in local storage
-            tempContactListArray = [{}]; // instantiates to mitigate null pointer issues
-            tempContactListArray.push(newContactObj);
-            tempContactListArray.shift(); // remove the initial entry from instantiation
+        // Check to see if the contact exists
+        const contactExists = contactList.find(
+            contact => contact.address === manualContactAddress,
+        );
+        if (typeof contactExists !== 'undefined') {
+            // it exists
+            errorNotification(
+                null,
+                manualContactAddress + ' already exists in the Contact List',
+                'handleAddSavedWalletAsContactOk() error',
+            );
         } else {
-            // contact list exists in local storage
-            // check if address already exists in contact list
-            let tempContactListArrayLength = tempContactListArray.length;
-            for (let i = 0; i < tempContactListArrayLength; i++) {
-                if (tempContactListArray[i].address === manualContactAddress) {
-                    errorNotification(
-                        null,
-                        manualContactAddress +
-                            ' already exists in the Contact List',
-                        'handleAddSavedWalletAsContactOk() error',
-                    );
-                    duplicateContact = true;
-                    break;
-                }
-            }
-            // if address does not exist on the contact list, add it
-            if (!duplicateContact) {
-                tempContactListArray.push(newContactObj);
-                generalNotification(
-                    manualContactAddress + ' added to Contact List',
-                    'Success',
-                );
-            }
+            contactList.push({
+                name: manualContactName,
+                address: manualContactAddress,
+            });
+            // update localforage and state
+            await updateContactList(contactList);
+            generalNotification(
+                manualContactAddress + ' added to Contact List',
+                'Success',
+            );
         }
 
-        // update localforage
-        try {
-            await updateContactList(tempContactListArray);
-        } catch (err) {
-            console.log('Error in handleAddSavedWalletAsContactOk()');
-            console.log(err);
-        }
-
-        // update local state array
-        setContactListArray(tempContactListArray);
+        // Reset relevant state fields
         setSavedWalletContactModal(false);
         setManualContactName('');
         setManualContactAddress('');
@@ -1144,14 +1000,14 @@ const Configure = ({ passLoadingStatus }) => {
         setManualContactAddress('');
     };
 
-    const addSavedWalletToContact = walletInfo => {
-        if (!walletInfo) {
+    const addSavedWalletToContact = wallet => {
+        if (!wallet) {
             return;
         }
         // initialise saved wallet name and address to state for confirmation modal
-        setManualContactName(walletInfo.name);
+        setManualContactName(wallet.name);
         setManualContactAddress(
-            convertToEcashPrefix(walletInfo.Path1899.cashAddress),
+            convertToEcashPrefix(wallet.Path1899.cashAddress),
         );
         setSavedWalletContactModal(true);
     };
@@ -1162,54 +1018,32 @@ const Configure = ({ passLoadingStatus }) => {
             return;
         }
 
-        let duplicateContact = false;
-        let tempContactListArray = contactListArray;
-        let newContactObj = {
-            name: manualContactName,
-            address: manualContactAddress,
-        };
+        // Check to see if the contact exists
+        const contactExists = contactList.find(
+            contact => contact.address === manualContactAddress,
+        );
 
-        if (!tempContactListArray || tempContactListArray.length === 0) {
-            // no existing contact list in local storage
-            tempContactListArray = [{}]; // instantiates to mitigate null pointer issues
-            tempContactListArray.push(newContactObj);
-            tempContactListArray.shift(); // remove the initial entry from instantiation
+        if (typeof contactExists !== 'undefined') {
+            // Contact exists
+            errorNotification(
+                null,
+                manualContactAddress + ' already exists in the Contact List',
+                'handleManualAddContactModalOk() error',
+            );
         } else {
-            // contact list exists in local storage
-            // check if address already exists in contact list
-            let tempContactListArrayLength = tempContactListArray.length;
-            for (let i = 0; i < tempContactListArrayLength; i++) {
-                if (tempContactListArray[i].address === manualContactAddress) {
-                    errorNotification(
-                        null,
-                        manualContactAddress +
-                            ' already exists in the Contact List',
-                        'handleManualAddContactModalOk() error',
-                    );
-                    duplicateContact = true;
-                    break;
-                }
-            }
-            // if address does not exist on the contact list, add it
-            if (!duplicateContact) {
-                tempContactListArray.push(newContactObj);
-                generalNotification(
-                    manualContactAddress + ' added to Contact List',
-                    'Success',
-                );
-            }
-        }
-        // update local state array
-        setContactListArray(tempContactListArray);
-
-        // update localforage
-        try {
-            await updateContactList(tempContactListArray);
-        } catch (err) {
-            console.log('Error in handleManualAddContactModalOk()');
-            console.log(err);
+            contactList.push({
+                name: manualContactName,
+                address: manualContactAddress,
+            });
+            // update localforage and state
+            await updateContactList(contactList);
+            generalNotification(
+                manualContactAddress + ' added to Contact List',
+                'Success',
+            );
         }
 
+        // Reset relevant state fields
         setShowManualAddContactModal(false);
         setManualContactName('');
         setManualContactAddress('');
@@ -1261,6 +1095,7 @@ const Configure = ({ passLoadingStatus }) => {
                 )}
                 {showManualAddContactModal && (
                     <Modal
+                        data-testid="confirm-add-contact-modal"
                         title={`Add new contact to contact list`}
                         open={showManualAddContactModal}
                         onOk={() => handleManualAddContactModalOk()}
@@ -1323,6 +1158,7 @@ const Configure = ({ passLoadingStatus }) => {
                 {showDeleteContactModal && (
                     <>
                         <Modal
+                            data-testid="confirm-delete-contact-modal"
                             title="Confirm Delete Contact"
                             open={showDeleteContactModal}
                             onOk={() => handleDeleteContactModalOk()}
@@ -1352,6 +1188,7 @@ const Configure = ({ passLoadingStatus }) => {
                                         }
                                     >
                                         <Input
+                                            data-testid="confirm-delete-contact"
                                             prefix={<ThemedContactsOutlined />}
                                             placeholder={`Type "delete ${getContactNameByAddress(
                                                 contactAddressToDelete,
@@ -1372,6 +1209,7 @@ const Configure = ({ passLoadingStatus }) => {
                 )}
                 {showRenameContactModal && (
                     <Modal
+                        data-testid="confirm-rename-contact-modal"
                         title={`Set contact name for ${contactToBeRenamed.address}`}
                         open={showRenameContactModal}
                         onOk={() => handleRenameContactModalOk()}
@@ -1665,6 +1503,7 @@ const Configure = ({ passLoadingStatus }) => {
                                                     }
                                                 />
                                                 <ThemedContactsOutlined
+                                                    data-testid="add-saved-wallet-to-contact-btn"
                                                     onClick={() =>
                                                         addSavedWalletToContact(
                                                             sw,
@@ -1696,7 +1535,7 @@ const Configure = ({ passLoadingStatus }) => {
                         </StyledCollapse>
                     </>
                 )}
-                <Row type="flex">
+                <Row type="flex" data-testid="contact-list-collapse">
                     <Col span={24}>
                         <StyledCollapse
                             style={{
@@ -1711,15 +1550,15 @@ const Configure = ({ passLoadingStatus }) => {
                             }
                         >
                             <Panel header="Contact List" key="1">
-                                <AntdFormWrapper>
+                                <AntdFormWrapper data-testid="contact-list-items">
                                     <Form
                                         style={{
                                             width: 'auto',
                                         }}
                                     >
-                                        {contactListArray &&
-                                        contactListArray.length > 0 ? (
-                                            contactListArray.map(
+                                        {contactList &&
+                                        contactList.length > 0 ? (
+                                            contactList.map(
                                                 (element, index) => (
                                                     <ContactListRow key={index}>
                                                         <Tooltip
@@ -1746,7 +1585,7 @@ const Configure = ({ passLoadingStatus }) => {
                                                                 </div>
                                                             </ContactListAddress>
                                                         </Tooltip>
-                                                        <ContactListCtn>
+                                                        <ContactListCtn data-testid="contact-list-options">
                                                             <CopyToClipboard
                                                                 data={
                                                                     element.address
@@ -1759,6 +1598,7 @@ const Configure = ({ passLoadingStatus }) => {
                                                                 <ThemedCopySolid />
                                                             </CopyToClipboard>
                                                             <ThemedEditOutlined
+                                                                data-testid="rename-contact-btn"
                                                                 onClick={() =>
                                                                     handleRenameContact(
                                                                         element,
@@ -1775,6 +1615,7 @@ const Configure = ({ passLoadingStatus }) => {
                                                                 <ThemedContactSendOutlined />
                                                             </Link>
                                                             <ThemedTrashcanOutlined
+                                                                data-testid="delete-contact-btn"
                                                                 onClick={() =>
                                                                     handleDeleteContact(
                                                                         element.address,
@@ -1801,12 +1642,12 @@ const Configure = ({ passLoadingStatus }) => {
                                         )}
                                         {/* Export button will only show when there are contacts */}
                                         <ContactListBtnCtn>
-                                            {contactListArray &&
-                                                contactListArray.length > 0 && (
+                                            {contactList &&
+                                                contactList.length > 0 && (
                                                     <ContactListBtn
                                                         onClick={() =>
                                                             exportContactList(
-                                                                contactListArray,
+                                                                contactList,
                                                             )
                                                         }
                                                     >
@@ -1820,6 +1661,7 @@ const Configure = ({ passLoadingStatus }) => {
                                             <br />
                                             <br />
                                             <ContactListBtn
+                                                data-testid="add-contact-btn"
                                                 onClick={() =>
                                                     setShowManualAddContactModal(
                                                         true,
