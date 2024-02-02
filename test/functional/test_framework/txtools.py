@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import random
-import sys
 import unittest
 
 from .cdefs import MIN_TX_SIZE
@@ -9,15 +8,6 @@ from .script import OP_RETURN, CScript
 
 MAX_OP_RETURN_PAYLOAD = 220
 VOUT_VALUE_SIZE = 8
-
-
-def get_random_bytes(size: int) -> bytes:
-    if sys.version_info >= (3, 9, 0):
-        return random.randbytes(size)  # type: ignore[attr-defined]
-    # slower workaround
-    if not size:
-        return b""
-    return bytes.fromhex(f"{random.randrange(2**(8*size)):0{2*size}x}")
 
 
 def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
@@ -72,7 +62,7 @@ def pad_tx(tx: CTransaction, pad_to_size: int = MIN_TX_SIZE):
 
         required_padding -= data_size + VOUT_VALUE_SIZE + 3
 
-        tx.vout.append(CTxOut(0, CScript([OP_RETURN, get_random_bytes(data_size)])))
+        tx.vout.append(CTxOut(0, CScript([OP_RETURN, random.randbytes(data_size)])))
 
     tx.rehash()
 

@@ -58,14 +58,6 @@ import ecdsa
 
 from electrumabc.bitcoin import point_to_ser, ser_to_point
 
-try:
-    hmacdigest = hmac.digest  # python 3.7+
-except AttributeError:
-
-    def hmacdigest(key, msg, digest):
-        return hmac.new(key, msg, digest).digest()
-
-
 G = ecdsa.SECP256k1.generator
 order = ecdsa.SECP256k1.generator.order()
 
@@ -110,7 +102,7 @@ def encrypt(message, pubkey, pad_to_length=None):
         aes_cbc = pyaes.AESModeOfOperationCBC(key, iv=iv)
         aes = pyaes.Encrypter(aes_cbc, padding=pyaes.PADDING_NONE)
         ciphertext = aes.feed(plaintext) + aes.feed()  # empty aes.feed() flushes buffer
-    mac = hmacdigest(key, ciphertext, "sha256")[:16]
+    mac = hmac.digest(key, ciphertext, "sha256")[:16]
     return nonce_pub + ciphertext + mac
 
 
@@ -122,7 +114,7 @@ def decrypt_with_symmkey(data, key):
     ciphertext = data[33:-16]
     if len(ciphertext) % 16 != 0:
         raise DecryptionFailed
-    mac = hmacdigest(key, ciphertext, "sha256")[:16]
+    mac = hmac.digest(key, ciphertext, "sha256")[:16]
     if not hmac.compare_digest(data[-16:], mac):
         raise DecryptionFailed
 

@@ -41,7 +41,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Find the python interpreter. This is required for several targets.
-find_package(Python 3.6 COMPONENTS Interpreter REQUIRED)
+find_package(Python 3.9 COMPONENTS Interpreter REQUIRED)
 
 # Add the magic targets `check-*`
 add_custom_target(check-all)

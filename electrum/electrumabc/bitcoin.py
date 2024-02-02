@@ -408,11 +408,7 @@ def Hash(x):
 def hmac_oneshot(key, msg, digest):
     """Params key, msg and return val are bytes.
     Digest is a hashlib algorithm, e.g. hashlib.sha512"""
-    if hasattr(hmac, "digest"):
-        # requires python 3.7+; faster
-        return hmac.digest(key, msg, digest)
-    else:
-        return hmac.new(key, msg, digest).digest()
+    return hmac.digest(key, msg, digest)
 
 
 def hash_encode(x):

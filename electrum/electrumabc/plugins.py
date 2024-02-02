@@ -25,9 +25,6 @@
 # SOFTWARE.
 from __future__ import annotations
 
-# Importing concurrent.futures (in addition to concurrent) is needed for python 3.7.
-# It is no longer needed for python 3.8+.
-import concurrent
 import concurrent.futures
 import importlib.util
 import json

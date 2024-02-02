@@ -26,7 +26,7 @@ All commands in this document assume that your current working directory is the
 
 ### Python
 
-Python 3.7 or above is required to run Electrum ABC.
+Python 3.9 or above is required to run Electrum ABC.
 
 If your system lacks Python 3.7+, you can use `pyenv` to install newer versions, or
 install an [alternative python distribution](https://www.python.org/download/alternatives/)
@@ -94,10 +94,8 @@ is required for either).
 1. After installing either HomeBrew or MacPorts, clone this repository and
    switch to the directory:
    `git clone https://github.com/Bitcoin-ABC/ElectrumABC && cd ElectrumABC`
-2. Install python 3.7+. For brew:
+2. Install python 3+. For brew:
    `brew install python3`
-   or if using MacPorts:
-   `sudo port install python37`
 3. Install PyQt5: `python3 -m pip install --user pyqt5`
 4. [Install Electrum ABC requirements](#python-packages)
 5. [Compile libsecp256k1](#compiling-libsecp256k1)
