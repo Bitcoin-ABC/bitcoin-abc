@@ -11,12 +11,13 @@ use bitcoinsuite_core::{
 use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::{db::Db, mem::Mempool};
+use chronik_proto::proto;
 use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
     indexer::Node,
-    query::{QueryBroadcastError::*, TxTokenData},
+    query::{make_tx_proto, OutputsSpent, QueryBroadcastError::*, TxTokenData},
 };
 
 /// Struct for broadcasting txs on the network
@@ -128,5 +129,31 @@ impl QueryBroadcast<'_> {
             return Err(TokenError(error_msg).into());
         }
         Ok(coins_to_uncache)
+    }
+
+    /// Parse the tx and validate it as a token tx without broadcasting,
+    /// returning verified tx data.
+    pub fn validate_tx(&self, raw_tx: Vec<u8>) -> Result<proto::Tx> {
+        let tx = TxMut::deser(&mut raw_tx.into())?;
+        let mut ffi_tx = ffi::Tx::from(tx);
+        let mut coins_to_uncache = Vec::new();
+        self.node.bridge.lookup_spent_coins(
+            &mut ffi_tx,
+            &mut vec![],
+            &mut coins_to_uncache,
+        )?;
+        self.node.bridge.uncache_coins(&coins_to_uncache)?;
+        let tx = Tx::from(ffi_tx);
+        let token =
+            TxTokenData::from_unbroadcast_tx(self.db, self.mempool, &tx)?;
+        Ok(make_tx_proto(
+            &tx,
+            &OutputsSpent::default(),
+            0,
+            false,
+            None,
+            self.avalanche,
+            token.as_ref(),
+        ))
     }
 }

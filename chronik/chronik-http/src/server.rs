@@ -157,6 +157,11 @@ impl ChronikServer {
             .route("/tx/:txid", routing::get(handle_tx))
             .route("/token/:txid", routing::get(handle_token_info))
             .route(
+                "/validate-tx",
+                routing::post(handle_validate_tx)
+                    .on(MethodFilter::OPTIONS, handle_post_options),
+            )
+            .route(
                 "/broadcast-tx",
                 routing::post(handle_broadcast_tx)
                     .on(MethodFilter::OPTIONS, handle_post_options),
@@ -290,6 +295,19 @@ async fn handle_broadcast_txs(
     Ok(Protobuf(proto::BroadcastTxsResponse {
         txids: txids.into_iter().map(|txid| txid.to_vec()).collect(),
     }))
+}
+
+async fn handle_validate_tx(
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+    Protobuf(raw_tx): Protobuf<proto::RawTx>,
+) -> Result<Protobuf<proto::Tx>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        indexer
+            .broadcast(node.as_ref())
+            .validate_tx(raw_tx.raw_tx)?,
+    ))
 }
 
 async fn handle_raw_tx(

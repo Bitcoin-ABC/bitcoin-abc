@@ -31,6 +31,8 @@ class TokenTx:
 
     def send(self, chronik, error=None):
         raw_tx = self.tx.serialize()
+        proto_tx = chronik.validate_tx(raw_tx).ok()
+        self.test_tx(proto_tx)
         request = chronik.broadcast_tx(raw_tx)
         if error is None:
             request.ok()

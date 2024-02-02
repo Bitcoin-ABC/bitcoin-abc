@@ -244,6 +244,11 @@ class ChronikClient:
     def token_info(self, txid: str) -> bytes:
         return self._request_get(f"/token/{txid}", pb.TokenInfo)
 
+    def validate_tx(self, raw_tx: bytes) -> ChronikResponse:
+        return self._request(
+            "POST", "/validate-tx", pb.RawTx(raw_tx=raw_tx).SerializeToString(), pb.Tx
+        )
+
     def broadcast_tx(
         self, raw_tx: bytes, skip_token_checks: bool = False
     ) -> ChronikResponse:

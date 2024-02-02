@@ -176,6 +176,7 @@ impl FromStr for HashOrHeight {
 
 /// Helper struct for querying which tx outputs have been spent by DB or mempool
 /// txs.
+#[derive(Debug, Default)]
 pub(crate) struct OutputsSpent<'a> {
     spent_by_mempool: Option<&'a BTreeMap<u32, SpentBy>>,
     spent_by_blocks: Vec<SpentByEntry>,
