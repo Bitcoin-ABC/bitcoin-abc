@@ -112,6 +112,18 @@ class ChronikTokenAlp(BitcoinTestFramework):
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 alp_token(token_id=tx.hash, is_mint_baton=True),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
+                genesis_info=pb.GenesisInfo(
+                    token_ticker=b"TEST",
+                    token_name=b"Test Token",
+                    url=b"http://example.com",
+                    data=b"Token Data",
+                    auth_pubkey=b"Token Pubkey",
+                    decimals=4,
+                ),
+            ),
         )
         txs.append(genesis)
         tx_names.append("genesis")
@@ -247,6 +259,11 @@ class ChronikTokenAlp(BitcoinTestFramework):
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
+                genesis_info=pb.GenesisInfo(),
+            ),
         )
         txs.append(genesis2)
         tx_names.append("genesis2")
@@ -328,6 +345,11 @@ class ChronikTokenAlp(BitcoinTestFramework):
                 alp_token(token_id=genesis.txid, amount=2, entry_idx=2),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
+                genesis_info=pb.GenesisInfo(token_ticker=b"MULTI"),
+            ),
         )
         txs.append(multi)
         tx_names.append("multi")
@@ -538,6 +560,11 @@ be in ascending order""",
                     entry_idx=3,
                 ),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
+                genesis_info=pb.GenesisInfo(token_ticker=b"ALL"),
+            ),
         )
         block_height = 102
         block = create_block(

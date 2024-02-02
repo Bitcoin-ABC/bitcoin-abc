@@ -16,7 +16,8 @@ class TokenTx:
         entries=[],
         inputs=[],
         outputs=[],
-        failed_parsings=[]
+        failed_parsings=[],
+        token_info=None,
     ):
         tx.rehash()
         self.tx = tx
@@ -26,6 +27,7 @@ class TokenTx:
         self.inputs = inputs
         self.outputs = outputs
         self.failed_parsings = failed_parsings
+        self.token_info = token_info
 
     def send(self, node):
         node.sendrawtransaction(self.tx.serialize().hex())
@@ -33,6 +35,11 @@ class TokenTx:
     def test(self, chronik, block_hash=None):
         proto_tx = chronik.tx(self.txid).ok()
         self.test_tx(proto_tx, block_hash)
+        if self.token_info is not None:
+            proto_token = chronik.token_info(self.txid).ok()
+            self.test_token_info(proto_token, block_hash)
+        else:
+            chronik.token_info(self.txid).err(404)
 
     def test_tx(self, proto_tx, block_hash=None):
         import chronik_pb2 as pb
@@ -46,3 +53,14 @@ class TokenTx:
         else:
             assert_equal(proto_tx.block.hash, bytes.fromhex(block_hash)[::-1])
         assert_equal(list(proto_tx.token_failed_parsings), self.failed_parsings)
+
+    def test_token_info(self, proto_token, block_hash=None):
+        import chronik_pb2 as pb
+
+        assert_equal(proto_token.token_id, self.token_info.token_id)
+        assert_equal(proto_token.token_type, self.token_info.token_type)
+        assert_equal(proto_token.genesis_info, self.token_info.genesis_info)
+        if block_hash is not None:
+            assert_equal(proto_token.block.hash, bytes.fromhex(block_hash)[::-1])
+        else:
+            assert_equal(proto_token.block, pb.BlockMetadata())

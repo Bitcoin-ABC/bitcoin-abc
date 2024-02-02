@@ -235,6 +235,9 @@ class ChronikClient:
     def raw_tx(self, txid: str) -> bytes:
         return self._request_get(f"/raw-tx/{txid}", pb.RawTx)
 
+    def token_info(self, txid: str) -> bytes:
+        return self._request_get(f"/token/{txid}", pb.TokenInfo)
+
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)
 

@@ -125,6 +125,17 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                 vault_token(token_id=tx.hash, amount=1000),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_MINT_VAULT),
+                genesis_info=pb.GenesisInfo(
+                    token_ticker=b"SLPVAULT",
+                    token_name=b"0",
+                    url=b"0",
+                    hash=b"x" * 32,
+                    mint_vault_scripthash=mint_vault_scripthash,
+                ),
+            ),
         )
         genesis.send(node)
         genesis.test(chronik)

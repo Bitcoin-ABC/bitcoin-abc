@@ -97,6 +97,17 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
                 group_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_NFT1_GROUP),
+                genesis_info=pb.GenesisInfo(
+                    token_ticker=b"SLP NFT GROUP",
+                    token_name=b"Slp NFT GROUP token",
+                    url=b"http://slp.nft",
+                    hash=b"x" * 32,
+                    decimals=4,
+                ),
+            ),
         )
         txs.append(genesis)
         genesis.send(node)
@@ -222,6 +233,14 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
                 pb.Token(),
                 child_token(token_id=tx.hash, amount=1),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_NFT1_CHILD),
+                genesis_info=pb.GenesisInfo(
+                    token_ticker=b"SLP NFT CHILD",
+                    token_name=b"Slp NFT CHILD token",
+                ),
+            ),
         )
         txs.append(child_genesis1)
         child_genesis1.send(node)

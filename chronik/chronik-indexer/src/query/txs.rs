@@ -20,7 +20,10 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
-    query::{make_tx_proto, OutputsSpent, QueryTxError::*, TxTokenData},
+    query::{
+        make_genesis_info_proto, make_token_type_proto, make_tx_proto,
+        read_token_info, OutputsSpent, QueryTxError::*, TxTokenData,
+    },
 };
 
 /// Struct for querying txs from the db/mempool.
@@ -40,6 +43,10 @@ pub enum QueryTxError {
     /// Transaction not in mempool nor DB.
     #[error("404: Transaction {0} not found in the index")]
     TxNotFound(TxId),
+
+    /// Token not found in mempool nor DB.
+    #[error("404: Token {0} not found in the index")]
+    TokenNotFound(TxId),
 
     /// Transaction in DB without block
     #[error("500: Inconsistent DB: {0} has no block")]
@@ -124,5 +131,26 @@ impl<'a> QueryTxs<'a> {
             }
         };
         Ok(proto::RawTx { raw_tx })
+    }
+
+    /// Get token info of the token by token ID.
+    pub fn token_info(&self, token_id_txid: &TxId) -> Result<proto::TokenInfo> {
+        let token_info = read_token_info(
+            self.db,
+            self.mempool,
+            self.avalanche,
+            token_id_txid,
+        )?
+        .ok_or(TokenNotFound(*token_id_txid))?;
+        let meta = &token_info.meta;
+        Ok(proto::TokenInfo {
+            token_id: meta.token_id.to_string(),
+            token_type: Some(make_token_type_proto(meta.token_type)),
+            genesis_info: Some(make_genesis_info_proto(
+                &token_info.genesis_info,
+            )),
+            block: token_info.block,
+            time_first_seen: token_info.time_first_seen,
+        })
     }
 }

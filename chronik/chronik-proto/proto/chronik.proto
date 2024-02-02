@@ -223,6 +223,21 @@ enum TokenTxType {
     BURN = 5;
 }
 
+// Info about a token
+message TokenInfo {
+    // Hex token_id (in big-endian, like usually displayed to users) of the token.
+    // This is not `bytes` because SLP and ALP use different endiannnes, so to avoid this we use hex, which conventionally implies big-endian in a bitcoin context.
+    string token_id = 1;
+    // Token type of the token
+    TokenType token_type = 2;
+    // Info found in the token's GENESIS tx
+    GenesisInfo genesis_info = 3;
+    // Block of the GENESIS tx, if it's mined already
+    BlockMetadata block = 4;
+    // Time the GENESIS tx has first been seen by the indexer
+    int64 time_first_seen = 5;
+}
+
 // Token involved in a transaction
 message TokenEntry {
     // Hex token_id (in big-endian, like usually displayed to users) of the token.

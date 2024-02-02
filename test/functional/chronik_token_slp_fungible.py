@@ -99,6 +99,17 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                 ),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
+                genesis_info=pb.GenesisInfo(
+                    token_ticker=b"SLPTEST",
+                    token_name=b"Test SLP Token 3",
+                    url=b"http://example/slp",
+                    hash=b"x" * 32,
+                    decimals=4,
+                ),
+            ),
         )
         txs.append(genesis)
         genesis.send(node)
@@ -212,6 +223,11 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
                 pb.Token(),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
+                genesis_info=pb.GenesisInfo(),
+            ),
         )
         txs.append(genesis_empty)
         genesis_empty.send(node)

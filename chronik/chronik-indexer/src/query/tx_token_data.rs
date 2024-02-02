@@ -7,23 +7,26 @@
 use std::borrow::Cow;
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::{hash::Hashed, tx::Tx};
+use bitcoinsuite_core::{
+    hash::Hashed,
+    tx::{Tx, TxId},
+};
 use bitcoinsuite_slp::{
     color::ColoredTx,
-    structs::{GenesisInfo, Token, TxType},
+    structs::{GenesisInfo, Token, TokenMeta, TxType},
     token_tx::TokenTx,
     token_type::{AlpTokenType, SlpTokenType, TokenType},
     verify::{SpentToken, VerifyContext},
 };
 use chronik_db::{
     db::Db,
-    io::{token::TokenReader, TxNum},
-    mem::MempoolTokens,
+    io::{token::TokenReader, BlockHeight, BlockReader, TxNum, TxReader},
+    mem::{Mempool, MempoolTokens},
 };
 use chronik_proto::proto;
 use thiserror::Error;
 
-use crate::query::tx_token_data::TxTokenDataError::*;
+use crate::{avalanche::Avalanche, query::tx_token_data::TxTokenDataError::*};
 
 /// Helper struct to bundle token data coming from the DB or mempool.
 ///
@@ -43,6 +46,18 @@ pub enum TxTokenDataError {
     /// Token num not found.
     #[error("500: Inconsistent DB: Token num {0} not found")]
     TokenTxNumDoesntExist(TxNum),
+
+    /// Token data not found in mempool but should be there
+    #[error("500: Inconsistent DB: TxData for token {0} not in mempool")]
+    TokenTxDataNotInMempool(TxId),
+
+    /// Mempool tx not found in mempool but should be there
+    #[error("500: Inconsistent DB: MempoolTx for token {0} not in mempool")]
+    TokenTxNotInMempool(TxId),
+
+    /// Block not found in DB but should be there
+    #[error("500: Inconsistent DB: Missing block for height {0}")]
+    MissingBlockForHeight(BlockHeight),
 }
 
 impl<'m> TxTokenData<'m> {
@@ -257,4 +272,70 @@ pub fn make_utxo_token_proto(token: &Token) -> proto::Token {
         amount: token.variant.amount(),
         is_mint_baton: token.variant.is_mint_baton(),
     }
+}
+
+/// Info about a token in the DB/Mempool
+#[derive(Debug)]
+pub struct TokenInfo {
+    /// Meta of the token
+    pub meta: TokenMeta,
+    /// Info in the GENESIS tx of the token
+    pub genesis_info: GenesisInfo,
+    /// Block the token GENESIS has been mined in, if it's been mined already
+    pub block: Option<proto::BlockMetadata>,
+    /// First time the GENESIS tx of the token has been seen on the network
+    pub time_first_seen: i64,
+}
+
+/// Read token info from the DB or mempool
+pub fn read_token_info(
+    db: &Db,
+    mempool: &Mempool,
+    avalanche: &Avalanche,
+    token_id_txid: &TxId,
+) -> Result<Option<TokenInfo>> {
+    if let Some(genesis_info) = mempool.tokens().genesis_info(token_id_txid) {
+        let token_tx = mempool
+            .tokens()
+            .token_tx(token_id_txid)
+            .ok_or(TokenTxDataNotInMempool(*token_id_txid))?;
+        let mempool_tx = mempool
+            .tx(token_id_txid)
+            .ok_or(TokenTxNotInMempool(*token_id_txid))?;
+        return Ok(Some(TokenInfo {
+            meta: token_tx.entries[0].meta,
+            genesis_info: genesis_info.clone(),
+            block: None,
+            time_first_seen: mempool_tx.time_first_seen,
+        }));
+    }
+    let tx_reader = TxReader::new(db)?;
+    let token_reader = TokenReader::new(db)?;
+    let block_reader = BlockReader::new(db)?;
+    let (tx_num, block_tx) =
+        match tx_reader.tx_and_num_by_txid(token_id_txid)? {
+            Some(tuple) => tuple,
+            None => return Ok(None),
+        };
+    let block = block_reader
+        .by_height(block_tx.block_height)?
+        .ok_or(MissingBlockForHeight(block_tx.block_height))?;
+    let genesis_info = match token_reader.genesis_info(tx_num)? {
+        Some(db_genesis) => db_genesis,
+        None => return Ok(None),
+    };
+    let meta = token_reader
+        .token_meta(tx_num)?
+        .ok_or(TokenTxNumDoesntExist(tx_num))?;
+    Ok(Some(TokenInfo {
+        meta,
+        genesis_info,
+        block: Some(proto::BlockMetadata {
+            height: block_tx.block_height,
+            hash: block.hash.to_vec(),
+            timestamp: block.timestamp,
+            is_final: avalanche.is_final_height(block_tx.block_height),
+        }),
+        time_first_seen: block_tx.entry.time_first_seen,
+    }))
 }

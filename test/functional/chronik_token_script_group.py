@@ -97,6 +97,11 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                 slp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(slp=pb.SLP_TOKEN_TYPE_FUNGIBLE),
+                genesis_info=pb.GenesisInfo(),
+            ),
         )
         txs.append(genesis_slp)
         genesis_slp.send(node)
@@ -176,6 +181,11 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
                 alp_token(token_id=tx.hash, is_mint_baton=True),
                 pb.Token(),
             ],
+            token_info=pb.TokenInfo(
+                token_id=tx.hash,
+                token_type=pb.TokenType(alp=pb.ALP_TOKEN_TYPE_STANDARD),
+                genesis_info=pb.GenesisInfo(),
+            ),
         )
         txs.append(genesis_alp)
         genesis_alp.send(node)
