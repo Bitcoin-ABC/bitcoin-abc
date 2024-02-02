@@ -289,13 +289,12 @@ class MnemonicBase(PrintError):
             self.data.words = tuple(load_wordlist(filename))
             self.data.word_indices = {}
             for i, word in enumerate(self.data.words):
-                self.data.word_indices[
-                    word
-                ] = i  # saves on O(N) lookups for words. The alternative is to call wordlist.index(w) for each word which is slow.
+                # saves on O(N) lookups for words. The alternative is to call
+                # wordlist.index(w) for each word which is slow.
+                self.data.word_indices[word] = i
             self.print_error("wordlist has %d words" % len(self.data.words))
-            assert len(self.data.words) == len(
-                self.data.word_indices
-            )  # Paranoia to ensure word list is composed of unique words.
+            # Paranoia to ensure word list is composed of unique words.
+            assert len(self.data.words) == len(self.data.word_indices)
             self.shared_datas[self.lang] = self.data
 
     @property

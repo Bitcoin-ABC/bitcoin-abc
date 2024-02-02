@@ -1812,9 +1812,8 @@ class AbstractWallet(PrintError, SPVDelegate):
 
             fee = do_get_fee(tx_hash)
             if fee is not None:
-                self.tx_fees[
-                    tx_hash
-                ] = fee  # save fee to wallet if we bothered to dl/calculate it.
+                # save fee to wallet if we bothered to dl/calculate it.
+                self.tx_fees[tx_hash] = fee
             return fee
 
         def fmt_amt(v, is_diff):

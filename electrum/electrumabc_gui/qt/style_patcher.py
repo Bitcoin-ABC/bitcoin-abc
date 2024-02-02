@@ -2,6 +2,7 @@
 This is used to patch the QApplication style sheet.
 It reads the current stylesheet, appends our modifications and sets the new stylesheet.
 """
+
 from typing import Optional
 
 from PyQt5 import QtWidgets

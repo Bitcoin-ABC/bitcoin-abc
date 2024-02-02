@@ -8,6 +8,7 @@ settings imported.
 This module also handles updating the config file when default config parameters are
 changed.
 """
+
 import glob
 import logging
 import os

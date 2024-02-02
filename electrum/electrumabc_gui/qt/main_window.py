@@ -4397,9 +4397,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                     lines.append(cols)
                 else:
                     if has_fiat_columns and ccy:
-                        item[
-                            "fiat_currency"
-                        ] = ccy  # add the currency to each entry in the json. this wastes space but json is bloated anyway so this won't hurt too much, we hope
+                        # add the currency to each entry in the json. this wastes space
+                        # but json is bloated anyway so this won't hurt too much, we
+                        # hope
+                        item["fiat_currency"] = ccy
                     elif not has_fiat_columns:
                         # No need to include these fields as they will always be 'No Data'
                         item.pop("fiat_value", None)

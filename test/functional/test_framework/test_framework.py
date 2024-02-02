@@ -536,9 +536,7 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         wallet_name = (
             self.default_wallet_name
             if self.wallet_names is None
-            else self.wallet_names[i]
-            if i < len(self.wallet_names)
-            else False
+            else self.wallet_names[i] if i < len(self.wallet_names) else False
         )
         if wallet_name is not False:
             n = self.nodes[i]

@@ -616,9 +616,11 @@ class MultiWalletTest(BitcoinTestFramework):
             rpc.backupwallet(backup)
             self.nodes[0].unloadwallet(wallet_name)
             shutil.copyfile(
-                empty_created_wallet
-                if wallet_name == self.default_wallet_name
-                else empty_wallet,
+                (
+                    empty_created_wallet
+                    if wallet_name == self.default_wallet_name
+                    else empty_wallet
+                ),
                 wallet_file(wallet_name),
             )
             self.nodes[0].loadwallet(wallet_name)

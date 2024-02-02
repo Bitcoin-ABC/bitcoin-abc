@@ -879,11 +879,8 @@ class Commands:
                     q.get(timeout=min(max(time_remaining() / 2.0, 0.001), 10.0))
                 except queue.Empty:
                     pass
-                kwargs[
-                    "fee_calc_timeout"
-                ] = (
-                    time_remaining()
-                )  # since we blocked above, recompute time_remaining for kwargs
+                # since we blocked above, recompute time_remaining for kwargs
+                kwargs["fee_calc_timeout"] = time_remaining()
         return self.wallet.export_history(**kwargs)
 
     @command("w")

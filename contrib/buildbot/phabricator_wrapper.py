@@ -190,17 +190,17 @@ class PhabWrapper(Phabricator):
                 for rev in revs:
                     if revisionPHID == rev["phid"]:
                         decoratedCommit["revision"] = rev
-                        decoratedCommit[
-                            "link"
-                        ] = f"https://reviews.bitcoinabc.org/D{rev['id']}"
+                        decoratedCommit["link"] = (
+                            f"https://reviews.bitcoinabc.org/D{rev['id']}"
+                        )
                         break
 
                 for author in authors:
                     if author["phid"] == rev["fields"]["authorPHID"]:
                         decoratedCommit["author"] = author
-                        decoratedCommit[
-                            "authorSlackUsername"
-                        ] = self.getAuthorSlackUsername(author)
+                        decoratedCommit["authorSlackUsername"] = (
+                            self.getAuthorSlackUsername(author)
+                        )
                         break
             commitMap[commitHash] = decoratedCommit
         return commitMap

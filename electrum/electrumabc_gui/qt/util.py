@@ -606,9 +606,7 @@ def filename_field(config, defaultname, select_msg):
         _filter = (
             "*.csv"
             if text.endswith(".csv")
-            else "*.json"
-            if text.endswith(".json")
-            else None
+            else "*.json" if text.endswith(".json") else None
         )
         p, __ = QtWidgets.QFileDialog.getSaveFileName(None, select_msg, text, _filter)
         if p:
