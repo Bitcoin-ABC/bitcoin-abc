@@ -6,7 +6,7 @@
 import http.client
 import threading
 import time
-from typing import List, Union
+from typing import List, Optional, Union
 
 import chronik_pb2 as pb
 import websocket
@@ -181,6 +181,9 @@ class ChronikClient:
         self.https = https
 
     def _request_get(self, path: str, pb_type):
+        return self._request("GET", path, None, pb_type)
+
+    def _request(self, method: str, path: str, body: Optional[bytes], pb_type):
         kwargs = {}
         if self.timeout is not None:
             kwargs["timeout"] = self.timeout
@@ -189,7 +192,10 @@ class ChronikClient:
             if self.https
             else http.client.HTTPConnection(self.host, self.port, **kwargs)
         )
-        client.request("GET", path)
+        headers = {}
+        if body is not None:
+            headers["Content-Type"] = self.CONTENT_TYPE
+        client.request(method, path, body, headers)
         response = client.getresponse()
         content_type = response.getheader("Content-Type")
         body = response.read()
@@ -237,6 +243,30 @@ class ChronikClient:
 
     def token_info(self, txid: str) -> bytes:
         return self._request_get(f"/token/{txid}", pb.TokenInfo)
+
+    def broadcast_tx(
+        self, raw_tx: bytes, skip_token_checks: bool = False
+    ) -> ChronikResponse:
+        return self._request(
+            "POST",
+            "/broadcast-tx",
+            pb.BroadcastTxRequest(
+                raw_tx=raw_tx, skip_token_checks=skip_token_checks
+            ).SerializeToString(),
+            pb.BroadcastTxResponse,
+        )
+
+    def broadcast_txs(
+        self, raw_txs: List[bytes], skip_token_checks: bool = False
+    ) -> ChronikResponse:
+        return self._request(
+            "POST",
+            "/broadcast-txs",
+            pb.BroadcastTxsRequest(
+                raw_txs=raw_txs, skip_token_checks=skip_token_checks
+            ).SerializeToString(),
+            pb.BroadcastTxsResponse,
+        )
 
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)

@@ -338,6 +338,34 @@ message ScriptUtxos {
     repeated ScriptUtxo utxos = 2;
 }
 
+// Broadcast a single tx
+message BroadcastTxRequest {
+    // Serialized tx
+    bytes raw_tx = 1;
+    // Whether to skip token checks and broadcast even if tokens are unintentionally burned
+    bool skip_token_checks = 2;
+}
+
+// Response of broadcasting the tx
+message BroadcastTxResponse {
+    // TxId of the broadcast tx
+    bytes txid = 1;
+}
+
+// Broadcast multiple txs. If one of the txs fails token validation, the entire batch will not be broadcast.
+message BroadcastTxsRequest {
+    // Serialized txs.
+    repeated bytes raw_txs = 1;
+    // Whether to skip token checks and broadcast even if tokens are unintentionally burned
+    bool skip_token_checks = 2;
+}
+
+// Response of broadcasting txs
+message BroadcastTxsResponse {
+    // TxIds of the broadcast txs
+    repeated bytes txids = 1;
+}
+
 // Raw serialized tx.
 message RawTx {
     // Bytes of the serialized tx.

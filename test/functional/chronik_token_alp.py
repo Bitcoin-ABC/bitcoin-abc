@@ -127,7 +127,7 @@ class ChronikTokenAlp(BitcoinTestFramework):
         )
         txs.append(genesis)
         tx_names.append("genesis")
-        genesis.send(node)
+        genesis.send(chronik)
         genesis.test(chronik)
 
         # ALP MINT tx
@@ -171,7 +171,7 @@ class ChronikTokenAlp(BitcoinTestFramework):
         )
         txs.append(mint)
         tx_names.append("mint")
-        mint.send(node)
+        mint.send(chronik)
         mint.test(chronik)
 
         # ALP SEND tx
@@ -216,7 +216,7 @@ class ChronikTokenAlp(BitcoinTestFramework):
         )
         txs.append(send)
         tx_names.append("send")
-        send.send(node)
+        send.send(chronik)
         send.test(chronik)
 
         # Another ALP GENESIS
@@ -267,7 +267,7 @@ class ChronikTokenAlp(BitcoinTestFramework):
         )
         txs.append(genesis2)
         tx_names.append("genesis2")
-        genesis2.send(node)
+        genesis2.send(chronik)
         genesis2.test(chronik)
 
         # ALP GENESIS + MINT + SEND all in one
@@ -353,7 +353,7 @@ class ChronikTokenAlp(BitcoinTestFramework):
         )
         txs.append(multi)
         tx_names.append("multi")
-        multi.send(node)
+        multi.send(chronik)
         multi.test(chronik)
 
         # ALP tx with all kinds of things (so big it must be mined in a block manually)

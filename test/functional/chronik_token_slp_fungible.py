@@ -112,7 +112,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             ),
         )
         txs.append(genesis)
-        genesis.send(node)
+        genesis.send(chronik)
         genesis.test(chronik)
 
         tx = CTransaction()
@@ -151,7 +151,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             ],
         )
         txs.append(mint)
-        mint.send(node)
+        mint.send(chronik)
         mint.test(chronik)
 
         tx = CTransaction()
@@ -189,7 +189,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             ],
         )
         txs.append(send)
-        send.send(node)
+        send.send(chronik)
         send.test(chronik)
 
         # SLP GENESIS with empty GenesisInfo
@@ -230,7 +230,7 @@ class ChronikTokenSlpFungible(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_empty)
-        genesis_empty.send(node)
+        genesis_empty.send(chronik)
         genesis_empty.test(chronik)
 
         # After mining, all txs still work fine

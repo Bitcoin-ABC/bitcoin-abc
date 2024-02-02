@@ -100,7 +100,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_slp)
-        genesis_slp.send(node)
+        genesis_slp.send(chronik)
         genesis_slp.test(chronik)
 
         tx = CTransaction()
@@ -131,7 +131,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             outputs=[pb.Token()],
         )
         txs.append(burn_slp)
-        burn_slp.send(node)
+        burn_slp.send(chronik)
         burn_slp.test(chronik)
 
         tx = CTransaction()
@@ -173,7 +173,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_alp)
-        genesis_alp.send(node)
+        genesis_alp.send(chronik)
         genesis_alp.test(chronik)
 
         tx = CTransaction()
@@ -205,7 +205,10 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ],
         )
         txs.append(burn_alp)
-        burn_alp.send(node)
+        burn_alp.send(
+            chronik,
+            error=f"400: Tx {burn_alp.txid} failed token checks: Unexpected burn: Burns 600 base tokens, but intended to burn 500; burned 100 too many.",
+        )
         burn_alp.test(chronik)
 
         # Burns SLP mint baton + ALP tokens without any OP_RETURN
@@ -246,7 +249,10 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ],
         )
         txs.append(bare_burn)
-        bare_burn.send(node)
+        bare_burn.send(
+            chronik,
+            error=f"400: Tx {bare_burn.txid} failed token checks: Unexpected burn: Burns mint baton(s). Unexpected burn: Burns 400 base tokens.",
+        )
         bare_burn.test(chronik)
 
         # After mining, all txs still work fine

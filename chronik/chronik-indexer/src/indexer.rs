@@ -30,7 +30,10 @@ use tokio::sync::RwLock;
 use crate::{
     avalanche::Avalanche,
     indexer::ChronikIndexerError::*,
-    query::{QueryBlocks, QueryGroupHistory, QueryGroupUtxos, QueryTxs},
+    query::{
+        QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
+        QueryTxs,
+    },
     subs::{BlockMsg, BlockMsgType, Subs},
     subs_group::TxMsgType,
 };
@@ -441,6 +444,16 @@ impl ChronikIndexer {
             subs.handle_tx_event(tx, TxMsgType::Finalized);
         }
         Ok(())
+    }
+
+    /// Return [`QueryBroadcast`] to broadcast tx to the network.
+    pub fn broadcast<'a>(&'a self, node: &'a Node) -> QueryBroadcast<'a> {
+        QueryBroadcast {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
+            node,
+        }
     }
 
     /// Return [`QueryBlocks`] to read blocks from the DB.

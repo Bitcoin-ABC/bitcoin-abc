@@ -137,7 +137,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                 ),
             ),
         )
-        genesis.send(node)
+        genesis.send(chronik)
         genesis.test(chronik)
 
         # SLP V2 MINT VAULT MINT
@@ -178,7 +178,10 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                 pb.Token(),
             ],
         )
-        mint.send(node)
+        mint.send(
+            chronik,
+            error=f"400: Tx {mint.txid} failed token checks: Validation error: Missing MINT vault.",
+        )
         mint.test(chronik)
 
         # Mine only the GENESIS tx
@@ -233,7 +236,7 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                 vault_token(token_id=genesis.txid, amount=5000),
             ],
         )
-        mint2.send(node)
+        mint2.send(chronik)
         mint2.test(chronik)
 
         # Reorg block with the GENESIS tx
@@ -311,7 +314,10 @@ class ChronikTokenSlpMintVault(BitcoinTestFramework):
                 pb.Token(),
             ],
         )
-        send.send(node)
+        send.send(
+            chronik,
+            error=f"400: Tx {send.txid} failed token checks: Validation error: Insufficient token input output sum: 0 < 4000.",
+        )
         send.test(chronik)
 
         # Mine mint

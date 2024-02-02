@@ -19,6 +19,9 @@ chronik-db = { path = "../chronik-db" }
 chronik-proto = { path = "../chronik-proto" }
 chronik-util = { path = "../chronik-util" }
 
+# Efficient byte strings, with ref counted substrings
+bytes = "1.4"
+
 # Bridge to C++
 cxx = "1.0"
 

@@ -12,7 +12,8 @@ use abc_rust_error::{Result, WrapErr};
 use axum::{
     extract::{Path, Query, WebSocketUpgrade},
     response::IntoResponse,
-    routing, Extension, Router,
+    routing::{self, MethodFilter},
+    Extension, Router,
 };
 use bitcoinsuite_core::tx::TxId;
 use chronik_indexer::{
@@ -155,6 +156,16 @@ impl ChronikServer {
             .route("/chronik-info", routing::get(handle_chronik_info))
             .route("/tx/:txid", routing::get(handle_tx))
             .route("/token/:txid", routing::get(handle_token_info))
+            .route(
+                "/broadcast-tx",
+                routing::post(handle_broadcast_tx)
+                    .on(MethodFilter::OPTIONS, handle_post_options),
+            )
+            .route(
+                "/broadcast-txs",
+                routing::post(handle_broadcast_txs)
+                    .on(MethodFilter::OPTIONS, handle_post_options),
+            )
             .route("/raw-tx/:txid", routing::get(handle_raw_tx))
             .route(
                 "/script/:type/:payload/confirmed-txs",
@@ -248,6 +259,39 @@ async fn handle_token_info(
     Ok(Protobuf(indexer.txs().token_info(&txid)?))
 }
 
+async fn handle_broadcast_tx(
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+    Protobuf(request): Protobuf<proto::BroadcastTxRequest>,
+) -> Result<Protobuf<proto::BroadcastTxResponse>, ReportError> {
+    let indexer = indexer.read().await;
+    let txids = indexer
+        .broadcast(node.as_ref())
+        .broadcast_txs(&[request.raw_tx.into()], request.skip_token_checks)?;
+    Ok(Protobuf(proto::BroadcastTxResponse {
+        txid: txids[0].to_vec(),
+    }))
+}
+
+async fn handle_broadcast_txs(
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+    Protobuf(request): Protobuf<proto::BroadcastTxsRequest>,
+) -> Result<Protobuf<proto::BroadcastTxsResponse>, ReportError> {
+    let indexer = indexer.read().await;
+    let txids = indexer.broadcast(node.as_ref()).broadcast_txs(
+        &request
+            .raw_txs
+            .into_iter()
+            .map(Into::into)
+            .collect::<Vec<_>>(),
+        request.skip_token_checks,
+    )?;
+    Ok(Protobuf(proto::BroadcastTxsResponse {
+        txids: txids.into_iter().map(|txid| txid.to_vec()).collect(),
+    }))
+}
+
 async fn handle_raw_tx(
     Path(txid): Path<String>,
     Extension(indexer): Extension<ChronikIndexerRef>,
@@ -336,4 +380,12 @@ async fn handle_ws(
     Extension(settings): Extension<ChronikSettings>,
 ) -> impl IntoResponse {
     ws.on_upgrade(|ws| handle_subscribe_socket(ws, indexer, settings))
+}
+
+async fn handle_post_options(
+) -> Result<axum::http::Response<axum::body::Body>, ReportError> {
+    axum::http::Response::builder()
+        .header("Allow", "OPTIONS, HEAD, POST")
+        .body(axum::body::Body::empty())
+        .map_err(|err| ReportError(err.into()))
 }

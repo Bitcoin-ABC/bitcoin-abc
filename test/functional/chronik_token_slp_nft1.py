@@ -110,7 +110,7 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             ),
         )
         txs.append(genesis)
-        genesis.send(node)
+        genesis.send(chronik)
         genesis.test(chronik)
 
         tx = CTransaction()
@@ -149,7 +149,7 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             ],
         )
         txs.append(mint)
-        mint.send(node)
+        mint.send(chronik)
         mint.test(chronik)
 
         tx = CTransaction()
@@ -191,7 +191,7 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             ],
         )
         txs.append(send)
-        send.send(node)
+        send.send(chronik)
         send.test(chronik)
 
         # NFT1 CHILD GENESIS
@@ -243,7 +243,7 @@ class ChronikTokenSlpNft1(BitcoinTestFramework):
             ),
         )
         txs.append(child_genesis1)
-        child_genesis1.send(node)
+        child_genesis1.send(chronik)
         child_genesis1.test(chronik)
 
         # After mining, all txs still work fine

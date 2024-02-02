@@ -9,7 +9,7 @@ use std::borrow::Cow;
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
     hash::Hashed,
-    tx::{Tx, TxId},
+    tx::{OutPoint, Tx, TxId},
 };
 use bitcoinsuite_slp::{
     color::ColoredTx,
@@ -21,7 +21,7 @@ use bitcoinsuite_slp::{
 use chronik_db::{
     db::Db,
     io::{token::TokenReader, BlockHeight, BlockReader, TxNum, TxReader},
-    mem::{Mempool, MempoolTokens},
+    mem::{Mempool, MempoolTokens, MempoolTokensError},
 };
 use chronik_proto::proto;
 use thiserror::Error;
@@ -46,6 +46,14 @@ pub enum TxTokenDataError {
     /// Token num not found.
     #[error("500: Inconsistent DB: Token num {0} not found")]
     TokenTxNumDoesntExist(TxNum),
+
+    /// Transaction token inputs couldn't be queried from the DB
+    #[error("400: {0}")]
+    BadTxInputs(MempoolTokensError),
+
+    /// TxInput has no coin.
+    #[error("400: TxInput {0:?} has no coin")]
+    TxInputHasNoCoin(OutPoint),
 
     /// Token data not found in mempool but should be there
     #[error("500: Inconsistent DB: TxData for token {0} not in mempool")]
@@ -107,6 +115,66 @@ impl<'m> TxTokenData<'m> {
             override_has_mint_vault: Some(db_tx_data.has_mint_vault()),
         };
         let verified = context.verify(colored.unwrap_or_default());
+        Ok(Some(TxTokenData {
+            inputs: Cow::Owned(spent_tokens),
+            tx: Cow::Owned(verified),
+        }))
+    }
+
+    /// Load token data of a tx not in the mempool or DB.
+    /// The inputs of `tx` are expected to have `Coin`s set to validate SLP V2
+    /// Mint Vault MINT txs.
+    pub fn from_unbroadcast_tx(
+        db: &Db,
+        mempool: &'m Mempool,
+        tx: &Tx,
+    ) -> Result<Option<Self>> {
+        let colored = ColoredTx::color_tx(tx);
+
+        let tx_reader = TxReader::new(db)?;
+        let token_reader = TokenReader::new(db)?;
+        let spent_tokens = mempool
+            .tokens()
+            .fetch_tx_spent_tokens(tx, db, |txid| mempool.tx(txid).is_some())?
+            .map_err(BadTxInputs)?;
+
+        let colored = colored.unwrap_or_else(|| ColoredTx {
+            outputs: vec![None; tx.outputs.len()],
+            ..Default::default()
+        });
+        let mut spent_scripts = None;
+        let mut genesis_info = None;
+        if let Some(first_section) = colored.sections.first() {
+            if first_section.is_mint_vault_mint() {
+                let spent_scripts =
+                    spent_scripts.insert(Vec::with_capacity(tx.inputs.len()));
+                for tx_input in &tx.inputs {
+                    let coin = tx_input
+                        .coin
+                        .as_ref()
+                        .ok_or(TxInputHasNoCoin(tx_input.prev_out))?;
+                    spent_scripts.push(coin.output.script.clone());
+                }
+                let genesis_tx_num = tx_reader
+                    .tx_num_by_txid(first_section.meta.token_id.txid())?;
+                if let Some(genesis_tx_num) = genesis_tx_num {
+                    if let Some(db_genesis_info) =
+                        token_reader.genesis_info(genesis_tx_num)?
+                    {
+                        genesis_info = Some(db_genesis_info);
+                    }
+                }
+            }
+        }
+
+        let context = VerifyContext {
+            genesis_info: genesis_info.as_ref(),
+            spent_tokens: &spent_tokens,
+            spent_scripts: spent_scripts.as_deref(),
+            override_has_mint_vault: None,
+        };
+        let verified = context.verify(colored);
+
         Ok(Some(TxTokenData {
             inputs: Cow::Owned(spent_tokens),
             tx: Cow::Owned(verified),

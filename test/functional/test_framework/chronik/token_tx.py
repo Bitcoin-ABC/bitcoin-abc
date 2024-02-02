@@ -29,8 +29,15 @@ class TokenTx:
         self.failed_parsings = failed_parsings
         self.token_info = token_info
 
-    def send(self, node):
-        node.sendrawtransaction(self.tx.serialize().hex())
+    def send(self, chronik, error=None):
+        raw_tx = self.tx.serialize()
+        request = chronik.broadcast_tx(raw_tx)
+        if error is None:
+            request.ok()
+        else:
+            actual_error = request.err(400)
+            assert_equal(actual_error.msg, error)
+            chronik.broadcast_tx(raw_tx, skip_token_checks=True).ok()
 
     def test(self, chronik, block_hash=None):
         proto_tx = chronik.tx(self.txid).ok()

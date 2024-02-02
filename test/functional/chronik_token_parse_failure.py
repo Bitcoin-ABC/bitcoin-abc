@@ -69,7 +69,10 @@ class ChronikTokenParseFailure(BitcoinTestFramework):
             ],
         )
         txs.append(invalid_slp)
-        invalid_slp.send(node)
+        invalid_slp.send(
+            chronik,
+            error=f"400: Tx {invalid_slp.txid} failed token checks: Parsing failed: SLP error: Disallowed push: OP_0 at op 4.",
+        )
         invalid_slp.test(chronik)
 
         tx = CTransaction()
@@ -102,7 +105,14 @@ class ChronikTokenParseFailure(BitcoinTestFramework):
             ],
         )
         txs.append(invalid_alp)
-        invalid_alp.send(node)
+        invalid_alp.send(
+            chronik,
+            error=f"""\
+400: Tx {invalid_alp.txid} failed token checks: Parsing failed at pushdata idx 0: ALP \
+error: Not enough bytes: expected 1 more bytes but got 0 for field token_ticker. \
+Parsing failed at pushdata idx 2: ALP error: Invalid LOKAD ID \"SLP\\0\", did you \
+accidentally use eMPP?.""",
+        )
         invalid_alp.test(chronik)
 
         # After mining, all txs still work fine

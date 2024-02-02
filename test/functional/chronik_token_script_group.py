@@ -104,7 +104,7 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_slp)
-        genesis_slp.send(node)
+        genesis_slp.send(chronik)
         genesis_slp.test(chronik)
 
         tx = CTransaction()
@@ -144,7 +144,7 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             ],
         )
         txs.append(send_slp)
-        send_slp.send(node)
+        send_slp.send(chronik)
         send_slp.test(chronik)
 
         tx = CTransaction()
@@ -188,7 +188,7 @@ class ChronikTokenScriptGroup(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_alp)
-        genesis_alp.send(node)
+        genesis_alp.send(chronik)
         genesis_alp.test(chronik)
 
         script1_txs = [genesis_slp, send_slp, genesis_alp]
