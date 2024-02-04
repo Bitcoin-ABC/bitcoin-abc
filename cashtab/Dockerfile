@@ -5,18 +5,17 @@
 # Stage 1
 FROM node:16-buster-slim AS builder
 
-# Install some dependencies before building
-RUN apt-get update && \
-  apt-get upgrade -y && \
-  apt-get install -y git && \
-  apt-get install -y python
-
 WORKDIR /app
 
 # Copy only the package files and install necessary dependencies.
 # This reduces cache busting when source files are changed.
 COPY package.json .
 COPY package-lock.json .
+
+# Docker should not rebuild deps just because package.json version bump
+# So, always keep package.json and package-lock.json at 1.0.0 in the docker image
+# Note: it will be overwritten before npm run build by the latest package.json
+RUN npm version --allow-same-version 1.0.0
 RUN npm ci
 
 # Copy the rest of the project files and build
