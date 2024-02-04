@@ -1,5 +1,5 @@
 import React from 'react';
-import { Redirect } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { WalletContext } from 'utils/context';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
@@ -34,6 +34,7 @@ const CreateToken = styled(Link)`
 `;
 
 const Etokens = () => {
+    let navigate = useNavigate();
     const ContextValue = React.useContext(WalletContext);
     const { wallet, loading } = ContextValue;
     const walletState = getWalletState(wallet);
@@ -71,7 +72,7 @@ const Etokens = () => {
                         </EtokensCtn>
                     ) : (
                         // If no existing wallet detected, take user to the wallet creation screen
-                        <Redirect to="/wallet" />
+                        navigate('/wallet')
                     )}
                 </>
             )}

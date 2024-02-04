@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { WalletContext } from 'utils/context';
 import {
@@ -23,7 +23,7 @@ import {
 } from 'components/Common/EnhancedInputs';
 import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
-import { Redirect } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 import usePrevious from 'hooks/usePrevious';
 import { Img } from 'react-image';
@@ -96,11 +96,15 @@ const AirdropButton = styled.div`
     `}
 `;
 
-const SendToken = ({ tokenId, passLoadingStatus }) => {
+const SendToken = ({ passLoadingStatus }) => {
+    let navigate = useNavigate();
     const { wallet, apiError, cashtabSettings, chronik, cashtabCache } =
         React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
+
+    const params = useParams();
+    const tokenId = params.tokenId;
 
     const token = tokens.find(token => token.tokenId === tokenId);
     const previousWalletState = usePrevious(walletState);
@@ -458,7 +462,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                         : ''}
                 </p>
             </Modal>
-            {!token && <Redirect to="/" />}
+            {!token && navigate('/')}
             {token && (
                 <SidePaddingCtn>
                     {/* eToken burn modal */}
@@ -663,12 +667,10 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
                                             <br />
                                             <AirdropButton>
                                                 <Link
-                                                    to={{
-                                                        pathname: `/airdrop`,
-                                                        state: {
-                                                            airdropEtokenId:
-                                                                token.tokenId,
-                                                        },
+                                                    to="/airdrop"
+                                                    state={{
+                                                        airdropEtokenId:
+                                                            token.tokenId,
                                                     }}
                                                 >
                                                     Airdrop XEC to holders
