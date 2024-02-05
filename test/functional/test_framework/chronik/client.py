@@ -80,6 +80,35 @@ class ChronikScriptClient:
         )
 
 
+class ChronikTokenIdClient:
+    def __init__(self, client: "ChronikClient", token_id: str) -> None:
+        self.client = client
+        self.token_id = token_id
+
+    def confirmed_txs(self, page=None, page_size=None):
+        query = _page_query_params(page, page_size)
+        return self.client._request_get(
+            f"/token-id/{self.token_id}/confirmed-txs{query}",
+            pb.TxHistoryPage,
+        )
+
+    def history(self, page=None, page_size=None):
+        query = _page_query_params(page, page_size)
+        return self.client._request_get(
+            f"/token-id/{self.token_id}/history{query}",
+            pb.TxHistoryPage,
+        )
+
+    def unconfirmed_txs(self):
+        return self.client._request_get(
+            f"/token-id/{self.token_id}/unconfirmed-txs",
+            pb.TxHistoryPage,
+        )
+
+    def utxos(self):
+        return self.client._request_get(f"/token-id/{self.token_id}/utxos", pb.Utxos)
+
+
 class ChronikWs:
     def __init__(self, client: "ChronikClient", **kwargs) -> None:
         self.messages: List[pb.WsMsg] = []
@@ -275,6 +304,9 @@ class ChronikClient:
 
     def script(self, script_type: str, script_payload: str) -> ChronikScriptClient:
         return ChronikScriptClient(self, script_type, script_payload)
+
+    def token_id(self, token_id: str) -> ChronikTokenIdClient:
+        return ChronikTokenIdClient(self, token_id)
 
     def pause(self) -> ChronikResponse:
         return self._request_get("/pause", pb.Empty)

@@ -188,6 +188,22 @@ impl ChronikServer {
                 "/script/:type/:payload/utxos",
                 routing::get(handle_script_utxos),
             )
+            .route(
+                "/token-id/:token_id/confirmed-txs",
+                routing::get(handle_token_id_confirmed_txs),
+            )
+            .route(
+                "/token-id/:token_id/history",
+                routing::get(handle_token_id_history),
+            )
+            .route(
+                "/token-id/:token_id/unconfirmed-txs",
+                routing::get(handle_token_id_unconfirmed_txs),
+            )
+            .route(
+                "/token-id/:token_id/utxos",
+                routing::get(handle_token_id_utxos),
+            )
             .route("/ws", routing::get(handle_ws))
             .route("/pause", routing::get(handle_pause))
             .route("/resume", routing::get(handle_resume))
@@ -375,6 +391,59 @@ async fn handle_script_utxos(
     let indexer = indexer.read().await;
     Ok(Protobuf(
         handlers::handle_script_utxos(&script_type, &payload, &indexer).await?,
+    ))
+}
+
+async fn handle_token_id_confirmed_txs(
+    Path(token_id_hex): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_token_id_confirmed_txs(
+            &token_id_hex,
+            &query_params,
+            &indexer,
+        )
+        .await?,
+    ))
+}
+
+async fn handle_token_id_history(
+    Path(token_id_hex): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_token_id_history(
+            &token_id_hex,
+            &query_params,
+            &indexer,
+        )
+        .await?,
+    ))
+}
+
+async fn handle_token_id_unconfirmed_txs(
+    Path(token_id_hex): Path<String>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_token_id_unconfirmed_txs(&token_id_hex, &indexer)
+            .await?,
+    ))
+}
+
+async fn handle_token_id_utxos(
+    Path(token_id_hex): Path<String>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::Utxos>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_token_id_utxos(&token_id_hex, &indexer).await?,
     ))
 }
 

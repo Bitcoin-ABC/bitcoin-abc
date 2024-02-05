@@ -316,6 +316,7 @@ dependencies = [
  "async-trait",
  "axum",
  "bitcoinsuite-core",
+ "bitcoinsuite-slp",
  "chronik-db",
  "chronik-indexer",
  "chronik-proto",

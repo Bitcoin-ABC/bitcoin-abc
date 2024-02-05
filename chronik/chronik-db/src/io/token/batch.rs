@@ -70,6 +70,8 @@ pub struct ProcessedTokenTxBatch {
     pub db_token_txs: HashMap<TxNum, DbTokenTx>,
     /// Validated token txs in the batch.
     pub valid_txs: HashMap<TxNum, TokenTx>,
+    /// Validated spent tokens in the batch, can have entries not it valid_txs
+    pub spent_tokens: HashMap<TxNum, Vec<Option<SpentToken>>>,
     /// True if validation of txs was performed, or false if validation was
     /// safely skipped because no tokens are in the DB and the batch contained
     /// no token txs.
@@ -162,7 +164,7 @@ impl<'tx> BatchProcessor<'tx> {
                 non_token_tx,
                 &mut db_data,
                 &mut processed_batch,
-            );
+            )?;
         }
 
         Ok(processed_batch)
@@ -298,6 +300,7 @@ impl<'tx> BatchProcessor<'tx> {
         };
         processed_batch.db_token_txs.insert(tx_num, db_token_tx);
         processed_batch.valid_txs.insert(tx_num, valid_tx);
+        processed_batch.spent_tokens.insert(tx_num, spent_tokens);
 
         Ok(())
     }
@@ -307,7 +310,7 @@ impl<'tx> BatchProcessor<'tx> {
         tx: &IndexTx<'_>,
         db_data: &mut BatchDbData,
         processed_batch: &mut ProcessedTokenTxBatch,
-    ) {
+    ) -> Result<()> {
         let mut db_token_tx_nums = Vec::new();
         let mut db_inputs = Vec::with_capacity(tx.input_nums.len());
         let mut db_group_token_indices = BTreeMap::new();
@@ -360,7 +363,12 @@ impl<'tx> BatchProcessor<'tx> {
                     flags: 0,
                 },
             );
+            processed_batch.spent_tokens.insert(
+                tx.tx_num,
+                self.tx_token_inputs(tx, db_data, &processed_batch.valid_txs)?,
+            );
         }
+        Ok(())
     }
 
     fn tx_spent_scripts(tx: &IndexTx<'_>) -> Result<Vec<Script>> {

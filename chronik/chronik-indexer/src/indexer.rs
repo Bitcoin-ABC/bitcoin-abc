@@ -14,12 +14,16 @@ use bitcoinsuite_core::{
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
-    groups::{ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter},
+    groups::{
+        ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter, TokenIdGroup,
+        TokenIdGroupAux, TokenIdHistoryWriter, TokenIdUtxoWriter,
+    },
     index_tx::prepare_indexed_txs,
     io::{
         merge, token::TokenWriter, BlockHeight, BlockReader, BlockStatsWriter,
-        BlockTxs, BlockWriter, DbBlock, MetadataReader, MetadataWriter,
-        SchemaVersion, SpentByWriter, TxEntry, TxWriter,
+        BlockTxs, BlockWriter, DbBlock, GroupHistoryMemData, GroupUtxoMemData,
+        MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
+        TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
 };
@@ -32,13 +36,13 @@ use crate::{
     indexer::ChronikIndexerError::*,
     query::{
         QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
-        QueryTxs, UtxoProtobufValue,
+        QueryTxs, UtxoProtobufOutput, UtxoProtobufValue,
     },
     subs::{BlockMsg, BlockMsgType, Subs},
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 9;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 10;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
 #[derive(Clone)]
@@ -330,6 +334,10 @@ impl ChronikIndexer {
             ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
         let token_writer = TokenWriter::new(&self.db)?;
+        let token_id_history_writer =
+            TokenIdHistoryWriter::new(&self.db, TokenIdGroup)?;
+        let token_id_utxo_writer =
+            TokenIdUtxoWriter::new(&self.db, TokenIdGroup)?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(
             &mut batch,
@@ -357,7 +365,22 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
-        token_writer.insert(&mut batch, &index_txs)?;
+        let processed_token_batch =
+            token_writer.insert(&mut batch, &index_txs)?;
+        let token_id_aux =
+            TokenIdGroupAux::from_batch(&index_txs, &processed_token_batch);
+        token_id_history_writer.insert(
+            &mut batch,
+            &index_txs,
+            &token_id_aux,
+            &mut GroupHistoryMemData::default(),
+        )?;
+        token_id_utxo_writer.insert(
+            &mut batch,
+            &index_txs,
+            &token_id_aux,
+            &mut GroupUtxoMemData::default(),
+        )?;
         self.db.write_batch(batch)?;
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
@@ -390,6 +413,10 @@ impl ChronikIndexer {
             ScriptUtxoWriter::new(&self.db, self.script_group.clone())?;
         let spent_by_writer = SpentByWriter::new(&self.db)?;
         let token_writer = TokenWriter::new(&self.db)?;
+        let token_id_history_writer =
+            TokenIdHistoryWriter::new(&self.db, TokenIdGroup)?;
+        let token_id_utxo_writer =
+            TokenIdUtxoWriter::new(&self.db, TokenIdGroup)?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(
             &mut batch,
@@ -415,6 +442,19 @@ impl ChronikIndexer {
             &mut batch,
             &index_txs,
             &mut self.mem_data.spent_by,
+        )?;
+        let token_id_aux = TokenIdGroupAux::from_db(&index_txs, &self.db)?;
+        token_id_history_writer.delete(
+            &mut batch,
+            &index_txs,
+            &token_id_aux,
+            &mut GroupHistoryMemData::default(),
+        )?;
+        token_id_utxo_writer.delete(
+            &mut batch,
+            &index_txs,
+            &token_id_aux,
+            &mut GroupUtxoMemData::default(),
         )?;
         token_writer.delete(&mut batch, &index_txs)?;
         self.avalanche.disconnect_block(block.db_block.height)?;
@@ -498,6 +538,32 @@ impl ChronikIndexer {
             group: self.script_group.clone(),
             utxo_mapper: UtxoProtobufValue,
         })
+    }
+
+    /// Return [`QueryGroupHistory`] for token IDs to query the tx history of
+    /// token IDs.
+    pub fn token_id_history(&self) -> QueryGroupHistory<'_, TokenIdGroup> {
+        QueryGroupHistory {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
+            mempool_history: self.mempool.token_id_history(),
+            group: TokenIdGroup,
+        }
+    }
+
+    /// Return [`QueryGroupUtxos`] for token IDs to query the utxos of token IDs
+    pub fn token_id_utxos(
+        &self,
+    ) -> QueryGroupUtxos<'_, TokenIdGroup, UtxoProtobufOutput> {
+        QueryGroupUtxos {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
+            mempool_utxos: self.mempool.token_id_utxos(),
+            group: TokenIdGroup,
+            utxo_mapper: UtxoProtobufOutput,
+        }
     }
 
     /// Subscribers, behind read/write lock

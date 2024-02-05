@@ -14,7 +14,10 @@ use rocksdb::{ColumnFamilyDescriptor, IteratorMode};
 use thiserror::Error;
 
 use crate::{
-    groups::{ScriptHistoryWriter, ScriptUtxoWriter},
+    groups::{
+        ScriptHistoryWriter, ScriptUtxoWriter, TokenIdHistoryWriter,
+        TokenIdUtxoWriter,
+    },
     io::{
         token::TokenWriter, BlockStatsWriter, BlockWriter, MetadataWriter,
         SpentByWriter, TxWriter,
@@ -44,6 +47,12 @@ pub const CF_SCRIPT_HISTORY: &str = "script_history";
 pub const CF_SCRIPT_HISTORY_NUM_TXS: &str = "script_history_num_txs";
 /// Column family for utxos by script.
 pub const CF_SCRIPT_UTXO: &str = "script_utxo";
+/// Column family to store tx history by token ID.
+pub const CF_TOKEN_ID_HISTORY: &str = "token_id_history";
+/// Column family to store number of txs by token ID.
+pub const CF_TOKEN_ID_HISTORY_NUM_TXS: &str = "token_id_history_num_txs";
+/// Column family for utxos by token ID.
+pub const CF_TOKEN_ID_UTXO: &str = "token_id_utxo";
 /// Column family to store which outputs have been spent by which tx inputs.
 pub const CF_SPENT_BY: &str = "spent_by";
 /// Column family for genesis info by token_tx_num
@@ -92,6 +101,8 @@ impl Db {
         ScriptUtxoWriter::add_cfs(&mut cfs);
         SpentByWriter::add_cfs(&mut cfs);
         TokenWriter::add_cfs(&mut cfs);
+        TokenIdHistoryWriter::add_cfs(&mut cfs);
+        TokenIdUtxoWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 

@@ -356,6 +356,12 @@ message ScriptUtxos {
     repeated ScriptUtxo utxos = 2;
 }
 
+// List of UTXOs
+message Utxos {
+    // UTXOs
+    repeated Utxo utxos = 1;
+}
+
 // Broadcast a single tx
 message BroadcastTxRequest {
     // Serialized tx

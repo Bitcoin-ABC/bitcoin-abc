@@ -12,7 +12,10 @@ use thiserror::Error;
 
 use crate::{
     db::Db,
-    groups::{MempoolScriptHistory, MempoolScriptUtxos, ScriptGroup},
+    groups::{
+        MempoolScriptHistory, MempoolScriptUtxos, MempoolTokenIdHistory,
+        MempoolTokenIdUtxos, ScriptGroup, TokenIdGroup, TokenIdGroupAux,
+    },
     mem::{MempoolSpentBy, MempoolTokens},
 };
 
@@ -26,6 +29,8 @@ pub struct Mempool {
     script_utxos: MempoolScriptUtxos,
     spent_by: MempoolSpentBy,
     tokens: MempoolTokens,
+    token_id_history: MempoolTokenIdHistory,
+    token_id_utxos: MempoolTokenIdUtxos,
 }
 
 /// Transaction in the mempool.
@@ -60,6 +65,8 @@ impl Mempool {
             script_utxos: MempoolScriptUtxos::new(script_group),
             spent_by: MempoolSpentBy::default(),
             tokens: MempoolTokens::default(),
+            token_id_history: MempoolTokenIdHistory::new(TokenIdGroup),
+            token_id_utxos: MempoolTokenIdUtxos::new(TokenIdGroup),
         }
     }
 
@@ -75,6 +82,14 @@ impl Mempool {
         self.spent_by.insert(&mempool_tx)?;
         self.tokens
             .insert(db, &mempool_tx, |txid| self.txs.contains_key(txid))?;
+        let token_id_aux =
+            TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
+        self.token_id_history.insert(&mempool_tx, &token_id_aux);
+        self.token_id_utxos.insert(
+            &mempool_tx,
+            |txid| self.txs.contains_key(txid),
+            &token_id_aux,
+        )?;
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
         }
@@ -94,6 +109,14 @@ impl Mempool {
             &(),
         )?;
         self.spent_by.remove(&mempool_tx)?;
+        let token_id_aux =
+            TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
+        self.token_id_history.remove(&mempool_tx, &token_id_aux);
+        self.token_id_utxos.remove(
+            &mempool_tx,
+            |txid| self.txs.contains_key(txid),
+            &token_id_aux,
+        )?;
         self.tokens.remove(&txid);
         Ok(mempool_tx)
     }
@@ -104,6 +127,10 @@ impl Mempool {
             self.script_history.remove(&mempool_tx, &());
             self.script_utxos.remove_mined(&mempool_tx, &());
             self.spent_by.remove(&mempool_tx)?;
+            let token_id_aux =
+                TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
+            self.token_id_history.remove(&mempool_tx, &token_id_aux);
+            self.token_id_utxos.remove_mined(&mempool_tx, &token_id_aux);
             self.tokens.remove(txid);
             return Ok(Some(mempool_tx));
         }
@@ -133,5 +160,15 @@ impl Mempool {
     /// Token data of txs in the mempool.
     pub fn tokens(&self) -> &MempoolTokens {
         &self.tokens
+    }
+
+    /// Tx history of token IDs in the mempool.
+    pub fn token_id_history(&self) -> &MempoolTokenIdHistory {
+        &self.token_id_history
+    }
+
+    /// Tx history of UTXOs by token ID in the mempool.
+    pub fn token_id_utxos(&self) -> &MempoolTokenIdUtxos {
+        &self.token_id_utxos
     }
 }

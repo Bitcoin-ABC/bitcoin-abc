@@ -5,5 +5,7 @@
 //! Collection of group implementations to group transactions by when indexing.
 
 mod script;
+mod token_id;
 
 pub use self::script::*;
+pub use self::token_id::*;

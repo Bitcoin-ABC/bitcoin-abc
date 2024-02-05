@@ -3,6 +3,7 @@
 use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use abc_rust_error::{Report, Result};
+use bitcoinsuite_slp::token_id::TokenId;
 use chronik_indexer::indexer::ChronikIndexer;
 use chronik_proto::proto;
 use hyper::Uri;
@@ -38,7 +39,9 @@ fn get_param<T: FromStr>(
 where
     T::Err: Display,
 {
-    let Some(param) = params.get(param_name) else { return Ok(None) };
+    let Some(param) = params.get(param_name) else {
+        return Ok(None);
+    };
     Ok(Some(param.parse::<T>().map_err(|err| InvalidParam {
         param_name: param_name.to_string(),
         param_value: param.to_string(),
@@ -96,7 +99,7 @@ pub async fn handle_script_history(
     script_history.rev_history(&script, page_num as usize, page_size as usize)
 }
 
-/// Return a page of the confirmed txs of the given script.
+/// Return a page of the unconfirmed txs of the given script.
 /// Scripts are identified by script_type and payload.
 pub async fn handle_script_unconfirmed_txs(
     script_type: &str,
@@ -124,4 +127,61 @@ pub async fn handle_script_utxos(
         script: script.bytecode().to_vec(),
         utxos,
     })
+}
+
+/// Return a page of the confirmed txs of the given token ID.
+pub async fn handle_token_id_confirmed_txs(
+    token_id_hex: &str,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+) -> Result<proto::TxHistoryPage> {
+    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id_history = indexer.token_id_history();
+    let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
+    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    token_id_history.confirmed_txs(
+        token_id,
+        page_num as usize,
+        page_size as usize,
+    )
+}
+
+/// Return a page of the tx history of the given token ID, in reverse
+/// chronological order, i.e. the latest transaction first and then going back
+/// in time.
+pub async fn handle_token_id_history(
+    token_id_hex: &str,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+) -> Result<proto::TxHistoryPage> {
+    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id_history = indexer.token_id_history();
+    let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
+    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    token_id_history.rev_history(
+        token_id,
+        page_num as usize,
+        page_size as usize,
+    )
+}
+
+/// Return a page of the unconfirmed txs of the given token ID.
+pub async fn handle_token_id_unconfirmed_txs(
+    token_id_hex: &str,
+    indexer: &ChronikIndexer,
+) -> Result<proto::TxHistoryPage> {
+    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id_history = indexer.token_id_history();
+    token_id_history.unconfirmed_txs(token_id)
+}
+
+/// Return the UTXOs of the given token ID.
+pub async fn handle_token_id_utxos(
+    token_id_hex: &str,
+    indexer: &ChronikIndexer,
+) -> Result<proto::Utxos> {
+    let token_id = token_id_hex.parse::<TokenId>()?;
+    let token_id_utxos = indexer.token_id_utxos();
+    let utxos = token_id_utxos.utxos(token_id)?;
+    Ok(proto::Utxos { utxos })
 }

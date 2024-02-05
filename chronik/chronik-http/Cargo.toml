@@ -12,6 +12,7 @@ abc-rust-error = { path = "../abc-rust-error" }
 abc-rust-lint = { path = "../abc-rust-lint" }
 
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
 
 chronik-db = { path = "../chronik-db" }
 chronik-indexer = { path = "../chronik-indexer" }
