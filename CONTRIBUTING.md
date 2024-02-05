@@ -140,7 +140,7 @@ will have to install the following:
 Install all the code formatting tools on Debian Bullseye (11) or Ubuntu 20.04:
 ```
 sudo apt-get install python3-pip php-codesniffer shellcheck yamllint
-pip3 install "black>=23.0" "isort>=5.6.4" "mypy>=0.910" "flynt>=0.78" "flake8>=5" flake8-comprehensions flake8-builtins
+pip3 install "black>=24.0" "isort>=5.6.4" "mypy>=0.910" "flynt>=0.78" "flake8>=5" flake8-comprehensions flake8-builtins
 echo "export PATH=\"`python3 -m site --user-base`/bin:\$PATH\"" >> ~/.bashrc
 source ~/.bashrc
 ```
