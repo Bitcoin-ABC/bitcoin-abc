@@ -9,6 +9,7 @@ use std::{collections::HashMap, time::Duration};
 use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
 use bitcoinsuite_core::script::ScriptVariant;
+use bitcoinsuite_slp::token_id::TokenId;
 use chronik_indexer::{
     subs::{BlockMsg, BlockMsgType},
     subs_group::{TxMsg, TxMsgType},
@@ -55,14 +56,17 @@ struct WsSub {
 enum WsSubType {
     Blocks,
     Script(ScriptVariant),
+    TokenId(TokenId),
 }
 
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
 type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
+type SubRecvTokenId = HashMap<TokenId, broadcast::Receiver<TxMsg>>;
 
 struct SubRecv {
     blocks: SubRecvBlocks,
     scripts: SubRecvScripts,
+    token_ids: SubRecvTokenId,
     ws_ping_interval: Duration,
 }
 
@@ -71,6 +75,7 @@ impl SubRecv {
         tokio::select! {
             action = Self::recv_blocks(&mut self.blocks) => action,
             action = Self::recv_scripts(&mut self.scripts) => action,
+            action = Self::recv_token_ids(&mut self.token_ids) => action,
             action = Self::schedule_ping(self.ws_ping_interval) => action,
         }
     }
@@ -92,8 +97,24 @@ impl SubRecv {
                     .values_mut()
                     .map(|receiver| Box::pin(receiver.recv())),
             );
-            let (script_msg, _, _) = script_receivers.await;
-            sub_script_msg_action(script_msg)
+            let (tx_msg, _, _) = script_receivers.await;
+            sub_tx_msg_action(tx_msg)
+        }
+    }
+
+    async fn recv_token_ids(
+        token_ids: &mut SubRecvTokenId,
+    ) -> Result<WsAction> {
+        if token_ids.is_empty() {
+            futures::future::pending().await
+        } else {
+            let token_ids_receivers = select_all(
+                token_ids
+                    .values_mut()
+                    .map(|receiver| Box::pin(receiver.recv())),
+            );
+            let (tx_msg, _, _) = token_ids_receivers.await;
+            sub_tx_msg_action(tx_msg)
         }
     }
 
@@ -130,6 +151,18 @@ impl SubRecv {
                     let recv =
                         subs.subs_script_mut().subscribe_to_member(&&script);
                     self.scripts.insert(script_variant, recv);
+                }
+            }
+            WsSubType::TokenId(token_id) => {
+                if sub.is_unsub {
+                    log_chronik!("WS unsubscribe from {:?}\n", token_id);
+                    std::mem::drop(self.token_ids.remove(&token_id));
+                    subs.subs_token_id_mut().unsubscribe_from_member(&token_id)
+                } else {
+                    log_chronik!("WS subscribe to {:?}\n", token_id);
+                    let recv =
+                        subs.subs_token_id_mut().subscribe_to_member(&token_id);
+                    self.token_ids.insert(token_id, recv);
                 }
             }
         }
@@ -171,6 +204,9 @@ fn sub_client_msg_action(
                             &script.payload,
                         )?)
                     }
+                    Some(SubType::TokenId(token_id)) => WsSubType::TokenId(
+                        token_id.token_id.parse::<TokenId>()?,
+                    ),
                 },
             }))
         }
@@ -205,15 +241,15 @@ fn sub_block_msg_action(
     Ok(WsAction::Message(msg))
 }
 
-fn sub_script_msg_action(
-    script_msg: Result<TxMsg, broadcast::error::RecvError>,
+fn sub_tx_msg_action(
+    tx_msg: Result<TxMsg, broadcast::error::RecvError>,
 ) -> Result<WsAction> {
     use proto::{ws_msg::MsgType, TxMsgType::*};
-    let script_msg = match script_msg {
-        Ok(script_msg) => script_msg,
+    let tx_msg = match tx_msg {
+        Ok(tx_msg) => tx_msg,
         Err(_) => return Ok(WsAction::Nothing),
     };
-    let tx_msg_type = match script_msg.msg_type {
+    let tx_msg_type = match tx_msg.msg_type {
         TxMsgType::AddedToMempool => TxAddedToMempool,
         TxMsgType::RemovedFromMempool => TxRemovedFromMempool,
         TxMsgType::Confirmed => TxConfirmed,
@@ -221,7 +257,7 @@ fn sub_script_msg_action(
     };
     let msg_type = Some(MsgType::Tx(proto::MsgTx {
         msg_type: tx_msg_type as _,
-        txid: script_msg.txid.to_vec(),
+        txid: tx_msg.txid.to_vec(),
     }));
     let msg_proto = proto::WsMsg { msg_type };
     let msg = ws::Message::Binary(msg_proto.encode_to_vec());
@@ -238,6 +274,7 @@ pub async fn handle_subscribe_socket(
     let mut recv = SubRecv {
         blocks: Default::default(),
         scripts: Default::default(),
+        token_ids: Default::default(),
         ws_ping_interval: settings.ws_ping_interval,
     };
 

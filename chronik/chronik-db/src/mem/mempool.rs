@@ -4,7 +4,7 @@
 
 //! Module for [`Mempool`], to index mempool txs.
 
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
@@ -33,8 +33,17 @@ pub struct Mempool {
     token_id_utxos: MempoolTokenIdUtxos,
 }
 
+/// Result after adding a tx to the mempool
+#[derive(Debug)]
+pub struct MempoolResult<'m> {
+    /// Mempool tx that was just added
+    pub mempool_tx: Cow<'m, MempoolTx>,
+    /// [`TokenIdGroupAux`] generated while indexing the mempool tx
+    pub token_id_aux: TokenIdGroupAux,
+}
+
 /// Transaction in the mempool.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MempoolTx {
     /// Transaction, including spent coins.
     pub tx: Tx,
@@ -71,7 +80,11 @@ impl Mempool {
     }
 
     /// Insert tx into the mempool.
-    pub fn insert(&mut self, db: &Db, mempool_tx: MempoolTx) -> Result<()> {
+    pub fn insert(
+        &mut self,
+        db: &Db,
+        mempool_tx: MempoolTx,
+    ) -> Result<MempoolResult<'_>> {
         let txid = mempool_tx.tx.txid();
         self.script_history.insert(&mempool_tx, &());
         self.script_utxos.insert(
@@ -93,11 +106,14 @@ impl Mempool {
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
         }
-        Ok(())
+        Ok(MempoolResult {
+            mempool_tx: Cow::Borrowed(&self.txs[&txid]),
+            token_id_aux,
+        })
     }
 
     /// Remove tx from the mempool.
-    pub fn remove(&mut self, txid: TxId) -> Result<MempoolTx> {
+    pub fn remove(&mut self, txid: TxId) -> Result<MempoolResult<'_>> {
         let mempool_tx = match self.txs.remove(&txid) {
             Some(mempool_tx) => mempool_tx,
             None => return Err(NoSuchMempoolTx(txid).into()),
@@ -118,7 +134,10 @@ impl Mempool {
             &token_id_aux,
         )?;
         self.tokens.remove(&txid);
-        Ok(mempool_tx)
+        Ok(MempoolResult {
+            mempool_tx: Cow::Owned(mempool_tx),
+            token_id_aux,
+        })
     }
 
     /// Remove mined tx from the mempool.

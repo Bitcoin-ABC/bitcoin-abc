@@ -193,6 +193,13 @@ class ChronikWs:
         )
         self.send_bytes(sub.SerializeToString())
 
+    def sub_token_id(self, token_id: str, *, is_unsub=False) -> None:
+        sub = pb.WsSub(
+            is_unsub=is_unsub,
+            token_id=pb.WsSubTokenId(token_id=token_id),
+        )
+        self.send_bytes(sub.SerializeToString())
+
     def close(self):
         self.ws.close()
         self.ws_thread.join(self.timeout)

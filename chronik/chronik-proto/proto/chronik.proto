@@ -406,6 +406,8 @@ message WsSub {
         WsSubBlocks blocks = 2;
         // Subscription to a script
         WsSubScript script = 3;
+        // Subscription to a token ID
+        WsSubTokenId token_id = 4;
     }
 }
 
@@ -413,7 +415,7 @@ message WsSub {
 // disconnected or finalized.
 message WsSubBlocks {}
 
-// Subscription to a script. They will be send every time a tx spending the
+// Subscription to a script. They will be sent every time a tx spending the
 // given script or sending to the given script has been added to/removed from
 // the mempool, or confirmed in a block.
 message WsSubScript {
@@ -424,6 +426,13 @@ message WsSubScript {
     // - 33-byte or 65-byte pubkey for "p2pk"
     // - Serialized script for "other"
     bytes payload = 2;
+}
+
+// Subscription to a token ID. They will be sent every time a tx spending or
+// sending tokens with the token ID.
+message WsSubTokenId {
+    // Hex token ID to subscribe to.
+    string token_id = 1;
 }
 
 // Message coming from the WebSocket

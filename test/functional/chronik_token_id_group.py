@@ -46,8 +46,18 @@ class ChronikTokenBurn(BitcoinTestFramework):
                 **kwargs,
             )
 
+        def ws_msg(txid: str, msg_type):
+            return pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=msg_type,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            )
+
         node = self.nodes[0]
         chronik = node.get_chronik_client()
+        ws1 = chronik.ws()
+        ws2 = chronik.ws()
 
         mocktime = 1300000000
         node.setmocktime(mocktime)
@@ -103,8 +113,10 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_slp)
+        ws1.sub_token_id(genesis_slp.txid)
         genesis_slp.send(chronik)
         genesis_slp.test(chronik)
+        assert_equal(ws1.recv(), ws_msg(genesis_slp.txid, pb.TX_ADDED_TO_MEMPOOL))
 
         tx = CTransaction()
         tx.vin = [CTxIn(COutPoint(int(genesis_slp.txid, 16), 3), SCRIPTSIG_OP_TRUE)]
@@ -147,8 +159,10 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_alp)
+        ws1.sub_token_id(genesis_alp.txid)
         genesis_alp.send(chronik)
         genesis_alp.test(chronik)
+        assert_equal(ws1.recv(), ws_msg(genesis_alp.txid, pb.TX_ADDED_TO_MEMPOOL))
 
         tx = CTransaction()
         tx.vin = [CTxIn(COutPoint(int(genesis_alp.txid, 16), 4), SCRIPTSIG_OP_TRUE)]
@@ -189,8 +203,10 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis2_alp)
+        ws2.sub_token_id(genesis2_alp.txid)
         genesis2_alp.send(chronik)
         genesis2_alp.test(chronik)
+        assert_equal(ws2.recv(), ws_msg(genesis2_alp.txid, pb.TX_ADDED_TO_MEMPOOL))
 
         tx = CTransaction()
         tx.vin = [
@@ -251,6 +267,11 @@ class ChronikTokenBurn(BitcoinTestFramework):
             error=f"400: Tx {send_alp.txid} failed token checks: Unexpected burn: Burns 5000 base tokens.",
         )
         send_alp.test(chronik)
+        expected_msg = ws_msg(send_alp.txid, pb.TX_ADDED_TO_MEMPOOL)
+        # ws1 subscribed to both genesis_slp and genesis_alp, so it get's a ws msg twice
+        assert_equal(ws1.recv(), expected_msg)
+        assert_equal(ws1.recv(), expected_msg)
+        assert_equal(ws2.recv(), expected_msg)
 
         slp_txs = sorted([genesis_slp, send_alp], key=lambda tx: tx.txid)
         history_txs = chronik.token_id(genesis_slp.txid).unconfirmed_txs().ok().txs
@@ -363,6 +384,13 @@ class ChronikTokenBurn(BitcoinTestFramework):
         for utxo, proto_utxo in zip_longest(alp2_utxos, utxos):
             assert_equal(utxo, proto_utxo)
 
+        # Resubscribe so ws1=genesis_slp.txid, ws2=genesis_alp.txid, ws3=genesis2_alp.txid
+        ws1.sub_token_id(genesis_alp.txid, is_unsub=True)
+        ws2.sub_token_id(genesis2_alp.txid, is_unsub=True)
+        ws2.sub_token_id(genesis_alp.txid)
+        ws3 = chronik.ws()
+        ws3.sub_token_id(genesis2_alp.txid)
+
         # After mining, all txs still work fine
         block_hash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
         for tx in txs:
@@ -393,6 +421,13 @@ class ChronikTokenBurn(BitcoinTestFramework):
         for utxo, proto_utxo in zip_longest(alp2_utxos, utxos):
             assert_equal(utxo, proto_utxo)
 
+        for tx in slp_txs:
+            assert_equal(ws1.recv(), ws_msg(tx.txid, pb.TX_CONFIRMED))
+        for tx in alp_txs:
+            assert_equal(ws2.recv(), ws_msg(tx.txid, pb.TX_CONFIRMED))
+        for tx in alp2_txs:
+            assert_equal(ws3.recv(), ws_msg(tx.txid, pb.TX_CONFIRMED))
+
         # Undo block + test again
         node.invalidateblock(block_hash)
         for tx in txs:
@@ -420,6 +455,14 @@ class ChronikTokenBurn(BitcoinTestFramework):
         utxos = chronik.token_id(genesis2_alp.txid).utxos().ok().utxos
         for utxo, proto_utxo in zip_longest(alp2_utxos, utxos):
             assert_equal(utxo, proto_utxo)
+
+        # TX_ADDED_TO_MEMPOOL are coming in topologically
+        for tx in [genesis_slp, send_alp]:
+            assert_equal(ws1.recv(), ws_msg(tx.txid, pb.TX_ADDED_TO_MEMPOOL))
+        for tx in [genesis_alp, send_alp]:
+            assert_equal(ws2.recv(), ws_msg(tx.txid, pb.TX_ADDED_TO_MEMPOOL))
+        for tx in [genesis2_alp, send_alp]:
+            assert_equal(ws3.recv(), ws_msg(tx.txid, pb.TX_ADDED_TO_MEMPOOL))
 
 
 if __name__ == "__main__":

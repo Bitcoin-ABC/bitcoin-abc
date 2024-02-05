@@ -23,7 +23,7 @@ use chronik_db::{
         merge, token::TokenWriter, BlockHeight, BlockReader, BlockStatsWriter,
         BlockTxs, BlockWriter, DbBlock, GroupHistoryMemData, GroupUtxoMemData,
         MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
-        TxWriter,
+        TxReader, TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
 };
@@ -300,10 +300,12 @@ impl ChronikIndexer {
         &mut self,
         mempool_tx: MempoolTx,
     ) -> Result<()> {
-        self.subs
-            .get_mut()
-            .handle_tx_event(&mempool_tx.tx, TxMsgType::AddedToMempool);
-        self.mempool.insert(&self.db, mempool_tx)?;
+        let result = self.mempool.insert(&self.db, mempool_tx)?;
+        self.subs.get_mut().handle_tx_event(
+            &result.mempool_tx.tx,
+            TxMsgType::AddedToMempool,
+            &result.token_id_aux,
+        );
         Ok(())
     }
 
@@ -311,10 +313,12 @@ impl ChronikIndexer {
     /// etc. This is not called when the transaction has been mined (and thus
     /// also removed from the mempool).
     pub fn handle_tx_removed_from_mempool(&mut self, txid: TxId) -> Result<()> {
-        let mempool_tx = self.mempool.remove(txid)?;
-        self.subs
-            .get_mut()
-            .handle_tx_event(&mempool_tx.tx, TxMsgType::RemovedFromMempool);
+        let result = self.mempool.remove(txid)?;
+        self.subs.get_mut().handle_tx_event(
+            &result.mempool_tx.tx,
+            TxMsgType::RemovedFromMempool,
+            &result.token_id_aux,
+        );
         Ok(())
     }
 
@@ -393,7 +397,7 @@ impl ChronikIndexer {
             height: block.db_block.height,
         });
         for tx in &block.txs {
-            subs.handle_tx_event(tx, TxMsgType::Confirmed);
+            subs.handle_tx_event(tx, TxMsgType::Confirmed, &token_id_aux);
         }
         Ok(())
     }
@@ -480,8 +484,15 @@ impl ChronikIndexer {
             hash: block.db_block.hash,
             height: block.db_block.height,
         });
+        let tx_reader = TxReader::new(&self.db)?;
+        let first_tx_num = tx_reader
+            .first_tx_num_by_block(block.db_block.height)?
+            .unwrap();
+        let index_txs =
+            prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        let token_id_aux = TokenIdGroupAux::from_db(&index_txs, &self.db)?;
         for tx in &block.txs {
-            subs.handle_tx_event(tx, TxMsgType::Finalized);
+            subs.handle_tx_event(tx, TxMsgType::Finalized, &token_id_aux);
         }
         Ok(())
     }
