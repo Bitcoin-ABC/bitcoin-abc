@@ -194,7 +194,7 @@ Then:
 cd bitcoin-abc
 [sudo] nvm install 16
 [sudo] npm install -g npm@latest
-[sudo] npm install -g prettier
+[sudo] npm install -g prettier@2.6.0
 [sudo] npm install -g eslint
 ```
 
