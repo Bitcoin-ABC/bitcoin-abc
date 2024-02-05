@@ -213,13 +213,6 @@ public:
         return nStatus.isValid(nUpTo);
     }
 
-    //! @returns true if the block is assumed-valid; this means it is queued
-    //! to be validated by a background chainstate.
-    bool IsAssumedValid() const EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
-        AssertLockHeld(::cs_main);
-        return nStatus.isAssumedValid();
-    }
-
     //! Raise the validity level of this block index entry.
     //! Returns true if the validity was changed.
     bool RaiseValidity(enum BlockValidity nUpTo)
@@ -232,12 +225,6 @@ public:
 
         if (nStatus.getValidity() >= nUpTo) {
             return false;
-        }
-
-        // If this block had been marked assumed-valid and we're raising
-        // its validity to a certain point, there is no longer an assumption.
-        if (IsAssumedValid() && nUpTo >= BlockValidity::SCRIPTS) {
-            nStatus = nStatus.withClearedAssumedValidFlags();
         }
 
         nStatus = nStatus.withValidity(nUpTo);

@@ -5915,8 +5915,6 @@ void ChainstateManager::CheckBlockIndex() {
     // Oldest ancestor of pindex which does not have BLOCK_VALID_SCRIPTS
     // (regardless of being valid or not), since assumeutxo snapshot if used.
     CBlockIndex *pindexFirstNotScriptsValid = nullptr;
-    // Oldest ancestor of pindex which has BLOCK_ASSUMED_VALID
-    CBlockIndex *pindexFirstAssumeValid = nullptr;
 
     // After checking an assumeutxo snapshot block, reset pindexFirst pointers
     // to earlier blocks that have not been downloaded or validated yet, so
@@ -5937,10 +5935,6 @@ void ChainstateManager::CheckBlockIndex() {
 
     while (pindex != nullptr) {
         nNodes++;
-        if (pindexFirstAssumeValid == nullptr &&
-            pindex->nStatus.isAssumedValid()) {
-            pindexFirstAssumeValid = pindex;
-        }
         if (pindexFirstInvalid == nullptr && pindex->nStatus.hasFailed()) {
             pindexFirstInvalid = pindex;
         }
@@ -6005,7 +5999,7 @@ void ChainstateManager::CheckBlockIndex() {
         if (pindex->nStatus.hasUndo()) {
             assert(pindex->nStatus.hasData());
         }
-        if (pindex->IsAssumedValid()) {
+        if (snap_base && snap_base->GetAncestor(pindex->nHeight) == pindex) {
             // Assumed-valid blocks should connect to the main chain.
             assert(pindex->nStatus.getValidity() >= BlockValidity::TREE);
         }
@@ -6244,9 +6238,6 @@ void ChainstateManager::CheckBlockIndex() {
             }
             if (pindex == pindexFirstNotScriptsValid) {
                 pindexFirstNotScriptsValid = nullptr;
-            }
-            if (pindex == pindexFirstAssumeValid) {
-                pindexFirstAssumeValid = nullptr;
             }
             // Find our parent.
             CBlockIndex *pindexPar = pindex->pprev;
@@ -6737,23 +6728,14 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
     // Fake various pieces of CBlockIndex state:
     CBlockIndex *index = nullptr;
 
-    // Don't make any modifications to the genesis block.
-    // This is especially important because we don't want to erroneously
-    // apply ASSUMED_VALID_FLAG to genesis, which would happen if we didn't
-    // skip it here (since it apparently isn't BlockValidity::SCRIPTS).
+    // Don't make any modifications to the genesis block since it shouldn't be
+    // necessary, and since the genesis block doesn't have normal flags like
+    // BLOCK_VALID_SCRIPTS set.
     constexpr int AFTER_GENESIS_START{1};
 
     for (int i = AFTER_GENESIS_START; i <= snapshot_chainstate.m_chain.Height();
          ++i) {
         index = snapshot_chainstate.m_chain[i];
-
-        // Mark unvalidated block index entries beneath the snapshot base block
-        // as assumed-valid.
-        if (!index->IsValid(BlockValidity::SCRIPTS)) {
-            // This flag will be removed once the block is fully validated by a
-            // background chainstate.
-            index->nStatus = index->nStatus.withAssumedValid();
-        }
 
         m_blockman.m_dirty_blockindex.insert(index);
         // Changes to the block index will be flushed to disk after this call

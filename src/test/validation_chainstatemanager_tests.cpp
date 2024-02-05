@@ -296,9 +296,6 @@ struct SnapshotTestSetup : TestChain100Setup {
             // Note: WriteSnapshotBaseBlockhash() is implicitly tested above.
             BOOST_CHECK_EQUAL(*node::ReadSnapshotBaseBlockhash(found),
                               *chainman.SnapshotBlockhash());
-
-            // Ensure that the genesis block was not marked assumed-valid.
-            BOOST_CHECK(!chainman.ActiveChain().Genesis()->IsAssumedValid());
         }
 
         const auto &au_data =
@@ -437,7 +434,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_activate_snapshot,
 //! - First, verfiy that setBlockIndexCandidates is as expected when using a
 //!   single, fully-validating chainstate.
 //!
-//! - Then mark a region of the chain BLOCK_ASSUMED_VALID and introduce a second
+//! - Then mark a region of the chain as missing data and introduce a second
 //!   chainstate that will tolerate assumed-valid blocks. Run LoadBlockIndex()
 //!   and ensure that the first chainstate only contains fully validated blocks
 //!   and the other chainstate contains all blocks, except those marked
@@ -475,7 +472,6 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup) {
     BOOST_CHECK_EQUAL(cs1.setBlockIndexCandidates.size(), 1);
 
     int num_indexes{0};
-    int num_assumed_valid{0};
     // Blocks in range [assumed_valid_start_idx, last_assumed_valid_idx) will be
     // marked as assumed-valid and not having data.
     const int expected_assumed_valid{20};
@@ -486,41 +482,29 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_loadblockindex, TestChain100Setup) {
     CBlockIndex *validated_tip{nullptr};
     CBlockIndex *assumed_base{nullptr};
 
-    // Mark some region of the chain assumed-valid, and remove the HAVE_DATA
-    // flag.
+    // Reset some region of the chain's nStatus, removing the HAVE_DATA flag.
     for (int i = 0; i <= cs1.m_chain.Height(); ++i) {
         LOCK(::cs_main);
         auto index = cs1.m_chain[i];
 
-        // Blocks with heights in range [91, 110] are marked ASSUMED_VALID
+        // Blocks with heights in range [91, 110] are marked as missing data.
         if (i < last_assumed_valid_idx && i >= assumed_valid_start_idx) {
-            index->nStatus = BlockStatus()
-                                 .withValidity(BlockValidity::TREE)
-                                 .withAssumedValid();
+            index->nStatus = BlockStatus().withValidity(BlockValidity::TREE);
             index->nTx = 0;
             index->nChainTx = 0;
         }
 
         ++num_indexes;
-        if (index->IsAssumedValid()) {
-            ++num_assumed_valid;
-        }
 
         // Note the last fully-validated block as the expected validated tip.
         if (i == (assumed_valid_start_idx - 1)) {
             validated_tip = index;
-            BOOST_CHECK(!index->IsAssumedValid());
         }
         // Note the last assumed valid block as the snapshot base
         if (i == last_assumed_valid_idx - 1) {
             assumed_base = index;
-            BOOST_CHECK(index->IsAssumedValid());
-        } else if (i == last_assumed_valid_idx) {
-            BOOST_CHECK(!index->IsAssumedValid());
         }
     }
-
-    BOOST_CHECK_EQUAL(expected_assumed_valid, num_assumed_valid);
 
     // Note: cs2's tip is not set when ActivateExistingSnapshot is called.
     Chainstate &cs2 = *WITH_LOCK(
