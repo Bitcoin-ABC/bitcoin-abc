@@ -243,7 +243,7 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
     if ":" not in uri:
         # Test it's valid
         Address.from_string(uri, net=net)
-        return {"address": uri}
+        return {"addresses": [uri]}
 
     u = urllib.parse.urlparse(uri)
     # The scheme always comes back in lower case
@@ -262,28 +262,44 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
         pq = urllib.parse.parse_qs(u.query, keep_blank_values=True)
 
     for k, v in pq.items():
-        if len(v) != 1:
+        if len(v) != 1 and k not in ["addr", "amount"]:
             raise DuplicateKeyInURIError(_("Duplicate key in URI"), k)
 
-    out = {k: v[0] for k, v in pq.items()}
+    out = {k: v[0] for k, v in pq.items() if k not in ("addr", "amount")}
+
+    addresses = []
     if address:
-        # validate
+        addresses.append(address)
+    # There are maybe more addresses in the URI provided with the addr param
+    addresses += pq.get("addr", [])
+    # validate all addresses
+    for addr in addresses:
         try:
-            Address.from_string(address, net=net)
+            Address.from_string(addr, net=net)
         except Exception as e:
             raise BadURIParameter("address", e) from e
-        out["address"] = address
+    if addresses:
+        out["addresses"] = addresses
 
-    if "amount" in out:
+    amounts = pq.get("amount", [])
+    if len(addresses) != 1 and len(amounts) != len(addresses):
+        raise BadURIParameter(
+            "mismatching number of addresses and amounts in multi outputs URI"
+        )
+    if len(addresses) == 1 and len(amounts) > 1:
+        raise BadURIParameter("Single output URI must have 0 or 1 amount")
+
+    if amounts:
+        out["amounts"] = []
+    for am in amounts:
         try:
-            am = out["amount"]
             m = re.match(r"([0-9.]+)X([0-9]{2})", am)
             if m:
                 k = int(m.group(2)) - 2
                 amount = decimal.Decimal(m.group(1)) * int(pow(10, k))
             else:
                 amount = decimal.Decimal(am) * int(bitcoin.CASH)
-            out["amount"] = int(amount)
+            out["amounts"].append(int(amount))
         except (ValueError, decimal.InvalidOperation, TypeError) as e:
             raise BadURIParameter("amount", e) from e
 
@@ -329,8 +345,8 @@ def parse_URI(uri, on_pr=None, *, net=None, strict=False, on_exc=None):
     if strict:
         accept_keys = {
             "r",
-            "address",
-            "amount",
+            "addresses",
+            "amounts",
             "label",
             "message",
             "op_return",

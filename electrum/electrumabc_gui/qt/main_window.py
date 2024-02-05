@@ -2946,8 +2946,19 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         if r:
             self.prepare_for_payment_request()
             return
-        address = out.get("address")
-        amount = out.get("amount")
+        addresses = out.get("addresses", [])
+        amounts = out.get("amounts", [])
+        if (len(addresses) == 1 and len(amounts) > 1) or (
+            len(addresses) != 1 and len(addresses) != len(amounts)
+        ):
+            ShowPopupLabel(
+                name="`Pay to` error",
+                text=_("Inconsistent number of addresses and amounts in ecash URI:")
+                + f" {len(addresses)} addresses and {len(amounts)} amounts",
+                target=self.payto_e,
+                timeout=5000,
+            )
+            return
         label = out.get("label")
         message = out.get("message")
         op_return = out.get("op_return")
@@ -2956,16 +2967,33 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         # use label as description (not BIP21 compliant)
         if label and not message:
             message = label
-        if address or URI.strip().lower().split(":", 1)[0] in web.parseable_schemes():
+        if len(amounts) == 1:
+            self.amount_e.setAmount(amounts[0])
+            self.amount_e.textEdited.emit("")
+
+        if len(addresses) == 1:
             # if address, set the payto field to the address.
+            self.payto_e.setText(addresses[0])
+        elif (
+            len(addresses) == 0
+            and URI.strip().lower().split(":", 1)[0] in web.parseable_schemes()
+        ):
             # if *not* address, then we set the payto field to the empty string
             # only IFF it was ecash:, see issue Electron-Cash#1131.
-            self.payto_e.setText(address or "")
+            self.payto_e.setText("")
+        elif len(addresses) > 1:
+            # For multiple outputs, we fill the payto field with the expected CSV
+            # string. Note that amounts are in sats and we convert them to XEC.
+            assert len(addresses) == len(amounts)
+            self.payto_e.setText(
+                "\n".join(
+                    f"{addr}, {format_satoshis_plain(amount, self.get_decimal_point())}"
+                    for addr, amount in zip(addresses, amounts)
+                )
+            )
+
         if message:
             self.message_e.setText(message)
-        if amount:
-            self.amount_e.setAmount(amount)
-            self.amount_e.textEdited.emit("")
         if op_return:
             self.message_opreturn_e.setText(op_return)
             self.message_opreturn_e.setHidden(False)

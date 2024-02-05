@@ -22,7 +22,7 @@ class TestParseURI(unittest.TestCase):
     def test_address(self):
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"},
+            {"addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"]},
         )
 
     def test_testnet(self):
@@ -35,31 +35,34 @@ class TestParseURI(unittest.TestCase):
 
         self.assertEqual(
             parse_URI("ectest:qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg", net=TestNet),
-            {"address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg"},
+            {"addresses": ["qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg"]},
         )
 
         self.assertEqual(
             parse_URI("qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg", net=TestNet),
-            {"address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg"},
+            {"addresses": ["qrh3ethkfms79tlcw7m736t38hp9kg5f7gzncerkcg"]},
         )
 
     def test_only_address(self):
         self._do_test(
             "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"},
+            {"addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"]},
         )
 
     def test_address_label(self):
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?label=electrum%20test",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "label": "electrum test"},
+            {
+                "addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"],
+                "label": "electrum test",
+            },
         )
 
     def test_address_message(self):
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?message=electrum%20test",
             {
-                "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
+                "addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"],
                 "message": "electrum test",
             },
         )
@@ -67,14 +70,14 @@ class TestParseURI(unittest.TestCase):
     def test_address_amount(self):
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=1.03",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "amount": 103},
+            {"addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"], "amounts": [103]},
         )
 
     def test_address_request_url(self):
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?r=http://domain.tld/page?h%3D2a8628fc2fbe",
             {
-                "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
+                "addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"],
                 "r": "http://domain.tld/page?h=2a8628fc2fbe",
             },
         )
@@ -82,7 +85,7 @@ class TestParseURI(unittest.TestCase):
     def test_ignore_args(self):
         self._do_test(
             "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?test=test",
-            {"address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma", "test": "test"},
+            {"addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"], "test": "test"},
         )
 
     def test_multiple_args(self):
@@ -94,8 +97,8 @@ class TestParseURI(unittest.TestCase):
             "test=none&"
             "r=http://domain.tld/page",
             {
-                "address": "15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma",
-                "amount": 1004,
+                "addresses": ["15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"],
+                "amounts": [1004],
                 "label": "electrum-test",
                 "message": "electrum test",
                 "r": "http://domain.tld/page",
@@ -117,27 +120,27 @@ class TestParseURI(unittest.TestCase):
             Exception, parse_URI, "notvalid:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma"
         )
 
-    def test_parameter_polution(self):
-        # amount specified twice
+    def test_parameter_pollution(self):
+        # label specified twice
         self.assertRaises(
-            Exception,
+            DuplicateKeyInURIError,
             parse_URI,
-            "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?amount=0.0003&label=test&"
-            "amount=30.0",
+            "ecash:15mKKb2eos1hWa6tisdPwwDC1a5J1y9nma?label=spam&amount=0.0003&"
+            "label=foo",
         )
 
     def test_op_return(self):
         self._do_test(
             "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return_raw=04deadbeef",
             {
-                "address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                "addresses": ["qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"],
                 "op_return_raw": "04deadbeef",
             },
         )
         self._do_test(
             "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=payment%20for%20invoice%20%2342-1337",
             {
-                "address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                "addresses": ["qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"],
                 "op_return": "payment for invoice #42-1337",
             },
         )
@@ -152,9 +155,61 @@ class TestParseURI(unittest.TestCase):
         self._do_test(
             "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?op_return=spam&op_return_raw=04deadbeef",
             {
-                "address": "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                "addresses": ["qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme"],
                 "op_return": "spam",
             },
+        )
+
+        self._do_test(
+            "ecash:?op_return_raw=04deadbeef",
+            {"op_return_raw": "04deadbeef"},
+        )
+
+    def test_multiple_outputs(self):
+        self._do_test(
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?amount=100&"
+            "op_return_raw=0401020304&"
+            "addr=qz252dlyuzfqk7k35f57csamlgxc23ahz5accatyk9&amount=200&"
+            "addr=qzrseeup3rhehuaf9e6nr3sgm6t5eegufuuht750at&amount=300",
+            {
+                "addresses": [
+                    "qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme",
+                    "qz252dlyuzfqk7k35f57csamlgxc23ahz5accatyk9",
+                    "qzrseeup3rhehuaf9e6nr3sgm6t5eegufuuht750at",
+                ],
+                "amounts": [10_000, 20_000, 30_000],
+                "op_return_raw": "0401020304",
+            },
+        )
+
+    def test_inconsistent_multiple_outputs(self):
+        # amount specified twice for single address
+        self.assertRaises(
+            BadURIParameter,
+            parse_URI,
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?amount=40.00&label=test&"
+            "amount=30.00",
+        )
+        # multiple addresses, not enough amounts
+        self.assertRaises(
+            BadURIParameter,
+            parse_URI,
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?amount=40.00&"
+            "addr=qz252dlyuzfqk7k35f57csamlgxc23ahz5accatyk9",
+        )
+        self.assertRaises(
+            BadURIParameter,
+            parse_URI,
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?"
+            "addr=qz252dlyuzfqk7k35f57csamlgxc23ahz5accatyk9",
+        )
+        # 2 addresses, 3 amounts
+        self.assertRaises(
+            BadURIParameter,
+            parse_URI,
+            "ecash:qrh3ethkfms79tlcw7m736t38hp9kg5f7gycxeymme?amount=40.00&"
+            "addr=qz252dlyuzfqk7k35f57csamlgxc23ahz5accatyk9&amount=30.00&"
+            "amount=20.00",
         )
 
 
