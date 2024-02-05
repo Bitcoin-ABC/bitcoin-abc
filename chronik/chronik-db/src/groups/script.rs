@@ -33,11 +33,16 @@ pub type ScriptUtxoReader<'a> = GroupUtxoReader<'a, ScriptGroup>;
 pub struct ScriptGroup;
 
 impl Group for ScriptGroup {
+    type Aux = ();
     type Iter<'a> = Vec<MemberItem<&'a Script>>;
     type Member<'a> = &'a Script;
     type MemberSer<'a> = Bytes;
 
-    fn input_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a> {
+    fn input_members<'a>(
+        &self,
+        query: GroupQuery<'a>,
+        _aux: &(),
+    ) -> Self::Iter<'a> {
         if query.is_coinbase {
             return vec![];
         }
@@ -53,7 +58,11 @@ impl Group for ScriptGroup {
         input_scripts
     }
 
-    fn output_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a> {
+    fn output_members<'a>(
+        &self,
+        query: GroupQuery<'a>,
+        _aux: &(),
+    ) -> Self::Iter<'a> {
         let mut output_scripts = Vec::with_capacity(query.tx.outputs.len());
         for (idx, output) in query.tx.outputs.iter().enumerate() {
             if !output.script.is_opreturn() {
@@ -141,7 +150,7 @@ mod tests {
             tx: &tx,
         };
         assert_eq!(
-            tx_members_for_group(&script_group, query).collect::<Vec<_>>(),
+            tx_members_for_group(&script_group, query, &()).collect::<Vec<_>>(),
             vec![
                 &make_script(vec![0x51]),
                 &make_script(vec![0x52]),
@@ -150,14 +159,14 @@ mod tests {
             ],
         );
         assert_eq!(
-            script_group.input_members(query),
+            script_group.input_members(query, &()),
             vec![
                 make_member_item(0, &make_script(vec![0x51])),
                 make_member_item(1, &make_script(vec![0x52])),
             ],
         );
         assert_eq!(
-            script_group.output_members(query),
+            script_group.output_members(query, &()),
             vec![
                 make_member_item(0, &make_script(vec![0x53])),
                 make_member_item(1, &make_script(vec![0x51])),
@@ -169,15 +178,15 @@ mod tests {
             tx: &tx,
         };
         assert_eq!(
-            tx_members_for_group(&script_group, query).collect::<Vec<_>>(),
+            tx_members_for_group(&script_group, query, &()).collect::<Vec<_>>(),
             vec![
                 &Script::new(vec![0x53].into()),
                 &Script::new(vec![0x51].into()),
             ],
         );
-        assert_eq!(script_group.input_members(query), vec![]);
+        assert_eq!(script_group.input_members(query, &()), vec![]);
         assert_eq!(
-            script_group.output_members(query),
+            script_group.output_members(query, &()),
             vec![
                 make_member_item(0, &make_script(vec![0x53])),
                 make_member_item(1, &make_script(vec![0x51])),

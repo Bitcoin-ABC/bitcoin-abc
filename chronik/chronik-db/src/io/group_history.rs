@@ -208,10 +208,11 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
+        aux: &G::Aux,
         mem_data: &mut GroupHistoryMemData,
     ) -> Result<()> {
         let t_start = Instant::now();
-        let fetched = self.fetch_members_num_txs(txs, mem_data)?;
+        let fetched = self.fetch_members_num_txs(txs, aux, mem_data)?;
         for ((mut new_tx_nums, member_ser), mut num_txs) in fetched
             .grouped_txs
             .into_values()
@@ -253,10 +254,11 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
+        aux: &G::Aux,
         mem_data: &mut GroupHistoryMemData,
     ) -> Result<()> {
         let t_start = Instant::now();
-        let fetched = self.fetch_members_num_txs(txs, mem_data)?;
+        let fetched = self.fetch_members_num_txs(txs, aux, mem_data)?;
         for ((mut removed_tx_nums, member_ser), mut num_txs) in fetched
             .grouped_txs
             .into_values()
@@ -315,11 +317,12 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     fn fetch_members_num_txs<'tx>(
         &self,
         txs: &'tx [IndexTx<'tx>],
+        aux: &G::Aux,
         mem_data: &mut GroupHistoryMemData,
     ) -> Result<FetchedNumTxs<'tx, G>> {
         let GroupHistoryMemData { stats } = mem_data;
         let t_group = Instant::now();
-        let grouped_txs = self.group_txs(txs);
+        let grouped_txs = self.group_txs(txs, aux);
         stats.t_group += t_group.elapsed().as_secs_f64();
 
         let t_ser_members = Instant::now();
@@ -357,6 +360,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
     fn group_txs<'tx>(
         &self,
         txs: &'tx [IndexTx<'tx>],
+        aux: &G::Aux,
     ) -> BTreeMap<G::Member<'tx>, Vec<TxNum>> {
         let mut group_tx_nums = BTreeMap::<G::Member<'tx>, Vec<TxNum>>::new();
         for index_tx in txs {
@@ -364,7 +368,7 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
                 is_coinbase: index_tx.is_coinbase,
                 tx: index_tx.tx,
             };
-            for member in tx_members_for_group(&self.group, query) {
+            for member in tx_members_for_group(&self.group, query, aux) {
                 let tx_nums = group_tx_nums.entry(member).or_default();
                 if let Some(&last_tx_num) = tx_nums.last() {
                     if last_tx_num == index_tx.tx_num {
@@ -512,6 +516,7 @@ mod tests {
             group_writer.insert(
                 &mut batch,
                 &index_txs,
+                &(),
                 &mut mem_data.borrow_mut(),
             )?;
             db.write_batch(batch)?;
@@ -528,6 +533,7 @@ mod tests {
             group_writer.delete(
                 &mut batch,
                 &index_txs,
+                &(),
                 &mut mem_data.borrow_mut(),
             )?;
             db.write_batch(batch)?;

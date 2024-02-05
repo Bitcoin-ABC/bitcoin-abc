@@ -70,12 +70,13 @@ impl<G: Group> MempoolGroupUtxos<G> {
         &mut self,
         tx: &MempoolTx,
         is_mempool_tx: impl Fn(&TxId) -> bool,
+        aux: &G::Aux,
     ) -> Result<()> {
         let query = GroupQuery {
             is_coinbase: false,
             tx: &tx.tx,
         };
-        for item in self.group.output_members(query) {
+        for item in self.group.output_members(query, aux) {
             let member_ser = self.group.ser_member(&item.member);
             let utxos = self.ensure_entry(member_ser.as_ref());
             let outpoint = OutPoint {
@@ -87,7 +88,7 @@ impl<G: Group> MempoolGroupUtxos<G> {
                 return Err(DuplicateUtxo(outpoint).into());
             }
         }
-        for item in self.group.input_members(query) {
+        for item in self.group.input_members(query, aux) {
             let input = &tx.tx.inputs[item.idx];
             if !is_mempool_tx(&input.prev_out.txid) {
                 continue;
@@ -122,12 +123,13 @@ impl<G: Group> MempoolGroupUtxos<G> {
         &mut self,
         tx: &MempoolTx,
         is_mempool_tx: impl Fn(&TxId) -> bool,
+        aux: &G::Aux,
     ) -> Result<()> {
         let query = GroupQuery {
             is_coinbase: false,
             tx: &tx.tx,
         };
-        for item in self.group.input_members(query) {
+        for item in self.group.input_members(query, aux) {
             let input = &tx.tx.inputs[item.idx];
             if !is_mempool_tx(&input.prev_out.txid) {
                 // If `tx` previously spent a block tx, don't add the UTXO back
@@ -141,7 +143,7 @@ impl<G: Group> MempoolGroupUtxos<G> {
                 return Err(UtxoAlreadyUnspent(input.prev_out).into());
             }
         }
-        for item in self.group.output_members(query) {
+        for item in self.group.output_members(query, aux) {
             let member_ser = self.group.ser_member(&item.member);
             let outpoint = OutPoint {
                 txid: tx.tx.txid(),
@@ -165,12 +167,12 @@ impl<G: Group> MempoolGroupUtxos<G> {
     /// from tx1, it's perfectly fine for tx2 to be removed from the mempool via
     /// TransactionRemovedFromMempool, but since tx1 is not confirmed, it
     /// violates the assumption.
-    pub fn remove_mined(&mut self, tx: &MempoolTx) {
+    pub fn remove_mined(&mut self, tx: &MempoolTx, aux: &G::Aux) {
         let query = GroupQuery {
             is_coinbase: false,
             tx: &tx.tx,
         };
-        for item in self.group.output_members(query) {
+        for item in self.group.output_members(query, aux) {
             let member_ser = self.group.ser_member(&item.member);
             // Discard the error here, which is expected if an output has
             // previously been spent by another mempool tx.
@@ -274,7 +276,7 @@ mod tests {
 
         // spend a confirmed UTXO
         let tx1 = make_mempool_tx(1, [(10, 4, 100)], [101]);
-        mempool.insert(&tx1, is_mempool_tx)?;
+        mempool.insert(&tx1, is_mempool_tx, &())?;
         assert_eq!(mempool.utxos(&ser_value(100)), None);
         assert_eq!(
             mempool.utxos(&ser_value(101)),
@@ -284,7 +286,7 @@ mod tests {
         // adding again fails
         assert_eq!(
             mempool
-                .insert(&tx1, is_mempool_tx)
+                .insert(&tx1, is_mempool_tx, &())
                 .unwrap_err()
                 .downcast::<MempoolGroupUtxosError>()?,
             MempoolGroupUtxosError::DuplicateUtxo(OutPoint {
@@ -302,7 +304,8 @@ mod tests {
                 mempool
                     .insert(
                         &make_mempool_tx(3, [(2, 4, value)], []),
-                        is_mempool_tx
+                        is_mempool_tx,
+                        &(),
                     )
                     .unwrap_err()
                     .downcast::<MempoolGroupUtxosError>()?,
@@ -323,7 +326,11 @@ mod tests {
         ] {
             assert_eq!(
                 mempool
-                    .remove(&make_mempool_tx(3, [], [value]), is_mempool_tx)
+                    .remove(
+                        &make_mempool_tx(3, [], [value]),
+                        is_mempool_tx,
+                        &(),
+                    )
                     .unwrap_err()
                     .downcast::<MempoolGroupUtxosError>()?,
                 MempoolGroupUtxosError::UtxoDoesntExistForRemoval(OutPoint {
@@ -334,23 +341,23 @@ mod tests {
         }
 
         // Removing tx1 results in an empty state
-        mempool.remove(&tx1, is_mempool_tx)?;
+        mempool.remove(&tx1, is_mempool_tx, &())?;
         assert_eq!(mempool, MempoolGroupUtxos::new(ValueGroup));
 
         // Mining tx1 also results in an empty state
-        mempool.insert(&tx1, is_mempool_tx)?;
-        mempool.remove_mined(&tx1);
+        mempool.insert(&tx1, is_mempool_tx, &())?;
+        mempool.remove_mined(&tx1, &());
         assert_eq!(mempool, MempoolGroupUtxos::new(ValueGroup));
 
         // Add back to mempool again
-        mempool.insert(&tx1, is_mempool_tx)?;
+        mempool.insert(&tx1, is_mempool_tx, &())?;
         assert_eq!(
             mempool.utxos(&ser_value(101)),
             Some(&make_outpoints([(1, 0)])),
         );
 
         let tx2 = make_mempool_tx(2, [(1, 0, 101)], [102, 101]);
-        mempool.insert(&tx2, is_mempool_tx)?;
+        mempool.insert(&tx2, is_mempool_tx, &())?;
         assert_eq!(
             mempool.utxos(&ser_value(101)),
             Some(&make_outpoints([(2, 1)])),
@@ -361,7 +368,7 @@ mod tests {
         );
 
         // Removing tx2 restores tx1's outputs, and removes tx2's outputs
-        mempool.remove(&tx2, is_mempool_tx)?;
+        mempool.remove(&tx2, is_mempool_tx, &())?;
         assert_eq!(
             mempool.utxos(&ser_value(101)),
             Some(&make_outpoints([(1, 0)])),
@@ -371,7 +378,7 @@ mod tests {
         // Trying to remove tx2 again fails
         assert_eq!(
             mempool
-                .remove(&tx2, is_mempool_tx)
+                .remove(&tx2, is_mempool_tx, &())
                 .unwrap_err()
                 .downcast::<MempoolGroupUtxosError>()?,
             MempoolGroupUtxosError::UtxoAlreadyUnspent(OutPoint {
@@ -381,11 +388,11 @@ mod tests {
         );
 
         // Add tx2 again
-        mempool.insert(&tx2, is_mempool_tx)?;
+        mempool.insert(&tx2, is_mempool_tx, &())?;
 
         // Add tx3
         let tx3 = make_mempool_tx(3, [(2, 0, 102), (11, 4, 101)], [101]);
-        mempool.insert(&tx3, is_mempool_tx)?;
+        mempool.insert(&tx3, is_mempool_tx, &())?;
         assert_eq!(
             mempool.utxos(&ser_value(101)),
             Some(&make_outpoints([(2, 1), (3, 0)])),
@@ -393,7 +400,7 @@ mod tests {
         assert_eq!(mempool.utxos(&ser_value(102)), None);
 
         // Mine tx1: leaves everything unchanged
-        mempool.remove_mined(&tx1);
+        mempool.remove_mined(&tx1, &());
         assert_eq!(
             mempool.utxos(&ser_value(101)),
             Some(&make_outpoints([(2, 1), (3, 0)])),
@@ -401,7 +408,7 @@ mod tests {
         assert_eq!(mempool.utxos(&ser_value(102)), None);
 
         // Mine tx2: removes its outputs
-        mempool.remove_mined(&tx2);
+        mempool.remove_mined(&tx2, &());
         assert_eq!(
             mempool.utxos(&ser_value(101)),
             Some(&make_outpoints([(3, 0)])),
@@ -409,7 +416,7 @@ mod tests {
         assert_eq!(mempool.utxos(&ser_value(102)), None);
 
         // Mine tx3: results in an empty state
-        mempool.remove_mined(&tx3);
+        mempool.remove_mined(&tx3, &());
         assert_eq!(mempool, MempoolGroupUtxos::new(ValueGroup));
 
         Ok(())

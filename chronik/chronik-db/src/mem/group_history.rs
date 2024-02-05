@@ -33,12 +33,12 @@ impl<G: Group> MempoolGroupHistory<G> {
     }
 
     /// Index the given [`MempoolTx`] by this group.
-    pub fn insert(&mut self, tx: &MempoolTx) {
+    pub fn insert(&mut self, tx: &MempoolTx, aux: &G::Aux) {
         let query = GroupQuery {
             is_coinbase: false,
             tx: &tx.tx,
         };
-        for member in tx_members_for_group(&self.group, query) {
+        for member in tx_members_for_group(&self.group, query, aux) {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
             if !self.history.contains_key(member_ser.as_ref()) {
                 self.history
@@ -53,12 +53,12 @@ impl<G: Group> MempoolGroupHistory<G> {
     }
 
     /// Remove the given [`MempoolTx`] from the history index.
-    pub fn remove(&mut self, tx: &MempoolTx) {
+    pub fn remove(&mut self, tx: &MempoolTx, aux: &G::Aux) {
         let query = GroupQuery {
             is_coinbase: false,
             tx: &tx.tx,
         };
-        for member in tx_members_for_group(&self.group, query) {
+        for member in tx_members_for_group(&self.group, query, aux) {
             let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
             if let Some(entries) = self.history.get_mut(member_ser.as_ref()) {
                 entries.remove(&(tx.time_first_seen, tx.tx.txid()));
@@ -94,9 +94,9 @@ mod tests {
         let mempool =
             std::cell::RefCell::new(MempoolGroupHistory::new(ValueGroup));
 
-        let add_tx = |tx: &MempoolTx| mempool.borrow_mut().insert(tx);
+        let add_tx = |tx: &MempoolTx| mempool.borrow_mut().insert(tx, &());
 
-        let remove_tx = |tx: &MempoolTx| mempool.borrow_mut().remove(tx);
+        let remove_tx = |tx: &MempoolTx| mempool.borrow_mut().remove(tx, &());
 
         let member_history = |val: i64| -> Option<Vec<(i64, TxId)>> {
             mempool

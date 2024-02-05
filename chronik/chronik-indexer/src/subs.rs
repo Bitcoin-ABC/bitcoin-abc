@@ -63,7 +63,7 @@ impl Subs {
 
     /// Send out updates to subscribers for this tx and msg_type.
     pub fn handle_tx_event(&mut self, tx: &Tx, msg_type: TxMsgType) {
-        self.subs_script.handle_tx_event(tx, msg_type);
+        self.subs_script.handle_tx_event(tx, &(), msg_type);
     }
 
     pub(crate) fn broadcast_block_msg(&self, msg: BlockMsg) {

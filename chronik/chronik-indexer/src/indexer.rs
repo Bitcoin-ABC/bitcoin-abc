@@ -340,11 +340,13 @@ impl ChronikIndexer {
         script_history_writer.insert(
             &mut batch,
             &index_txs,
+            &(),
             &mut self.mem_data.script_history,
         )?;
         script_utxo_writer.insert(
             &mut batch,
             &index_txs,
+            &(),
             &mut self.mem_data.script_utxos,
         )?;
         spent_by_writer.insert(
@@ -397,11 +399,13 @@ impl ChronikIndexer {
         script_history_writer.delete(
             &mut batch,
             &index_txs,
+            &(),
             &mut self.mem_data.script_history,
         )?;
         script_utxo_writer.delete(
             &mut batch,
             &index_txs,
+            &(),
             &mut self.mem_data.script_utxos,
         )?;
         spent_by_writer.delete(

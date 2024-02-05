@@ -146,6 +146,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &'tx [IndexTx<'tx>],
+        aux: &G::Aux,
         mem_data: &mut GroupUtxoMemData,
     ) -> Result<()> {
         let stats = &mut mem_data.stats;
@@ -158,7 +159,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 is_coinbase: index_tx.is_coinbase,
                 tx: index_tx.tx,
             };
-            for item in self.group.output_members(query) {
+            for item in self.group.output_members(query, aux) {
                 let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
@@ -177,7 +178,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 is_coinbase: index_tx.is_coinbase,
                 tx: index_tx.tx,
             };
-            for item in self.group.input_members(query) {
+            for item in self.group.input_members(query, aux) {
                 let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
@@ -201,6 +202,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         txs: &'tx [IndexTx<'tx>],
+        aux: &G::Aux,
         mem_data: &mut GroupUtxoMemData,
     ) -> Result<()> {
         let stats = &mut mem_data.stats;
@@ -216,7 +218,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 is_coinbase: index_tx.is_coinbase,
                 tx: index_tx.tx,
             };
-            for item in self.group.input_members(query) {
+            for item in self.group.input_members(query, aux) {
                 let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
@@ -232,7 +234,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
                 is_coinbase: index_tx.is_coinbase,
                 tx: index_tx.tx,
             };
-            for item in self.group.output_members(query) {
+            for item in self.group.output_members(query, aux) {
                 let t_fetch = Instant::now();
                 let entries =
                     self.get_or_fetch(&mut updated_utxos, item.member)?;
@@ -426,6 +428,7 @@ mod tests {
             group_writer.insert(
                 &mut batch,
                 &index_txs,
+                &(),
                 &mut mem_data.borrow_mut(),
             )?;
             db.write_batch(batch)?;
@@ -442,6 +445,7 @@ mod tests {
             group_writer.delete(
                 &mut batch,
                 &index_txs,
+                &(),
                 &mut mem_data.borrow_mut(),
             )?;
             db.write_batch(batch)?;

@@ -83,7 +83,12 @@ impl<G: Group> SubsGroup<G> {
     }
 
     /// Send out updates to subscribers for this tx and msg_type.
-    pub fn handle_tx_event(&mut self, tx: &Tx, msg_type: TxMsgType) {
+    pub fn handle_tx_event(
+        &mut self,
+        tx: &Tx,
+        aux: &G::Aux,
+        msg_type: TxMsgType,
+    ) {
         let query = GroupQuery {
             is_coinbase: false,
             tx,
@@ -93,7 +98,7 @@ impl<G: Group> SubsGroup<G> {
             txid: tx.txid(),
         };
         let mut already_notified = HashSet::new();
-        for member in tx_members_for_group(&self.group, query) {
+        for member in tx_members_for_group(&self.group, query, aux) {
             if !already_notified.contains(&member) {
                 let member_ser = self.group.ser_member(&member);
                 if let Some(sender) = self.subs.get(member_ser.as_ref()) {

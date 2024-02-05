@@ -54,19 +54,30 @@ pub trait Group {
     /// Note: For group history, this will be suffixed by a 4-byte page number.
     type MemberSer<'a>: AsRef<[u8]> + 'a;
 
+    /// Auxillary data when grouping members
+    type Aux;
+
     /// Find the group's members in the given query's tx's inputs.
     ///
     /// Note: This is allowed to return a member multiple times per query.
     ///
     /// Note: The returned iterator is allowed to borrow from the query.
-    fn input_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a>;
+    fn input_members<'a>(
+        &self,
+        query: GroupQuery<'a>,
+        aux: &Self::Aux,
+    ) -> Self::Iter<'a>;
 
     /// Find the group's members in the given query's tx's outputs.
     ///
     /// Note: This is allowed to return a member multiple times per query.
     ///
     /// Note: The returned iterator is allowed to borrow from the query.
-    fn output_members<'a>(&self, query: GroupQuery<'a>) -> Self::Iter<'a>;
+    fn output_members<'a>(
+        &self,
+        query: GroupQuery<'a>,
+        aux: &Self::Aux,
+    ) -> Self::Iter<'a>;
 
     /// Serialize the given member.
     fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a>;
@@ -83,10 +94,11 @@ pub trait Group {
 pub fn tx_members_for_group<'a, G: Group>(
     group: &G,
     query: GroupQuery<'a>,
+    aux: &G::Aux,
 ) -> impl Iterator<Item = G::Member<'a>> {
     group
-        .input_members(query)
+        .input_members(query, aux)
         .into_iter()
-        .chain(group.output_members(query))
+        .chain(group.output_members(query, aux))
         .map(|item| item.member)
 }

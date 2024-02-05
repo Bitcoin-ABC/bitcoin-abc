@@ -66,9 +66,12 @@ impl Mempool {
     /// Insert tx into the mempool.
     pub fn insert(&mut self, db: &Db, mempool_tx: MempoolTx) -> Result<()> {
         let txid = mempool_tx.tx.txid();
-        self.script_history.insert(&mempool_tx);
-        self.script_utxos
-            .insert(&mempool_tx, |txid| self.txs.contains_key(txid))?;
+        self.script_history.insert(&mempool_tx, &());
+        self.script_utxos.insert(
+            &mempool_tx,
+            |txid| self.txs.contains_key(txid),
+            &(),
+        )?;
         self.spent_by.insert(&mempool_tx)?;
         self.tokens
             .insert(db, &mempool_tx, |txid| self.txs.contains_key(txid))?;
@@ -84,9 +87,12 @@ impl Mempool {
             Some(mempool_tx) => mempool_tx,
             None => return Err(NoSuchMempoolTx(txid).into()),
         };
-        self.script_history.remove(&mempool_tx);
-        self.script_utxos
-            .remove(&mempool_tx, |txid| self.txs.contains_key(txid))?;
+        self.script_history.remove(&mempool_tx, &());
+        self.script_utxos.remove(
+            &mempool_tx,
+            |txid| self.txs.contains_key(txid),
+            &(),
+        )?;
         self.spent_by.remove(&mempool_tx)?;
         self.tokens.remove(&txid);
         Ok(mempool_tx)
@@ -95,8 +101,8 @@ impl Mempool {
     /// Remove mined tx from the mempool.
     pub fn remove_mined(&mut self, txid: &TxId) -> Result<Option<MempoolTx>> {
         if let Some(mempool_tx) = self.txs.remove(txid) {
-            self.script_history.remove(&mempool_tx);
-            self.script_utxos.remove_mined(&mempool_tx);
+            self.script_history.remove(&mempool_tx, &());
+            self.script_utxos.remove_mined(&mempool_tx, &());
             self.spent_by.remove(&mempool_tx)?;
             self.tokens.remove(txid);
             return Ok(Some(mempool_tx));
