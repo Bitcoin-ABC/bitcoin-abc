@@ -7,7 +7,7 @@ use bitcoinsuite_core::tx::{
 };
 
 use crate::{
-    group::{Group, GroupQuery, MemberItem},
+    group::{Group, GroupQuery, MemberItem, UtxoDataValue},
     io::{GroupHistoryConf, GroupUtxoConf},
 };
 
@@ -21,6 +21,7 @@ impl Group for ValueGroup {
     type Iter<'a> = Vec<MemberItem<i64>>;
     type Member<'a> = i64;
     type MemberSer<'a> = [u8; 8];
+    type UtxoData = UtxoDataValue;
 
     fn input_members(
         &self,

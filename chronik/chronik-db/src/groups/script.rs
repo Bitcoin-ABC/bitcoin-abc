@@ -7,7 +7,7 @@ use bytes::Bytes;
 
 use crate::{
     db::{CF_SCRIPT_HISTORY, CF_SCRIPT_HISTORY_NUM_TXS, CF_SCRIPT_UTXO},
-    group::{Group, GroupQuery, MemberItem},
+    group::{Group, GroupQuery, MemberItem, UtxoDataValue},
     io::{
         GroupHistoryConf, GroupHistoryReader, GroupHistoryWriter,
         GroupUtxoConf, GroupUtxoReader, GroupUtxoWriter,
@@ -37,6 +37,7 @@ impl Group for ScriptGroup {
     type Iter<'a> = Vec<MemberItem<&'a Script>>;
     type Member<'a> = &'a Script;
     type MemberSer<'a> = Bytes;
+    type UtxoData = UtxoDataValue;
 
     fn input_members<'a>(
         &self,

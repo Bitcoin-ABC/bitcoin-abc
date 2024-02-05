@@ -32,7 +32,7 @@ use crate::{
     indexer::ChronikIndexerError::*,
     query::{
         QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
-        QueryTxs,
+        QueryTxs, UtxoProtobufValue,
     },
     subs::{BlockMsg, BlockMsgType, Subs},
     subs_group::TxMsgType,
@@ -487,13 +487,16 @@ impl ChronikIndexer {
     }
 
     /// Return [`QueryGroupUtxos`] for scripts to query the utxos of scripts.
-    pub fn script_utxos(&self) -> Result<QueryGroupUtxos<'_, ScriptGroup>> {
+    pub fn script_utxos(
+        &self,
+    ) -> Result<QueryGroupUtxos<'_, ScriptGroup, UtxoProtobufValue>> {
         Ok(QueryGroupUtxos {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
             mempool_utxos: self.mempool.script_utxos(),
             group: self.script_group.clone(),
+            utxo_mapper: UtxoProtobufValue,
         })
     }
 

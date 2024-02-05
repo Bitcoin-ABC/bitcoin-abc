@@ -4,7 +4,9 @@
 
 //! Module for [`Group`] and [`GroupQuery`].
 
-use bitcoinsuite_core::tx::Tx;
+use bitcoinsuite_core::tx::{Tx, TxOutput};
+use bytes::Bytes;
+use serde::{Deserialize, Serialize};
 
 use crate::io::{GroupHistoryConf, GroupUtxoConf};
 
@@ -57,6 +59,9 @@ pub trait Group {
     /// Auxillary data when grouping members
     type Aux;
 
+    /// Data attached to a UTXO for this group.
+    type UtxoData: UtxoData;
+
     /// Find the group's members in the given query's tx's inputs.
     ///
     /// Note: This is allowed to return a member multiple times per query.
@@ -87,6 +92,37 @@ pub trait Group {
 
     /// The [`GroupUtxoConf`] for this group.
     fn utxo_conf() -> GroupUtxoConf;
+}
+
+/// Data atttached to a UTXO by a group.
+/// There's basically only 2 meaningful variants here, one with script (where
+/// the member is anything, e.g. a token ID) and one without script, where the
+/// member is the script itself and therefore storing it in the UTXO is
+/// redundant.
+pub trait UtxoData: Default + for<'a> Deserialize<'a> + Serialize {
+    /// Function that extracts the [`UtxoData`] from an output.
+    fn from_output(output: &TxOutput) -> Self;
+}
+
+/// [`UtxoData`] that only stores the output value but not the script.
+/// This is useful where the member itself is the script so storing it would be
+/// redundant.
+pub type UtxoDataValue = i64;
+
+impl UtxoData for UtxoDataValue {
+    fn from_output(output: &TxOutput) -> Self {
+        output.value
+    }
+}
+
+/// [`UtxoData`] that stores the full output, including value and script.
+/// This is useful where the member isn't the script, e.g. a token ID.
+pub type UtxoDataOutput = (i64, Bytes);
+
+impl UtxoData for UtxoDataOutput {
+    fn from_output(output: &TxOutput) -> Self {
+        (output.value, output.script.bytecode().clone())
+    }
 }
 
 /// Helper which returns the `G::Member`s of both inputs and outputs of the

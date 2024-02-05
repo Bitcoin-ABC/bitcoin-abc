@@ -109,6 +109,24 @@ message ScriptUtxo {
     Token token = 11;
 }
 
+// UTXO, but with a script attached.
+message Utxo {
+    // txid and out_idx of the unspent output.
+    OutPoint outpoint = 1;
+    // Block height of the UTXO, or -1 if in mempool.
+    int32 block_height = 2;
+    // Whether the UTXO has been created in a coinbase tx.
+    bool is_coinbase = 3;
+    // Value of the output, in satoshis.
+    int64 value = 4;
+    // Bytecode of the script of the output
+    bytes script = 5;
+    // Whether the UTXO has been finalized by Avalanche.
+    bool is_final = 6;
+    // Token value attached to this UTXO
+    Token token = 7;
+}
+
 // COutPoint, points to a coin being spent by an input.
 message OutPoint {
     // TxId of the tx of the output being spent.
