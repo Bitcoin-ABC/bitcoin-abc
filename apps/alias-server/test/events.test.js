@@ -106,7 +106,7 @@ describe('alias-server events.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(generated.txHistory);
+        mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -282,7 +282,7 @@ describe('alias-server events.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(generated.txHistory);
+        mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -345,7 +345,7 @@ describe('alias-server events.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(generated.txHistory);
+        mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used
@@ -410,7 +410,7 @@ describe('alias-server events.js', async function () {
         );
         mockedChronik.setScript(type, hash);
         // Set the mock tx history
-        mockedChronik.setTxHistory(generated.txHistory);
+        mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
         // Mock avalanche RPC call
         // onNoMatch: 'throwException' helps to debug if mock is not being used

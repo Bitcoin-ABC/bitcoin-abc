@@ -103,7 +103,7 @@ it('Mock the script().history() API response', async function () {
     const mockedChronik = new MockChronikClient();
     const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
     mockedChronik.setScript(type, hash);
-    mockedChronik.setTxHistory(mockTxHistory.txs);
+    mockedChronik.setTxHistory(type, hash, mockTxHistory.txs);
 
     // Execute the API call
     const result = await mockedChronik.script(type, hash).history(0, 2);
@@ -246,7 +246,7 @@ it('Mock an error returned from the script().history() API', async function () {
     const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
     const expectedError = new Error('Bad response from Chronik');
     mockedChronik.setScript(type, hash);
-    mockedChronik.setTxHistory(expectedError);
+    mockedChronik.setTxHistory(type, hash, expectedError);
 
     // Execute the API call
     await assert.rejects(async () => {

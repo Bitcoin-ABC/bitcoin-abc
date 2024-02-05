@@ -104,8 +104,8 @@ module.exports = {
             };
 
             // script calls need to be set differently
-            self.setTxHistory = function (txHistory) {
-                self.mockedResponses.txHistory = txHistory;
+            self.setTxHistory = function (type, hash, txHistory) {
+                self.mockedResponses[type][hash].txHistory = txHistory;
             };
 
             /**
@@ -115,7 +115,6 @@ module.exports = {
              * @param {array} utxos mocked response of chronik.script(type,hash).utxos()
              */
             self.setUtxos = function (type, hash, utxos) {
-                self.mockedResponses[type][hash] = {};
                 self.mockedResponses[type][hash].utxos = utxos;
             };
 
@@ -126,13 +125,16 @@ module.exports = {
 
                 self.mockedMethods[type][hash] = {
                     history: async function (pageNumber = 0, pageSize) {
-                        if (self.mockedResponses.txHistory instanceof Error) {
-                            throw self.mockedResponses.txHistory;
+                        if (
+                            self.mockedResponses[type][hash]
+                                .txHistory instanceof Error
+                        ) {
+                            throw self.mockedResponses[type][hash].txHistory;
                         }
                         return self.getTxHistory(
                             pageNumber,
                             pageSize,
-                            self.mockedResponses.txHistory,
+                            self.mockedResponses[type][hash].txHistory,
                         );
                     },
                     utxos: async function () {
