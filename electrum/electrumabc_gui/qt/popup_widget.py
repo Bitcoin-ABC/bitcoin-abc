@@ -26,7 +26,7 @@ from PyQt5.QtGui import QBrush, QColor, QPainter, QPalette, QPen
 
 from electrumabc.util import finalization_print_error
 
-from .util import destroyed_print_error
+from .util import ColorScheme, destroyed_print_error
 
 
 class PopupWidget(QtWidgets.QWidget):
@@ -380,7 +380,6 @@ def ShowPopupLabel(
     onRightClick=None,
     activation_hides=True,
     track_target=True,
-    dark_mode=False,
 ):
     assert (
         isinstance(name, str)
@@ -398,7 +397,7 @@ def ShowPopupLabel(
         timeout=timeout,
         delete_on_hide=True,
         activation_hides=activation_hides,
-        dark_mode=dark_mode,
+        dark_mode=ColorScheme.dark_scheme,
     )
     popup.setPointerPosition(pointer_position)
     popup.final_opacity = opacity

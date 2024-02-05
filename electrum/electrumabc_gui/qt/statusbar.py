@@ -14,7 +14,6 @@ from electrumabc.plugins import run_hook
 from electrumabc.util import Weak
 
 from .popup_widget import KillPopupLabel, ShowPopupLabel
-from .util import ColorScheme
 
 if TYPE_CHECKING:
     from . import ElectrumGui
@@ -190,7 +189,6 @@ class StatusBar(QtWidgets.QStatusBar):
                 timeout=20000,
                 onClick=self.update_available_button.click,
                 onRightClick=self.update_available_button.click,
-                dark_mode=ColorScheme.dark_scheme,
             )
         else:
             # Immediately kills any extant labels

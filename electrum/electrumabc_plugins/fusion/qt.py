@@ -1149,7 +1149,6 @@ class FusionButton(StatusBarButton):
                 timeout=20000,
                 onClick=onClick,
                 onRightClick=onClick,
-                dark_mode=ColorScheme.dark_scheme,
             )
         else:
             KillPopupLabel(name)
