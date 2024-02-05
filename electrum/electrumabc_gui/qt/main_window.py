@@ -108,6 +108,7 @@ from .password_dialog import (
     PasswordDialog,
 )
 from .paytoedit import PayToEdit
+from .popup_widget import ShowPopupLabel
 from .qrcodewidget import QRCodeWidget, QRDialog
 from .qrreader import QrReaderCameraDialog
 from .qrtextedit import ScanQRTextEdit, ShowQRTextEdit
@@ -2897,12 +2898,15 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         except web.ExtraParametersInURIWarning as e:
             out = e.args[0]  # out dict is in e.args[0]
             extra_params = e.args[1:]
-            self.show_warning(
-                ngettext(
+            ShowPopupLabel(
+                name="`Pay to` error",
+                text=ngettext(
                     "Extra parameter in URI was ignored:\n\n{extra_params}",
                     "Extra parameters in URI were ignored:\n\n{extra_params}",
                     len(extra_params),
-                ).format(extra_params=", ".join(extra_params))
+                ).format(extra_params=", ".join(extra_params)),
+                target=self.payto_e,
+                timeout=5000,
             )
             # fall through ...
         except web.BadURIParameter as e:
@@ -2910,19 +2914,32 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.print_error("Bad URI Parameter:", *[repr(i) for i in e.args])
             if extra_info:
                 extra_info = "\n\n" + extra_info  # prepend newlines
-            self.show_error(
-                _("Bad parameter: {bad_param_name}{extra_info}").format(
+            ShowPopupLabel(
+                name="`Pay to` error",
+                text=_("Bad parameter: {bad_param_name}{extra_info}").format(
                     bad_param_name=e.args[0], extra_info=extra_info
-                )
+                ),
+                target=self.payto_e,
+                timeout=5000,
             )
             return
         except web.DuplicateKeyInURIError as e:
             # this exception always has a translated message as args[0]
             # plus a list of keys as args[1:], see web.parse_URI
-            self.show_error(e.args[0] + ":\n\n" + ", ".join(e.args[1:]))
+            ShowPopupLabel(
+                name="`Pay to` error",
+                text=e.args[0] + ":\n\n" + ", ".join(e.args[1:]),
+                target=self.payto_e,
+                timeout=5000,
+            )
             return
         except Exception as e:
-            self.show_error(_("Invalid bitcoincash URI:") + "\n\n" + str(e))
+            ShowPopupLabel(
+                name="`Pay to` error",
+                text=_("Invalid ecash URI:") + "\n\n" + str(e),
+                target=self.payto_e,
+                timeout=5000,
+            )
             return
         self.show_send_tab()
         r = out.get("r")
