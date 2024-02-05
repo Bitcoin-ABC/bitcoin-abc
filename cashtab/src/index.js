@@ -5,11 +5,14 @@ import App from './components/App';
 import { WalletProvider } from './utils/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from './utils/GoogleAnalytics';
+import { ChronikClient } from 'chronik-client';
+import { chronik as chronikConfig } from 'config/chronik';
+const chronik = new ChronikClient(chronikConfig.urls);
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 root.render(
-    <WalletProvider>
+    <WalletProvider chronik={chronik}>
         <Router>
             {GA.init() && <GA.RouteTracker />}
             <App />

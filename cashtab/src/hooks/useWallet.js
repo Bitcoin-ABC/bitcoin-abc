@@ -32,8 +32,6 @@ import {
     parseChronikTx,
 } from 'chronik';
 import { queryAliasServer } from 'utils/aliasUtils';
-import { ChronikClient } from 'chronik-client';
-import { chronik as chronikConfig } from 'config/chronik';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
@@ -46,7 +44,6 @@ import {
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
-const chronik = new ChronikClient(chronikConfig.urls);
 // Cashtab is always running the `update` function at an interval
 // When the websocket detects an incoming tx (or when the wallet is first loaded)
 // Set this interval to near-instant (10ms)
@@ -57,7 +54,7 @@ const chronik = new ChronikClient(chronikConfig.urls);
 // 10ms and update will only run once before backing off the interval, which is all you need
 const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
 
-const useWallet = () => {
+const useWallet = chronik => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
         TRIGGER_UTXO_REFRESH_INTERVAL_MS,
     );
