@@ -13,6 +13,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from electrumabc.interface import Connection, Interface  # noqa: E402
 from electrumabc.network import parse_servers  # noqa: E402
 from electrumabc.simple_config import SimpleConfig  # noqa: E402
+from electrumabc.util import get_user_dir, make_dir  # noqa: E402
+
+# Make sure the data directory for pinned self-signed certificates exists, or the
+# connection to fulcrum servers will fail. The directory does not exist if Electrum ABC
+# was never used on a computer.
+user_dir = get_user_dir()
+make_dir(user_dir)
+make_dir(os.path.join(user_dir, "certs"))
 
 
 def get_interfaces(servers: list[str], timeout=10) -> dict[str, Interface]:
