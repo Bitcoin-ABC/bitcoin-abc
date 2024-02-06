@@ -5,32 +5,15 @@
 //! Module for [`PluginContext`].
 
 use abc_rust_error::Result;
-use chronik_util::log;
-use pyo3::{types::PyModule, Python};
 
-/// Struct managing all things relating to Chronik plugins.
+/// Dummy plugin context that does nothing, used when the plugin system is
+/// disabled
 #[derive(Debug, Default)]
 pub struct PluginContext;
 
 impl PluginContext {
-    /// Setup a plugin context, i.e. setting up an embedded Python instance and
-    /// loading plugins.
+    /// Fallback for the real PluginContext::setup that does nothing
     pub fn setup() -> Result<Self> {
-        pyo3::prepare_freethreaded_python();
-        Python::with_gil(|py| -> Result<_> {
-            let module = PyModule::from_code(
-                py,
-                "
-import platform
-version = platform.python_version()
-                ",
-                "get_version.py",
-                "get_version",
-            )?;
-            let version = module.getattr("version")?;
-            let version = version.extract::<String>()?;
-            log!("Plugin context initialized Python {}\n", version);
-            Ok(PluginContext)
-        })
+        Ok(PluginContext)
     }
 }

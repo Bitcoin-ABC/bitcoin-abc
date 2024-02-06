@@ -25,7 +25,7 @@ use bitcoinsuite_slp::{
     token_type::{AlpTokenType, SlpTokenType},
     verify::{SpentToken, VerifyContext},
 };
-use chronik_plugin::{
+use chronik_plugin_impl::{
     module::{add_test_framework_to_pythonpath, load_plugin_module},
     tx::TxModule,
 };

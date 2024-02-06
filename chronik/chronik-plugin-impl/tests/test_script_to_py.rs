@@ -4,7 +4,7 @@
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::{hash::ShaRmd160, script};
-use chronik_plugin::{
+use chronik_plugin_impl::{
     module::{add_test_framework_to_pythonpath, load_plugin_module},
     script::Script,
 };

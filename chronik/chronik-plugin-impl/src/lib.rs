@@ -8,11 +8,10 @@
 //! protocols.
 
 abc_rust_lint::lint! {
-    // When the plugin system is enabled, we simply re-export the impl
-    #[cfg(feature = "enabled")]
-    pub use chronik_plugin_impl::*;
-
-    // Otherwise we use fallback modules
-    #[cfg(not(feature = "enabled"))]
     pub mod context;
+    pub mod module;
+    pub mod script;
+    pub mod token;
+    pub mod tx;
+    mod util;
 }

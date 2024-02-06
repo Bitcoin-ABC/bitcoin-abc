@@ -12,7 +12,7 @@ license = "MIT"
 crate-type = ["staticlib"]
 
 [features]
-plugins = ["chronik-plugin"]
+plugins = ["chronik-plugin/enabled"]
 
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
@@ -24,6 +24,7 @@ chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
 chronik-http = { path = "../chronik-http" }
 chronik-indexer = { path = "../chronik-indexer" }
+chronik-plugin = { path = "../chronik-plugin" }
 chronik-util = { path = "../chronik-util" }
 
 # Bridge to C++
@@ -34,10 +35,6 @@ thiserror = "1.0"
 
 # Async runtime
 tokio = { version = "1.32", features = ["sync", "rt", "rt-multi-thread"] }
-
-[dependencies.chronik-plugin]
-path = "../chronik-plugin"
-optional = true
 
 [build-dependencies]
 # Build scripts for the cxx crate
