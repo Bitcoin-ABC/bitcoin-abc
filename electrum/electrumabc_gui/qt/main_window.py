@@ -3016,6 +3016,28 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.opreturn_rawhex_cb.setHidden(True)
             self.opreturn_label.setHidden(True)
 
+        total_amount = sum(amounts)
+        if self.amount_exceeds_warning_threshold(total_amount):
+            # The user is one click away from broadcasting a tx prefilled by a URI.
+            # If the amount is significant, warn them about it.
+            self.show_warning(
+                _(
+                    "The amount field has been populated by a BIP21 payment URI with a "
+                    "value of {amount_and_unit}. Please check the amount and destination "
+                    "carefully before sending the transaction."
+                ).format(amount_and_unit=self.format_amount_and_units(total_amount))
+            )
+
+    def amount_exceeds_warning_threshold(self, amount_sats: int) -> bool:
+        USD_THRESHOLD = 100
+        XEC_THRESHOLD = 3_000_000
+        rate = self.fx.exchange_rate("USD") if self.fx else None
+        sats_per_unit = self.fx.satoshis_per_unit()
+        amount_xec = PyDecimal(amount_sats) / PyDecimal(sats_per_unit)
+        if rate is not None:
+            return amount_xec * rate >= USD_THRESHOLD
+        return amount_xec >= XEC_THRESHOLD
+
     def do_clear(self):
         """Clears the send tab, resetting its UI state to its initiatial state."""
         self.max_button.setChecked(False)

@@ -564,9 +564,9 @@ class FxThread(ThreadJob):
         if self.network:
             self.network.trigger_callback("on_history")
 
-    def exchange_rate(self):
+    def exchange_rate(self, ccy=None) -> Optional[PyDecimal]:
         """Returns None, or the exchange rate as a PyDecimal"""
-        rate = self.exchange.quotes.get(self.ccy)
+        rate = self.exchange.quotes.get(ccy or self.ccy)
         if rate:
             return PyDecimal(rate)
 
