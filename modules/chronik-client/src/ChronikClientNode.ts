@@ -90,6 +90,74 @@ export class ChronikClientNode {
         const rawTx = proto.RawTx.decode(data);
         return convertToRawTx(rawTx);
     }
+
+    /** Create object that allows fetching script history or UTXOs. */
+    public script(
+        scriptType: ScriptType_InNode,
+        scriptPayload: string,
+    ): ScriptEndpointInNode {
+        return new ScriptEndpointInNode(
+            this._proxyInterface,
+            scriptType,
+            scriptPayload,
+        );
+    }
+}
+
+/** Allows fetching script history and UTXOs. */
+export class ScriptEndpointInNode {
+    private _proxyInterface: FailoverProxy;
+    private _scriptType: string;
+    private _scriptPayload: string;
+
+    constructor(
+        proxyInterface: FailoverProxy,
+        scriptType: string,
+        scriptPayload: string,
+    ) {
+        this._proxyInterface = proxyInterface;
+        this._scriptType = scriptType;
+        this._scriptPayload = scriptPayload;
+    }
+
+    /**
+     * Fetches the tx history of this script, in anti-chronological order.
+     * This means it's ordered by first-seen first, i.e. TxHistoryPage_InNode.txs[0]
+     * will be the most recent tx. If the tx hasn't been seen
+     * by the indexer before, it's ordered by the block timestamp.
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async history(
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/script/${this._scriptType}/${this._scriptPayload}/history?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
+     * Fetches the current UTXO set for this script.
+     * It is grouped by output script, in case a script type can match multiple
+     * different output scripts (e.g. Taproot on Lotus).
+     */
+    public async utxos(): Promise<ScriptUtxos_InNode> {
+        const data = await this._proxyInterface.get(
+            `/script/${this._scriptType}/${this._scriptPayload}/utxos`,
+        );
+        const scriptUtxos = proto.ScriptUtxos.decode(data);
+        return {
+            outputScript: toHex(scriptUtxos.script),
+            utxos: scriptUtxos.utxos.map(convertToUtxo),
+        };
+    }
 }
 
 function convertToBlockchainInfo(
@@ -207,6 +275,22 @@ function convertToBlockMeta(block: proto.BlockMetadata): BlockMetadata_InNode {
 function convertToRawTx(rawTx: proto.RawTx): RawTx {
     return {
         rawTx: toHex(rawTx.rawTx),
+    };
+}
+
+function convertToUtxo(utxo: proto.ScriptUtxo): Utxo_InNode {
+    if (utxo.outpoint === undefined) {
+        throw new Error('UTXO outpoint is undefined');
+    }
+    return {
+        outpoint: {
+            txid: toHexRev(utxo.outpoint.txid),
+            outIdx: utxo.outpoint.outIdx,
+        },
+        blockHeight: utxo.blockHeight,
+        isCoinbase: utxo.isCoinbase,
+        value: parseInt(utxo.value),
+        isFinal: utxo.isFinal,
     };
 }
 
@@ -344,3 +428,40 @@ export interface BlockMetadata_InNode {
      */
     timestamp: number;
 }
+
+/** Group of UTXOs by output script. */
+export interface ScriptUtxos_InNode {
+    /** Output script in hex. */
+    outputScript: string;
+    /** UTXOs of the output script. */
+    utxos: Utxo_InNode[];
+}
+
+/** An unspent transaction output (aka. UTXO, aka. "Coin") of a script. */
+export interface Utxo_InNode {
+    /** Outpoint of the UTXO. */
+    outpoint: OutPoint;
+    /** Which block this UTXO is in, or -1 if in the mempool. */
+    blockHeight: number;
+    /** Whether this UTXO is a coinbase UTXO
+     * (make sure it's buried 100 blocks before spending!) */
+    isCoinbase: boolean;
+    /** Value of the UTXO in satoshis. */
+    value: number;
+    /** Is this utxo avalanche finalized */
+    isFinal: boolean;
+}
+
+/**
+ * Script type queried in the `script` method.
+ * - `other`: Script type not covered by the standard script types; payload is
+ *   the raw hex.
+ * - `p2pk`: Pay-to-Public-Key (`<pk> OP_CHECKSIG`), payload is the hex of the
+ *   pubkey (compressed (33 bytes) or uncompressed (65 bytes)).
+ * - `p2pkh`: Pay-to-Public-Key-Hash
+ *   (`OP_DUP OP_HASH160 <pkh> OP_EQUALVERIFY OP_CHECKSIG`).
+ *   Payload is the 20 byte public key hash.
+ * - `p2sh`: Pay-to-Script-Hash (`OP_HASH160 <sh> OP_EQUAL`).
+ *   Payload is the 20 byte script hash.
+ */
+export type ScriptType_InNode = 'other' | 'p2pk' | 'p2pkh' | 'p2sh';
