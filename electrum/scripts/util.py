@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 
+import os
 import queue
 import select
+import sys
 import time
 from collections import defaultdict
 
-from electrumabc.interface import Connection, Interface
-from electrumabc.network import parse_servers
-from electrumabc.simple_config import SimpleConfig
+# Import electrumabc from the local sources instead of installed package.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from electrumabc.interface import Connection, Interface  # noqa: E402
+from electrumabc.network import parse_servers  # noqa: E402
+from electrumabc.simple_config import SimpleConfig  # noqa: E402
 
 
-# electrum.util.set_verbosity(1)
-def get_interfaces(servers, timeout=10):
+def get_interfaces(servers: list[str], timeout=10) -> dict[str, Interface]:
     """Returns a map of servers to connected interfaces.  If any
     connections fail or timeout, they will be missing from the map.
     """

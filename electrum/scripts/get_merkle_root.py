@@ -28,16 +28,12 @@ the 50th block before the server tip if no height is specified.
 
 import argparse
 import json
-import os
-import queue
 import sys
 import time
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from util import get_interfaces
 
-from electrumabc.interface import Connection, Interface  # noqa: E402
-from electrumabc.printerror import set_verbosity  # noqa: E402
-from electrumabc.simple_config import SimpleConfig  # noqa: E402
+from electrumabc.printerror import set_verbosity
 
 MAX_MESSAGE_BYTES = 1024 * 1024 * 32
 
@@ -77,19 +73,12 @@ def print_if_verbose(msg: str):
 # Define if we want to see Electrum ABC's verbose logs
 set_verbosity(args.verbose >= 2)
 
-config = SimpleConfig()
+interfaces = get_interfaces([args.server])
+if not interfaces:
+    print_if_verbose(f"Failed to connect to {args.server}")
+    sys.exit(1)
 
-socket_queue = queue.Queue()
-print_if_verbose(f"Connecting to server {args.server}")
-Connection(args.server, socket_queue, config.path)
-
-server_key, socket = socket_queue.get(block=True, timeout=TIMEOUT)
-interface = Interface(
-    server_key,
-    socket,
-    max_message_bytes=MAX_MESSAGE_BYTES,
-    config=config,
-)
+interface = interfaces[args.server]
 
 # Send our (client version, protocol version) for the handshake
 params = ["5.2.11", "1.4"]
