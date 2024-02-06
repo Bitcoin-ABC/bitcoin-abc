@@ -123,6 +123,7 @@ endif()
 add_subdirectory(src)
 
 option(BUILD_BITCOIN_CHRONIK "Activate the Chronik indexer" OFF)
+option(BUILD_BITCOIN_CHRONIK_PLUGINS "Activate the plugin system for Chronik" OFF)
 if(BUILD_BITCOIN_CHRONIK)
 	add_subdirectory(chronik)
 endif()

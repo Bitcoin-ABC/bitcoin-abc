@@ -3,8 +3,6 @@
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(BUILD_BITCOIN_CHRONIK_PLUGINS "Activate the plugin system for Chronik" OFF)
-
 find_package(Corrosion 0.3.0 REQUIRED)
 
 set(REQUIRED_RUST_VERSION "1.72.0")
