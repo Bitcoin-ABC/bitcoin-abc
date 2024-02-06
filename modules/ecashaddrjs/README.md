@@ -153,3 +153,4 @@ https://jsfiddle.net/zghd6c2y/
 1.5.2 - Make input of address type case insensitive for `encode`, e.g. `p2pkh` and `P2PKH` both work
 1.5.3 - Upgraded dependencies
 1.5.4 - Added unit tests
+1.5.5 - Add types declaration for easy import by typescript apps
