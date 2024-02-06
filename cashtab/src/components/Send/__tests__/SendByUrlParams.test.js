@@ -61,6 +61,8 @@ const TestSendXecScreen = (
     </BrowserRouter>
 );
 
+// Getting by class name is the only practical way to get some antd components
+/* eslint testing-library/no-container: 0 */
 describe('<SendXec /> rendered with params in URL', () => {
     afterEach(() => {
         // Unset the window location so it does not impact other tests in this file
@@ -105,7 +107,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
         const bip21Alert = screen.queryByTestId('bip-alert');
@@ -154,7 +156,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
         const bip21Alert = screen.queryByTestId('bip-alert');
@@ -203,14 +205,14 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
         const bip21Alert = screen.queryByTestId('bip-alert');
         expect(bip21Alert).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // No validation errors on load
         const addressValidationErrorDiv = container.querySelector(
@@ -252,14 +254,14 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
         const bip21Alert = screen.queryByTestId('bip-alert');
         expect(bip21Alert).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // No validation errors on load
         const addressValidationErrorDiv = container.querySelector(
@@ -285,7 +287,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The multiple recipients switch is rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.getByTestId('multiple-recipients-switch'),
         ).toBeInTheDocument();
 
         // The 'Send To' input field is untouched
@@ -306,7 +308,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(bip21Alert).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // No validation errors on load
         const addressValidationErrorDiv = container.querySelector(
@@ -334,7 +336,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The multiple recipients switch is rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.getByTestId('multiple-recipients-switch'),
         ).toBeInTheDocument();
 
         // The 'Send To' input field is untouched
@@ -355,7 +357,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(bip21Alert).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // No validation errors on load
         const addressValidationErrorDiv = container.querySelector(
@@ -397,7 +399,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
         const bip21Alert = screen.queryByTestId('bip-alert');
@@ -468,7 +470,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is rendered
         const bip21Alert = screen.getByTestId('bip-alert');
@@ -545,10 +547,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
 
         // The Send button is disabled
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // The app-created-tx is rendered
-        expect(screen.queryByTestId('app-created-tx')).toBeInTheDocument();
+        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered as no info about the tx is set for invalid bip21
         const bip21Alert = screen.queryByTestId('bip-alert');
@@ -583,7 +585,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The multiple recipients switch is rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.getByTestId('multiple-recipients-switch'),
         ).toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -604,7 +606,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(bip21Alert).not.toBeInTheDocument();
 
         // The Send button is disable
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // No validation errors on load
         const addressValidationErrorDiv = container.querySelector(

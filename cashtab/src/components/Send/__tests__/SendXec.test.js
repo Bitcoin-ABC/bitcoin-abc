@@ -66,6 +66,8 @@ const TestSendXecScreen = (
     </BrowserRouter>
 );
 
+// Getting by class name is the only practical way to get some antd components
+/* eslint testing-library/no-container: 0 */
 describe('<SendXec />', () => {
     it('Renders the SendXec screen with send address input', async () => {
         const { container } = render(TestSendXecScreen);
@@ -715,7 +717,7 @@ describe('<SendXec />', () => {
         expect(addressValidationErrorDiv).not.toBeInTheDocument();
 
         // The Send button is disabled because amount is not entered
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // The Bip21Alert amount span is not rendered
         const bip21Alert = screen.queryByTestId('bip-alert');
@@ -820,7 +822,7 @@ describe('<SendXec />', () => {
         );
 
         // The Send button is disabled as we have valid address and amount params
-        expect(screen.queryByTestId('disabled-send')).toBeInTheDocument();
+        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
 
         // The Bip21Alert span is rendered
         const bip21Alert = screen.getByTestId('bip-alert');
@@ -921,29 +923,34 @@ describe('<SendXec />', () => {
         await userEvent.click(screen.getByTestId('send-it'), addressInput);
 
         // Notification is rendered with expected txid?;
-        const txSuccessNotification = screen.queryByTestId(
-            'send-xec-notification',
+        const txSuccessNotification = await screen.findByText(
+            'Transaction successful. Click to view in block explorer.',
         );
-        waitFor(() => {
-            expect(txSuccessNotification).toBeInTheDocument();
+        await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
-            );
+            ),
+        );
+        await waitFor(() =>
             // The op_return_raw set alert is now removed
             expect(
                 screen.queryByTestId('op-return-raw-set-alert'),
-            ).not.toBeInTheDocument();
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() =>
             // The amount input is no longer disabled
-            expect(amountInputEl).toHaveProperty('disabled', false);
+            expect(amountInputEl).toHaveProperty('disabled', false),
+        );
+        await waitFor(() =>
             // Amount input is reset
-            expect(amountInputEl).toHaveValue(null);
+            expect(amountInputEl).toHaveValue(null),
+        );
 
-            // The multiple recipients switch is now rendered
-            expect(
-                screen.queryByTestId('multiple-recipients-switch'),
-            ).toBeInTheDocument();
-        });
+        // The multiple recipients switch is now rendered
+        expect(
+            await screen.findByTestId('multiple-recipients-switch'),
+        ).toBeInTheDocument();
 
         // TODO
         /*

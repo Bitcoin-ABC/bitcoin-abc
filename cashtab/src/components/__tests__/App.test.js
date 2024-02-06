@@ -68,7 +68,7 @@ describe('<App />', () => {
         );
 
         // We get the 404
-        expect(screen.queryByTestId('not-found')).toBeInTheDocument();
+        expect(screen.getByTestId('not-found')).toBeInTheDocument();
     });
     it('Navigation menu routes to expected components', async () => {
         render(
@@ -83,25 +83,25 @@ describe('<App />', () => {
         const user = userEvent.setup();
 
         // Default route is home
-        expect(screen.queryByTestId('home-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
 
         // Navigate to Send screen
         await user.click(screen.queryByTestId('nav-btn-send'));
 
         // Now we see the Send screen
-        expect(screen.queryByTestId('send-xec-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('send-xec-ctn')).toBeInTheDocument();
 
         // Navigate to eTokens screen
         await user.click(screen.queryByTestId('nav-btn-etokens'));
 
         // Now we see the eTokens screen
-        expect(screen.queryByTestId('etokens-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('etokens-ctn')).toBeInTheDocument();
 
         // Navigate to Receive screen
         await user.click(screen.queryByTestId('nav-btn-receive'));
 
         // Now we see the Receive screen
-        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
 
         // We do not expect to see hamburger menu items before the menu is clicked
         // This is handled by dynamic css changes, so test that
@@ -121,7 +121,7 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-airdrop'));
 
         // Now we see the Airdrop screen
-        expect(screen.queryByTestId('airdrop-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('airdrop-ctn')).toBeInTheDocument();
 
         // The hamburger menu closes on nav
         expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
@@ -133,19 +133,19 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-swap'));
 
         // Now we see the Swap screen
-        expect(screen.queryByTestId('swap-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('swap-ctn')).toBeInTheDocument();
 
         // Navigate to SignVerifyMsg screen
         await user.click(screen.queryByTestId('nav-btn-signverifymsg'));
 
         // Now we see the SignVerifyMsg screen
-        expect(screen.queryByTestId('signverifymsg-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('signverifymsg-ctn')).toBeInTheDocument();
 
         // Navigate to Settings screen
         await user.click(screen.queryByTestId('nav-btn-configure'));
 
         // Now we see the Settings screen
-        expect(screen.queryByTestId('configure-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
     });
     it('Renders the App screen showing normal wallet info for a created wallet', async () => {
         render(
@@ -159,7 +159,7 @@ describe('<App />', () => {
         );
 
         // Input fields are rendered
-        expect(screen.queryByTestId('wallet-info-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
     });
     it('Renders the onboarding screen if the user has no wallet', async () => {
         render(

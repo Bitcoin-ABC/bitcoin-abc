@@ -81,7 +81,7 @@ describe('<Home /> if wallet has balance and tx history', () => {
         expect(screen.queryByTestId('home-ctn')).not.toBeInTheDocument();
 
         // Loading ctn is rendered
-        expect(screen.queryByTestId('loading-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('loading-ctn')).toBeInTheDocument();
     });
     it('Renders the Home screen with no API error', async () => {
         render(
@@ -118,7 +118,7 @@ describe('<Home /> if wallet has balance and tx history', () => {
         expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
 
         // API Error is rendered
-        expect(screen.queryByTestId('api-error')).toBeInTheDocument();
+        expect(screen.getByTestId('api-error')).toBeInTheDocument();
     });
     it('Renders correctly for a zero balance new wallet', async () => {
         render(
@@ -138,7 +138,7 @@ describe('<Home /> if wallet has balance and tx history', () => {
         expect(screen.queryByTestId('api-error')).not.toBeInTheDocument();
 
         // Sideshift button is rendered
-        expect(screen.queryByTestId('sideshift-btn')).toBeInTheDocument();
+        expect(screen.getByTestId('sideshift-btn')).toBeInTheDocument();
     });
     it('Renders the onboarding screen for a new wallet', async () => {
         render(

@@ -188,12 +188,7 @@ const SendToken = ({ tokenId, passLoadingStatus }) => {
             notification.success({
                 message: 'Success',
                 description: (
-                    <a
-                        data-testid="send-token-notification"
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <a href={link} target="_blank" rel="noopener noreferrer">
                         Transaction successful. Click to view in block explorer.
                     </a>
                 ),

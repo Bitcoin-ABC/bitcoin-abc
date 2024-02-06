@@ -89,7 +89,7 @@ describe('<Receive />', () => {
         expect(screen.queryByTestId('receive-ctn')).not.toBeInTheDocument();
 
         // Loading ctn is rendered
-        expect(screen.queryByTestId('rcv-loading')).toBeInTheDocument();
+        expect(screen.getByTestId('rcv-loading')).toBeInTheDocument();
     });
     it('Renders the Receive screen correctly', async () => {
         render(TestReceiveScreen);
@@ -97,10 +97,10 @@ describe('<Receive />', () => {
         expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument();
 
         // Receive component is rendered
-        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
 
         // QR Code is rendered
-        expect(screen.queryByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
         // Copy div is not displayed
         expect(screen.queryByTestId('qr-code-copied')).toHaveStyle(
@@ -113,10 +113,10 @@ describe('<Receive />', () => {
         expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument();
 
         // Receive component is rendered
-        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
 
         // QR Code container is rendered
-        expect(screen.queryByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
         // We expect QR Code width of 420px
         // QR Code is rendered
@@ -137,10 +137,10 @@ describe('<Receive />', () => {
         expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument();
 
         // Receive component is rendered
-        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
 
         // QR Code container is rendered
-        expect(screen.queryByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
         // We expect QR Code width of 245px = 320 - CASHTAB_MOBILE_QR_PADDING of 75px
         // QR Code is rendered
@@ -168,10 +168,10 @@ describe('<Receive />', () => {
         expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument();
 
         // Receive component is rendered
-        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
 
         // QR Code container is rendered
-        expect(screen.queryByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
         // We expect QR Code width of 250 for extension
         // QR Code is rendered
@@ -187,10 +187,10 @@ describe('<Receive />', () => {
         expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument();
 
         // Receive component is rendered
-        expect(screen.queryByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
 
         // QR Code container is rendered
-        expect(screen.queryByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
         // We expect QR Code width of 420px
         // QR Code is rendered
@@ -212,6 +212,4 @@ describe('<Receive />', () => {
             'Address Copied to Clipboardecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
         );
     });
-    // Copy pasting works
-    // Copy pasting makes the copy paste div visible
 });

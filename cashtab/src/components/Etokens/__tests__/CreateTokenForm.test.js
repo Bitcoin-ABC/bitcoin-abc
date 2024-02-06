@@ -65,8 +65,6 @@ describe('<CreateTokenForm />', () => {
         );
 
         // Renders the component
-        expect(
-            screen.queryByTestId('create-token-form-ctn'),
-        ).toBeInTheDocument();
+        expect(screen.getByTestId('create-token-form-ctn')).toBeInTheDocument();
     });
 });

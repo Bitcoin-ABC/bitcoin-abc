@@ -115,14 +115,12 @@ describe('<App />', () => {
                 </MemoryRouter>
             </WalletProvider>,
         );
-
-        await waitFor(() => {
-            // API Error is rendered
-            expect(screen.getByTestId('api-error')).toBeInTheDocument();
-
-            // Wallet-info is rendered
-            expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
-        });
+        // API Error is rendered
+        await screen.findByTestId('api-error');
+        // Wallet-info is rendered
+        expect(
+            await screen.findByTestId('wallet-info-ctn'),
+        ).toBeInTheDocument();
     });
     it('Loads home screen with no error if wallet is in storage and chronik calls are successful', async () => {
         // Initialize a wallet with balance and history in localforage
@@ -173,13 +171,13 @@ describe('<App />', () => {
                 </MemoryRouter>
             </WalletProvider>,
         );
-
-        await waitFor(() => {
-            // API Error is NOT rendered
-            expect(screen.queryByTestId('api-error')).not.toBeInTheDocument();
-
-            // Wallet-info is rendered
-            expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
-        });
+        // API Error is NOT rendered
+        await waitFor(() =>
+            expect(screen.queryByTestId('api-error')).not.toBeInTheDocument(),
+        );
+        // Wallet-info is rendered
+        expect(
+            await screen.findByTestId('wallet-info-ctn'),
+        ).toBeInTheDocument();
     });
 });

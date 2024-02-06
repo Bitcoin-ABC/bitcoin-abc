@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act, screen } from '@testing-library/react';
 import { QRCode } from '../QRCode';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
@@ -9,7 +9,7 @@ describe('<QRCode />', () => {
 
     it('QRCode copying ecash address', async () => {
         const OnClick = jest.fn();
-        const { container } = render(
+        render(
             <ThemeProvider theme={theme}>
                 <QRCode
                     pixelRatio={25}
@@ -20,7 +20,7 @@ describe('<QRCode />', () => {
             </ThemeProvider>,
         );
 
-        const qrCodeElement = container.querySelector('#borderedQRCode');
+        const qrCodeElement = screen.getByTestId('raw-qr-code');
         fireEvent.click(qrCodeElement);
 
         act(() => {
@@ -31,7 +31,7 @@ describe('<QRCode />', () => {
 
     it('QRCode copying eToken address', () => {
         const OnClick = jest.fn();
-        const { container } = render(
+        render(
             <ThemeProvider theme={theme}>
                 <QRCode
                     pixelRatio={25}
@@ -41,20 +41,20 @@ describe('<QRCode />', () => {
                 />
             </ThemeProvider>,
         );
-        const qrCodeElement = container.querySelector('#borderedQRCode');
+        const qrCodeElement = screen.getByTestId('raw-qr-code');
         fireEvent.click(qrCodeElement);
         expect(OnClick).toHaveBeenCalled();
     });
 
     it('QRCode without address', () => {
         const OnClick = jest.fn();
-        const { container } = render(
+        render(
             <ThemeProvider theme={theme}>
                 <QRCode pixelRatio={25} onClick={OnClick} />
             </ThemeProvider>,
         );
 
-        const qrCodeElement = container.querySelector('#borderedQRCode');
+        const qrCodeElement = screen.getByTestId('raw-qr-code');
         fireEvent.click(qrCodeElement);
         expect(OnClick).toHaveBeenCalled();
     });

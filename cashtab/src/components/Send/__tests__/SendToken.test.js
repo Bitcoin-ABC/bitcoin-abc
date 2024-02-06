@@ -66,6 +66,8 @@ const TestSendTokenScreen = (
     </BrowserRouter>
 );
 
+// Getting by class name is the only practical way to get some antd components
+/* eslint testing-library/no-container: 0 */
 describe('<SendToken />', () => {
     it('Renders the SendToken screen with send address input', async () => {
         const { container } = render(TestSendTokenScreen);
@@ -322,9 +324,9 @@ describe('<SendToken />', () => {
     it('Renders the send token notification upon successful broadcast', async () => {
         const mockedChronik = new MockChronikClient();
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206d45893e238b7e30110d4e0d47e63204a7d6347169547bebad5200be510b8790022014eb3457545423b9eb04aec14e28551548c011ee3544cb40619063dfbb20a1c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac417b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000002fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a4730440220158b66fa17b36d5b6294efb8a82bfa42c09a07569b6e4fd0202eff98eb7a39090220680dafa8ba8500782c7a99b091b34f5dbf08ff4f25803382f9668e5d03c4bdc74121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff3023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006a473044022022550d9a03403bb9ba5855ca208d0769d7306ee5f1932da282b447231a51c15c02207f70f13c7fc6ac029d9c91456a6f95639f2fe332462f63a40dfbaae1452b5b054121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000122020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac7d7d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            '79e6afc28d4149c51c4e2a32c05c57fb59c1c164fde1afc655590ce99ed70cb8';
+            '5e1a04b1c7d0c0310898e1860901fc9d71313d9533ca63dbcc63fe6ffd102e8f';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
@@ -353,8 +355,8 @@ describe('<SendToken />', () => {
         await userEvent.type(amountInputEl, amountInput);
 
         // Ensure the notification is NOT rendered prior to sending
-        const initialSendTokenSuccessNotification = screen.queryByTestId(
-            'send-token-notification',
+        const initialSendTokenSuccessNotification = screen.queryByText(
+            'Transaction successful. Click to view in block explorer.',
         );
         expect(initialSendTokenSuccessNotification).not.toBeInTheDocument();
 
@@ -362,16 +364,14 @@ describe('<SendToken />', () => {
         const sendTokenBtn = screen.getByTestId('send-token-btn');
         await userEvent.click(sendTokenBtn);
 
-        const sendTokenSuccessNotification = screen.queryByTestId(
-            'send-token-notification',
+        const sendTokenSuccessNotification = await screen.findByText(
+            'Transaction successful. Click to view in block explorer.',
         );
-        waitFor(() => {
-            // Verify notification triggered
-            expect(sendTokenSuccessNotification).toBeInTheDocument();
+        await waitFor(() =>
             expect(sendTokenSuccessNotification).toHaveAttribute(
                 'href',
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
-            );
-        });
+            ),
+        );
     });
 });

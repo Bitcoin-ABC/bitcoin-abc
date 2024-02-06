@@ -36,24 +36,31 @@ describe('useWallet hook rendering in different localforage states', () => {
             TRIGGER_UTXO_REFRESH_INTERVAL_MS,
         );
 
-        await waitFor(() => {
+        await waitFor(() =>
             expect(result.current.contactList).toStrictEqual(
                 nonDefaultContactList,
-            );
+            ),
+        );
+        await waitFor(() =>
             expect(result.current.cashtabCache).toStrictEqual(
                 nonDefaultCashtabCache,
-            );
+            ),
+        );
+        await waitFor(() =>
             expect(result.current.cashtabSettings).toStrictEqual(
                 cashtabSettingsGbp,
-            );
-            expect(result.current.wallet).toStrictEqual(walletWithXecAndTokens);
-
+            ),
+        );
+        await waitFor(() =>
+            expect(result.current.wallet).toStrictEqual(walletWithXecAndTokens),
+        );
+        await waitFor(() =>
             // Expect the wallet refresh interval to have been set from TRIGGER_UTXO_REFRESH_INTERVAL_MS to standard setting
             // i.e. the update function has been called
             expect(result.current.walletRefreshInterval).toBe(
                 websocketConfig.websocketRefreshInterval,
-            );
-        });
+            ),
+        );
     });
     it('Cashtab loads wallet, settings, cache, and contactlist as expected defaults if localforage is empty', async () => {
         // Do not set anything to local storage before render
@@ -64,22 +71,27 @@ describe('useWallet hook rendering in different localforage states', () => {
             TRIGGER_UTXO_REFRESH_INTERVAL_MS,
         );
 
-        await waitFor(() => {
-            expect(result.current.contactList).toStrictEqual([{}]);
+        await waitFor(() =>
+            expect(result.current.contactList).toStrictEqual([{}]),
+        );
+        await waitFor(() =>
             expect(result.current.cashtabCache).toStrictEqual(
                 defaultCashtabCache,
-            );
+            ),
+        );
+        await waitFor(() =>
             expect(result.current.cashtabSettings).toStrictEqual(
                 cashtabSettings,
-            );
-            expect(result.current.wallet).toStrictEqual(false);
-
+            ),
+        );
+        await waitFor(() => expect(result.current.wallet).toStrictEqual(false));
+        await waitFor(() =>
             // Expect the wallet refresh interval to have been set from TRIGGER_UTXO_REFRESH_INTERVAL_MS to standard setting
             // i.e. the update function has been called
             expect(result.current.walletRefreshInterval).toBe(
                 websocketConfig.websocketRefreshInterval,
-            );
-        });
+            ),
+        );
     });
     it('XEC price is set in state on successful API fetch', async () => {
         // Mock the fetch call Cashtab's price API

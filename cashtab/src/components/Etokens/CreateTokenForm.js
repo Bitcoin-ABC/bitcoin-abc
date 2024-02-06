@@ -463,12 +463,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
             notification.success({
                 message: 'Success',
                 description: (
-                    <a
-                        data-testid="create-token-notification"
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
+                    <a href={link} target="_blank" rel="noopener noreferrer">
                         Token created! Click to view in block explorer.
                     </a>
                 ),

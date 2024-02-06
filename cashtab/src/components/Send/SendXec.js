@@ -509,7 +509,6 @@ const SendXec = ({ passLoadingStatus }) => {
                 message: 'Success',
                 description: (
                     <a
-                        data-testid="send-xec-notification"
                         href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
                         target="_blank"
                         rel="noopener noreferrer"

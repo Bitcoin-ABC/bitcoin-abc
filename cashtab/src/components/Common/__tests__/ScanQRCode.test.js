@@ -60,12 +60,12 @@ describe('<ScanQRCode />', () => {
         expect(StartScanningButton).toBeInTheDocument();
 
         // The modal root component is rendered
-        expect(screen.queryByTestId('scan-qr-code-modal')).toBeInTheDocument();
+        expect(screen.getByTestId('scan-qr-code-modal')).toBeInTheDocument();
 
         // The modal is displayed
-        expect(
-            screen.queryByTestId('scan-qr-code-modal').firstChild,
-        ).toHaveStyle(`display: block`);
+        expect(screen.getByTestId('scan-qr-code-modal').firstChild).toHaveStyle(
+            `display: block`,
+        );
 
         // Click the close button
         await user.click(
@@ -94,11 +94,11 @@ describe('<ScanQRCode />', () => {
         await user.click(StartScanningButton);
 
         // The modal root component is rendered
-        expect(screen.queryByTestId('scan-qr-code-modal')).toBeInTheDocument();
+        expect(screen.getByTestId('scan-qr-code-modal')).toBeInTheDocument();
 
         // Expect modal to be open
-        expect(
-            screen.queryByTestId('scan-qr-code-modal').firstChild,
-        ).toHaveStyle(`display: block`);
+        expect(screen.getByTestId('scan-qr-code-modal').firstChild).toHaveStyle(
+            `display: block`,
+        );
     });
 });
