@@ -34,10 +34,10 @@ import { WalletContext } from 'utils/context';
 import { isValidStoredWallet, getWalletState } from 'utils/cashMethods';
 import {
     Route,
-    Redirect,
-    Switch,
+    Navigate,
+    Routes,
     useLocation,
-    useHistory,
+    useNavigate,
 } from 'react-router-dom';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
@@ -450,7 +450,8 @@ const App = () => {
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
     const validWallet = isValidStoredWallet(wallet);
     const location = useLocation();
-    const history = useHistory();
+    const navigate = useNavigate();
+
     const selectedKey =
         location && location.pathname ? location.pathname.substr(1) : '';
 
@@ -569,90 +570,115 @@ const App = () => {
                                     </WalletInfoCtn>
                                 )}
                             </Header>
-                            <Switch>
-                                <Route path="/wallet">
-                                    <Home />
-                                </Route>
-                                <Route path="/receive">
-                                    <Receive
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
-                                <Route path="/create-token">
-                                    <CreateToken
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
-                                <Route path="/send">
-                                    <SendXec
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
+                            <Routes>
+                                <Route path="/wallet" element={<Home />} />
+                                <Route
+                                    path="/receive"
+                                    element={
+                                        <Receive
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    }
+                                />
+
+                                <Route
+                                    path="/create-token"
+                                    element={
+                                        <CreateToken
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    }
+                                />
+
+                                <Route
+                                    path="/send"
+                                    element={
+                                        <SendXec
+                                            passLoadingStatus={
+                                                setLoadingUtxosAfterSend
+                                            }
+                                        />
+                                    }
+                                />
+                                <Route path="send-token">
+                                    <Route
+                                        path=":tokenId"
+                                        element={
+                                            <SendToken
+                                                passLoadingStatus={
+                                                    setLoadingUtxosAfterSend
+                                                }
+                                            />
                                         }
                                     />
                                 </Route>
                                 <Route
-                                    path="/send-token/:tokenId"
-                                    render={props => (
-                                        <SendToken
-                                            tokenId={props.match.params.tokenId}
+                                    path="/airdrop"
+                                    element={
+                                        <Airdrop
                                             passLoadingStatus={
                                                 setLoadingUtxosAfterSend
                                             }
                                         />
-                                    )}
+                                    }
                                 />
-                                <Route path="/airdrop">
-                                    <Airdrop
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
-                                <Route path="/etokens">
-                                    <Etokens
-                                        passLoadingStatus={
-                                            setLoadingUtxosAfterSend
-                                        }
-                                    />
-                                </Route>
-                                <Route path="/signverifymsg">
-                                    <SignVerifyMsg />
-                                </Route>
-                                {aliasSettings.aliasEnabled && (
-                                    <Route path="/alias">
-                                        <Alias
+
+                                <Route
+                                    path="/etokens"
+                                    element={
+                                        <Etokens
                                             passLoadingStatus={
                                                 setLoadingUtxosAfterSend
                                             }
                                         />
-                                    </Route>
-                                )}
-                                <Route path="/configure">
-                                    <Configure
-                                        passLoadingStatus={
-                                            setUpdatingWalletInfo
+                                    }
+                                />
+                                <Route
+                                    path="/signverifymsg"
+                                    element={<SignVerifyMsg />}
+                                />
+                                {aliasSettings.aliasEnabled && (
+                                    <Route
+                                        path="/alias"
+                                        element={
+                                            <Alias
+                                                passLoadingStatus={
+                                                    setLoadingUtxosAfterSend
+                                                }
+                                            />
                                         }
                                     />
-                                </Route>
+                                )}
+                                <Route
+                                    path="/configure"
+                                    element={
+                                        <Configure
+                                            passLoadingStatus={
+                                                setUpdatingWalletInfo
+                                            }
+                                        />
+                                    }
+                                />
                                 {process.env.REACT_APP_BUILD_ENV !==
                                     'extension' && (
-                                    <Route path="/swap">
-                                        <Swap />
-                                    </Route>
+                                    <Route path="/swap" element={<Swap />} />
                                 )}
-                                <Redirect exact from="/" to="/wallet" />
-                                <Route component={NotFound} />
-                            </Switch>
+                                <Route
+                                    path="/"
+                                    element={<Navigate to="/wallet" replace />}
+                                />
+                                <Route path="*" element={<NotFound />} />
+                            </Routes>
                         </WalletCtn>
                         {wallet ? (
                             <Footer>
                                 <NavButton
                                     active={selectedKey === 'wallet'}
-                                    onClick={() => history.push('/wallet')}
+                                    onClick={() => navigate('/wallet')}
                                 >
                                     <HomeIcon />
                                 </NavButton>
@@ -660,7 +686,7 @@ const App = () => {
                                 <NavButton
                                     data-testid="nav-btn-send"
                                     active={selectedKey === 'send'}
-                                    onClick={() => history.push('/send')}
+                                    onClick={() => navigate('/send')}
                                 >
                                     <SendIcon
                                         style={{
@@ -671,7 +697,7 @@ const App = () => {
                                 <NavButton
                                     data-testid="nav-btn-etokens"
                                     active={selectedKey === 'etokens'}
-                                    onClick={() => history.push('/etokens')}
+                                    onClick={() => navigate('/etokens')}
                                 >
                                     <EtokensIcon
                                         style={{
@@ -682,7 +708,7 @@ const App = () => {
                                 <NavButton
                                     data-testid="nav-btn-receive"
                                     active={selectedKey === 'receive'}
-                                    onClick={() => history.push('receive')}
+                                    onClick={() => navigate('receive')}
                                 >
                                     <ReceiveIcon />
                                 </NavButton>
@@ -698,9 +724,7 @@ const App = () => {
                                         <NavItem
                                             data-testid="nav-btn-airdrop"
                                             active={selectedKey === 'airdrop'}
-                                            onClick={() =>
-                                                history.push('/airdrop')
-                                            }
+                                            onClick={() => navigate('/airdrop')}
                                         >
                                             {' '}
                                             <p>Airdrop</p>
@@ -712,7 +736,7 @@ const App = () => {
                                                 data-testid="nav-btn-swap"
                                                 active={selectedKey === 'swap'}
                                                 onClick={() =>
-                                                    history.push('/swap')
+                                                    navigate('/swap')
                                                 }
                                             >
                                                 {' '}
@@ -726,7 +750,7 @@ const App = () => {
                                                 selectedKey === 'signverifymsg'
                                             }
                                             onClick={() =>
-                                                history.push('/signverifymsg')
+                                                navigate('/signverifymsg')
                                             }
                                         >
                                             <p>Sign & Verify</p>
@@ -736,7 +760,7 @@ const App = () => {
                                             <NavItem
                                                 active={selectedKey === 'alias'}
                                                 onClick={() =>
-                                                    history.push('/alias')
+                                                    navigate('/alias')
                                                 }
                                             >
                                                 {' '}
@@ -748,7 +772,7 @@ const App = () => {
                                             data-testid="nav-btn-configure"
                                             active={selectedKey === 'configure'}
                                             onClick={() =>
-                                                history.push('/configure')
+                                                navigate('/configure')
                                             }
                                         >
                                             <p>Settings</p>

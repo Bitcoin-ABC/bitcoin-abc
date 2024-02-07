@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import SendToken from '../SendToken';
+import App from 'components/App';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import { mockWalletContext } from '../fixtures/mocks';
 import { WalletContext } from 'utils/context';
-import { BrowserRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
 import { MockChronikClient } from '../../../../../apps/mock-chronik-client';
@@ -57,13 +57,17 @@ window.matchMedia = query => ({
 });
 
 const TestSendTokenScreen = (
-    <BrowserRouter>
+    <MemoryRouter
+        initialEntries={[
+            '/send-token/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+        ]}
+    >
         <WalletContext.Provider value={mockWalletContext}>
             <ThemeProvider theme={theme}>
-                <SendToken tokenId="3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109" />
+                <App />
             </ThemeProvider>
         </WalletContext.Provider>
-    </BrowserRouter>
+    </MemoryRouter>
 );
 
 // Getting by class name is the only practical way to get some antd components
@@ -337,13 +341,17 @@ describe('<SendToken />', () => {
         mockWalletContextWithChronik.chronik = mockedChronik;
         mockWalletContextWithChronik.chaintipBlockheight = 800000;
         render(
-            <BrowserRouter>
+            <MemoryRouter
+                initialEntries={[
+                    '/send-token/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                ]}
+            >
                 <WalletContext.Provider value={mockWalletContextWithChronik}>
                     <ThemeProvider theme={theme}>
-                        <SendToken tokenId="3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109" />
+                        <App />
                     </ThemeProvider>
                 </WalletContext.Provider>
-            </BrowserRouter>,
+            </MemoryRouter>,
         );
 
         // The user enters a valid address and send amount
