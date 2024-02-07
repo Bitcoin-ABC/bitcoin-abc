@@ -475,7 +475,7 @@ const Tx = ({
                     <TxInfo>Open in Explorer</TxInfo>
                 </TxWrapper>
             ) : (
-                <AntdContextCollapseWrapper data-testid="tx-collapse">
+                <AntdContextCollapseWrapper>
                     <Collapse bordered={false}>
                         <Panel
                             showArrow={false}
@@ -1006,12 +1006,14 @@ const Tx = ({
                                                         data.parsed
                                                             .replyAddress) ? (
                                                         <Link
-                                                            data-testid="cashtab-msg-reply"
-                                                            to="/send"
-                                                            state={{
-                                                                replyAddress:
-                                                                    data.parsed
-                                                                        .replyAddress,
+                                                            to={{
+                                                                pathname: `/send`,
+                                                                state: {
+                                                                    replyAddress:
+                                                                        data
+                                                                            .parsed
+                                                                            .replyAddress,
+                                                                },
                                                             }}
                                                         >
                                                             Reply
@@ -1094,12 +1096,13 @@ const Tx = ({
                                         <AddToContacts>
                                             <DropdownButton>
                                                 <Link
-                                                    data-testid="add-to-contacts-btn"
-                                                    to="/configure"
-                                                    state={{
-                                                        contactToAdd:
-                                                            data.parsed
-                                                                .replyAddress,
+                                                    to={{
+                                                        pathname: `/configure`,
+                                                        state: {
+                                                            contactToAdd:
+                                                                data.parsed
+                                                                    .replyAddress,
+                                                        },
                                                     }}
                                                 >
                                                     <DropdownIconWrapper>

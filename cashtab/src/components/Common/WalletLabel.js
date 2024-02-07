@@ -31,9 +31,11 @@ const WalletLabel = ({ name, cashtabSettings, changeCashtabSettings }) => {
                 <WalletName>{name}</WalletName>
             )}
             <Link
-                to="/configure"
-                state={{
-                    showRenameWalletModal: true,
+                to={{
+                    pathname: `/configure`,
+                    state: {
+                        showRenameWalletModal: true,
+                    },
                 }}
             >
                 <ThemedEditOutlined />

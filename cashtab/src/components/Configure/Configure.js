@@ -1766,10 +1766,12 @@ const Configure = ({ passLoadingStatus }) => {
                                                                 }
                                                             />
                                                             <Link
-                                                                to="/send"
-                                                                state={{
-                                                                    contactSend:
-                                                                        element.address,
+                                                                to={{
+                                                                    pathname: `/send`,
+                                                                    state: {
+                                                                        contactSend:
+                                                                            element.address,
+                                                                    },
                                                                 }}
                                                             >
                                                                 <ThemedContactSendOutlined />

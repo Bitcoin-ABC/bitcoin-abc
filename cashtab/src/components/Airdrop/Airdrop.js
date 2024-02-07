@@ -761,12 +761,14 @@ const Airdrop = ({ passLoadingStatus }) => {
                                                 <AirdropActions>
                                                     <Link
                                                         type="text"
-                                                        to="/send"
-                                                        state={{
-                                                            airdropRecipients:
-                                                                airdropRecipients,
-                                                            airdropTokenId:
-                                                                formData.tokenId,
+                                                        to={{
+                                                            pathname: `/send`,
+                                                            state: {
+                                                                airdropRecipients:
+                                                                    airdropRecipients,
+                                                                airdropTokenId:
+                                                                    formData.tokenId,
+                                                            },
                                                         }}
                                                         disabled={
                                                             !airdropRecipients
