@@ -10,6 +10,6 @@ export const chronik = {
         'https://chronik2.fabien.cash',
         'https://chronik.be.cash/xec',
     ],
-    txHistoryCount: 10,
-    txHistoryPageSize: 25,
+    txHistoryCount: 20,
+    txHistoryPageSize: 20,
 };
