@@ -10,6 +10,7 @@
 #include <chronik-cpp/util/hash.h>
 #include <compressor.h>
 #include <config.h>
+#include <feerate.h>
 #include <logging.h>
 #include <node/blockstorage.h>
 #include <node/coin.h>
@@ -350,6 +351,14 @@ rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed) {
     CScript script;
     stream >> Using<ScriptCompression>(script);
     return chronik::util::ToRustVec<uint8_t>(script);
+}
+
+int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb) {
+    return CFeeRate(sats_fee_per_kb * SATOSHI).GetFee(num_bytes) / SATOSHI;
+}
+
+int64_t default_max_raw_tx_fee_rate_per_kb() {
+    return node::DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK() / SATOSHI;
 }
 
 bool init_error(const rust::Str msg) {

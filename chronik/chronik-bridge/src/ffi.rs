@@ -277,6 +277,12 @@ mod ffi_inner {
         /// Decompress the given script using `ScriptCompression`.
         fn decompress_script(compressed: &[u8]) -> Result<Vec<u8>>;
 
+        /// Calc the fee in satoshis for the given tx size in bytes.
+        fn calc_fee(num_bytes: usize, sats_fee_per_kb: i64) -> i64;
+
+        /// Default maximum fee rate when broadcasting txs.
+        fn default_max_raw_tx_fee_rate_per_kb() -> i64;
+
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;

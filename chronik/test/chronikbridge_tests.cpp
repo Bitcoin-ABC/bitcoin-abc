@@ -331,4 +331,18 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
     }
 }
 
+BOOST_FIXTURE_TEST_CASE(test_calc_fee, BasicTestingSetup) {
+    // 0.1 BCHA/kB or 100'000 XEC/kB
+    BOOST_CHECK_EQUAL(chronik_bridge::default_max_raw_tx_fee_rate_per_kb(),
+                      10'000'000);
+
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(1000, 1000), 1000);
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(1000'000, 1000'000),
+                      1000'000'000);
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(123456789, 100), 12345678);
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(2, 1), 1);
+    BOOST_CHECK_EQUAL(chronik_bridge::calc_fee(0xdeadbeef, 0xcafe),
+                      0xdeadbeefll * 0xcafell / 1000);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
