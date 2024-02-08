@@ -16,7 +16,6 @@ import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, message, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, { DisabledButton } from 'components/Common/PrimaryButton';
-import useWindowDimensions from 'hooks/useWindowDimensions';
 import { toSatoshis, toXec } from 'wallet';
 import { sumOneToManyXec, getWalletBalanceFromUtxos } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
@@ -57,6 +56,7 @@ import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { notification } from 'antd';
+import { isMobile } from 'helpers';
 const { TextArea } = Input;
 
 const TextAreaLabel = styled.div`
@@ -176,12 +176,11 @@ const SendXec = ({ passLoadingStatus }) => {
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     const [opReturnMsg, setOpReturnMsg] = useState(false);
 
-    // Get device window width
-    // If this is less than 769, the page will open with QR scanner open
-    const { width } = useWindowDimensions();
-    // Load with QR code open if device is mobile and NOT iOS + anything but safari
-    const scannerSupported =
-        cashtabSettings && cashtabSettings.autoCameraOn === true && width < 769;
+    // Load with QR code open if device is mobile
+    const openWithScanner =
+        cashtabSettings &&
+        cashtabSettings.autoCameraOn === true &&
+        isMobile(navigator);
 
     const [formData, setFormData] = useState({
         value: '',
@@ -830,7 +829,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                                 location.state &&
                                                 location.state.replyAddress
                                                     ? false
-                                                    : scannerSupported
+                                                    : openWithScanner
                                             }
                                             validateStatus={
                                                 sendAddressError ? 'error' : ''

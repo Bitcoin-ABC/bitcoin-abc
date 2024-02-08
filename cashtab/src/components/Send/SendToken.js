@@ -24,7 +24,6 @@ import {
 import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
-import useWindowDimensions from 'hooks/useWindowDimensions';
 import usePrevious from 'hooks/usePrevious';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
@@ -46,6 +45,7 @@ import cashaddr from 'ecashaddrjs';
 import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import appConfig from 'config/app';
+import { isMobile } from 'helpers';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -120,12 +120,11 @@ const SendToken = ({ passLoadingStatus }) => {
         useState('');
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
 
-    // Get device window width
-    // If this is less than 769, the page will open with QR scanner open
-    const { width } = useWindowDimensions();
-    // Load with QR code open if device is mobile and NOT iOS + anything but safari
-    const scannerSupported =
-        cashtabSettings && cashtabSettings.autoCameraOn === true && width < 769;
+    // Load with QR code open if device is mobile
+    const openWithScanner =
+        cashtabSettings &&
+        cashtabSettings.autoCameraOn === true &&
+        isMobile(navigator);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -518,7 +517,7 @@ const SendToken = ({ passLoadingStatus }) => {
                                 }}
                             >
                                 <DestinationAddressSingle
-                                    loadWithCameraOpen={scannerSupported}
+                                    loadWithCameraOpen={openWithScanner}
                                     validateStatus={
                                         sendTokenAddressError ? 'error' : ''
                                     }

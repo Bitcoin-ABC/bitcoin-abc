@@ -66,8 +66,8 @@ import {
     isValidRecipient,
 } from 'validation';
 import { convertToEcashPrefix } from 'utils/cashMethods';
-import useWindowDimensions from 'hooks/useWindowDimensions';
 import appConfig from 'config/app';
+import { isMobile } from 'helpers';
 const { Panel } = Collapse;
 
 const VersionContainer = styled.div`
@@ -562,9 +562,6 @@ const Configure = ({ passLoadingStatus }) => {
         useState(null);
     const [manualContactAddressIsValid, setManualContactAddressIsValid] =
         useState(null);
-    const { width } = useWindowDimensions();
-
-    const scannerSupported = width < 769;
 
     useEffect(() => {
         // Update savedWallets every time the active wallet changes
@@ -1715,7 +1712,7 @@ const Configure = ({ passLoadingStatus }) => {
                         onChange={handleSendModalToggle}
                     />
                 </GeneralSettingsItem>
-                {scannerSupported && (
+                {isMobile(navigator) && (
                     <GeneralSettingsItem>
                         <AutoCameraTextCtn>
                             <LockFilled /> Auto-open camera{' '}

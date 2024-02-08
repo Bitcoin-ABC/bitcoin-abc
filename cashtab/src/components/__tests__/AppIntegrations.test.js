@@ -466,4 +466,71 @@ describe('<App />', () => {
         // The value field is populated with dust
         expect(await screen.findByTestId('send-xec-input')).toHaveValue(5.5);
     });
+    it('We do not see the camera auto-open setting in the config screen on a desktop device', async () => {
+        // Add wallet with an incoming Cashtab msg to localforage
+        await localforage.setItem(
+            'wallet',
+            freshWalletWithOneIncomingCashtabMsg,
+        );
+
+        // Get mocked chronik client with expected API results for this wallet
+        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
+
+        render(
+            <WalletProvider chronik={mockedChronik}>
+                <MemoryRouter initialEntries={['/configure']}>
+                    <ThemeProvider theme={theme}>
+                        <App />
+                    </ThemeProvider>
+                </MemoryRouter>
+            </WalletProvider>,
+        );
+
+        // We are on the settings screen
+        await screen.findByTestId('configure-ctn');
+
+        // We do not see the auto open option
+        expect(screen.queryByText('Auto-open camera')).not.toBeInTheDocument();
+    });
+    it('We do see the camera auto-open setting in the config screen on a mobile device', async () => {
+        Object.defineProperty(navigator, 'userAgentData', {
+            value: {
+                mobile: true,
+            },
+            writable: true,
+        });
+
+        // Add wallet with an incoming Cashtab msg to localforage
+        await localforage.setItem(
+            'wallet',
+            freshWalletWithOneIncomingCashtabMsg,
+        );
+
+        // Get mocked chronik client with expected API results for this wallet
+        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
+
+        render(
+            <WalletProvider chronik={mockedChronik}>
+                <MemoryRouter initialEntries={['/configure']}>
+                    <ThemeProvider theme={theme}>
+                        <App />
+                    </ThemeProvider>
+                </MemoryRouter>
+            </WalletProvider>,
+        );
+
+        // We are on the settings screen
+        await screen.findByTestId('configure-ctn');
+
+        // Now we do see the auto open option
+        expect(await screen.findByText('Auto-open camera')).toBeInTheDocument();
+
+        // Unset mock
+        Object.defineProperty(navigator, 'userAgentData', {
+            value: {
+                mobile: false,
+            },
+            writable: true,
+        });
+    });
 });
