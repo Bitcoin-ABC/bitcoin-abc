@@ -114,7 +114,10 @@ impl<'m> TxTokenData<'m> {
             spent_scripts: None,
             override_has_mint_vault: Some(db_tx_data.has_mint_vault()),
         };
-        let verified = context.verify(colored.unwrap_or_default());
+        let verified = context.verify(colored.unwrap_or_else(|| ColoredTx {
+            outputs: vec![None; tx.outputs.len()],
+            ..Default::default()
+        }));
         Ok(Some(TxTokenData {
             inputs: Cow::Owned(spent_tokens),
             tx: Cow::Owned(verified),
