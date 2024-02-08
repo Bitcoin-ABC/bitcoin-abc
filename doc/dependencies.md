@@ -42,6 +42,7 @@ factors that affect the dependency list.
 * MiniUPnPc is not needed with  `-DENABLE_UPNP=OFF`.
 * MiniUPnPc is not needed with  `-DENABLE_NATPMP=OFF`.
 * Berkeley DB and SQLite are not needed with `-DBUILD_BITCOIN_WALLET=OFF`.
+* OpenSSL is not needed with `-DENABLE_BIP70=OFF`.
 * protobuf is not needed with `-DENABLE_BIP70=OFF`.
 * Qt is not needed with `-DBUILD_BITCOIN_QT=OFF`.
 * qrencode is not needed with `-DENABLE_QRCODE=OFF`.
