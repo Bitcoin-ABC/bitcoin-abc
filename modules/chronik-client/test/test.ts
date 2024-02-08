@@ -15,6 +15,8 @@ import {
     UtxoState,
 } from '../index';
 import { FailoverProxy } from '../src/failoverProxy';
+import { isValidWsSubscription } from '../src/validation';
+import vectors from './vectors';
 
 const expect = chai.expect;
 const assert = chai.assert;
@@ -706,5 +708,16 @@ describe('deriveEndpointIndex', () => {
             indexOrder.push(proxyInterface.deriveEndpointIndex(i));
         }
         expect(indexOrder).to.eql([3, 0, 1, 2]);
+    });
+});
+
+describe('isValidWsSubscription', () => {
+    const { expectedReturns } = vectors.isValidWsSubscription;
+
+    expectedReturns.forEach(expectedReturn => {
+        const { description, subscription, result } = expectedReturn;
+        it(`isValidWsSubscription: ${description}`, () => {
+            expect(isValidWsSubscription(subscription)).to.eql(result);
+        });
     });
 });

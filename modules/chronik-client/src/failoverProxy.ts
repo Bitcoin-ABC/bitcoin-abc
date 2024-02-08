@@ -7,6 +7,7 @@ import WebSocket from 'isomorphic-ws';
 import * as ws from 'ws';
 import * as proto from '../proto/chronik';
 import { WsEndpoint } from './ChronikClient';
+import { WsEndpoint_InNode } from './ChronikClientNode';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
@@ -223,7 +224,7 @@ export class FailoverProxy {
     // Iterates through available websocket urls and attempts connection.
     // Upon a successful connection it handles the various websocket callbacks.
     // Upon an unsuccessful connection it iterates to the next websocket url in the array.
-    public async connectWs(wsEndpoint: WsEndpoint) {
+    public async connectWs(wsEndpoint: WsEndpoint | WsEndpoint_InNode) {
         for (let i = 0; i < this._endpointArray.length; i += 1) {
             const index = this.deriveEndpointIndex(i);
             const thisProxyWsUrl = this._endpointArray[index].wsUrl;
@@ -258,21 +259,45 @@ export class FailoverProxy {
                     this.connectWs(wsEndpoint);
                 };
                 wsEndpoint.ws = ws;
-                wsEndpoint.connected = new Promise(resolve => {
-                    ws.onopen = msg => {
-                        wsEndpoint.subs.forEach(sub =>
-                            wsEndpoint.subUnsub(
-                                true,
-                                sub.scriptType,
-                                sub.scriptPayload,
-                            ),
-                        );
-                        resolve(msg);
-                        if (wsEndpoint.onConnect !== undefined) {
-                            wsEndpoint.onConnect(msg);
-                        }
-                    };
-                });
+                wsEndpoint.connected =
+                    wsEndpoint instanceof WsEndpoint
+                        ? new Promise(resolve => {
+                              ws.onopen = msg => {
+                                  wsEndpoint.subs.forEach(sub =>
+                                      wsEndpoint.subUnsub(
+                                          true,
+                                          sub.scriptType,
+                                          sub.scriptPayload,
+                                      ),
+                                  );
+                                  resolve(msg);
+                                  if (wsEndpoint.onConnect !== undefined) {
+                                      wsEndpoint.onConnect(msg);
+                                  }
+                              };
+                          })
+                        : new Promise(resolve => {
+                              // WsEndpoint_InNode has a slightly different API vs NNG
+                              ws.onopen = msg => {
+                                  // Subscribe to all previously-subscribed endpoints
+                                  wsEndpoint.subs.forEach(sub =>
+                                      wsEndpoint.subscribeToScript(
+                                          sub.scriptType,
+                                          sub.payload,
+                                      ),
+                                  );
+                                  // Subscribe to blocks method, if previously subscribed
+                                  if (wsEndpoint.isSubscribedBlocks) {
+                                      wsEndpoint.subscribeToBlocks();
+                                  }
+                                  resolve(msg);
+                                  if (wsEndpoint.onConnect !== undefined) {
+                                      wsEndpoint.onConnect(msg);
+                                  }
+                                  // If no errors thrown from above call then set this index to state
+                                  this._workingIndex = index;
+                              };
+                          });
                 return;
             }
         }

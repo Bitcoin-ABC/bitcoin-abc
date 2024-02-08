@@ -2,10 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import WebSocket from 'isomorphic-ws';
+import * as ws from 'ws';
 import * as proto from '../proto/chronikNode';
 import { BlockchainInfo, OutPoint } from './ChronikClient';
 import { FailoverProxy } from './failoverProxy';
 import { fromHex, toHex, toHexRev } from './hex';
+import { isValidWsSubscription } from './validation';
+
+type MessageEvent = ws.MessageEvent | { data: Blob };
 
 /**
  * Client to access an in-node Chronik instance.
@@ -148,6 +153,11 @@ export class ChronikClientNode {
             scriptPayload,
         );
     }
+
+    /** Open a WebSocket connection to listen for updates. */
+    public ws(config: WsConfig_InNode): WsEndpoint_InNode {
+        return new WsEndpoint_InNode(this._proxyInterface, config);
+    }
 }
 
 /** Allows fetching script history and UTXOs. */
@@ -203,6 +213,228 @@ export class ScriptEndpointInNode {
             outputScript: toHex(scriptUtxos.script),
             utxos: scriptUtxos.utxos.map(convertToUtxo),
         };
+    }
+}
+
+/** Config for a WebSocket connection to Chronik. */
+export interface WsConfig_InNode {
+    /** Fired when a message is sent from the WebSocket. */
+    onMessage?: (msg: WsMsgClient) => void;
+
+    /** Fired when a connection has been (re)established. */
+    onConnect?: (e: ws.Event) => void;
+
+    /**
+     * Fired after a connection has been unexpectedly closed, and before a
+     * reconnection attempt is made. Only fired if `autoReconnect` is true.
+     */
+    onReconnect?: (e: ws.Event) => void;
+
+    /** Fired when an error with the WebSocket occurs. */
+    onError?: (e: ws.ErrorEvent) => void;
+
+    /**
+     * Fired after a connection has been manually closed, or if `autoReconnect`
+     * is false, if the WebSocket disconnects for any reason.
+     */
+    onEnd?: (e: ws.Event) => void;
+
+    /** Whether to automatically reconnect on disconnect, default true. */
+    autoReconnect?: boolean;
+}
+
+/** WebSocket connection to Chronik. */
+export class WsEndpoint_InNode {
+    private _proxyInterface: FailoverProxy;
+    /** Fired when a message is sent from the WebSocket. */
+    public onMessage?: (msg: WsMsgClient) => void;
+
+    /** Fired when a connection has been (re)established. */
+    public onConnect?: (e: ws.Event) => void;
+
+    /**
+     * Fired after a connection has been unexpectedly closed, and before a
+     * reconnection attempt is made. Only fired if `autoReconnect` is true.
+     */
+    public onReconnect?: (e: ws.Event) => void;
+
+    /** Fired when an error with the WebSocket occurs. */
+    public onError?: (e: ws.ErrorEvent) => void;
+
+    /**
+     * Fired after a connection has been manually closed, or if `autoReconnect`
+     * is false, if the WebSocket disconnects for any reason.
+     */
+    public onEnd?: (e: ws.Event) => void;
+
+    /** Whether to automatically reconnect on disconnect, default true. */
+    public autoReconnect: boolean;
+
+    public ws: ws.WebSocket | undefined;
+    public connected: Promise<ws.Event> | undefined;
+    public manuallyClosed: boolean;
+    public subs: WsSubScriptClient[];
+
+    /* Is the websocket subscribed to block updates */
+    public isSubscribedBlocks: boolean;
+
+    constructor(proxyInterface: FailoverProxy, config: WsConfig_InNode) {
+        this.onMessage = config.onMessage;
+        this.onConnect = config.onConnect;
+        this.onReconnect = config.onReconnect;
+        this.onEnd = config.onEnd;
+        this.autoReconnect =
+            config.autoReconnect !== undefined ? config.autoReconnect : true;
+        this.manuallyClosed = false;
+        this.subs = [];
+        this.isSubscribedBlocks = false;
+        this._proxyInterface = proxyInterface;
+    }
+
+    /** Wait for the WebSocket to be connected. */
+    public async waitForOpen() {
+        await this._proxyInterface.connectWs(this);
+        await this.connected;
+    }
+
+    /**
+     * Subscribe to block messages
+     */
+    public subscribeToBlocks() {
+        this.isSubscribedBlocks = true;
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this._subUnsubBlocks(false);
+        }
+    }
+
+    /**
+     * Unsubscribe from block messages
+     */
+    public unsubscribeFromBlocks() {
+        this.isSubscribedBlocks = false;
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this._subUnsubBlocks(true);
+        }
+    }
+
+    /**
+     * Subscribe to the given script type and payload.
+     * For "p2pkh", `scriptPayload` is the 20 byte public key hash.
+     */
+    public subscribeToScript(type: ScriptType_InNode, payload: string) {
+        // Build sub according to chronik expected type
+        const subscription: WsSubScriptClient = {
+            scriptType: type,
+            payload,
+        };
+        // We do not want to add invalid subs to ws.subs
+        const scriptSubscriptionValidationCheck =
+            isValidWsSubscription(subscription);
+
+        if (scriptSubscriptionValidationCheck !== true) {
+            // isValidWsSubscription returns string error msg if the sub is invalid
+            throw new Error(scriptSubscriptionValidationCheck as string);
+        }
+
+        this.subs.push(subscription as WsSubScriptClient);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this._subUnsubScript(false, subscription);
+        }
+    }
+
+    /** Unsubscribe from the given script type and payload. */
+    public unsubscribeFromScript(type: ScriptType_InNode, payload: string) {
+        // Build sub according to chronik expected type
+        const subscription: WsSubScriptClient = {
+            scriptType: type,
+            payload,
+        };
+
+        // Find the requested unsub script and remove it
+        const unsubIndex = this.subs.findIndex(
+            sub => sub.scriptType === type && sub.payload === payload,
+        );
+        if (unsubIndex === -1) {
+            // If we cannot find this subscription in this.subs, throw an error
+            // We do not want an app developer thinking they have unsubscribed from something
+            throw new Error(`No existing sub at ${type}, ${payload}`);
+        }
+
+        // Remove the requested subscription from this.subs
+        this.subs.splice(unsubIndex, 1);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this._subUnsubScript(true, subscription);
+        }
+    }
+
+    /**
+     * Close the WebSocket connection and prevent any future reconnection
+     * attempts.
+     */
+    public close() {
+        this.manuallyClosed = true;
+        this.ws?.close();
+    }
+
+    private _subUnsubBlocks(isUnsub: boolean) {
+        // Blocks subscription is empty object
+        const BLOCKS_SUBSCRIPTION: proto.WsSubBlocks = {};
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            blocks: BLOCKS_SUBSCRIPTION,
+        }).finish();
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+        this.ws.send(encodedSubscription);
+    }
+
+    private _subUnsubScript(isUnsub: boolean, subscription: WsSubScriptClient) {
+        // If this subscription is to an address, leave the 'blocks' key undefined
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            script: {
+                scriptType: (subscription as WsSubScriptClient).scriptType,
+                payload: fromHex((subscription as WsSubScriptClient).payload),
+            },
+        }).finish();
+
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+
+        this.ws.send(encodedSubscription);
+    }
+
+    public async handleMsg(wsMsg: MessageEvent) {
+        if (typeof this.onMessage === 'undefined') {
+            return;
+        }
+        const data =
+            wsMsg.data instanceof Buffer
+                ? (wsMsg.data as Uint8Array)
+                : new Uint8Array(await (wsMsg.data as Blob).arrayBuffer());
+        const msg = proto.WsMsg.decode(data);
+        if (typeof msg.error !== 'undefined') {
+            this.onMessage({ type: 'Error', ...msg.error });
+        } else if (typeof msg.block !== 'undefined') {
+            this.onMessage({
+                type: 'Block',
+                msgType: convertToBlockMsgType(msg.block.msgType),
+                blockHash: toHexRev(msg.block.blockHash),
+                blockHeight: msg.block.blockHeight,
+            });
+        } else if (typeof msg.tx !== 'undefined') {
+            this.onMessage({
+                type: 'Tx',
+                msgType: convertToTxMsgType(msg.tx.msgType),
+                txid: toHexRev(msg.tx.txid),
+            });
+        } else {
+            console.log('Silently ignored unknown Chronik message:', msg);
+        }
     }
 }
 
@@ -447,6 +679,30 @@ function convertToTokenTxType(msgType: proto.TokenTxType): TokenTxType {
 
 function isTokenTxType(msgType: any): msgType is TokenTxType {
     return TOKEN_TX_TYPE_TYPES.includes(msgType);
+}
+
+function convertToBlockMsgType(msgType: proto.BlockMsgType): BlockMsgType {
+    const blockMsgType = proto.blockMsgTypeToJSON(msgType);
+    if (isBlockMsgType(blockMsgType)) {
+        return blockMsgType;
+    }
+    return 'UNRECOGNIZED';
+}
+
+function isBlockMsgType(msgType: any): msgType is BlockMsgType {
+    return BLK_MSG_TYPES.includes(msgType);
+}
+
+function convertToTxMsgType(msgType: proto.TxMsgType): TxMsgType {
+    const txMsgType = proto.txMsgTypeToJSON(msgType);
+    if (isTxMsgType(txMsgType)) {
+        return txMsgType;
+    }
+    return 'UNRECOGNIZED';
+}
+
+function isTxMsgType(msgType: any): msgType is TxMsgType {
+    return TX_MSG_TYPES.includes(msgType);
 }
 
 /** Info about connected chronik server */
@@ -779,3 +1035,74 @@ export interface Utxo_InNode {
  *   Payload is the 20 byte script hash.
  */
 export type ScriptType_InNode = 'other' | 'p2pk' | 'p2pkh' | 'p2sh';
+
+/** Message returned from the WebSocket, translated to be more human-readable for client */
+export type WsMsgClient = Error_InNode | MsgBlockClient | MsgTxClient;
+
+/** Block got connected, disconnected, finalized, etc.*/
+export interface MsgBlockClient {
+    type: 'Block';
+    /** What happened to the block */
+    msgType: BlockMsgType;
+    /** Hash of the block (human-readable big-endian) */
+    blockHash: string;
+    /** Height of the block */
+    blockHeight: number;
+}
+
+/** Block message types that can come from chronik */
+export type BlockMsgType =
+    | 'BLK_CONNECTED'
+    | 'BLK_DISCONNECTED'
+    | 'BLK_FINALIZED'
+    | 'UNRECOGNIZED';
+
+const BLK_MSG_TYPES: BlockMsgType[] = [
+    'BLK_CONNECTED',
+    'BLK_DISCONNECTED',
+    'BLK_FINALIZED',
+    'UNRECOGNIZED',
+];
+
+/** Tx got added to/removed from mempool, or confirmed in a block, etc.*/
+export interface MsgTxClient {
+    type: 'Tx';
+    /** What happened to the tx */
+    msgType: TxMsgType;
+    /** Txid of the tx (human-readable big-endian) */
+    txid: string;
+}
+
+/** Tx message types that can come from chronik */
+export type TxMsgType =
+    | 'TX_ADDED_TO_MEMPOOL'
+    | 'TX_REMOVED_FROM_MEMPOOL'
+    | 'TX_CONFIRMED'
+    | 'TX_FINALIZED'
+    | 'UNRECOGNIZED';
+
+const TX_MSG_TYPES: TxMsgType[] = [
+    'TX_ADDED_TO_MEMPOOL',
+    'TX_REMOVED_FROM_MEMPOOL',
+    'TX_CONFIRMED',
+    'TX_FINALIZED',
+    'UNRECOGNIZED',
+];
+
+/* The script type and its associated payload for a chronik-client subscribeToScript subscription */
+export interface WsSubScriptClient {
+    /** Script type to subscribe to ("p2pkh", "p2sh", "p2pk", "other"). */
+    scriptType: ScriptType_InNode;
+    /**
+     * Payload for the given script type:
+     * - 20-byte hash for "p2pkh" and "p2sh"
+     * - 33-byte or 65-byte pubkey for "p2pk"
+     * - Serialized script for "other"
+     */
+    payload: string;
+}
+
+export interface Error_InNode {
+    type: 'Error';
+    msg: string;
+}
