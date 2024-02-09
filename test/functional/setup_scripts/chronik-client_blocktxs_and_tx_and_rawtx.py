@@ -10,6 +10,7 @@ import pathmagic  # noqa
 from ipc import send_ipc_message
 from setup_framework import SetupFramework
 from test_framework.util import assert_equal
+from test_framework.wallet import MiniWallet
 
 
 class ChronikClient_Block_Setup(SetupFramework):
@@ -27,6 +28,8 @@ class ChronikClient_Block_Setup(SetupFramework):
     def run_test(self):
         # Init
         node = self.nodes[0]
+        wallet = MiniWallet(node)
+        wallet.rescan_utxos()
 
         self.send_chronik_info()
 
@@ -35,11 +38,9 @@ class ChronikClient_Block_Setup(SetupFramework):
         self.log.info("Step 1: Broadcast ten txs")
         txs_and_rawtxs = {}
         for x in range(10):
-            txid = self.nodes[0].sendtoaddress(
-                self.nodes[0].getnewaddress(), (x + 1) * 1000000
-            )
-            rawtx = self.nodes[0].getrawtransaction(txid)
-            txs_and_rawtxs[txid] = rawtx
+            # Make the fee rate vary to have txs with varying amounts
+            tx = wallet.send_self_transfer(from_node=node, fee_rate=(x + 1) * 1000)
+            txs_and_rawtxs[tx["txid"]] = tx["hex"]
         send_ipc_message({"txs_and_rawtxs": txs_and_rawtxs})
         assert_equal(node.getblockcount(), 200)
         yield True
