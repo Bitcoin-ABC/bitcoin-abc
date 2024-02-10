@@ -8,23 +8,6 @@ import { walletWithEnoughXecToMakeAToken } from '../fixtures/mocks';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-// Required shims and mocks for React
-function mockFunction() {
-    const original = jest.requireActual('react-router-dom');
-    return {
-        ...original,
-        useLocation: jest.fn().mockReturnValue({
-            pathname: '/another-route',
-            search: '',
-            hash: '',
-            state: null,
-            key: '5nvxpbdafa',
-        }),
-    };
-}
-
-jest.mock('react-router-dom', () => mockFunction());
-
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
