@@ -48,7 +48,7 @@ describe('<Configure />', () => {
     afterEach(async () => {
         await localforage.clear();
     });
-    it('Deleting a contact from Configure.js removes it from localforage and wallet context', async () => {
+    it('Deleting a contact from Configure.js removes it from localforage and wallet context. A notification is triggered on success.', async () => {
         // Set localforage to get expected initial state of hook
         await localforage.setItem('contactList', populatedContactList);
         await localforage.setItem('cashtabCache', cashtabCache);
@@ -86,10 +86,22 @@ describe('<Configure />', () => {
             .querySelector('.ant-collapse-header');
         await userEvent.click(contactListCollapseButton);
 
+        const addressToDelete =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+
         // We find the expected contacts
         expect(screen.queryByTestId('contact-list-items')).toHaveTextContent(
-            'alphaecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact',
+            `alpha${addressToDelete}betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact`,
         );
+
+        // Confirm notification does not exist prior to action
+        await waitFor(() => {
+            expect(
+                screen.queryByText(
+                    `${addressToDelete} removed from Contact List`,
+                ),
+            ).not.toBeInTheDocument();
+        });
 
         // Get the delete button for the first contact
         const deleteButton = screen.queryAllByTestId('delete-contact-btn')[0];
@@ -128,8 +140,17 @@ describe('<Configure />', () => {
         expect(result.current.contactList).toStrictEqual(
             contactListAfterRemove,
         );
+
+        // Confirm notification is triggered
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    `${addressToDelete} removed from Contact List`,
+                ),
+            ).toBeInTheDocument();
+        });
     });
-    it('Adding a contact from Configure.js adds it to localforage and wallet context', async () => {
+    it('Adding a contact from Configure.js adds it to localforage and wallet context. A notification is triggered on success.', async () => {
         // Set localforage to get expected initial state of hook
         await localforage.setItem('contactList', populatedContactList);
         await localforage.setItem('cashtabCache', cashtabCache);
@@ -179,11 +200,16 @@ describe('<Configure />', () => {
         const addrInput = screen.getByPlaceholderText(
             'Enter new eCash address or alias',
         );
+        const address = 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
         await userEvent.type(nameInput, 'delta');
-        await userEvent.type(
-            addrInput,
-            'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-        );
+        await userEvent.type(addrInput, address);
+
+        // Confirm notification does not exist prior to action
+        await waitFor(() => {
+            expect(
+                screen.queryByText(`${address} added to Contact List`),
+            ).not.toBeInTheDocument();
+        });
 
         // Click OK
         const okAddContactButton = screen.getByText('OK');
@@ -216,6 +242,90 @@ describe('<Configure />', () => {
         expect(result.current.contactList).toStrictEqual(
             expectedContactsAfterAddingDelta,
         );
+        // Confirm notification is triggered
+        await waitFor(() => {
+            expect(
+                screen.getByText(`${address} added to Contact List`),
+            ).toBeInTheDocument();
+        });
+    });
+    it('Adding a duplicate contact from Configure.js triggers error notification.', async () => {
+        // Set localforage to get expected initial state of hook
+        await localforage.setItem('contactList', populatedContactList);
+        await localforage.setItem('cashtabCache', cashtabCache);
+        await localforage.setItem('settings', cashtabSettings);
+        await localforage.setItem('wallet', walletWithXecAndTokens);
+        const { result } = renderHook(() => useWallet());
+
+        let resultAfterStateSet;
+        await waitFor(() => {
+            expect(result.current.contactList).toStrictEqual(
+                populatedContactList,
+            );
+            resultAfterStateSet = result.current;
+        });
+        render(
+            <Router>
+                <WalletContext.Provider value={resultAfterStateSet}>
+                    <ThemeProvider theme={theme}>
+                        <Configure />
+                    </ThemeProvider>
+                </WalletContext.Provider>
+            </Router>,
+        );
+
+        // Open the collapse
+        const contactListCollapseButton = screen
+            .queryByTestId('contact-list-collapse')
+            .querySelector('.ant-collapse-header');
+        await userEvent.click(contactListCollapseButton);
+
+        // Add the initial contact
+        await userEvent.click(screen.getByTestId('add-contact-btn'));
+        const nameInput = screen.getByPlaceholderText('Enter new contact name');
+        const addrInput = screen.getByPlaceholderText(
+            'Enter new eCash address or alias',
+        );
+        await userEvent.type(nameInput, 'delta');
+        const address = 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
+        await userEvent.type(addrInput, address);
+
+        // Click OK
+        const okAddContactButton = screen.getByText('OK');
+        await userEvent.click(okAddContactButton);
+
+        // Confirm error notification does not exist prior to action
+        await waitFor(() => {
+            expect(
+                screen.queryByText(
+                    `${address} already exists in the Contact List`,
+                ),
+            ).not.toBeInTheDocument();
+        });
+
+        // Add the same contact again
+        await userEvent.click(screen.getByTestId('add-contact-btn'));
+        const nameInputRepeat = screen.getByPlaceholderText(
+            'Enter new contact name',
+        );
+        const addrInputRepeat = screen.getByPlaceholderText(
+            'Enter new eCash address or alias',
+        );
+        await userEvent.type(nameInputRepeat, 'delta');
+        await userEvent.type(addrInputRepeat, address);
+
+        // Click OK
+        const okAddContactButtonAgain = screen.getByText('OK');
+        await userEvent.click(okAddContactButtonAgain);
+
+        // Confirm error notification is triggered
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    `${address} already exists in the Contact List`,
+                ),
+            ).toBeInTheDocument();
+        });
     });
     it('Renaming a contact from Configure.js renames it in localforage and wallet context', async () => {
         // Set localforage to get expected initial state of hook
@@ -301,20 +411,20 @@ describe('<Configure />', () => {
             expectedContactsAfterRenamingAlpha,
         );
     });
-    it('We can add a savedWallet as a contact', async () => {
+    it('We can add a savedWallet as a contact. A notification is triggered on success.', async () => {
         // Set localforage to get expected initial state of hook
         await localforage.setItem('contactList', populatedContactList);
         await localforage.setItem('cashtabCache', cashtabCache);
         await localforage.setItem('settings', cashtabSettings);
         await localforage.setItem('wallet', walletWithXecAndTokens);
+        const address = 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
         // Add a new saved wallet that can be rendered
         await localforage.setItem('savedWallets', [
             walletWithXecAndTokens,
             {
                 name: 'addedWallet',
                 Path1899: {
-                    cashAddress:
-                        'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
+                    cashAddress: address,
                 },
             },
         ]);
@@ -365,6 +475,13 @@ describe('<Configure />', () => {
         const addButton = screen.getByTestId('add-saved-wallet-to-contact-btn');
         expect(addButton).toBeInTheDocument();
 
+        // Confirm notification does not exist prior to action
+        await waitFor(() => {
+            expect(
+                screen.queryByText(`${address} added to Contact List`),
+            ).not.toBeInTheDocument();
+        });
+
         // Click it
         await userEvent.click(addButton);
 
@@ -387,5 +504,12 @@ describe('<Configure />', () => {
         expect(result.current.contactList).toStrictEqual(
             contactsAfterAddingSavedWallet,
         );
+
+        // Confirm notification is triggered
+        await waitFor(() => {
+            expect(
+                screen.getByText(`${address} added to Contact List`),
+            ).toBeInTheDocument();
+        });
     });
 });

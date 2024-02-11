@@ -3,10 +3,6 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
 import {
-    errorNotification,
-    generalNotification,
-} from 'components/Common/Notifications';
-import {
     Collapse,
     Form,
     Input,
@@ -16,7 +12,7 @@ import {
     Tooltip,
     Checkbox,
 } from 'antd';
-import { Row, Col } from 'antd';
+import { Row, Col, notification } from 'antd';
 import {
     PlusSquareOutlined,
     WalletFilled,
@@ -590,21 +586,22 @@ const Configure = ({ passLoadingStatus }) => {
 
             if (typeof contactExists !== 'undefined') {
                 // Contact already exists
-                errorNotification(
-                    null,
-                    location.state.contactToAdd +
+                notification.error({
+                    message: 'Error',
+                    description:
+                        location.state.contactToAdd +
                         ' already exists in the Contact List',
-                    'handleManualAddContactModalOk() error',
-                );
+                });
             } else {
                 contactList.push(newContactObj);
 
                 // Update localforage and state
                 await updateContactList(contactList);
-                generalNotification(
-                    location.state.contactToAdd + ' added to Contact List',
-                    'Success',
-                );
+                notification.success({
+                    message: 'Success',
+                    description:
+                        location.state.contactToAdd + ' added to Contact List',
+                });
             }
         }
     };
@@ -841,11 +838,10 @@ const Configure = ({ passLoadingStatus }) => {
             // Update localforage and state
             await updateContactList(contactList);
         } else {
-            errorNotification(
-                null,
-                'Unable to find contact in array',
-                'Updating localforage with contact list',
-            );
+            notification.error({
+                message: 'Error',
+                description: 'Unable to find contact in array',
+            });
         }
     };
 
@@ -889,10 +885,10 @@ const Configure = ({ passLoadingStatus }) => {
 
         // Update localforage and state
         await updateContactList(updatedContactList);
-        generalNotification(
-            contactAddressToDelete + ' removed from Contact List',
-            'Success',
-        );
+        notification.success({
+            message: 'Success',
+            description: `${contactAddressToDelete} removed from Contact List`,
+        });
     };
 
     const handleDeleteContact = contactAddress => {
@@ -935,7 +931,10 @@ const Configure = ({ passLoadingStatus }) => {
 
     const exportContactList = contactListArray => {
         if (!contactListArray) {
-            errorNotification('Unable to export contact list');
+            notification.error({
+                message: 'Error',
+                description: 'Unable to export contact list',
+            });
             return;
         }
 
@@ -967,11 +966,12 @@ const Configure = ({ passLoadingStatus }) => {
         );
         if (typeof contactExists !== 'undefined') {
             // it exists
-            errorNotification(
-                null,
-                manualContactAddress + ' already exists in the Contact List',
-                'handleAddSavedWalletAsContactOk() error',
-            );
+            notification.error({
+                message: 'Error',
+                description:
+                    manualContactAddress +
+                    ' already exists in the Contact List',
+            });
         } else {
             contactList.push({
                 name: manualContactName,
@@ -979,10 +979,10 @@ const Configure = ({ passLoadingStatus }) => {
             });
             // update localforage and state
             await updateContactList(contactList);
-            generalNotification(
-                manualContactAddress + ' added to Contact List',
-                'Success',
-            );
+            notification.success({
+                message: 'Success',
+                description: `${manualContactAddress} added to Contact List`,
+            });
         }
 
         // Reset relevant state fields
@@ -1022,11 +1022,10 @@ const Configure = ({ passLoadingStatus }) => {
 
         if (typeof contactExists !== 'undefined') {
             // Contact exists
-            errorNotification(
-                null,
-                manualContactAddress + ' already exists in the Contact List',
-                'handleManualAddContactModalOk() error',
-            );
+            notification.error({
+                message: 'Error',
+                description: `${manualContactAddress} already exists in the Contact List`,
+            });
         } else {
             contactList.push({
                 name: manualContactName,
@@ -1034,10 +1033,10 @@ const Configure = ({ passLoadingStatus }) => {
             });
             // update localforage and state
             await updateContactList(contactList);
-            generalNotification(
-                manualContactAddress + ' added to Contact List',
-                'Success',
-            );
+            notification.success({
+                message: 'Success',
+                description: `${manualContactAddress} added to Contact List`,
+            });
         }
 
         // Reset relevant state fields
