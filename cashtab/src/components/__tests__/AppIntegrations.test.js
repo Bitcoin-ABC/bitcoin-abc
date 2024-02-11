@@ -126,7 +126,8 @@ describe('<App />', () => {
 
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual([]);
+        // This user has never added a contact, so the key does not exist
+        expect(storedContacts).toStrictEqual(null);
 
         // Click the button
         await userEvent.click(addToContactsBtn);

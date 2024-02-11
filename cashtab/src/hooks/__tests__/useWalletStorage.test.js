@@ -37,7 +37,7 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
 
         await waitFor(() =>
-            expect(result.current.contactList).toStrictEqual(
+            expect(result.current.cashtabState.contactList).toStrictEqual(
                 nonDefaultContactList,
             ),
         );
@@ -72,7 +72,9 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
 
         await waitFor(() =>
-            expect(result.current.contactList).toStrictEqual([]),
+            expect(result.current.cashtabState).toStrictEqual({
+                contactList: [],
+            }),
         );
         await waitFor(() =>
             expect(result.current.cashtabCache).toStrictEqual(

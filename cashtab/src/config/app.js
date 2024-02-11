@@ -24,6 +24,7 @@ const appConfig = {
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
     monitorExtension: false,
+    defaultCashtabState: { contactList: [] },
 };
 
 export default appConfig;

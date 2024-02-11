@@ -470,9 +470,14 @@ const Configure = ({ passLoadingStatus }) => {
         getSavedWallets,
         cashtabSettings,
         changeCashtabSettings,
-        updateContactList,
-        contactList,
+        updateCashtabState,
+        cashtabState,
     } = ContextValue;
+    // Ensure cashtabState is not undefined before context initializes
+    const { contactList } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
 
     const location = useLocation();
 
@@ -595,7 +600,7 @@ const Configure = ({ passLoadingStatus }) => {
                 contactList.push(newContactObj);
 
                 // Update localforage and state
-                await updateContactList(contactList);
+                await updateCashtabState('contactList', contactList);
                 notification.success({
                     message: 'Success',
                     description:
@@ -834,7 +839,7 @@ const Configure = ({ passLoadingStatus }) => {
             contactToUpdate.name = confirmationOfContactToBeRenamed;
 
             // Update localforage and state
-            await updateContactList(contactList);
+            await updateCashtabState('contactList', contactList);
         } else {
             notification.error({
                 message: 'Error',
@@ -882,7 +887,7 @@ const Configure = ({ passLoadingStatus }) => {
         );
 
         // Update localforage and state
-        await updateContactList(updatedContactList);
+        await updateCashtabState('contactList', updatedContactList);
         notification.success({
             message: 'Success',
             description: `${contactAddressToDelete} removed from Contact List`,
@@ -976,7 +981,7 @@ const Configure = ({ passLoadingStatus }) => {
                 address: manualContactAddress,
             });
             // update localforage and state
-            await updateContactList(contactList);
+            await updateCashtabState('contactList', contactList);
             notification.success({
                 message: 'Success',
                 description: `${manualContactAddress} added to Contact List`,
@@ -1030,7 +1035,7 @@ const Configure = ({ passLoadingStatus }) => {
                 address: manualContactAddress,
             });
             // update localforage and state
-            await updateContactList(contactList);
+            await updateCashtabState('contactList', contactList);
             notification.success({
                 message: 'Success',
                 description: `${manualContactAddress} added to Contact List`,

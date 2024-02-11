@@ -60,7 +60,6 @@ const useWallet = chronik => {
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
-    const [contactList, setContactList] = useState([]);
     const [cashtabSettings, setCashtabSettings] = useState(false);
     const [cashtabCache, setCashtabCache] = useState(defaultCashtabCache);
     const [fiatPrice, setFiatPrice] = useState(null);
@@ -84,6 +83,9 @@ const useWallet = chronik => {
           };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
+    const [cashtabState, setCashtabState] = useState(
+        appConfig.defaultCashtabState,
+    );
 
     const deriveAccount = async ({ masterHDNode, path }) => {
         const node = masterHDNode.derivePath(path);
@@ -232,29 +234,61 @@ const useWallet = chronik => {
         return wallet;
     };
 
-    const getContactListFromLocalForage = async () => {
-        let contactListArray = [];
-        try {
-            contactListArray = await localforage.getItem('contactList');
-        } catch (err) {
-            console.log('Error in getContactListFromLocalForage', err);
-            contactListArray = null;
-        }
-        return contactListArray;
-    };
-
-    const updateContactList = async contactListArray => {
+    /**
+     * Lock UI while you update cashtabState in state and indexedDb
+     * @param {key} string
+     * @param {object} value what is being stored at this key
+     * @returns {boolean}
+     */
+    const updateCashtabState = async (key, value) => {
+        // We lock the UI by setting loading to true while we set items in localforage
+        // This is to prevent rapid user action from corrupting the db
         setLoading(true);
-        let updateSuccess = true;
+        // Update the changed key in state
+        setCashtabState({ ...cashtabState, [`${key}`]: value });
+        // Update the changed key in localforage
         try {
-            await localforage.setItem('contactList', contactListArray);
-            setContactList(contactListArray);
+            await localforage.setItem(key, value);
         } catch (err) {
-            console.log('Error in updateContactList', err);
-            updateSuccess = false;
+            console.log('Error in updateCashtabState', err);
         }
         setLoading(false);
-        return updateSuccess;
+    };
+
+    /**
+     * Get a stored value from localforage and set it to cashtabState
+     * We only do this when the user starts Cashtab
+     * If we find a corrupt or legacy item in localforage, we migrate it
+     *
+     * While the app is running, we use cashtabState as the source of truth
+     *
+     * We save to localforage on state changes in updateCashtabState
+     * so that these persist if the user navigates away from Cashtab
+     * @param {key} string key in cashtabState and localforage
+     * @param {object} value what is being stored at this key
+     * @returns {boolean}
+     */
+    const loadCashtabState = async key => {
+        try {
+            let value = await localforage.getItem(key);
+            if (typeof value === 'undefined' || value === null) {
+                // If there is nothing set at the key, use defaults
+                return;
+            }
+            // Validate and migrate for key values that have changed shape in Cashtab history
+            if (key === 'contactList') {
+                if (!isValidContactList(value)) {
+                    // is only expected to be invalid as legacy empty, or [{}]
+                    // We do not call a function to migrate contactList as no other migration is expected
+                    value = [];
+                    // Update localforage on app load only if existing values are in an obsolete format
+                    return updateCashtabState(key, value);
+                }
+            }
+            setCashtabState({ ...cashtabState, [`${key}`]: value });
+        } catch (err) {
+            console.log('Error in updateCashtabState', err);
+        }
     };
 
     const getWallet = async () => {
@@ -1106,34 +1140,6 @@ const useWallet = chronik => {
         }
     };
 
-    const loadContactList = async () => {
-        // get contactList object from localforage
-        let localContactList;
-        try {
-            localContactList = await localforage.getItem('contactList');
-            // If there is no keyvalue pair in localforage with key 'contactList'
-            if (localContactList === null) {
-                // Use an array
-                localforage.setItem('contactList', []);
-                setContactList([]);
-                return [];
-            }
-        } catch (err) {
-            console.log(`Error getting contactList`, err);
-            setContactList([]);
-            return [];
-        }
-        // If you found an object in localforage at the contactList key, make sure it's valid
-        if (isValidContactList(localContactList)) {
-            setContactList(localContactList);
-            return localContactList;
-        }
-        // if not valid, set to empty
-        await localforage.setItem('contactList', []);
-        setContactList([]);
-        return [];
-    };
-
     const loadCashtabCache = async () => {
         // get cache object from localforage
         let localCashtabCache;
@@ -1433,7 +1439,7 @@ const useWallet = chronik => {
 
     const cashtabBootup = async () => {
         setWallet(await getWallet());
-        await loadContactList();
+        await loadCashtabState('contactList');
         await loadCashtabCache();
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
@@ -1495,7 +1501,6 @@ const useWallet = chronik => {
         fiatPrice,
         loading,
         apiError,
-        contactList,
         cashtabSettings,
         loadCashtabSettings,
         cashtabCache,
@@ -1512,8 +1517,7 @@ const useWallet = chronik => {
         getWalletDetails,
         getSavedWallets,
         migrateLegacyWallet,
-        getContactListFromLocalForage,
-        updateContactList,
+        updateCashtabState,
         createWallet: async importMnemonic => {
             setLoading(true);
             const newWallet = await createWallet(importMnemonic);
@@ -1541,6 +1545,7 @@ const useWallet = chronik => {
         renameActiveWallet,
         deleteWallet,
         processChronikWsMsg,
+        cashtabState,
     };
 };
 
