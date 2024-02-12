@@ -4,6 +4,202 @@ import _m0 from 'protobufjs/minimal';
 
 export const protobufPackage = 'chronik';
 
+/** Status of a token tx */
+export enum TokenStatus {
+    /**
+     * TOKEN_STATUS_NON_TOKEN - Tx involves no tokens whatsover, i.e. neither any burns nor any failed
+     * parsing/coloring or any tokens being created / moved.
+     */
+    TOKEN_STATUS_NON_TOKEN = 0,
+    /** TOKEN_STATUS_NORMAL - Tx involves tokens but no unintentional burns or failed parsings/colorings */
+    TOKEN_STATUS_NORMAL = 1,
+    /** TOKEN_STATUS_NOT_NORMAL - Tx involves tokens but contains unintentional burns or failed parsings/colorings */
+    TOKEN_STATUS_NOT_NORMAL = 2,
+    UNRECOGNIZED = -1,
+}
+
+export function tokenStatusFromJSON(object: any): TokenStatus {
+    switch (object) {
+        case 0:
+        case 'TOKEN_STATUS_NON_TOKEN':
+            return TokenStatus.TOKEN_STATUS_NON_TOKEN;
+        case 1:
+        case 'TOKEN_STATUS_NORMAL':
+            return TokenStatus.TOKEN_STATUS_NORMAL;
+        case 2:
+        case 'TOKEN_STATUS_NOT_NORMAL':
+            return TokenStatus.TOKEN_STATUS_NOT_NORMAL;
+        case -1:
+        case 'UNRECOGNIZED':
+        default:
+            return TokenStatus.UNRECOGNIZED;
+    }
+}
+
+export function tokenStatusToJSON(object: TokenStatus): string {
+    switch (object) {
+        case TokenStatus.TOKEN_STATUS_NON_TOKEN:
+            return 'TOKEN_STATUS_NON_TOKEN';
+        case TokenStatus.TOKEN_STATUS_NORMAL:
+            return 'TOKEN_STATUS_NORMAL';
+        case TokenStatus.TOKEN_STATUS_NOT_NORMAL:
+            return 'TOKEN_STATUS_NOT_NORMAL';
+        case TokenStatus.UNRECOGNIZED:
+        default:
+            return 'UNRECOGNIZED';
+    }
+}
+
+/** ALP token type */
+export enum AlpTokenType {
+    /** ALP_TOKEN_TYPE_STANDARD - Standard ALP token type */
+    ALP_TOKEN_TYPE_STANDARD = 0,
+    UNRECOGNIZED = -1,
+}
+
+export function alpTokenTypeFromJSON(object: any): AlpTokenType {
+    switch (object) {
+        case 0:
+        case 'ALP_TOKEN_TYPE_STANDARD':
+            return AlpTokenType.ALP_TOKEN_TYPE_STANDARD;
+        case -1:
+        case 'UNRECOGNIZED':
+        default:
+            return AlpTokenType.UNRECOGNIZED;
+    }
+}
+
+export function alpTokenTypeToJSON(object: AlpTokenType): string {
+    switch (object) {
+        case AlpTokenType.ALP_TOKEN_TYPE_STANDARD:
+            return 'ALP_TOKEN_TYPE_STANDARD';
+        case AlpTokenType.UNRECOGNIZED:
+        default:
+            return 'UNRECOGNIZED';
+    }
+}
+
+/** SLP token type */
+export enum SlpTokenType {
+    /** SLP_TOKEN_TYPE_NONE - Unknown "0" token type */
+    SLP_TOKEN_TYPE_NONE = 0,
+    /** SLP_TOKEN_TYPE_FUNGIBLE - SLP V1 token type */
+    SLP_TOKEN_TYPE_FUNGIBLE = 1,
+    /** SLP_TOKEN_TYPE_MINT_VAULT - SLP V2 mint vault token type */
+    SLP_TOKEN_TYPE_MINT_VAULT = 2,
+    /** SLP_TOKEN_TYPE_NFT1_GROUP - NFT1 group token type */
+    SLP_TOKEN_TYPE_NFT1_GROUP = 129,
+    /** SLP_TOKEN_TYPE_NFT1_CHILD - NFT1 child token type */
+    SLP_TOKEN_TYPE_NFT1_CHILD = 65,
+    UNRECOGNIZED = -1,
+}
+
+export function slpTokenTypeFromJSON(object: any): SlpTokenType {
+    switch (object) {
+        case 0:
+        case 'SLP_TOKEN_TYPE_NONE':
+            return SlpTokenType.SLP_TOKEN_TYPE_NONE;
+        case 1:
+        case 'SLP_TOKEN_TYPE_FUNGIBLE':
+            return SlpTokenType.SLP_TOKEN_TYPE_FUNGIBLE;
+        case 2:
+        case 'SLP_TOKEN_TYPE_MINT_VAULT':
+            return SlpTokenType.SLP_TOKEN_TYPE_MINT_VAULT;
+        case 129:
+        case 'SLP_TOKEN_TYPE_NFT1_GROUP':
+            return SlpTokenType.SLP_TOKEN_TYPE_NFT1_GROUP;
+        case 65:
+        case 'SLP_TOKEN_TYPE_NFT1_CHILD':
+            return SlpTokenType.SLP_TOKEN_TYPE_NFT1_CHILD;
+        case -1:
+        case 'UNRECOGNIZED':
+        default:
+            return SlpTokenType.UNRECOGNIZED;
+    }
+}
+
+export function slpTokenTypeToJSON(object: SlpTokenType): string {
+    switch (object) {
+        case SlpTokenType.SLP_TOKEN_TYPE_NONE:
+            return 'SLP_TOKEN_TYPE_NONE';
+        case SlpTokenType.SLP_TOKEN_TYPE_FUNGIBLE:
+            return 'SLP_TOKEN_TYPE_FUNGIBLE';
+        case SlpTokenType.SLP_TOKEN_TYPE_MINT_VAULT:
+            return 'SLP_TOKEN_TYPE_MINT_VAULT';
+        case SlpTokenType.SLP_TOKEN_TYPE_NFT1_GROUP:
+            return 'SLP_TOKEN_TYPE_NFT1_GROUP';
+        case SlpTokenType.SLP_TOKEN_TYPE_NFT1_CHILD:
+            return 'SLP_TOKEN_TYPE_NFT1_CHILD';
+        case SlpTokenType.UNRECOGNIZED:
+        default:
+            return 'UNRECOGNIZED';
+    }
+}
+
+/** SLP/ALP tx type */
+export enum TokenTxType {
+    /** NONE - No tx type, e.g. when input tokens are burned */
+    NONE = 0,
+    /** UNKNOWN - Unknown tx type, i.e. for unknown token types */
+    UNKNOWN = 1,
+    /** GENESIS - GENESIS tx */
+    GENESIS = 2,
+    /** SEND - SEND tx */
+    SEND = 3,
+    /** MINT - MINT tx */
+    MINT = 4,
+    /** BURN - BURN tx */
+    BURN = 5,
+    UNRECOGNIZED = -1,
+}
+
+export function tokenTxTypeFromJSON(object: any): TokenTxType {
+    switch (object) {
+        case 0:
+        case 'NONE':
+            return TokenTxType.NONE;
+        case 1:
+        case 'UNKNOWN':
+            return TokenTxType.UNKNOWN;
+        case 2:
+        case 'GENESIS':
+            return TokenTxType.GENESIS;
+        case 3:
+        case 'SEND':
+            return TokenTxType.SEND;
+        case 4:
+        case 'MINT':
+            return TokenTxType.MINT;
+        case 5:
+        case 'BURN':
+            return TokenTxType.BURN;
+        case -1:
+        case 'UNRECOGNIZED':
+        default:
+            return TokenTxType.UNRECOGNIZED;
+    }
+}
+
+export function tokenTxTypeToJSON(object: TokenTxType): string {
+    switch (object) {
+        case TokenTxType.NONE:
+            return 'NONE';
+        case TokenTxType.UNKNOWN:
+            return 'UNKNOWN';
+        case TokenTxType.GENESIS:
+            return 'GENESIS';
+        case TokenTxType.SEND:
+            return 'SEND';
+        case TokenTxType.MINT:
+            return 'MINT';
+        case TokenTxType.BURN:
+            return 'BURN';
+        case TokenTxType.UNRECOGNIZED:
+        default:
+            return 'UNRECOGNIZED';
+    }
+}
+
 /** Type of message for the block */
 export enum BlockMsgType {
     /** BLK_CONNECTED - Block connected to the blockchain */
@@ -175,6 +371,15 @@ export interface Tx {
     size: number;
     /** Whether this tx is a coinbase tx */
     isCoinbase: boolean;
+    /** Tokens involved in this txs */
+    tokenEntries: TokenEntry[];
+    /** Failed parsing attempts of this tx */
+    tokenFailedParsings: TokenFailedParsing[];
+    /**
+     * Token status, i.e. whether this tx has any tokens or unintentional token burns
+     * or something unexpected, like failed parsings etc.
+     */
+    tokenStatus: TokenStatus;
 }
 
 /** UTXO of a script. */
@@ -189,6 +394,26 @@ export interface ScriptUtxo {
     value: string;
     /** Whether the UTXO has been finalized by Avalanche. */
     isFinal: boolean;
+    /** Token value attached to this UTXO */
+    token: Token | undefined;
+}
+
+/** UTXO, but with a script attached. */
+export interface Utxo {
+    /** txid and out_idx of the unspent output. */
+    outpoint: OutPoint | undefined;
+    /** Block height of the UTXO, or -1 if in mempool. */
+    blockHeight: number;
+    /** Whether the UTXO has been created in a coinbase tx. */
+    isCoinbase: boolean;
+    /** Value of the output, in satoshis. */
+    value: string;
+    /** Bytecode of the script of the output */
+    script: Uint8Array;
+    /** Whether the UTXO has been finalized by Avalanche. */
+    isFinal: boolean;
+    /** Token value attached to this UTXO */
+    token: Token | undefined;
 }
 
 /** COutPoint, points to a coin being spent by an input. */
@@ -219,6 +444,8 @@ export interface TxInput {
     value: string;
     /** nSequence of the input. */
     sequenceNo: number;
+    /** Token value attached to this input */
+    token: Token | undefined;
 }
 
 /** CTxOut, creates a new coin. */
@@ -229,6 +456,8 @@ export interface TxOutput {
     outputScript: Uint8Array;
     /** Which tx and input spent this output, if any. */
     spentBy: SpentBy | undefined;
+    /** Token value attached to this output */
+    token: Token | undefined;
 }
 
 /** Data about a block which a Tx is in. */
@@ -241,6 +470,123 @@ export interface BlockMetadata {
     timestamp: string;
     /** Whether the block has been finalized by Avalanche. */
     isFinal: boolean;
+}
+
+/** SLP/ALP token type */
+export interface TokenType {
+    /** SLP token type. Can have unknown values for unknown token types */
+    slp?: SlpTokenType | undefined;
+    /** ALP token type. Can have unknown values for unknown token types */
+    alp?: AlpTokenType | undefined;
+}
+
+/** Info about a token */
+export interface TokenInfo {
+    /**
+     * Hex token_id (in big-endian, like usually displayed to users) of the token.
+     * This is not `bytes` because SLP and ALP use different endiannnes, so to avoid this we use hex, which conventionally implies big-endian in a bitcoin context.
+     */
+    tokenId: string;
+    /** Token type of the token */
+    tokenType: TokenType | undefined;
+    /** Info found in the token's GENESIS tx */
+    genesisInfo: GenesisInfo | undefined;
+    /** Block of the GENESIS tx, if it's mined already */
+    block: BlockMetadata | undefined;
+    /** Time the GENESIS tx has first been seen by the indexer */
+    timeFirstSeen: string;
+}
+
+/** Token involved in a transaction */
+export interface TokenEntry {
+    /**
+     * Hex token_id (in big-endian, like usually displayed to users) of the token.
+     * This is not `bytes` because SLP and ALP use different endiannes, so to avoid
+     * this we use hex, which conventionally implies big-endian in a bitcoin context.
+     */
+    tokenId: string;
+    /** Token type of the token */
+    tokenType: TokenType | undefined;
+    /** Tx type of the token; NONE if there's no section that introduced it (e.g. in an accidental burn) */
+    txType: TokenTxType;
+    /** For NFT1 Child tokens: group ID */
+    groupTokenId: string;
+    /** Whether the validation rules have been violated for this section */
+    isInvalid: boolean;
+    /** Human-readable error message of why this entry burned tokens */
+    burnSummary: string;
+    /** Human-readable error messages of why colorings failed */
+    failedColorings: TokenFailedColoring[];
+    /**
+     * Number of actually burned tokens (as decimal integer string, e.g. "2000").
+     * This is because burns can exceed the 64-bit range of values and protobuf doesn't have a nice type to encode this.
+     */
+    actualBurnAmount: string;
+    /** Burn amount the user explicitly opted into */
+    intentionalBurn: string;
+    /** Whether any mint batons have been burned of this token */
+    burnsMintBatons: boolean;
+}
+
+/** Genesis info found in GENESIS txs of tokens */
+export interface GenesisInfo {
+    /** token_ticker of the token */
+    tokenTicker: Uint8Array;
+    /** token_name of the token */
+    tokenName: Uint8Array;
+    /** URL of the token */
+    url: Uint8Array;
+    /** token_document_hash of the token (only on SLP) */
+    hash: Uint8Array;
+    /** mint_vault_scripthash (only on SLP V2 Mint Vault) */
+    mintVaultScripthash: Uint8Array;
+    /** Arbitray payload data of the token (only on ALP) */
+    data: Uint8Array;
+    /** auth_pubkey of the token (only on ALP) */
+    authPubkey: Uint8Array;
+    /** decimals of the token, i.e. how many decimal places the token should be displayed with. */
+    decimals: number;
+}
+
+/** Token coloring an input or output */
+export interface Token {
+    /** Hex token_id of the token, see `TokenInfo` for details */
+    tokenId: string;
+    /** Token type of the token */
+    tokenType: TokenType | undefined;
+    /** Index into `token_entries` for `Tx`. -1 for UTXOs */
+    entryIdx: number;
+    /** Base token amount of the input/output */
+    amount: string;
+    /** Whether the token is a mint baton */
+    isMintBaton: boolean;
+}
+
+/**
+ * A report of a failed parsing attempt of SLP/ALP.
+ * This should always indicate something went wrong when building the tx.
+ */
+export interface TokenFailedParsing {
+    /**
+     * For ALP, the index of the pushdata in the OP_RETURN that failed parsing.
+     * -1 if the whole OP_RETURN failed, e.g. for SLP or eMPP
+     */
+    pushdataIdx: number;
+    /** The bytes that failed parsing, useful for debugging */
+    bytes: Uint8Array;
+    /** Human-readable message of what went wrong */
+    error: string;
+}
+
+/**
+ * A report of a failed coloring attempt of SLP/ALP.
+ * This should always indicate something went wrong when building the tx.
+ */
+export interface TokenFailedColoring {
+    /** For ALP, the index of the pushdata in the OP_RETURN that failed parsing. */
+    pushdataIdx: number;
+    /** Human-readable message of what went wrong */
+    error: string;
 }
 
 /** Page with txs */
@@ -261,6 +607,40 @@ export interface ScriptUtxos {
     utxos: ScriptUtxo[];
 }
 
+/** List of UTXOs */
+export interface Utxos {
+    /** UTXOs */
+    utxos: Utxo[];
+}
+
+/** Broadcast a single tx */
+export interface BroadcastTxRequest {
+    /** Serialized tx */
+    rawTx: Uint8Array;
+    /** Whether to skip token checks and broadcast even if tokens are unintentionally burned */
+    skipTokenChecks: boolean;
+}
+
+/** Response of broadcasting the tx */
+export interface BroadcastTxResponse {
+    /** TxId of the broadcast tx */
+    txid: Uint8Array;
+}
+
+/** Broadcast multiple txs. If one of the txs fails token validation, the entire batch will not be broadcast. */
+export interface BroadcastTxsRequest {
+    /** Serialized txs. */
+    rawTxs: Uint8Array[];
+    /** Whether to skip token checks and broadcast even if tokens are unintentionally burned */
+    skipTokenChecks: boolean;
+}
+
+/** Response of broadcasting txs */
+export interface BroadcastTxsResponse {
+    /** TxIds of the broadcast txs */
+    txids: Uint8Array[];
+}
+
 /** Raw serialized tx. */
 export interface RawTx {
     /** Bytes of the serialized tx. */
@@ -275,6 +655,8 @@ export interface WsSub {
     blocks?: WsSubBlocks | undefined;
     /** Subscription to a script */
     script?: WsSubScript | undefined;
+    /** Subscription to a token ID */
+    tokenId?: WsSubTokenId | undefined;
 }
 
 /**
@@ -284,7 +666,7 @@ export interface WsSub {
 export interface WsSubBlocks {}
 
 /**
- * Subscription to a script. They will be send every time a tx spending the
+ * Subscription to a script. They will be sent every time a tx spending the
  * given script or sending to the given script has been added to/removed from
  * the mempool, or confirmed in a block.
  */
@@ -298,6 +680,15 @@ export interface WsSubScript {
      * - Serialized script for "other"
      */
     payload: Uint8Array;
+}
+
+/**
+ * Subscription to a token ID. They will be sent every time a tx spending or
+ * sending tokens with the token ID.
+ */
+export interface WsSubTokenId {
+    /** Hex token ID to subscribe to. */
+    tokenId: string;
 }
 
 /** Message coming from the WebSocket */
@@ -364,7 +755,7 @@ export const Block = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
@@ -374,7 +765,7 @@ export const Block = {
                     );
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -392,17 +783,15 @@ export const Block = {
 
     toJSON(message: Block): unknown {
         const obj: any = {};
-        message.blockInfo !== undefined &&
-            (obj.blockInfo = message.blockInfo
-                ? BlockInfo.toJSON(message.blockInfo)
-                : undefined);
+        if (message.blockInfo !== undefined) {
+            obj.blockInfo = BlockInfo.toJSON(message.blockInfo);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<Block>, I>>(base?: I): Block {
-        return Block.fromPartial(base ?? {});
+        return Block.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<Block>, I>>(object: I): Block {
         const message = createBaseBlock();
         message.blockInfo =
@@ -437,7 +826,7 @@ export const Blocks = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
@@ -446,7 +835,7 @@ export const Blocks = {
                     );
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -456,7 +845,7 @@ export const Blocks = {
 
     fromJSON(object: any): Blocks {
         return {
-            blocks: Array.isArray(object?.blocks)
+            blocks: globalThis.Array.isArray(object?.blocks)
                 ? object.blocks.map((e: any) => BlockInfo.fromJSON(e))
                 : [],
         };
@@ -464,20 +853,15 @@ export const Blocks = {
 
     toJSON(message: Blocks): unknown {
         const obj: any = {};
-        if (message.blocks) {
-            obj.blocks = message.blocks.map(e =>
-                e ? BlockInfo.toJSON(e) : undefined,
-            );
-        } else {
-            obj.blocks = [];
+        if (message.blocks?.length) {
+            obj.blocks = message.blocks.map(e => BlockInfo.toJSON(e));
         }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<Blocks>, I>>(base?: I): Blocks {
-        return Blocks.fromPartial(base ?? {});
+        return Blocks.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<Blocks>, I>>(object: I): Blocks {
         const message = createBaseBlocks();
         message.blocks =
@@ -487,7 +871,7 @@ export const Blocks = {
 };
 
 function createBaseBlockchainInfo(): BlockchainInfo {
-    return { tipHash: new Uint8Array(), tipHeight: 0 };
+    return { tipHash: new Uint8Array(0), tipHeight: 0 };
 }
 
 export const BlockchainInfo = {
@@ -513,21 +897,21 @@ export const BlockchainInfo = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.tipHash = reader.bytes();
                     continue;
                 case 2:
-                    if (tag != 16) {
+                    if (tag !== 16) {
                         break;
                     }
 
                     message.tipHeight = reader.int32();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -539,35 +923,34 @@ export const BlockchainInfo = {
         return {
             tipHash: isSet(object.tipHash)
                 ? bytesFromBase64(object.tipHash)
-                : new Uint8Array(),
-            tipHeight: isSet(object.tipHeight) ? Number(object.tipHeight) : 0,
+                : new Uint8Array(0),
+            tipHeight: isSet(object.tipHeight)
+                ? globalThis.Number(object.tipHeight)
+                : 0,
         };
     },
 
     toJSON(message: BlockchainInfo): unknown {
         const obj: any = {};
-        message.tipHash !== undefined &&
-            (obj.tipHash = base64FromBytes(
-                message.tipHash !== undefined
-                    ? message.tipHash
-                    : new Uint8Array(),
-            ));
-        message.tipHeight !== undefined &&
-            (obj.tipHeight = Math.round(message.tipHeight));
+        if (message.tipHash.length !== 0) {
+            obj.tipHash = base64FromBytes(message.tipHash);
+        }
+        if (message.tipHeight !== 0) {
+            obj.tipHeight = Math.round(message.tipHeight);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<BlockchainInfo>, I>>(
         base?: I,
     ): BlockchainInfo {
-        return BlockchainInfo.fromPartial(base ?? {});
+        return BlockchainInfo.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<BlockchainInfo>, I>>(
         object: I,
     ): BlockchainInfo {
         const message = createBaseBlockchainInfo();
-        message.tipHash = object.tipHash ?? new Uint8Array();
+        message.tipHash = object.tipHash ?? new Uint8Array(0);
         message.tipHeight = object.tipHeight ?? 0;
         return message;
     },
@@ -597,14 +980,14 @@ export const ChronikInfo = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.version = reader.string();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -613,21 +996,26 @@ export const ChronikInfo = {
     },
 
     fromJSON(object: any): ChronikInfo {
-        return { version: isSet(object.version) ? String(object.version) : '' };
+        return {
+            version: isSet(object.version)
+                ? globalThis.String(object.version)
+                : '',
+        };
     },
 
     toJSON(message: ChronikInfo): unknown {
         const obj: any = {};
-        message.version !== undefined && (obj.version = message.version);
+        if (message.version !== '') {
+            obj.version = message.version;
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<ChronikInfo>, I>>(
         base?: I,
     ): ChronikInfo {
-        return ChronikInfo.fromPartial(base ?? {});
+        return ChronikInfo.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<ChronikInfo>, I>>(
         object: I,
     ): ChronikInfo {
@@ -639,8 +1027,8 @@ export const ChronikInfo = {
 
 function createBaseBlockInfo(): BlockInfo {
     return {
-        hash: new Uint8Array(),
-        prevHash: new Uint8Array(),
+        hash: new Uint8Array(0),
+        prevHash: new Uint8Array(0),
         height: 0,
         nBits: 0,
         timestamp: '0',
@@ -715,84 +1103,84 @@ export const BlockInfo = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.hash = reader.bytes();
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.prevHash = reader.bytes();
                     continue;
                 case 3:
-                    if (tag != 24) {
+                    if (tag !== 24) {
                         break;
                     }
 
                     message.height = reader.int32();
                     continue;
                 case 4:
-                    if (tag != 32) {
+                    if (tag !== 32) {
                         break;
                     }
 
                     message.nBits = reader.uint32();
                     continue;
                 case 5:
-                    if (tag != 40) {
+                    if (tag !== 40) {
                         break;
                     }
 
                     message.timestamp = longToString(reader.int64() as Long);
                     continue;
                 case 14:
-                    if (tag != 112) {
+                    if (tag !== 112) {
                         break;
                     }
 
                     message.isFinal = reader.bool();
                     continue;
                 case 6:
-                    if (tag != 48) {
+                    if (tag !== 48) {
                         break;
                     }
 
                     message.blockSize = longToString(reader.uint64() as Long);
                     continue;
                 case 7:
-                    if (tag != 56) {
+                    if (tag !== 56) {
                         break;
                     }
 
                     message.numTxs = longToString(reader.uint64() as Long);
                     continue;
                 case 8:
-                    if (tag != 64) {
+                    if (tag !== 64) {
                         break;
                     }
 
                     message.numInputs = longToString(reader.uint64() as Long);
                     continue;
                 case 9:
-                    if (tag != 72) {
+                    if (tag !== 72) {
                         break;
                     }
 
                     message.numOutputs = longToString(reader.uint64() as Long);
                     continue;
                 case 10:
-                    if (tag != 80) {
+                    if (tag !== 80) {
                         break;
                     }
 
                     message.sumInputSats = longToString(reader.int64() as Long);
                     continue;
                 case 11:
-                    if (tag != 88) {
+                    if (tag !== 88) {
                         break;
                     }
 
@@ -801,7 +1189,7 @@ export const BlockInfo = {
                     );
                     continue;
                 case 12:
-                    if (tag != 96) {
+                    if (tag !== 96) {
                         break;
                     }
 
@@ -810,7 +1198,7 @@ export const BlockInfo = {
                     );
                     continue;
                 case 13:
-                    if (tag != 104) {
+                    if (tag !== 104) {
                         break;
                     }
 
@@ -819,7 +1207,7 @@ export const BlockInfo = {
                     );
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -831,78 +1219,101 @@ export const BlockInfo = {
         return {
             hash: isSet(object.hash)
                 ? bytesFromBase64(object.hash)
-                : new Uint8Array(),
+                : new Uint8Array(0),
             prevHash: isSet(object.prevHash)
                 ? bytesFromBase64(object.prevHash)
-                : new Uint8Array(),
-            height: isSet(object.height) ? Number(object.height) : 0,
-            nBits: isSet(object.nBits) ? Number(object.nBits) : 0,
-            timestamp: isSet(object.timestamp) ? String(object.timestamp) : '0',
-            isFinal: isSet(object.isFinal) ? Boolean(object.isFinal) : false,
-            blockSize: isSet(object.blockSize) ? String(object.blockSize) : '0',
-            numTxs: isSet(object.numTxs) ? String(object.numTxs) : '0',
-            numInputs: isSet(object.numInputs) ? String(object.numInputs) : '0',
+                : new Uint8Array(0),
+            height: isSet(object.height) ? globalThis.Number(object.height) : 0,
+            nBits: isSet(object.nBits) ? globalThis.Number(object.nBits) : 0,
+            timestamp: isSet(object.timestamp)
+                ? globalThis.String(object.timestamp)
+                : '0',
+            isFinal: isSet(object.isFinal)
+                ? globalThis.Boolean(object.isFinal)
+                : false,
+            blockSize: isSet(object.blockSize)
+                ? globalThis.String(object.blockSize)
+                : '0',
+            numTxs: isSet(object.numTxs)
+                ? globalThis.String(object.numTxs)
+                : '0',
+            numInputs: isSet(object.numInputs)
+                ? globalThis.String(object.numInputs)
+                : '0',
             numOutputs: isSet(object.numOutputs)
-                ? String(object.numOutputs)
+                ? globalThis.String(object.numOutputs)
                 : '0',
             sumInputSats: isSet(object.sumInputSats)
-                ? String(object.sumInputSats)
+                ? globalThis.String(object.sumInputSats)
                 : '0',
             sumCoinbaseOutputSats: isSet(object.sumCoinbaseOutputSats)
-                ? String(object.sumCoinbaseOutputSats)
+                ? globalThis.String(object.sumCoinbaseOutputSats)
                 : '0',
             sumNormalOutputSats: isSet(object.sumNormalOutputSats)
-                ? String(object.sumNormalOutputSats)
+                ? globalThis.String(object.sumNormalOutputSats)
                 : '0',
             sumBurnedSats: isSet(object.sumBurnedSats)
-                ? String(object.sumBurnedSats)
+                ? globalThis.String(object.sumBurnedSats)
                 : '0',
         };
     },
 
     toJSON(message: BlockInfo): unknown {
         const obj: any = {};
-        message.hash !== undefined &&
-            (obj.hash = base64FromBytes(
-                message.hash !== undefined ? message.hash : new Uint8Array(),
-            ));
-        message.prevHash !== undefined &&
-            (obj.prevHash = base64FromBytes(
-                message.prevHash !== undefined
-                    ? message.prevHash
-                    : new Uint8Array(),
-            ));
-        message.height !== undefined &&
-            (obj.height = Math.round(message.height));
-        message.nBits !== undefined && (obj.nBits = Math.round(message.nBits));
-        message.timestamp !== undefined && (obj.timestamp = message.timestamp);
-        message.isFinal !== undefined && (obj.isFinal = message.isFinal);
-        message.blockSize !== undefined && (obj.blockSize = message.blockSize);
-        message.numTxs !== undefined && (obj.numTxs = message.numTxs);
-        message.numInputs !== undefined && (obj.numInputs = message.numInputs);
-        message.numOutputs !== undefined &&
-            (obj.numOutputs = message.numOutputs);
-        message.sumInputSats !== undefined &&
-            (obj.sumInputSats = message.sumInputSats);
-        message.sumCoinbaseOutputSats !== undefined &&
-            (obj.sumCoinbaseOutputSats = message.sumCoinbaseOutputSats);
-        message.sumNormalOutputSats !== undefined &&
-            (obj.sumNormalOutputSats = message.sumNormalOutputSats);
-        message.sumBurnedSats !== undefined &&
-            (obj.sumBurnedSats = message.sumBurnedSats);
+        if (message.hash.length !== 0) {
+            obj.hash = base64FromBytes(message.hash);
+        }
+        if (message.prevHash.length !== 0) {
+            obj.prevHash = base64FromBytes(message.prevHash);
+        }
+        if (message.height !== 0) {
+            obj.height = Math.round(message.height);
+        }
+        if (message.nBits !== 0) {
+            obj.nBits = Math.round(message.nBits);
+        }
+        if (message.timestamp !== '0') {
+            obj.timestamp = message.timestamp;
+        }
+        if (message.isFinal === true) {
+            obj.isFinal = message.isFinal;
+        }
+        if (message.blockSize !== '0') {
+            obj.blockSize = message.blockSize;
+        }
+        if (message.numTxs !== '0') {
+            obj.numTxs = message.numTxs;
+        }
+        if (message.numInputs !== '0') {
+            obj.numInputs = message.numInputs;
+        }
+        if (message.numOutputs !== '0') {
+            obj.numOutputs = message.numOutputs;
+        }
+        if (message.sumInputSats !== '0') {
+            obj.sumInputSats = message.sumInputSats;
+        }
+        if (message.sumCoinbaseOutputSats !== '0') {
+            obj.sumCoinbaseOutputSats = message.sumCoinbaseOutputSats;
+        }
+        if (message.sumNormalOutputSats !== '0') {
+            obj.sumNormalOutputSats = message.sumNormalOutputSats;
+        }
+        if (message.sumBurnedSats !== '0') {
+            obj.sumBurnedSats = message.sumBurnedSats;
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<BlockInfo>, I>>(base?: I): BlockInfo {
-        return BlockInfo.fromPartial(base ?? {});
+        return BlockInfo.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<BlockInfo>, I>>(
         object: I,
     ): BlockInfo {
         const message = createBaseBlockInfo();
-        message.hash = object.hash ?? new Uint8Array();
-        message.prevHash = object.prevHash ?? new Uint8Array();
+        message.hash = object.hash ?? new Uint8Array(0);
+        message.prevHash = object.prevHash ?? new Uint8Array(0);
         message.height = object.height ?? 0;
         message.nBits = object.nBits ?? 0;
         message.timestamp = object.timestamp ?? '0';
@@ -921,7 +1332,7 @@ export const BlockInfo = {
 
 function createBaseTx(): Tx {
     return {
-        txid: new Uint8Array(),
+        txid: new Uint8Array(0),
         version: 0,
         inputs: [],
         outputs: [],
@@ -930,6 +1341,9 @@ function createBaseTx(): Tx {
         timeFirstSeen: '0',
         size: 0,
         isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 0,
     };
 }
 
@@ -965,6 +1379,15 @@ export const Tx = {
         if (message.isCoinbase === true) {
             writer.uint32(96).bool(message.isCoinbase);
         }
+        for (const v of message.tokenEntries) {
+            TokenEntry.encode(v!, writer.uint32(106).fork()).ldelim();
+        }
+        for (const v of message.tokenFailedParsings) {
+            TokenFailedParsing.encode(v!, writer.uint32(114).fork()).ldelim();
+        }
+        if (message.tokenStatus !== 0) {
+            writer.uint32(120).int32(message.tokenStatus);
+        }
         return writer;
     },
 
@@ -977,21 +1400,21 @@ export const Tx = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.txid = reader.bytes();
                     continue;
                 case 2:
-                    if (tag != 16) {
+                    if (tag !== 16) {
                         break;
                     }
 
                     message.version = reader.int32();
                     continue;
                 case 3:
-                    if (tag != 26) {
+                    if (tag !== 26) {
                         break;
                     }
 
@@ -1000,7 +1423,7 @@ export const Tx = {
                     );
                     continue;
                 case 4:
-                    if (tag != 34) {
+                    if (tag !== 34) {
                         break;
                     }
 
@@ -1009,14 +1432,14 @@ export const Tx = {
                     );
                     continue;
                 case 5:
-                    if (tag != 40) {
+                    if (tag !== 40) {
                         break;
                     }
 
                     message.lockTime = reader.uint32();
                     continue;
                 case 8:
-                    if (tag != 66) {
+                    if (tag !== 66) {
                         break;
                     }
 
@@ -1026,7 +1449,7 @@ export const Tx = {
                     );
                     continue;
                 case 9:
-                    if (tag != 72) {
+                    if (tag !== 72) {
                         break;
                     }
 
@@ -1035,21 +1458,46 @@ export const Tx = {
                     );
                     continue;
                 case 11:
-                    if (tag != 88) {
+                    if (tag !== 88) {
                         break;
                     }
 
                     message.size = reader.uint32();
                     continue;
                 case 12:
-                    if (tag != 96) {
+                    if (tag !== 96) {
                         break;
                     }
 
                     message.isCoinbase = reader.bool();
                     continue;
+                case 13:
+                    if (tag !== 106) {
+                        break;
+                    }
+
+                    message.tokenEntries.push(
+                        TokenEntry.decode(reader, reader.uint32()),
+                    );
+                    continue;
+                case 14:
+                    if (tag !== 114) {
+                        break;
+                    }
+
+                    message.tokenFailedParsings.push(
+                        TokenFailedParsing.decode(reader, reader.uint32()),
+                    );
+                    continue;
+                case 15:
+                    if (tag !== 120) {
+                        break;
+                    }
+
+                    message.tokenStatus = reader.int32() as any;
+                    continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1061,71 +1509,96 @@ export const Tx = {
         return {
             txid: isSet(object.txid)
                 ? bytesFromBase64(object.txid)
-                : new Uint8Array(),
-            version: isSet(object.version) ? Number(object.version) : 0,
-            inputs: Array.isArray(object?.inputs)
+                : new Uint8Array(0),
+            version: isSet(object.version)
+                ? globalThis.Number(object.version)
+                : 0,
+            inputs: globalThis.Array.isArray(object?.inputs)
                 ? object.inputs.map((e: any) => TxInput.fromJSON(e))
                 : [],
-            outputs: Array.isArray(object?.outputs)
+            outputs: globalThis.Array.isArray(object?.outputs)
                 ? object.outputs.map((e: any) => TxOutput.fromJSON(e))
                 : [],
-            lockTime: isSet(object.lockTime) ? Number(object.lockTime) : 0,
+            lockTime: isSet(object.lockTime)
+                ? globalThis.Number(object.lockTime)
+                : 0,
             block: isSet(object.block)
                 ? BlockMetadata.fromJSON(object.block)
                 : undefined,
             timeFirstSeen: isSet(object.timeFirstSeen)
-                ? String(object.timeFirstSeen)
+                ? globalThis.String(object.timeFirstSeen)
                 : '0',
-            size: isSet(object.size) ? Number(object.size) : 0,
+            size: isSet(object.size) ? globalThis.Number(object.size) : 0,
             isCoinbase: isSet(object.isCoinbase)
-                ? Boolean(object.isCoinbase)
+                ? globalThis.Boolean(object.isCoinbase)
                 : false,
+            tokenEntries: globalThis.Array.isArray(object?.tokenEntries)
+                ? object.tokenEntries.map((e: any) => TokenEntry.fromJSON(e))
+                : [],
+            tokenFailedParsings: globalThis.Array.isArray(
+                object?.tokenFailedParsings,
+            )
+                ? object.tokenFailedParsings.map((e: any) =>
+                      TokenFailedParsing.fromJSON(e),
+                  )
+                : [],
+            tokenStatus: isSet(object.tokenStatus)
+                ? tokenStatusFromJSON(object.tokenStatus)
+                : 0,
         };
     },
 
     toJSON(message: Tx): unknown {
         const obj: any = {};
-        message.txid !== undefined &&
-            (obj.txid = base64FromBytes(
-                message.txid !== undefined ? message.txid : new Uint8Array(),
-            ));
-        message.version !== undefined &&
-            (obj.version = Math.round(message.version));
-        if (message.inputs) {
-            obj.inputs = message.inputs.map(e =>
-                e ? TxInput.toJSON(e) : undefined,
-            );
-        } else {
-            obj.inputs = [];
+        if (message.txid.length !== 0) {
+            obj.txid = base64FromBytes(message.txid);
         }
-        if (message.outputs) {
-            obj.outputs = message.outputs.map(e =>
-                e ? TxOutput.toJSON(e) : undefined,
-            );
-        } else {
-            obj.outputs = [];
+        if (message.version !== 0) {
+            obj.version = Math.round(message.version);
         }
-        message.lockTime !== undefined &&
-            (obj.lockTime = Math.round(message.lockTime));
-        message.block !== undefined &&
-            (obj.block = message.block
-                ? BlockMetadata.toJSON(message.block)
-                : undefined);
-        message.timeFirstSeen !== undefined &&
-            (obj.timeFirstSeen = message.timeFirstSeen);
-        message.size !== undefined && (obj.size = Math.round(message.size));
-        message.isCoinbase !== undefined &&
-            (obj.isCoinbase = message.isCoinbase);
+        if (message.inputs?.length) {
+            obj.inputs = message.inputs.map(e => TxInput.toJSON(e));
+        }
+        if (message.outputs?.length) {
+            obj.outputs = message.outputs.map(e => TxOutput.toJSON(e));
+        }
+        if (message.lockTime !== 0) {
+            obj.lockTime = Math.round(message.lockTime);
+        }
+        if (message.block !== undefined) {
+            obj.block = BlockMetadata.toJSON(message.block);
+        }
+        if (message.timeFirstSeen !== '0') {
+            obj.timeFirstSeen = message.timeFirstSeen;
+        }
+        if (message.size !== 0) {
+            obj.size = Math.round(message.size);
+        }
+        if (message.isCoinbase === true) {
+            obj.isCoinbase = message.isCoinbase;
+        }
+        if (message.tokenEntries?.length) {
+            obj.tokenEntries = message.tokenEntries.map(e =>
+                TokenEntry.toJSON(e),
+            );
+        }
+        if (message.tokenFailedParsings?.length) {
+            obj.tokenFailedParsings = message.tokenFailedParsings.map(e =>
+                TokenFailedParsing.toJSON(e),
+            );
+        }
+        if (message.tokenStatus !== 0) {
+            obj.tokenStatus = tokenStatusToJSON(message.tokenStatus);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<Tx>, I>>(base?: I): Tx {
-        return Tx.fromPartial(base ?? {});
+        return Tx.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<Tx>, I>>(object: I): Tx {
         const message = createBaseTx();
-        message.txid = object.txid ?? new Uint8Array();
+        message.txid = object.txid ?? new Uint8Array(0);
         message.version = object.version ?? 0;
         message.inputs = object.inputs?.map(e => TxInput.fromPartial(e)) || [];
         message.outputs =
@@ -1138,6 +1611,13 @@ export const Tx = {
         message.timeFirstSeen = object.timeFirstSeen ?? '0';
         message.size = object.size ?? 0;
         message.isCoinbase = object.isCoinbase ?? false;
+        message.tokenEntries =
+            object.tokenEntries?.map(e => TokenEntry.fromPartial(e)) || [];
+        message.tokenFailedParsings =
+            object.tokenFailedParsings?.map(e =>
+                TokenFailedParsing.fromPartial(e),
+            ) || [];
+        message.tokenStatus = object.tokenStatus ?? 0;
         return message;
     },
 };
@@ -1149,6 +1629,7 @@ function createBaseScriptUtxo(): ScriptUtxo {
         isCoinbase: false,
         value: '0',
         isFinal: false,
+        token: undefined,
     };
 }
 
@@ -1175,6 +1656,9 @@ export const ScriptUtxo = {
         if (message.isFinal === true) {
             writer.uint32(80).bool(message.isFinal);
         }
+        if (message.token !== undefined) {
+            Token.encode(message.token, writer.uint32(90).fork()).ldelim();
+        }
         return writer;
     },
 
@@ -1187,42 +1671,49 @@ export const ScriptUtxo = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.outpoint = OutPoint.decode(reader, reader.uint32());
                     continue;
                 case 2:
-                    if (tag != 16) {
+                    if (tag !== 16) {
                         break;
                     }
 
                     message.blockHeight = reader.int32();
                     continue;
                 case 3:
-                    if (tag != 24) {
+                    if (tag !== 24) {
                         break;
                     }
 
                     message.isCoinbase = reader.bool();
                     continue;
                 case 5:
-                    if (tag != 40) {
+                    if (tag !== 40) {
                         break;
                     }
 
                     message.value = longToString(reader.int64() as Long);
                     continue;
                 case 10:
-                    if (tag != 80) {
+                    if (tag !== 80) {
                         break;
                     }
 
                     message.isFinal = reader.bool();
                     continue;
+                case 11:
+                    if (tag !== 90) {
+                        break;
+                    }
+
+                    message.token = Token.decode(reader, reader.uint32());
+                    continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1236,35 +1727,47 @@ export const ScriptUtxo = {
                 ? OutPoint.fromJSON(object.outpoint)
                 : undefined,
             blockHeight: isSet(object.blockHeight)
-                ? Number(object.blockHeight)
+                ? globalThis.Number(object.blockHeight)
                 : 0,
             isCoinbase: isSet(object.isCoinbase)
-                ? Boolean(object.isCoinbase)
+                ? globalThis.Boolean(object.isCoinbase)
                 : false,
-            value: isSet(object.value) ? String(object.value) : '0',
-            isFinal: isSet(object.isFinal) ? Boolean(object.isFinal) : false,
+            value: isSet(object.value) ? globalThis.String(object.value) : '0',
+            isFinal: isSet(object.isFinal)
+                ? globalThis.Boolean(object.isFinal)
+                : false,
+            token: isSet(object.token)
+                ? Token.fromJSON(object.token)
+                : undefined,
         };
     },
 
     toJSON(message: ScriptUtxo): unknown {
         const obj: any = {};
-        message.outpoint !== undefined &&
-            (obj.outpoint = message.outpoint
-                ? OutPoint.toJSON(message.outpoint)
-                : undefined);
-        message.blockHeight !== undefined &&
-            (obj.blockHeight = Math.round(message.blockHeight));
-        message.isCoinbase !== undefined &&
-            (obj.isCoinbase = message.isCoinbase);
-        message.value !== undefined && (obj.value = message.value);
-        message.isFinal !== undefined && (obj.isFinal = message.isFinal);
+        if (message.outpoint !== undefined) {
+            obj.outpoint = OutPoint.toJSON(message.outpoint);
+        }
+        if (message.blockHeight !== 0) {
+            obj.blockHeight = Math.round(message.blockHeight);
+        }
+        if (message.isCoinbase === true) {
+            obj.isCoinbase = message.isCoinbase;
+        }
+        if (message.value !== '0') {
+            obj.value = message.value;
+        }
+        if (message.isFinal === true) {
+            obj.isFinal = message.isFinal;
+        }
+        if (message.token !== undefined) {
+            obj.token = Token.toJSON(message.token);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<ScriptUtxo>, I>>(base?: I): ScriptUtxo {
-        return ScriptUtxo.fromPartial(base ?? {});
+        return ScriptUtxo.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<ScriptUtxo>, I>>(
         object: I,
     ): ScriptUtxo {
@@ -1277,12 +1780,198 @@ export const ScriptUtxo = {
         message.isCoinbase = object.isCoinbase ?? false;
         message.value = object.value ?? '0';
         message.isFinal = object.isFinal ?? false;
+        message.token =
+            object.token !== undefined && object.token !== null
+                ? Token.fromPartial(object.token)
+                : undefined;
+        return message;
+    },
+};
+
+function createBaseUtxo(): Utxo {
+    return {
+        outpoint: undefined,
+        blockHeight: 0,
+        isCoinbase: false,
+        value: '0',
+        script: new Uint8Array(0),
+        isFinal: false,
+        token: undefined,
+    };
+}
+
+export const Utxo = {
+    encode(
+        message: Utxo,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.outpoint !== undefined) {
+            OutPoint.encode(
+                message.outpoint,
+                writer.uint32(10).fork(),
+            ).ldelim();
+        }
+        if (message.blockHeight !== 0) {
+            writer.uint32(16).int32(message.blockHeight);
+        }
+        if (message.isCoinbase === true) {
+            writer.uint32(24).bool(message.isCoinbase);
+        }
+        if (message.value !== '0') {
+            writer.uint32(32).int64(message.value);
+        }
+        if (message.script.length !== 0) {
+            writer.uint32(42).bytes(message.script);
+        }
+        if (message.isFinal === true) {
+            writer.uint32(48).bool(message.isFinal);
+        }
+        if (message.token !== undefined) {
+            Token.encode(message.token, writer.uint32(58).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): Utxo {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseUtxo();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.outpoint = OutPoint.decode(reader, reader.uint32());
+                    continue;
+                case 2:
+                    if (tag !== 16) {
+                        break;
+                    }
+
+                    message.blockHeight = reader.int32();
+                    continue;
+                case 3:
+                    if (tag !== 24) {
+                        break;
+                    }
+
+                    message.isCoinbase = reader.bool();
+                    continue;
+                case 4:
+                    if (tag !== 32) {
+                        break;
+                    }
+
+                    message.value = longToString(reader.int64() as Long);
+                    continue;
+                case 5:
+                    if (tag !== 42) {
+                        break;
+                    }
+
+                    message.script = reader.bytes();
+                    continue;
+                case 6:
+                    if (tag !== 48) {
+                        break;
+                    }
+
+                    message.isFinal = reader.bool();
+                    continue;
+                case 7:
+                    if (tag !== 58) {
+                        break;
+                    }
+
+                    message.token = Token.decode(reader, reader.uint32());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): Utxo {
+        return {
+            outpoint: isSet(object.outpoint)
+                ? OutPoint.fromJSON(object.outpoint)
+                : undefined,
+            blockHeight: isSet(object.blockHeight)
+                ? globalThis.Number(object.blockHeight)
+                : 0,
+            isCoinbase: isSet(object.isCoinbase)
+                ? globalThis.Boolean(object.isCoinbase)
+                : false,
+            value: isSet(object.value) ? globalThis.String(object.value) : '0',
+            script: isSet(object.script)
+                ? bytesFromBase64(object.script)
+                : new Uint8Array(0),
+            isFinal: isSet(object.isFinal)
+                ? globalThis.Boolean(object.isFinal)
+                : false,
+            token: isSet(object.token)
+                ? Token.fromJSON(object.token)
+                : undefined,
+        };
+    },
+
+    toJSON(message: Utxo): unknown {
+        const obj: any = {};
+        if (message.outpoint !== undefined) {
+            obj.outpoint = OutPoint.toJSON(message.outpoint);
+        }
+        if (message.blockHeight !== 0) {
+            obj.blockHeight = Math.round(message.blockHeight);
+        }
+        if (message.isCoinbase === true) {
+            obj.isCoinbase = message.isCoinbase;
+        }
+        if (message.value !== '0') {
+            obj.value = message.value;
+        }
+        if (message.script.length !== 0) {
+            obj.script = base64FromBytes(message.script);
+        }
+        if (message.isFinal === true) {
+            obj.isFinal = message.isFinal;
+        }
+        if (message.token !== undefined) {
+            obj.token = Token.toJSON(message.token);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<Utxo>, I>>(base?: I): Utxo {
+        return Utxo.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<Utxo>, I>>(object: I): Utxo {
+        const message = createBaseUtxo();
+        message.outpoint =
+            object.outpoint !== undefined && object.outpoint !== null
+                ? OutPoint.fromPartial(object.outpoint)
+                : undefined;
+        message.blockHeight = object.blockHeight ?? 0;
+        message.isCoinbase = object.isCoinbase ?? false;
+        message.value = object.value ?? '0';
+        message.script = object.script ?? new Uint8Array(0);
+        message.isFinal = object.isFinal ?? false;
+        message.token =
+            object.token !== undefined && object.token !== null
+                ? Token.fromPartial(object.token)
+                : undefined;
         return message;
     },
 };
 
 function createBaseOutPoint(): OutPoint {
-    return { txid: new Uint8Array(), outIdx: 0 };
+    return { txid: new Uint8Array(0), outIdx: 0 };
 }
 
 export const OutPoint = {
@@ -1308,21 +1997,21 @@ export const OutPoint = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.txid = reader.bytes();
                     continue;
                 case 2:
-                    if (tag != 16) {
+                    if (tag !== 16) {
                         break;
                     }
 
                     message.outIdx = reader.uint32();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1334,38 +2023,37 @@ export const OutPoint = {
         return {
             txid: isSet(object.txid)
                 ? bytesFromBase64(object.txid)
-                : new Uint8Array(),
-            outIdx: isSet(object.outIdx) ? Number(object.outIdx) : 0,
+                : new Uint8Array(0),
+            outIdx: isSet(object.outIdx) ? globalThis.Number(object.outIdx) : 0,
         };
     },
 
     toJSON(message: OutPoint): unknown {
         const obj: any = {};
-        message.txid !== undefined &&
-            (obj.txid = base64FromBytes(
-                message.txid !== undefined ? message.txid : new Uint8Array(),
-            ));
-        message.outIdx !== undefined &&
-            (obj.outIdx = Math.round(message.outIdx));
+        if (message.txid.length !== 0) {
+            obj.txid = base64FromBytes(message.txid);
+        }
+        if (message.outIdx !== 0) {
+            obj.outIdx = Math.round(message.outIdx);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<OutPoint>, I>>(base?: I): OutPoint {
-        return OutPoint.fromPartial(base ?? {});
+        return OutPoint.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<OutPoint>, I>>(
         object: I,
     ): OutPoint {
         const message = createBaseOutPoint();
-        message.txid = object.txid ?? new Uint8Array();
+        message.txid = object.txid ?? new Uint8Array(0);
         message.outIdx = object.outIdx ?? 0;
         return message;
     },
 };
 
 function createBaseSpentBy(): SpentBy {
-    return { txid: new Uint8Array(), inputIdx: 0 };
+    return { txid: new Uint8Array(0), inputIdx: 0 };
 }
 
 export const SpentBy = {
@@ -1391,21 +2079,21 @@ export const SpentBy = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.txid = reader.bytes();
                     continue;
                 case 2:
-                    if (tag != 16) {
+                    if (tag !== 16) {
                         break;
                     }
 
                     message.inputIdx = reader.uint32();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1417,29 +2105,30 @@ export const SpentBy = {
         return {
             txid: isSet(object.txid)
                 ? bytesFromBase64(object.txid)
-                : new Uint8Array(),
-            inputIdx: isSet(object.inputIdx) ? Number(object.inputIdx) : 0,
+                : new Uint8Array(0),
+            inputIdx: isSet(object.inputIdx)
+                ? globalThis.Number(object.inputIdx)
+                : 0,
         };
     },
 
     toJSON(message: SpentBy): unknown {
         const obj: any = {};
-        message.txid !== undefined &&
-            (obj.txid = base64FromBytes(
-                message.txid !== undefined ? message.txid : new Uint8Array(),
-            ));
-        message.inputIdx !== undefined &&
-            (obj.inputIdx = Math.round(message.inputIdx));
+        if (message.txid.length !== 0) {
+            obj.txid = base64FromBytes(message.txid);
+        }
+        if (message.inputIdx !== 0) {
+            obj.inputIdx = Math.round(message.inputIdx);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<SpentBy>, I>>(base?: I): SpentBy {
-        return SpentBy.fromPartial(base ?? {});
+        return SpentBy.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<SpentBy>, I>>(object: I): SpentBy {
         const message = createBaseSpentBy();
-        message.txid = object.txid ?? new Uint8Array();
+        message.txid = object.txid ?? new Uint8Array(0);
         message.inputIdx = object.inputIdx ?? 0;
         return message;
     },
@@ -1448,10 +2137,11 @@ export const SpentBy = {
 function createBaseTxInput(): TxInput {
     return {
         prevOut: undefined,
-        inputScript: new Uint8Array(),
-        outputScript: new Uint8Array(),
+        inputScript: new Uint8Array(0),
+        outputScript: new Uint8Array(0),
         value: '0',
         sequenceNo: 0,
+        token: undefined,
     };
 }
 
@@ -1475,6 +2165,9 @@ export const TxInput = {
         if (message.sequenceNo !== 0) {
             writer.uint32(40).uint32(message.sequenceNo);
         }
+        if (message.token !== undefined) {
+            Token.encode(message.token, writer.uint32(66).fork()).ldelim();
+        }
         return writer;
     },
 
@@ -1487,42 +2180,49 @@ export const TxInput = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.prevOut = OutPoint.decode(reader, reader.uint32());
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.inputScript = reader.bytes();
                     continue;
                 case 3:
-                    if (tag != 26) {
+                    if (tag !== 26) {
                         break;
                     }
 
                     message.outputScript = reader.bytes();
                     continue;
                 case 4:
-                    if (tag != 32) {
+                    if (tag !== 32) {
                         break;
                     }
 
                     message.value = longToString(reader.int64() as Long);
                     continue;
                 case 5:
-                    if (tag != 40) {
+                    if (tag !== 40) {
                         break;
                     }
 
                     message.sequenceNo = reader.uint32();
                     continue;
+                case 8:
+                    if (tag !== 66) {
+                        break;
+                    }
+
+                    message.token = Token.decode(reader, reader.uint32());
+                    continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1537,61 +2237,71 @@ export const TxInput = {
                 : undefined,
             inputScript: isSet(object.inputScript)
                 ? bytesFromBase64(object.inputScript)
-                : new Uint8Array(),
+                : new Uint8Array(0),
             outputScript: isSet(object.outputScript)
                 ? bytesFromBase64(object.outputScript)
-                : new Uint8Array(),
-            value: isSet(object.value) ? String(object.value) : '0',
+                : new Uint8Array(0),
+            value: isSet(object.value) ? globalThis.String(object.value) : '0',
             sequenceNo: isSet(object.sequenceNo)
-                ? Number(object.sequenceNo)
+                ? globalThis.Number(object.sequenceNo)
                 : 0,
+            token: isSet(object.token)
+                ? Token.fromJSON(object.token)
+                : undefined,
         };
     },
 
     toJSON(message: TxInput): unknown {
         const obj: any = {};
-        message.prevOut !== undefined &&
-            (obj.prevOut = message.prevOut
-                ? OutPoint.toJSON(message.prevOut)
-                : undefined);
-        message.inputScript !== undefined &&
-            (obj.inputScript = base64FromBytes(
-                message.inputScript !== undefined
-                    ? message.inputScript
-                    : new Uint8Array(),
-            ));
-        message.outputScript !== undefined &&
-            (obj.outputScript = base64FromBytes(
-                message.outputScript !== undefined
-                    ? message.outputScript
-                    : new Uint8Array(),
-            ));
-        message.value !== undefined && (obj.value = message.value);
-        message.sequenceNo !== undefined &&
-            (obj.sequenceNo = Math.round(message.sequenceNo));
+        if (message.prevOut !== undefined) {
+            obj.prevOut = OutPoint.toJSON(message.prevOut);
+        }
+        if (message.inputScript.length !== 0) {
+            obj.inputScript = base64FromBytes(message.inputScript);
+        }
+        if (message.outputScript.length !== 0) {
+            obj.outputScript = base64FromBytes(message.outputScript);
+        }
+        if (message.value !== '0') {
+            obj.value = message.value;
+        }
+        if (message.sequenceNo !== 0) {
+            obj.sequenceNo = Math.round(message.sequenceNo);
+        }
+        if (message.token !== undefined) {
+            obj.token = Token.toJSON(message.token);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<TxInput>, I>>(base?: I): TxInput {
-        return TxInput.fromPartial(base ?? {});
+        return TxInput.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<TxInput>, I>>(object: I): TxInput {
         const message = createBaseTxInput();
         message.prevOut =
             object.prevOut !== undefined && object.prevOut !== null
                 ? OutPoint.fromPartial(object.prevOut)
                 : undefined;
-        message.inputScript = object.inputScript ?? new Uint8Array();
-        message.outputScript = object.outputScript ?? new Uint8Array();
+        message.inputScript = object.inputScript ?? new Uint8Array(0);
+        message.outputScript = object.outputScript ?? new Uint8Array(0);
         message.value = object.value ?? '0';
         message.sequenceNo = object.sequenceNo ?? 0;
+        message.token =
+            object.token !== undefined && object.token !== null
+                ? Token.fromPartial(object.token)
+                : undefined;
         return message;
     },
 };
 
 function createBaseTxOutput(): TxOutput {
-    return { value: '0', outputScript: new Uint8Array(), spentBy: undefined };
+    return {
+        value: '0',
+        outputScript: new Uint8Array(0),
+        spentBy: undefined,
+        token: undefined,
+    };
 }
 
 export const TxOutput = {
@@ -1608,6 +2318,9 @@ export const TxOutput = {
         if (message.spentBy !== undefined) {
             SpentBy.encode(message.spentBy, writer.uint32(34).fork()).ldelim();
         }
+        if (message.token !== undefined) {
+            Token.encode(message.token, writer.uint32(42).fork()).ldelim();
+        }
         return writer;
     },
 
@@ -1620,28 +2333,35 @@ export const TxOutput = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 8) {
+                    if (tag !== 8) {
                         break;
                     }
 
                     message.value = longToString(reader.int64() as Long);
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.outputScript = reader.bytes();
                     continue;
                 case 4:
-                    if (tag != 34) {
+                    if (tag !== 34) {
                         break;
                     }
 
                     message.spentBy = SpentBy.decode(reader, reader.uint32());
                     continue;
+                case 5:
+                    if (tag !== 42) {
+                        break;
+                    }
+
+                    message.token = Token.decode(reader, reader.uint32());
+                    continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1651,45 +2371,52 @@ export const TxOutput = {
 
     fromJSON(object: any): TxOutput {
         return {
-            value: isSet(object.value) ? String(object.value) : '0',
+            value: isSet(object.value) ? globalThis.String(object.value) : '0',
             outputScript: isSet(object.outputScript)
                 ? bytesFromBase64(object.outputScript)
-                : new Uint8Array(),
+                : new Uint8Array(0),
             spentBy: isSet(object.spentBy)
                 ? SpentBy.fromJSON(object.spentBy)
+                : undefined,
+            token: isSet(object.token)
+                ? Token.fromJSON(object.token)
                 : undefined,
         };
     },
 
     toJSON(message: TxOutput): unknown {
         const obj: any = {};
-        message.value !== undefined && (obj.value = message.value);
-        message.outputScript !== undefined &&
-            (obj.outputScript = base64FromBytes(
-                message.outputScript !== undefined
-                    ? message.outputScript
-                    : new Uint8Array(),
-            ));
-        message.spentBy !== undefined &&
-            (obj.spentBy = message.spentBy
-                ? SpentBy.toJSON(message.spentBy)
-                : undefined);
+        if (message.value !== '0') {
+            obj.value = message.value;
+        }
+        if (message.outputScript.length !== 0) {
+            obj.outputScript = base64FromBytes(message.outputScript);
+        }
+        if (message.spentBy !== undefined) {
+            obj.spentBy = SpentBy.toJSON(message.spentBy);
+        }
+        if (message.token !== undefined) {
+            obj.token = Token.toJSON(message.token);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<TxOutput>, I>>(base?: I): TxOutput {
-        return TxOutput.fromPartial(base ?? {});
+        return TxOutput.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<TxOutput>, I>>(
         object: I,
     ): TxOutput {
         const message = createBaseTxOutput();
         message.value = object.value ?? '0';
-        message.outputScript = object.outputScript ?? new Uint8Array();
+        message.outputScript = object.outputScript ?? new Uint8Array(0);
         message.spentBy =
             object.spentBy !== undefined && object.spentBy !== null
                 ? SpentBy.fromPartial(object.spentBy)
+                : undefined;
+        message.token =
+            object.token !== undefined && object.token !== null
+                ? Token.fromPartial(object.token)
                 : undefined;
         return message;
     },
@@ -1698,7 +2425,7 @@ export const TxOutput = {
 function createBaseBlockMetadata(): BlockMetadata {
     return {
         height: 0,
-        hash: new Uint8Array(),
+        hash: new Uint8Array(0),
         timestamp: '0',
         isFinal: false,
     };
@@ -1733,35 +2460,35 @@ export const BlockMetadata = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 8) {
+                    if (tag !== 8) {
                         break;
                     }
 
                     message.height = reader.int32();
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.hash = reader.bytes();
                     continue;
                 case 3:
-                    if (tag != 24) {
+                    if (tag !== 24) {
                         break;
                     }
 
                     message.timestamp = longToString(reader.int64() as Long);
                     continue;
                 case 4:
-                    if (tag != 32) {
+                    if (tag !== 32) {
                         break;
                     }
 
                     message.isFinal = reader.bool();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1771,42 +2498,1093 @@ export const BlockMetadata = {
 
     fromJSON(object: any): BlockMetadata {
         return {
-            height: isSet(object.height) ? Number(object.height) : 0,
+            height: isSet(object.height) ? globalThis.Number(object.height) : 0,
             hash: isSet(object.hash)
                 ? bytesFromBase64(object.hash)
-                : new Uint8Array(),
-            timestamp: isSet(object.timestamp) ? String(object.timestamp) : '0',
-            isFinal: isSet(object.isFinal) ? Boolean(object.isFinal) : false,
+                : new Uint8Array(0),
+            timestamp: isSet(object.timestamp)
+                ? globalThis.String(object.timestamp)
+                : '0',
+            isFinal: isSet(object.isFinal)
+                ? globalThis.Boolean(object.isFinal)
+                : false,
         };
     },
 
     toJSON(message: BlockMetadata): unknown {
         const obj: any = {};
-        message.height !== undefined &&
-            (obj.height = Math.round(message.height));
-        message.hash !== undefined &&
-            (obj.hash = base64FromBytes(
-                message.hash !== undefined ? message.hash : new Uint8Array(),
-            ));
-        message.timestamp !== undefined && (obj.timestamp = message.timestamp);
-        message.isFinal !== undefined && (obj.isFinal = message.isFinal);
+        if (message.height !== 0) {
+            obj.height = Math.round(message.height);
+        }
+        if (message.hash.length !== 0) {
+            obj.hash = base64FromBytes(message.hash);
+        }
+        if (message.timestamp !== '0') {
+            obj.timestamp = message.timestamp;
+        }
+        if (message.isFinal === true) {
+            obj.isFinal = message.isFinal;
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<BlockMetadata>, I>>(
         base?: I,
     ): BlockMetadata {
-        return BlockMetadata.fromPartial(base ?? {});
+        return BlockMetadata.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<BlockMetadata>, I>>(
         object: I,
     ): BlockMetadata {
         const message = createBaseBlockMetadata();
         message.height = object.height ?? 0;
-        message.hash = object.hash ?? new Uint8Array();
+        message.hash = object.hash ?? new Uint8Array(0);
         message.timestamp = object.timestamp ?? '0';
         message.isFinal = object.isFinal ?? false;
+        return message;
+    },
+};
+
+function createBaseTokenType(): TokenType {
+    return { slp: undefined, alp: undefined };
+}
+
+export const TokenType = {
+    encode(
+        message: TokenType,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.slp !== undefined) {
+            writer.uint32(8).int32(message.slp);
+        }
+        if (message.alp !== undefined) {
+            writer.uint32(16).int32(message.alp);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): TokenType {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTokenType();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 8) {
+                        break;
+                    }
+
+                    message.slp = reader.int32() as any;
+                    continue;
+                case 2:
+                    if (tag !== 16) {
+                        break;
+                    }
+
+                    message.alp = reader.int32() as any;
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TokenType {
+        return {
+            slp: isSet(object.slp)
+                ? slpTokenTypeFromJSON(object.slp)
+                : undefined,
+            alp: isSet(object.alp)
+                ? alpTokenTypeFromJSON(object.alp)
+                : undefined,
+        };
+    },
+
+    toJSON(message: TokenType): unknown {
+        const obj: any = {};
+        if (message.slp !== undefined) {
+            obj.slp = slpTokenTypeToJSON(message.slp);
+        }
+        if (message.alp !== undefined) {
+            obj.alp = alpTokenTypeToJSON(message.alp);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TokenType>, I>>(base?: I): TokenType {
+        return TokenType.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TokenType>, I>>(
+        object: I,
+    ): TokenType {
+        const message = createBaseTokenType();
+        message.slp = object.slp ?? undefined;
+        message.alp = object.alp ?? undefined;
+        return message;
+    },
+};
+
+function createBaseTokenInfo(): TokenInfo {
+    return {
+        tokenId: '',
+        tokenType: undefined,
+        genesisInfo: undefined,
+        block: undefined,
+        timeFirstSeen: '0',
+    };
+}
+
+export const TokenInfo = {
+    encode(
+        message: TokenInfo,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.tokenId !== '') {
+            writer.uint32(10).string(message.tokenId);
+        }
+        if (message.tokenType !== undefined) {
+            TokenType.encode(
+                message.tokenType,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        if (message.genesisInfo !== undefined) {
+            GenesisInfo.encode(
+                message.genesisInfo,
+                writer.uint32(26).fork(),
+            ).ldelim();
+        }
+        if (message.block !== undefined) {
+            BlockMetadata.encode(
+                message.block,
+                writer.uint32(34).fork(),
+            ).ldelim();
+        }
+        if (message.timeFirstSeen !== '0') {
+            writer.uint32(40).int64(message.timeFirstSeen);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): TokenInfo {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTokenInfo();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.tokenId = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.tokenType = TokenType.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
+                case 3:
+                    if (tag !== 26) {
+                        break;
+                    }
+
+                    message.genesisInfo = GenesisInfo.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
+                case 4:
+                    if (tag !== 34) {
+                        break;
+                    }
+
+                    message.block = BlockMetadata.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
+                case 5:
+                    if (tag !== 40) {
+                        break;
+                    }
+
+                    message.timeFirstSeen = longToString(
+                        reader.int64() as Long,
+                    );
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TokenInfo {
+        return {
+            tokenId: isSet(object.tokenId)
+                ? globalThis.String(object.tokenId)
+                : '',
+            tokenType: isSet(object.tokenType)
+                ? TokenType.fromJSON(object.tokenType)
+                : undefined,
+            genesisInfo: isSet(object.genesisInfo)
+                ? GenesisInfo.fromJSON(object.genesisInfo)
+                : undefined,
+            block: isSet(object.block)
+                ? BlockMetadata.fromJSON(object.block)
+                : undefined,
+            timeFirstSeen: isSet(object.timeFirstSeen)
+                ? globalThis.String(object.timeFirstSeen)
+                : '0',
+        };
+    },
+
+    toJSON(message: TokenInfo): unknown {
+        const obj: any = {};
+        if (message.tokenId !== '') {
+            obj.tokenId = message.tokenId;
+        }
+        if (message.tokenType !== undefined) {
+            obj.tokenType = TokenType.toJSON(message.tokenType);
+        }
+        if (message.genesisInfo !== undefined) {
+            obj.genesisInfo = GenesisInfo.toJSON(message.genesisInfo);
+        }
+        if (message.block !== undefined) {
+            obj.block = BlockMetadata.toJSON(message.block);
+        }
+        if (message.timeFirstSeen !== '0') {
+            obj.timeFirstSeen = message.timeFirstSeen;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TokenInfo>, I>>(base?: I): TokenInfo {
+        return TokenInfo.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TokenInfo>, I>>(
+        object: I,
+    ): TokenInfo {
+        const message = createBaseTokenInfo();
+        message.tokenId = object.tokenId ?? '';
+        message.tokenType =
+            object.tokenType !== undefined && object.tokenType !== null
+                ? TokenType.fromPartial(object.tokenType)
+                : undefined;
+        message.genesisInfo =
+            object.genesisInfo !== undefined && object.genesisInfo !== null
+                ? GenesisInfo.fromPartial(object.genesisInfo)
+                : undefined;
+        message.block =
+            object.block !== undefined && object.block !== null
+                ? BlockMetadata.fromPartial(object.block)
+                : undefined;
+        message.timeFirstSeen = object.timeFirstSeen ?? '0';
+        return message;
+    },
+};
+
+function createBaseTokenEntry(): TokenEntry {
+    return {
+        tokenId: '',
+        tokenType: undefined,
+        txType: 0,
+        groupTokenId: '',
+        isInvalid: false,
+        burnSummary: '',
+        failedColorings: [],
+        actualBurnAmount: '',
+        intentionalBurn: '0',
+        burnsMintBatons: false,
+    };
+}
+
+export const TokenEntry = {
+    encode(
+        message: TokenEntry,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.tokenId !== '') {
+            writer.uint32(10).string(message.tokenId);
+        }
+        if (message.tokenType !== undefined) {
+            TokenType.encode(
+                message.tokenType,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        if (message.txType !== 0) {
+            writer.uint32(24).int32(message.txType);
+        }
+        if (message.groupTokenId !== '') {
+            writer.uint32(34).string(message.groupTokenId);
+        }
+        if (message.isInvalid === true) {
+            writer.uint32(40).bool(message.isInvalid);
+        }
+        if (message.burnSummary !== '') {
+            writer.uint32(50).string(message.burnSummary);
+        }
+        for (const v of message.failedColorings) {
+            TokenFailedColoring.encode(v!, writer.uint32(58).fork()).ldelim();
+        }
+        if (message.actualBurnAmount !== '') {
+            writer.uint32(66).string(message.actualBurnAmount);
+        }
+        if (message.intentionalBurn !== '0') {
+            writer.uint32(72).uint64(message.intentionalBurn);
+        }
+        if (message.burnsMintBatons === true) {
+            writer.uint32(80).bool(message.burnsMintBatons);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): TokenEntry {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTokenEntry();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.tokenId = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.tokenType = TokenType.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
+                case 3:
+                    if (tag !== 24) {
+                        break;
+                    }
+
+                    message.txType = reader.int32() as any;
+                    continue;
+                case 4:
+                    if (tag !== 34) {
+                        break;
+                    }
+
+                    message.groupTokenId = reader.string();
+                    continue;
+                case 5:
+                    if (tag !== 40) {
+                        break;
+                    }
+
+                    message.isInvalid = reader.bool();
+                    continue;
+                case 6:
+                    if (tag !== 50) {
+                        break;
+                    }
+
+                    message.burnSummary = reader.string();
+                    continue;
+                case 7:
+                    if (tag !== 58) {
+                        break;
+                    }
+
+                    message.failedColorings.push(
+                        TokenFailedColoring.decode(reader, reader.uint32()),
+                    );
+                    continue;
+                case 8:
+                    if (tag !== 66) {
+                        break;
+                    }
+
+                    message.actualBurnAmount = reader.string();
+                    continue;
+                case 9:
+                    if (tag !== 72) {
+                        break;
+                    }
+
+                    message.intentionalBurn = longToString(
+                        reader.uint64() as Long,
+                    );
+                    continue;
+                case 10:
+                    if (tag !== 80) {
+                        break;
+                    }
+
+                    message.burnsMintBatons = reader.bool();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TokenEntry {
+        return {
+            tokenId: isSet(object.tokenId)
+                ? globalThis.String(object.tokenId)
+                : '',
+            tokenType: isSet(object.tokenType)
+                ? TokenType.fromJSON(object.tokenType)
+                : undefined,
+            txType: isSet(object.txType)
+                ? tokenTxTypeFromJSON(object.txType)
+                : 0,
+            groupTokenId: isSet(object.groupTokenId)
+                ? globalThis.String(object.groupTokenId)
+                : '',
+            isInvalid: isSet(object.isInvalid)
+                ? globalThis.Boolean(object.isInvalid)
+                : false,
+            burnSummary: isSet(object.burnSummary)
+                ? globalThis.String(object.burnSummary)
+                : '',
+            failedColorings: globalThis.Array.isArray(object?.failedColorings)
+                ? object.failedColorings.map((e: any) =>
+                      TokenFailedColoring.fromJSON(e),
+                  )
+                : [],
+            actualBurnAmount: isSet(object.actualBurnAmount)
+                ? globalThis.String(object.actualBurnAmount)
+                : '',
+            intentionalBurn: isSet(object.intentionalBurn)
+                ? globalThis.String(object.intentionalBurn)
+                : '0',
+            burnsMintBatons: isSet(object.burnsMintBatons)
+                ? globalThis.Boolean(object.burnsMintBatons)
+                : false,
+        };
+    },
+
+    toJSON(message: TokenEntry): unknown {
+        const obj: any = {};
+        if (message.tokenId !== '') {
+            obj.tokenId = message.tokenId;
+        }
+        if (message.tokenType !== undefined) {
+            obj.tokenType = TokenType.toJSON(message.tokenType);
+        }
+        if (message.txType !== 0) {
+            obj.txType = tokenTxTypeToJSON(message.txType);
+        }
+        if (message.groupTokenId !== '') {
+            obj.groupTokenId = message.groupTokenId;
+        }
+        if (message.isInvalid === true) {
+            obj.isInvalid = message.isInvalid;
+        }
+        if (message.burnSummary !== '') {
+            obj.burnSummary = message.burnSummary;
+        }
+        if (message.failedColorings?.length) {
+            obj.failedColorings = message.failedColorings.map(e =>
+                TokenFailedColoring.toJSON(e),
+            );
+        }
+        if (message.actualBurnAmount !== '') {
+            obj.actualBurnAmount = message.actualBurnAmount;
+        }
+        if (message.intentionalBurn !== '0') {
+            obj.intentionalBurn = message.intentionalBurn;
+        }
+        if (message.burnsMintBatons === true) {
+            obj.burnsMintBatons = message.burnsMintBatons;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TokenEntry>, I>>(base?: I): TokenEntry {
+        return TokenEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TokenEntry>, I>>(
+        object: I,
+    ): TokenEntry {
+        const message = createBaseTokenEntry();
+        message.tokenId = object.tokenId ?? '';
+        message.tokenType =
+            object.tokenType !== undefined && object.tokenType !== null
+                ? TokenType.fromPartial(object.tokenType)
+                : undefined;
+        message.txType = object.txType ?? 0;
+        message.groupTokenId = object.groupTokenId ?? '';
+        message.isInvalid = object.isInvalid ?? false;
+        message.burnSummary = object.burnSummary ?? '';
+        message.failedColorings =
+            object.failedColorings?.map(e =>
+                TokenFailedColoring.fromPartial(e),
+            ) || [];
+        message.actualBurnAmount = object.actualBurnAmount ?? '';
+        message.intentionalBurn = object.intentionalBurn ?? '0';
+        message.burnsMintBatons = object.burnsMintBatons ?? false;
+        return message;
+    },
+};
+
+function createBaseGenesisInfo(): GenesisInfo {
+    return {
+        tokenTicker: new Uint8Array(0),
+        tokenName: new Uint8Array(0),
+        url: new Uint8Array(0),
+        hash: new Uint8Array(0),
+        mintVaultScripthash: new Uint8Array(0),
+        data: new Uint8Array(0),
+        authPubkey: new Uint8Array(0),
+        decimals: 0,
+    };
+}
+
+export const GenesisInfo = {
+    encode(
+        message: GenesisInfo,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.tokenTicker.length !== 0) {
+            writer.uint32(10).bytes(message.tokenTicker);
+        }
+        if (message.tokenName.length !== 0) {
+            writer.uint32(18).bytes(message.tokenName);
+        }
+        if (message.url.length !== 0) {
+            writer.uint32(26).bytes(message.url);
+        }
+        if (message.hash.length !== 0) {
+            writer.uint32(34).bytes(message.hash);
+        }
+        if (message.mintVaultScripthash.length !== 0) {
+            writer.uint32(42).bytes(message.mintVaultScripthash);
+        }
+        if (message.data.length !== 0) {
+            writer.uint32(50).bytes(message.data);
+        }
+        if (message.authPubkey.length !== 0) {
+            writer.uint32(58).bytes(message.authPubkey);
+        }
+        if (message.decimals !== 0) {
+            writer.uint32(64).uint32(message.decimals);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): GenesisInfo {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseGenesisInfo();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.tokenTicker = reader.bytes();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.tokenName = reader.bytes();
+                    continue;
+                case 3:
+                    if (tag !== 26) {
+                        break;
+                    }
+
+                    message.url = reader.bytes();
+                    continue;
+                case 4:
+                    if (tag !== 34) {
+                        break;
+                    }
+
+                    message.hash = reader.bytes();
+                    continue;
+                case 5:
+                    if (tag !== 42) {
+                        break;
+                    }
+
+                    message.mintVaultScripthash = reader.bytes();
+                    continue;
+                case 6:
+                    if (tag !== 50) {
+                        break;
+                    }
+
+                    message.data = reader.bytes();
+                    continue;
+                case 7:
+                    if (tag !== 58) {
+                        break;
+                    }
+
+                    message.authPubkey = reader.bytes();
+                    continue;
+                case 8:
+                    if (tag !== 64) {
+                        break;
+                    }
+
+                    message.decimals = reader.uint32();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): GenesisInfo {
+        return {
+            tokenTicker: isSet(object.tokenTicker)
+                ? bytesFromBase64(object.tokenTicker)
+                : new Uint8Array(0),
+            tokenName: isSet(object.tokenName)
+                ? bytesFromBase64(object.tokenName)
+                : new Uint8Array(0),
+            url: isSet(object.url)
+                ? bytesFromBase64(object.url)
+                : new Uint8Array(0),
+            hash: isSet(object.hash)
+                ? bytesFromBase64(object.hash)
+                : new Uint8Array(0),
+            mintVaultScripthash: isSet(object.mintVaultScripthash)
+                ? bytesFromBase64(object.mintVaultScripthash)
+                : new Uint8Array(0),
+            data: isSet(object.data)
+                ? bytesFromBase64(object.data)
+                : new Uint8Array(0),
+            authPubkey: isSet(object.authPubkey)
+                ? bytesFromBase64(object.authPubkey)
+                : new Uint8Array(0),
+            decimals: isSet(object.decimals)
+                ? globalThis.Number(object.decimals)
+                : 0,
+        };
+    },
+
+    toJSON(message: GenesisInfo): unknown {
+        const obj: any = {};
+        if (message.tokenTicker.length !== 0) {
+            obj.tokenTicker = base64FromBytes(message.tokenTicker);
+        }
+        if (message.tokenName.length !== 0) {
+            obj.tokenName = base64FromBytes(message.tokenName);
+        }
+        if (message.url.length !== 0) {
+            obj.url = base64FromBytes(message.url);
+        }
+        if (message.hash.length !== 0) {
+            obj.hash = base64FromBytes(message.hash);
+        }
+        if (message.mintVaultScripthash.length !== 0) {
+            obj.mintVaultScripthash = base64FromBytes(
+                message.mintVaultScripthash,
+            );
+        }
+        if (message.data.length !== 0) {
+            obj.data = base64FromBytes(message.data);
+        }
+        if (message.authPubkey.length !== 0) {
+            obj.authPubkey = base64FromBytes(message.authPubkey);
+        }
+        if (message.decimals !== 0) {
+            obj.decimals = Math.round(message.decimals);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<GenesisInfo>, I>>(
+        base?: I,
+    ): GenesisInfo {
+        return GenesisInfo.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<GenesisInfo>, I>>(
+        object: I,
+    ): GenesisInfo {
+        const message = createBaseGenesisInfo();
+        message.tokenTicker = object.tokenTicker ?? new Uint8Array(0);
+        message.tokenName = object.tokenName ?? new Uint8Array(0);
+        message.url = object.url ?? new Uint8Array(0);
+        message.hash = object.hash ?? new Uint8Array(0);
+        message.mintVaultScripthash =
+            object.mintVaultScripthash ?? new Uint8Array(0);
+        message.data = object.data ?? new Uint8Array(0);
+        message.authPubkey = object.authPubkey ?? new Uint8Array(0);
+        message.decimals = object.decimals ?? 0;
+        return message;
+    },
+};
+
+function createBaseToken(): Token {
+    return {
+        tokenId: '',
+        tokenType: undefined,
+        entryIdx: 0,
+        amount: '0',
+        isMintBaton: false,
+    };
+}
+
+export const Token = {
+    encode(
+        message: Token,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.tokenId !== '') {
+            writer.uint32(10).string(message.tokenId);
+        }
+        if (message.tokenType !== undefined) {
+            TokenType.encode(
+                message.tokenType,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        if (message.entryIdx !== 0) {
+            writer.uint32(24).int32(message.entryIdx);
+        }
+        if (message.amount !== '0') {
+            writer.uint32(32).uint64(message.amount);
+        }
+        if (message.isMintBaton === true) {
+            writer.uint32(40).bool(message.isMintBaton);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): Token {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseToken();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.tokenId = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.tokenType = TokenType.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
+                case 3:
+                    if (tag !== 24) {
+                        break;
+                    }
+
+                    message.entryIdx = reader.int32();
+                    continue;
+                case 4:
+                    if (tag !== 32) {
+                        break;
+                    }
+
+                    message.amount = longToString(reader.uint64() as Long);
+                    continue;
+                case 5:
+                    if (tag !== 40) {
+                        break;
+                    }
+
+                    message.isMintBaton = reader.bool();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): Token {
+        return {
+            tokenId: isSet(object.tokenId)
+                ? globalThis.String(object.tokenId)
+                : '',
+            tokenType: isSet(object.tokenType)
+                ? TokenType.fromJSON(object.tokenType)
+                : undefined,
+            entryIdx: isSet(object.entryIdx)
+                ? globalThis.Number(object.entryIdx)
+                : 0,
+            amount: isSet(object.amount)
+                ? globalThis.String(object.amount)
+                : '0',
+            isMintBaton: isSet(object.isMintBaton)
+                ? globalThis.Boolean(object.isMintBaton)
+                : false,
+        };
+    },
+
+    toJSON(message: Token): unknown {
+        const obj: any = {};
+        if (message.tokenId !== '') {
+            obj.tokenId = message.tokenId;
+        }
+        if (message.tokenType !== undefined) {
+            obj.tokenType = TokenType.toJSON(message.tokenType);
+        }
+        if (message.entryIdx !== 0) {
+            obj.entryIdx = Math.round(message.entryIdx);
+        }
+        if (message.amount !== '0') {
+            obj.amount = message.amount;
+        }
+        if (message.isMintBaton === true) {
+            obj.isMintBaton = message.isMintBaton;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<Token>, I>>(base?: I): Token {
+        return Token.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<Token>, I>>(object: I): Token {
+        const message = createBaseToken();
+        message.tokenId = object.tokenId ?? '';
+        message.tokenType =
+            object.tokenType !== undefined && object.tokenType !== null
+                ? TokenType.fromPartial(object.tokenType)
+                : undefined;
+        message.entryIdx = object.entryIdx ?? 0;
+        message.amount = object.amount ?? '0';
+        message.isMintBaton = object.isMintBaton ?? false;
+        return message;
+    },
+};
+
+function createBaseTokenFailedParsing(): TokenFailedParsing {
+    return { pushdataIdx: 0, bytes: new Uint8Array(0), error: '' };
+}
+
+export const TokenFailedParsing = {
+    encode(
+        message: TokenFailedParsing,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.pushdataIdx !== 0) {
+            writer.uint32(8).int32(message.pushdataIdx);
+        }
+        if (message.bytes.length !== 0) {
+            writer.uint32(18).bytes(message.bytes);
+        }
+        if (message.error !== '') {
+            writer.uint32(26).string(message.error);
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): TokenFailedParsing {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTokenFailedParsing();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 8) {
+                        break;
+                    }
+
+                    message.pushdataIdx = reader.int32();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.bytes = reader.bytes();
+                    continue;
+                case 3:
+                    if (tag !== 26) {
+                        break;
+                    }
+
+                    message.error = reader.string();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TokenFailedParsing {
+        return {
+            pushdataIdx: isSet(object.pushdataIdx)
+                ? globalThis.Number(object.pushdataIdx)
+                : 0,
+            bytes: isSet(object.bytes)
+                ? bytesFromBase64(object.bytes)
+                : new Uint8Array(0),
+            error: isSet(object.error) ? globalThis.String(object.error) : '',
+        };
+    },
+
+    toJSON(message: TokenFailedParsing): unknown {
+        const obj: any = {};
+        if (message.pushdataIdx !== 0) {
+            obj.pushdataIdx = Math.round(message.pushdataIdx);
+        }
+        if (message.bytes.length !== 0) {
+            obj.bytes = base64FromBytes(message.bytes);
+        }
+        if (message.error !== '') {
+            obj.error = message.error;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TokenFailedParsing>, I>>(
+        base?: I,
+    ): TokenFailedParsing {
+        return TokenFailedParsing.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TokenFailedParsing>, I>>(
+        object: I,
+    ): TokenFailedParsing {
+        const message = createBaseTokenFailedParsing();
+        message.pushdataIdx = object.pushdataIdx ?? 0;
+        message.bytes = object.bytes ?? new Uint8Array(0);
+        message.error = object.error ?? '';
+        return message;
+    },
+};
+
+function createBaseTokenFailedColoring(): TokenFailedColoring {
+    return { pushdataIdx: 0, error: '' };
+}
+
+export const TokenFailedColoring = {
+    encode(
+        message: TokenFailedColoring,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.pushdataIdx !== 0) {
+            writer.uint32(8).int32(message.pushdataIdx);
+        }
+        if (message.error !== '') {
+            writer.uint32(26).string(message.error);
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): TokenFailedColoring {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTokenFailedColoring();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 8) {
+                        break;
+                    }
+
+                    message.pushdataIdx = reader.int32();
+                    continue;
+                case 3:
+                    if (tag !== 26) {
+                        break;
+                    }
+
+                    message.error = reader.string();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TokenFailedColoring {
+        return {
+            pushdataIdx: isSet(object.pushdataIdx)
+                ? globalThis.Number(object.pushdataIdx)
+                : 0,
+            error: isSet(object.error) ? globalThis.String(object.error) : '',
+        };
+    },
+
+    toJSON(message: TokenFailedColoring): unknown {
+        const obj: any = {};
+        if (message.pushdataIdx !== 0) {
+            obj.pushdataIdx = Math.round(message.pushdataIdx);
+        }
+        if (message.error !== '') {
+            obj.error = message.error;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TokenFailedColoring>, I>>(
+        base?: I,
+    ): TokenFailedColoring {
+        return TokenFailedColoring.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TokenFailedColoring>, I>>(
+        object: I,
+    ): TokenFailedColoring {
+        const message = createBaseTokenFailedColoring();
+        message.pushdataIdx = object.pushdataIdx ?? 0;
+        message.error = object.error ?? '';
         return message;
     },
 };
@@ -1841,28 +3619,28 @@ export const TxHistoryPage = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.txs.push(Tx.decode(reader, reader.uint32()));
                     continue;
                 case 2:
-                    if (tag != 16) {
+                    if (tag !== 16) {
                         break;
                     }
 
                     message.numPages = reader.uint32();
                     continue;
                 case 3:
-                    if (tag != 24) {
+                    if (tag !== 24) {
                         break;
                     }
 
                     message.numTxs = reader.uint32();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1872,34 +3650,35 @@ export const TxHistoryPage = {
 
     fromJSON(object: any): TxHistoryPage {
         return {
-            txs: Array.isArray(object?.txs)
+            txs: globalThis.Array.isArray(object?.txs)
                 ? object.txs.map((e: any) => Tx.fromJSON(e))
                 : [],
-            numPages: isSet(object.numPages) ? Number(object.numPages) : 0,
-            numTxs: isSet(object.numTxs) ? Number(object.numTxs) : 0,
+            numPages: isSet(object.numPages)
+                ? globalThis.Number(object.numPages)
+                : 0,
+            numTxs: isSet(object.numTxs) ? globalThis.Number(object.numTxs) : 0,
         };
     },
 
     toJSON(message: TxHistoryPage): unknown {
         const obj: any = {};
-        if (message.txs) {
-            obj.txs = message.txs.map(e => (e ? Tx.toJSON(e) : undefined));
-        } else {
-            obj.txs = [];
+        if (message.txs?.length) {
+            obj.txs = message.txs.map(e => Tx.toJSON(e));
         }
-        message.numPages !== undefined &&
-            (obj.numPages = Math.round(message.numPages));
-        message.numTxs !== undefined &&
-            (obj.numTxs = Math.round(message.numTxs));
+        if (message.numPages !== 0) {
+            obj.numPages = Math.round(message.numPages);
+        }
+        if (message.numTxs !== 0) {
+            obj.numTxs = Math.round(message.numTxs);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<TxHistoryPage>, I>>(
         base?: I,
     ): TxHistoryPage {
-        return TxHistoryPage.fromPartial(base ?? {});
+        return TxHistoryPage.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<TxHistoryPage>, I>>(
         object: I,
     ): TxHistoryPage {
@@ -1912,7 +3691,7 @@ export const TxHistoryPage = {
 };
 
 function createBaseScriptUtxos(): ScriptUtxos {
-    return { script: new Uint8Array(), utxos: [] };
+    return { script: new Uint8Array(0), utxos: [] };
 }
 
 export const ScriptUtxos = {
@@ -1938,14 +3717,14 @@ export const ScriptUtxos = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.script = reader.bytes();
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
@@ -1954,7 +3733,7 @@ export const ScriptUtxos = {
                     );
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -1966,8 +3745,8 @@ export const ScriptUtxos = {
         return {
             script: isSet(object.script)
                 ? bytesFromBase64(object.script)
-                : new Uint8Array(),
-            utxos: Array.isArray(object?.utxos)
+                : new Uint8Array(0),
+            utxos: globalThis.Array.isArray(object?.utxos)
                 ? object.utxos.map((e: any) => ScriptUtxo.fromJSON(e))
                 : [],
         };
@@ -1975,18 +3754,11 @@ export const ScriptUtxos = {
 
     toJSON(message: ScriptUtxos): unknown {
         const obj: any = {};
-        message.script !== undefined &&
-            (obj.script = base64FromBytes(
-                message.script !== undefined
-                    ? message.script
-                    : new Uint8Array(),
-            ));
-        if (message.utxos) {
-            obj.utxos = message.utxos.map(e =>
-                e ? ScriptUtxo.toJSON(e) : undefined,
-            );
-        } else {
-            obj.utxos = [];
+        if (message.script.length !== 0) {
+            obj.script = base64FromBytes(message.script);
+        }
+        if (message.utxos?.length) {
+            obj.utxos = message.utxos.map(e => ScriptUtxo.toJSON(e));
         }
         return obj;
     },
@@ -1994,21 +3766,407 @@ export const ScriptUtxos = {
     create<I extends Exact<DeepPartial<ScriptUtxos>, I>>(
         base?: I,
     ): ScriptUtxos {
-        return ScriptUtxos.fromPartial(base ?? {});
+        return ScriptUtxos.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<ScriptUtxos>, I>>(
         object: I,
     ): ScriptUtxos {
         const message = createBaseScriptUtxos();
-        message.script = object.script ?? new Uint8Array();
+        message.script = object.script ?? new Uint8Array(0);
         message.utxos = object.utxos?.map(e => ScriptUtxo.fromPartial(e)) || [];
         return message;
     },
 };
 
+function createBaseUtxos(): Utxos {
+    return { utxos: [] };
+}
+
+export const Utxos = {
+    encode(
+        message: Utxos,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.utxos) {
+            Utxo.encode(v!, writer.uint32(10).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): Utxos {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseUtxos();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.utxos.push(Utxo.decode(reader, reader.uint32()));
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): Utxos {
+        return {
+            utxos: globalThis.Array.isArray(object?.utxos)
+                ? object.utxos.map((e: any) => Utxo.fromJSON(e))
+                : [],
+        };
+    },
+
+    toJSON(message: Utxos): unknown {
+        const obj: any = {};
+        if (message.utxos?.length) {
+            obj.utxos = message.utxos.map(e => Utxo.toJSON(e));
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<Utxos>, I>>(base?: I): Utxos {
+        return Utxos.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<Utxos>, I>>(object: I): Utxos {
+        const message = createBaseUtxos();
+        message.utxos = object.utxos?.map(e => Utxo.fromPartial(e)) || [];
+        return message;
+    },
+};
+
+function createBaseBroadcastTxRequest(): BroadcastTxRequest {
+    return { rawTx: new Uint8Array(0), skipTokenChecks: false };
+}
+
+export const BroadcastTxRequest = {
+    encode(
+        message: BroadcastTxRequest,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.rawTx.length !== 0) {
+            writer.uint32(10).bytes(message.rawTx);
+        }
+        if (message.skipTokenChecks === true) {
+            writer.uint32(16).bool(message.skipTokenChecks);
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): BroadcastTxRequest {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseBroadcastTxRequest();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.rawTx = reader.bytes();
+                    continue;
+                case 2:
+                    if (tag !== 16) {
+                        break;
+                    }
+
+                    message.skipTokenChecks = reader.bool();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): BroadcastTxRequest {
+        return {
+            rawTx: isSet(object.rawTx)
+                ? bytesFromBase64(object.rawTx)
+                : new Uint8Array(0),
+            skipTokenChecks: isSet(object.skipTokenChecks)
+                ? globalThis.Boolean(object.skipTokenChecks)
+                : false,
+        };
+    },
+
+    toJSON(message: BroadcastTxRequest): unknown {
+        const obj: any = {};
+        if (message.rawTx.length !== 0) {
+            obj.rawTx = base64FromBytes(message.rawTx);
+        }
+        if (message.skipTokenChecks === true) {
+            obj.skipTokenChecks = message.skipTokenChecks;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<BroadcastTxRequest>, I>>(
+        base?: I,
+    ): BroadcastTxRequest {
+        return BroadcastTxRequest.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<BroadcastTxRequest>, I>>(
+        object: I,
+    ): BroadcastTxRequest {
+        const message = createBaseBroadcastTxRequest();
+        message.rawTx = object.rawTx ?? new Uint8Array(0);
+        message.skipTokenChecks = object.skipTokenChecks ?? false;
+        return message;
+    },
+};
+
+function createBaseBroadcastTxResponse(): BroadcastTxResponse {
+    return { txid: new Uint8Array(0) };
+}
+
+export const BroadcastTxResponse = {
+    encode(
+        message: BroadcastTxResponse,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.txid.length !== 0) {
+            writer.uint32(10).bytes(message.txid);
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): BroadcastTxResponse {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseBroadcastTxResponse();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.txid = reader.bytes();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): BroadcastTxResponse {
+        return {
+            txid: isSet(object.txid)
+                ? bytesFromBase64(object.txid)
+                : new Uint8Array(0),
+        };
+    },
+
+    toJSON(message: BroadcastTxResponse): unknown {
+        const obj: any = {};
+        if (message.txid.length !== 0) {
+            obj.txid = base64FromBytes(message.txid);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<BroadcastTxResponse>, I>>(
+        base?: I,
+    ): BroadcastTxResponse {
+        return BroadcastTxResponse.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<BroadcastTxResponse>, I>>(
+        object: I,
+    ): BroadcastTxResponse {
+        const message = createBaseBroadcastTxResponse();
+        message.txid = object.txid ?? new Uint8Array(0);
+        return message;
+    },
+};
+
+function createBaseBroadcastTxsRequest(): BroadcastTxsRequest {
+    return { rawTxs: [], skipTokenChecks: false };
+}
+
+export const BroadcastTxsRequest = {
+    encode(
+        message: BroadcastTxsRequest,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.rawTxs) {
+            writer.uint32(10).bytes(v!);
+        }
+        if (message.skipTokenChecks === true) {
+            writer.uint32(16).bool(message.skipTokenChecks);
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): BroadcastTxsRequest {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseBroadcastTxsRequest();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.rawTxs.push(reader.bytes());
+                    continue;
+                case 2:
+                    if (tag !== 16) {
+                        break;
+                    }
+
+                    message.skipTokenChecks = reader.bool();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): BroadcastTxsRequest {
+        return {
+            rawTxs: globalThis.Array.isArray(object?.rawTxs)
+                ? object.rawTxs.map((e: any) => bytesFromBase64(e))
+                : [],
+            skipTokenChecks: isSet(object.skipTokenChecks)
+                ? globalThis.Boolean(object.skipTokenChecks)
+                : false,
+        };
+    },
+
+    toJSON(message: BroadcastTxsRequest): unknown {
+        const obj: any = {};
+        if (message.rawTxs?.length) {
+            obj.rawTxs = message.rawTxs.map(e => base64FromBytes(e));
+        }
+        if (message.skipTokenChecks === true) {
+            obj.skipTokenChecks = message.skipTokenChecks;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<BroadcastTxsRequest>, I>>(
+        base?: I,
+    ): BroadcastTxsRequest {
+        return BroadcastTxsRequest.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<BroadcastTxsRequest>, I>>(
+        object: I,
+    ): BroadcastTxsRequest {
+        const message = createBaseBroadcastTxsRequest();
+        message.rawTxs = object.rawTxs?.map(e => e) || [];
+        message.skipTokenChecks = object.skipTokenChecks ?? false;
+        return message;
+    },
+};
+
+function createBaseBroadcastTxsResponse(): BroadcastTxsResponse {
+    return { txids: [] };
+}
+
+export const BroadcastTxsResponse = {
+    encode(
+        message: BroadcastTxsResponse,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.txids) {
+            writer.uint32(10).bytes(v!);
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): BroadcastTxsResponse {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseBroadcastTxsResponse();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.txids.push(reader.bytes());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): BroadcastTxsResponse {
+        return {
+            txids: globalThis.Array.isArray(object?.txids)
+                ? object.txids.map((e: any) => bytesFromBase64(e))
+                : [],
+        };
+    },
+
+    toJSON(message: BroadcastTxsResponse): unknown {
+        const obj: any = {};
+        if (message.txids?.length) {
+            obj.txids = message.txids.map(e => base64FromBytes(e));
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<BroadcastTxsResponse>, I>>(
+        base?: I,
+    ): BroadcastTxsResponse {
+        return BroadcastTxsResponse.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<BroadcastTxsResponse>, I>>(
+        object: I,
+    ): BroadcastTxsResponse {
+        const message = createBaseBroadcastTxsResponse();
+        message.txids = object.txids?.map(e => e) || [];
+        return message;
+    },
+};
+
 function createBaseRawTx(): RawTx {
-    return { rawTx: new Uint8Array() };
+    return { rawTx: new Uint8Array(0) };
 }
 
 export const RawTx = {
@@ -2031,14 +4189,14 @@ export const RawTx = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.rawTx = reader.bytes();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2050,32 +4208,35 @@ export const RawTx = {
         return {
             rawTx: isSet(object.rawTx)
                 ? bytesFromBase64(object.rawTx)
-                : new Uint8Array(),
+                : new Uint8Array(0),
         };
     },
 
     toJSON(message: RawTx): unknown {
         const obj: any = {};
-        message.rawTx !== undefined &&
-            (obj.rawTx = base64FromBytes(
-                message.rawTx !== undefined ? message.rawTx : new Uint8Array(),
-            ));
+        if (message.rawTx.length !== 0) {
+            obj.rawTx = base64FromBytes(message.rawTx);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<RawTx>, I>>(base?: I): RawTx {
-        return RawTx.fromPartial(base ?? {});
+        return RawTx.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<RawTx>, I>>(object: I): RawTx {
         const message = createBaseRawTx();
-        message.rawTx = object.rawTx ?? new Uint8Array();
+        message.rawTx = object.rawTx ?? new Uint8Array(0);
         return message;
     },
 };
 
 function createBaseWsSub(): WsSub {
-    return { isUnsub: false, blocks: undefined, script: undefined };
+    return {
+        isUnsub: false,
+        blocks: undefined,
+        script: undefined,
+        tokenId: undefined,
+    };
 }
 
 export const WsSub = {
@@ -2098,6 +4259,12 @@ export const WsSub = {
                 writer.uint32(26).fork(),
             ).ldelim();
         }
+        if (message.tokenId !== undefined) {
+            WsSubTokenId.encode(
+                message.tokenId,
+                writer.uint32(34).fork(),
+            ).ldelim();
+        }
         return writer;
     },
 
@@ -2110,14 +4277,14 @@ export const WsSub = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 8) {
+                    if (tag !== 8) {
                         break;
                     }
 
                     message.isUnsub = reader.bool();
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
@@ -2127,7 +4294,7 @@ export const WsSub = {
                     );
                     continue;
                 case 3:
-                    if (tag != 26) {
+                    if (tag !== 26) {
                         break;
                     }
 
@@ -2136,8 +4303,18 @@ export const WsSub = {
                         reader.uint32(),
                     );
                     continue;
+                case 4:
+                    if (tag !== 34) {
+                        break;
+                    }
+
+                    message.tokenId = WsSubTokenId.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2147,34 +4324,41 @@ export const WsSub = {
 
     fromJSON(object: any): WsSub {
         return {
-            isUnsub: isSet(object.isUnsub) ? Boolean(object.isUnsub) : false,
+            isUnsub: isSet(object.isUnsub)
+                ? globalThis.Boolean(object.isUnsub)
+                : false,
             blocks: isSet(object.blocks)
                 ? WsSubBlocks.fromJSON(object.blocks)
                 : undefined,
             script: isSet(object.script)
                 ? WsSubScript.fromJSON(object.script)
                 : undefined,
+            tokenId: isSet(object.tokenId)
+                ? WsSubTokenId.fromJSON(object.tokenId)
+                : undefined,
         };
     },
 
     toJSON(message: WsSub): unknown {
         const obj: any = {};
-        message.isUnsub !== undefined && (obj.isUnsub = message.isUnsub);
-        message.blocks !== undefined &&
-            (obj.blocks = message.blocks
-                ? WsSubBlocks.toJSON(message.blocks)
-                : undefined);
-        message.script !== undefined &&
-            (obj.script = message.script
-                ? WsSubScript.toJSON(message.script)
-                : undefined);
+        if (message.isUnsub === true) {
+            obj.isUnsub = message.isUnsub;
+        }
+        if (message.blocks !== undefined) {
+            obj.blocks = WsSubBlocks.toJSON(message.blocks);
+        }
+        if (message.script !== undefined) {
+            obj.script = WsSubScript.toJSON(message.script);
+        }
+        if (message.tokenId !== undefined) {
+            obj.tokenId = WsSubTokenId.toJSON(message.tokenId);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<WsSub>, I>>(base?: I): WsSub {
-        return WsSub.fromPartial(base ?? {});
+        return WsSub.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<WsSub>, I>>(object: I): WsSub {
         const message = createBaseWsSub();
         message.isUnsub = object.isUnsub ?? false;
@@ -2185,6 +4369,10 @@ export const WsSub = {
         message.script =
             object.script !== undefined && object.script !== null
                 ? WsSubScript.fromPartial(object.script)
+                : undefined;
+        message.tokenId =
+            object.tokenId !== undefined && object.tokenId !== null
+                ? WsSubTokenId.fromPartial(object.tokenId)
                 : undefined;
         return message;
     },
@@ -2211,7 +4399,7 @@ export const WsSubBlocks = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2231,9 +4419,8 @@ export const WsSubBlocks = {
     create<I extends Exact<DeepPartial<WsSubBlocks>, I>>(
         base?: I,
     ): WsSubBlocks {
-        return WsSubBlocks.fromPartial(base ?? {});
+        return WsSubBlocks.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<WsSubBlocks>, I>>(
         _: I,
     ): WsSubBlocks {
@@ -2243,7 +4430,7 @@ export const WsSubBlocks = {
 };
 
 function createBaseWsSubScript(): WsSubScript {
-    return { scriptType: '', payload: new Uint8Array() };
+    return { scriptType: '', payload: new Uint8Array(0) };
 }
 
 export const WsSubScript = {
@@ -2269,21 +4456,21 @@ export const WsSubScript = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.scriptType = reader.string();
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.payload = reader.bytes();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2294,39 +4481,105 @@ export const WsSubScript = {
     fromJSON(object: any): WsSubScript {
         return {
             scriptType: isSet(object.scriptType)
-                ? String(object.scriptType)
+                ? globalThis.String(object.scriptType)
                 : '',
             payload: isSet(object.payload)
                 ? bytesFromBase64(object.payload)
-                : new Uint8Array(),
+                : new Uint8Array(0),
         };
     },
 
     toJSON(message: WsSubScript): unknown {
         const obj: any = {};
-        message.scriptType !== undefined &&
-            (obj.scriptType = message.scriptType);
-        message.payload !== undefined &&
-            (obj.payload = base64FromBytes(
-                message.payload !== undefined
-                    ? message.payload
-                    : new Uint8Array(),
-            ));
+        if (message.scriptType !== '') {
+            obj.scriptType = message.scriptType;
+        }
+        if (message.payload.length !== 0) {
+            obj.payload = base64FromBytes(message.payload);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<WsSubScript>, I>>(
         base?: I,
     ): WsSubScript {
-        return WsSubScript.fromPartial(base ?? {});
+        return WsSubScript.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<WsSubScript>, I>>(
         object: I,
     ): WsSubScript {
         const message = createBaseWsSubScript();
         message.scriptType = object.scriptType ?? '';
-        message.payload = object.payload ?? new Uint8Array();
+        message.payload = object.payload ?? new Uint8Array(0);
+        return message;
+    },
+};
+
+function createBaseWsSubTokenId(): WsSubTokenId {
+    return { tokenId: '' };
+}
+
+export const WsSubTokenId = {
+    encode(
+        message: WsSubTokenId,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.tokenId !== '') {
+            writer.uint32(10).string(message.tokenId);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): WsSubTokenId {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseWsSubTokenId();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.tokenId = reader.string();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): WsSubTokenId {
+        return {
+            tokenId: isSet(object.tokenId)
+                ? globalThis.String(object.tokenId)
+                : '',
+        };
+    },
+
+    toJSON(message: WsSubTokenId): unknown {
+        const obj: any = {};
+        if (message.tokenId !== '') {
+            obj.tokenId = message.tokenId;
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<WsSubTokenId>, I>>(
+        base?: I,
+    ): WsSubTokenId {
+        return WsSubTokenId.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<WsSubTokenId>, I>>(
+        object: I,
+    ): WsSubTokenId {
+        const message = createBaseWsSubTokenId();
+        message.tokenId = object.tokenId ?? '';
         return message;
     },
 };
@@ -2361,28 +4614,28 @@ export const WsMsg = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 10) {
+                    if (tag !== 10) {
                         break;
                     }
 
                     message.error = Error.decode(reader, reader.uint32());
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.block = MsgBlock.decode(reader, reader.uint32());
                     continue;
                 case 3:
-                    if (tag != 26) {
+                    if (tag !== 26) {
                         break;
                     }
 
                     message.tx = MsgTx.decode(reader, reader.uint32());
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2404,23 +4657,21 @@ export const WsMsg = {
 
     toJSON(message: WsMsg): unknown {
         const obj: any = {};
-        message.error !== undefined &&
-            (obj.error = message.error
-                ? Error.toJSON(message.error)
-                : undefined);
-        message.block !== undefined &&
-            (obj.block = message.block
-                ? MsgBlock.toJSON(message.block)
-                : undefined);
-        message.tx !== undefined &&
-            (obj.tx = message.tx ? MsgTx.toJSON(message.tx) : undefined);
+        if (message.error !== undefined) {
+            obj.error = Error.toJSON(message.error);
+        }
+        if (message.block !== undefined) {
+            obj.block = MsgBlock.toJSON(message.block);
+        }
+        if (message.tx !== undefined) {
+            obj.tx = MsgTx.toJSON(message.tx);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<WsMsg>, I>>(base?: I): WsMsg {
-        return WsMsg.fromPartial(base ?? {});
+        return WsMsg.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<WsMsg>, I>>(object: I): WsMsg {
         const message = createBaseWsMsg();
         message.error =
@@ -2440,7 +4691,7 @@ export const WsMsg = {
 };
 
 function createBaseMsgBlock(): MsgBlock {
-    return { msgType: 0, blockHash: new Uint8Array(), blockHeight: 0 };
+    return { msgType: 0, blockHash: new Uint8Array(0), blockHeight: 0 };
 }
 
 export const MsgBlock = {
@@ -2469,28 +4720,28 @@ export const MsgBlock = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 8) {
+                    if (tag !== 8) {
                         break;
                     }
 
                     message.msgType = reader.int32() as any;
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.blockHash = reader.bytes();
                     continue;
                 case 3:
-                    if (tag != 24) {
+                    if (tag !== 24) {
                         break;
                     }
 
                     message.blockHeight = reader.int32();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2505,45 +4756,43 @@ export const MsgBlock = {
                 : 0,
             blockHash: isSet(object.blockHash)
                 ? bytesFromBase64(object.blockHash)
-                : new Uint8Array(),
+                : new Uint8Array(0),
             blockHeight: isSet(object.blockHeight)
-                ? Number(object.blockHeight)
+                ? globalThis.Number(object.blockHeight)
                 : 0,
         };
     },
 
     toJSON(message: MsgBlock): unknown {
         const obj: any = {};
-        message.msgType !== undefined &&
-            (obj.msgType = blockMsgTypeToJSON(message.msgType));
-        message.blockHash !== undefined &&
-            (obj.blockHash = base64FromBytes(
-                message.blockHash !== undefined
-                    ? message.blockHash
-                    : new Uint8Array(),
-            ));
-        message.blockHeight !== undefined &&
-            (obj.blockHeight = Math.round(message.blockHeight));
+        if (message.msgType !== 0) {
+            obj.msgType = blockMsgTypeToJSON(message.msgType);
+        }
+        if (message.blockHash.length !== 0) {
+            obj.blockHash = base64FromBytes(message.blockHash);
+        }
+        if (message.blockHeight !== 0) {
+            obj.blockHeight = Math.round(message.blockHeight);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<MsgBlock>, I>>(base?: I): MsgBlock {
-        return MsgBlock.fromPartial(base ?? {});
+        return MsgBlock.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<MsgBlock>, I>>(
         object: I,
     ): MsgBlock {
         const message = createBaseMsgBlock();
         message.msgType = object.msgType ?? 0;
-        message.blockHash = object.blockHash ?? new Uint8Array();
+        message.blockHash = object.blockHash ?? new Uint8Array(0);
         message.blockHeight = object.blockHeight ?? 0;
         return message;
     },
 };
 
 function createBaseMsgTx(): MsgTx {
-    return { msgType: 0, txid: new Uint8Array() };
+    return { msgType: 0, txid: new Uint8Array(0) };
 }
 
 export const MsgTx = {
@@ -2569,21 +4818,21 @@ export const MsgTx = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 1:
-                    if (tag != 8) {
+                    if (tag !== 8) {
                         break;
                     }
 
                     message.msgType = reader.int32() as any;
                     continue;
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.txid = reader.bytes();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2598,29 +4847,28 @@ export const MsgTx = {
                 : 0,
             txid: isSet(object.txid)
                 ? bytesFromBase64(object.txid)
-                : new Uint8Array(),
+                : new Uint8Array(0),
         };
     },
 
     toJSON(message: MsgTx): unknown {
         const obj: any = {};
-        message.msgType !== undefined &&
-            (obj.msgType = txMsgTypeToJSON(message.msgType));
-        message.txid !== undefined &&
-            (obj.txid = base64FromBytes(
-                message.txid !== undefined ? message.txid : new Uint8Array(),
-            ));
+        if (message.msgType !== 0) {
+            obj.msgType = txMsgTypeToJSON(message.msgType);
+        }
+        if (message.txid.length !== 0) {
+            obj.txid = base64FromBytes(message.txid);
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<MsgTx>, I>>(base?: I): MsgTx {
-        return MsgTx.fromPartial(base ?? {});
+        return MsgTx.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<MsgTx>, I>>(object: I): MsgTx {
         const message = createBaseMsgTx();
         message.msgType = object.msgType ?? 0;
-        message.txid = object.txid ?? new Uint8Array();
+        message.txid = object.txid ?? new Uint8Array(0);
         return message;
     },
 };
@@ -2643,7 +4891,7 @@ export const Empty = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2661,9 +4909,8 @@ export const Empty = {
     },
 
     create<I extends Exact<DeepPartial<Empty>, I>>(base?: I): Empty {
-        return Empty.fromPartial(base ?? {});
+        return Empty.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<Empty>, I>>(_: I): Empty {
         const message = createBaseEmpty();
         return message;
@@ -2694,14 +4941,14 @@ export const Error = {
             const tag = reader.uint32();
             switch (tag >>> 3) {
                 case 2:
-                    if (tag != 18) {
+                    if (tag !== 18) {
                         break;
                     }
 
                     message.msg = reader.string();
                     continue;
             }
-            if ((tag & 7) == 4 || tag == 0) {
+            if ((tag & 7) === 4 || tag === 0) {
                 break;
             }
             reader.skipType(tag & 7);
@@ -2710,19 +4957,20 @@ export const Error = {
     },
 
     fromJSON(object: any): Error {
-        return { msg: isSet(object.msg) ? String(object.msg) : '' };
+        return { msg: isSet(object.msg) ? globalThis.String(object.msg) : '' };
     },
 
     toJSON(message: Error): unknown {
         const obj: any = {};
-        message.msg !== undefined && (obj.msg = message.msg);
+        if (message.msg !== '') {
+            obj.msg = message.msg;
+        }
         return obj;
     },
 
     create<I extends Exact<DeepPartial<Error>, I>>(base?: I): Error {
-        return Error.fromPartial(base ?? {});
+        return Error.fromPartial(base ?? ({} as any));
     },
-
     fromPartial<I extends Exact<DeepPartial<Error>, I>>(object: I): Error {
         const message = createBaseError();
         message.msg = object.msg ?? '';
@@ -2730,30 +4978,11 @@ export const Error = {
     },
 };
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-    if (typeof globalThis !== 'undefined') {
-        return globalThis;
-    }
-    if (typeof self !== 'undefined') {
-        return self;
-    }
-    if (typeof window !== 'undefined') {
-        return window;
-    }
-    if (typeof global !== 'undefined') {
-        return global;
-    }
-    throw 'Unable to locate global object';
-})();
-
 function bytesFromBase64(b64: string): Uint8Array {
-    if (tsProtoGlobalThis.Buffer) {
-        return Uint8Array.from(tsProtoGlobalThis.Buffer.from(b64, 'base64'));
+    if (globalThis.Buffer) {
+        return Uint8Array.from(globalThis.Buffer.from(b64, 'base64'));
     } else {
-        const bin = tsProtoGlobalThis.atob(b64);
+        const bin = globalThis.atob(b64);
         const arr = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; ++i) {
             arr[i] = bin.charCodeAt(i);
@@ -2763,14 +4992,14 @@ function bytesFromBase64(b64: string): Uint8Array {
 }
 
 function base64FromBytes(arr: Uint8Array): string {
-    if (tsProtoGlobalThis.Buffer) {
-        return tsProtoGlobalThis.Buffer.from(arr).toString('base64');
+    if (globalThis.Buffer) {
+        return globalThis.Buffer.from(arr).toString('base64');
     } else {
         const bin: string[] = [];
         arr.forEach(byte => {
-            bin.push(String.fromCharCode(byte));
+            bin.push(globalThis.String.fromCharCode(byte));
         });
-        return tsProtoGlobalThis.btoa(bin.join(''));
+        return globalThis.btoa(bin.join(''));
     }
 }
 
@@ -2785,8 +5014,8 @@ type Builtin =
 
 export type DeepPartial<T> = T extends Builtin
     ? T
-    : T extends Array<infer U>
-    ? Array<DeepPartial<U>>
+    : T extends globalThis.Array<infer U>
+    ? globalThis.Array<DeepPartial<U>>
     : T extends ReadonlyArray<infer U>
     ? ReadonlyArray<DeepPartial<U>>
     : T extends {}
