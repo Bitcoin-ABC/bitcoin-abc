@@ -1,5 +1,4 @@
 // @generated
-
 import { cashtabSettings } from 'config/cashtabSettings';
 import cashtabCache from 'config/cashtabCache';
 
@@ -1263,6 +1262,7 @@ export const freshWalletWithOneIncomingCashtabMsg = {
         ],
     },
 };
+
 export const freshWalletWithOneIncomingCashtabMsgTxs = [
     {
         txid: 'f11648484c5ac6bf65c04632208d60e809014ed288171cb96e059d0ed7678fde',

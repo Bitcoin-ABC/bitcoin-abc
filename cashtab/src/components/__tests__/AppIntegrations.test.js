@@ -8,16 +8,14 @@ import { theme } from 'assets/styles/theme';
 import {
     walletWithXecAndTokens,
     freshWalletWithOneIncomingCashtabMsg,
-    freshWalletWithOneIncomingCashtabMsgTxs,
 } from 'components/fixtures/mocks';
+import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
 import { MemoryRouter } from 'react-router-dom';
 import { WalletProvider } from 'utils/context';
-import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
-import cashaddr from 'ecashaddrjs';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -46,80 +44,6 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
-// Initialize chronik client with tx history and utxos of desired mock
-// For now, not in a beforeEach as we do not want to do it before every test
-// But we do want to do it before more than one
-const getWalletWithOneIncomingCashtabMsgChronikClient = () => {
-    // Mock successful utxos calls in chronik
-    const mockedChronik = new MockChronikClient();
-    // Mock scriptutxos to match context
-    const TYPE = 'p2pkh';
-    mockedChronik.setScript(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path1899.hash160,
-    );
-    mockedChronik.setUtxos(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path1899.hash160,
-        [
-            {
-                outputScript: `76a914${freshWalletWithOneIncomingCashtabMsg.Path1899.hash160}88ac`,
-                utxos: [
-                    {
-                        outpoint: {
-                            txid: 'f11648484c5ac6bf65c04632208d60e809014ed288171cb96e059d0ed7678fde',
-                            outIdx: 1,
-                        },
-                        blockHeight: -1,
-                        isCoinbase: false,
-                        value: '1000000',
-                        network: 'XEC',
-                        address:
-                            'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
-                    },
-                ],
-            },
-        ],
-    );
-    mockedChronik.setScript(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path145.hash160,
-    );
-    mockedChronik.setUtxos(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path145.hash160,
-        [],
-    );
-    mockedChronik.setScript(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path245.hash160,
-    );
-    mockedChronik.setUtxos(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path245.hash160,
-        [],
-    );
-    // TX history mocks
-    // TODO mock-chronik-client should support mocking tx history fetch for other scripts
-    mockedChronik.setTxHistory(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path1899.hash160,
-        freshWalletWithOneIncomingCashtabMsgTxs,
-    );
-    mockedChronik.setTxHistory(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path145.hash160,
-        [],
-    );
-    mockedChronik.setTxHistory(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path245.hash160,
-        [],
-    );
-
-    return mockedChronik;
-};
-
 describe('<App />', () => {
     beforeEach(() => {
         // Mock the fetch call Cashtab's price API
@@ -146,9 +70,8 @@ describe('<App />', () => {
         await localforage.clear();
     });
     it('Renders onboarding screen if cashtab.com opened with no local storage and no wallet', async () => {
-        // Do not initialize anything in localforage
-        // Do not mock anything in chronik
-        const mockedChronik = new MockChronikClient();
+        // This is the experience of a user visiting cashtab.com for the first time
+        const mockedChronik = await initializeCashtabStateForTests(false);
         render(
             <WalletProvider chronik={mockedChronik}>
                 <MemoryRouter initialEntries={['/wallet']}>
@@ -165,10 +88,10 @@ describe('<App />', () => {
         });
     });
     it('Renders API error if called with wallet in localforage but chronik utxo calls fail', async () => {
-        // Initialize a wallet with balance and history in localforage
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        // Do not mock anything in chronik
-        const mockedChronik = new MockChronikClient();
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            true, // apiError bool
+        );
         render(
             <WalletProvider chronik={mockedChronik}>
                 <MemoryRouter initialEntries={['/wallet']}>
@@ -186,44 +109,9 @@ describe('<App />', () => {
         ).toBeInTheDocument();
     });
     it('Loads home screen with no error if wallet is in storage and chronik calls are successful', async () => {
-        // Initialize a wallet with balance and history in localforage
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        // Do not mock anything in chronik
-        const mockedChronik = new MockChronikClient();
-        // Mock scriptutxos to match context
-        const path1899mocks = cashaddr.decode(
-            walletWithXecAndTokens.Path1899.cashAddress,
-            true,
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
         );
-        mockedChronik.setScript(path1899mocks.type, path1899mocks.hash);
-        mockedChronik.setUtxos(path1899mocks.type, path1899mocks.hash, [
-            {
-                outputScript: `76a914${path1899mocks.hash}88ac`,
-                utxos: walletWithXecAndTokens.state.nonSlpUtxos,
-            },
-        ]);
-        const path145mocks = cashaddr.decode(
-            walletWithXecAndTokens.Path145.cashAddress,
-            true,
-        );
-        mockedChronik.setScript(path145mocks.type, path145mocks.hash);
-        mockedChronik.setUtxos(path145mocks.type, path145mocks.hash, [
-            {
-                outputScript: `76a914${path145mocks.hash}88ac`,
-                utxos: [],
-            },
-        ]);
-        const path245mocks = cashaddr.decode(
-            walletWithXecAndTokens.Path245.cashAddress,
-            true,
-        );
-        mockedChronik.setScript(path245mocks.type, path245mocks.hash);
-        mockedChronik.setUtxos(path245mocks.type, path245mocks.hash, [
-            {
-                outputScript: `76a914${path245mocks.hash}88ac`,
-                utxos: [],
-            },
-        ]);
 
         render(
             <WalletProvider chronik={mockedChronik}>
@@ -244,14 +132,9 @@ describe('<App />', () => {
         ).toBeInTheDocument();
     });
     it('Adding a contact to Configure.js from clicking on tx history adds it to localforage and wallet context', async () => {
-        // Add wallet with an incoming Cashtab msg to localforage
-        await localforage.setItem(
-            'wallet',
+        const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
         );
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
 
         render(
             <WalletProvider chronik={mockedChronik}>
@@ -300,9 +183,7 @@ describe('<App />', () => {
         expect(storedContactListNow).toStrictEqual(newContactList);
     });
     it('Adding a contact to an existing contactList by clicking on tx history adds it to localforage and wallet context', async () => {
-        // Add wallet with an incoming Cashtab msg to localforage
-        await localforage.setItem(
-            'wallet',
+        const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
         );
         // Populate the contactList
@@ -313,9 +194,6 @@ describe('<App />', () => {
             },
         ];
         await localforage.setItem('contactList', initialContactList);
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
 
         render(
             <WalletProvider chronik={mockedChronik}>
@@ -366,16 +244,11 @@ describe('<App />', () => {
         );
     });
     it('A user with legacy blank contactList in localstorage is migrated on startup', async () => {
-        // Add wallet with an incoming Cashtab msg to localforage
-        await localforage.setItem(
-            'wallet',
+        const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
         );
         const LEGACY_EMPTY_CONTACT_LIST = [{}];
         await localforage.setItem('contactList', LEGACY_EMPTY_CONTACT_LIST);
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
 
         render(
             <WalletProvider chronik={mockedChronik}>
@@ -399,14 +272,10 @@ describe('<App />', () => {
         );
     });
     it('Clicking "reply" on a Cashtab Msg correctly populates the SendXec to address and amount fields', async () => {
-        // Add wallet with an incoming Cashtab msg to localforage
-        await localforage.setItem(
-            'wallet',
+        // Get mocked chronik client with expected API results for this wallet
+        const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
         );
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
 
         // Render app on home screen
         render(
@@ -459,14 +328,9 @@ describe('<App />', () => {
         expect(await screen.findByTestId('send-xec-input')).toHaveValue(5.5);
     });
     it('We do not see the camera auto-open setting in the config screen on a desktop device', async () => {
-        // Add wallet with an incoming Cashtab msg to localforage
-        await localforage.setItem(
-            'wallet',
+        const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
         );
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
 
         render(
             <WalletProvider chronik={mockedChronik}>
@@ -492,14 +356,10 @@ describe('<App />', () => {
             writable: true,
         });
 
-        // Add wallet with an incoming Cashtab msg to localforage
-        await localforage.setItem(
-            'wallet',
+        // Get mocked chronik client with expected API results for this wallet
+        const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
         );
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = getWalletWithOneIncomingCashtabMsgChronikClient();
 
         render(
             <WalletProvider chronik={mockedChronik}>

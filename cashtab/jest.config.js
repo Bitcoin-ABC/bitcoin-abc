@@ -17,7 +17,7 @@ module.exports = {
         '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
         '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
     ],
-    testEnvironment: './config/jest/uint8array-environment',
+    testEnvironment: './config/jest/custom-environment',
     transform: {
         '\\.[jt]sx?$': 'babel-jest',
     },

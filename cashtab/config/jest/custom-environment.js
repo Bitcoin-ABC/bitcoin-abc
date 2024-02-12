@@ -4,6 +4,8 @@ export default class CustomEnvironment extends JSDOMEnvironment {
         super(config, context);
         this.testPath = context.testPath;
         this.docblockPragmas = context.docblockPragmas;
+        // FIXME https://github.com/jsdom/jsdom/issues/3363
+        this.global.structuredClone = structuredClone;
     }
 
     async setup() {
