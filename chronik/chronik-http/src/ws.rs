@@ -277,6 +277,7 @@ pub async fn handle_subscribe_socket(
         token_ids: Default::default(),
         ws_ping_interval: settings.ws_ping_interval,
     };
+    let mut last_msg = None;
 
     loop {
         let sub_action = tokio::select! {
@@ -285,6 +286,15 @@ pub async fn handle_subscribe_socket(
         };
 
         let subscribe_action = match sub_action {
+            // Deduplicate identical consecutive msgs
+            Ok(WsAction::Message(ws::Message::Binary(msg))) => {
+                if last_msg.as_ref() == Some(&msg) {
+                    WsAction::Nothing
+                } else {
+                    last_msg = Some(msg.clone());
+                    WsAction::Message(ws::Message::Binary(msg))
+                }
+            }
             Ok(subscribe_action) => subscribe_action,
             // Turn Err into Message and reply
             Err(report) => {

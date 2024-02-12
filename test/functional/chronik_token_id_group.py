@@ -268,8 +268,6 @@ class ChronikTokenBurn(BitcoinTestFramework):
         )
         send_alp.test(chronik)
         expected_msg = ws_msg(send_alp.txid, pb.TX_ADDED_TO_MEMPOOL)
-        # ws1 subscribed to both genesis_slp and genesis_alp, so it get's a ws msg twice
-        assert_equal(ws1.recv(), expected_msg)
         assert_equal(ws1.recv(), expected_msg)
         assert_equal(ws2.recv(), expected_msg)
 

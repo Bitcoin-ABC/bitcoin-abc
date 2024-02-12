@@ -111,8 +111,6 @@ class ChronikWsScriptTest(BitcoinTestFramework):
                 txid=bytes.fromhex(txid)[::-1],
             )
         )
-        # ws1 receives the tx msg twice, as it contains both scripts
-        assert_equal(ws1.recv(), expected_msg)
         assert_equal(ws1.recv(), expected_msg)
         assert_equal(ws2.recv(), expected_msg)
 
