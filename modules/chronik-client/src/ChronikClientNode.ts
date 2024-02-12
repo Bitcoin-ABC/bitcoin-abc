@@ -1,7 +1,7 @@
 import * as proto from '../proto/chronikNode';
 import { BlockchainInfo, OutPoint } from './ChronikClient';
 import { FailoverProxy } from './failoverProxy';
-import { toHex, toHexRev } from './hex';
+import { fromHex, toHex, toHexRev } from './hex';
 
 /**
  * Client to access an in-node Chronik instance.
@@ -26,6 +26,48 @@ export class ChronikClientNode {
     // For unit test verification
     public proxyInterface(): FailoverProxy {
         return this._proxyInterface;
+    }
+
+    /**
+     * Broadcasts the `rawTx` on the network.
+     * If `skipTokenChecks` is false, it will be checked that the tx doesn't burn
+     * any tokens before broadcasting.
+     */
+    public async broadcastTx(
+        rawTx: Uint8Array | string,
+        skipTokenChecks = false,
+    ): Promise<{ txid: string }> {
+        const request = proto.BroadcastTxRequest.encode({
+            rawTx: typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
+            skipTokenChecks,
+        }).finish();
+        const data = await this._proxyInterface.post('/broadcast-tx', request);
+        const broadcastResponse = proto.BroadcastTxResponse.decode(data);
+        return {
+            txid: toHexRev(broadcastResponse.txid),
+        };
+    }
+
+    /**
+     * Broadcasts the `rawTxs` on the network, only if all of them are valid.
+     * If `skipTokenChecks` is false, it will be checked that the txs don't burn
+     * any tokens before broadcasting.
+     */
+    public async broadcastTxs(
+        rawTxs: (Uint8Array | string)[],
+        skipTokenChecks = false,
+    ): Promise<{ txids: string[] }> {
+        const request = proto.BroadcastTxsRequest.encode({
+            rawTxs: rawTxs.map(rawTx =>
+                typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
+            ),
+            skipTokenChecks,
+        }).finish();
+        const data = await this._proxyInterface.post('/broadcast-txs', request);
+        const broadcastResponse = proto.BroadcastTxsResponse.decode(data);
+        return {
+            txids: broadcastResponse.txids.map(toHexRev),
+        };
     }
 
     /** Fetch current info of the blockchain, such as tip hash and height. */
