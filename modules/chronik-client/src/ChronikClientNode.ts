@@ -274,6 +274,11 @@ function convertToTx(tx: proto.Tx): Tx_InNode {
         timeFirstSeen: parseInt(tx.timeFirstSeen),
         size: tx.size,
         isCoinbase: tx.isCoinbase,
+        tokenEntries: tx.tokenEntries.map(convertToTokenEntry),
+        tokenFailedParsings: tx.tokenFailedParsings.map(
+            convertToTokenFailedParsing,
+        ),
+        tokenStatus: convertToTokenStatus(tx.tokenStatus),
     };
 }
 
@@ -338,6 +343,110 @@ function convertToUtxo(utxo: proto.ScriptUtxo): Utxo_InNode {
         value: parseInt(utxo.value),
         isFinal: utxo.isFinal,
     };
+}
+
+function convertToTokenEntry(tokenEntry: proto.TokenEntry): TokenEntry {
+    if (typeof tokenEntry.tokenType === 'undefined') {
+        // Not expected to ever happen
+        throw new Error(
+            `chronik returned undefined tokenEntry.tokenType for tokenId "${tokenEntry.tokenId}"`,
+        );
+    }
+    const returnObj: TokenEntry = {
+        tokenId: tokenEntry.tokenId,
+        tokenType: convertToTokenType(tokenEntry.tokenType),
+        txType: convertToTokenTxType(tokenEntry.txType),
+        isInvalid: tokenEntry.isInvalid,
+        burnSummary: tokenEntry.burnSummary,
+        failedColorings: tokenEntry.failedColorings,
+        actualBurnAmount: tokenEntry.actualBurnAmount,
+        intentionalBurn: tokenEntry.intentionalBurn,
+        burnsMintBatons: tokenEntry.burnsMintBatons,
+    };
+    if (tokenEntry.groupTokenId !== '') {
+        // Only include groupTokenId if it is not empty
+        returnObj.groupTokenId = tokenEntry.groupTokenId;
+    }
+    return returnObj;
+}
+
+function convertToTokenFailedParsing(
+    tokenFailedParsing: proto.TokenFailedParsing,
+): TokenFailedParsing {
+    return {
+        pushdataIdx: tokenFailedParsing.pushdataIdx,
+        bytes: toHex(tokenFailedParsing.bytes),
+        error: tokenFailedParsing.error,
+    };
+}
+
+function convertToTokenType(tokenType: proto.TokenType): TokenType {
+    if (typeof tokenType.alp !== 'undefined') {
+        return {
+            protocol: 'ALP',
+            type: convertToAlpTokenType(tokenType.alp),
+            number: tokenType.alp,
+        };
+    }
+    if (typeof tokenType.slp !== 'undefined') {
+        return {
+            protocol: 'SLP',
+            type: convertToSlpTokenType(tokenType.slp),
+            number: tokenType.slp,
+        };
+    }
+    // Should never happen
+    throw new Error('chronik did not return a token protocol for this token');
+}
+
+function convertToSlpTokenType(
+    msgType: proto.SlpTokenType,
+): SlpTokenType_InNode_Type {
+    const slpTokenType = proto.slpTokenTypeToJSON(msgType);
+    if (isSlpTokenType(slpTokenType)) {
+        return slpTokenType;
+    }
+    return 'SLP_TOKEN_TYPE_UNKNOWN';
+}
+
+function isSlpTokenType(msgType: any): msgType is SlpTokenType_InNode_Type {
+    return SLP_TOKEN_TYPES.includes(msgType);
+}
+
+function convertToAlpTokenType(msgType: proto.AlpTokenType): AlpTokenType_Type {
+    const alpTokenType = proto.alpTokenTypeToJSON(msgType);
+    if (isAlpTokenType(alpTokenType)) {
+        return alpTokenType;
+    }
+    return 'ALP_TOKEN_TYPE_UNKNOWN';
+}
+
+function isAlpTokenType(msgType: any): msgType is AlpTokenType_Type {
+    return ALP_TOKEN_TYPES.includes(msgType);
+}
+
+function convertToTokenStatus(msgType: proto.TokenStatus): TokenStatus {
+    const tokenStatus = proto.tokenStatusToJSON(msgType);
+    if (isTokenStatus(tokenStatus)) {
+        return tokenStatus;
+    }
+    return 'TOKEN_STATUS_UNKNOWN';
+}
+
+function isTokenStatus(msgType: any): msgType is TokenStatus {
+    return TOKEN_STATUS_TYPES.includes(msgType);
+}
+
+function convertToTokenTxType(msgType: proto.TokenTxType): TokenTxType {
+    const tokenTxType = proto.tokenTxTypeToJSON(msgType);
+    if (isTokenTxType(tokenTxType)) {
+        return tokenTxType;
+    }
+    return 'UNKNOWN';
+}
+
+function isTokenTxType(msgType: any): msgType is TokenTxType {
+    return TOKEN_TX_TYPE_TYPES.includes(msgType);
 }
 
 /** Info about connected chronik server */
@@ -424,6 +533,15 @@ export interface Tx_InNode {
     size: number;
     /** Whether this tx is a coinbase tx. */
     isCoinbase: boolean;
+    /** Tokens involved in this txs */
+    tokenEntries: TokenEntry[];
+    /** Failed parsing attempts of this tx */
+    tokenFailedParsings: TokenFailedParsing[];
+    /**
+     * Token status, i.e. whether this tx has any tokens or unintentional token burns
+     * or something unexpected, like failed parsings etc.
+     */
+    tokenStatus: TokenStatus;
 }
 
 /** Input of a tx, spends an output of a previous tx. */
@@ -473,6 +591,156 @@ export interface BlockMetadata_InNode {
      * unknown.
      */
     timestamp: number;
+}
+
+/** Token involved in a transaction */
+interface TokenEntry {
+    /**
+     * Hex token_id (in big-endian, like usually displayed to users) of the token.
+     * This is not `bytes` because SLP and ALP use different endiannes, so to avoid
+     * this we use hex, which conventionally implies big-endian in a bitcoin context.
+     */
+    tokenId: string;
+    /** Token type of the token */
+    tokenType: TokenType;
+    /** Tx type of the token; NONE if there's no section that introduced it (e.g. in an accidental burn) */
+    txType: TokenTxType;
+    /**
+     *  For NFT1 Child tokens: group ID
+     *  Unset if the token is not an NFT1 Child token
+     */
+    groupTokenId?: string;
+    /** Whether the validation rules have been violated for this section */
+    isInvalid: boolean;
+    /** Human-readable error message of why this entry burned tokens */
+    burnSummary: string;
+    /** Human-readable error messages of why colorings failed */
+    failedColorings: TokenFailedColoring[];
+    /**
+     * Number of actually burned tokens (as decimal integer string, e.g. "2000").
+     * This is because burns can exceed the 64-bit range of values and protobuf doesn't have a nice type to encode this.
+     */
+    actualBurnAmount: string;
+    /** Burn amount the user explicitly opted into (as decimal integer string) */
+    intentionalBurn: string;
+    /** Whether any mint batons have been burned of this token */
+    burnsMintBatons: boolean;
+}
+
+/**
+ * SLP/ALP token type
+ */
+export type TokenType = SlpTokenType_InNode | AlpTokenType;
+
+export interface SlpTokenType_InNode {
+    protocol: 'SLP';
+    type: SlpTokenType_InNode_Type;
+    number: number;
+}
+
+export interface AlpTokenType {
+    protocol: 'ALP';
+    type: AlpTokenType_Type;
+    number: number;
+}
+
+/** Possible ALP token types returned by chronik */
+export type AlpTokenType_Type =
+    | 'ALP_TOKEN_TYPE_STANDARD'
+    | 'ALP_TOKEN_TYPE_UNKNOWN';
+
+export const ALP_TOKEN_TYPES: AlpTokenType_Type[] = [
+    'ALP_TOKEN_TYPE_STANDARD',
+    'ALP_TOKEN_TYPE_UNKNOWN',
+];
+
+/** Possible SLP token types returned by chronik */
+export type SlpTokenType_InNode_Type =
+    | 'SLP_TOKEN_TYPE_FUNGIBLE'
+    | 'SLP_TOKEN_TYPE_MINT_VAULT'
+    | 'SLP_TOKEN_TYPE_NFT1_GROUP'
+    | 'SLP_TOKEN_TYPE_NFT1_CHILD'
+    | 'SLP_TOKEN_TYPE_UNKNOWN';
+
+const SLP_TOKEN_TYPES: SlpTokenType_InNode_Type[] = [
+    'SLP_TOKEN_TYPE_FUNGIBLE',
+    'SLP_TOKEN_TYPE_MINT_VAULT',
+    'SLP_TOKEN_TYPE_NFT1_GROUP',
+    'SLP_TOKEN_TYPE_NFT1_CHILD',
+    'SLP_TOKEN_TYPE_UNKNOWN',
+];
+
+/**
+ * TokenStatus
+ * TOKEN_STATUS_NON_TOKEN - Tx involves no tokens whatsover, i.e. neither any burns nor any failed
+ * parsing/coloring or any tokens being created / moved.
+ * TOKEN_STATUS_NORMAL - Tx involves tokens but no unintentional burns or failed parsings/colorings
+ * TOKEN_STATUS_NOT_NORMAL - Tx involves tokens but contains unintentional burns or failed parsings/colorings
+ * TOKEN_STATUS_UNKNOWN - Token tx of unknown status
+ */
+export type TokenStatus =
+    | 'TOKEN_STATUS_NON_TOKEN'
+    | 'TOKEN_STATUS_NORMAL'
+    | 'TOKEN_STATUS_NOT_NORMAL'
+    | 'TOKEN_STATUS_UNKNOWN';
+
+const TOKEN_STATUS_TYPES: TokenStatus[] = [
+    'TOKEN_STATUS_NON_TOKEN',
+    'TOKEN_STATUS_NORMAL',
+    'TOKEN_STATUS_NOT_NORMAL',
+    'TOKEN_STATUS_UNKNOWN',
+];
+
+/** SLP/ALP tx type */
+export type TokenTxType =
+    /** NONE - No tx type, e.g. when input tokens are burned */
+    | 'NONE'
+    /** UNKNOWN - Unknown tx type, i.e. for unknown token types */
+    | 'UNKNOWN'
+    /** GENESIS - GENESIS tx */
+    | 'GENESIS'
+    /** SEND - SEND tx */
+    | 'SEND'
+    /** MINT - MINT tx */
+    | 'MINT'
+    /** BURN - BURN tx */
+    | 'BURN';
+
+const TOKEN_TX_TYPE_TYPES: TokenTxType[] = [
+    'NONE',
+    'UNKNOWN',
+    'GENESIS',
+    'SEND',
+    'MINT',
+    'BURN',
+];
+
+/**
+ * A report of a failed coloring attempt of SLP/ALP.
+ * This should always indicate something went wrong when building the tx.
+ */
+export interface TokenFailedColoring {
+    /** For ALP, the index of the pushdata in the OP_RETURN that failed parsing. */
+    pushdataIdx: number;
+    /** Human-readable message of what went wrong */
+    error: string;
+}
+
+/**
+ * TokenFailedParsing
+ * A report of a failed parsing attempt of SLP/ALP.
+ * This should always indicate something went wrong when building the tx.
+ */
+export interface TokenFailedParsing {
+    /**
+     * For ALP, the index of the pushdata in the OP_RETURN that failed parsing.
+     * -1 if the whole OP_RETURN failed, e.g. for SLP or eMPP
+     */
+    pushdataIdx: number;
+    /** The bytes that failed parsing, useful for debugging */
+    bytes: string;
+    /** Human-readable message of what went wrong */
+    error: string;
 }
 
 /** Group of UTXOs by output script. */
