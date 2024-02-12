@@ -32,6 +32,7 @@
 #include <QList>
 #include <QLocalServer>
 #include <QLocalSocket>
+#ifdef ENABLE_BIP70
 #include <QNetworkAccessManager>
 #include <QNetworkProxy>
 #include <QNetworkReply>
@@ -39,6 +40,7 @@
 #include <QSslCertificate>
 #include <QSslConfiguration>
 #include <QSslError>
+#endif
 #include <QStringList>
 #include <QTextDocument>
 #include <QUrlQuery>

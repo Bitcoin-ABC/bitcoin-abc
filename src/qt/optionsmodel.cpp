@@ -19,7 +19,10 @@
 #include <util/string.h>
 #include <validation.h> // For DEFAULT_SCRIPTCHECK_THREADS
 
+#include <QDebug> // needed by qInfo()
+#ifdef ENABLE_BIP70
 #include <QNetworkProxy>
+#endif
 #include <QSettings>
 #include <QStringList>
 
@@ -547,6 +550,7 @@ void OptionsModel::setDisplayUnit(const QVariant &value) {
     }
 }
 
+#ifdef ENABLE_BIP70
 bool OptionsModel::getProxySettings(QNetworkProxy &proxy) const {
     // Directly query current base proxy, because
     // GUI settings can be overridden with -proxy.
@@ -563,6 +567,7 @@ bool OptionsModel::getProxySettings(QNetworkProxy &proxy) const {
 
     return false;
 }
+#endif
 
 void OptionsModel::setRestartRequired(bool fRequired) {
     QSettings settings;
