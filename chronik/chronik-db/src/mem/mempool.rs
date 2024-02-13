@@ -31,6 +31,7 @@ pub struct Mempool {
     tokens: MempoolTokens,
     token_id_history: MempoolTokenIdHistory,
     token_id_utxos: MempoolTokenIdUtxos,
+    is_token_index_enabled: bool,
 }
 
 /// Result after adding a tx to the mempool
@@ -67,7 +68,7 @@ use self::MempoolError::*;
 
 impl Mempool {
     /// Create a new [`Mempool`].
-    pub fn new(script_group: ScriptGroup) -> Self {
+    pub fn new(script_group: ScriptGroup, enable_token_index: bool) -> Self {
         Mempool {
             txs: HashMap::new(),
             script_history: MempoolScriptHistory::new(script_group.clone()),
@@ -76,6 +77,7 @@ impl Mempool {
             tokens: MempoolTokens::default(),
             token_id_history: MempoolTokenIdHistory::new(TokenIdGroup),
             token_id_utxos: MempoolTokenIdUtxos::new(TokenIdGroup),
+            is_token_index_enabled: enable_token_index,
         }
     }
 
@@ -93,16 +95,21 @@ impl Mempool {
             &(),
         )?;
         self.spent_by.insert(&mempool_tx)?;
-        self.tokens
-            .insert(db, &mempool_tx, |txid| self.txs.contains_key(txid))?;
-        let token_id_aux =
-            TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
-        self.token_id_history.insert(&mempool_tx, &token_id_aux);
-        self.token_id_utxos.insert(
-            &mempool_tx,
-            |txid| self.txs.contains_key(txid),
-            &token_id_aux,
-        )?;
+        let token_id_aux;
+        if self.is_token_index_enabled {
+            self.tokens
+                .insert(db, &mempool_tx, |txid| self.txs.contains_key(txid))?;
+            token_id_aux =
+                TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
+            self.token_id_history.insert(&mempool_tx, &token_id_aux);
+            self.token_id_utxos.insert(
+                &mempool_tx,
+                |txid| self.txs.contains_key(txid),
+                &token_id_aux,
+            )?;
+        } else {
+            token_id_aux = TokenIdGroupAux::default();
+        }
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
         }
@@ -125,15 +132,20 @@ impl Mempool {
             &(),
         )?;
         self.spent_by.remove(&mempool_tx)?;
-        let token_id_aux =
-            TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
-        self.token_id_history.remove(&mempool_tx, &token_id_aux);
-        self.token_id_utxos.remove(
-            &mempool_tx,
-            |txid| self.txs.contains_key(txid),
-            &token_id_aux,
-        )?;
-        self.tokens.remove(&txid);
+        let token_id_aux;
+        if self.is_token_index_enabled {
+            token_id_aux =
+                TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
+            self.token_id_history.remove(&mempool_tx, &token_id_aux);
+            self.token_id_utxos.remove(
+                &mempool_tx,
+                |txid| self.txs.contains_key(txid),
+                &token_id_aux,
+            )?;
+            self.tokens.remove(&txid);
+        } else {
+            token_id_aux = TokenIdGroupAux::default();
+        }
         Ok(MempoolResult {
             mempool_tx: Cow::Owned(mempool_tx),
             token_id_aux,
@@ -146,11 +158,13 @@ impl Mempool {
             self.script_history.remove(&mempool_tx, &());
             self.script_utxos.remove_mined(&mempool_tx, &());
             self.spent_by.remove(&mempool_tx)?;
-            let token_id_aux =
-                TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
-            self.token_id_history.remove(&mempool_tx, &token_id_aux);
-            self.token_id_utxos.remove_mined(&mempool_tx, &token_id_aux);
-            self.tokens.remove(txid);
+            if self.is_token_index_enabled {
+                let token_id_aux =
+                    TokenIdGroupAux::from_mempool(&mempool_tx.tx, &self.tokens);
+                self.token_id_history.remove(&mempool_tx, &token_id_aux);
+                self.token_id_utxos.remove_mined(&mempool_tx, &token_id_aux);
+                self.tokens.remove(txid);
+            }
             return Ok(Some(mempool_tx));
         }
         Ok(None)

@@ -643,6 +643,9 @@ void SetupServerArgs(NodeContext &node) {
             regtestBaseParams->ChronikPort()),
         ArgsManager::ALLOW_STRING | ArgsManager::NETWORK_ONLY,
         OptionsCategory::CHRONIK);
+    argsman.AddArg("-chroniktokenindex",
+                   "Enable token indexing in Chronik (default: 1)",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
     argsman.AddArg("-chronikreindex",
                    "Reindex the Chronik indexer from genesis, but leave the "
                    "other indexes untouched",

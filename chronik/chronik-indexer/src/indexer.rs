@@ -51,6 +51,8 @@ pub struct ChronikIndexerParams {
     pub datadir_net: PathBuf,
     /// Whether to clear the DB before opening the DB, e.g. when reindexing.
     pub wipe_db: bool,
+    /// Whether Chronik should index SLP/ALP token txs.
+    pub enable_token_index: bool,
     /// Whether to output Chronik performance statistics into a perf/ folder
     pub enable_perf_stats: bool,
 }
@@ -65,6 +67,7 @@ pub struct ChronikIndexer {
     avalanche: Avalanche,
     subs: RwLock<Subs>,
     perf_path: Option<PathBuf>,
+    is_token_index_enabled: bool,
 }
 
 /// Access to the bitcoind node.
@@ -143,6 +146,15 @@ pub enum ChronikIndexerError {
         CURRENT_INDEXER_VERSION
     )]
     DatabaseOutdated(SchemaVersion),
+
+    /// Cannot enable token index on a DB that previously had it disabled
+    #[error(
+        "Cannot enable -chroniktokenindex on a DB that previously had it \
+         disabled. Provide -reindex/-chronikreindex to reindex the database \
+         with token data, or specify -chroniktokenindex=0 to disable the \
+         token index again."
+    )]
+    CannotEnableTokenIndex,
 }
 
 impl ChronikIndexer {
@@ -166,7 +178,8 @@ impl ChronikIndexer {
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
         verify_schema_version(&db)?;
-        let mempool = Mempool::new(ScriptGroup);
+        verify_enable_token_index(&db, params.enable_token_index)?;
+        let mempool = Mempool::new(ScriptGroup, params.enable_token_index);
         Ok(ChronikIndexer {
             db,
             mempool,
@@ -175,6 +188,7 @@ impl ChronikIndexer {
             avalanche: Avalanche::default(),
             subs: RwLock::new(Subs::new(ScriptGroup)),
             perf_path: params.enable_perf_stats.then_some(perf_path),
+            is_token_index_enabled: params.enable_token_index,
         })
     }
 
@@ -369,22 +383,27 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
-        let processed_token_batch =
-            token_writer.insert(&mut batch, &index_txs)?;
-        let token_id_aux =
-            TokenIdGroupAux::from_batch(&index_txs, &processed_token_batch);
-        token_id_history_writer.insert(
-            &mut batch,
-            &index_txs,
-            &token_id_aux,
-            &mut GroupHistoryMemData::default(),
-        )?;
-        token_id_utxo_writer.insert(
-            &mut batch,
-            &index_txs,
-            &token_id_aux,
-            &mut GroupUtxoMemData::default(),
-        )?;
+        let token_id_aux;
+        if self.is_token_index_enabled {
+            let processed_token_batch =
+                token_writer.insert(&mut batch, &index_txs)?;
+            token_id_aux =
+                TokenIdGroupAux::from_batch(&index_txs, &processed_token_batch);
+            token_id_history_writer.insert(
+                &mut batch,
+                &index_txs,
+                &token_id_aux,
+                &mut GroupHistoryMemData::default(),
+            )?;
+            token_id_utxo_writer.insert(
+                &mut batch,
+                &index_txs,
+                &token_id_aux,
+                &mut GroupUtxoMemData::default(),
+            )?;
+        } else {
+            token_id_aux = TokenIdGroupAux::default();
+        }
         self.db.write_batch(batch)?;
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
@@ -447,20 +466,22 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
-        let token_id_aux = TokenIdGroupAux::from_db(&index_txs, &self.db)?;
-        token_id_history_writer.delete(
-            &mut batch,
-            &index_txs,
-            &token_id_aux,
-            &mut GroupHistoryMemData::default(),
-        )?;
-        token_id_utxo_writer.delete(
-            &mut batch,
-            &index_txs,
-            &token_id_aux,
-            &mut GroupUtxoMemData::default(),
-        )?;
-        token_writer.delete(&mut batch, &index_txs)?;
+        if self.is_token_index_enabled {
+            let token_id_aux = TokenIdGroupAux::from_db(&index_txs, &self.db)?;
+            token_id_history_writer.delete(
+                &mut batch,
+                &index_txs,
+                &token_id_aux,
+                &mut GroupHistoryMemData::default(),
+            )?;
+            token_id_utxo_writer.delete(
+                &mut batch,
+                &index_txs,
+                &token_id_aux,
+                &mut GroupUtxoMemData::default(),
+            )?;
+            token_writer.delete(&mut batch, &index_txs)?;
+        }
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
         let subs = self.subs.get_mut();
@@ -490,7 +511,11 @@ impl ChronikIndexer {
             .unwrap();
         let index_txs =
             prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
-        let token_id_aux = TokenIdGroupAux::from_db(&index_txs, &self.db)?;
+        let token_id_aux = if self.is_token_index_enabled {
+            TokenIdGroupAux::from_db(&index_txs, &self.db)?
+        } else {
+            TokenIdGroupAux::default()
+        };
         for tx in &block.txs {
             subs.handle_tx_event(tx, TxMsgType::Finalized, &token_id_aux);
         }
@@ -504,6 +529,7 @@ impl ChronikIndexer {
             avalanche: &self.avalanche,
             mempool: &self.mempool,
             node,
+            is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
@@ -513,6 +539,7 @@ impl ChronikIndexer {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
@@ -522,6 +549,7 @@ impl ChronikIndexer {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
@@ -534,6 +562,7 @@ impl ChronikIndexer {
             mempool: &self.mempool,
             mempool_history: self.mempool.script_history(),
             group: self.script_group.clone(),
+            is_token_index_enabled: self.is_token_index_enabled,
         })
     }
 
@@ -548,6 +577,7 @@ impl ChronikIndexer {
             mempool_utxos: self.mempool.script_utxos(),
             group: self.script_group.clone(),
             utxo_mapper: UtxoProtobufValue,
+            is_token_index_enabled: self.is_token_index_enabled,
         })
     }
 
@@ -560,6 +590,7 @@ impl ChronikIndexer {
             mempool: &self.mempool,
             mempool_history: self.mempool.token_id_history(),
             group: TokenIdGroup,
+            is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
@@ -574,6 +605,7 @@ impl ChronikIndexer {
             mempool_utxos: self.mempool.token_id_utxos(),
             group: TokenIdGroup,
             utxo_mapper: UtxoProtobufOutput,
+            is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
@@ -663,6 +695,34 @@ fn verify_schema_version(db: &Db) -> Result<()> {
     Ok(())
 }
 
+fn verify_enable_token_index(db: &Db, enable_token_index: bool) -> Result<()> {
+    let metadata_reader = MetadataReader::new(db)?;
+    let metadata_writer = MetadataWriter::new(db)?;
+    let token_writer = TokenWriter::new(db)?;
+    let is_empty = db.is_db_empty()?;
+    let is_token_index_enabled = metadata_reader.is_token_index_enabled()?;
+    let mut batch = WriteBatch::default();
+    if !is_empty {
+        // Cannot enable token index if not already previously enabled
+        if enable_token_index && !is_token_index_enabled {
+            return Err(CannotEnableTokenIndex.into());
+        }
+        // Wipe token index if previously enabled and now disabled
+        if !enable_token_index && is_token_index_enabled {
+            log!(
+                "Warning: Wiping existing token index, since \
+                 -chroniktokenindex=0\n"
+            );
+            log!("You will need to -reindex/-chronikreindex to restore\n");
+            token_writer.wipe(&mut batch);
+        }
+    }
+    metadata_writer
+        .update_is_token_index_enabled(&mut batch, enable_token_index)?;
+    db.write_batch(batch)?;
+    Ok(())
+}
+
 impl std::fmt::Debug for ChronikIndexerParams {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ChronikIndexerParams")
@@ -695,6 +755,7 @@ mod tests {
         let params = ChronikIndexerParams {
             datadir_net: datadir_net.clone(),
             wipe_db: false,
+            enable_token_index: false,
             enable_perf_stats: false,
         };
         // regtest folder doesn't exist yet -> error
@@ -762,6 +823,7 @@ mod tests {
         let params = ChronikIndexerParams {
             datadir_net: dir.path().to_path_buf(),
             wipe_db: false,
+            enable_token_index: false,
             enable_perf_stats: false,
         };
 

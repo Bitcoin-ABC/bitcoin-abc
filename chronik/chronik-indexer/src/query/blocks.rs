@@ -42,6 +42,8 @@ pub struct QueryBlocks<'a> {
     pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
+    /// Whether the SLP/ALP token index is enabled
+    pub is_token_index_enabled: bool,
 }
 
 /// Errors indicating something went wrong with querying blocks.
@@ -209,6 +211,12 @@ impl<'a> QueryBlocks<'a> {
                 self.mempool.spent_by().outputs_spent(&db_tx.entry.txid),
                 tx_num,
             )?;
+            let token = TxTokenData::from_db(
+                self.db,
+                tx_num,
+                &tx,
+                self.is_token_index_enabled,
+            )?;
             txs.push(make_tx_proto(
                 &tx,
                 &outputs_spent,
@@ -216,7 +224,7 @@ impl<'a> QueryBlocks<'a> {
                 db_tx.entry.is_coinbase,
                 Some(&db_block),
                 self.avalanche,
-                TxTokenData::from_db(self.db, tx_num, &tx)?.as_ref(),
+                token.as_ref(),
             ));
         }
         let total_num_txs = (tx_range.end - tx_range.start) as usize;

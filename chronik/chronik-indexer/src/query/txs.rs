@@ -35,6 +35,8 @@ pub struct QueryTxs<'a> {
     pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
+    /// Whether the SLP/ALP token index is enabled
+    pub is_token_index_enabled: bool,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -98,6 +100,12 @@ impl<'a> QueryTxs<'a> {
                     self.mempool.spent_by().outputs_spent(&txid),
                     tx_num,
                 )?;
+                let token = TxTokenData::from_db(
+                    self.db,
+                    tx_num,
+                    &tx,
+                    self.is_token_index_enabled,
+                )?;
                 Ok(make_tx_proto(
                     &tx,
                     &outputs_spent,
@@ -105,7 +113,7 @@ impl<'a> QueryTxs<'a> {
                     tx_entry.is_coinbase,
                     Some(&block),
                     self.avalanche,
-                    TxTokenData::from_db(self.db, tx_num, &tx)?.as_ref(),
+                    token.as_ref(),
                 ))
             }
         }

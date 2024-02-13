@@ -50,6 +50,7 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
                                                  : DEFAULT_BINDS),
             .default_port = BaseParams().ChronikPort(),
             .wipe_db = fWipe,
+            .enable_token_index = gArgs.GetBoolArg("-chroniktokenindex", true),
             .is_pause_allowed = is_pause_allowed,
             .enable_perf_stats = gArgs.GetBoolArg("-chronikperfstats", false),
             .ws_ping_interval_secs =

@@ -47,6 +47,8 @@ where
     pub group: G,
     /// UTXO mapper
     pub utxo_mapper: U,
+    /// Whether the SLP/ALP token index is enabled
+    pub is_token_index_enabled: bool,
 }
 
 /// Data of a UTXO to be mapped to protobuf.
@@ -202,7 +204,12 @@ where
                     is_final: self
                         .avalanche
                         .is_final_height(db_tx.block_height),
-                    token: read_db_token_output(self.db, tx_num, out_idx)?,
+                    token: read_db_token_output(
+                        self.db,
+                        tx_num,
+                        out_idx,
+                        self.is_token_index_enabled,
+                    )?,
                 },
             ));
         }

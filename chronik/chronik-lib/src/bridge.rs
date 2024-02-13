@@ -79,6 +79,7 @@ fn try_setup_chronik(
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
         datadir_net: params.datadir_net.into(),
         wipe_db: params.wipe_db,
+        enable_token_index: params.enable_token_index,
         enable_perf_stats: params.enable_perf_stats,
     })?;
     indexer.resync_indexer(bridge_ref)?;

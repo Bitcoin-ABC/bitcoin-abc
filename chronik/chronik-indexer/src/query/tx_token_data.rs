@@ -96,10 +96,19 @@ impl<'m> TxTokenData<'m> {
     }
 
     /// Load token data from the DB of a mined tx
-    pub fn from_db(db: &Db, tx_num: TxNum, tx: &Tx) -> Result<Option<Self>> {
-        let colored = ColoredTx::color_tx(tx);
-
+    pub fn from_db(
+        db: &Db,
+        tx_num: TxNum,
+        tx: &Tx,
+        is_token_index_enabled: bool,
+    ) -> Result<Option<Self>> {
+        if !is_token_index_enabled {
+            // User disabled token index, always return None
+            return Ok(None);
+        }
         let token_reader = TokenReader::new(db)?;
+
+        let colored = ColoredTx::color_tx(tx);
 
         let (spent_tokens, db_tx_data) =
             match token_reader.spent_tokens_and_db_tx(tx_num)? {
@@ -270,7 +279,11 @@ pub fn read_db_token_output(
     db: &Db,
     tx_num: TxNum,
     out_idx: u32,
+    is_token_index_enabled: bool,
 ) -> Result<Option<SpentToken>> {
+    if !is_token_index_enabled {
+        return Ok(None);
+    }
     let token_reader = TokenReader::new(db)?;
     let Some(db_token_tx) = token_reader.token_tx(tx_num)? else {
         return Ok(None);

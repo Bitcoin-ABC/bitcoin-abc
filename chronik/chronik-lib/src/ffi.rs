@@ -22,6 +22,8 @@ mod ffi_inner {
         pub default_port: u16,
         /// Whether to clear the DB before proceeding, e.g. when reindexing
         pub wipe_db: bool,
+        /// Whether Chronik should index SLP/ALP token transactions
+        pub enable_token_index: bool,
         /// Whether pausing Chronik indexing is allowed
         pub is_pause_allowed: bool,
         /// Whether to output Chronik performance statistics into a perf/

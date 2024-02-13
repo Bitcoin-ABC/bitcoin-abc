@@ -31,6 +31,8 @@ pub struct QueryBroadcast<'a> {
     pub mempool: &'a Mempool,
     /// Access to bitcoind to actually broadcast txs
     pub node: &'a Node,
+    /// Whether the SLP/ALP token index is enabled
+    pub is_token_index_enabled: bool,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -58,7 +60,7 @@ impl QueryBroadcast<'_> {
         skip_token_checks: bool,
     ) -> Result<Vec<TxId>> {
         let mut coins_to_uncache = vec![];
-        if !skip_token_checks {
+        if !skip_token_checks && self.is_token_index_enabled {
             coins_to_uncache = self.do_token_checks(raw_txs)?;
         }
         let mut txids = Vec::with_capacity(raw_txs.len());
@@ -144,8 +146,11 @@ impl QueryBroadcast<'_> {
         )?;
         self.node.bridge.uncache_coins(&coins_to_uncache)?;
         let tx = Tx::from(ffi_tx);
-        let token =
-            TxTokenData::from_unbroadcast_tx(self.db, self.mempool, &tx)?;
+        let token = if self.is_token_index_enabled {
+            TxTokenData::from_unbroadcast_tx(self.db, self.mempool, &tx)?
+        } else {
+            None
+        };
         Ok(make_tx_proto(
             &tx,
             &OutputsSpent::default(),
