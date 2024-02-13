@@ -7,16 +7,26 @@ set(TOOLCHAIN_PREFIX ${CMAKE_SYSTEM_PROCESSOR}-linux-gnu)
 # Set Corrosion Rust target
 set(Rust_CARGO_TARGET "x86_64-unknown-linux-gnu")
 
-# Cross compilers to use for C and C++
-if(DEFINED ENV{CROSS_GCC_ROOT})
-    # The guix build uses customized compilers
-    set(CMAKE_C_COMPILER $ENV{CROSS_GCC_ROOT}/bin/x86_64-linux-gnu-gcc)
-    set(CMAKE_CXX_COMPILER $ENV{CROSS_GCC_ROOT}/bin/x86_64-linux-gnu-g++)
+# Cross compilers to use for C and C++. The guix build uses customized compilers
+# set in CROSS_(CC|CXX) environment variables (normal CC and CXX don't work with
+# cmake toolchain files, so we defined our own custom override).
+if(DEFINED ENV{CROSS_CC})
+    set(CMAKE_C_COMPILER "$ENV{CROSS_CC}")
 else()
     set(CMAKE_C_COMPILER gcc)
+endif()
+if(DEFINED ENV{CROSS_CXX})
+    set(CMAKE_CXX_COMPILER "$ENV{CROSS_CXX}")
+else()
     set(CMAKE_CXX_COMPILER g++)
 endif()
 
+if(DEFINED ENV{CROSS_C_INCLUDE_PATH} OR DEFINED ENV{CROSS_CPLUS_INCLUDE_PATH})
+    string(REPLACE ":" ";" CMAKE_INCLUDE_PATH "$ENV{CROSS_C_INCLUDE_PATH};$ENV{CROSS_CPLUS_INCLUDE_PATH}")
+endif()
+if(DEFINED ENV{CROSS_LIBRARY_PATH})
+    string(REPLACE ":" ";" CMAKE_LIBRARY_PATH "$ENV{CROSS_LIBRARY_PATH}")
+endif()
 
 set(CMAKE_C_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
 set(CMAKE_CXX_COMPILER_TARGET ${TOOLCHAIN_PREFIX})
