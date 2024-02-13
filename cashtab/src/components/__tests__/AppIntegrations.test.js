@@ -446,15 +446,7 @@ describe('<App />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        await waitFor(async () => {
-            // Get the "Reply to" button of Cashtab Msg
-            const cashtabMsgReplyBtn = screen.getByTestId('cashtab-msg-reply');
-            // Click reply to cashtab msg button
-            // ref https://github.com/testing-library/user-event/issues/922
-            // ref https://github.com/testing-library/user-event/issues/662
-            // issue with using userEvents.click() here likely related to antd
-            cashtabMsgReplyBtn.click();
-        });
+        await userEvent.click(await screen.findByText('Reply'));
 
         // Now we see the Send screen
         expect(await screen.findByTestId('send-xec-ctn')).toBeInTheDocument();
