@@ -928,7 +928,7 @@ export const getTxHistoryChronik = async (chronik, wallet, tokenInfoById) => {
     }
 
     return {
-        chronikTxHistory,
+        parsedTxHistory: chronikTxHistory,
         txHistoryUpdatedTokenInfoById,
         txHistoryNewTokensToCache,
     };
