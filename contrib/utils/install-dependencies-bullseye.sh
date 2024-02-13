@@ -157,8 +157,11 @@ echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc
 
-# Install npm v8.x and nodejs v16.x
-curl -sL https://deb.nodesource.com/setup_16.x | bash -
+# Install npm v10.x and nodejs v20.x
+wget https://deb.nodesource.com/setup_20.x -O nodesetup.sh
+echo "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 nodesetup.sh" | sha256sum -c
+chmod +x nodesetup.sh
+./nodesetup.sh
 apt-get install -y nodejs
 
 # Install nyc for mocha unit test reporting
