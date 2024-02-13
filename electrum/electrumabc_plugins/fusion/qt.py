@@ -88,7 +88,7 @@ image_red_exclamation = None
 def get_icon_fusion_logo():
     global icon_fusion_logo
     if icon_fusion_logo is None:
-        icon_fusion_logo = QIcon(str(heredir / "Cash Fusion Logo - No Text.svg"))
+        icon_fusion_logo = QIcon(str(heredir / "cash_fusion_logo_no_text.svg"))
     return icon_fusion_logo
 
 
@@ -96,7 +96,7 @@ def get_icon_fusion_logo_gray():
     global icon_fusion_logo_gray
     if icon_fusion_logo_gray is None:
         icon_fusion_logo_gray = QIcon(
-            str(heredir / "Cash Fusion Logo - No Text Gray.svg")
+            str(heredir / "cash_fusion_logo_no_text_gray.svg")
         )
     return icon_fusion_logo_gray
 
