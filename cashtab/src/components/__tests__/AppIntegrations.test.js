@@ -2,20 +2,16 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import App from 'components/App';
-import { ThemeProvider } from 'styled-components';
-import { theme } from 'assets/styles/theme';
 import {
     walletWithXecAndTokens,
     freshWalletWithOneIncomingCashtabMsg,
 } from 'components/fixtures/mocks';
 import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
-import { MemoryRouter } from 'react-router-dom';
-import { WalletProvider } from 'utils/context';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -72,15 +68,7 @@ describe('<App />', () => {
     it('Renders onboarding screen if cashtab.com opened with no local storage and no wallet', async () => {
         // This is the experience of a user visiting cashtab.com for the first time
         const mockedChronik = await initializeCashtabStateForTests(false);
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Onboarding is rendered
         await waitFor(() => {
@@ -92,15 +80,7 @@ describe('<App />', () => {
             walletWithXecAndTokens,
             true, // apiError bool
         );
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
         // API Error is rendered
         await screen.findByTestId('api-error');
         // Wallet-info is rendered
@@ -113,15 +93,7 @@ describe('<App />', () => {
             walletWithXecAndTokens,
         );
 
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
         // API Error is NOT rendered
         await waitFor(() =>
             expect(screen.queryByTestId('api-error')).not.toBeInTheDocument(),
@@ -136,15 +108,7 @@ describe('<App />', () => {
             freshWalletWithOneIncomingCashtabMsg,
         );
 
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Open the collapse
         await waitFor(async () => {
@@ -180,7 +144,7 @@ describe('<App />', () => {
         const storedContactListNow = await localforage.getItem('contactList');
 
         // localforage has been updated with this newly added contact
-        expect(storedContactListNow).toStrictEqual(newContactList);
+        expect(storedContactListNow).toEqual(newContactList);
     });
     it('Adding a contact to an existing contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -195,15 +159,7 @@ describe('<App />', () => {
         ];
         await localforage.setItem('contactList', initialContactList);
 
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Open the collapse
         await waitFor(async () => {
@@ -221,7 +177,7 @@ describe('<App />', () => {
 
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual(initialContactList);
+        expect(storedContacts).toEqual(initialContactList);
 
         // Click the button
         await userEvent.click(addToContactsBtn);
@@ -231,7 +187,7 @@ describe('<App />', () => {
 
         // localforage has been updated with this newly added contact
         await waitFor(async () =>
-            expect(await localforage.getItem('contactList')).toStrictEqual([
+            expect(await localforage.getItem('contactList')).toEqual([
                 {
                     address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
                     name: 'echo',
@@ -250,15 +206,7 @@ describe('<App />', () => {
         const LEGACY_EMPTY_CONTACT_LIST = [{}];
         await localforage.setItem('contactList', LEGACY_EMPTY_CONTACT_LIST);
 
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Wait for cashtabbootup, so that loadContactList has been called
         // Wallet-info is rendered
@@ -278,15 +226,7 @@ describe('<App />', () => {
         );
 
         // Render app on home screen
-        render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/wallet']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
-        );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // API Error is NOT rendered
         await waitFor(() =>
@@ -315,7 +255,15 @@ describe('<App />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        await userEvent.click(await screen.findByText('Reply'));
+        await waitFor(async () => {
+            // Get the "Reply to" button of Cashtab Msg
+            const cashtabMsgReplyBtn = screen.getByTestId('cashtab-msg-reply');
+            // Click reply to cashtab msg button
+            // ref https://github.com/testing-library/user-event/issues/922
+            // ref https://github.com/testing-library/user-event/issues/662
+            // issue with using userEvents.click() here likely related to antd
+            cashtabMsgReplyBtn.click();
+        });
 
         // Now we see the Send screen
         expect(await screen.findByTestId('send-xec-ctn')).toBeInTheDocument();
@@ -333,13 +281,7 @@ describe('<App />', () => {
         );
 
         render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/configure']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
+            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
         );
 
         // We are on the settings screen
@@ -362,13 +304,7 @@ describe('<App />', () => {
         );
 
         render(
-            <WalletProvider chronik={mockedChronik}>
-                <MemoryRouter initialEntries={['/configure']}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </MemoryRouter>
-            </WalletProvider>,
+            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
         );
 
         // We are on the settings screen
