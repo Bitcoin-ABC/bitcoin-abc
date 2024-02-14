@@ -291,8 +291,7 @@ mkdir -p "$OUTDIR_BASE"
 # Download the depends sources now as we won't have internet access in the build
 # container
 for host in $HOSTS; do
-    # FIXME: find out why the crossbuild does not pick up the correct protobuf lib
-    make -C "${PWD}/depends" -j"$JOBS" NO_PROTOBUF=1 download-"$(host_to_commonname "$host")" ${V:+V=1} ${SOURCES_PATH:+SOURCES_PATH="$SOURCES_PATH"}
+    make -C "${PWD}/depends" -j"$JOBS" download-"$(host_to_commonname "$host")" ${V:+V=1} ${SOURCES_PATH:+SOURCES_PATH="$SOURCES_PATH"}
 done
 
 # Usage: outdir_for_host HOST SUFFIX
