@@ -5,7 +5,6 @@
  * @returns {boolean}
  */
 export const isMobile = navigator => {
-    console.log(`isMobile called with`, navigator);
     return (
         typeof navigator?.userAgentData?.mobile !== 'undefined' &&
         navigator.userAgentData.mobile === true
