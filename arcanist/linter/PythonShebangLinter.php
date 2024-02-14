@@ -6,6 +6,7 @@
 final class PythonShebangLinter extends ArcanistLinter {
 
   const BAD_SHEBANG_FOUND = 1;
+  const INCONSISTENT_PERMISSIONS = 2;
 
   public function getInfoName() {
     return 'lint-python-shebang';
@@ -26,12 +27,14 @@ final class PythonShebangLinter extends ArcanistLinter {
   public function getLintSeverityMap() {
     return array(
       self::BAD_SHEBANG_FOUND => ArcanistLintSeverity::SEVERITY_ERROR,
+      self::INCONSISTENT_PERMISSIONS => ArcanistLintSeverity::SEVERITY_ERROR,
     );
   }
 
   public function getLintNameMap() {
     return array(
       self::BAD_SHEBANG_FOUND => pht('Missing or unexpected shebang.'),
+      self::INCONSISTENT_PERMISSIONS => pht('Inconsistent permissions.'),
     );
   }
 
@@ -39,7 +42,21 @@ final class PythonShebangLinter extends ArcanistLinter {
     $absPath = Filesystem::resolvePath($path, $this->getProjectRoot());
     $fileContent = Filesystem::readFile($absPath);
 
-    if (!preg_match_all("%^#!/usr/bin/env python3%", $fileContent)) {
+    $perms = fileperms($absPath);
+    $isOwnerExecutable = boolval($perms & 0x0040);
+    $isGroupExecutable = boolval($perms & 0x0008);
+    $isWorldExecutable = boolval($perms & 0x0001);
+
+    if ($isOwnerExecutable != $isGroupExecutable ||
+     $isOwnerExecutable != $isWorldExecutable) {
+      return $this->raiseLintAtPath(
+        self::INCONSISTENT_PERMISSIONS,
+        pht('The executable flags in the file permissions must be the same '.
+            'for owner, group and world.'));
+    }
+
+    if ($isOwnerExecutable &&
+        !preg_match_all("%^#!/usr/bin/env python3%", $fileContent)) {
       return $this->raiseLintAtPath(
         self::BAD_SHEBANG_FOUND,
         pht("Shebang should be #!/usr/bin/env python3"));

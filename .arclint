@@ -176,10 +176,7 @@
             "type": "lint-python-shebang",
             "include": "(\\.py$)",
             "exclude": [
-                "(__init__\\.py$)",
-                "(^contrib/gitian-builder/)",
-                "(^contrib/apple-sdk-tools/)",
-                "(^electrum/electrumabc.*)"
+                "(^contrib/gitian-builder/)"
             ]
         },
         "lint-bash-shebang": {
