@@ -2,6 +2,7 @@
 import os
 import re
 import subprocess
+import sys
 import unittest
 
 # Whitelist of modules with allowable errors during automated test discovery.
@@ -21,7 +22,7 @@ def test_setup():
     # Exercise the setup.py to find obvious errors
     os.chdir(ELECTRUM_DIR)
     ret = subprocess.run(
-        [os.path.join(ELECTRUM_DIR, "setup.py"), "--version"],
+        [sys.executable, os.path.join(ELECTRUM_DIR, "setup.py"), "--version"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
