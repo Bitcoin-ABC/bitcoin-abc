@@ -73,6 +73,7 @@ struct SubRecv {
 impl SubRecv {
     async fn recv_action(&mut self) -> Result<WsAction> {
         tokio::select! {
+            biased;
             action = Self::recv_blocks(&mut self.blocks) => action,
             action = Self::recv_scripts(&mut self.scripts) => action,
             action = Self::recv_token_ids(&mut self.token_ids) => action,
