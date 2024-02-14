@@ -30,6 +30,8 @@ packages:
 - "gcc-9-arm-linux-gnueabihf"
 - "git"
 - "gperf"
+# Needed for Rocksdb
+- "libc6-dev-i386"
 - "libtool"
 - "ninja-build"
 - "pkg-config"
@@ -176,6 +178,16 @@ script: |
   echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
   chmod +x rustup-init
   ./rustup-init -y --default-toolchain=1.72.0
+
+  # Rust target name differs from our host name, let's map
+  declare -A RUST_TARGET
+  RUST_TARGET[x86_64-linux-gnu]=x86_64-unknown-linux-gnu
+  RUST_TARGET[arm-linux-gnueabihf]=arm-unknown-linux-gnueabihf
+  RUST_TARGET[aarch64-linux-gnu]=aarch64-unknown-linux-gnu
+  for i in ${HOSTS[@]}; do
+    $HOME/.cargo/bin/rustup target add ${RUST_TARGET[${i}]}
+  done
+
   # Cleanup
   rm -f rustup-init
 
@@ -197,9 +209,11 @@ script: |
   # Despite not being a new host per se, it makes it easy to reuse the same code
   # and prevent errors.
   # TODO Remove after chronik is made part of the main release.
-  HOSTS+=(x86_64-linux-gnu-chronik-experimental)
-  CMAKE_TOOLCHAIN_FILE[x86_64-linux-gnu-chronik-experimental]=Linux64.cmake
-  CMAKE_EXTRA_OPTIONS[x86_64-linux-gnu-chronik-experimental]="-DBUILD_BITCOIN_CHRONIK=ON -DCorrosion_DIR=${CORROSION_INSTALL_FOLDER}/lib/cmake/Corrosion"
+  for i in ${HOSTS[@]}; do
+    HOSTS+=($i-chronik-experimental)
+    CMAKE_TOOLCHAIN_FILE[$i-chronik-experimental]=${CMAKE_TOOLCHAIN_FILE[$i]}
+    CMAKE_EXTRA_OPTIONS[$i-chronik-experimental]="${CMAKE_EXTRA_OPTIONS[$i]} -DBUILD_BITCOIN_CHRONIK=ON -DCorrosion_DIR=${CORROSION_INSTALL_FOLDER}/lib/cmake/Corrosion"
+  done
 
   # Extract the release tarball into a dir for each host and build
   for i in ${HOSTS[@]}; do
