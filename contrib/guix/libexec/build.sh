@@ -206,12 +206,24 @@ make -C depends --jobs="$JOBS" HOST="$HOST" \
 # Source Tarball Building #
 ###########################
 
+# Toolchain
+case "$HOST" in
+    *mingw*)
+        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Win64.cmake"
+        ;;
+    *linux*)
+        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Linux64.cmake"
+        ;;
+    *darwin*)
+        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/OSX.cmake"
+        ;;
+esac
+
 mkdir -p source_package
 pushd source_package
-# Any toolchain file will work for building the source package, just pick the
-# first one
+rm -f CMakeCache.txt
 cmake -GNinja .. \
-  -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/Linux64.cmake \
+  -DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}" \
   -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
 
 ninja package_source
@@ -248,18 +260,15 @@ case "$HOST" in
     *mingw*)  HOST_LDFLAGS="-Wl,--no-insert-timestamp" ;;
 esac
 
-# Toolchain
+# CMake flags
 case "$HOST" in
     *mingw*)
-        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Win64.cmake"
         CMAKE_EXTRA_OPTIONS=(-DBUILD_BITCOIN_SEEDER=OFF -DCPACK_PACKAGE_FILE_NAME="${DISTNAME}-win64-setup-unsigned")
         ;;
     *linux*)
-        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Linux64.cmake"
         CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON -DUSE_LINKER=)
         ;;
     *darwin*)
-        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/OSX.cmake"
         CMAKE_EXTRA_OPTIONS=(-DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage")
         ;;
 esac

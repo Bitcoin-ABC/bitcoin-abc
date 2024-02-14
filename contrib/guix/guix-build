@@ -72,9 +72,9 @@ fi
 ################
 
 # Default to building for all supported HOSTs (overridable by environment)
-# TODO: support x86_64-w64-mingw32, x86_64-apple-darwin, arm64-apple-darwin,
-#       aarch64-linux-gnu, arm-linux-gnueabihf
-export HOSTS="${HOSTS:-x86_64-linux-gnu}"
+# TODO: support x86_64-apple-darwin, arm64-apple-darwin, aarch64-linux-gnu,
+# arm-linux-gnueabihf
+export HOSTS="${HOSTS:-x86_64-linux-gnu x86_64-w64-mingw32}"
 
 # Usage: distsrc_for_host HOST
 #
