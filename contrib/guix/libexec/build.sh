@@ -107,8 +107,8 @@ case "$HOST" in
         CROSS_GCC_LIBS=( "${CROSS_GCC_LIB_STORE}/lib/gcc/${HOST}"/* ) # This expands to an array of directories...
         CROSS_GCC_LIB="${CROSS_GCC_LIBS[0]}" # ...we just want the first one (there should only be one)
 
-        export CROSS_CC="${CROSS_GCC_ROOT}/bin/x86_64-linux-gnu-gcc"
-        export CROSS_CXX="${CROSS_GCC_ROOT}/bin/x86_64-linux-gnu-g++"
+        export CROSS_CC="${CROSS_GCC_ROOT}/bin/${HOST}-gcc"
+        export CROSS_CXX="${CROSS_GCC_ROOT}/bin/${HOST}-g++"
         export CROSS_C_INCLUDE_PATH="${CROSS_GCC_LIB}/include:${CROSS_GCC_LIB}/include-fixed:${CROSS_GLIBC}/include:${CROSS_KERNEL}/include"
         export CROSS_CPLUS_INCLUDE_PATH="${CROSS_GCC_ROOT}/include/c++:${CROSS_GCC_ROOT}/include/c++/${HOST}:${CROSS_GCC_ROOT}/include/c++/backward:${CROSS_C_INCLUDE_PATH}"
         export CROSS_LIBRARY_PATH="${CROSS_GCC_LIB_STORE}/lib:${CROSS_GCC_LIB}:${CROSS_GLIBC}/lib:${CROSS_GLIBC_STATIC}/lib"
@@ -211,7 +211,13 @@ case "$HOST" in
     *mingw*)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Win64.cmake"
         ;;
-    *linux*)
+    aarch64-linux-gnu)
+        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/LinuxAArch64.cmake"
+        ;;
+    arm-linux-gnueabihf)
+        CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/LinuxARM.cmake"
+        ;;
+    x86_64-linux-gnu)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Linux64.cmake"
         ;;
     *darwin*)
