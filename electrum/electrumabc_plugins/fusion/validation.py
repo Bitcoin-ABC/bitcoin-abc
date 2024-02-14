@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Electron Cash - a lightweight Bitcoin Cash client
 # CashFusion - an advanced coin anonymizer

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) 2019 Pieter Wuille
 # Copyright (c) 2019-2020 The Bitcoin developers
 

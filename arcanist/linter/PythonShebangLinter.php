@@ -7,6 +7,8 @@ final class PythonShebangLinter extends ArcanistLinter {
 
   const BAD_SHEBANG_FOUND = 1;
   const INCONSISTENT_PERMISSIONS = 2;
+  const SHEBANG_NON_EXECUTABLE_FILE = 2;
+
 
   public function getInfoName() {
     return 'lint-python-shebang';
@@ -28,6 +30,7 @@ final class PythonShebangLinter extends ArcanistLinter {
     return array(
       self::BAD_SHEBANG_FOUND => ArcanistLintSeverity::SEVERITY_ERROR,
       self::INCONSISTENT_PERMISSIONS => ArcanistLintSeverity::SEVERITY_ERROR,
+      self::SHEBANG_NON_EXECUTABLE_FILE => ArcanistLintSeverity::SEVERITY_ERROR,
     );
   }
 
@@ -35,6 +38,7 @@ final class PythonShebangLinter extends ArcanistLinter {
     return array(
       self::BAD_SHEBANG_FOUND => pht('Missing or unexpected shebang.'),
       self::INCONSISTENT_PERMISSIONS => pht('Inconsistent permissions.'),
+      self::SHEBANG_NON_EXECUTABLE_FILE => pht('Shebang on non executable'),
     );
   }
 
@@ -60,6 +64,13 @@ final class PythonShebangLinter extends ArcanistLinter {
       return $this->raiseLintAtPath(
         self::BAD_SHEBANG_FOUND,
         pht("Shebang should be #!/usr/bin/env python3"));
+    }
+
+    if (!$isOwnerExecutable &&
+        preg_match_all("%^#!/usr/bin/env python3%", $fileContent)) {
+      return $this->raiseLintAtPath(
+        self::SHEBANG_NON_EXECUTABLE_FILE,
+        pht("Non executable file should not have a shebang"));
     }
   }
 }

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Electrum ABC - lightweight eCash client
 # Copyright (C) 2022 The Electrum ABC developers

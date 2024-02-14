@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # -*- mode: python3 -*-
 # This file (c) 2019 Mark Lundeberg & Calin Culianu

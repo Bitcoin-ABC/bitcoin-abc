@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # Electron Cash - A Bitcoin Cash SPV Wallet
 #

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- mode: python3 -*-
 #
 # Electrum ABC - lightweight eCash client

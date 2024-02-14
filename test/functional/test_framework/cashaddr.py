@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) 2017 Pieter Wuille, Shammah Chancellor, Neil Booth
 #
 # Distributed under the MIT software license, see the accompanying

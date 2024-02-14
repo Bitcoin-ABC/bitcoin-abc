@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) 2016-2019 The Bitcoin Core developers
 # Copyright (c) 2017 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying

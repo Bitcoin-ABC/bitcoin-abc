@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Electrum ABC - lightweight eCash client
 # Copyright (c) 2023 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 # macos.py -  utility functions, mainly functions that call into CoreFoundation
 # and Foundation
