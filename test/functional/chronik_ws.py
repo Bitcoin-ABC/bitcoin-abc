@@ -5,7 +5,7 @@
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_to_blocks
 
 QUORUM_NODE_COUNT = 16
 
@@ -58,7 +58,7 @@ class ChronikWsTest(BitcoinTestFramework):
         self.wait_until(lambda: has_finalized_tip(tip))
 
         # Now subscribe to blocks, we'll get block updates from now on
-        ws.sub_to_blocks()
+        chronik_sub_to_blocks(ws, node)
 
         # Mine block
         tip = self.generate(node, 1)[-1]

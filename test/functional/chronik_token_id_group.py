@@ -18,7 +18,7 @@ from test_framework.chronik.slp import slp_genesis
 from test_framework.chronik.token_tx import TokenTx
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_token_id
 
 
 class ChronikTokenBurn(BitcoinTestFramework):
@@ -112,7 +112,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_slp)
-        ws1.sub_token_id(genesis_slp.txid)
+        chronik_sub_token_id(ws1, node, genesis_slp.txid)
         genesis_slp.send(chronik)
         genesis_slp.test(chronik)
         assert_equal(ws1.recv(), ws_msg(genesis_slp.txid, pb.TX_ADDED_TO_MEMPOOL))
@@ -158,7 +158,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis_alp)
-        ws1.sub_token_id(genesis_alp.txid)
+        chronik_sub_token_id(ws1, node, genesis_alp.txid)
         genesis_alp.send(chronik)
         genesis_alp.test(chronik)
         assert_equal(ws1.recv(), ws_msg(genesis_alp.txid, pb.TX_ADDED_TO_MEMPOOL))
@@ -202,7 +202,7 @@ class ChronikTokenBurn(BitcoinTestFramework):
             ),
         )
         txs.append(genesis2_alp)
-        ws2.sub_token_id(genesis2_alp.txid)
+        chronik_sub_token_id(ws2, node, genesis2_alp.txid)
         genesis2_alp.send(chronik)
         genesis2_alp.test(chronik)
         assert_equal(ws2.recv(), ws_msg(genesis2_alp.txid, pb.TX_ADDED_TO_MEMPOOL))
@@ -382,11 +382,11 @@ class ChronikTokenBurn(BitcoinTestFramework):
             assert_equal(utxo, proto_utxo)
 
         # Resubscribe so ws1=genesis_slp.txid, ws2=genesis_alp.txid, ws3=genesis2_alp.txid
-        ws1.sub_token_id(genesis_alp.txid, is_unsub=True)
-        ws2.sub_token_id(genesis2_alp.txid, is_unsub=True)
-        ws2.sub_token_id(genesis_alp.txid)
+        chronik_sub_token_id(ws1, node, genesis_alp.txid, is_unsub=True)
+        chronik_sub_token_id(ws2, node, genesis2_alp.txid, is_unsub=True)
+        chronik_sub_token_id(ws2, node, genesis_alp.txid)
         ws3 = chronik.ws()
-        ws3.sub_token_id(genesis2_alp.txid)
+        chronik_sub_token_id(ws3, node, genesis2_alp.txid)
 
         # After mining, all txs still work fine
         block_hash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]

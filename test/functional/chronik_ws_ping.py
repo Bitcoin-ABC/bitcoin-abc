@@ -6,7 +6,7 @@ Test whether Chronik sends regular WebSocket pings to keep connections open.
 """
 
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_to_blocks
 
 
 class ChronikWsPingTest(BitcoinTestFramework):
@@ -34,7 +34,7 @@ class ChronikWsPingTest(BitcoinTestFramework):
         # Connect and subscribe to blocks.
         # Disable pinging from the testing framework, otherwise they cancel Chronik's ping timeout.
         ws = PingChronikWs(chronik, ping_interval=None, ping_timeout=None)
-        ws.sub_to_blocks()
+        chronik_sub_to_blocks(ws, node)
 
         # Sanity WS check: mine and expect a CONNECTED msg
         self.generate(node, 1)[-1]

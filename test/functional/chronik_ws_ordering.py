@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright (c) 2024 The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -18,7 +17,7 @@ from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_CHECKSIG, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_script, chronik_sub_to_blocks
 
 QUORUM_NODE_COUNT = 16
 
@@ -137,12 +136,12 @@ class ChronikWsOrdering(BitcoinTestFramework):
 
         # Subscribe to all scripts in the test, and to blocks
         ws = chronik.ws(timeout=240)
-        ws.sub_script("p2pkh", bytes.fromhex(ifp_hash))
+        chronik_sub_script(ws, node, "p2pkh", bytes.fromhex(ifp_hash))
         for p2sh_hash in p2sh_hashes:
-            ws.sub_script("p2sh", bytes.fromhex(p2sh_hash))
-        ws.sub_script("p2pk", pubkey)
-        ws.sub_script("other", bytes(other_script))
-        ws.sub_to_blocks()
+            chronik_sub_script(ws, node, "p2sh", bytes.fromhex(p2sh_hash))
+        chronik_sub_script(ws, node, "p2pk", pubkey)
+        chronik_sub_script(ws, node, "other", bytes(other_script))
+        chronik_sub_to_blocks(ws, node)
 
         # Mine block, which will be finalized
         finalized_blockhash = self.generatetoaddress(

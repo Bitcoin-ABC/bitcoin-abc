@@ -156,11 +156,11 @@ impl SubRecv {
             }
             WsSubType::TokenId(token_id) => {
                 if sub.is_unsub {
-                    log_chronik!("WS unsubscribe from {}\n", token_id);
+                    log_chronik!("WS unsubscribe from token ID {token_id}\n");
                     std::mem::drop(self.token_ids.remove(&token_id));
                     subs.subs_token_id_mut().unsubscribe_from_member(&token_id)
                 } else {
-                    log_chronik!("WS subscribe to {}\n", token_id);
+                    log_chronik!("WS subscribe to token ID {token_id}\n");
                     let recv =
                         subs.subs_token_id_mut().subscribe_to_member(&token_id);
                     self.token_ids.insert(token_id, recv);

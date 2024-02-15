@@ -19,7 +19,7 @@ from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_EQUAL, OP_HASH160, CScript, hash160
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_script
 
 QUORUM_NODE_COUNT = 16
 
@@ -94,9 +94,9 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         ws1 = chronik.ws()
         ws2 = chronik.ws()
         # Subscribe to 2 scripts on ws1 and 1 on ws2
-        ws1.sub_script("p2sh", send_script_hashes[1])
-        ws1.sub_script("p2sh", send_script_hashes[2])
-        ws2.sub_script("p2sh", send_script_hashes[2])
+        chronik_sub_script(ws1, node, "p2sh", send_script_hashes[1])
+        chronik_sub_script(ws1, node, "p2sh", send_script_hashes[2])
+        chronik_sub_script(ws2, node, "p2sh", send_script_hashes[2])
 
         # Send the tx, will send updates to ws1 and ws2
         txid = node.sendrawtransaction(tx.serialize().hex())
@@ -114,7 +114,7 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         assert_equal(ws2.recv(), expected_msg)
 
         # Unsubscribe ws1 from the other script ws2 is subscribed to
-        ws1.sub_script("p2sh", send_script_hashes[2], is_unsub=True)
+        chronik_sub_script(ws1, node, "p2sh", send_script_hashes[2], is_unsub=True)
 
         # tx2 is only sent to ws2
         tx2 = CTransaction()
