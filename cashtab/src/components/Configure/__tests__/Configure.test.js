@@ -1,21 +1,19 @@
 import React from 'react';
-import { ThemeProvider } from 'styled-components';
-import { theme } from 'assets/styles/theme';
-import Configure from 'components/Configure/Configure';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { WalletContext } from 'utils/context';
 import {
     walletWithXecAndTokens,
     populatedContactList,
 } from '../fixtures/mocks';
-import { render, screen, waitFor, renderHook } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent, {
+    PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import { cashtabSettings } from 'config/cashtabSettings';
-import cashtabCache from 'config/cashtabCache';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
-import useWallet from 'hooks/useWallet';
+import { when } from 'jest-when';
+import appConfig from 'config/app';
+import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -45,81 +43,95 @@ window.matchMedia = query => ({
 });
 
 describe('<Configure />', () => {
+    beforeEach(() => {
+        // Mock the fetch call Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs require different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
     afterEach(async () => {
+        jest.clearAllMocks();
         await localforage.clear();
     });
-    it('Deleting a contact from Configure.js removes it from localforage and wallet context. A notification is triggered on success.', async () => {
-        // Set localforage to get expected initial state of hook
-        await localforage.setItem('contactList', populatedContactList);
-        await localforage.setItem('cashtabCache', cashtabCache);
-        await localforage.setItem('settings', cashtabSettings);
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        const { result } = renderHook(() => useWallet());
+    it('We can add, delete, rename, contacts from the Configure screen, and add a savedWallet as a contact', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+        );
 
-        let resultAfterStateSet;
-        await waitFor(() => {
-            expect(result.current.contactList).toStrictEqual(
-                populatedContactList,
-            );
-            resultAfterStateSet = result.current;
-        });
+        // Custom contact list
+        await localforage.setItem('contactList', populatedContactList);
+
+        // Add a new saved wallet that can be rendered
+        const addedSavedWalletContact = {
+            // IFP
+            address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+            name: 'addedSavedWallet',
+        };
+        await localforage.setItem('savedWallets', [
+            walletWithXecAndTokens,
+            {
+                name: addedSavedWalletContact.name,
+                Path1899: {
+                    cashAddress: addedSavedWalletContact.address,
+                },
+            },
+        ]);
+
         render(
-            <Router>
-                <WalletContext.Provider value={resultAfterStateSet}>
-                    <ThemeProvider theme={theme}>
-                        <Configure />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
         );
 
         // Configure component is rendered
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
 
-        // Confirm expected initial state of localforage
-        const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual(populatedContactList);
-
         // Open the collapse
-        const contactListCollapseButton = screen
-            .queryByTestId('contact-list-collapse')
-            .querySelector('.ant-collapse-header');
-        await userEvent.click(contactListCollapseButton);
+        await userEvent.click(
+            screen.getByRole('button', { name: /Contact List/ }),
+            {
+                // https://github.com/testing-library/user-event/issues/922
+                pointerEventsCheck: PointerEventsCheckLevel.Never,
+            },
+        );
 
         const addressToDelete =
             'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
 
         // We find the expected contacts
-        expect(screen.queryByTestId('contact-list-items')).toHaveTextContent(
-            `alpha${addressToDelete}betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact`,
+        await waitFor(() =>
+            expect(screen.getByTestId('contact-list-items')).toHaveTextContent(
+                `alpha${addressToDelete}betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact`,
+            ),
         );
 
-        // Confirm notification does not exist prior to action
-        await waitFor(() => {
-            expect(
-                screen.queryByText(
-                    `${addressToDelete} removed from Contact List`,
-                ),
-            ).not.toBeInTheDocument();
+        // Click the first row Delete button
+        await userEvent.click(screen.getAllByTestId('delete-contact-btn')[0], {
+            // https://github.com/testing-library/user-event/issues/922
+            pointerEventsCheck: PointerEventsCheckLevel.Never,
         });
 
-        // Get the delete button for the first contact
-        const deleteButton = screen.queryAllByTestId('delete-contact-btn')[0];
-        expect(deleteButton).toBeInTheDocument();
-
-        // Click it
-        await userEvent.click(deleteButton);
-
-        // Raises a confirm modal with input field
-        const confirmDeleteContactInput = screen.queryByTestId(
-            'confirm-delete-contact',
+        // Type correct confirmation phrase in confirm delate modal
+        await userEvent.type(
+            screen.getByPlaceholderText('Type "delete alpha" to confirm'),
+            'delete alpha',
         );
-        // Type correct confirmation phrase
-        await userEvent.type(confirmDeleteContactInput, 'delete alpha');
 
         // Click OK
-        const okDeleteContactButton = screen.getByText('OK');
-        await userEvent.click(okDeleteContactButton);
+        await userEvent.click(screen.getByText('OK'));
 
         // Confirm it has been removed from local storage
         const expectedContactsAfterRemovingAlpha = [
@@ -133,12 +145,8 @@ describe('<Configure />', () => {
             },
         ];
         const contactListAfterRemove = await localforage.getItem('contactList');
-        expect(contactListAfterRemove).toStrictEqual(
+        expect(contactListAfterRemove).toEqual(
             expectedContactsAfterRemovingAlpha,
-        );
-        // Confirm contactList has been updated in state
-        expect(result.current.contactList).toStrictEqual(
-            contactListAfterRemove,
         );
 
         // Confirm notification is triggered
@@ -149,52 +157,12 @@ describe('<Configure />', () => {
                 ),
             ).toBeInTheDocument();
         });
-    });
-    it('Adding a contact from Configure.js adds it to localforage and wallet context. A notification is triggered on success.', async () => {
-        // Set localforage to get expected initial state of hook
-        await localforage.setItem('contactList', populatedContactList);
-        await localforage.setItem('cashtabCache', cashtabCache);
-        await localforage.setItem('settings', cashtabSettings);
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        const { result } = renderHook(() => useWallet());
-
-        let resultAfterStateSet;
-        await waitFor(() => {
-            expect(result.current.contactList).toStrictEqual(
-                populatedContactList,
-            );
-            resultAfterStateSet = result.current;
-        });
-        render(
-            <Router>
-                <WalletContext.Provider value={resultAfterStateSet}>
-                    <ThemeProvider theme={theme}>
-                        <Configure />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
-        );
-
-        // Configure component is rendered
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
-
-        // Confirm expected initial state of localforage
-        const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual(populatedContactList);
-
-        // Open the collapse
-        const contactListCollapseButton = screen
-            .queryByTestId('contact-list-collapse')
-            .querySelector('.ant-collapse-header');
-        await userEvent.click(contactListCollapseButton);
-
-        // We find the expected contacts
-        expect(screen.queryByTestId('contact-list-items')).toHaveTextContent(
-            'alphaecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact',
-        );
 
         // Add a contact
-        await userEvent.click(screen.getByTestId('add-contact-btn'));
+        await userEvent.click(screen.getByTestId('add-contact-btn'), {
+            // https://github.com/testing-library/user-event/issues/922
+            pointerEventsCheck: PointerEventsCheckLevel.Never,
+        });
 
         const nameInput = screen.getByPlaceholderText('Enter new contact name');
         const addrInput = screen.getByPlaceholderText(
@@ -204,23 +172,12 @@ describe('<Configure />', () => {
         await userEvent.type(nameInput, 'delta');
         await userEvent.type(addrInput, address);
 
-        // Confirm notification does not exist prior to action
-        await waitFor(() => {
-            expect(
-                screen.queryByText(`${address} added to Contact List`),
-            ).not.toBeInTheDocument();
-        });
-
         // Click OK
-        const okAddContactButton = screen.getByText('OK');
-        await userEvent.click(okAddContactButton);
+        await userEvent.click(screen.getByText('OK'));
 
         // Confirm new contact is added in local storage
-        const expectedContactsAfterAddingDelta = [
-            {
-                address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                name: 'alpha',
-            },
+        const contactListAfterAdd = await localforage.getItem('contactList');
+        expect(contactListAfterAdd).toEqual([
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 name: 'beta',
@@ -233,78 +190,23 @@ describe('<Configure />', () => {
                 address: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
                 name: 'delta',
             },
-        ];
-        const contactListAfterAdd = await localforage.getItem('contactList');
-        expect(contactListAfterAdd).toStrictEqual(
-            expectedContactsAfterAddingDelta,
-        );
-        // Confirm contactList has been updated in state
-        expect(result.current.contactList).toStrictEqual(
-            expectedContactsAfterAddingDelta,
-        );
-        // Confirm notification is triggered
+        ]);
+
+        // Confirm add contact success notification is triggered
         await waitFor(() => {
             expect(
                 screen.getByText(`${address} added to Contact List`),
             ).toBeInTheDocument();
         });
-    });
-    it('Adding a duplicate contact from Configure.js triggers error notification.', async () => {
-        // Set localforage to get expected initial state of hook
-        await localforage.setItem('contactList', populatedContactList);
-        await localforage.setItem('cashtabCache', cashtabCache);
-        await localforage.setItem('settings', cashtabSettings);
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        const { result } = renderHook(() => useWallet());
 
-        let resultAfterStateSet;
-        await waitFor(() => {
-            expect(result.current.contactList).toStrictEqual(
-                populatedContactList,
-            );
-            resultAfterStateSet = result.current;
-        });
-        render(
-            <Router>
-                <WalletContext.Provider value={resultAfterStateSet}>
-                    <ThemeProvider theme={theme}>
-                        <Configure />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+        // We get an error if we add a contact that already exists
+        await userEvent.click(
+            screen.getByRole('button', { name: 'Add Contact' }),
+            {
+                // https://github.com/testing-library/user-event/issues/922
+                pointerEventsCheck: PointerEventsCheckLevel.Never,
+            },
         );
-
-        // Open the collapse
-        const contactListCollapseButton = screen
-            .queryByTestId('contact-list-collapse')
-            .querySelector('.ant-collapse-header');
-        await userEvent.click(contactListCollapseButton);
-
-        // Add the initial contact
-        await userEvent.click(screen.getByTestId('add-contact-btn'));
-        const nameInput = screen.getByPlaceholderText('Enter new contact name');
-        const addrInput = screen.getByPlaceholderText(
-            'Enter new eCash address or alias',
-        );
-        await userEvent.type(nameInput, 'delta');
-        const address = 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
-        await userEvent.type(addrInput, address);
-
-        // Click OK
-        const okAddContactButton = screen.getByText('OK');
-        await userEvent.click(okAddContactButton);
-
-        // Confirm error notification does not exist prior to action
-        await waitFor(() => {
-            expect(
-                screen.queryByText(
-                    `${address} already exists in the Contact List`,
-                ),
-            ).not.toBeInTheDocument();
-        });
-
-        // Add the same contact again
-        await userEvent.click(screen.getByTestId('add-contact-btn'));
         const nameInputRepeat = screen.getByPlaceholderText(
             'Enter new contact name',
         );
@@ -326,57 +228,13 @@ describe('<Configure />', () => {
                 ),
             ).toBeInTheDocument();
         });
-    });
-    it('Renaming a contact from Configure.js renames it in localforage and wallet context', async () => {
-        // Set localforage to get expected initial state of hook
-        await localforage.setItem('contactList', populatedContactList);
-        await localforage.setItem('cashtabCache', cashtabCache);
-        await localforage.setItem('settings', cashtabSettings);
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        const { result } = renderHook(() => useWallet());
 
-        let resultAfterStateSet;
-        await waitFor(() => {
-            expect(result.current.contactList).toStrictEqual(
-                populatedContactList,
-            );
-            resultAfterStateSet = result.current;
+        // We can rename a contact
+
+        await userEvent.click(screen.getAllByTestId('rename-contact-btn')[0], {
+            // https://github.com/testing-library/user-event/issues/922
+            pointerEventsCheck: PointerEventsCheckLevel.Never,
         });
-        render(
-            <Router>
-                <WalletContext.Provider value={resultAfterStateSet}>
-                    <ThemeProvider theme={theme}>
-                        <Configure />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
-        );
-
-        // Configure component is rendered
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
-
-        // Confirm expected initial state of localforage
-        const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual(populatedContactList);
-
-        // Open the collapse
-        const contactListCollapseButton = screen
-            .queryByTestId('contact-list-collapse')
-            .querySelector('.ant-collapse-header');
-        await userEvent.click(contactListCollapseButton);
-
-        // We find the expected contacts
-        expect(screen.queryByTestId('contact-list-items')).toHaveTextContent(
-            'alphaecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact',
-        );
-
-        // Rename a contact
-        // Get the delete button for the first contact
-        const renameButton = screen.queryAllByTestId('rename-contact-btn')[0];
-        expect(renameButton).toBeInTheDocument();
-
-        // Click it
-        await userEvent.click(renameButton);
 
         const editNameInput = screen.getByPlaceholderText(
             'Enter new contact name',
@@ -387,128 +245,60 @@ describe('<Configure />', () => {
         const okRenameContactButton = screen.getByText('OK');
         await userEvent.click(okRenameContactButton);
 
-        // Confirm alpha is renamed
-        const expectedContactsAfterRenamingAlpha = [
-            {
-                address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                name: 'omega',
-            },
+        // Confirm first contact (formerly beta) is renamed
+        const contactListAfterRename = await localforage.getItem('contactList');
+        expect(contactListAfterRename).toEqual([
             {
                 address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                name: 'beta',
+                name: 'omega',
             },
             {
                 address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
                 name: 'gamma',
             },
-        ];
-        const contactListAfterRename = await localforage.getItem('contactList');
-        expect(contactListAfterRename).toStrictEqual(
-            expectedContactsAfterRenamingAlpha,
-        );
-        // Confirm contactList has been updated in state
-        expect(result.current.contactList).toStrictEqual(
-            expectedContactsAfterRenamingAlpha,
-        );
-    });
-    it('We can add a savedWallet as a contact. A notification is triggered on success.', async () => {
-        // Set localforage to get expected initial state of hook
-        await localforage.setItem('contactList', populatedContactList);
-        await localforage.setItem('cashtabCache', cashtabCache);
-        await localforage.setItem('settings', cashtabSettings);
-        await localforage.setItem('wallet', walletWithXecAndTokens);
-        const address = 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
-        // Add a new saved wallet that can be rendered
-        await localforage.setItem('savedWallets', [
-            walletWithXecAndTokens,
             {
-                name: 'addedWallet',
-                Path1899: {
-                    cashAddress: address,
-                },
+                address: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
+                name: 'delta',
             },
         ]);
-        const { result } = renderHook(() => useWallet());
 
-        let resultAfterStateSet;
-        await waitFor(() => {
-            expect(result.current.contactList).toStrictEqual(
-                populatedContactList,
-            );
-            resultAfterStateSet = result.current;
-        });
-        render(
-            <Router>
-                <WalletContext.Provider value={resultAfterStateSet}>
-                    <ThemeProvider theme={theme}>
-                        <Configure />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
-        );
+        // No notification expected for successfully renaming a contact
 
-        // Configure component is rendered
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
-
-        // Confirm expected initial state of localforage
-        const storedContacts = await localforage.getItem('contactList');
-        expect(storedContacts).toStrictEqual(populatedContactList);
-
-        // Open the collapse
-        const contactListCollapseButton = screen
-            .queryByTestId('contact-list-collapse')
-            .querySelector('.ant-collapse-header');
-        await userEvent.click(contactListCollapseButton);
-
-        // We find the expected contacts
-        expect(screen.queryByTestId('contact-list-items')).toHaveTextContent(
-            'alphaecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact',
-        );
+        // We can add a savedWallet as a contact
 
         // Open the savedWallets collapse
-        const savedWalletsCollapseButton = screen.getByText('Saved wallets');
-        await userEvent.click(savedWalletsCollapseButton);
+        await userEvent.click(
+            screen.getByRole('button', { name: /Saved wallets/ }),
+            {
+                // https://github.com/testing-library/user-event/issues/922
+                pointerEventsCheck: PointerEventsCheckLevel.Never,
+            },
+        );
 
         // We see expected saved wallets
-        expect(await screen.findByText('addedWallet')).toBeInTheDocument();
+        expect(await screen.findByText('addedSavedWallet')).toBeInTheDocument();
 
-        const addButton = screen.getByTestId('add-saved-wallet-to-contact-btn');
-        expect(addButton).toBeInTheDocument();
+        // Click button to add this saved wallet to contacts
+        await userEvent.click(
+            screen.getByTestId('add-saved-wallet-to-contact-btn'),
+        );
 
-        // Confirm notification does not exist prior to action
-        await waitFor(() => {
-            expect(
-                screen.queryByText(`${address} added to Contact List`),
-            ).not.toBeInTheDocument();
-        });
-
-        // Click it
-        await userEvent.click(addButton);
-
-        // Raises a confirm modal
-        // Click OK
+        // Raises a confirm modal. Click OK.
         await userEvent.click(screen.getByText('OK'));
 
         // Confirm new wallet added to contacts
-
-        const contactsAfterAddingSavedWallet = populatedContactList.concat({
-            address: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-            name: 'addedWallet',
-        });
         await waitFor(async () =>
-            expect(await localforage.getItem('contactList')).toStrictEqual(
-                contactsAfterAddingSavedWallet,
+            expect(await localforage.getItem('contactList')).toEqual(
+                contactListAfterRename.concat(addedSavedWalletContact),
             ),
         );
-        // Confirm contactList has been updated in state
-        expect(result.current.contactList).toStrictEqual(
-            contactsAfterAddingSavedWallet,
-        );
 
-        // Confirm notification is triggered
+        // Confirm add contact notification is triggered
         await waitFor(() => {
             expect(
-                screen.getByText(`${address} added to Contact List`),
+                screen.getByText(
+                    `${addedSavedWalletContact.address} added to Contact List`,
+                ),
             ).toBeInTheDocument();
         });
     });
