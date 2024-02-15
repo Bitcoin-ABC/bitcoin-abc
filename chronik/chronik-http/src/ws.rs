@@ -144,11 +144,11 @@ impl SubRecv {
             WsSubType::Script(script_variant) => {
                 let script = script_variant.to_script();
                 if sub.is_unsub {
-                    log_chronik!("WS unsubscribe from {:?}\n", script_variant);
+                    log_chronik!("WS unsubscribe from {}\n", script_variant);
                     std::mem::drop(self.scripts.remove(&script_variant));
                     subs.subs_script_mut().unsubscribe_from_member(&&script)
                 } else {
-                    log_chronik!("WS subscribe to {:?}\n", script_variant);
+                    log_chronik!("WS subscribe to {}\n", script_variant);
                     let recv =
                         subs.subs_script_mut().subscribe_to_member(&&script);
                     self.scripts.insert(script_variant, recv);
@@ -156,11 +156,11 @@ impl SubRecv {
             }
             WsSubType::TokenId(token_id) => {
                 if sub.is_unsub {
-                    log_chronik!("WS unsubscribe from {:?}\n", token_id);
+                    log_chronik!("WS unsubscribe from {}\n", token_id);
                     std::mem::drop(self.token_ids.remove(&token_id));
                     subs.subs_token_id_mut().unsubscribe_from_member(&token_id)
                 } else {
-                    log_chronik!("WS subscribe to {:?}\n", token_id);
+                    log_chronik!("WS subscribe to {}\n", token_id);
                     let recv =
                         subs.subs_token_id_mut().subscribe_to_member(&token_id);
                     self.token_ids.insert(token_id, recv);
