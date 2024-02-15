@@ -37,22 +37,26 @@ function TileSection({ title, items, children }) {
                     if (item === '') {
                         return <BlankTile key={index}></BlankTile>;
                     } else {
-                        const logoSrc = Array.isArray(item.logo)
-                            ? item.logo[0]
-                            : item.logo;
+                        const logoSrc = Array.isArray(item.attributes.logo.data)
+                            ? item.attributes.logo.data[0].attributes
+                            : item.attributes.logo.data.attributes;
                         return (
                             <Tile
-                                href={item.url}
+                                href={item.attributes.url}
                                 target="_blank"
                                 rel="noreferrer"
                                 key={index}
                             >
                                 <TileImgCtn>
                                     <Image
-                                        src={`https://api.scorecard.cash${logoSrc.url}`}
+                                        src={
+                                            process.env
+                                                .NEXT_PUBLIC_STRAPI_SCORECARD_URL +
+                                            logoSrc.url
+                                        }
                                         fill
                                         sizes="12vw"
-                                        alt={item.name}
+                                        alt={item.attributes.name}
                                     />
                                 </TileImgCtn>
                             </Tile>

@@ -124,7 +124,7 @@ export const servicesScoringCriteria = [
  */
 export const getScores = (data, scoringCriteria) => {
     for (let i = 0; i < data.length; ++i) {
-        const item = data[i];
+        const item = data[i].attributes;
         let score = 0;
 
         scoringCriteria.forEach(criteria => {
@@ -165,17 +165,21 @@ export const getScores = (data, scoringCriteria) => {
  * threshold or invalid score values. Scoring is the primary sort
  */
 export const sortExchanges = (data, scoreThreshold) => {
-    data.sort((a, b) => a.name.localeCompare(b.name));
-    data.sort((a, b) => a.deposit_confirmations - b.deposit_confirmations);
-    data.sort((a, b) => b.score - a.score);
+    data.sort((a, b) => a.attributes.name.localeCompare(b.attributes.name));
+    data.sort(
+        (a, b) =>
+            a.attributes.deposit_confirmations -
+            b.attributes.deposit_confirmations,
+    );
+    data.sort((a, b) => b.attributes.score - a.attributes.score);
 
     // Filter out items with a score below the scoreThreshold
     data = data.filter(
         item =>
-            item.score >= scoreThreshold &&
-            item.score !== undefined &&
-            item.score !== null &&
-            item.score >= 0,
+            item.attributes.score >= scoreThreshold &&
+            item.attributes.score !== undefined &&
+            item.attributes.score !== null &&
+            item.attributes.score >= 0,
     );
     return data;
 };
@@ -206,33 +210,36 @@ export async function getScoreCardData() {
     let responses, propsObj;
     try {
         responses = await Promise.all([
-            fetch('https://api.scorecard.cash/exchanges').then(res =>
-                res.json(),
-            ),
-            fetch('https://api.scorecard.cash/instant-exchanges').then(res =>
-                res.json(),
-            ),
-            fetch('https://api.scorecard.cash/apps-services').then(res =>
-                res.json(),
-            ),
+            fetch(
+                `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/exchanges?pagination[pageSize]=100&populate=*`,
+            ).then(res => res.json()),
+            fetch(
+                `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/instant-exchanges?pagination[pageSize]=100&populate=*`,
+            ).then(res => res.json()),
+            fetch(
+                `${process.env.NEXT_PUBLIC_STRAPI_SCORECARD_URL}/api/apps-services?pagination[pageSize]=100&populate=*`,
+            ).then(res => res.json()),
         ]);
         propsObj = {
             props: {
                 exchanges: makeDivisibleByThree(
                     sortExchanges(
-                        getScores(responses[0], exchangeScoringCriteria),
+                        getScores(responses[0].data, exchangeScoringCriteria),
                         scoreThreshold,
                     ),
                 ),
                 instantExchanges: makeDivisibleByThree(
                     sortExchanges(
-                        getScores(responses[1], instantExchangeScoringCriteria),
+                        getScores(
+                            responses[1].data,
+                            instantExchangeScoringCriteria,
+                        ),
                         scoreThreshold,
                     ),
                 ),
                 services: makeDivisibleByThree(
                     sortExchanges(
-                        getScores(responses[2], servicesScoringCriteria),
+                        getScores(responses[2].data, servicesScoringCriteria),
                         scoreThreshold,
                     ),
                 ),
