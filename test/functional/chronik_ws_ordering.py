@@ -136,7 +136,7 @@ class ChronikWsOrdering(BitcoinTestFramework):
         self.wait_until(lambda: is_finalblock(block_hashes[-1]))
 
         # Subscribe to all scripts in the test, and to blocks
-        ws = chronik.ws()
+        ws = chronik.ws(timeout=240)
         ws.sub_script("p2pkh", bytes.fromhex(ifp_hash))
         for p2sh_hash in p2sh_hashes:
             ws.sub_script("p2sh", bytes.fromhex(p2sh_hash))
