@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use thiserror::Error;
 
 use crate::{
     error::DataError,
-    hash::ShaRmd160,
+    hash::{Hashed, ShaRmd160},
     script::{PubKeyVariant, Script},
 };
 
@@ -148,6 +148,22 @@ impl FromStr for ScriptType {
     }
 }
 
+impl Display for ScriptVariant {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ScriptVariant::P2PKH(pkh) => write!(f, "p2pkh({})", pkh.hex_le()),
+            ScriptVariant::P2SH(hash) => write!(f, "p2sh({})", hash.hex_le()),
+            ScriptVariant::P2PK(PubKeyVariant::Compressed(pk)) => {
+                write!(f, "p2pk({})", pk.hex())
+            }
+            ScriptVariant::P2PK(PubKeyVariant::Uncompressed(pk)) => {
+                write!(f, "p2pk({})", pk.hex())
+            }
+            ScriptVariant::Other(other) => write!(f, "other({})", other.hex()),
+        }
+    }
+}
+
 fn parse_array<const N: usize>(payload: &[u8]) -> Result<[u8; N], DataError> {
     payload.try_into().map_err(|_| DataError::InvalidLength {
         expected: N,
@@ -157,9 +173,15 @@ fn parse_array<const N: usize>(payload: &[u8]) -> Result<[u8; N], DataError> {
 
 #[cfg(test)]
 mod tests {
+    use hex_literal::hex;
+
     use crate::{
         error::DataError,
-        script::{ScriptType, ScriptTypeError, ScriptVariant},
+        hash::ShaRmd160,
+        script::{
+            PubKey, PubKeyVariant, Script, ScriptType, ScriptTypeError,
+            ScriptVariant, UncompressedPubKey,
+        },
     };
 
     #[test]
@@ -208,6 +230,36 @@ mod tests {
                 expected: vec![33, 65],
                 actual: 64,
             },
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_script_variant_to_string() -> Result<(), ScriptTypeError> {
+        use ScriptVariant::*;
+        assert_eq!(
+            P2PKH(ShaRmd160([1; 20])).to_string(),
+            "p2pkh(0101010101010101010101010101010101010101)",
+        );
+        assert_eq!(
+            P2SH(ShaRmd160([2; 20])).to_string(),
+            "p2sh(0202020202020202020202020202020202020202)",
+        );
+        assert_eq!(
+            P2PK(PubKeyVariant::Compressed(PubKey([3; 33]))).to_string(),
+            "p2pk(030303030303030303030303030303030303030303030303030303030303\
+                  030303)",
+        );
+        assert_eq!(
+            P2PK(PubKeyVariant::Uncompressed(UncompressedPubKey([4; 65])))
+                .to_string(),
+            "p2pk(040404040404040404040404040404040404040404040404040404040404\
+                  040404040404040404040404040404040404040404040404040404040404\
+                  0404040404)",
+        );
+        assert_eq!(
+            Other(Script::new(hex!("deafbeef").to_vec().into())).to_string(),
+            "other(deafbeef)",
         );
         Ok(())
     }
