@@ -223,8 +223,18 @@ mkdir -p source_package
 pushd source_package
 rm -f CMakeCache.txt
 cmake -GNinja .. \
-  -DCMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}" \
-  -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
+    -DBUILD_BITCOIN_WALLET=OFF \
+    -DBUILD_BITCOIN_CHRONIK=OFF \
+    -DBUILD_BITCOIN_QT=OFF \
+    -DBUILD_BITCOIN_ZMQ=OFF \
+    -DENABLE_QRCODE=OFF \
+    -DENABLE_NATPMP=OFF \
+    -DENABLE_UPNP=OFF \
+    -DUSE_JEMALLOC=OFF \
+    -DENABLE_CLANG_TIDY=OFF \
+    -DENABLE_BIP70=OFF \
+    -DUSE_LINKER=
 
 ninja package_source
 SOURCEDIST=$(echo bitcoin-abc-*.tar.gz)
