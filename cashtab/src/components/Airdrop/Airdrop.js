@@ -12,9 +12,8 @@ import {
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, Alert, Input, Modal, Spin, Progress } from 'antd';
 const { TextArea } = Input;
-import { Row, Col, Switch } from 'antd';
+import { Row, Col, Switch, notification } from 'antd';
 import { SmartButton } from 'components/Common/PrimaryButton';
-import { errorNotification } from 'components/Common/Notifications';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     convertEtokenToEcashAddr,
@@ -191,11 +190,10 @@ const Airdrop = ({ passLoadingStatus }) => {
                 'Calculating airdrop recipients as at block #' + latestBlock,
             );
         } catch (err) {
-            errorNotification(
-                err,
-                'Error retrieving latest block height',
-                'chronik.blockchainInfo() error',
-            );
+            notification.error({
+                message: 'Error',
+                description: 'Error retrieving latest block height',
+            });
             setIsAirdropCalcModalVisible(false);
             passLoadingStatus(false);
             return;
@@ -213,11 +211,10 @@ const Airdrop = ({ passLoadingStatus }) => {
                 true,
             );
         } catch (err) {
-            errorNotification(
-                err,
-                'Error retrieving airdrop recipients',
-                'etokenList.List.GetAddressListFor() error',
-            );
+            notification.error({
+                message: 'Error',
+                description: 'Error retrieving airdrop recipients',
+            });
             setIsAirdropCalcModalVisible(false);
             passLoadingStatus(false);
             return;
@@ -243,12 +240,12 @@ const Airdrop = ({ passLoadingStatus }) => {
                 );
             } catch (err) {
                 console.log(`Error in getMintAddress`, err);
-                errorNotification(
-                    null,
-                    'Unable to retrieve minting address for eToken ID: ' +
+                notification.error({
+                    message: 'Error',
+                    description:
+                        'Unable to retrieve minting address for eToken ID: ' +
                         formData.tokenId,
-                    'getMintAddress Error',
-                );
+                });
                 setIsAirdropCalcModalVisible(false);
                 passLoadingStatus(false);
                 return;
@@ -280,11 +277,11 @@ const Airdrop = ({ passLoadingStatus }) => {
         }
 
         if (!airdropList) {
-            errorNotification(
-                null,
-                'No recipients found for tokenId ' + formData.tokenId,
-                'Airdrop Calculation Error',
-            );
+            notification.error({
+                message: 'Error',
+                description:
+                    'No recipients found for tokenId ' + formData.tokenId,
+            });
             setIsAirdropCalcModalVisible(false);
             passLoadingStatus(false);
             return;
@@ -321,11 +318,11 @@ const Airdrop = ({ passLoadingStatus }) => {
 
             // if the list becomes empty after initial filtering
             if (!airdropList) {
-                errorNotification(
-                    null,
-                    'No recipients after filtering minimum payouts',
-                    'Airdrop Calculation Error',
-                );
+                notification.error({
+                    message: 'Error',
+                    description:
+                        'No recipients after filtering minimum payouts',
+                });
                 setIsAirdropCalcModalVisible(false);
                 passLoadingStatus(false);
                 return;
@@ -385,11 +382,11 @@ const Airdrop = ({ passLoadingStatus }) => {
         setAirdropCalcModalProgress(100);
 
         if (!resultString) {
-            errorNotification(
-                null,
-                'No holders found for eToken ID: ' + formData.tokenId,
-                'Airdrop Calculation Error',
-            );
+            notification.error({
+                message: 'Error',
+                description:
+                    'No holders found for eToken ID: ' + formData.tokenId,
+            });
             setIsAirdropCalcModalVisible(false);
             passLoadingStatus(false);
             return;
