@@ -196,6 +196,7 @@ if(ENABLE_HARDENING)
 		# See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90458
 		add_cxx_compiler_flags(-fstack-clash-protection)
 	endif()
+	add_linker_flags(-Wl,-z,noexecstack)
 
 	# Enable some buffer overflow checking, except in -O0 builds which
 	# do not support them
