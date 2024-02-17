@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import { BN } from 'slp-mdm';
@@ -17,11 +17,6 @@ import {
     parseInvalidCashtabCacheForMigration,
 } from 'validation';
 import localforage from 'localforage';
-import {
-    xecReceivedNotification,
-    xecReceivedNotificationWebsocket,
-    eTokenReceivedNotification,
-} from 'components/Common/Notifications';
 import {
     getUtxosChronik,
     organizeUtxosByType,
@@ -44,6 +39,12 @@ import {
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
+import {
+    CashReceivedNotificationIcon,
+    TokenNotificationIcon,
+} from 'components/Common/CustomIcons';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import { notification } from 'antd';
 // Cashtab is always running the `update` function at an interval
 // When the websocket detects an incoming tx (or when the wallet is first loaded)
 // Set this interval to near-instant (10ms)
@@ -914,12 +915,13 @@ const useWallet = chronik => {
             if (parsedChronikTx.isEtokenTx) {
                 let eTokenAmountReceived = parsedChronikTx.etokenAmount;
                 if (parsedChronikTx.genesisInfo.success) {
-                    // Send this info to the notification function
-                    eTokenReceivedNotification(
-                        parsedChronikTx.genesisInfo.tokenTicker,
-                        eTokenAmountReceived,
-                        parsedChronikTx.genesisInfo.tokenName,
-                    );
+                    notification.success({
+                        message: `${appConfig.tokenTicker} transaction received: ${parsedChronikTx.genesisInfo.tokenTicker}`,
+                        description: `You received ${eTokenAmountReceived.toString()} ${
+                            parsedChronikTx.genesisInfo.tokenName
+                        }`,
+                        icon: <TokenNotificationIcon />,
+                    });
                 } else {
                     // Get genesis info from API and add to cache
                     try {
@@ -949,12 +951,13 @@ const useWallet = chronik => {
                             parsedChronikTx.etokenAmount,
                         ).shiftedBy(-1 * genesisInfo.decimals);
 
-                        // Send this info to the notification function
-                        eTokenReceivedNotification(
-                            genesisInfo.tokenTicker,
-                            eTokenAmountReceived,
-                            genesisInfo.tokenName,
-                        );
+                        notification.success({
+                            message: `${appConfig.tokenTicker} transaction received: ${genesisInfo.tokenTicker}`,
+                            description: `You received ${eTokenAmountReceived.toString()} ${
+                                genesisInfo.tokenName
+                            }`,
+                            icon: <TokenNotificationIcon />,
+                        });
                     } catch (err) {
                         console.log(
                             `Error in getting and setting new token info for incoming eToken tx`,
@@ -963,11 +966,25 @@ const useWallet = chronik => {
                     }
                 }
             } else {
-                xecReceivedNotificationWebsocket(
-                    parsedChronikTx.xecAmount,
-                    cashtabSettings,
-                    fiatPrice,
-                );
+                const xecAmount = parsedChronikTx.xecAmount;
+                notification.success({
+                    message: 'eCash received',
+                    description: `
+                            ${xecAmount.toLocaleString()} ${appConfig.ticker}
+                            ${
+                                cashtabSettings &&
+                                cashtabSettings.fiatCurrency &&
+                                `(${
+                                    supportedFiatCurrencies[
+                                        cashtabSettings.fiatCurrency
+                                    ].symbol
+                                }${(xecAmount * fiatPrice).toFixed(
+                                    appConfig.cashDecimals,
+                                )} ${cashtabSettings.fiatCurrency.toUpperCase()})`
+                            }
+                        `,
+                    icon: <CashReceivedNotificationIcon />,
+                });
             }
         }
     };
@@ -1257,12 +1274,35 @@ const useWallet = chronik => {
             .gt(0) &&
         hasUpdated
     ) {
-        xecReceivedNotification(
-            balances,
-            previousBalances,
-            cashtabSettings,
-            fiatPrice,
-        );
+        notification.success({
+            message: 'Transaction received',
+            description: `
+                    ${parseFloat(
+                        Number(
+                            balances.totalBalance -
+                                previousBalances.totalBalance,
+                        ).toFixed(appConfig.cashDecimals),
+                    ).toLocaleString()}
+                    ${appConfig.ticker}
+                    ${
+                        cashtabSettings &&
+                        cashtabSettings.fiatCurrency &&
+                        `(${
+                            supportedFiatCurrencies[
+                                cashtabSettings.fiatCurrency
+                            ].symbol
+                        }${(
+                            Number(
+                                balances.totalBalance -
+                                    previousBalances.totalBalance,
+                            ) * fiatPrice
+                        ).toFixed(
+                            appConfig.cashDecimals,
+                        )} ${cashtabSettings.fiatCurrency.toUpperCase()})`
+                    }
+                `,
+            icon: <CashReceivedNotificationIcon />,
+        });
     }
 
     // Parse for incoming eToken transactions
@@ -1312,11 +1352,11 @@ const useWallet = chronik => {
 
             // Notification if you received SLP
             if (receivedSlpQty > 0) {
-                eTokenReceivedNotification(
-                    receivedSlpTicker,
-                    receivedSlpQty,
-                    receivedSlpName,
-                );
+                notification.success({
+                    message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
+                    description: `You received ${receivedSlpQty.toString()} ${receivedSlpName}`,
+                    icon: <TokenNotificationIcon />,
+                });
             }
             //
         } else {
@@ -1343,11 +1383,11 @@ const useWallet = chronik => {
                     const receivedSlpTicker = tokens[i].info.tokenTicker;
                     const receivedSlpName = tokens[i].info.tokenName;
 
-                    eTokenReceivedNotification(
-                        receivedSlpTicker,
-                        receivedSlpQty,
-                        receivedSlpName,
-                    );
+                    notification.success({
+                        message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
+                        description: `You received ${receivedSlpQty.toString()} ${receivedSlpName}`,
+                        icon: <TokenNotificationIcon />,
+                    });
                 }
             }
         }
