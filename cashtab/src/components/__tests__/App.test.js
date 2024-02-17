@@ -2,15 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import App from 'components/App';
-import { ThemeProvider } from 'styled-components';
-import { theme } from 'assets/styles/theme';
-import {
-    mockWalletContext,
-    newCashtabUserContext,
-} from 'components/fixtures/mocks';
-import { WalletContext } from 'utils/context';
-import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import 'fake-indexeddb/auto';
+import localforage from 'localforage';
+import { when } from 'jest-when';
+import appConfig from 'config/app';
+import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -40,34 +38,50 @@ window.matchMedia = query => ({
 });
 
 describe('<App />', () => {
+    beforeEach(() => {
+        // Mock the fetch call Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs require different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await localforage.clear();
+    });
     it('Renders 404 on a bad route', async () => {
+        // This is the experience of a user visiting cashtab.com for the first time
+        const mockedChronik = await initializeCashtabStateForTests(false);
         render(
-            <MemoryRouter initialEntries={['/not-a-route']}>
-                <WalletContext.Provider value={mockWalletContext}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </MemoryRouter>,
+            <CashtabTestWrapper chronik={mockedChronik} route="/not-a-route" />,
         );
 
         // We get the 404
         expect(screen.getByTestId('not-found')).toBeInTheDocument();
     });
     it('Navigation menu routes to expected components', async () => {
-        render(
-            <BrowserRouter>
-                <WalletContext.Provider value={mockWalletContext}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </BrowserRouter>,
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
         );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
         const user = userEvent.setup();
 
         // Default route is home
-        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
+        await screen.findByTestId('home-ctn');
 
         // Navigate to Send screen
         await user.click(screen.queryByTestId('nav-btn-send'));
@@ -132,29 +146,21 @@ describe('<App />', () => {
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
     });
     it('Renders the App screen showing normal wallet info for a created wallet', async () => {
-        render(
-            <BrowserRouter>
-                <WalletContext.Provider value={mockWalletContext}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </BrowserRouter>,
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
         );
 
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
         // Input fields are rendered
-        expect(screen.getByTestId('wallet-info-ctn')).toBeInTheDocument();
+        expect(
+            await screen.findByTestId('wallet-info-ctn'),
+        ).toBeInTheDocument();
     });
     it('Renders the onboarding screen if the user has no wallet', async () => {
-        render(
-            <BrowserRouter>
-                <WalletContext.Provider value={newCashtabUserContext}>
-                    <ThemeProvider theme={theme}>
-                        <App />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </BrowserRouter>,
-        );
+        // This is the experience of a user visiting cashtab.com for the first time
+        const mockedChronik = await initializeCashtabStateForTests(false);
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Input fields are rendered
         expect(screen.queryByTestId('wallet-info-ctn')).not.toBeInTheDocument();
