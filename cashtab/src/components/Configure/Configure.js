@@ -478,7 +478,6 @@ const Configure = ({ passLoadingStatus }) => {
 
     const [savedWallets, setSavedWallets] = useState([]);
     const [formData, setFormData] = useState({
-        dirty: true,
         mnemonic: '',
     });
     const [showRenameWalletModal, setShowRenameWalletModal] = useState(false);
@@ -653,7 +652,6 @@ const Configure = ({ passLoadingStatus }) => {
     async function submit() {
         setFormData({
             ...formData,
-            dirty: false,
         });
 
         // Exit if no user input
