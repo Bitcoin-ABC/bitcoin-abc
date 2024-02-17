@@ -111,7 +111,7 @@ class ChronikTokenIdClient:
 class ChronikWs:
     def __init__(self, client: "ChronikClient", **kwargs) -> None:
         self.messages: List[pb.WsMsg] = []
-        self.errors: List[str] = []
+        self.errors: List[Exception] = []
         self.timeout = kwargs.get("timeout", client.timeout)
         self.ping_interval = kwargs.get("ping_interval", 10)
         self.ping_timeout = kwargs.get("ping_timeout", 5)
@@ -154,7 +154,7 @@ class ChronikWs:
         ws_msg.ParseFromString(message)
         self.messages.append(ws_msg)
 
-    def on_error(self, ws, error):
+    def on_error(self, ws, error: Exception):
         self.errors.append(error)
 
     def on_open(self, ws):
@@ -171,11 +171,15 @@ class ChronikWs:
 
     def recv(self):
         recv_timeout = time.time() + self.timeout
-        while len(self.messages) == 0:
+        while len(self.messages) == 0 and len(self.errors) == 0:
             if time.time() > recv_timeout:
                 raise TimeoutError(
                     f"No message received from {self.ws_url} after {self.timeout}s"
                 )
+            time.sleep(0.05)
+        if self.errors:
+            # Raise an error if we encountered one
+            raise self.errors.pop(0)
         return self.messages.pop(0)
 
     def send_bytes(self, data: bytes) -> None:
@@ -202,6 +206,9 @@ class ChronikWs:
     def close(self):
         self.ws.close()
         self.ws_thread.join(self.timeout)
+        if self.errors:
+            # If there's any errors left over, raise the oldest now
+            raise self.errors.pop(0)
 
 
 class ChronikClient:

@@ -300,8 +300,11 @@ pub async fn handle_subscribe_socket(
             // Turn Err into Message and reply
             Err(report) => {
                 let (_, error_proto) = report_status_error(report);
+                let msg_proto = proto::WsMsg {
+                    msg_type: Some(proto::ws_msg::MsgType::Error(error_proto)),
+                };
                 WsAction::Message(ws::Message::Binary(
-                    error_proto.encode_to_vec(),
+                    msg_proto.encode_to_vec(),
                 ))
             }
         };

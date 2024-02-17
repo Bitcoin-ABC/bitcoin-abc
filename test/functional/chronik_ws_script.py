@@ -214,6 +214,18 @@ class ChronikWsScriptTest(BitcoinTestFramework):
         check_tx_msgs(ws1, pb.TX_FINALIZED, sorted([txid, tx3_conflict.hash]))
         check_tx_msgs(ws2, pb.TX_FINALIZED, sorted([txid, txid2]))
 
+        # Invalid subscription, payload too short
+        ws1.sub_script("p2pkh", b"abc")
+        # Chronik responds with an error message
+        assert_equal(
+            ws1.recv(),
+            pb.WsMsg(
+                error=pb.Error(
+                    msg="400: Invalid payload for P2PKH: Invalid length, expected 20 bytes but got 3 bytes"
+                ),
+            ),
+        )
+
         ws1.close()
         ws2.close()
 
