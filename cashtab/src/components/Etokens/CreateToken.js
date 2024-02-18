@@ -18,12 +18,12 @@ const CreateToken = ({ passLoadingStatus }) => {
 
     return (
         <>
-            <SidePaddingCtn data-testid="create-token-ctn">
+            <SidePaddingCtn>
                 {apiError && <ApiError />}
                 {new BN(balances.totalBalanceInSatoshis).lt(
                     new BN(appConfig.dustSats),
                 ) ? (
-                    <AlertMsg data-testid="insufficient-balance-for-tokens">
+                    <AlertMsg>
                         You need at least {toXec(appConfig.dustSats).toString()}{' '}
                         {appConfig.ticker} (
                         {cashtabSettings

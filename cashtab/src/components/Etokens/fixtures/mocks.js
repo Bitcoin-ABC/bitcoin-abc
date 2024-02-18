@@ -1,6 +1,3 @@
-import { cashtabSettings } from 'config/cashtabSettings';
-import cashtabCache from 'config/cashtabCache';
-
 export const walletWithXecAndTokens = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
@@ -1536,18 +1533,4 @@ export const walletWithZeroBalanceAndTxHistory = {
             },
         ],
     },
-};
-export const walletWithEnoughXecToMakeAToken = {
-    wallet: walletWithXecAndTokens,
-    cashtabCache,
-    cashtabSettings,
-    loading: false,
-    apiError: false,
-};
-export const walletWithoutEnoughXecToMakeAToken = {
-    wallet: walletWithZeroBalanceAndTxHistory,
-    cashtabCache,
-    cashtabSettings,
-    loading: false,
-    apiError: false,
 };

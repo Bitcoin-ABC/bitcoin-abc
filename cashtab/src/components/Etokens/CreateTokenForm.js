@@ -510,7 +510,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                     : newTokenDocumentUrl}
                 <br />
             </Modal>
-            <CreateTokenCtn data-testid="create-token-form-ctn">
+            <CreateTokenCtn>
                 <h3>Create a Token</h3>
                 <AntdFormWrapper>
                     <Form
@@ -535,7 +535,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
-                                data-testid="token-name-input"
                                 placeholder="Enter a name for your token"
                                 name="newTokenName"
                                 value={newTokenName}
@@ -558,7 +557,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
-                                data-testid="token-ticker-input"
                                 placeholder="Enter a ticker for your token"
                                 name="newTokenTicker"
                                 value={newTokenTicker}
@@ -581,7 +579,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
-                                data-testid="token-decimals-input"
                                 placeholder="Enter number of decimal places"
                                 name="newTokenDecimals"
                                 type="number"
@@ -605,7 +602,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
-                                data-testid="token-supply-input"
                                 placeholder="Enter the fixed supply of your token"
                                 name="newTokenInitialQty"
                                 type="number"
@@ -629,7 +625,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                             }
                         >
                             <Input
-                                data-testid="token-url-input"
                                 placeholder="Enter a website for your token"
                                 name="newTokenDocumentUrl"
                                 value={newTokenDocumentUrl}
@@ -790,7 +785,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                 </AntdFormWrapper>
 
                 <SmartButton
-                    data-testid="create-token-btn"
                     onClick={() => setShowConfirmCreateToken(true)}
                     disabled={!tokenGenesisDataIsValid}
                     style={{ marginTop: '30px' }}
