@@ -83,7 +83,6 @@ const Alias = ({ passLoadingStatus }) => {
         aliases,
         setAliases,
         aliasServerError,
-        setAliasServerError,
         aliasPrices,
         setAliasPrices,
     } = ContextValue;
@@ -117,7 +116,14 @@ const Alias = ({ passLoadingStatus }) => {
 
         // Refresh alias prices if none exist yet
         if (aliasPrices === null) {
-            setAliasPrices(await queryAliasServer('prices'));
+            try {
+                setAliasPrices(await queryAliasServer('prices'));
+            } catch (err) {
+                setAliasValidationError(
+                    `Failed to fetch alias price information from server. Alias registration disabled. Refresh page to try again.`,
+                );
+                passLoadingStatus(false);
+            }
         }
 
         // Track when the user stops typing into the aliasName input field for at least
@@ -142,10 +148,9 @@ const Alias = ({ passLoadingStatus }) => {
                             setIsValidAliasInput(false);
                         }
                     } catch (err) {
-                        const errorMsg = 'Error retrieving alias status';
-                        errorNotification(null, errorMsg);
-                        setIsValidAliasInput(false);
-                        setAliasServerError(errorMsg);
+                        setAliasValidationError(
+                            `Failed to check alias availability from server. Alias registration disabled. Refresh page to try again.`,
+                        );
                         passLoadingStatus(false);
                     }
                 }
@@ -215,11 +220,11 @@ const Alias = ({ passLoadingStatus }) => {
                 setAliasWarningMsg(false);
             }
         } catch (err) {
-            const errorMsg = 'Error retrieving alias details';
+            const errorMsg =
+                'Error retrieving alias details. Refresh page to try again.';
             console.log(`preparePreviewModal(): ${errorMsg}`, err);
+            // Using a pop up notification since this is a modal block
             errorNotification(null, errorMsg);
-            setIsValidAliasInput(false);
-            setAliasServerError(errorMsg);
             passLoadingStatus(false);
             return;
         }
@@ -244,10 +249,9 @@ const Alias = ({ passLoadingStatus }) => {
             );
             setAliasDetails(false);
         } else {
-            const errorMsg =
-                'Unable to retrieve alias info, please try again later';
-            setAliasServerError(errorMsg);
-            errorNotification(null, errorMsg);
+            setAliasValidationError(
+                'Failed to check alias availability from server. Alias registration disabled. Refresh page to try again.',
+            );
             setAliasDetails(false);
         }
         passLoadingStatus(false);
@@ -520,7 +524,8 @@ const Alias = ({ passLoadingStatus }) => {
                                             );
                                             if (
                                                 aliasLength > 0 &&
-                                                isValidAliasInput
+                                                isValidAliasInput &&
+                                                aliasPrices !== null
                                             ) {
                                                 // Disable alias registration if the array is not exactly one entry
                                                 if (
@@ -595,6 +600,8 @@ const Alias = ({ passLoadingStatus }) => {
                                             disabled={
                                                 !isValidAliasInput ||
                                                 !isValidAliasAddressInput ||
+                                                aliasValidationError !==
+                                                    false ||
                                                 aliasServerError !== false
                                             }
                                             onClick={() =>
@@ -613,7 +620,11 @@ const Alias = ({ passLoadingStatus }) => {
                                     optionalDefaultActiveKey={['1']}
                                     optionalKey="1"
                                 >
-                                    <Space size={[0, 8]} wrap>
+                                    <Space
+                                        size={[0, 8]}
+                                        wrap
+                                        data-testid="registered-aliases-list"
+                                    >
                                         {aliases &&
                                         aliases.registered &&
                                         aliases.registered.length > 0
@@ -648,14 +659,22 @@ const Alias = ({ passLoadingStatus }) => {
                                                   </h3>
                                               )}
                                     </Space>
-                                    <AlertMsg>{aliasServerError}</AlertMsg>
+                                    <AlertMsg>
+                                        {aliasServerError &&
+                                            aliasValidationError === false &&
+                                            aliasServerError}
+                                    </AlertMsg>
                                 </CustomCollapseCtn>
                                 <CustomCollapseCtn
                                     panelHeader="Pending Aliases"
                                     optionalDefaultActiveKey={['1']}
                                     optionalKey="1"
                                 >
-                                    <Space size={[0, 8]} wrap>
+                                    <Space
+                                        size={[0, 8]}
+                                        wrap
+                                        data-testid="pending-aliases-list"
+                                    >
                                         {aliases &&
                                         aliases.pending &&
                                         aliases.pending.length > 0
@@ -690,7 +709,11 @@ const Alias = ({ passLoadingStatus }) => {
                                                   </h3>
                                               )}
                                     </Space>
-                                    <AlertMsg>{aliasServerError}</AlertMsg>
+                                    <AlertMsg>
+                                        {aliasServerError &&
+                                            aliasValidationError === false &&
+                                            aliasServerError}
+                                    </AlertMsg>
                                 </CustomCollapseCtn>
                             </NamespaceCtn>
                         </SidePaddingCtn>
