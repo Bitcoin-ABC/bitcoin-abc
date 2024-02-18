@@ -87,7 +87,7 @@ describe('<Receive />', () => {
         expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
         // Copy div is not displayed
-        expect(screen.queryByTestId('qr-code-copied')).toHaveStyle(
+        expect(screen.queryByText('Address Copied to Clipboard')).toHaveStyle(
             'display: none',
         );
     });
@@ -188,11 +188,13 @@ describe('<Receive />', () => {
         await userEvent.click(qrCodeItself);
 
         // Copy div is displayed
-        expect(screen.queryByTestId('qr-code-copied')).toHaveStyle(
+        expect(screen.queryByText('Address Copied to Clipboard')).toHaveStyle(
             'display: block',
         );
         // Copy div renders address as expected
-        expect(screen.queryByTestId('qr-code-copied')).toHaveTextContent(
+        expect(
+            screen.queryByText('Address Copied to Clipboard'),
+        ).toHaveTextContent(
             'Address Copied to Clipboardecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
         );
     });

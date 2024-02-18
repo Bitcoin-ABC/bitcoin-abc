@@ -1,61 +1,57 @@
 import React from 'react';
-import { render, fireEvent, act, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import userEvent from '@testing-library/user-event';
 import { QRCode } from '../QRCode';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 
 describe('<QRCode />', () => {
-    jest.useFakeTimers('legacy');
-
     it('QRCode copying ecash address', async () => {
-        const OnClick = jest.fn();
+        const address = 'ecash:qqyumjtrftl5yfdwuglhq6l9af2ner39jqr0wexwyk';
         render(
             <ThemeProvider theme={theme}>
-                <QRCode
-                    pixelRatio={25}
-                    onClick={OnClick}
-                    address="ecash:qqyumjtrftl5yfdwuglhq6l9af2ner39jqr0wexwyk"
-                    legacy={true}
-                />
+                <QRCode pixelRatio={25} address={address} legacy={true} />
             </ThemeProvider>,
         );
 
-        const qrCodeElement = screen.getByTestId('raw-qr-code');
-        fireEvent.click(qrCodeElement);
+        // We do not see addr copied div before click
+        const QrCodeCopied = screen.queryByText('Address Copied to Clipboard');
+        expect(QrCodeCopied).toHaveStyle('display: none');
 
-        act(() => {
-            jest.runAllTimers();
-        });
-        expect(OnClick).toHaveBeenCalled();
+        const qrCodeElement = screen.getByTestId('raw-qr-code');
+        await userEvent.click(qrCodeElement);
+
+        // We do see the addr copied div with correct address after click
+        expect(QrCodeCopied).toHaveStyle('display: block');
+        expect(QrCodeCopied).toHaveTextContent(address);
     });
 
-    it('QRCode copying eToken address', () => {
-        const OnClick = jest.fn();
+    it('QRCode copying eToken address', async () => {
+        const address = 'etoken:qqyumjtrftl5yfdwuglhq6l9af2ner39jqd38msfqp';
         render(
             <ThemeProvider theme={theme}>
-                <QRCode
-                    pixelRatio={25}
-                    onClick={OnClick}
-                    address="etoken:qqyumjtrftl5yfdwuglhq6l9af2ner39jqd38msfqp"
-                    legacy={true}
-                />
+                <QRCode pixelRatio={25} address={address} legacy={true} />
             </ThemeProvider>,
         );
+        // We do not see addr copied div before click
+        const QrCodeCopied = screen.queryByText('Address Copied to Clipboard');
+        expect(QrCodeCopied).toHaveStyle('display: none');
+
         const qrCodeElement = screen.getByTestId('raw-qr-code');
-        fireEvent.click(qrCodeElement);
-        expect(OnClick).toHaveBeenCalled();
+        await userEvent.click(qrCodeElement);
+
+        // We do see the addr copied div with correct address after click
+        expect(QrCodeCopied).toHaveStyle('display: block');
+        expect(QrCodeCopied).toHaveTextContent(address);
     });
 
-    it('QRCode without address', () => {
-        const OnClick = jest.fn();
+    it('QRCode will render without address', async () => {
         render(
             <ThemeProvider theme={theme}>
-                <QRCode pixelRatio={25} onClick={OnClick} />
+                <QRCode pixelRatio={25} />
             </ThemeProvider>,
         );
-
-        const qrCodeElement = screen.getByTestId('raw-qr-code');
-        fireEvent.click(qrCodeElement);
-        expect(OnClick).toHaveBeenCalled();
+        expect(screen.getByTestId('raw-qr-code')).toBeInTheDocument();
     });
 });

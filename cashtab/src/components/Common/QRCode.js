@@ -149,10 +149,7 @@ export const QRCode = ({
                 }}
             >
                 <div style={{ position: 'relative' }} onClick={handleOnClick}>
-                    <Copied
-                        data-testid="qr-code-copied"
-                        style={{ display: visible ? null : 'none' }}
-                    >
+                    <Copied style={{ display: visible ? null : 'none' }}>
                         Address Copied to Clipboard
                         <br />
                         <DisplayCopiedAddress>
