@@ -1,8 +1,12 @@
-# DP: Build getbuildinfo.o with DATE/TIME values when defined
+Description: Build reproduceable date and time into build info
+ Build information is encoded into getbuildinfo.o at build time.
+ Use the date and time from the debian changelog, to make this reproduceable.
+
+Forwarded: no
 
 --- a/Makefile.pre.in
 +++ b/Makefile.pre.in
-@@ -795,6 +795,8 @@ Modules/getbuildinfo.o: $(PARSER_OBJS) \
+@@ -1248,6 +1248,8 @@
  	      -DGITVERSION="\"`LC_ALL=C $(GITVERSION)`\"" \
  	      -DGITTAG="\"`LC_ALL=C $(GITTAG)`\"" \
  	      -DGITBRANCH="\"`LC_ALL=C $(GITBRANCH)`\"" \
@@ -10,4 +14,4 @@
 +	      $(if $(BUILD_TIME),-DTIME='"$(BUILD_TIME)"') \
  	      -o $@ $(srcdir)/Modules/getbuildinfo.c
 
- Modules/getpath.o: $(srcdir)/Modules/getpath.c Makefile
+ Modules/getpath.o: $(srcdir)/Modules/getpath.c Python/frozen_modules/getpath.h Makefile $(PYTHON_HEADERS)

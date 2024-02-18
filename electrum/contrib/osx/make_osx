@@ -146,8 +146,8 @@ mkdir -p "$BUILDDIR"
 
 info "Building PyInstaller."
 PYINSTALLER_REPO="https://github.com/pyinstaller/pyinstaller.git"
-PYINSTALLER_COMMIT="fbf7948be85177dd44b41217e9f039e1d176de6b"
-# ^ tag "5.3"
+PYINSTALLER_COMMIT="90256f93ed943daf6de53c7dd39710a415f705cb"
+# ^ tag "v6.4.0"
 # TODO test newer versions of pyinstaller for build-reproducibility.
 #      we are using this version for now due to change in code-signing behaviour
 #      (https://github.com/pyinstaller/pyinstaller/pull/5581)
@@ -241,7 +241,7 @@ info "Building binary"
 # the PACKAGE variable in osx.spec.
 # The package file is renamed at the end to remove the -.
 TMPPACKAGE="Electrum-ABC"
-ELECTRUM_VERSION=$VERSION pyinstaller --clean --noconfirm --ascii contrib/osx/osx.spec || fail "Could not build binary"
+ELECTRUM_VERSION=$VERSION pyinstaller --clean --noconfirm contrib/osx/osx.spec || fail "Could not build binary"
 mv dist/$TMPPACKAGE.app dist/$PACKAGE.app
 
 # Finally, codesign the whole thing

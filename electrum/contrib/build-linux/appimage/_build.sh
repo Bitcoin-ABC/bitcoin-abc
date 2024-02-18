@@ -42,8 +42,8 @@ tar xf "$CACHEDIR/Python-$PYTHON_VERSION.tar.xz" -C "$BUILDDIR"
     cd "$BUILDDIR/Python-$PYTHON_VERSION"
     LC_ALL=C export BUILD_DATE=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%b %d %Y")
     LC_ALL=C export BUILD_TIME=$(date -u -d "@$SOURCE_DATE_EPOCH" "+%H:%M:%S")
-    # Patch taken from Ubuntu Patch taken from Ubuntu http://archive.ubuntu.com/ubuntu/pool/main/p/python3.9/python3.9_3.9.5-3~21.04.debian.tar.xz
-    patch -p1 < "$CONTRIB/build-linux/appimage/patches/python-3.9-reproducible-buildinfo.diff" || fail "Could not patch Python build system for reproducibility"
+    # Patch taken from Ubuntu http://archive.ubuntu.com/ubuntu/pool/main/p/python3.11/python3.11_3.11.6-3.debian.tar.xz
+    patch -p1 < "$CONTRIB/build-linux/appimage/patches/python-3.11.6-reproducible-buildinfo.diff" || fail "Could not patch Python build system for reproducibility"
     ./configure \
       --cache-file="$CACHEDIR/python.config.cache" \
       --prefix="$APPDIR/usr" \
@@ -92,8 +92,9 @@ info "Preparing electrum-locale"
 info "Installing the application and its dependencies"
 mkdir -p "$CACHEDIR/pip_cache"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-pip.txt"
+"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-build-appimage.txt"
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary pyqt5 --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
+"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary PyQt5,PyQt5-Qt5 --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
 
 # Install hidapi from binary wheels until there is a release fixing https://github.com/trezor/cython-hidapi/issues/155
 "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary hidapi --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"

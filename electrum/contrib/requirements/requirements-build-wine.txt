@@ -1,6 +1,7 @@
 pip
 setuptools
 wheel
+packaging
 
 # Below is needed by PyInstaller
 altgraph

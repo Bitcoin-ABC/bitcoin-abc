@@ -227,11 +227,11 @@ export PYTHONHASHSEED=22
 export SOURCE_DATE_EPOCH=1530212462
 # Note, when upgrading Python, check the Windows python.exe embedded manifest for changes.
 # If the manifest changed, contrib/build-wine/manifest.xml needs to be updated.
-export PYTHON_VERSION=3.9.13
-export PY_VER_MAJOR="3.9"  # as it appears in fs paths
+export PYTHON_VERSION=3.11.8
+export PY_VER_MAJOR="3.11"  # as it appears in fs paths
 # If you change PYTHON_VERSION above, update this by downloading the files manually and doing a sha256sum on it.
-export PYTHON_SRC_TARBALL_HASH="125b0c598f1e15d2aa65406e83f792df7d171cdf38c16803b149994316a3080f"
-export PYTHON_MACOS_BINARY_HASH="351fe18f4fb03be7afac5e4012fc0a51345f43202af43ef620cf1eee5ee36578"
+export PYTHON_SRC_TARBALL_HASH="9e06008c8901924395bc1da303eac567a729ae012baa182ab39269f650383bb3"
+export PYTHON_MACOS_BINARY_HASH="db3e2ba967acac293c0063591a1d3c4ba713fd89929447715cd56ce06b598200"
 
 : "${ELECTRUM_ROOT:=$(git rev-parse --show-toplevel)/electrum}"
 export ELECTRUM_ROOT

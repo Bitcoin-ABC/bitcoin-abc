@@ -37,7 +37,7 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTUDIST} main restricted universe multiverse 
 COPY winehq.key /tmp
 
 ENV WINEDIST=devel
-ENV WINEVERSION=7.7~${UBUNTUDIST}-1
+ENV WINEVERSION=9.0.0~${UBUNTUDIST}-1
 
 RUN echo "78b185fabdb323971d13bd329fefc8038e08559aa51c4996de18db0639a51df6 /tmp/winehq.key" | sha256sum -c - && \
     apt-key add /tmp/winehq.key && \
@@ -51,7 +51,7 @@ RUN echo "78b185fabdb323971d13bd329fefc8038e08559aa51c4996de18db0639a51df6 /tmp/
         # cabextract is needed for winetricks to install the .NET framework
         cabextract=1.9-3 \
         # xvfb is needed to launch the Visual Studio installer
-        xvfb=2:21.1.4-2ubuntu1.7~22.04.7 \
+        xvfb=2:21.1.4-2ubuntu1.7~22.04.8 \
         # winbind is needed for the Visual Studio installer and cl.exe PDB generation
         winbind=2:4.15.13+dfsg-0ubuntu1.5
 
@@ -59,9 +59,9 @@ RUN rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
     apt-get clean
 
-RUN wget -q -O /tmp/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/9c97d44b9b68a1b09e244e46f9ae0831ab35c315/src/winetricks && \
+RUN wget -q -O /tmp/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/a9a556719e4fd28fc5984a963e2d666ec809f554/src/winetricks && \
     chmod +x /tmp/winetricks && \
-    echo "311c8c223bb83a7558b9e51197a9ccf7182bbd63849c64827b87bbc5f627f5cb /tmp/winetricks" | sha256sum -c -
+    echo "8127fbe3b6c9c996258e8fc08d05ac72ef11cb1465c5fe0d13e9d28580ba99a7 /tmp/winetricks" | sha256sum -c -
 
 ARG USER_ID
 ARG GROUP_ID
