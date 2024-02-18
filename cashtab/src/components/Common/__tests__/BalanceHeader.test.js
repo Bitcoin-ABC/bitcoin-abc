@@ -42,12 +42,10 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is rendered
-        const CashLoader = screen.queryByTestId('cash-loader');
-        expect(CashLoader).toBeInTheDocument();
+        expect(screen.getByTestId('cash-loader')).toBeInTheDocument();
 
         // XEC balance is not rendered
-        const BalanceXec = screen.queryByTestId('balance-xec');
-        expect(BalanceXec).not.toBeInTheDocument();
+        expect(screen.queryByTestId('balance-xec')).not.toBeInTheDocument();
     });
     it('Renders the BalanceHeader component correctly with default locale en-US', async () => {
         render(
@@ -59,29 +57,26 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is not rendered
-        const CashLoader = screen.queryByTestId('cash-loader');
-        expect(CashLoader).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cash-loader')).not.toBeInTheDocument();
 
-        // XEC balance is displayed
-        const BalanceXec = screen.queryByTestId('balance-xec');
-        expect(BalanceXec).toBeInTheDocument();
+        // XEC balance is calculated correctly
+        const BalanceXec = screen.getByTestId('balance-xec');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is not hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: none`);
 
-        // Fiat balance is displayed
-        const BalanceFiat = screen.queryByTestId('balance-fiat');
-        expect(BalanceFiat).toBeInTheDocument();
+        // Fiat balance is calculated correctly
+        const BalanceFiat = screen.getByTestId('balance-fiat');
         expect(BalanceFiat).toHaveTextContent(`$300.00 USD`);
 
         // Fiat balance is not hidden
         expect(BalanceFiat).toHaveStyle(`text-shadow: none`);
 
         // eCash price is rendered
-        const EcashPrice = screen.queryByTestId('ecash-price');
-        expect(EcashPrice).toBeInTheDocument();
-        expect(EcashPrice).toHaveTextContent(`1 XEC = 0.00003000 USD`);
+        expect(screen.getByTestId('ecash-price')).toHaveTextContent(
+            `1 XEC = 0.00003000 USD`,
+        );
     });
     it('Renders the BalanceHeader component correctly with fr-FR locale', async () => {
         const frenchSettings = JSON.parse(JSON.stringify(cashtabSettings));
@@ -96,29 +91,26 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is not rendered
-        const CashLoader = screen.queryByTestId('cash-loader');
-        expect(CashLoader).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cash-loader')).not.toBeInTheDocument();
 
         // XEC balance is displayed
-        const BalanceXec = screen.queryByTestId('balance-xec');
-        expect(BalanceXec).toBeInTheDocument();
+        const BalanceXec = screen.getByTestId('balance-xec');
         expect(BalanceXec).toHaveTextContent(`10 000 000,00 XEC`);
 
         // XEC balance is not hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: none`);
 
-        // Fiat balance is displayed
-        const BalanceFiat = screen.queryByTestId('balance-fiat');
-        expect(BalanceFiat).toBeInTheDocument();
+        // Fiat balance is calculated correctly
+        const BalanceFiat = screen.getByTestId('balance-fiat');
         expect(BalanceFiat).toHaveTextContent(`€300,00 EUR`);
 
         // Fiat balance is not hidden
         expect(BalanceFiat).toHaveStyle(`text-shadow: none`);
 
         // eCash price is rendered
-        const EcashPrice = screen.queryByTestId('ecash-price');
-        expect(EcashPrice).toBeInTheDocument();
-        expect(EcashPrice).toHaveTextContent(`1 XEC = 0,00003000 EUR`);
+        expect(screen.getByTestId('ecash-price')).toHaveTextContent(
+            `1 XEC = 0,00003000 EUR`,
+        );
     });
     it('Balance is hidden if cashtabSettings.balanceVisible is false', async () => {
         const hiddenSettings = JSON.parse(JSON.stringify(cashtabSettings));
@@ -132,29 +124,26 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is not rendered
-        const CashLoader = screen.queryByTestId('cash-loader');
-        expect(CashLoader).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cash-loader')).not.toBeInTheDocument();
 
-        // XEC balance is displayed
-        const BalanceXec = screen.queryByTestId('balance-xec');
-        expect(BalanceXec).toBeInTheDocument();
+        // XEC balance is calculated correctly
+        const BalanceXec = screen.getByTestId('balance-xec');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: 0 0 15px #fff`);
 
-        // Fiat balance is displayed
-        const BalanceFiat = screen.queryByTestId('balance-fiat');
-        expect(BalanceFiat).toBeInTheDocument();
+        // Fiat balance is calculated correctly
+        const BalanceFiat = screen.getByTestId('balance-fiat');
         expect(BalanceFiat).toHaveTextContent(`$300.00 USD`);
 
         // Fiat balance is not hidden
         expect(BalanceFiat).toHaveStyle(`text-shadow: 0 0 15px #fff`);
 
         // eCash price is rendered
-        const EcashPrice = screen.queryByTestId('ecash-price');
-        expect(EcashPrice).toBeInTheDocument();
-        expect(EcashPrice).toHaveTextContent(`1 XEC = 0.00003000 USD`);
+        expect(screen.getByTestId('ecash-price')).toHaveTextContent(
+            `1 XEC = 0.00003000 USD`,
+        );
     });
     it('Renders fiat price for a non-USD currency', async () => {
         const nonUsdSettings = JSON.parse(JSON.stringify(cashtabSettings));
@@ -168,29 +157,26 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is not rendered
-        const CashLoader = screen.queryByTestId('cash-loader');
-        expect(CashLoader).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cash-loader')).not.toBeInTheDocument();
 
-        // XEC balance is displayed
-        const BalanceXec = screen.queryByTestId('balance-xec');
-        expect(BalanceXec).toBeInTheDocument();
+        // XEC balance is calculated correctly
+        const BalanceXec = screen.getByTestId('balance-xec');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is not hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: none`);
 
-        // Fiat balance is displayed
-        const BalanceFiat = screen.queryByTestId('balance-fiat');
-        expect(BalanceFiat).toBeInTheDocument();
+        // Fiat balance is calculated correctly
+        const BalanceFiat = screen.getByTestId('balance-fiat');
         expect(BalanceFiat).toHaveTextContent(`£300.00 GBP`);
 
         // Fiat balance is not hidden
         expect(BalanceFiat).toHaveStyle(`text-shadow: none`);
 
         // eCash price is rendered
-        const EcashPrice = screen.queryByTestId('ecash-price');
-        expect(EcashPrice).toBeInTheDocument();
-        expect(EcashPrice).toHaveTextContent(`1 XEC = 0.00003000 GBP`);
+        expect(screen.getByTestId('ecash-price')).toHaveTextContent(
+            `1 XEC = 0.00003000 GBP`,
+        );
     });
     it('Fiat price and forex are not displayed if fiatPrice is unavailable', async () => {
         render(
@@ -202,23 +188,19 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is not rendered
-        const CashLoader = screen.queryByTestId('cash-loader');
-        expect(CashLoader).not.toBeInTheDocument();
+        expect(screen.queryByTestId('cash-loader')).not.toBeInTheDocument();
 
-        // XEC balance is displayed
-        const BalanceXec = screen.queryByTestId('balance-xec');
-        expect(BalanceXec).toBeInTheDocument();
+        // XEC balance is calculated correctly
+        const BalanceXec = screen.getByTestId('balance-xec');
         expect(BalanceXec).toHaveTextContent(`10,000,000.00 XEC`);
 
         // XEC balance is not hidden
         expect(BalanceXec).toHaveStyle(`text-shadow: none`);
 
         // Fiat balance is not rendered
-        const BalanceFiat = screen.queryByTestId('balance-fiat');
-        expect(BalanceFiat).not.toBeInTheDocument();
+        expect(screen.queryByTestId('balance-fiat')).not.toBeInTheDocument();
 
         // eCash price is not rendered
-        const EcashPrice = screen.queryByTestId('ecash-price');
-        expect(EcashPrice).not.toBeInTheDocument();
+        expect(screen.queryByTestId('ecash-price')).not.toBeInTheDocument();
     });
 });
