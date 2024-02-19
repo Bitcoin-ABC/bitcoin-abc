@@ -10,8 +10,8 @@ license = "MIT"
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 
-# HTTP protocol implementation
-http = "0.2"
+# HTTP types
+http = "1.0"
 
 # Error wrapper for easy error handling and reporting
 eyre = "0.6"

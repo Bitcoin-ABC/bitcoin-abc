@@ -8,7 +8,7 @@ use abc_rust_error::{parse_error_status, Report};
 use axum::response::{IntoResponse, Response};
 use chronik_proto::proto;
 use chronik_util::{log, log_chronik};
-use hyper::StatusCode;
+use http::StatusCode;
 
 use crate::{protobuf::Protobuf, server::ChronikServerError};
 
@@ -73,7 +73,8 @@ mod tests {
     use abc_rust_error::Result;
     use axum::response::IntoResponse;
     use chronik_proto::proto;
-    use hyper::{body::to_bytes, StatusCode};
+    use http_body_util::BodyExt;
+    use hyper::StatusCode;
     use prost::Message;
     use thiserror::Error;
 
@@ -99,7 +100,7 @@ mod tests {
             let report_err = ReportError(err.into());
             let response = report_err.into_response();
             let status = response.status();
-            let body = to_bytes(response.into_body()).await?;
+            let body = response.into_body().collect().await?.to_bytes();
             let proto_error = proto::Error::decode(body)?;
             Ok((status, proto_error))
         }

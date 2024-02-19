@@ -7,11 +7,13 @@
 use abc_rust_error::Report;
 use async_trait::async_trait;
 use axum::{
+    body::Body,
     extract::FromRequest,
     http::{HeaderValue, Request},
     response::{IntoResponse, Response},
 };
-use hyper::{body::to_bytes, header::CONTENT_TYPE, Body};
+use http_body_util::BodyExt;
+use hyper::header::CONTENT_TYPE;
 use prost::Message;
 use thiserror::Error;
 
@@ -64,9 +66,7 @@ pub enum ChronikProtobufError {
 use self::ChronikProtobufError::*;
 
 #[async_trait]
-impl<P: Message + Default, S: Send + Sync> FromRequest<S, Body>
-    for Protobuf<P>
-{
+impl<P: Message + Default, S: Send + Sync> FromRequest<S> for Protobuf<P> {
     type Rejection = ReportError;
 
     async fn from_request(
@@ -75,9 +75,12 @@ impl<P: Message + Default, S: Send + Sync> FromRequest<S, Body>
     ) -> Result<Self, Self::Rejection> {
         let headers = req.headers();
         check_content_type(headers, CONTENT_TYPE_PROTOBUF)?;
-        let mut body_bytes = to_bytes(&mut req.into_body())
+        let mut body_bytes = req
+            .into_body()
+            .collect()
             .await
-            .map_err(|err| Report::from(InvalidBody(err.to_string())))?;
+            .map_err(|err| Report::from(InvalidBody(err.to_string())))?
+            .to_bytes();
         let proto = P::decode(&mut body_bytes)
             .map_err(|err| Report::from(BadProtobuf(err.to_string())))?;
         Ok(Protobuf(proto))
@@ -87,7 +90,7 @@ impl<P: Message + Default, S: Send + Sync> FromRequest<S, Body>
 impl<P: Message + Default> IntoResponse for Protobuf<P> {
     fn into_response(self) -> Response {
         let mut response = Response::builder()
-            .body(axum::body::boxed(Body::from(self.0.encode_to_vec())))
+            .body(Body::from(self.0.encode_to_vec()))
             .unwrap();
         response.headers_mut().insert(
             CONTENT_TYPE,
@@ -100,14 +103,13 @@ impl<P: Message + Default> IntoResponse for Protobuf<P> {
 #[cfg(test)]
 mod tests {
     use abc_rust_error::Result;
-    use axum::{routing::get, Router};
+    use axum::{body::Body, routing::get, Router};
     use chronik_proto::proto;
-    use hyper::{
-        body::to_bytes, header::CONTENT_TYPE, service::Service, Body, Request,
-        StatusCode,
-    };
+    use http_body_util::BodyExt;
+    use hyper::{header::CONTENT_TYPE, Request, StatusCode};
     use prost::Message;
     use thiserror::Error;
+    use tower_service::Service;
 
     use crate::protobuf::{Protobuf, CONTENT_TYPE_PROTOBUF};
 
@@ -139,7 +141,7 @@ mod tests {
         let response =
             router.call(Request::builder().body(Body::empty())?).await?;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let body = to_bytes(&mut response.into_body()).await?;
+        let body = response.into_body().collect().await?.to_bytes();
         assert_eq!(
             proto::Error::decode(body)?,
             proto::Error {
@@ -156,7 +158,7 @@ mod tests {
             )
             .await?;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let body = to_bytes(&mut response.into_body()).await?;
+        let body = response.into_body().collect().await?.to_bytes();
         assert_eq!(
             proto::Error::decode(body)?,
             proto::Error {
@@ -175,7 +177,7 @@ mod tests {
             )
             .await?;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let body = to_bytes(&mut response.into_body()).await?;
+        let body = response.into_body().collect().await?.to_bytes();
         assert_eq!(
             proto::Error::decode(body)?,
             proto::Error {
@@ -193,7 +195,7 @@ mod tests {
         let bad_result: Result<&[u8], _> = Err(TestBadBodyError);
         let bad_body_future = futures::future::ready(bad_result);
         let bad_body =
-            Body::wrap_stream(futures::stream::once(bad_body_future));
+            Body::from_stream(futures::stream::once(bad_body_future));
         let response = router
             .call(
                 Request::builder()
@@ -202,13 +204,11 @@ mod tests {
             )
             .await?;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let body = to_bytes(&mut response.into_body()).await?;
+        let body = response.into_body().collect().await?.to_bytes();
         assert_eq!(
             proto::Error::decode(body)?,
             proto::Error {
-                msg: "400: Invalid body: error reading a body from \
-                      connection: Test bad body error"
-                    .to_string(),
+                msg: "400: Invalid body: Test bad body error".to_string(),
             },
         );
 
@@ -221,7 +221,7 @@ mod tests {
             )
             .await?;
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
-        let body = to_bytes(&mut response.into_body()).await?;
+        let body = response.into_body().collect().await?.to_bytes();
         assert_eq!(
             proto::Error::decode(body)?,
             proto::Error {
@@ -240,7 +240,7 @@ mod tests {
             )
             .await?;
         assert_eq!(response.status(), StatusCode::OK);
-        let body = to_bytes(&mut response.into_body()).await?;
+        let body = response.into_body().collect().await?.to_bytes();
         assert_eq!(Bar::decode(body)?, Bar { number_inc: 101 });
 
         Ok(())

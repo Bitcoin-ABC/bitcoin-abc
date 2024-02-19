@@ -21,7 +21,6 @@ use chronik_indexer::{
     pause::PauseNotify,
 };
 use chronik_proto::proto;
-use hyper::server::conn::AddrIncoming;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
@@ -63,7 +62,7 @@ pub struct ChronikServerParams {
 /// instance.
 #[derive(Debug)]
 pub struct ChronikServer {
-    server_builders: Vec<hyper::server::Builder<AddrIncoming>>,
+    tcp_listeners: Vec<tokio::net::TcpListener>,
     indexer: ChronikIndexerRef,
     node: NodeRef,
     pause_notify: PauseNotifyRef,
@@ -99,17 +98,20 @@ use self::ChronikServerError::*;
 impl ChronikServer {
     /// Binds the Chronik server on the given hosts
     pub fn setup(params: ChronikServerParams) -> Result<Self> {
-        let server_builders = params
+        let tcp_listeners = params
             .hosts
             .into_iter()
-            .map(|host| {
-                axum::Server::try_bind(&host).map_err(|err| {
-                    FailedBindingAddress(host, err.to_string()).into()
-                })
+            .map(|host| -> Result<_> {
+                let tcp = std::net::TcpListener::bind(host).map_err(|err| {
+                    FailedBindingAddress(host, err.to_string())
+                })?;
+                // Important: We need to set non-blocking ourselves
+                tcp.set_nonblocking(true)?;
+                Ok(tokio::net::TcpListener::from_std(tcp)?)
             })
             .collect::<Result<Vec<_>>>()?;
         Ok(ChronikServer {
-            server_builders,
+            tcp_listeners,
             indexer: params.indexer,
             node: params.node,
             pause_notify: params.pause_notify,
@@ -126,13 +128,12 @@ impl ChronikServer {
             self.settings,
         );
         let servers = self
-            .server_builders
+            .tcp_listeners
             .into_iter()
             .zip(std::iter::repeat(app))
-            .map(|(server_builder, app)| {
+            .map(|(tcp_listener, app)| {
                 Box::pin(async move {
-                    server_builder
-                        .serve(app.into_make_service())
+                    axum::serve(tcp_listener, app.into_make_service())
                         .await
                         .map_err(|err| ServingFailed(err.to_string()))
                 })

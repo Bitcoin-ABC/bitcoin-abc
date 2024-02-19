@@ -23,7 +23,7 @@ chronik-util = { path = "../chronik-util" }
 async-trait = "0.1"
 
 # HTTP webapps
-axum = { version = "0.6", features = ["ws"] }
+axum = { version = "0.7", features = ["ws"] }
 
 # Async toolkit
 futures = "0.3"
@@ -31,14 +31,23 @@ futures = "0.3"
 # En-/decode hex
 hex = "0.4"
 
+# HTTP types
+http = "1.0"
+
+# Helpers for dealing with the http 1.0 Body type
+http-body-util = "0.1"
+
 # HTTP implementation
-hyper = "0.14"
+hyper = "1.1"
 
 # Protobuf en-/decoding
 prost = "0.11"
 
 # Derive error enums
 thiserror = "1.0"
+
+#  Trait representing an asynchronous server. 
+tower-service = "0.3"
 
 # Async runtime
 [dependencies.tokio]
