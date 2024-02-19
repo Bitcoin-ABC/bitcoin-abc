@@ -145,6 +145,15 @@ class AssumeutxoTest(BitcoinTestFramework):
                 log_msg=f"[snapshot] bad snapshot content hash: expected a966794ed5a2f9debaefc7ca48dbc5d5e12a89ff9fe45bd00ec5732d074580a9, got {wrong_hash}"
             )
 
+    def test_headers_not_synced(self, valid_snapshot_path):
+        for node in self.nodes[1:]:
+            assert_raises_rpc_error(
+                -32603,
+                "The base block header (118a7d5473bccce9b314789e14ce426fc65fb09dfeda0131032bb6d86ed2fd0b) must appear in the headers chain. Make sure all headers are syncing, and call this RPC again.",
+                node.loadtxoutset,
+                valid_snapshot_path,
+            )
+
     def test_invalid_mempool_state(self, dump_output_path):
         self.log.info("Test bitcoind should fail when mempool not empty.")
         node = self.nodes[2]
@@ -186,23 +195,11 @@ class AssumeutxoTest(BitcoinTestFramework):
             n.setmocktime(n.getblockheader(n.getbestblockhash())["time"])
 
         # Generate a series of blocks that `n0` will have in the snapshot,
-        # but that n1 doesn't yet see. In order for the snapshot to activate,
-        # though, we have to ferry over the new headers to n1 so that it
-        # isn't waiting forever to see the header of the snapshot's base block
-        # while disconnected from n0.
+        # but that n1 and n2 don't yet see.
         for i in range(100):
             if i % 3 == 0:
                 self.mini_wallet.send_self_transfer(from_node=n0)["tx"]
             self.generate(n0, nblocks=1, sync_fun=self.no_op)
-            newblock = n0.getblock(n0.getbestblockhash(), 0)
-
-            # make n1 aware of the new header, but don't give it the block.
-            n1.submitheader(newblock)
-            n2.submitheader(newblock)
-
-        # Ensure everyone is seeing the same headers.
-        for n in self.nodes:
-            assert_equal(n.getblockchaininfo()["headers"], SNAPSHOT_BASE_HEIGHT)
 
         self.log.info("-- Testing assumeutxo + some indexes + pruning")
 
@@ -211,6 +208,23 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.log.info(f"Creating a UTXO snapshot at height {SNAPSHOT_BASE_HEIGHT}")
         dump_output = n0.dumptxoutset("utxos.dat")
+
+        self.log.info("Test loading snapshot when headers are not synced")
+        self.test_headers_not_synced(dump_output["path"])
+
+        # In order for the snapshot to activate, we have to ferry over the new
+        # headers to n1 and n2 so that they see the header of the snapshot's
+        # base block while disconnected from n0.
+        for i in range(1, 300):
+            block = n0.getblock(n0.getblockhash(i), 0)
+            # make n1 and n2 aware of the new header, but don't give them the
+            # block.
+            n1.submitheader(block)
+            n2.submitheader(block)
+
+        # Ensure everyone is seeing the same headers.
+        for n in self.nodes:
+            assert_equal(n.getblockchaininfo()["headers"], SNAPSHOT_BASE_HEIGHT)
 
         assert_equal(
             dump_output["txoutset_hash"],
