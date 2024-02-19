@@ -120,9 +120,14 @@ const WalletInfo = () => {
         fiatPrice,
         apiError,
         cashtabSettings,
-        contactList,
         cashtabCache,
+        cashtabState,
     } = ContextValue;
+    // Ensure cashtabState is not undefined before context initializes
+    const { contactList } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
     const walletState = getWalletState(wallet);
     const { parsedTxHistory } = walletState;
     const sideshift = window.sideshift;
