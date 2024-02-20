@@ -257,39 +257,39 @@ const useWallet = chronik => {
     };
 
     /**
-     * Get a stored value from localforage and set it to cashtabState
+     * Load all keys from localforage into state
+     *
+     * If any are invalid, migrate them to valid and update in storage
+     *
      * We only do this when the user starts Cashtab
-     * If we find a corrupt or legacy item in localforage, we migrate it
      *
      * While the app is running, we use cashtabState as the source of truth
      *
      * We save to localforage on state changes in updateCashtabState
-     * so that these persist if the user navigates away from Cashtab
-     * @param {key} string key in cashtabState and localforage
-     * @param {object} value what is being stored at this key
-     * @returns {boolean}
+     * so that these persist if the user navigates away from Cashtab     *
      */
-    const loadCashtabState = async key => {
-        try {
-            let value = await localforage.getItem(key);
-            if (typeof value === 'undefined' || value === null) {
-                // If there is nothing set at the key, use defaults
-                return;
+    const loadCashtabState = async () => {
+        // Initialize state with defaults
+        const cashtabState = appConfig.defaultCashtabState;
+
+        // contactList
+        let contactList = await localforage.getItem('contactList');
+        if (contactList !== null) {
+            // If we find a contactList in localforage
+            if (!isValidContactList(contactList)) {
+                // and this contactList is invalid, migrate
+
+                // contactList is only expected to be invalid as legacy empty, i.e. [{}]
+                // We do not call a function to migrate contactList as no other migration is expected
+                contactList = [];
+                // Update localforage on app load only if existing values are in an obsolete format
+                updateCashtabState('contactList', contactList);
             }
-            // Validate and migrate for key values that have changed shape in Cashtab history
-            if (key === 'contactList') {
-                if (!isValidContactList(value)) {
-                    // is only expected to be invalid as legacy empty, or [{}]
-                    // We do not call a function to migrate contactList as no other migration is expected
-                    value = [];
-                    // Update localforage on app load only if existing values are in an obsolete format
-                    return updateCashtabState(key, value);
-                }
-            }
-            setCashtabState({ ...cashtabState, [`${key}`]: value });
-        } catch (err) {
-            console.log('Error in updateCashtabState', err);
+            // Set cashtabState contactList to valid localforage or migrated
+            cashtabState.contactList = contactList;
         }
+
+        setCashtabState(cashtabState);
     };
 
     const getWallet = async () => {
@@ -1479,7 +1479,7 @@ const useWallet = chronik => {
 
     const cashtabBootup = async () => {
         setWallet(await getWallet());
-        await loadCashtabState('contactList');
+        await loadCashtabState();
         await loadCashtabCache();
         const initialSettings = await loadCashtabSettings();
         initializeFiatPriceApi(initialSettings.fiatCurrency);
