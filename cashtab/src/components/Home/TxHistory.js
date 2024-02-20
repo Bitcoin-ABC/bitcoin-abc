@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Tx from './Tx';
-import { flattenContactList } from 'utils/cashMethods';
 
 const TxHistory = ({
     txs,
@@ -11,8 +10,6 @@ const TxHistory = ({
     cashtabSettings,
     cashtabCache,
 }) => {
-    // Convert contactList array of objects to an array of addresses
-    const addressesInContactList = flattenContactList(contactList);
     return (
         <div>
             {txs.map(tx => (
@@ -21,7 +18,6 @@ const TxHistory = ({
                     data={tx}
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
-                    addressesInContactList={addressesInContactList}
                     contactList={contactList}
                     cashtabSettings={cashtabSettings}
                     cashtabCache={cashtabCache}

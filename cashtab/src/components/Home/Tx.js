@@ -421,7 +421,6 @@ const Tx = ({
     data,
     fiatPrice,
     fiatCurrency,
-    addressesInContactList,
     contactList,
     cashtabSettings,
     cashtabCache,
@@ -452,6 +451,11 @@ const Tx = ({
             parseInt(`${data.timeFirstSeen}000`),
         ).toLocaleTimeString();
     }
+
+    const knownContact = contactList.find(
+        contact => contact.address === data.parsed.replyAddress,
+    );
+    const fromKnownSender = typeof knownContact !== 'undefined';
 
     // A wallet migrating from bch-api tx history to chronik will get caught here for one update cycle
     let unparsedTx = false;
@@ -561,46 +565,11 @@ const Tx = ({
                                                             : 'Received'}
                                                     </ReceivedHeader>
 
-                                                    {addressesInContactList.includes(
-                                                        data.parsed
-                                                            .replyAddress,
-                                                    ) && (
-                                                        <>
-                                                            <h4>from</h4>
-                                                            {contactList.map(
-                                                                (
-                                                                    contact,
-                                                                    index,
-                                                                ) => {
-                                                                    let result;
-                                                                    const contactAddress =
-                                                                        contact.address;
-                                                                    const dataAddress =
-                                                                        data
-                                                                            .parsed
-                                                                            .replyAddress;
-                                                                    if (
-                                                                        contactAddress ===
-                                                                        dataAddress
-                                                                    ) {
-                                                                        result =
-                                                                            contact.name;
-                                                                    } else {
-                                                                        result =
-                                                                            '';
-                                                                    }
-                                                                    return (
-                                                                        <h4
-                                                                            key={`${data.txid}${index}`}
-                                                                        >
-                                                                            {
-                                                                                result
-                                                                            }
-                                                                        </h4>
-                                                                    );
-                                                                },
-                                                            )}
-                                                        </>
+                                                    {fromKnownSender && (
+                                                        <h4>
+                                                            from{' '}
+                                                            {knownContact.name}
+                                                        </h4>
                                                     )}
                                                 </ReceivedFromCtn>
                                             )}
@@ -845,10 +814,7 @@ const Tx = ({
                                                     }
                                                 >
                                                     {data.parsed.incoming &&
-                                                        !addressesInContactList.includes(
-                                                            data.parsed
-                                                                .replyAddress,
-                                                        ) && (
+                                                        !fromKnownSender && (
                                                             <NotInContactsAlert>
                                                                 Warning: This
                                                                 sender is not in
@@ -893,11 +859,7 @@ const Tx = ({
                                                                         data
                                                                             .parsed
                                                                             .incoming &&
-                                                                        !addressesInContactList.includes(
-                                                                            data
-                                                                                .parsed
-                                                                                .replyAddress,
-                                                                        ) ? (
+                                                                        !fromKnownSender ? (
                                                                             <ShowHideMessageButton
                                                                                 onClick={e => {
                                                                                     e.stopPropagation();
@@ -916,11 +878,7 @@ const Tx = ({
                                                                                             .opReturnMessage
                                                                                     }
                                                                                 </p>
-                                                                                {!addressesInContactList.includes(
-                                                                                    data
-                                                                                        .parsed
-                                                                                        .replyAddress,
-                                                                                ) &&
+                                                                                {!fromKnownSender &&
                                                                                     data
                                                                                         .parsed
                                                                                         .incoming && (
@@ -946,11 +904,7 @@ const Tx = ({
                                                                         data
                                                                             .parsed
                                                                             .incoming &&
-                                                                        !addressesInContactList.includes(
-                                                                            data
-                                                                                .parsed
-                                                                                .replyAddress,
-                                                                        ) ? (
+                                                                        !fromKnownSender ? (
                                                                             <ShowHideMessageButton
                                                                                 onClick={e => {
                                                                                     e.stopPropagation();
@@ -998,10 +952,7 @@ const Tx = ({
                                                             .replyAddress) ||
                                                     (cashtabSettings.hideMessagesFromUnknownSenders &&
                                                         displayedMessage) ||
-                                                    (addressesInContactList.includes(
-                                                        data.parsed
-                                                            .replyAddress,
-                                                    ) &&
+                                                    (fromKnownSender &&
                                                         data.parsed.incoming &&
                                                         data.parsed
                                                             .replyAddress) ? (
@@ -1088,9 +1039,7 @@ const Tx = ({
                                 </TxLink>
                                 {!!data.parsed.incoming &&
                                     data.parsed.replyAddress &&
-                                    !addressesInContactList.includes(
-                                        data.parsed.replyAddress,
-                                    ) && (
+                                    !fromKnownSender && (
                                         <AddToContacts>
                                             <DropdownButton>
                                                 <Link
@@ -1125,7 +1074,6 @@ Tx.propTypes = {
     data: PropTypes.object,
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
-    addressesInContactList: PropTypes.arrayOf(PropTypes.string),
     contactList: PropTypes.arrayOf(
         PropTypes.shape({
             address: PropTypes.string,

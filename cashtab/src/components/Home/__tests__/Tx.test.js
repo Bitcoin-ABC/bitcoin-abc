@@ -43,8 +43,7 @@ describe('<Tx />', () => {
                     data={mockReceivedTxData}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    addressesInContactList={[]}
-                    contactList={[{}]}
+                    contactList={[]}
                     cashtabSettings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
@@ -72,8 +71,7 @@ describe('<Tx />', () => {
                     data={noTimeFirstSeenMock}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    addressesInContactList={[]}
-                    contactList={[{}]}
+                    contactList={[]}
                     cashtabSettings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
@@ -101,8 +99,7 @@ describe('<Tx />', () => {
                     data={noTimeFirstSeenUnconfirmedMock}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    addressesInContactList={[]}
-                    contactList={[{}]}
+                    contactList={[]}
                     cashtabSettings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
@@ -115,5 +112,51 @@ describe('<Tx />', () => {
 
         // No timestamp is rendered as we have no timestamp to go off of in this case
         expect(leftTxtCtn).toHaveTextContent('Received');
+    });
+    it('Renders from contact name if a tx is from an address in contact list', async () => {
+        render(
+            <ThemeProvider theme={theme}>
+                <Tx
+                    data={mockReceivedTxData}
+                    fiatPrice={0.00003}
+                    fiatCurrency="usd"
+                    contactList={[
+                        {
+                            name: 'inTheList',
+                            address:
+                                'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                        },
+                    ]}
+                    cashtabSettings={cashtabSettings}
+                    cashtabCache={cashtabCache}
+                />
+                ,
+            </ThemeProvider>,
+        );
+
+        expect(screen.getByText('from inTheList')).toBeInTheDocument();
+    });
+    it('Does not render from contact name if a tx is not from an address in contact list', async () => {
+        render(
+            <ThemeProvider theme={theme}>
+                <Tx
+                    data={mockReceivedTxData}
+                    fiatPrice={0.00003}
+                    fiatCurrency="usd"
+                    contactList={[
+                        {
+                            name: 'inTheList',
+                            address:
+                                'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                        },
+                    ]}
+                    cashtabSettings={cashtabSettings}
+                    cashtabCache={cashtabCache}
+                />
+                ,
+            </ThemeProvider>,
+        );
+
+        expect(screen.queryByText('from inTheList')).not.toBeInTheDocument();
     });
 });
