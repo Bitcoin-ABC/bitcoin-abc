@@ -1,7 +1,8 @@
-# Bitcoin ABC 0.28.9 Release Notes
+# Bitcoin ABC 0.28.10 Release Notes
 
-Bitcoin ABC version 0.28.9 is now available from:
+Bitcoin ABC version 0.28.10 is now available from:
 
-  <https://download.bitcoinabc.org/0.28.9/>
+  <https://download.bitcoinabc.org/0.28.10/>
 
-This is a maintenance release with no user-visible change.
+The chronik experimental release is now available for all the supported Linux
+platforms.
