@@ -518,7 +518,7 @@ function convertToTxInput(input: proto.TxInput): TxInput_InNode {
     if (input.prevOut === undefined) {
         throw new Error('Invalid proto, no prevOut');
     }
-    return {
+    const txInput: TxInput_InNode = {
         prevOut: {
             txid: toHexRev(input.prevOut.txid),
             outIdx: input.prevOut.outIdx,
@@ -531,10 +531,15 @@ function convertToTxInput(input: proto.TxInput): TxInput_InNode {
         value: parseInt(input.value),
         sequenceNo: input.sequenceNo,
     };
+    if (typeof input.token !== 'undefined') {
+        // We only return a token key if we have token data for this input
+        txInput.token = convertToTokenInNode(input.token);
+    }
+    return txInput;
 }
 
 function convertToTxOutput(output: proto.TxOutput): TxOutput_InNode {
-    return {
+    const txOutput: TxOutput_InNode = {
         value: parseInt(output.value),
         outputScript: toHex(output.outputScript),
         spentBy:
@@ -545,6 +550,11 @@ function convertToTxOutput(output: proto.TxOutput): TxOutput_InNode {
                   }
                 : undefined,
     };
+    if (typeof output.token !== 'undefined') {
+        // We only return a token key if we have token data for this input
+        txOutput.token = convertToTokenInNode(output.token);
+    }
+    return txOutput;
 }
 
 function convertToBlockMeta(block: proto.BlockMetadata): BlockMetadata_InNode {
@@ -679,6 +689,23 @@ function convertToTokenTxType(msgType: proto.TokenTxType): TokenTxType {
 
 function isTokenTxType(msgType: any): msgType is TokenTxType {
     return TOKEN_TX_TYPE_TYPES.includes(msgType);
+}
+
+function convertToTokenInNode(token: proto.Token): Token_InNode {
+    if (typeof token.tokenType === 'undefined') {
+        // Not expected to ever happen
+        throw new Error(
+            `chronik returned undefined token.tokenType for tokenId "${token.tokenId}"`,
+        );
+    }
+
+    return {
+        tokenId: token.tokenId,
+        tokenType: convertToTokenType(token.tokenType),
+        entryIdx: token.entryIdx,
+        amount: token.amount,
+        isMintBaton: token.isMintBaton,
+    };
 }
 
 function convertToBlockMsgType(msgType: proto.BlockMsgType): BlockMsgType {
@@ -818,6 +845,8 @@ export interface TxInput_InNode {
     value: number;
     /** `sequence` field of the input; can be used for relative time locking. */
     sequenceNo: number;
+    /** Token value attached to this input */
+    token?: Token_InNode;
 }
 
 /** Output of a tx, creates new UTXOs. */
@@ -834,6 +863,8 @@ export interface TxOutput_InNode {
      * unspent.
      */
     spentBy: OutPoint | undefined;
+    /** Token value attached to this output */
+    token?: Token_InNode;
 }
 
 /** Metadata of a block, used in transaction data. */
@@ -1020,6 +1051,20 @@ export interface Utxo_InNode {
     value: number;
     /** Is this utxo avalanche finalized */
     isFinal: boolean;
+}
+
+/** Token coloring an input or output */
+export interface Token_InNode {
+    /** Hex token_id of the token, see `TokenInfo` for details */
+    tokenId: string;
+    /** Token type of the token */
+    tokenType: TokenType;
+    /** Index into `token_entries` for `Tx`. -1 for UTXOs */
+    entryIdx: number;
+    /** Base token amount of the input/output */
+    amount: string;
+    /** Whether the token is a mint baton */
+    isMintBaton: boolean;
 }
 
 /**

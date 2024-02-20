@@ -76,6 +76,27 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
     const CHAIN_INIT_HEIGHT = 100;
     const SCRIPTSIG_OP_TRUE_PAYLOAD =
         'da1745e9b549bd0bfa1a569971c77eba30cd5a4b';
+    const BASE_TX_INPUT = {
+        inputScript: '0151',
+        outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
+        value: 5000000000,
+        sequenceNo: 0,
+    };
+    const BASE_TX_OUTPUT = {
+        value: 2000,
+        outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
+        spentBy: undefined,
+    };
+    const BASE_TX_TOKEN_INFO_SLP_FUNGIBLE = {
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            number: 1,
+        },
+        entryIdx: 0,
+        amount: '0',
+        isMintBaton: false,
+    };
     const BASE_TOKEN_ENTRY = {
         // omit tokenId, txType, and tokenType as these should always be tested
         isInvalid: false,
@@ -102,6 +123,50 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         slpGenesisTxid = await get_slp_fungible_genesis_txid;
 
         slpGenesis = await chronik.tx(slpGenesisTxid);
+
+        // We get expected inputs including expected Token data
+        // We get no token info in tx inputs
+        expect(slpGenesis.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: '3fa435fca55edf447ef7539ecba141a6585fa71ac4062cdcc61f1235c40f4613',
+                    outIdx: 0,
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpGenesis.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001010747454e4553495307534c5054455354105465737420534c5020546f6b656e203312687474703a2f2f6578616d706c652f736c7020787878787878787878787878787878787878787878787878787878787878787801040102080000000000001388',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    amount: '5000',
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    isMintBaton: true,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 4999600000,
+            },
+        ]);
 
         // We get a Entries of expected shape, with tokenId the txid for a genesis tx
         expect(slpGenesis.tokenEntries).to.deep.equal([
@@ -131,6 +196,52 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
 
         slpMint = await chronik.tx(slpMintTxid);
 
+        // We get expected inputs including expected Token data
+        expect(slpMint.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: slpGenesisTxid,
+                    outIdx: 2,
+                },
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    isMintBaton: true,
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpMint.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c50000101044d494e5420cd295e7eb883b5826e2d8872b1626a4af4ce7ec81c468f1bfdad14632036d20a0103080000000000000014',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    amount: '20',
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    isMintBaton: true,
+                },
+            },
+        ]);
+
         // We get a Entries of expected shape, with tokenId the txid of the genesis tx
         expect(slpMint.tokenEntries).to.deep.equal([
             {
@@ -159,6 +270,51 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
 
         slpSend = await chronik.tx(slpSendTxid);
 
+        // We get expected inputs including expected Token data
+        expect(slpSend.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: slpGenesisTxid,
+                    outIdx: 1,
+                },
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    amount: '5000',
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpSend.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001010453454e4420cd295e7eb883b5826e2d8872b1626a4af4ce7ec81c468f1bfdad14632036d20a0800000000000003e8080000000000000fa0',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 4000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    amount: '1000',
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 4000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_FUNGIBLE,
+                    tokenId: slpGenesisTxid,
+                    amount: '4000',
+                },
+            },
+        ]);
+
         // We get a Entries of expected shape, with tokenId the txid of the genesis tx
         expect(slpSend.tokenEntries).to.deep.equal([
             {
@@ -186,6 +342,34 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         slpEmptyGenesisTxid = await get_slp_fungible_genesis_empty_txid;
 
         slpEmptyGenesis = await chronik.tx(slpEmptyGenesisTxid);
+
+        // We get expected inputs including expected Token data
+        // We get no token info in tx inputs
+        expect(slpEmptyGenesis.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: slpGenesisTxid,
+                    outIdx: 3,
+                },
+                value: 4999600000,
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        // We get no token info in tx outputs
+        expect(slpEmptyGenesis.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001010747454e455349534c004c004c004c0001004c00080000000000000000',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 4999500000,
+            },
+        ]);
 
         // We get a Entries of expected shape, with slpEmptyGenesisTxid the tokenId
         expect(slpEmptyGenesis.tokenEntries).to.deep.equal([

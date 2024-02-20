@@ -70,6 +70,31 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
 
     const CHAIN_INIT_HEIGHT = 100;
     const MINT_VAULT_SCRIPTHASH = '28e2146de5a061bf57845a04968d89cbdab733e3';
+    const BASE_TX_INPUT = {
+        prevOut: {
+            txid: 'b85c9fecfc2aeb0992fd05c62688c5b631c22e2e874ffeb4c3fbf5ad778848a3',
+            outIdx: 1,
+        },
+        inputScript: '0151',
+        outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
+        value: 100000,
+        sequenceNo: 0,
+    };
+    const BASE_TX_OUTPUT = {
+        value: 10000,
+        outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
+        spentBy: undefined,
+    };
+    const BASE_TX_TOKEN_INFO_SLP_V2 = {
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+            number: 2,
+        },
+        entryIdx: 0,
+        amount: '1000',
+        isMintBaton: false,
+    };
     const BASE_TOKEN_ENTRY = {
         // omit tokenId, txType, and tokenType as these should always be tested
         isInvalid: false,
@@ -95,6 +120,32 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         vaultSetupTxid = await get_vault_setup_txid;
 
         vaultSetup = await chronik.tx(vaultSetupTxid);
+
+        // We get expected inputs including expected Token data
+        // We get no token info in tx inputs
+        expect(vaultSetup.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        // We get no token info in tx outputs
+        expect(vaultSetup.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                outputScript: 'a91428e2146de5a061bf57845a04968d89cbdab733e387',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                outputScript: 'a91428e2146de5a061bf57845a04968d89cbdab733e387',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 79000,
+                outputScript: 'a91428e2146de5a061bf57845a04968d89cbdab733e387',
+            },
+        ]);
 
         // No token entries before confirmation
         expect(vaultSetup.tokenEntries).to.deep.equal([]);
@@ -135,6 +186,40 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
 
         slpVaultGenesis = await chronik.tx(slpVaultGenesisTxid);
 
+        // We get expected inputs
+        // No token data is expected or returned
+        expect(slpVaultGenesis.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: 'b85c9fecfc2aeb0992fd05c62688c5b631c22e2e874ffeb4c3fbf5ad778848a3',
+                    outIdx: 0,
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpVaultGenesis.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001020747454e4553495308534c505641554c540130013020787878787878787878787878787878787878787878787878787878787878787801001428e2146de5a061bf57845a04968d89cbdab733e30800000000000003e8',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 546,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_V2,
+                    tokenId: slpVaultGenesisTxid,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 99000,
+            },
+        ]);
+
         // We get a Entries of expected shape, with tokenId the txid of the genesis tx
         expect(slpVaultGenesis.tokenEntries).to.deep.equal([
             {
@@ -156,13 +241,41 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         // Normal status
         expect(slpVaultGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
-    it('Gets an SLP v2 Vault Mint tx from the mempool', async () => {
+    it('Gets a badly constructed SLP v2 Vault Mint tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpVaultMintTxid = await get_slp_vault_mint_txid;
 
         slpVaultMint = await chronik.tx(slpVaultMintTxid);
+
+        // We get expected inputs. No token data is expected in inputs.
+        expect(slpVaultMint.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: '34d22b0d3dd9b1ac75a01125fa5d778d5ddde2dea098416479c011340684702f',
+                    outIdx: 0,
+                },
+                inputScript: '015c',
+                outputScript: 'a91428e2146de5a061bf57845a04968d89cbdab733e387',
+                value: 10000,
+            },
+        ]);
+
+        // We get expected outputs. No token data expected in outputs due to validation error in this tx.
+        expect(slpVaultMint.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c50000102044d494e5420768626ba27515513f148d714453bd2964f0de49c6686fa54da56ae4e19387c70080000000000000fa0',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 9000,
+            },
+        ]);
 
         // We get a Entries of expected shape, with tokenId the txid of the genesis tx
         expect(slpVaultMint.tokenEntries).to.deep.equal([

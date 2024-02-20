@@ -76,6 +76,31 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
     const CHAIN_INIT_HEIGHT = 100;
     const SCRIPTSIG_OP_TRUE_PAYLOAD =
         'da1745e9b549bd0bfa1a569971c77eba30cd5a4b';
+    const BASE_TX_INPUT = {
+        prevOut: {
+            txid: '3fa435fca55edf447ef7539ecba141a6585fa71ac4062cdcc61f1235c40f4613',
+            outIdx: 0,
+        },
+        inputScript: '0151',
+        outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
+        value: 5000000000,
+        sequenceNo: 0,
+    };
+    const BASE_TX_OUTPUT = {
+        value: 2000,
+        outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
+        spentBy: undefined,
+    };
+    const BASE_TX_TOKEN_INFO_SLP_NFT = {
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+            number: 129,
+        },
+        entryIdx: 0,
+        amount: '0',
+        isMintBaton: true,
+    };
     const BASE_TOKEN_ENTRY = {
         // omit tokenId, txType, and tokenType as these should always be tested
         isInvalid: false,
@@ -102,6 +127,46 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         slpGenesisTxid = await get_slp_nft1_genesis_txid;
 
         slpGenesis = await chronik.tx(slpGenesisTxid);
+
+        // We get expected inputs including expected Token data
+        // We get no token info in tx inputs
+        expect(slpGenesis.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpGenesis.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001810747454e455349530d534c50204e46542047524f555013536c70204e46542047524f555020746f6b656e0e687474703a2f2f736c702e6e667420787878787878787878787878787878787878787878787878787878787878787801040102080000000000001388',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '5000',
+                    isMintBaton: false,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 4999600000,
+            },
+        ]);
 
         // We get a Entries of expected shape, with tokenId the txid for a genesis tx
         expect(slpGenesis.tokenEntries).to.deep.equal([
@@ -131,6 +196,51 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
 
         slpMint = await chronik.tx(slpMintTxid);
 
+        // We get expected inputs including expected Token data
+        expect(slpMint.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: 'b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb',
+                    outIdx: 2,
+                },
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpMint.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c50000181044d494e5420b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb0103080000000000000014',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '20',
+                    isMintBaton: false,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                },
+            },
+        ]);
+
         // We get a Entries of expected shape, with tokenId the txid of the genesis tx
         expect(slpMint.tokenEntries).to.deep.equal([
             {
@@ -159,6 +269,70 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
 
         slpSend = await chronik.tx(slpSendTxid);
 
+        // We get expected inputs including expected Token data
+        expect(slpSend.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: 'b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb',
+                    outIdx: 1,
+                },
+                value: 10000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '5000',
+                    isMintBaton: false,
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpSend.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001810453454e4420b5100125684e0a7ccb8a6a2a0272586e1275f438924464000df5c834ed64bccb080000000000000001080000000000000063080000000000000384080000000000000fa0',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '1',
+                    isMintBaton: false,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '99',
+                    isMintBaton: false,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '900',
+                    isMintBaton: false,
+                },
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    amount: '4000',
+                    isMintBaton: false,
+                },
+            },
+        ]);
+
         // We get a Entries of expected shape, with tokenId the txid of the genesis tx
         expect(slpSend.tokenEntries).to.deep.equal([
             {
@@ -186,6 +360,50 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         slpChildGenesisTxid = await get_slp_nft1_child_genesis1_txid;
 
         slpChildGenesis = await chronik.tx(slpChildGenesisTxid);
+
+        // We get expected inputs including expected Token data
+        expect(slpChildGenesis.inputs).to.deep.equal([
+            {
+                ...BASE_TX_INPUT,
+                prevOut: {
+                    txid: '2c6258bee9033399108e845b3c69e60746b89624b3ec18c5d5cc4b2e88c6ccab',
+                    outIdx: 1,
+                },
+                value: 2000,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpGenesisTxid,
+                    entryIdx: 1,
+                    amount: '1',
+                    isMintBaton: false,
+                },
+            },
+        ]);
+
+        // We get expected outputs including expected Token data
+        expect(slpChildGenesis.outputs).to.deep.equal([
+            {
+                ...BASE_TX_OUTPUT,
+                value: 0,
+                outputScript:
+                    '6a04534c500001410747454e455349530d534c50204e4654204348494c4413536c70204e4654204348494c4420746f6b656e4c004c0001004c00080000000000000001',
+            },
+            {
+                ...BASE_TX_OUTPUT,
+                value: 1400,
+                token: {
+                    ...BASE_TX_TOKEN_INFO_SLP_NFT,
+                    tokenId: slpChildGenesisTxid,
+                    tokenType: {
+                        number: 65,
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                },
+            },
+        ]);
 
         // We get a Entries of expected shape, with groupTokenId the txid of the genesis tx for this group
         // and tokenId of this txid
