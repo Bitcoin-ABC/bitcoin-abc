@@ -96,3 +96,5 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 0.18.0 - Add support for websocket connections to `ChronikClientNode`
 0.19.0 - Add support for token data in tx inputs and outputs to `ChronikClientNode`
 0.20.0 - Add support for calling script endpoints by address to `ChronikClientNode`
+0.21.0 - Skipped as accidentally published 0.22.0 before diff approval at 0.21.1-rc.1
+0.22.0 - Add support for `tokenId` endpoints and token data in utxos to `ChronikClientNode`

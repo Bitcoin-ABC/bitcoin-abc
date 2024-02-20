@@ -6,7 +6,12 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
-import { ChronikClientNode, Tx_InNode } from '../../index';
+import {
+    ChronikClientNode,
+    Token_InNode,
+    TxHistoryPage_InNode,
+    Tx_InNode,
+} from '../../index';
 import initializeTestRunner from '../setup/testRunner';
 
 const expect = chai.expect;
@@ -21,6 +26,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let get_alp_genesis2_txid: Promise<string>;
     let get_alp_multi_txid: Promise<string>;
     let get_alp_mega_txid: Promise<string>;
+    let get_alp_mint_two_txid: Promise<string>;
+    let get_alp_send_two_txid: Promise<string>;
     const statusEvent = new EventEmitter();
 
     before(async () => {
@@ -66,6 +73,18 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             if (message && message.alp_mega_txid) {
                 get_alp_mega_txid = new Promise(resolve => {
                     resolve(message.alp_mega_txid);
+                });
+            }
+
+            if (message && message.alp_mint_two_txid) {
+                get_alp_mint_two_txid = new Promise(resolve => {
+                    resolve(message.alp_mint_two_txid);
+                });
+            }
+
+            if (message && message.alp_send_two_txid) {
+                get_alp_send_two_txid = new Promise(resolve => {
+                    resolve(message.alp_send_two_txid);
                 });
             }
 
@@ -126,6 +145,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let alpNextGenesisTxid = '';
     let alpMultiTxid = '';
     let alpMegaTxid = '';
+    let alpMintTwoTxid = '';
+    let alpSendTwoTxid = '';
 
     let alpGenesis: Tx_InNode;
     let alpMint: Tx_InNode;
@@ -133,6 +154,10 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let alpNextGenesis: Tx_InNode;
     let alpMulti: Tx_InNode;
     let alpMega: Tx_InNode;
+    let alpMintTwo: Tx_InNode;
+    let alpSendTwo: Tx_InNode;
+
+    let confirmedTxsForAlpGenesisTxid: TxHistoryPage_InNode;
 
     it('Gets an ALP genesis tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
@@ -157,7 +182,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         ]);
 
         // We get expected outputs including expected Token data
-        expect(alpGenesis.outputs).to.deep.equal([
+        const expectedOutputs = [
             {
                 ...BASE_TX_OUTPUT,
                 value: 0,
@@ -210,7 +235,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                     isMintBaton: true,
                 },
             },
-        ]);
+        ];
+        expect(alpGenesis.outputs).to.deep.equal(expectedOutputs);
 
         // We get a Entries of expected shape, with tokenId the txid for a genesis tx
         expect(alpGenesis.tokenEntries).to.deep.equal([
@@ -231,6 +257,61 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
         // Normal status
         expect(alpGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
+
+        // We can get the same token info from calling chronik.tokenId.utxos() on this genesis txid
+        const utxosByTokenId = await chronik.tokenId(alpGenesisTxid).utxos();
+
+        // We get the calling tokenId returned
+        expect(utxosByTokenId.tokenId).to.eql(alpGenesisTxid);
+
+        // Utxos returned by token id include Token object matching the outputs, except they have no entryIdx
+
+        // Get only the outputs that are token utxos for alpGenesisTxid
+        const outputsWithTokenKey = expectedOutputs.filter(
+            output => 'token' in output,
+        );
+
+        const utxoTokenKeysFromOutputs: Token_InNode[] = [];
+        for (const output of outputsWithTokenKey) {
+            if ('token' in output) {
+                const { token } = output;
+                // Remove the entryIdx key from these outputs, as we do not expect to see it in tokenId.utxos() output
+                delete (token as Token_InNode).entryIdx;
+                utxoTokenKeysFromOutputs.push(output.token as Token_InNode);
+            }
+        }
+
+        // We have as many utxosByTokenId as we do outputs with token key
+        expect(utxosByTokenId.utxos.length).to.eql(
+            utxoTokenKeysFromOutputs.length,
+        );
+
+        // They match and are in the same order
+        for (let i = 0; i < utxosByTokenId.utxos.length; i += 1) {
+            expect(utxosByTokenId.utxos[i].token).to.deep.equal(
+                utxoTokenKeysFromOutputs[i],
+            );
+        }
+
+        // We get the same tx info for this tx from calling chronik.tokenId().unconfirmedTxs()
+        const unconfirmedTxsForThisTokenId = await chronik
+            .tokenId(alpGenesisTxid)
+            .unconfirmedTxs();
+        expect(unconfirmedTxsForThisTokenId.txs.length).to.eql(1);
+        expect(unconfirmedTxsForThisTokenId.txs[0]).to.deep.equal(alpGenesis);
+
+        // We get nothing from confirmedTxs() as none are confirmed
+        const confirmedTxsForThisTokenId = await chronik
+            .tokenId(alpGenesisTxid)
+            .confirmedTxs();
+        expect(confirmedTxsForThisTokenId.txs.length).to.eql(0);
+
+        // History returns the output of confirmed + unconfirmed (in this case, just unconfirmed)
+        const historyForThisTokenId = await chronik
+            .tokenId(alpGenesisTxid)
+            .history();
+        expect(historyForThisTokenId.txs.length).to.eql(1);
+        expect(historyForThisTokenId.txs[0]).to.deep.equal(alpGenesis);
     });
     it('Gets an ALP mint tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
@@ -607,6 +688,45 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
         // Normal status
         expect(alpMulti.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
+
+        // Test order of tokenId.history()
+        const unconfirmedTxs = await chronik
+            .tokenId(alpGenesisTxid)
+            .unconfirmedTxs();
+
+        const alphabeticalBroadcastAlpGenesisMempoolTxs = [
+            alpGenesisTxid,
+            alpMintTxid,
+            alpSendTxid,
+            alpMultiTxid,
+        ].sort();
+
+        // Unconfirmed txs come in alphabetical order by txid
+        // Note that the genesis tx was broadcast first but is alphabetically 2nd
+        for (let i = 0; i < unconfirmedTxs.txs.length; i += 1) {
+            expect(unconfirmedTxs.txs[i].txid).to.eql(
+                alphabeticalBroadcastAlpGenesisMempoolTxs[i],
+            );
+        }
+
+        // Test order of tokenId.history()
+        const historyTxs = await chronik.tokenId(alpGenesisTxid).history();
+
+        // History txs are sorted by blockheight, then timeFirstSeen, then reverse alphabetical by txid
+        // These txs all have the same blockheight and timeFirstSeen, so we see them in reverse alphabetical order
+        const reverseAlphabeticalBroadcastAlpGenesisMempoolTxs = [
+            alpGenesisTxid,
+            alpMintTxid,
+            alpSendTxid,
+            alpMultiTxid,
+        ]
+            .sort()
+            .reverse();
+        for (let i = 0; i < historyTxs.txs.length; i += 1) {
+            expect(historyTxs.txs[i].txid).to.eql(
+                reverseAlphabeticalBroadcastAlpGenesisMempoolTxs[i],
+            );
+        }
     });
     it('Can get all of the above txs, and a wild mega-tx, from the blockTxs endpoint after they are mined in a block', async () => {
         const chronikUrl = await chronik_url;
@@ -904,7 +1024,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             alpMega,
         ].sort((a, b) => a.txid.localeCompare(b.txid));
 
-        // The token fields of Tx_InNode(s) from blockTxs match the Tx_InNode(s) from tx]
+        // The token fields of Tx_InNode(s) from blockTxs match the Tx_InNode(s) from tx
         // Note the txs are not expected to fully match bc now we have block key and spentBy,
         // expected after confirmation
         // This type of functionality is tested in blocktxs_and_tx_and_rawtx.ts
@@ -939,5 +1059,260 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
         // Same tx count as blockTxs
         expect(history.numTxs).to.eql(7);
+
+        // Now we have no unconfirmed txs for the alpGenesisTxid
+        const unconfirmedTxsForThisTokenId = await chronik
+            .tokenId(alpGenesisTxid)
+            .unconfirmedTxs();
+        expect(unconfirmedTxsForThisTokenId.txs.length).to.eql(0);
+
+        // We can get all the confirmedTxs for alpGenesisTxid
+        // Note: they are in alphabetical order by txid (at least, in this block)
+        const broadcastAlpTxsOfAlpGenesisTokenId = [
+            alpGenesis,
+            alpMint,
+            alpSend,
+            alpMulti,
+            alpMega,
+        ].sort((a, b) => a.txid.localeCompare(b.txid));
+
+        confirmedTxsForAlpGenesisTxid = await chronik
+            .tokenId(alpGenesisTxid)
+            .confirmedTxs();
+
+        expect(confirmedTxsForAlpGenesisTxid.txs.length).to.eql(
+            broadcastAlpTxsOfAlpGenesisTokenId.length,
+        );
+
+        // They are sorted by blockheight, then alphabetical by txid
+        // In this case, they all have the same blockheight -- so we see alphabetical by txid
+        // Note that timeFirstSeen is not considered from this endpoint, as alpMega has timeFirstSeen of 0
+        // But it appears second here
+        for (let i = 0; i < confirmedTxsForAlpGenesisTxid.txs.length; i += 1) {
+            // in practice, everything matches except for the 'block' and 'output.spentBy' keys
+            // these are expected to have changed since we stored the txs when they were in the mempool
+            // now we are comparing result to confirmed txs
+            expect(confirmedTxsForAlpGenesisTxid.txs[i].txid).to.eql(
+                broadcastAlpTxsOfAlpGenesisTokenId[i].txid,
+            );
+            expect(confirmedTxsForAlpGenesisTxid.txs[i].inputs).to.deep.equal(
+                broadcastAlpTxsOfAlpGenesisTokenId[i].inputs,
+            );
+            expect(
+                confirmedTxsForAlpGenesisTxid.txs[i].tokenEntries,
+            ).to.deep.equal(broadcastAlpTxsOfAlpGenesisTokenId[i].tokenEntries);
+        }
+    });
+    it('Can get confirmed and unconfirmed txs from tokenId.history()', async () => {
+        const chronikUrl = await chronik_url;
+        const chronik = new ChronikClientNode(chronikUrl);
+
+        alpMintTwoTxid = await get_alp_mint_two_txid;
+        alpSendTwoTxid = await get_alp_send_two_txid;
+
+        // Can get the tx object from the tx endpoint
+        alpMintTwo = await chronik.tx(alpMintTwoTxid);
+        alpSendTwo = await chronik.tx(alpSendTwoTxid);
+
+        // alpSendTwoTxid eb227bec6fd4d270262e14efa128a970f0ea4e529c599b1eb28af5fc8eaf3452 (broadcast 1st, alphabetically 2nd)
+        // alpMintTwoTxid 665c70b6c01b8e9b4865136ee650bae344fb8b45def49eb7ec303b04d2520b4b (broadcast 2nd, alphabetically 1st)
+        const alphabeticalUnconfirmedAlpGenesisTxs = [
+            alpMintTwo,
+            alpSendTwo,
+        ].sort((a, b) => a.txid.localeCompare(b.txid));
+
+        // Can get these from unconfirmed txs
+        const unconfirmedTxs = await chronik
+            .tokenId(alpGenesisTxid)
+            .unconfirmedTxs();
+
+        // unconfirmedTxs returns them in alphabetical order
+        for (let i = 0; i < unconfirmedTxs.txs.length; i += 1) {
+            expect(unconfirmedTxs.txs[i]).to.deep.equal(
+                alphabeticalUnconfirmedAlpGenesisTxs[i],
+            );
+        }
+
+        // They are the only unconfirmed txs
+        expect(unconfirmedTxs.txs.length).to.eql(2);
+
+        // Calling chronik.tokenId.history() returns all confirmed and unconfirmed txs
+
+        const allTokenTxsForAlpGenesisTxid = await chronik
+            .tokenId(alpGenesisTxid)
+            .history();
+
+        // We get all expected txs, confirmed and unconfirmed
+        expect(allTokenTxsForAlpGenesisTxid.txs.length).to.eql(
+            confirmedTxsForAlpGenesisTxid.txs.length +
+                unconfirmedTxs.txs.length,
+        );
+
+        // Txs from history are sorted by blockheight, then timeFirstSeen, then txid
+        // In this case, timeFirstSeen is a mock time, so it is the same for each
+        // So we expect reverse alphabetical order by txid
+        const unconfirmedInHistory = allTokenTxsForAlpGenesisTxid.txs.splice(
+            0,
+            2,
+        );
+
+        const reverseAlphabeticalUnconfirmedAlpGenesisTxs = [
+            alpMintTwo,
+            alpSendTwo,
+        ].sort((b, a) => a.txid.localeCompare(b.txid));
+        expect(unconfirmedInHistory).to.deep.equal(
+            reverseAlphabeticalUnconfirmedAlpGenesisTxs,
+        );
+
+        // We get the rest of the txs in expected order
+        // Sorted by blockheight, then timeFirstSeen, then txid
+        // In this case, all txs have the same blockheight
+        // alpMegaTxid has timeFirstSeen of 0 since it was manually mined
+        // All other txs have the same timeFirstSeen so are sorted in reverse alphabetical order
+
+        // Confirm the order of txs from .history()
+        const confirmedAlpTxs = [
+            alpMegaTxid, // timeFirstSeen 0             | 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565
+            alpSendTxid, // timeFirstSeen 1300000000    | e623ab8971c93fa1a831a4310da65554c8dfd811c16cd5d41c6612268cb5dd5f
+            alpMultiTxid, // timeFirstSeen 1300000000   | e3c47f14d7ba3ab9a6f32a0fa8fcac41d06d3af595ebb5bab77ad03633a52eba
+            alpGenesisTxid, // timeFirstSeen 1300000000 | bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2
+            alpMintTxid, // timeFirstSeen 1300000000    | 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f
+        ];
+
+        for (let i = 0; i < allTokenTxsForAlpGenesisTxid.txs.length; i += 1) {
+            expect(confirmedAlpTxs[i]).to.eql(
+                allTokenTxsForAlpGenesisTxid.txs[i].txid,
+            );
+        }
+
+        // Make sure other parts of returned tx objects are as expected
+        // Since one of the utxos from confirmedTxsForAlpGenesisTxid was spent to create
+        // the second mint tx, this spentBy key has changed
+
+        // We spent the mint baton
+        const newConfirmedMintTxIndex =
+            allTokenTxsForAlpGenesisTxid.txs.findIndex(
+                tx => tx.txid === alpMintTxid,
+            );
+
+        const newMintTx = allTokenTxsForAlpGenesisTxid.txs.splice(
+            newConfirmedMintTxIndex,
+            1,
+        )[0];
+        const confirmedMintTxIndex =
+            confirmedTxsForAlpGenesisTxid.txs.findIndex(
+                tx => tx.txid === alpMintTxid,
+            );
+        const oldMintTx = confirmedTxsForAlpGenesisTxid.txs.splice(
+            confirmedMintTxIndex,
+            1,
+        )[0];
+
+        // We have removed this tx from both histories
+        expect(allTokenTxsForAlpGenesisTxid.txs.length).to.eql(
+            confirmedTxsForAlpGenesisTxid.txs.length,
+        );
+
+        // They are the same except for outputs, as expected
+        expect(oldMintTx.inputs).to.deep.equal(newMintTx.inputs);
+        expect(oldMintTx.tokenEntries).to.deep.equal(newMintTx.tokenEntries);
+
+        // Since one of the utxos from confirmedTxsForAlpGenesisTxid was spent to create
+        // the second send tx, this spentBy key has changed
+        const newConfirmedSendTxIndex =
+            allTokenTxsForAlpGenesisTxid.txs.findIndex(
+                tx => tx.txid === alpSendTxid,
+            );
+
+        const newSendTx = allTokenTxsForAlpGenesisTxid.txs.splice(
+            newConfirmedSendTxIndex,
+            1,
+        )[0];
+        const confirmedSendTxIndex =
+            confirmedTxsForAlpGenesisTxid.txs.findIndex(
+                tx => tx.txid === alpSendTxid,
+            );
+        const oldSendTx = confirmedTxsForAlpGenesisTxid.txs.splice(
+            confirmedSendTxIndex,
+            1,
+        )[0];
+
+        // We have removed this tx from both histories
+        expect(allTokenTxsForAlpGenesisTxid.txs.length).to.eql(
+            confirmedTxsForAlpGenesisTxid.txs.length,
+        );
+
+        // They are the same except for outputs, as expected
+        expect(oldSendTx.inputs).to.deep.equal(newSendTx.inputs);
+        expect(oldSendTx.tokenEntries).to.deep.equal(newSendTx.tokenEntries);
+
+        // The other txs are the same, though the order is not the same
+        // allTokenTxsForAlpGenesisTxid is sorted by blockheight, then timeFirstSeen, then reverse alphabetical by txid
+        // confirmedTxsForAlpGenesisTxid is sorted by blockheight, then alphabetical by txid
+
+        // These respective orderings are already tested above, here we test they have the same content
+        expect(
+            allTokenTxsForAlpGenesisTxid.txs.sort((a, b) =>
+                a.txid.localeCompare(b.txid),
+            ),
+        ).to.deep.equal(
+            confirmedTxsForAlpGenesisTxid.txs.sort((a, b) =>
+                a.txid.localeCompare(b.txid),
+            ),
+        );
+    });
+    it('We get tx history in expected order from both tokenId().history() and tokenId.confirmedTxs()', async () => {
+        const chronikUrl = await chronik_url;
+        const chronik = new ChronikClientNode(chronikUrl);
+
+        // Can get all confirmed token txs for alpGenesisTxid
+        const confirmedTxs = await chronik
+            .tokenId(alpGenesisTxid)
+            .confirmedTxs();
+
+        // Confirmed txs are sorted by blockheight, then alphabetically by txid
+        // timeFirstSeen is not considered, demonstrated by alpMegaTxid not being first
+        const confirmedAlpTxids = [
+            alpMintTxid, // blockheight 102, timeFirstSeen 1300000000    | 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f
+            alpMegaTxid, // blockheight 102, timeFirstSeen 0             | 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565
+            alpGenesisTxid, // blockheight 102, timeFirstSeen 1300000000 | bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2
+            alpMultiTxid, // blockheight 102, timeFirstSeen 1300000000   | e3c47f14d7ba3ab9a6f32a0fa8fcac41d06d3af595ebb5bab77ad03633a52eba
+            alpSendTxid, //blockheight 102, timeFirstSeen 1300000000     | e623ab8971c93fa1a831a4310da65554c8dfd811c16cd5d41c6612268cb5dd5f
+            alpMintTwoTxid, // blockheight 103, timeFirstSeen 1300000000 | 665c70b6c01b8e9b4865136ee650bae344fb8b45def49eb7ec303b04d2520b4b
+            alpSendTwoTxid, // blockheight 103, timeFirstSeen 1300000000 | eb227bec6fd4d270262e14efa128a970f0ea4e529c599b1eb28af5fc8eaf3452
+        ];
+
+        // Same amount of txs in each
+        expect(confirmedTxs.txs.length).to.eql(confirmedAlpTxids.length);
+
+        // Txs are in expected order
+        for (let i = 0; i < confirmedTxs.txs.length; i += 1) {
+            expect(confirmedTxs.txs[i].txid).to.eql(confirmedAlpTxids[i]);
+        }
+
+        // Can get all confirmed token txs for alpGenesisTxid
+        const history = await chronik.tokenId(alpGenesisTxid).history();
+
+        // Txs from history are ordered by blockheight, then timeFirstSeen, then reverse alphabetical by txid
+        // In this case, alpSendTwoTxid and alpMintTwoTxid are from the highest blockheight.
+        // alpMegaTxid has timeFirstSeen of 0 because it had to be manually mined in block. So, it comes first in the next block
+        // The other txids in the alpMegaTxid block all have the same timeFirstSeen, so they are sorted reverse alphabetically
+        const historyAlpTxids = [
+            alpSendTwoTxid, // timeFirstSeen 1300000000, blockheight 103 | eb227bec6fd4d270262e14efa128a970f0ea4e529c599b1eb28af5fc8eaf3452
+            alpMintTwoTxid, // timeFirstSeen 1300000000, blockheight 103 | 665c70b6c01b8e9b4865136ee650bae344fb8b45def49eb7ec303b04d2520b4b
+            alpMegaTxid, // timeFirstSeen 0, blockheight 102             | 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565
+            alpSendTxid, // timeFirstSeen 1300000000, blockheight 102    | e623ab8971c93fa1a831a4310da65554c8dfd811c16cd5d41c6612268cb5dd5f
+            alpMultiTxid, // timeFirstSeen 1300000000, blockheight 102   | e3c47f14d7ba3ab9a6f32a0fa8fcac41d06d3af595ebb5bab77ad03633a52eba
+            alpGenesisTxid, // timeFirstSeen 1300000000, blockheight 102 | bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2
+            alpMintTxid, // timeFirstSeen 1300000000, blockheight 102    | 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f
+        ];
+
+        // Same amount of txs in each
+        expect(history.txs.length).to.eql(historyAlpTxids.length);
+
+        // Txs in expected order
+        for (let i = 0; i < confirmedTxs.txs.length; i += 1) {
+            expect(history.txs[i].txid).to.eql(historyAlpTxids[i]);
+        }
     });
 });

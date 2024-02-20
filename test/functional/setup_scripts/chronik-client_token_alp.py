@@ -308,8 +308,69 @@ class ChronikClientTokenAlp(SetupFramework):
         assert_equal(node.getblockcount(), 102)
         yield True
 
-        self.log.info("Step 7: Send wild oversized ALP tx")
-        assert_equal(node.getblockcount(), 102)
+        self.log.info("Step 7: Send another ALP tx in the mempool")
+        # Another ALP Send tx
+        alp_send_two_tx = CTransaction()
+        alp_send_two_tx.vin = [
+            CTxIn(
+                COutPoint(int(another_alp_genesis_tx_txid, 16), 4),
+                SCRIPTSIG_OP_TRUE,
+            ),
+            CTxIn(
+                COutPoint(int(alp_send_tx_txid, 16), 2),
+                SCRIPTSIG_OP_TRUE,
+            ),
+        ]
+        alp_send_two_tx.vout = [
+            alp_opreturn(
+                alp_send(
+                    token_id=alp_genesis_tx_txid,
+                    output_amounts=[10, 1],
+                ),
+            ),
+            CTxOut(coinvalue - 300000, P2SH_OP_TRUE),
+            CTxOut(546, P2SH_OP_TRUE),
+        ]
+        alp_send_two_tx_txid = node.sendrawtransaction(
+            alp_send_two_tx.serialize().hex()
+        )
+        self.log.info(f"alp_send_two_tx_txid: {alp_send_two_tx_txid}")
+        send_ipc_message({"alp_send_two_txid": alp_send_two_tx_txid})
+
+        # Another ALP Mint tx
+        alp_mint_two_tx = CTransaction()
+        alp_mint_two_tx.vin = [
+            CTxIn(                
+                COutPoint(int(alp_send_two_tx_txid, 16), 1),
+                SCRIPTSIG_OP_TRUE,
+            ),
+            CTxIn(
+                COutPoint(int(alp_mint_tx_txid, 16), 3),
+                SCRIPTSIG_OP_TRUE,
+            ),
+        ]
+        alp_mint_two_tx.vout = [
+            alp_opreturn(
+                alp_mint(
+                    token_id=alp_genesis_tx_txid,
+                    mint_amounts=[5, 0],
+                    num_batons=1,
+                ),
+            ),
+            CTxOut(546, P2SH_OP_TRUE),
+            CTxOut(546, P2SH_OP_TRUE),
+            CTxOut(546, P2SH_OP_TRUE),
+            CTxOut(coinvalue - 400000, P2SH_OP_TRUE),
+        ]
+        alp_mint_two_tx_txid = node.sendrawtransaction(
+            alp_mint_two_tx.serialize().hex()
+        )
+        send_ipc_message({"alp_mint_two_txid": alp_mint_two_tx_txid})
+        yield True
+
+        self.log.info("Step 8: Confirm your second ALP tx")
+        self.generate(node, 1)
+        assert_equal(node.getblockcount(), 103)
         yield True
 
 
