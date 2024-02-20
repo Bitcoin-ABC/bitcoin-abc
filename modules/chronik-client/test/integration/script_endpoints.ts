@@ -166,6 +166,18 @@ describe('Get script().history and script().utxos()', () => {
             p2shAddressHash = decodedP2sh.hash;
         }
 
+        // Calling chronik.address(address) is equivalent to chronik.script() for valid p2pkh and p2sh addresses
+        expect(chronik.script('p2pkh', p2pkhAddressHash)).to.deep.equal(
+            chronik.address(p2pkhAddress),
+        );
+        expect(chronik.script('p2sh', p2shAddressHash)).to.deep.equal(
+            chronik.address(p2shAddress),
+        );
+        // We get the validation error from ecashaddrjs if we call chronik.address with an invalid address
+        expect(() => chronik.address('notAnAddress')).to.throw(
+            'Invalid address: notAnAddress.',
+        );
+
         const checkEmptyHistoryAndUtxos = async (
             chronik: ChronikClientNode,
             type: ScriptType_InNode,

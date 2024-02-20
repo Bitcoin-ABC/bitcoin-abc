@@ -95,3 +95,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 0.17.0 - Add support for token proto to endpoints that return `Tx_InNode` to `ChronikClientNode`
 0.18.0 - Add support for websocket connections to `ChronikClientNode`
 0.19.0 - Add support for token data in tx inputs and outputs to `ChronikClientNode`
+0.20.0 - Add support for calling script endpoints by address to `ChronikClientNode`
