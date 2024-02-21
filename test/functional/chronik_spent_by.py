@@ -158,7 +158,7 @@ class ChronikSpentByTest(BitcoinTestFramework):
 
         # Block mines tx, tx2 and tx3_conflict
         block = create_block(
-            int(tip, 16), create_coinbase(101, b"\x03" * 33), 1300000500
+            int(tip, 16), create_coinbase(102, b"\x03" * 33), 1300000500
         )
         block.vtx += [tx, tx2, tx3_conflict]
         make_conform_to_ctor(block)
