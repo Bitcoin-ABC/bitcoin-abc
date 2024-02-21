@@ -487,9 +487,11 @@ class UserBuild:
                     except FileExistsError:
                         pass
 
-        # Delete the .lock files, if any. This makes sure the CI can close the
-        # artifact archive.
+        # Delete the .lock and .walletlock files, if any. This makes sure the CI
+        # can close the artifact archive.
         for lock_path in self.artifact_dir.glob("**/.lock"):
+            lock_path.unlink()
+        for lock_path in self.artifact_dir.glob("**/.walletlock"):
             lock_path.unlink()
 
     def print_line_to_logs(self, line):
