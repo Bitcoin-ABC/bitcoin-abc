@@ -191,20 +191,6 @@ script: |
   # Cleanup
   rm -f rustup-init
 
-  # Corrosion
-  curl -sSfL https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.4.7 -o corrosion.tar.gz
-  echo "fce6387c5d2ac779bac2818b67a83240dfb3a16c2e51fd8e4bad63a445cd4278 corrosion.tar.gz" | sha256sum -c
-  tar xzf corrosion.tar.gz
-  CORROSION_SRC_FOLDER="${PWD}/corrosion-rs-corrosion-8ddd6d5"
-  CORROSION_BUILD_FOLDER="${CORROSION_SRC_FOLDER}-build"
-  CORROSION_INSTALL_FOLDER="${PWD}-install"
-  cmake -S"${CORROSION_SRC_FOLDER}" -B"${CORROSION_BUILD_FOLDER}" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="${CORROSION_INSTALL_FOLDER}"
-  cmake --build "${CORROSION_BUILD_FOLDER}" --config Release
-  cmake --install "${CORROSION_BUILD_FOLDER}" --config Release
-  # Cleanup
-  rm -f corrosion.tar.gz
-  rm -rf "${CORROSION_BUILD_FOLDER}"
-
   # Extend the hosts to include an experimental chronik build.
   # Despite not being a new host per se, it makes it easy to reuse the same code
   # and prevent errors.
@@ -212,7 +198,7 @@ script: |
   for i in ${HOSTS[@]}; do
     HOSTS+=($i-chronik-experimental)
     CMAKE_TOOLCHAIN_FILE[$i-chronik-experimental]=${CMAKE_TOOLCHAIN_FILE[$i]}
-    CMAKE_EXTRA_OPTIONS[$i-chronik-experimental]="${CMAKE_EXTRA_OPTIONS[$i]} -DBUILD_BITCOIN_CHRONIK=ON -DCorrosion_DIR=${CORROSION_INSTALL_FOLDER}/lib/cmake/Corrosion"
+    CMAKE_EXTRA_OPTIONS[$i-chronik-experimental]="${CMAKE_EXTRA_OPTIONS[$i]} -DBUILD_BITCOIN_CHRONIK=ON"
   done
 
   # Extract the release tarball into a dir for each host and build
