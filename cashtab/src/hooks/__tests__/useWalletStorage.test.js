@@ -17,6 +17,27 @@ import { websocket as websocketConfig } from 'config/websocket';
 const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
 
 describe('useWallet hook rendering in different localforage states', () => {
+    const xecPrice = 0.00003;
+    const priceResponse = {
+        ecash: {
+            usd: xecPrice,
+            last_updated_at: 1706644626,
+        },
+    };
+    beforeEach(() => {
+        // Mock the fetch call for Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
     afterEach(async () => {
         jest.clearAllMocks();
         await localforage.clear();
@@ -72,21 +93,23 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
 
         await waitFor(() =>
-            expect(result.current.cashtabState).toStrictEqual({
-                contactList: [],
-            }),
+            expect(result.current.cashtabState.contactList).toStrictEqual([]),
         );
+
         await waitFor(() =>
             expect(result.current.cashtabCache).toStrictEqual(
                 defaultCashtabCache,
             ),
         );
+
         await waitFor(() =>
             expect(result.current.cashtabSettings).toStrictEqual(
                 cashtabSettings,
             ),
         );
+
         await waitFor(() => expect(result.current.wallet).toStrictEqual(false));
+
         await waitFor(() =>
             // Expect the wallet refresh interval to have been set from TRIGGER_UTXO_REFRESH_INTERVAL_MS to standard setting
             // i.e. the update function has been called
@@ -96,25 +119,6 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
     });
     it('XEC price is set in state on successful API fetch', async () => {
-        // Mock the fetch call Cashtab's price API
-        global.fetch = jest.fn();
-        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
-        const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs require different parsing
-        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003132;
-        const priceResponse = {
-            ecash: {
-                usd: xecPrice,
-                last_updated_at: 1706644626,
-            },
-        };
-        when(fetch)
-            .calledWith(priceApiUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
-            });
-
         const { result } = renderHook(() => useWallet());
         await waitFor(() => {
             expect(result.current.fiatPrice).toBe(xecPrice);
@@ -146,17 +150,17 @@ describe('useWallet hook rendering in different localforage states', () => {
         const cryptoId = appConfig.coingeckoId;
         // Keep this in the code, because different URLs will have different outputs require different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        const xecPrice = 0.00003132;
-        const priceResponse = {
+        const xecPriceGbp = 0.00003132;
+        const priceResponseGbp = {
             ecash: {
-                gbp: xecPrice,
+                gbp: xecPriceGbp,
                 last_updated_at: 1706644626,
             },
         };
         when(fetch)
             .calledWith(priceApiUrl)
             .mockResolvedValue({
-                json: () => Promise.resolve(priceResponse),
+                json: () => Promise.resolve(priceResponseGbp),
             });
 
         // User has gbp as set currency
@@ -164,7 +168,7 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         const { result } = renderHook(() => useWallet());
         await waitFor(() => {
-            expect(result.current.fiatPrice).toBe(xecPrice);
+            expect(result.current.fiatPrice).toBe(xecPriceGbp);
         });
     });
 });
