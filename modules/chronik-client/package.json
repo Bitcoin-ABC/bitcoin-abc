@@ -11,7 +11,7 @@
         "build": "tsc",
         "build-docs": "typedoc --out docs index.ts",
         "test": "mocha -r ts-node/register test/test.ts",
-        "integration-tests": "mocha -j1 -r ts-node/register test/integration/script_endpoints.ts",
+        "integration-tests": "mocha -j1 -r ts-node/register test/integration/*.ts",
         "test-long": "mocha -r ts-node/register test/test.ts --timeout 1000000000",
         "format": "prettier --write .",
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx && prettier --check .",
