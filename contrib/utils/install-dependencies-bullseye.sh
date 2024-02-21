@@ -185,10 +185,10 @@ RUST_NIGHTLY_DATE=2023-12-29
                                  "x86_64-pc-windows-gnu"
 
 # Install corrosion from Github
-wget https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.3.0 -O corrosion.tar.gz
-echo "3b9a48737264add649983df26c83f3285ce17e20d86194c7756689a0d8470267 corrosion.tar.gz" | sha256sum -c
+wget https://api.github.com/repos/corrosion-rs/corrosion/tarball/v0.4.7 -O corrosion.tar.gz
+echo "fce6387c5d2ac779bac2818b67a83240dfb3a16c2e51fd8e4bad63a445cd4278 corrosion.tar.gz" | sha256sum -c
 tar xzf corrosion.tar.gz
-CORROSION_SRC_FOLDER=corrosion-rs-corrosion-b764a9f
+CORROSION_SRC_FOLDER=corrosion-rs-corrosion-8ddd6d5
 CORROSION_BUILD_FOLDER=${CORROSION_SRC_FOLDER}-build
 cmake -S${CORROSION_SRC_FOLDER} -B${CORROSION_BUILD_FOLDER} -DCMAKE_BUILD_TYPE=Release
 cmake --build ${CORROSION_BUILD_FOLDER} --config Release
