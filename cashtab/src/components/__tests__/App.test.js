@@ -155,49 +155,6 @@ describe('<App />', () => {
         // Now we see the Settings screen
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
     });
-    it('Renders onboarding screen if cashtab.com opened with no local storage and no wallet', async () => {
-        // This is the experience of a user visiting cashtab.com for the first time
-        const mockedChronik = await initializeCashtabStateForTests(
-            false,
-            localforage,
-        );
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
-
-        // Onboarding is rendered
-        await waitFor(() => {
-            expect(screen.getByTestId('onboarding')).toBeInTheDocument();
-        });
-    });
-    it('Renders API error if called with wallet in localforage but chronik utxo calls fail', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-            true, // apiError bool
-        );
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
-        // API Error is rendered
-        await screen.findByTestId('api-error');
-        // Wallet-info is rendered
-        expect(
-            await screen.findByTestId('wallet-info-ctn'),
-        ).toBeInTheDocument();
-    });
-    it('Loads home screen with no error if wallet is in storage and chronik calls are successful', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-        );
-
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
-        // API Error is NOT rendered
-        await waitFor(() =>
-            expect(screen.queryByTestId('api-error')).not.toBeInTheDocument(),
-        );
-        // Wallet-info is rendered
-        expect(
-            await screen.findByTestId('wallet-info-ctn'),
-        ).toBeInTheDocument();
-    });
     it('Adding a contact to Configure.js from clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
@@ -327,11 +284,6 @@ describe('<App />', () => {
         // Render app on home screen
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
-        // API Error is NOT rendered
-        await waitFor(() =>
-            expect(screen.queryByTestId('api-error')).not.toBeInTheDocument(),
-        );
-
         // Wallet-info is rendered
         expect(
             await screen.findByTestId('wallet-info-ctn'),
@@ -340,11 +292,6 @@ describe('<App />', () => {
         // Balance is correct
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
             '10,000.00 XEC',
-        );
-
-        // onboarding is NOT in the document
-        await waitFor(() =>
-            expect(screen.queryByTestId('onboarding')).not.toBeInTheDocument(),
         );
 
         // We do not see the send screen before clicking the button

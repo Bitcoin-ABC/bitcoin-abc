@@ -5,7 +5,7 @@ import { AlertMsg } from 'components/Common/Atoms';
 const ApiError = () => {
     return (
         <>
-            <AlertMsg data-testid="api-error">
+            <AlertMsg>
                 <b>Error in chronik connection</b>
                 <br /> If not corrected by refresh,{' '}
                 <a

@@ -1,18 +1,19 @@
 import React from 'react';
-import { ThemeProvider } from 'styled-components';
-import { theme } from 'assets/styles/theme';
-import Home from '../Home';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { WalletContext } from 'utils/context';
 import {
-    walletWithBalancesMockNew,
-    loadingTrue,
-    contextWithApiError,
-    freshWalletMock,
-    noWalletCreated,
+    walletWithXecAndTokens,
+    walletWithZeroBalanceZeroHistory,
 } from '../fixtures/mocks';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import 'fake-indexeddb/auto';
+import localforage from 'localforage';
+import { when } from 'jest-when';
+import appConfig from 'config/app';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -48,92 +49,107 @@ window.sideshift = {
     addEventListener: jest.fn(),
 };
 
-describe('<Home /> if wallet has balance and tx history', () => {
-    it('Renders the loading component while loading', async () => {
-        render(
-            <Router>
-                <WalletContext.Provider value={loadingTrue}>
-                    <ThemeProvider theme={theme}>
-                        <Home />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+describe('<Home />', () => {
+    beforeEach(() => {
+        // Mock the fetch call for Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await clearLocalForage(localforage);
+    });
+    it('Renders the loading component while loading, then the Home screen', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
         );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
-        // Home component is not rendered
+        // Initially, Home component is not rendered
         expect(screen.queryByTestId('home-ctn')).not.toBeInTheDocument();
 
-        // Loading ctn is rendered
+        // Initially, Loading ctn is rendered
         expect(screen.getByTestId('loading-ctn')).toBeInTheDocument();
-    });
-    it('Renders the Home screen with no API error', async () => {
-        render(
-            <Router>
-                <WalletContext.Provider value={walletWithBalancesMockNew}>
-                    <ThemeProvider theme={theme}>
-                        <Home />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+
+        // After wallet loads, this is reversed
+        expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Home component is rendered
-        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
-
-        // API Error is not rendered if no API error
-        expect(screen.queryByTestId('api-error')).not.toBeInTheDocument();
-
-        // Tx history is rendered
-        expect(screen.getByTestId('tx-history-ctn')).toBeInTheDocument();
+        // No API Error
+        await waitFor(() =>
+            expect(
+                screen.queryByText('Error in chronik connection'),
+            ).not.toBeInTheDocument(),
+        );
     });
     it('Renders the Home screen with API error', async () => {
-        render(
-            <Router>
-                <WalletContext.Provider value={contextWithApiError}>
-                    <ThemeProvider theme={theme}>
-                        <Home />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+        // localforage defaults and API error set
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+            true, // apiError bool
         );
-
-        // Home component is rendered
-        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // API Error is rendered
-        expect(screen.getByTestId('api-error')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Error in chronik connection'),
+        ).toBeInTheDocument();
     });
-    it('Renders correctly for a zero balance new wallet', async () => {
-        render(
-            <Router>
-                <WalletContext.Provider value={freshWalletMock}>
-                    <ThemeProvider theme={theme}>
-                        <Home />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+    it('Renders Sideshift button if user loads with a new wallet', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithZeroBalanceZeroHistory,
+            localforage,
         );
-
-        // Home component is rendered
-        expect(screen.getByTestId('home-ctn')).toBeInTheDocument();
-
-        // API Error is not rendered if no API error
-        expect(screen.queryByTestId('api-error')).not.toBeInTheDocument();
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Sideshift button is rendered
-        expect(screen.getByTestId('sideshift-btn')).toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', {
+                name: /Exchange to XEC via SideShift/,
+            }),
+        ).toBeInTheDocument();
     });
     it('Renders the onboarding screen for a new wallet', async () => {
-        render(
-            <Router>
-                <WalletContext.Provider value={noWalletCreated}>
-                    <ThemeProvider theme={theme}>
-                        <Home />
-                    </ThemeProvider>
-                </WalletContext.Provider>
-            </Router>,
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            false, // no wallet created
+            localforage,
         );
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
         // onboarding component is rendered
-        expect(screen.getByTestId('onboarding')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Welcome to Cashtab!'),
+        ).toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', {
+                name: /New Wallet/,
+            }),
+        ).toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', {
+                name: /Import Wallet/,
+            }),
+        ).toBeInTheDocument();
     });
 });
