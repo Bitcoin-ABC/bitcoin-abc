@@ -5,10 +5,11 @@ import cashaddr from 'ecashaddrjs';
 /**
  * Get targetOutput for a SLP v1 genesis tx
  * @param {object} genesisConfig object containing token info for genesis tx
+ * @param {string} mintAddress the address minting this token
  * @throws {error} if invalid input params are passed to TokenType1.genesis
  * @returns {object} targetOutput, e.g. {value: 0, script: <encoded slp genesis script>}
  */
-export const getSlpGenesisTargetOutput = genesisConfig => {
+export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
     const {
         ticker,
         name,
@@ -18,6 +19,8 @@ export const getSlpGenesisTargetOutput = genesisConfig => {
         mintBatonVout,
         initialQty,
     } = genesisConfig;
+
+    const targetOutputs = [];
 
     // Note that this function handles validation; will throw an error on invalid inputs
     const script = TokenType1.genesis(
@@ -32,8 +35,20 @@ export const getSlpGenesisTargetOutput = genesisConfig => {
         new BN(initialQty).times(10 ** decimals),
     );
 
+    // Per SLP v1 spec, OP_RETURN must be at index 0
+    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#genesis---token-genesis-transaction
+    targetOutputs.push({ value: 0, script });
+
+    // Per SLP v1 spec, genesis tx is minted to output at index 1
+    // In Cashtab, we mint genesis txs to our own Path1899 address
+    // Note, we do not validate the mintAddress here. The tx will fail if it is not a valid address.
+    targetOutputs.push({ value: appConfig.etokenSats, address: mintAddress });
+
+    // TODO support mint batons
+    // For now, we only support fixed-supply SLP 1 tokens in Cashtab
+
     // Create output
-    return { value: 0, script };
+    return targetOutputs;
 };
 
 /**

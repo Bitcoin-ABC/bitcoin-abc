@@ -40,10 +40,12 @@ import getRoundImg from 'utils/icons/roundImage';
 import getResizedImage from 'utils/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
-import { createToken } from 'utils/transactions';
-const { Dragger } = Upload;
+import { getSlpGenesisTargetOutput } from 'slpv1';
+import { sendXec } from 'transactions';
 import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
+import { explorer } from 'config/explorer';
+const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`
     margin-top: 20px;
@@ -65,7 +67,8 @@ export const CreateTokenCtn = styled.div`
 `;
 
 const CreateTokenForm = ({ passLoadingStatus }) => {
-    const { wallet, chronik } = React.useContext(WalletContext);
+    const { wallet, chronik, chaintipBlockheight } =
+        React.useContext(WalletContext);
 
     // eToken icon adds
     const [tokenIcon, setTokenIcon] = useState('');
@@ -367,10 +370,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
     // Modal settings
     const [showConfirmCreateToken, setShowConfirmCreateToken] = useState(false);
 
-    const submitTokenIcon = async link => {
-        // Get the tokenId from link
-        const newlyMintedTokenId = link.substr(link.length - 64);
-
+    const submitTokenIcon = async tokenId => {
         let formData = new FormData();
 
         const data = {
@@ -387,7 +387,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
         // Would get tokenId here
         //formData.append('tokenId', link.substr(link.length - 64));
         // for now, hard code it
-        formData.append('tokenId', newlyMintedTokenId);
+        formData.append('tokenId', tokenId);
 
         console.log(formData);
 
@@ -454,16 +454,27 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
 
         // create token with data in state fields
         try {
-            const link = await createToken(
+            // Get target outputs for an SLP v1 genesis tx
+            const targetOutputs = getSlpGenesisTargetOutput(
+                configObj,
+                wallet.Path1899.cashAddress,
+            );
+            const { response } = await sendXec(
                 chronik,
                 wallet,
+                targetOutputs,
                 appConfig.defaultFee,
-                configObj,
+                chaintipBlockheight,
             );
+
             notification.success({
                 message: 'Success',
                 description: (
-                    <a href={link} target="_blank" rel="noopener noreferrer">
+                    <a
+                        href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         Token created! Click to view in block explorer.
                     </a>
                 ),
@@ -472,7 +483,7 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
 
             // If this eToken has an icon, upload to server
             if (tokenIcon !== '') {
-                submitTokenIcon(link);
+                submitTokenIcon(response.txid);
             }
         } catch (e) {
             // Set loading to false here as well, as balance may not change depending on where error occured in try loop

@@ -1,8 +1,9 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2023-2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 // Test vectors for slpv1 functions
+import appConfig from 'config/app';
 
 import {
     generateSendOpReturnMockUtxos,
@@ -13,6 +14,8 @@ import {
     mockBurnOpReturnTokenUtxos,
     mockBurnAllTokenUtxos,
 } from './mocks';
+
+const GENESIS_MINT_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
 
 export const slpv1Vectors = {
     genesisTxs: {
@@ -28,8 +31,17 @@ export const slpv1Vectors = {
                     documentHash: '',
                     mintBatonVout: null,
                 },
-                outputScriptHex:
-                    '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c0001034c000800000000004c4b40',
+                mintAddress: GENESIS_MINT_ADDRESS,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c0001034c000800000000004c4b40',
+                    },
+                    {
+                        value: appConfig.dustSats,
+                        address: GENESIS_MINT_ADDRESS,
+                    },
+                ],
             },
             {
                 description:
@@ -43,8 +55,17 @@ export const slpv1Vectors = {
                     documentHash: '',
                     mintBatonVout: 2,
                 },
-                outputScriptHex:
-                    '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
+                mintAddress: GENESIS_MINT_ADDRESS,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
+                    },
+                    {
+                        value: appConfig.dustSats,
+                        address: GENESIS_MINT_ADDRESS,
+                    },
+                ],
             },
         ],
         expectedErrors: [
@@ -59,6 +80,7 @@ export const slpv1Vectors = {
                     documentHash: 'not hex and not the right length',
                     mintBatonVout: 2,
                 },
+                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg: 'documentHash must be either 0 or 32 hex bytes',
             },
             {
@@ -71,6 +93,7 @@ export const slpv1Vectors = {
                     documentHash: '',
                     mintBatonVout: null,
                 },
+                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg: 'bn not an integer',
             },
             {
@@ -83,6 +106,7 @@ export const slpv1Vectors = {
                     documentHash: '',
                     mintBatonVout: null,
                 },
+                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg:
                     'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received an instance of Object',
             },

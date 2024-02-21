@@ -14,24 +14,37 @@ describe('Generating etoken genesis tx target outputs', () => {
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
-        const { description, genesisConfig, outputScriptHex } = expectedReturn;
+        const { description, genesisConfig, mintAddress, targetOutputs } =
+            expectedReturn;
         it(`getSlpGenesisTargetOutput: ${description}`, () => {
-            const targetOutput = getSlpGenesisTargetOutput(genesisConfig);
             // Output value should be zero for OP_RETURN
-            expect(targetOutput.value).toStrictEqual(0);
-            // Test vs hex string as cannot store buffer type in vectors
-            expect(targetOutput.script.toString('hex')).toStrictEqual(
-                outputScriptHex,
+            const calculatedTargetOutputs = getSlpGenesisTargetOutput(
+                genesisConfig,
+                mintAddress,
             );
+            // We expect 2 outputs
+            expect(calculatedTargetOutputs.length).toBe(2);
+            // The output at the 0-index is the OP_RETURN
+            expect(calculatedTargetOutputs[0].value).toBe(0);
+            expect(calculatedTargetOutputs[0].script.toString('hex')).toBe(
+                targetOutputs[0].script,
+            );
+            // The output at the 1-index is dust to given address
+            expect(calculatedTargetOutputs[1]).toStrictEqual({
+                address: mintAddress,
+                value: appConfig.etokenSats,
+            });
         });
     });
+
     // Error cases
     expectedErrors.forEach(expectedError => {
-        const { description, genesisConfig, errorMsg } = expectedError;
+        const { description, genesisConfig, mintAddress, errorMsg } =
+            expectedError;
         it(`getSlpGenesisTargetOutput throws error for: ${description}`, () => {
-            expect(() => getSlpGenesisTargetOutput(genesisConfig)).toThrow(
-                errorMsg,
-            );
+            expect(() =>
+                getSlpGenesisTargetOutput(genesisConfig, mintAddress),
+            ).toThrow(errorMsg);
         });
     });
 });
