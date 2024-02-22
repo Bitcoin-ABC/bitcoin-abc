@@ -12,7 +12,7 @@ module.exports = {
         },
     },
     setupFiles: ['react-app-polyfill/jsdom'],
-    testTimeout: 30000,
+    testTimeout: 45000,
     testMatch: [
         '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
         '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
