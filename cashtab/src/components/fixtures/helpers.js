@@ -9,7 +9,7 @@ import cashtabCache from 'config/cashtabCache';
  * @param {object | boolean} wallet A mock Cashtab wallet
  * @param {object} localforage the localforage instance used in your test
  * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
- * @returns
+ * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
  */
 export const initializeCashtabStateForTests = async (
     wallet,
