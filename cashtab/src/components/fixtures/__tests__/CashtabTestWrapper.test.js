@@ -6,7 +6,10 @@ import appConfig from 'config/app';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import CashtabTestWrapper from '../CashtabTestWrapper';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
 import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
@@ -59,7 +62,7 @@ describe('<CashtabTestWrapper />', () => {
     });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it('With default props, renders App component', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

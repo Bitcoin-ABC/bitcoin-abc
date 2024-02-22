@@ -12,7 +12,10 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
@@ -65,7 +68,7 @@ describe('<Configure />', () => {
     });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it('We can add, delete, rename, contacts from the Configure screen, and add a savedWallet as a contact', async () => {
         // localforage defaults

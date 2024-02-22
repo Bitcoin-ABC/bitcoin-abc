@@ -10,7 +10,10 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    clearLocalForage,
+    initializeCashtabStateForTests,
+} from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
@@ -63,7 +66,7 @@ describe('<App />', () => {
     });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it('Renders 404 on a bad route', async () => {
         // This is the experience of a user visiting cashtab.com for the first time

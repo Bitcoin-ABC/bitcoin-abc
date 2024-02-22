@@ -13,6 +13,7 @@ import {
 import appConfig from 'config/app';
 import { when } from 'jest-when';
 import { websocket as websocketConfig } from 'config/websocket';
+import { clearLocalForage } from 'components/fixtures/helpers';
 
 const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
 
@@ -40,7 +41,7 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
 
     it('Cashtab loads wallet, settings, cache, and contactlist from localforage to context if they are present', async () => {

@@ -5,7 +5,10 @@ import {
 } from '../fixtures/mocks';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
@@ -62,7 +65,7 @@ describe('<CreateToken />', () => {
     });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it('If wallet has sufficient XEC, renders CreateTokenForm', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

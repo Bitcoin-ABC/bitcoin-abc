@@ -6,7 +6,10 @@ import userEvent, {
 } from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { explorer } from 'config/explorer';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
@@ -63,7 +66,7 @@ describe('<CreateTokenForm />', () => {
     });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it('User can input valid token parameters, generate a token, and view a success notification', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

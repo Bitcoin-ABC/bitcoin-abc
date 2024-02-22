@@ -108,3 +108,20 @@ export const initializeCashtabStateForTests = async (
 
     return chronikClient;
 };
+
+/**
+ * Remove all keys individually as localforage.clear() occasionally returns before all storage is clear
+ * @param {object} localforage the localforage instance used in your test
+ */
+export const clearLocalForage = async localforage => {
+    const SUPPORTED_CASHTAB_STORAGE_KEYS = [
+        'cashtabCache',
+        'contactList',
+        'savedWallets',
+        'settings',
+        'wallet',
+    ];
+    for (const key of SUPPORTED_CASHTAB_STORAGE_KEYS) {
+        await localforage.removeItem(key);
+    }
+};

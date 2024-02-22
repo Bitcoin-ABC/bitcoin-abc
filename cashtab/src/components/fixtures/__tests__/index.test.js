@@ -1,5 +1,8 @@
 import vectors from 'components/fixtures/vectors';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { chronik as chronikConfig } from 'config/chronik';
@@ -8,7 +11,7 @@ import cashtabCache from 'config/cashtabCache';
 
 describe('Correctly prepares Cashtab mocked chronik client and localforage environment for unit tests', () => {
     afterEach(async () => {
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it(`initializeCashtabStateForTests mocks a new Cashtab user or incognito visitor`, async () => {
         const mockedChronikClient = await initializeCashtabStateForTests(
