@@ -54,6 +54,10 @@
 #include <sstream>
 #include <thread>
 
+#include <boost/bind/bind.hpp>
+#include <boost/signals2/signal.hpp>
+using namespace boost::placeholders;
+
 #if defined(NDEBUG)
 #error "Freecash cannot be compiled without assertions."
 #endif

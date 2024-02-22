@@ -8,6 +8,8 @@
 #include <QQueue>
 #include <QWidget>
 
+#include <QPainterPath>
+
 class ClientModel;
 
 QT_BEGIN_NAMESPACE

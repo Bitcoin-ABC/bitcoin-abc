@@ -25,6 +25,10 @@
 #include <QPainter>
 #include <QRadialGradient>
 
+#include <boost/bind/bind.hpp>
+#include <boost/signals2/signal.hpp>
+using namespace boost::placeholders;
+
 SplashScreen::SplashScreen(interfaces::Node &node, Qt::WindowFlags f,
                            const NetworkStyle *networkStyle)
     : QWidget(0, f), curAlignment(0), m_node(node) {

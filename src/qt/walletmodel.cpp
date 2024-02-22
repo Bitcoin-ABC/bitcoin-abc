@@ -24,6 +24,10 @@
 
 #include <cstdint>
 
+#include <boost/bind/bind.hpp>
+#include <boost/signals2/signal.hpp>
+using namespace boost::placeholders;
+
 WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet,
                          interfaces::Node &node,
                          const PlatformStyle *platformStyle,
