@@ -67,6 +67,7 @@ describe('<CreateToken />', () => {
     it('If wallet has sufficient XEC, renders CreateTokenForm', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
         render(
             <CashtabTestWrapper
@@ -88,6 +89,7 @@ describe('<CreateToken />', () => {
     it('If wallet has insufficient XEC, renders component but does not render CreateTokenForm', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithZeroBalanceAndTxHistory,
+            localforage,
         );
         render(
             <CashtabTestWrapper

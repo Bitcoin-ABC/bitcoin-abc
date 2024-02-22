@@ -11,7 +11,10 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
         await localforage.clear();
     });
     it(`initializeCashtabStateForTests mocks a new Cashtab user or incognito visitor`, async () => {
-        const mockedChronikClient = await initializeCashtabStateForTests(false);
+        const mockedChronikClient = await initializeCashtabStateForTests(
+            false,
+            localforage,
+        );
 
         // Nothing has been mocked
         await expect(await mockedChronikClient.blockchainInfo()).toEqual({});
@@ -32,6 +35,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
             // First, initialize with no API error
             const mockChronikClient = await initializeCashtabStateForTests(
                 wallet,
+                localforage,
             );
 
             const CASHTAB_TESTS_TIPHEIGHT = 800000;
@@ -98,6 +102,7 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
             // Next, initialize with API error
             const apiErrorChronikClient = await initializeCashtabStateForTests(
                 wallet,
+                localforage,
                 true,
             );
 

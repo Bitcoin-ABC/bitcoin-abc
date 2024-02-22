@@ -71,6 +71,7 @@ describe('<Configure />', () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
 
         // Custom contact list

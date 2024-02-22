@@ -64,6 +64,7 @@ describe('<CashtabTestWrapper />', () => {
     it('With default props, renders App component', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
@@ -80,6 +81,7 @@ describe('<CashtabTestWrapper />', () => {
     it('We can render other pages by passing the route', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
         render(
             <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,

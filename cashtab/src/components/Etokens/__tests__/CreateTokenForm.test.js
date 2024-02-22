@@ -68,6 +68,7 @@ describe('<CreateTokenForm />', () => {
     it('User can input valid token parameters, generate a token, and view a success notification', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
         // Add tx mock to mockedChronik
         const hex =

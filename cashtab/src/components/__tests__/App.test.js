@@ -67,7 +67,10 @@ describe('<App />', () => {
     });
     it('Renders 404 on a bad route', async () => {
         // This is the experience of a user visiting cashtab.com for the first time
-        const mockedChronik = await initializeCashtabStateForTests(false);
+        const mockedChronik = await initializeCashtabStateForTests(
+            false,
+            localforage,
+        );
         render(
             <CashtabTestWrapper chronik={mockedChronik} route="/not-a-route" />,
         );
@@ -78,6 +81,7 @@ describe('<App />', () => {
     it('Navigation menu routes to expected components', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
@@ -150,7 +154,10 @@ describe('<App />', () => {
     });
     it('Renders onboarding screen if cashtab.com opened with no local storage and no wallet', async () => {
         // This is the experience of a user visiting cashtab.com for the first time
-        const mockedChronik = await initializeCashtabStateForTests(false);
+        const mockedChronik = await initializeCashtabStateForTests(
+            false,
+            localforage,
+        );
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Onboarding is rendered
@@ -161,6 +168,7 @@ describe('<App />', () => {
     it('Renders API error if called with wallet in localforage but chronik utxo calls fail', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
             true, // apiError bool
         );
         render(<CashtabTestWrapper chronik={mockedChronik} />);
@@ -174,6 +182,7 @@ describe('<App />', () => {
     it('Loads home screen with no error if wallet is in storage and chronik calls are successful', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
+            localforage,
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
@@ -189,6 +198,7 @@ describe('<App />', () => {
     it('Adding a contact to Configure.js from clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
+            localforage,
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
@@ -232,6 +242,7 @@ describe('<App />', () => {
     it('Adding a contact to an existing contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
+            localforage,
         );
         // Populate the contactList
         const initialContactList = [
@@ -285,6 +296,7 @@ describe('<App />', () => {
     it('A user with legacy blank contactList in localstorage is migrated on startup', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
+            localforage,
         );
         const LEGACY_EMPTY_CONTACT_LIST = [{}];
         await localforage.setItem('contactList', LEGACY_EMPTY_CONTACT_LIST);
@@ -306,6 +318,7 @@ describe('<App />', () => {
         // Get mocked chronik client with expected API results for this wallet
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
+            localforage,
         );
 
         // Render app on home screen
@@ -361,6 +374,7 @@ describe('<App />', () => {
     it('We do not see the camera auto-open setting in the config screen on a desktop device', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
+            localforage,
         );
 
         render(
@@ -384,6 +398,7 @@ describe('<App />', () => {
         // Get mocked chronik client with expected API results for this wallet
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
+            localforage,
         );
 
         render(

@@ -1,6 +1,4 @@
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
-import 'fake-indexeddb/auto';
-import localforage from 'localforage';
 import { cashtabSettings } from 'config/cashtabSettings';
 import cashtabCache from 'config/cashtabCache';
 
@@ -9,11 +7,13 @@ import cashtabCache from 'config/cashtabCache';
  * Used to support integration testing in Cashtab
  * Default methods may be overwritten in individual unit tests to test special conditions
  * @param {object | boolean} wallet A mock Cashtab wallet
+ * @param {object} localforage the localforage instance used in your test
  * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
  * @returns
  */
 export const initializeCashtabStateForTests = async (
     wallet,
+    localforage,
     apiError = false,
 ) => {
     // Mock successful utxos calls in chronik
