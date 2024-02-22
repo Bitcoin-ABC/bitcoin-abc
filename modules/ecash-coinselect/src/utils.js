@@ -11,7 +11,12 @@ const assert = require('assert');
  * @returns {bool} true if this utxo is a valid SLP utxo
  */
 function isToken(utxo) {
-    return typeof utxo.slpToken !== 'undefined';
+    return (
+        // NNG chronik-client
+        typeof utxo.slpToken !== 'undefined' ||
+        // in-node chronik-client
+        typeof utxo.token !== 'undefined'
+    );
 }
 
 /**

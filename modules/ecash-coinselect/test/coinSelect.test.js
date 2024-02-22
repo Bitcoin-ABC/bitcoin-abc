@@ -168,12 +168,24 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             coinSelect(stubChronikUtxos, [{ value: 5600 }], 1);
         }, Error('Insufficient funds'));
     });
-    it('ignores slp utxos', function () {
+    it('ignores slp utxos from NNG chronik-client', function () {
         // Make all utxos slp utxos
         const stubChronikUtxos = [
             { value: '1000', slpToken: {} },
             { value: '2000', slpToken: {} },
             { value: '3000', slpToken: {} },
+        ];
+        // The wallet now has insufficient funds to send an eCash tx, as slp utxos will be ignored
+        assert.throws(() => {
+            coinSelect(stubChronikUtxos, [{ value: 900 }], 1);
+        }, Error('Insufficient funds'));
+    });
+    it('ignores slp utxos from in-node chronik-client', function () {
+        // Make all utxos slp utxos
+        const stubChronikUtxos = [
+            { value: '1000', token: {} },
+            { value: '2000', token: {} },
+            { value: '3000', token: {} },
         ];
         // The wallet now has insufficient funds to send an eCash tx, as slp utxos will be ignored
         assert.throws(() => {

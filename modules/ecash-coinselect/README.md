@@ -37,4 +37,12 @@ See `test/` for usage.
 
 -   Improvements from [diff review](https://reviews.bitcoinabc.org/D14526)
 
+2.0.2-3
+
+-   Dep upgrades
+
+2.0.4
+
+-   Add support for utxo format from in-node chronik-client [diff](https://reviews.bitcoinabc.org/D15518)
+
 ## License [MIT](LICENSE)

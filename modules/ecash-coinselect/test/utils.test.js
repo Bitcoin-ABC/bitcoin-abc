@@ -38,10 +38,13 @@ describe('ecash-coinselect utils.js functions', async function () {
             sumValues(badValueUtxosString);
         }, new assert.AssertionError({ message: `Input must be an object with 'value' as a key and an integer representing the amount in satoshis as a value`, actual: false, expected: true, operator: '==' }));
     });
-    it(`isToken() returns true for a stub SLP utxo, i.e. an object with key 'slpToken'`, function () {
-        assert.strictEqual(isToken({ slpToken: {} }), true);
+    it(`isToken() returns true for a stub SLP utxo from NNG chronik-client, i.e. an object with key 'slpToken'`, function () {
+        assert.equal(isToken({ slpToken: {} }), true);
+    });
+    it(`isToken() returns true for a stub SLP utxo from in-node chronik-client, i.e. an object with key 'token'`, function () {
+        assert.equal(isToken({ token: {} }), true);
     });
     it(`isToken() returns false for a stub non-SLP utxo, i.e. an object without key 'slpToken'`, function () {
-        assert.strictEqual(isToken({}), false);
+        assert.equal(isToken({}), false);
     });
 });
