@@ -86,9 +86,6 @@ class ChronikClientTokenSlpMintVault(SetupFramework):
         self.log.info("Step 2: Mine the mint vault tx")
         # Mine VAULT setup txs
         block_hashes += self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)
-        self.log.info(
-            f"node.getblockcount() after mine VAULT setup txs: {node.getblockcount()}"
-        )
         assert_equal(node.getblockcount(), 102)
         yield True
 
@@ -120,7 +117,7 @@ class ChronikClientTokenSlpMintVault(SetupFramework):
         send_ipc_message({"slp_vault_genesis_txid": slp_vault_genesis_tx_txid})
         yield True
 
-        self.log.info("Step 3: SLP V2 MINT VAULT MINT")
+        self.log.info("Step 4: SLP V2 MINT VAULT MINT")
 
         # SLP V2 MINT VAULT MINT
         # MINT tx, but invalid because the GENESIS tx isn't mined yet

@@ -96,7 +96,7 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
         assert_equal(node.getblockcount(), 101)
         yield True
 
-        self.log.info("Step 2: Mine a conflicting block")
+        self.log.info("Step 3: Mine a conflicting block")
         block_height = 102
         conflict_tx = CTransaction()
         conflict_tx.vin = [CTxIn(COutPoint(int(cointx, 16), 0), SCRIPTSIG_OP_TRUE)]

@@ -304,7 +304,6 @@ class ChronikClientTokenAlp(SetupFramework):
         block.hashMerkleRoot = block.calc_merkle_root()
         block.solve()
         peer.send_blocks_and_test([block], node)
-        self.log.info(f"node.getblockcount(): {node.getblockcount()}")
         assert_equal(node.getblockcount(), 102)
         yield True
 
@@ -334,7 +333,6 @@ class ChronikClientTokenAlp(SetupFramework):
         alp_send_two_tx_txid = node.sendrawtransaction(
             alp_send_two_tx.serialize().hex()
         )
-        self.log.info(f"alp_send_two_tx_txid: {alp_send_two_tx_txid}")
         send_ipc_message({"alp_send_two_txid": alp_send_two_tx_txid})
 
         # Another ALP Mint tx
