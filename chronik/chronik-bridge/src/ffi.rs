@@ -283,6 +283,10 @@ mod ffi_inner {
         /// Default maximum fee rate when broadcasting txs.
         fn default_max_raw_tx_fee_rate_per_kb() -> i64;
 
+        /// Calls `SyncWithValidationInterfaceQueue` from validationinterface.h
+        /// to make sure wallet/indexes are synced.
+        fn sync_with_validation_interface_queue();
+
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;

@@ -95,6 +95,8 @@ int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb);
 
 int64_t default_max_raw_tx_fee_rate_per_kb();
 
+void sync_with_validation_interface_queue();
+
 bool init_error(const rust::Str msg);
 
 void abort_node(const rust::Str msg, const rust::Str user_msg);

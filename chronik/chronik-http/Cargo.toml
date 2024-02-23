@@ -14,6 +14,7 @@ abc-rust-lint = { path = "../abc-rust-lint" }
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
 
+chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
 chronik-indexer = { path = "../chronik-indexer" }
 chronik-proto = { path = "../chronik-proto" }

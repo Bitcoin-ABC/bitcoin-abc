@@ -22,6 +22,7 @@
 #include <undo.h>
 #include <util/error.h>
 #include <validation.h>
+#include <validationinterface.h>
 
 chronik_bridge::OutPoint BridgeOutPoint(const COutPoint &outpoint) {
     return {
@@ -359,6 +360,10 @@ int64_t calc_fee(size_t num_bytes, int64_t sats_fee_per_kb) {
 
 int64_t default_max_raw_tx_fee_rate_per_kb() {
     return node::DEFAULT_MAX_RAW_TX_FEE_RATE.GetFeePerK() / SATOSHI;
+}
+
+void sync_with_validation_interface_queue() {
+    SyncWithValidationInterfaceQueue();
 }
 
 bool init_error(const rust::Str msg) {
