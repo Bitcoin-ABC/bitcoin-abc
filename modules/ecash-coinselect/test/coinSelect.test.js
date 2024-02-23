@@ -6,6 +6,15 @@
 const assert = require('assert');
 const { coinSelect } = require('../src/coinSelect');
 
+const MOCK_TOKEN_UTXO = { value: '546' };
+const MOCK_TOKEN_SEND_OUTPUT = {
+    value: 0,
+    script: Buffer.from(
+        '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000bebc200080000000002faf080',
+        'hex',
+    ),
+};
+
 describe('coinSelect() accumulative algorithm for utxo selection in coinselect.js', async function () {
     it('adds a change output if change > dust', function () {
         const stubChronikUtxos = [
@@ -13,11 +22,174 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             { value: '2000' },
             { value: '3000' },
         ];
-        assert.deepEqual(coinSelect(stubChronikUtxos, [{ value: 1000 }], 1), {
+
+        const result = coinSelect(stubChronikUtxos, [{ value: 1000 }], 1);
+        assert.deepEqual(result, {
             inputs: [{ value: 1000 }, { value: 2000 }],
             outputs: [{ value: 1000 }, { value: 1626 }],
             fee: 374,
         });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
+    });
+    it('Handles an slpv1 token send tx with token change and eCash change', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+
+        // Assume we have 3 input utxos
+        const tokenInputs = [MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO];
+
+        // Target outputs for a typical slpv1 send with change
+        // These would be calculated by an app dev since the script depends on token change
+        const targetOutputs = [
+            MOCK_TOKEN_SEND_OUTPUT,
+            MOCK_TOKEN_UTXO,
+            MOCK_TOKEN_UTXO,
+            { value: 1000 },
+        ];
+        const result = coinSelect(
+            stubChronikUtxos,
+            targetOutputs,
+            1,
+            tokenInputs,
+        );
+        assert.deepEqual(result, {
+            inputs: tokenInputs.concat([{ value: 1000 }, { value: 2000 }]),
+            outputs: targetOutputs.concat([{ value: 1587 }]),
+            fee: 959,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
+    });
+    it('Handles an slpv1 token send tx with token change and no eCash change', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+
+        // Assume we have 3 input utxos
+        const tokenInputs = [MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO];
+
+        // Target outputs for a typical slpv1 send with change
+        // These would be calculated by an app dev since the script depends on token change
+        const targetOutputs = [
+            MOCK_TOKEN_SEND_OUTPUT,
+            MOCK_TOKEN_UTXO,
+            MOCK_TOKEN_UTXO,
+            { value: 5473 },
+        ];
+
+        const result = coinSelect(
+            stubChronikUtxos,
+            targetOutputs,
+            1,
+            tokenInputs,
+        );
+        assert.deepEqual(result, {
+            inputs: tokenInputs.concat([
+                { value: 1000 },
+                { value: 2000 },
+                { value: 3000 },
+            ]),
+            outputs: targetOutputs,
+            fee: 1073,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
+    });
+    it('Handles an slpv1 token send tx with no token change and eCash change', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+
+        // Assume we have 3 input utxos
+        const tokenInputs = [MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO];
+
+        // Target outputs for a typical slpv1 send with no change, i.e. only 1 output
+        // These would be calculated by an app dev since the script depends on token change
+        const targetOutputs = [
+            MOCK_TOKEN_SEND_OUTPUT,
+            MOCK_TOKEN_UTXO,
+            { value: 1500 },
+        ];
+
+        const result = coinSelect(
+            stubChronikUtxos,
+            targetOutputs,
+            1,
+            tokenInputs,
+        );
+
+        assert.deepEqual(result, {
+            inputs: tokenInputs.concat([{ value: 1000 }, { value: 2000 }]),
+            outputs: targetOutputs.concat([{ value: 1667 }]),
+            fee: 925,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
+    });
+    it('Handles an slpv1 token send tx with no token change and no eCash change', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+
+        // Assume we have 3 input utxos
+        const tokenInputs = [MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO, MOCK_TOKEN_UTXO];
+
+        // Target outputs for a typical slpv1 send with no change, i.e. only 1 output
+        // These would be calculated by an app dev since the script depends on token change
+        const targetOutputs = [
+            MOCK_TOKEN_SEND_OUTPUT,
+            MOCK_TOKEN_UTXO,
+            { value: 6053 },
+        ];
+
+        const result = coinSelect(
+            stubChronikUtxos,
+            targetOutputs,
+            1,
+            tokenInputs,
+        );
+
+        assert.deepEqual(result, {
+            inputs: tokenInputs.concat([
+                { value: 1000 },
+                { value: 2000 },
+                { value: 3000 },
+            ]),
+            outputs: targetOutputs,
+            fee: 1039,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
     });
     it('Does not include decimals in a change output', function () {
         const stubChronikUtxos = [
@@ -26,18 +198,28 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             },
         ];
         const mockFeeRate = 2.01;
-        assert.deepEqual(
-            coinSelect(stubChronikUtxos, [{ value: 11000 }], mockFeeRate),
-            {
-                inputs: [
-                    {
-                        value: 206191611,
-                    },
-                ],
-                outputs: [{ value: 11000 }, { value: 206180156 }],
-                fee: 455,
-            },
+
+        const result = coinSelect(
+            stubChronikUtxos,
+            [{ value: 11000 }],
+            mockFeeRate,
         );
+
+        assert.deepEqual(result, {
+            inputs: [
+                {
+                    value: 206191611,
+                },
+            ],
+            outputs: [{ value: 11000 }, { value: 206180156 }],
+            fee: 455,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
     });
     it('does not add a change output if change < dust', function () {
         const stubChronikUtxos = [
@@ -45,21 +227,35 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             { value: '2000' },
             { value: '3000' },
         ];
-        assert.deepEqual(coinSelect(stubChronikUtxos, [{ value: 550 }], 1), {
+
+        const result = coinSelect(stubChronikUtxos, [{ value: 550 }], 1);
+
+        assert.deepEqual(result, {
             inputs: [{ value: 1000 }],
             outputs: [{ value: 550 }],
             fee: 450,
         });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
     });
     it('handles a one-input tx with change and no OP_RETURN', function () {
-        assert.deepEqual(
-            coinSelect([{ value: '100000' }], [{ value: 10000 }], 1),
-            {
-                inputs: [{ value: 100000 }],
-                outputs: [{ value: 10000 }, { value: 89774 }],
-                fee: 226,
-            },
-        );
+        const result = coinSelect([{ value: '100000' }], [{ value: 10000 }], 1);
+
+        assert.deepEqual(result, {
+            inputs: [{ value: 100000 }],
+            outputs: [{ value: 10000 }, { value: 89774 }],
+            fee: 226,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
     });
     it('handles eCash max length OP_RETURN in output script', function () {
         const OP_RETURN_MAX_SIZE =
@@ -74,57 +270,67 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             TX_OUTPUT_BASE +
             OP_RETURN_MAX_SIZE.length / 2;
 
-        assert.deepEqual(
-            coinSelect(
-                [{ value: '100000' }],
-                [
-                    {
-                        value: 0,
-                        script: Buffer.from(OP_RETURN_MAX_SIZE, 'hex'),
-                    },
-                    { value: 10000 },
-                ],
-                1,
-            ),
-            {
-                inputs: [{ value: 100000 }],
-                outputs: [
-                    {
-                        value: 0,
-                        script: Buffer.from(OP_RETURN_MAX_SIZE, 'hex'),
-                    },
-                    { value: 10000 },
-                    { value: 89542 },
-                ],
-                fee: expectedFee,
-            },
+        const result = coinSelect(
+            [{ value: '100000' }],
+            [
+                {
+                    value: 0,
+                    script: Buffer.from(OP_RETURN_MAX_SIZE, 'hex'),
+                },
+                { value: 10000 },
+            ],
+            1,
+        );
+
+        assert.deepEqual(result, {
+            inputs: [{ value: 100000 }],
+            outputs: [
+                {
+                    value: 0,
+                    script: Buffer.from(OP_RETURN_MAX_SIZE, 'hex'),
+                },
+                { value: 10000 },
+                { value: 89542 },
+            ],
+            fee: expectedFee,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
+
+        const resultHex = coinSelect(
+            [{ value: '100000' }],
+            [
+                {
+                    value: 0,
+                    script: OP_RETURN_MAX_SIZE,
+                },
+                { value: 10000 },
+            ],
+            1,
         );
         // Also works if script output is a hex string and not a Buffer
-        assert.deepEqual(
-            coinSelect(
-                [{ value: '100000' }],
-                [
-                    {
-                        value: 0,
-                        script: OP_RETURN_MAX_SIZE,
-                    },
-                    { value: 10000 },
-                ],
-                1,
-            ),
-            {
-                inputs: [{ value: 100000 }],
-                outputs: [
-                    {
-                        value: 0,
-                        script: OP_RETURN_MAX_SIZE,
-                    },
-                    { value: 10000 },
-                    { value: 89542 },
-                ],
-                fee: expectedFee,
-            },
-        );
+        assert.deepEqual(resultHex, {
+            inputs: [{ value: 100000 }],
+            outputs: [
+                {
+                    value: 0,
+                    script: OP_RETURN_MAX_SIZE,
+                },
+                { value: 10000 },
+                { value: 89542 },
+            ],
+            fee: expectedFee,
+        });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of resultHex.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
     });
     it('adds a change output if change > dust', function () {
         const stubChronikUtxos = [
@@ -132,11 +338,20 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
             { value: '2000' },
             { value: '3000' },
         ];
-        assert.deepEqual(coinSelect(stubChronikUtxos, [{ value: 1000 }], 1), {
+
+        const result = coinSelect(stubChronikUtxos, [{ value: 1000 }], 1);
+
+        assert.deepEqual(result, {
             inputs: [{ value: 1000 }, { value: 2000 }],
             outputs: [{ value: 1000 }, { value: 1626 }],
             fee: 374,
         });
+
+        // Inputs all have a 'number' at value key
+        // TxBuilder can only sign if this is the case
+        for (const input of result.inputs) {
+            assert.equal(typeof input.value === 'number', true);
+        }
     });
     it('throws expected error if called with feeRate < 1', function () {
         const stubChronikUtxos = [

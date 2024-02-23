@@ -45,4 +45,8 @@ See `test/` for usage.
 
 -   Add support for utxo format from in-node chronik-client [diff](https://reviews.bitcoinabc.org/D15518)
 
+2.1.0
+
+-   Support input param `tokenInputs` to create txs with user-specified inputs [diff](https://reviews.bitcoinabc.org/D15520)
+
 ## License [MIT](LICENSE)
