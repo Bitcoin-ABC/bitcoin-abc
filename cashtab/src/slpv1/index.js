@@ -198,55 +198,42 @@ export const getSendTokenInputs = (utxos, tokenId, sendQty, decimals = -1) => {
 
     // We return this interesting object due to expected input shape of slp-mdm
     // NB sendAmounts must be an array of BNs, each one decimalized to the tokens decimal places
-    return { tokenInputs, sendAmounts };
+    return { tokenInputs, tokenId, sendAmounts };
 };
 
 /**
  * Get targetOutput(s) for a SLP v1 BURN tx
- * Note: a burn tx is a special case of a send tx, where you only have a change output
- * i.e., to burn all balance, say you have 100 BURN tokens
- * you send yourself an etoken tx with output of 0 from input of 100. Now it's all burned.
- * If you send that 100-balance utxo to yourself with an output of 99, now you've burned 1.
- * @param {array} tokenUtxos the token utxos required to complete this tx
- * @param {string} burnQty the amount of this token to be burned in this tx
+ * Note: a burn tx is a special case of a send tx where you have no destination output
+ * You always have a change output as an eCash tx must have at least dust output
+ *
+ * Explicit BURN txs require you to burn the full qty of input token utxos.
+ *
+ * @param {array} tokenInputInfo {tokenUtxos: utxos[], sendAmount: BigNumber[]}; Output of getSendTokenInputs *
  * @throws {error} if invalid input params are passed to TokenType1.send
- * @returns {object} targetOutput, e.g. {value: 0, script: <encoded slp burn script>}
+ * @returns {object} targetOutputs with a change output, even if all utxos are consumed
+ * [{value: 0, script: <encoded slp burn script>}, {value: 546}]
  */
-export const getSlpBurnTargetOutput = (tokenUtxos, burnQty) => {
-    if (typeof burnQty !== 'string') {
-        throw new Error('burnQty must be a string');
-    }
-    // Get tokenId and decimals from the tokenUtxo
-    const { tokenId, decimals } = tokenUtxos[0];
+export const getSlpBurnTargetOutputs = tokenInputInfo => {
+    const { tokenId, sendAmounts } = tokenInputInfo;
 
-    // Account for token decimals
-    const finalBurnTokenQty = new BN(burnQty).times(10 ** decimals);
+    // If we have change from the getSendTokenInputs call, we want to SEND it to ourselves
+    // If we have no change, we want to SEND ourselves 0
+    // TODO the case of no change should be handled by an explicit BURN
 
-    // Calculate the total qty of this token in tokenUtxos
-    const totalTokenQty = tokenUtxos.reduce(
-        (total, tokenUtxo) => total.plus(new BN(tokenUtxo.slpToken.amount)),
-        new BN(0),
-    );
+    const hasChange = sendAmounts.length > 1;
+    const tokenChange = hasChange ? sendAmounts[1] : new BN(0);
 
-    if (totalTokenQty.lt(finalBurnTokenQty)) {
-        throw new Error(
-            `tokenUtxos have insufficient balance ${totalTokenQty
-                .shiftedBy(-1 * decimals)
-                .toLocaleString('en-US', {
-                    minimumFractionDigits: decimals,
-                })} to burn ${finalBurnTokenQty
-                .shiftedBy(-1 * decimals)
-                .toLocaleString('en-US', {
-                    minimumFractionDigits: decimals,
-                })}`,
-        );
-    }
-
-    // Calculate token change
-    const tokenChange = totalTokenQty.minus(finalBurnTokenQty);
-
-    // Unlike getSlpSendTargetOutputs, you always return one change output here
-    // If tokenChange is 0, you are burning the full balance
+    // This step is what makes the tx a burn and not a send, see getSlpSendTargetOutputs
     const script = TokenType1.send(tokenId, [tokenChange]);
-    return { value: 0, script };
+
+    // Build targetOutputs per slpv1 spec
+    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send---spend-transaction
+    // Script must be at index 0
+    // We need a token utxo even if change is 0
+    // We will probably always have an XEC change output, but always including a token output
+    // that is either change or a "send" qty of 0 is a simple standard that allows us to keep
+    // burn tx logic separate from ecash tx creation logic
+    // But lets just add the min output
+
+    return [{ value: 0, script }, { value: appConfig.etokenSats }];
 };

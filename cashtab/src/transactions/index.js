@@ -52,6 +52,7 @@ export const signInputs = (txBuilder, accounts, inputs) => {
  * @param {number} feeRate satoshis per byte
  * @param {number} chaintipBlockheight the current chaintip blockheight
  * @param {array} tokenInputs required token utxo inputs for a token tx
+ * @param {boolean} isBurn default to false. if true, chronik will skip slp burn checks before broadcast.
  * @throws {error} dust error, balance exceeded error, coinselect errors, and node broadcast errors
  * @returns {object} {hex: <rawTxInHex>, response: {txid: <broadcastTxid>}}
  */
@@ -62,6 +63,7 @@ export const sendXec = async (
     feeRate,
     chaintipBlockheight,
     tokenInputs = [],
+    isBurn = false,
 ) => {
     // Use only eCash utxos
     const utxos = wallet.state.nonSlpUtxos;
@@ -114,7 +116,7 @@ export const sendXec = async (
 
     // Will throw error on node failing to broadcast tx
     // e.g. 'txn-mempool-conflict (code 18)'
-    const response = await chronik.broadcastTx(hex);
+    const response = await chronik.broadcastTx(hex, isBurn);
 
     return { hex, response };
 };

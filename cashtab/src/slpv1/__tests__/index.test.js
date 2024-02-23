@@ -4,7 +4,7 @@
 import {
     getSlpGenesisTargetOutput,
     getSlpSendTargetOutputs,
-    getSlpBurnTargetOutput,
+    getSlpBurnTargetOutputs,
     getAllSendUtxos,
     getSendTokenInputs,
 } from 'slpv1';
@@ -215,30 +215,47 @@ describe('Get slpv1 send input utxos from in-node chronik-client', () => {
     });
 });
 
-describe('Generating etoken burn tx target output', () => {
-    const { expectedReturns, expectedErrors } = vectors.burnTxs;
+describe('Generating etoken burn tx target outputs', () => {
+    const { expectedReturns } = vectors.burnTxs;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
-        const { description, tokenUtxos, burnQty, outputScriptHex } =
-            expectedReturn;
-        it(`getSlpBurnTargetOutput: ${description}`, () => {
-            const targetOutput = getSlpBurnTargetOutput(tokenUtxos, burnQty);
-            // Output value should be zero for OP_RETURN
-            expect(targetOutput.value).toBe(0);
-            // Test vs hex string as cannot store buffer type in vectors
-            expect(targetOutput.script.toString('hex')).toStrictEqual(
+        const {
+            description,
+            tokenUtxos,
+            burnQty,
+            tokenId,
+            tokenInputInfo,
+            outputScriptHex,
+        } = expectedReturn;
+
+        it(`getSlpBurnTargetOutputs: ${description}`, () => {
+            // We get the same tokenInputInfo object for token burns that we do for token sends
+            const calculatedTokenInputInfo = getSendTokenInputs(
+                tokenUtxos,
+                tokenId,
+                burnQty,
+            );
+
+            expect(calculatedTokenInputInfo.sendAmounts).toStrictEqual(
+                tokenInputInfo.sendAmounts,
+            );
+
+            const targetOutput = getSlpBurnTargetOutputs(
+                calculatedTokenInputInfo,
+            );
+
+            // We will always have the OP_RETURN output at index 0
+            expect(targetOutput[0].value).toBe(0);
+            expect(targetOutput[0].script.toString('hex')).toBe(
                 outputScriptHex,
             );
-        });
-    });
-    // Error cases
-    expectedErrors.forEach(expectedError => {
-        const { description, tokenUtxos, burnQty, errorMsg } = expectedError;
-        it(`getSlpBurnTargetOutput throws error for: ${description}`, () => {
-            expect(() => getSlpBurnTargetOutput(tokenUtxos, burnQty)).toThrow(
-                errorMsg,
-            );
+
+            // BURN txs always have 2 outputs
+            expect(targetOutput.length).toBe(2);
+            // assert the expected change output
+            expect(targetOutput[1].value).toBe(appConfig.etokenSats);
+            expect('address' in targetOutput[1]).toBe(false);
         });
     });
 });

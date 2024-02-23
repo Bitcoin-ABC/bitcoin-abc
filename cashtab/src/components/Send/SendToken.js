@@ -30,7 +30,6 @@ import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
 import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
-import { burnToken } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
 import { getTokenStats } from 'chronik';
@@ -46,7 +45,11 @@ import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import appConfig from 'config/app';
 import { isMobile } from 'helpers';
-import { getSendTokenInputs, getSlpSendTargetOutputs } from 'slpv1';
+import {
+    getSendTokenInputs,
+    getSlpSendTargetOutputs,
+    getSlpBurnTargetOutputs,
+} from 'slpv1';
 import { sendXec } from 'transactions';
 
 const AntdDescriptionsCss = css`
@@ -406,16 +409,36 @@ const SendToken = ({ passLoadingStatus }) => {
         passLoadingStatus(true);
 
         try {
-            const link = await burnToken(chronik, wallet, {
-                tokenId: tokenId,
-                amount: eTokenBurnAmount,
-            });
+            // Get input utxos for slpv1 burn tx
+            // This is done the same way as for an slpv1 send tx
+            const tokenInputInfo = getSendTokenInputs(
+                wallet.state.slpUtxos,
+                tokenId,
+                eTokenBurnAmount,
+            );
+
+            // Get targetOutputs for an slpv1 burn tx
+            // this is NOT like an slpv1 send tx
+            const tokenBurnTargetOutputs =
+                getSlpBurnTargetOutputs(tokenInputInfo);
+
+            // Build and broadcast the tx
+            const { response } = await sendXec(
+                chronik,
+                wallet,
+                tokenBurnTargetOutputs,
+                appConfig.defaultFee,
+                chaintipBlockheight,
+                tokenInputInfo.tokenInputs,
+                true, // skip SLP burn checks
+            );
+
             notification.success({
                 message: 'Success',
                 description: (
                     <a
                         data-testid="burn-token-notification"
-                        href={link}
+                        href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -434,7 +457,7 @@ const SendToken = ({ passLoadingStatus }) => {
             setConfirmationOfEtokenToBeBurnt('');
             notification.error({
                 message: 'Burning eToken',
-                description: JSON.stringify(e),
+                description: `${e}`,
                 duration: appConfig.notificationDurationLong,
             });
         }

@@ -5,13 +5,21 @@ import userEvent from '@testing-library/user-event';
 import App from 'components/App';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
-import { mockWalletContext } from '../fixtures/mocks';
+import { mockWalletContext, walletWithXecAndTokens } from '../fixtures/mocks';
 import { WalletContext } from 'utils/context';
 import { MemoryRouter } from 'react-router-dom';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
 import { MockChronikClient } from '../../../../../apps/mock-chronik-client';
 import { explorer } from 'config/explorer';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+import appConfig from 'config/app';
+import 'fake-indexeddb/auto';
+import localforage from 'localforage';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -57,6 +65,30 @@ const TestSendTokenScreen = (
 // Getting by class name is the only practical way to get some antd components
 /* eslint testing-library/no-container: 0 */
 describe('<SendToken />', () => {
+    beforeEach(() => {
+        // Mock the fetch call Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs require different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await clearLocalForage(localforage);
+    });
     it('Renders the SendToken screen with send address input', async () => {
         const { container } = render(TestSendTokenScreen);
         const addressInputEl = screen.getByTestId('destination-address-single');
@@ -363,6 +395,77 @@ describe('<SendToken />', () => {
         );
         await waitFor(() =>
             expect(sendTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('Renders the burn token success notification upon successful burn tx broadcast', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        const hex =
+            '02000000023023c2a02d7932e2f716016ab866249dd292387967dbd050ff200b8b8560073b010000006a4730440220510213513a45f1d02c38e524745db141a0c699e0abbd00552114beafebabe0ce02202d16daf42a61681e678744039067c23bca93e50a547fcb2a631547b34de225734121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b483045022100a86446a3e27b0c80b7ca81070769d818758505933787b01076f99297faf7dd5e0220622cf7d02111e23d54f5ccd19606af1ab08c384c46e8ddeae74b55bc3b238ba04121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10908000000000000000022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac9f800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '9fe2a278894fb4afc259ca455947b0f8864b74aa142294225f2fa818b68b1711';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        mockedChronik.setMock('token', {
+            input: '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            output: {
+                tokenId:
+                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                tokenStats: { totalMinted: '1000', totalBurned: '1' },
+                initialTokenQuantity: '1000',
+                slpTxData: {
+                    genesisInfo: {
+                        tokenTicker: 'BEAR',
+                        tokenName: 'BearNip',
+                        tokenDocumentUrl: 'https://cashtab.com/',
+                        tokenDocumentHash: '',
+                        decimals: 0,
+                        tokenId:
+                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                    },
+                },
+            },
+        });
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/send-token/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109"
+            />,
+        );
+
+        // By default, a burn amount of '1' is already entered into the form
+
+        // Click the Burn button
+        // Note we button title is the token ticker
+        await userEvent.click(
+            await screen.findByRole('button', { name: /BEAR/ }),
+        );
+
+        // We see a modal and enter the correct confirmation msg
+        await userEvent.type(
+            screen.getByPlaceholderText(`Type "burn BEAR" to confirm`),
+            'burn BEAR',
+        );
+
+        // Click the Confirm button
+        await userEvent.click(screen.getByRole('button', { name: /Confirm/ }));
+
+        const burnTokenSuccessNotification = await screen.findByText(
+            'eToken burn successful. Click to view in block explorer.',
+        );
+        await waitFor(() =>
+            expect(burnTokenSuccessNotification).toHaveAttribute(
                 'href',
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
             ),

@@ -6,7 +6,11 @@ import {
     getMultisendTargetOutputs,
     ignoreUnspendableUtxos,
 } from 'transactions';
-import { getSendTokenInputs, getSlpSendTargetOutputs } from 'slpv1';
+import {
+    getSendTokenInputs,
+    getSlpSendTargetOutputs,
+    getSlpBurnTargetOutputs,
+} from 'slpv1';
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import {
     sendXecVectors,
@@ -117,7 +121,7 @@ describe('Ignore unspendable coinbase utxos', () => {
     });
 });
 
-describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-node chronik shape', () => {
+describe('We can create and broadcast SLP v1 SEND and BURN txs from utxos of nng or in-node chronik shape', () => {
     // Unit test for each vector in fixtures for the sendingXecToSingleAddress case
     const { expectedReturnsNng, expectedReturnsInNode } = sendSlp;
 
@@ -135,12 +139,17 @@ describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-no
             chaintipBlockheight,
             txid,
             hex,
+            burn,
         } = tx;
-        it(`Build and broadcast an SLP V1 SEND tx: ${description}`, async () => {
+        it(`Build and broadcast an SLP V1 SEND tx and an SLP V1 BURN tx from NNG chronik-client utxos: ${description}`, async () => {
             const chronik = new MockChronikClient();
             chronik.setMock('broadcastTx', {
                 input: hex,
                 output: { txid },
+            });
+            chronik.setMock('broadcastTx', {
+                input: burn.hex,
+                output: { txid: burn.txid },
             });
 
             // Get tokenInputs and sendAmounts
@@ -159,7 +168,7 @@ describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-no
                 destinationAddress,
             );
 
-            // Send it
+            // SLP v1 SEND
             expect(
                 await sendXec(
                     chronik,
@@ -170,6 +179,23 @@ describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-no
                     tokenInputInfo.tokenInputs,
                 ),
             ).toStrictEqual({ hex, response: { txid } });
+
+            // SLP v1 BURN
+
+            // Get the targetOutputs
+            const tokenBurnTargetOutputs =
+                getSlpBurnTargetOutputs(tokenInputInfo);
+
+            expect(
+                await sendXec(
+                    chronik,
+                    wallet,
+                    tokenBurnTargetOutputs, // This is the only difference between SEND and BURN
+                    feeRate,
+                    chaintipBlockheight,
+                    tokenInputInfo.tokenInputs,
+                ),
+            ).toStrictEqual({ hex: burn.hex, response: { txid: burn.txid } });
         });
     });
 
@@ -188,12 +214,17 @@ describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-no
             chaintipBlockheight,
             txid,
             hex,
+            burn,
         } = tx;
-        it(`Build and broadcast an SLP V1 SEND tx: ${description}`, async () => {
+        it(`Build and broadcast an SLP V1 SEND and BURN tx from in-node chronik-client utxos: ${description}`, async () => {
             const chronik = new MockChronikClient();
             chronik.setMock('broadcastTx', {
                 input: hex,
                 output: { txid },
+            });
+            chronik.setMock('broadcastTx', {
+                input: burn.hex,
+                output: { txid: burn.txid },
             });
 
             // Get tokenInputs and sendAmounts
@@ -212,7 +243,8 @@ describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-no
                 tokenInputInfo,
                 destinationAddress,
             );
-            // Send it
+
+            // SLP v1 SEND
             expect(
                 await sendXec(
                     chronik,
@@ -223,6 +255,23 @@ describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-no
                     tokenInputInfo.tokenInputs,
                 ),
             ).toStrictEqual({ hex, response: { txid } });
+
+            // SLP v1 BURN
+
+            // Get the targetOutputs
+            const tokenBurnTargetOutputs =
+                getSlpBurnTargetOutputs(tokenInputInfo);
+
+            expect(
+                await sendXec(
+                    chronik,
+                    wallet,
+                    tokenBurnTargetOutputs, // This is the only difference between SEND and BURN
+                    feeRate,
+                    chaintipBlockheight,
+                    tokenInputInfo.tokenInputs,
+                ),
+            ).toStrictEqual({ hex: burn.hex, response: { txid: burn.txid } });
         });
     });
 });
