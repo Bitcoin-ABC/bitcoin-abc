@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import { QRCode } from '../QRCode';
+import { QRCode } from 'components/Receive/QRCode';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 

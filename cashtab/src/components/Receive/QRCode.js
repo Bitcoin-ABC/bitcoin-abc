@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import QRCodeSVG from 'qrcode.react';
 import { convertToEcashPrefix } from 'utils/cashMethods';
-import CopyToClipboard from './CopyToClipboard';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
 import appConfig from 'config/app';
 
 export const CustomQRCode = styled(QRCodeSVG)`
