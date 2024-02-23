@@ -573,8 +573,8 @@ be in ascending order""",
         )
         block.vtx += [
             genesis.tx,
-            send.tx,
             mint.tx,
+            send.tx,
             genesis2.tx,
             multi.tx,
             all_things.tx,
