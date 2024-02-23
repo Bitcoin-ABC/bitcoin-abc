@@ -93,3 +93,31 @@ Squash the commits together for backporting
 <a name="fn1">[1]</a>: besides `core`, the prefixes `core-gui` and `secp256k1` will also include a
  hyperlink to the appropriate pull request in the summary automatically, as long as they are in the
  format `[prefix]#[pr_number]`. No spaces, all lowercase.
+
+Backporting from secp256k1, Electrum and Electron Cash
+------------------------------------------------------
+
+The Bitcoin ABC monorepo includes subprojects that are stored in subdirectories of the main repository.
+To backport commits for these subprojects, you can add the corresponding additional remotes and use the
+`-Xsubtree` option for `git cherry-pick`.
+
+For instance to backport Electron-Cash commits, you can do:
+```
+git remote add electroncash git@github.com:Electron-Cash/Electron-Cash.git
+git fetch electroncash
+git cherry-pick -Xsubtree=electrum <commit hash>
+```
+
+You can also add git aliases to your `~/.gitconfig` file so that you don't need to remember the
+`-Xsubtree` option:
+```
+[alias]
+    cpsecp256k1 = cherry-pick -Xsubtree=src/secp256k1
+    cpelectrum = cherry-pick -Xsubtree=electrum
+```
+
+This allows you to then backport commits using the following shortcuts:
+```
+git cpelectrum <commit hash>
+git cpsecp256k1 <commit hash>
+```
