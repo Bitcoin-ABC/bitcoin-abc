@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Modal } from 'antd';
+import { useState, useEffect } from 'react';
+import { notification } from 'antd';
 import * as serviceWorkerRegistration from 'serviceWorkerRegistration';
 
 const ServiceWorkerWrapper = () => {
-    const [showReloadModal, setShowReloadModal] = useState(false);
     const [waitingWorker, setWaitingWorker] = useState(null);
 
     const onSWUpdate = registration => {
-        setShowReloadModal(true);
+        notification.info({
+            message: 'New Version Available',
+            description:
+                'Close this notification to update to the latest version of Cashtab',
+            duration: 0,
+            placement: 'topRight',
+            onClose: reloadPage,
+        });
         setWaitingWorker(registration.waiting);
     };
 
@@ -17,24 +23,8 @@ const ServiceWorkerWrapper = () => {
 
     const reloadPage = () => {
         waitingWorker?.postMessage({ type: 'SKIP_WAITING' });
-        setShowReloadModal(false);
         window.location.reload(true);
     };
-
-    return (
-        <Modal
-            title="Reload"
-            open={showReloadModal}
-            onOk={reloadPage}
-            onCancel={reloadPage}
-            cancelButtonProps={{ style: { display: 'none' } }}
-        >
-            <p>
-                A new version of Cashtab is available. Refresh or click OK to
-                load.
-            </p>
-        </Modal>
-    );
 };
 
 export default ServiceWorkerWrapper;
