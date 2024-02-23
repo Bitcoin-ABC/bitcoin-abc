@@ -3,7 +3,7 @@
 
     "name": "Cashtab",
     "description": "A browser-integrated eCash wallet from Bitcoin ABC",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "content_scripts": [
         {
             "matches": ["file://*/*", "http://*/*", "https://*/*"],
