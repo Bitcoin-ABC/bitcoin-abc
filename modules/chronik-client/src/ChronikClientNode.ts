@@ -228,7 +228,7 @@ export class ScriptEndpointInNode {
         const scriptUtxos = proto.ScriptUtxos.decode(data);
         return {
             outputScript: toHex(scriptUtxos.script),
-            utxos: scriptUtxos.utxos.map(convertToUtxo),
+            utxos: scriptUtxos.utxos.map(convertToScriptUtxo),
         };
     }
 }
@@ -673,7 +673,28 @@ function convertToRawTx(rawTx: proto.RawTx): RawTx {
     };
 }
 
-function convertToUtxo(utxo: proto.ScriptUtxo): Utxo_InNode {
+function convertToScriptUtxo(utxo: proto.ScriptUtxo): ScriptUtxo_InNode {
+    if (utxo.outpoint === undefined) {
+        throw new Error('UTXO outpoint is undefined');
+    }
+    const utxoInNode: ScriptUtxo_InNode = {
+        outpoint: {
+            txid: toHexRev(utxo.outpoint.txid),
+            outIdx: utxo.outpoint.outIdx,
+        },
+        blockHeight: utxo.blockHeight,
+        isCoinbase: utxo.isCoinbase,
+        value: parseInt(utxo.value),
+        isFinal: utxo.isFinal,
+    };
+    if (typeof utxo.token !== 'undefined') {
+        // We only return a token key if we have token data for this input
+        utxoInNode.token = convertToTokenInNode(utxo.token);
+    }
+    return utxoInNode;
+}
+
+function convertToUtxo(utxo: proto.Utxo): Utxo_InNode {
     if (utxo.outpoint === undefined) {
         throw new Error('UTXO outpoint is undefined');
     }
@@ -684,6 +705,7 @@ function convertToUtxo(utxo: proto.ScriptUtxo): Utxo_InNode {
         },
         blockHeight: utxo.blockHeight,
         isCoinbase: utxo.isCoinbase,
+        script: toHex(utxo.script),
         value: parseInt(utxo.value),
         isFinal: utxo.isFinal,
     };
@@ -1148,10 +1170,30 @@ export interface ScriptUtxos_InNode {
     /** Output script in hex. */
     outputScript: string;
     /** UTXOs of the output script. */
-    utxos: Utxo_InNode[];
+    utxos: ScriptUtxo_InNode[];
 }
 
 /** An unspent transaction output (aka. UTXO, aka. "Coin") of a script. */
+export interface ScriptUtxo_InNode {
+    /** Outpoint of the UTXO. */
+    outpoint: OutPoint;
+    /** Which block this UTXO is in, or -1 if in the mempool. */
+    blockHeight: number;
+    /** Whether this UTXO is a coinbase UTXO
+     * (make sure it's buried 100 blocks before spending!) */
+    isCoinbase: boolean;
+    /** Value of the UTXO in satoshis. */
+    value: number;
+    /** Is this utxo avalanche finalized */
+    isFinal: boolean;
+    /** Token value attached to this utxo */
+    token?: Token_InNode;
+}
+
+/**
+ * An unspent transaction output (aka. UTXO, aka. "Coin") with script attached
+ * Useful when getting utxos by something other than script, e.g. tokenId
+ */
 export interface Utxo_InNode {
     /** Outpoint of the UTXO. */
     outpoint: OutPoint;
@@ -1162,6 +1204,8 @@ export interface Utxo_InNode {
     isCoinbase: boolean;
     /** Value of the UTXO in satoshis. */
     value: number;
+    /** Bytecode of the script of the output */
+    script: string;
     /** Is this utxo avalanche finalized */
     isFinal: boolean;
     /** Token value attached to this utxo */

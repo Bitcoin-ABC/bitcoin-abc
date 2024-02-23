@@ -293,6 +293,11 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             );
         }
 
+        // Utxos called by tokenId return expected script
+        for (const utxo of utxosByTokenId.utxos) {
+            expect(utxo.script).to.eql(`a914${SCRIPTSIG_OP_TRUE_PAYLOAD}87`);
+        }
+
         // We get the same tx info for this tx from calling chronik.tokenId().unconfirmedTxs()
         const unconfirmedTxsForThisTokenId = await chronik
             .tokenId(alpGenesisTxid)

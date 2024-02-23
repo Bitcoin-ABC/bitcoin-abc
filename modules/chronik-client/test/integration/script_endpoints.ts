@@ -354,6 +354,8 @@ describe('Get script().history and script().utxos()', () => {
                 expect(utxo.blockHeight).to.eql(-1);
                 // The utxo is not from a finalized tx
                 expect(utxo.isFinal).to.eql(false);
+                // utxo from script endpoint does not return script in the utxo
+                expect('script' in utxo).to.eql(false);
                 utxoTxids.push(utxo.outpoint.txid);
             }
 
