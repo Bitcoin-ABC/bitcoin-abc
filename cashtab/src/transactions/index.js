@@ -51,6 +51,7 @@ export const signInputs = (txBuilder, accounts, inputs) => {
  * @param {array} targetOutputs Array of objects containing keys for value and address, e.g. [{value: <satsToSend>, address: <destinationAddress>}]
  * @param {number} feeRate satoshis per byte
  * @param {number} chaintipBlockheight the current chaintip blockheight
+ * @param {array} tokenInputs required token utxo inputs for a token tx
  * @throws {error} dust error, balance exceeded error, coinselect errors, and node broadcast errors
  * @returns {object} {hex: <rawTxInHex>, response: {txid: <broadcastTxid>}}
  */
@@ -60,6 +61,7 @@ export const sendXec = async (
     targetOutputs,
     feeRate,
     chaintipBlockheight,
+    tokenInputs = [],
 ) => {
     // Use only eCash utxos
     const utxos = wallet.state.nonSlpUtxos;
@@ -71,6 +73,7 @@ export const sendXec = async (
         spendableUtxos,
         targetOutputs,
         feeRate,
+        tokenInputs,
     );
 
     // Initialize TransactionBuilder

@@ -6,11 +6,13 @@ import {
     getMultisendTargetOutputs,
     ignoreUnspendableUtxos,
 } from 'transactions';
+import { getSendTokenInputs, getSlpSendTargetOutputs } from 'slpv1';
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import {
     sendXecVectors,
     getMultisendTargetOutputsVectors,
     ignoreUnspendableUtxosVectors,
+    sendSlp,
 } from '../fixtures/vectors';
 
 describe('Improved Cashtab transaction broadcasting function', () => {
@@ -111,6 +113,116 @@ describe('Ignore unspendable coinbase utxos', () => {
             expect(
                 ignoreUnspendableUtxos(unfilteredUtxos, chaintipBlockheight),
             ).toStrictEqual(spendableUtxos);
+        });
+    });
+});
+
+describe('We can create and broadcast SLP v1 SEND txs from utxos of nng or in-node chronik shape', () => {
+    // Unit test for each vector in fixtures for the sendingXecToSingleAddress case
+    const { expectedReturnsNng, expectedReturnsInNode } = sendSlp;
+
+    // Successfully builds and broadcasts txs for NNG input utxos
+    expectedReturnsNng.forEach(async tx => {
+        const {
+            description,
+            wallet,
+            tokenId,
+            sendQty,
+            sendAmounts,
+            tokenInputs,
+            destinationAddress,
+            feeRate,
+            chaintipBlockheight,
+            txid,
+            hex,
+        } = tx;
+        it(`Build and broadcast an SLP V1 SEND tx: ${description}`, async () => {
+            const chronik = new MockChronikClient();
+            chronik.setMock('broadcastTx', {
+                input: hex,
+                output: { txid },
+            });
+
+            // Get tokenInputs and sendAmounts
+            const tokenInputInfo = getSendTokenInputs(
+                wallet.state.slpUtxos,
+                tokenId,
+                sendQty,
+            );
+
+            expect(tokenInputInfo.tokenInputs).toStrictEqual(tokenInputs);
+            expect(tokenInputInfo.sendAmounts).toStrictEqual(sendAmounts);
+
+            // Get the targetOutputs
+            const tokenSendTargetOutputs = getSlpSendTargetOutputs(
+                tokenInputInfo,
+                destinationAddress,
+            );
+
+            // Send it
+            expect(
+                await sendXec(
+                    chronik,
+                    wallet,
+                    tokenSendTargetOutputs,
+                    feeRate,
+                    chaintipBlockheight,
+                    tokenInputInfo.tokenInputs,
+                ),
+            ).toStrictEqual({ hex, response: { txid } });
+        });
+    });
+
+    // Successfully builds and broadcasts txs for in-node chronik-client-shaped input utxos
+    expectedReturnsInNode.forEach(async tx => {
+        const {
+            description,
+            wallet,
+            tokenId,
+            sendQty,
+            decimals,
+            sendAmounts,
+            tokenInputs,
+            destinationAddress,
+            feeRate,
+            chaintipBlockheight,
+            txid,
+            hex,
+        } = tx;
+        it(`Build and broadcast an SLP V1 SEND tx: ${description}`, async () => {
+            const chronik = new MockChronikClient();
+            chronik.setMock('broadcastTx', {
+                input: hex,
+                output: { txid },
+            });
+
+            // Get tokenInputs and sendAmounts
+            const tokenInputInfo = getSendTokenInputs(
+                wallet.state.slpUtxos,
+                tokenId,
+                sendQty,
+                decimals,
+            );
+
+            expect(tokenInputInfo.tokenInputs).toStrictEqual(tokenInputs);
+            expect(tokenInputInfo.sendAmounts).toStrictEqual(sendAmounts);
+
+            // Get the targetOutputs
+            const tokenSendTargetOutputs = getSlpSendTargetOutputs(
+                tokenInputInfo,
+                destinationAddress,
+            );
+            // Send it
+            expect(
+                await sendXec(
+                    chronik,
+                    wallet,
+                    tokenSendTargetOutputs,
+                    feeRate,
+                    chaintipBlockheight,
+                    tokenInputInfo.tokenInputs,
+                ),
+            ).toStrictEqual({ hex, response: { txid } });
         });
     });
 });

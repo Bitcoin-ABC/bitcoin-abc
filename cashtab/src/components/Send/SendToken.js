@@ -30,7 +30,7 @@ import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
 import { Event } from 'utils/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
-import { sendToken, burnToken } from 'utils/transactions';
+import { burnToken } from 'utils/transactions';
 import ApiError from 'components/Common/ApiError';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
 import { getTokenStats } from 'chronik';
@@ -46,6 +46,8 @@ import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import appConfig from 'config/app';
 import { isMobile } from 'helpers';
+import { getSendTokenInputs, getSlpSendTargetOutputs } from 'slpv1';
+import { sendXec } from 'transactions';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -98,8 +100,14 @@ const AirdropButton = styled.div`
 
 const SendToken = ({ passLoadingStatus }) => {
     let navigate = useNavigate();
-    const { wallet, apiError, cashtabSettings, chronik, cashtabCache } =
-        React.useContext(WalletContext);
+    const {
+        wallet,
+        apiError,
+        cashtabSettings,
+        chronik,
+        cashtabCache,
+        chaintipBlockheight,
+    } = React.useContext(WalletContext);
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
 
@@ -183,15 +191,37 @@ const SendToken = ({ passLoadingStatus }) => {
         }
 
         try {
-            const link = await sendToken(chronik, wallet, {
-                tokenId: tokenId,
-                tokenReceiverAddress: cleanAddress,
-                amount: value,
-            });
+            // Get input utxos for slpv1 send tx
+            const tokenInputInfo = getSendTokenInputs(
+                wallet.state.slpUtxos,
+                tokenId,
+                value,
+            );
+
+            // Get targetOutputs for an slpv1 send tx
+            const tokenSendTargetOutputs = getSlpSendTargetOutputs(
+                tokenInputInfo,
+                cleanAddress,
+            );
+
+            // Build and broadcast the tx
+            const { response } = await sendXec(
+                chronik,
+                wallet,
+                tokenSendTargetOutputs,
+                appConfig.defaultFee,
+                chaintipBlockheight,
+                tokenInputInfo.tokenInputs,
+            );
+
             notification.success({
                 message: 'Success',
                 description: (
-                    <a href={link} target="_blank" rel="noopener noreferrer">
+                    <a
+                        href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         Transaction successful. Click to view in block explorer.
                     </a>
                 ),
@@ -200,10 +230,11 @@ const SendToken = ({ passLoadingStatus }) => {
             });
             clearInputForms();
         } catch (e) {
+            console.log(`Error sending token`, e);
             passLoadingStatus(false);
             notification.error({
                 message: 'Sending eToken',
-                description: JSON.stringify(e),
+                description: `${e}`,
                 duration: appConfig.notificationDurationLong,
             });
         }

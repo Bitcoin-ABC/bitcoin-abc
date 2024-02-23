@@ -10,7 +10,10 @@ import {
     utxosAtManyAddressesWallet,
     walletWithInvalidPrivateKey,
     allTheXecWallet,
+    walletWithTokensNNG,
+    walletWithTokensInNode,
 } from './mocks';
+import { BN } from 'slp-mdm';
 
 import { getCashtabMsgTargetOutput } from 'opreturn';
 const OP_RETURN_CASHTAB_MSG_TEST = getCashtabMsgTargetOutput('test');
@@ -512,6 +515,199 @@ export const ignoreUnspendableUtxosVectors = {
                 { isCoinbase: false, blockHeight: 800000 },
                 { isCoinbase: false, blockHeight: 800000 },
             ],
+        },
+    ],
+};
+
+export const sendSlp = {
+    expectedReturnsNng: [
+        {
+            description: 'SLP send with token change, NNG utxo shape',
+            wallet: walletWithTokensNNG,
+            tokenId:
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+            sendQty: '10',
+            destinationAddress:
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            feeRate: 1,
+            chaintipBlockheight: 800000,
+            tokenInputs: [
+                {
+                    outpoint: {
+                        txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
+                        outIdx: 1,
+                    },
+                    value: '546',
+                    slpToken: {
+                        amount: '1000000000',
+                        isMintBaton: false,
+                    },
+                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                    tokenId:
+                        'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                    decimals: 9,
+                },
+                {
+                    outpoint: {
+                        txid: '51bc5da566c85b486b37f1c4d3c0220b7bc11ad992c1b92f99233cf35a8794c1',
+                        outIdx: 1,
+                    },
+                    value: '546',
+                    slpToken: {
+                        amount: '9999996998999999999',
+                        isMintBaton: false,
+                    },
+                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                    tokenId:
+                        'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                    decimals: 9,
+                },
+            ],
+            sendAmounts: [new BN('10000000000'), new BN('9999996989999999999')],
+            txid: '19a6d3a3fd4a2f86e2407e5f5744c59fa83fea0cc56409349a61f74d17bd7c81',
+            hex: '020000000399b1e27a8b5d7754171e6667931a1d7c8d4c1c28deee2325ee1146ac3684a04f010000006b483045022100c1d28fbda26eceec043e2f2107fee83808ceec8a53d7638306c6c28ef7200c3b02204bf4f18db54ac6f7c1dfd75a6d6677527394a6da6d13be327f763c0bc10acfd3412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffffc194875af33c23992fb9c192d91ac17b0b22c0d3c4f1376b485bc866a55dbc51010000006b483045022100d2a89ff0961da6d71e60a49fb70b1d01bc1eeb6f49a161327791d51c353cccf402206a2648d4bb835af3e8880dbf2ee20db639198571e85aad92042aef18dc984646412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006b483045022100f4710ca71d3e2f2990533eeacc506efa9d310147e3fc9679736dfa6d3e0d26ec0220654cc8ed416e127d46f9f3c3ff0b20e8b103fb1676e09495fe089e57e0225855412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff040000000000000000406a04534c500001010453454e4420b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a140800000002540be400088ac72047b7ecebff22020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88accb3f0f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+        },
+        {
+            description: 'SLP send with no token change, NNG utxo shape',
+            wallet: walletWithTokensNNG,
+            tokenId:
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+            sendQty: '1',
+            destinationAddress:
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            feeRate: 1,
+            chaintipBlockheight: 800000,
+            tokenInputs: [
+                {
+                    outpoint: {
+                        txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
+                        outIdx: 1,
+                    },
+                    value: 546,
+                    slpToken: {
+                        amount: '1000000000',
+                        isMintBaton: false,
+                    },
+                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                    tokenId:
+                        'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                    decimals: 9,
+                },
+            ],
+            sendAmounts: [new BN('1000000000')],
+            txid: 'e1ebe5b54dc63de292b7b11f41b7193faa5ac8481ce4cf524b01d8b72ea648e8',
+            hex: '020000000299b1e27a8b5d7754171e6667931a1d7c8d4c1c28deee2325ee1146ac3684a04f010000006a47304402201eb4634f957a6843bdc222b2e1d858c7e36134dcc39372d98043fc41daff8773022070d388caa0c221c93ed8d3dd4d135b4b1ed35a216c0b508a1b3c31bd66fb2572412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006a4730440220515335beee4da1a7d7f1e84030f3e965941225b280fa844d58c2258d61151bf90220458cb0ce6772a0b63575101541c8df29c4861452183b50b788b5a07d4576c66a412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff030000000000000000376a04534c500001010453454e4420b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a1408000000003b9aca0022020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac8a400f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+        },
+        {
+            description: 'SLP max send tx using all available input utxos',
+            wallet: walletWithTokensNNG,
+            tokenId:
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+            sendQty: '10000000000',
+            destinationAddress:
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            feeRate: 1,
+            chaintipBlockheight: 800000,
+            tokenInputs: walletWithTokensNNG.state.slpUtxos,
+            sendAmounts: [new BN('10000000000000000000')],
+            txid: 'a96f605eaf8b97889a73c5ee0e36597239f7fb17833a28076d2f3ca863f7ccfc',
+            // https://explorer.e.cash/tx/a96f605eaf8b97889a73c5ee0e36597239f7fb17833a28076d2f3ca863f7ccfc
+            hex: '020000000699b1e27a8b5d7754171e6667931a1d7c8d4c1c28deee2325ee1146ac3684a04f010000006a473044022026403fddd895b7681984a6f7f836749ee9274a087a67dd341578e334cdacd6b302201424ee0eaa80b08dc2bd9a2b5a692aa7d907678fdca24bf1901484e1fd9d40e2412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffffc194875af33c23992fb9c192d91ac17b0b22c0d3c4f1376b485bc866a55dbc51010000006a47304402201f79f8aa97dcc5d6ed6832d389425506ccff9d6f533273172119df1f0558b25002207a763541ee2a3cad06d7566edeec24508e22a6f1fc954281b616e1a0ec0d87bc412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff9a6659e748a666199a660d0cefa40d2d8108031269a567d79049377ab072cc56010000006b48304502210091a289d43cff6bf6eec71eb216cd0f6c78f0167b4f9fc5557e7230cd2aadfd560220561fd06567c67026c828e4b5215f997e951ef9483d4c3077e355b2431391ce6a412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff0ddc171e6a354c0e353983bd69ab26b979007f48fb1600f0c156123334d594c2010000006a473044022016e1538f26f92c23f48e66f49e22a8761481fe9d1e12a775ad538efbcb103955022061723dbfc8c93fc1b259f02d24819a527d0278eeeb2fe4c5fa9e43549756010a412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff435fd1889764268952c9c79b4bac3769797ef33075868d2ba2392d4c7194c6d8010000006b483045022100a2869c82c10fdbb0d55992f8ffffa8495300bb07b78b31a63afea10fd2a813780220596e8adb4fcdf3ad52e066c2281df1b1e757f61d6d9d85f360636e41f2d06f58412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006b483045022100b82120d70ee9bf5c4d6f52c0085218434eb2747517234e6cd1c0cc57c8700224022013d2c894199f347f780f1aabc61c9900eb90ab50e8d94b52127fb96cd9f3015d412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff030000000000000000376a04534c500001010453454e4420b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14088ac7230489e8000022020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acc2460f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+        },
+    ],
+    expectedReturnsInNode: [
+        {
+            description: 'SLP send with token change, NNG utxo shape',
+            wallet: walletWithTokensInNode,
+            tokenId:
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+            sendQty: '10',
+            decimals: 9,
+            destinationAddress:
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            feeRate: 1,
+            chaintipBlockheight: 800000,
+            tokenInputs: [
+                {
+                    outpoint: {
+                        txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
+                        outIdx: 1,
+                    },
+                    value: '546',
+                    token: {
+                        tokenId:
+                            'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                        amount: '1000000000',
+                        isMintBaton: false,
+                    },
+                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                },
+                {
+                    outpoint: {
+                        txid: '51bc5da566c85b486b37f1c4d3c0220b7bc11ad992c1b92f99233cf35a8794c1',
+                        outIdx: 1,
+                    },
+                    value: '546',
+                    token: {
+                        tokenId:
+                            'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                        amount: '9999996998999999999',
+                        isMintBaton: false,
+                    },
+                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                },
+            ],
+            sendAmounts: [new BN('10000000000'), new BN('9999996989999999999')],
+            txid: '19a6d3a3fd4a2f86e2407e5f5744c59fa83fea0cc56409349a61f74d17bd7c81',
+            hex: '020000000399b1e27a8b5d7754171e6667931a1d7c8d4c1c28deee2325ee1146ac3684a04f010000006b483045022100c1d28fbda26eceec043e2f2107fee83808ceec8a53d7638306c6c28ef7200c3b02204bf4f18db54ac6f7c1dfd75a6d6677527394a6da6d13be327f763c0bc10acfd3412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffffc194875af33c23992fb9c192d91ac17b0b22c0d3c4f1376b485bc866a55dbc51010000006b483045022100d2a89ff0961da6d71e60a49fb70b1d01bc1eeb6f49a161327791d51c353cccf402206a2648d4bb835af3e8880dbf2ee20db639198571e85aad92042aef18dc984646412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006b483045022100f4710ca71d3e2f2990533eeacc506efa9d310147e3fc9679736dfa6d3e0d26ec0220654cc8ed416e127d46f9f3c3ff0b20e8b103fb1676e09495fe089e57e0225855412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff040000000000000000406a04534c500001010453454e4420b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a140800000002540be400088ac72047b7ecebff22020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88accb3f0f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+        },
+        {
+            description: 'SLP send with no token change, NNG utxo shape',
+            wallet: walletWithTokensInNode,
+            tokenId:
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+            sendQty: '1',
+            decimals: 9,
+            destinationAddress:
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            feeRate: 1,
+            chaintipBlockheight: 800000,
+            tokenInputs: [
+                {
+                    outpoint: {
+                        txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
+                        outIdx: 1,
+                    },
+                    value: 546,
+                    token: {
+                        tokenId:
+                            'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                        amount: '1000000000',
+                        isMintBaton: false,
+                    },
+                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                },
+            ],
+            sendAmounts: [new BN('1000000000')],
+            txid: 'e1ebe5b54dc63de292b7b11f41b7193faa5ac8481ce4cf524b01d8b72ea648e8',
+            hex: '020000000299b1e27a8b5d7754171e6667931a1d7c8d4c1c28deee2325ee1146ac3684a04f010000006a47304402201eb4634f957a6843bdc222b2e1d858c7e36134dcc39372d98043fc41daff8773022070d388caa0c221c93ed8d3dd4d135b4b1ed35a216c0b508a1b3c31bd66fb2572412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006a4730440220515335beee4da1a7d7f1e84030f3e965941225b280fa844d58c2258d61151bf90220458cb0ce6772a0b63575101541c8df29c4861452183b50b788b5a07d4576c66a412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff030000000000000000376a04534c500001010453454e4420b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a1408000000003b9aca0022020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac8a400f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+        },
+        {
+            description: 'SLP max send tx using all available input utxos',
+            wallet: walletWithTokensInNode,
+            tokenId:
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+            sendQty: '10000000000',
+            decimals: 9,
+            destinationAddress:
+                'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+            feeRate: 1,
+            chaintipBlockheight: 800000,
+            tokenInputs: walletWithTokensInNode.state.slpUtxos,
+            sendAmounts: [new BN('10000000000000000000')],
+            txid: 'a96f605eaf8b97889a73c5ee0e36597239f7fb17833a28076d2f3ca863f7ccfc',
+            // https://explorer.e.cash/tx/a96f605eaf8b97889a73c5ee0e36597239f7fb17833a28076d2f3ca863f7ccfc
+            hex: '020000000699b1e27a8b5d7754171e6667931a1d7c8d4c1c28deee2325ee1146ac3684a04f010000006a473044022026403fddd895b7681984a6f7f836749ee9274a087a67dd341578e334cdacd6b302201424ee0eaa80b08dc2bd9a2b5a692aa7d907678fdca24bf1901484e1fd9d40e2412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffffc194875af33c23992fb9c192d91ac17b0b22c0d3c4f1376b485bc866a55dbc51010000006a47304402201f79f8aa97dcc5d6ed6832d389425506ccff9d6f533273172119df1f0558b25002207a763541ee2a3cad06d7566edeec24508e22a6f1fc954281b616e1a0ec0d87bc412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff9a6659e748a666199a660d0cefa40d2d8108031269a567d79049377ab072cc56010000006b48304502210091a289d43cff6bf6eec71eb216cd0f6c78f0167b4f9fc5557e7230cd2aadfd560220561fd06567c67026c828e4b5215f997e951ef9483d4c3077e355b2431391ce6a412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff0ddc171e6a354c0e353983bd69ab26b979007f48fb1600f0c156123334d594c2010000006a473044022016e1538f26f92c23f48e66f49e22a8761481fe9d1e12a775ad538efbcb103955022061723dbfc8c93fc1b259f02d24819a527d0278eeeb2fe4c5fa9e43549756010a412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff435fd1889764268952c9c79b4bac3769797ef33075868d2ba2392d4c7194c6d8010000006b483045022100a2869c82c10fdbb0d55992f8ffffa8495300bb07b78b31a63afea10fd2a813780220596e8adb4fcdf3ad52e066c2281df1b1e757f61d6d9d85f360636e41f2d06f58412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006b483045022100b82120d70ee9bf5c4d6f52c0085218434eb2747517234e6cd1c0cc57c8700224022013d2c894199f347f780f1aabc61c9900eb90ab50e8d94b52127fb96cd9f3015d412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff030000000000000000376a04534c500001010453454e4420b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14088ac7230489e8000022020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88acc2460f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
         },
     ],
 };
