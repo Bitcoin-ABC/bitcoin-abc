@@ -7,6 +7,7 @@ import {
     getSlpBurnTargetOutputs,
     getAllSendUtxos,
     getSendTokenInputs,
+    getExplicitBurnTargetOutputs,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
@@ -257,5 +258,74 @@ describe('Generating etoken burn tx target outputs', () => {
             expect(targetOutput[1].value).toBe(appConfig.etokenSats);
             expect('address' in targetOutput[1]).toBe(false);
         });
+    });
+});
+
+describe('Generating explicit etoken burn tx target output from nng utxos', () => {
+    const { expectedReturns, expectedErrors } = vectors.explicitBurnsNng;
+
+    expectedReturns.forEach(expectedReturn => {
+        const { description, burnUtxos, outputScriptHex } = expectedReturn;
+        it(`getExplicitBurnTargetOutputs: ${description}`, () => {
+            const targetOutputs = getExplicitBurnTargetOutputs(burnUtxos);
+            // We get an array of length 1
+            expect(targetOutputs.length).toBe(1);
+            // Output value should be zero for OP_RETURN
+            expect(targetOutputs[0].value).toBe(0);
+            // Test vs hex string as cannot store buffer type in vectors
+            expect(targetOutputs[0].script.toString('hex')).toBe(
+                outputScriptHex,
+            );
+        });
+    });
+
+    expectedErrors.forEach(expectedError => {
+        const { description, burnUtxos, errorMsg } = expectedError;
+        it(`getExplicitBurnTargetOutputs throws error for: ${description}`, () => {
+            expect(() => getExplicitBurnTargetOutputs(burnUtxos)).toThrow(
+                errorMsg,
+            );
+        });
+    });
+});
+
+describe('Generating explicit etoken burn tx target output from in-node utxos', () => {
+    const { expectedReturns } = vectors.explicitBurnsInNode;
+
+    expectedReturns.forEach(expectedReturn => {
+        const { description, burnUtxos, decimals, outputScriptHex } =
+            expectedReturn;
+        it(`getExplicitBurnTargetOutputs: ${description}`, () => {
+            const targetOutputs = getExplicitBurnTargetOutputs(
+                burnUtxos,
+                decimals,
+            );
+            // We get an array of length 1
+            expect(targetOutputs.length).toBe(1);
+            // Output value should be zero for OP_RETURN
+            expect(targetOutputs[0].value).toBe(0);
+            // Test vs hex string as cannot store buffer type in vectors
+            expect(targetOutputs[0].script.toString('hex')).toBe(
+                outputScriptHex,
+            );
+        });
+    });
+
+    // We expect an error if in-node utxos are used in a call without specifying the decimals param
+    it(`getExplicitBurnTargetOutputs throws error if called with in-node utxos and no specified decimals`, () => {
+        expect(() =>
+            getExplicitBurnTargetOutputs([
+                {
+                    value: 546,
+                    token: {
+                        tokenId:
+                            '3333333333333333333333333333333333333333333333333333333333333333',
+                        amount: '100',
+                    },
+                },
+            ]),
+        ).toThrow(
+            'Invalid decimals -1 for tokenId 3333333333333333333333333333333333333333333333333333333333333333. Decimals must be an integer 0-9.',
+        );
     });
 });

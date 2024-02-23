@@ -17,7 +17,7 @@ import {
  * utxolib.script.compile(script) will not add pushdata bytes for raw data
  * Initialize script array with OP_RETURN byte (6a) as rawdata (i.e. you want compiled result of 6a, not 016a)
  */
-const initializeScript = () => {
+export const initializeScript = () => {
     return [opReturn.opReturnPrefixDec];
 };
 

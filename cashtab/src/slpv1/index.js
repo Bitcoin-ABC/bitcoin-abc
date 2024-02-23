@@ -1,5 +1,8 @@
 import { BN, TokenType1 } from 'slp-mdm';
 import appConfig from 'config/app';
+import { initializeScript } from 'opreturn';
+import { opReturn } from 'config/opreturn';
+import * as utxolib from '@bitgo/utxo-lib';
 
 /**
  * Get targetOutput for a SLP v1 genesis tx
@@ -236,4 +239,109 @@ export const getSlpBurnTargetOutputs = tokenInputInfo => {
     // But lets just add the min output
 
     return [{ value: 0, script }, { value: appConfig.etokenSats }];
+};
+
+/**
+ * Slpv1 explicit burn
+ * @param {array} tokenUtxos the specific token utxos required to complete this tx
+ * selected in an earlier function. Must all have the same tokenId.
+ *
+ * https://github.com/badger-cash/slp-self-mint-protocol/blob/master/token-type1-burn.md
+ * Note: per spec, an explicit burn must burn the total qty of inputs
+ * There is no ability to burn part of a token utxo in an explicit burn tx
+ * @throws {error} if invalid input params are passed to TokenType1.send
+ * @returns {object} targetOutput, e.g. {value: 0, script: <encoded slp burn script>}
+ */
+export const getExplicitBurnTargetOutputs = (
+    tokenUtxosToBurn,
+    decimals = -1,
+) => {
+    if (tokenUtxosToBurn.length === 0) {
+        throw new Error('No tokenUtxos provided');
+    }
+
+    const modelUtxo = tokenUtxosToBurn[0];
+
+    const isNng =
+        'tokenId' in modelUtxo &&
+        'slpToken' in modelUtxo &&
+        'decimals' in modelUtxo &&
+        'amount' in modelUtxo.slpToken;
+
+    const isInNode =
+        'token' in modelUtxo &&
+        'amount' in modelUtxo.token &&
+        'tokenId' in modelUtxo.token;
+
+    if (!isNng && !isInNode) {
+        throw new Error('Invalid utxo format, unable to parse for tokenId');
+    }
+
+    // Get tokenId from NNG or in-node chronik-client utxo
+    const tokenId = isNng ? modelUtxo.tokenId : modelUtxo.token.tokenId;
+
+    // Get decimals from utxo if available. Otherwise use param
+    decimals = isNng ? modelUtxo.decimals : decimals;
+
+    if (!Number.isInteger(decimals) || decimals > 9 || decimals < 0) {
+        // We get here if we have non-nng utxos and we call this function without specifying decimals
+        throw new Error(
+            `Invalid decimals ${decimals} for tokenId ${tokenId}. Decimals must be an integer 0-9.`,
+        );
+    }
+
+    let burnQty = new BN(0);
+
+    for (const utxo of tokenUtxosToBurn) {
+        // We burn it all
+        burnQty = isNng
+            ? burnQty.plus(utxo.slpToken.amount)
+            : burnQty.plus(utxo.token.amount);
+    }
+
+    // Calculate burnQty as 8-digit hex integer, accounting for tokenDecimals
+    const decimalsAccountedBurnQty = new BN(burnQty).times(10 ** decimals);
+
+    // https://github.com/badger-cash/slp-self-mint-protocol/blob/master/token-type1-burn.md
+    let script = initializeScript();
+
+    // Push slpv1 protocol identifier
+    script.push(Buffer.from(opReturn.appPrefixesHex.eToken, 'hex'));
+    // Push slpv1 token type 1 as 0101
+    script.push(1);
+    script.push(1);
+    // Push transaction type BURN
+    // Push slpv1 token type 1
+    script.push(Buffer.from('BURN', 'ascii'));
+    // Push tokenId
+    script.push(Buffer.from(tokenId, 'hex'));
+    // Push token burn qty (8-byte integer)
+    script.push(BNToInt64BE(decimalsAccountedBurnQty));
+
+    script = utxolib.script.compile(script);
+
+    return [{ value: 0, script }];
+};
+
+/**
+ * Library function not exported from slp-mdm
+ * Ref https://github.com/simpleledger/slp-metadatamaker.js/blob/master/lib/util.ts#L23C1-L38C2
+ * @param {BigNumber} bn
+ * @returns
+ */
+export const BNToInt64BE = bn => {
+    if (!bn.isInteger()) {
+        throw new Error('bn not an integer');
+    }
+
+    if (!bn.isPositive()) {
+        throw new Error('bn not positive integer');
+    }
+
+    const h = bn.toString(16);
+    if (h.length > 16) {
+        throw new Error('bn outside of range');
+    }
+
+    return Buffer.from(h.padStart(16, '0'), 'hex');
 };

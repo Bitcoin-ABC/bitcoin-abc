@@ -12,6 +12,7 @@ export const SEND_DESTINATION_ADDRESS =
     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx';
 export const MOCK_TOKEN_ID =
     '1111111111111111111111111111111111111111111111111111111111111111';
+const MAX_QTY_SLPV1 = '10000000000000000000';
 
 export default {
     genesisTxs: {
@@ -1217,6 +1218,147 @@ export default {
                 decimals: 10,
                 errorMsg:
                     'Invalid sendQty empty string. sendQty must be a decimalized number as a string.',
+            },
+        ],
+    },
+    explicitBurnsNng: {
+        expectedReturns: [
+            {
+                description: 'Burn a single token utxo',
+                burnUtxos: [
+                    {
+                        value: 546,
+                        tokenId:
+                            '3333333333333333333333333333333333333333333333333333333333333333',
+                        slpToken: { amount: '100' },
+                        decimals: 0,
+                    },
+                ],
+                outputScriptHex:
+                    '6a04534c50000101044255524e203333333333333333333333333333333333333333333333333333333333333333080000000000000064',
+            },
+            {
+                description: 'Burns multiple token utxos',
+                burnUtxos: [
+                    {
+                        value: 546,
+                        tokenId:
+                            '3333333333333333333333333333333333333333333333333333333333333333',
+                        slpToken: { amount: '100' },
+                        decimals: 0,
+                    },
+                    {
+                        value: 546,
+                        tokenId:
+                            '3333333333333333333333333333333333333333333333333333333333333333',
+                        slpToken: { amount: '333' },
+                        decimals: 0,
+                    },
+                    {
+                        value: 546,
+                        tokenId:
+                            '3333333333333333333333333333333333333333333333333333333333333333',
+                        slpToken: { amount: '500' },
+                        decimals: 0,
+                    },
+                ],
+                outputScriptHex:
+                    '6a04534c50000101044255524e2033333333333333333333333333333333333333333333333333333333333333330800000000000003a5',
+            },
+            {
+                description: 'Burns max slp quantity',
+                burnUtxos: [
+                    {
+                        value: 546,
+                        tokenId:
+                            '3333333333333333333333333333333333333333333333333333333333333333',
+                        slpToken: { amount: MAX_QTY_SLPV1 },
+                        decimals: 0,
+                    },
+                ],
+                outputScriptHex:
+                    '6a04534c50000101044255524e203333333333333333333333333333333333333333333333333333333333333333088ac7230489e80000',
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Empty tokenUtxos',
+                burnUtxos: [],
+                errorMsg: 'No tokenUtxos provided',
+            },
+            {
+                description: 'Bad utxo format, not NNG or in-node',
+                burnUtxos: [{ notTokenId: 'here', value: 546 }],
+                burnQty: '1',
+                errorMsg: 'Invalid utxo format, unable to parse for tokenId',
+            },
+        ],
+    },
+    explicitBurnsInNode: {
+        expectedReturns: [
+            {
+                description: 'Burn a single token utxo',
+                burnUtxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '3333333333333333333333333333333333333333333333333333333333333333',
+                            amount: '100',
+                        },
+                    },
+                ],
+                decimals: 9,
+                outputScriptHex:
+                    '6a04534c50000101044255524e20333333333333333333333333333333333333333333333333333333333333333308000000174876e800',
+            },
+            {
+                description: 'Burns multiple token utxos',
+                burnUtxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '3333333333333333333333333333333333333333333333333333333333333333',
+                            amount: '100',
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '3333333333333333333333333333333333333333333333333333333333333333',
+                            amount: '197200',
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '3333333333333333333333333333333333333333333333333333333333333333',
+                            amount: '12500',
+                        },
+                    },
+                ],
+                decimals: 9,
+                outputScriptHex:
+                    '6a04534c50000101044255524e203333333333333333333333333333333333333333333333333333333333333333080000becfde795000',
+            },
+            {
+                description: 'Burns max slp quantity for 9 decimals',
+                burnUtxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '3333333333333333333333333333333333333333333333333333333333333333',
+                            amount: '10000000000',
+                        },
+                    },
+                ],
+                decimals: 9,
+                outputScriptHex:
+                    '6a04534c50000101044255524e203333333333333333333333333333333333333333333333333333333333333333088ac7230489e80000',
             },
         ],
     },
