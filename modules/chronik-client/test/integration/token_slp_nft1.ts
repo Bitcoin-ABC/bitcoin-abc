@@ -187,6 +187,28 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
 
         // Normal status
         expect(slpGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
+
+        // We can get token info of an slp nft1 from the mempool
+        const slpGenesisMempoolInfo = await chronik.token(slpGenesisTxid);
+
+        // We do not get mintVaultScripthash for non-SLP_MINT_VAULT
+        // We do not get data or authPubkey keys in GenesisInfo for non-ALP
+        expect(slpGenesisMempoolInfo).to.deep.equal({
+            tokenId: slpGenesisTxid,
+            timeFirstSeen: '1300000000',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                number: 129,
+            },
+            genesisInfo: {
+                tokenTicker: 'SLP NFT GROUP',
+                tokenName: 'Slp NFT GROUP token',
+                url: 'http://slp.nft',
+                hash: '7878787878787878787878787878787878787878787878787878787878787878',
+                decimals: 4,
+            },
+        });
     });
     it('Gets an SLP NFT1 mint tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
@@ -359,6 +381,29 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
 
         slpChildGenesisTxid = await get_slp_nft1_child_genesis1_txid;
 
+        // We can get token info of an slp nft1 child genesis
+        const slpChildGenesisMempoolInfo = await chronik.token(
+            slpChildGenesisTxid,
+        );
+        // We do not get mintVaultScripthash, data, or authPubkey keys in GenesisInfo for SLP NFT1
+        expect(slpChildGenesisMempoolInfo).to.deep.equal({
+            tokenId: slpChildGenesisTxid,
+            timeFirstSeen: '1300000000',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                number: 65,
+            },
+            genesisInfo: {
+                tokenTicker: 'SLP NFT CHILD',
+                tokenName: 'Slp NFT CHILD token',
+                url: '',
+                // We get hash even if blank because SLP tokens can have this field
+                hash: '',
+                decimals: 0,
+            },
+        });
+
         slpChildGenesis = await chronik.tx(slpChildGenesisTxid);
 
         // We get expected inputs including expected Token data
@@ -442,6 +487,18 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         const chronik = new ChronikClientNode(chronikUrl);
 
         const blockTxs = await chronik.blockTxs(CHAIN_INIT_HEIGHT + 2);
+
+        // Now that we have a block, we get a block key from token info
+        const slpGenesisConfirmedInfo = await chronik.token(slpGenesisTxid);
+        expect(typeof slpGenesisConfirmedInfo.block !== 'undefined').to.eql(
+            true,
+        );
+        const slpChildGenesisConfirmedInfo = await chronik.token(
+            slpChildGenesisTxid,
+        );
+        expect(
+            typeof slpChildGenesisConfirmedInfo.block !== 'undefined',
+        ).to.eql(true);
 
         // Clone as we will use blockTxs.txs later
         const txsFromBlock = JSON.parse(JSON.stringify(blockTxs.txs));

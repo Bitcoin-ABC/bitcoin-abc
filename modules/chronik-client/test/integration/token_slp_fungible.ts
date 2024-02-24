@@ -187,6 +187,28 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
 
         // Normal status
         expect(slpGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
+
+        // We can get token info of an slp token from the mempool
+        const slpGenesisMempoolInfo = await chronik.token(slpGenesisTxid);
+        expect(slpGenesisMempoolInfo).to.deep.equal({
+            tokenId: slpGenesisTxid,
+            timeFirstSeen: '1300000000',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                number: 1,
+            },
+            // We get hash in GenesisInfo for SLP
+            // We do not get mintVaultScripthash for non-SLP_MINT_VAULT
+            // We do not get data or authPubkey keys in GenesisInfo for non-ALP
+            genesisInfo: {
+                tokenTicker: 'SLPTEST',
+                tokenName: 'Test SLP Token 3',
+                url: 'http://example/slp',
+                hash: '7878787878787878787878787878787878787878787878787878787878787878',
+                decimals: 4,
+            },
+        });
     });
     it('Gets an SLP fungible mint tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
@@ -394,6 +416,12 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
     it('Can get all of the above txs from the blockTxs endpoint after they are mined in a block', async () => {
         const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
+
+        // Now that we have a block, we get a block key from token info
+        const slpGenesisConfirmedInfo = await chronik.token(slpGenesisTxid);
+        expect(typeof slpGenesisConfirmedInfo.block !== 'undefined').to.eql(
+            true,
+        );
 
         const blockTxs = await chronik.blockTxs(CHAIN_INIT_HEIGHT + 2);
 

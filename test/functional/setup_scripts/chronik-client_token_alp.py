@@ -308,9 +308,10 @@ class ChronikClientTokenAlp(SetupFramework):
         yield True
 
         self.log.info("Step 7: Send another ALP tx in the mempool")
-        # Another ALP Send tx
-        alp_send_two_tx = CTransaction()
-        alp_send_two_tx.vin = [
+        # Another ALP Genesis tx with non-utf8 genesis info
+        # we confirm this does not crash chronik-client token info endpoint
+        alp_nonutf8_genesis_tx = CTransaction()
+        alp_nonutf8_genesis_tx.vin = [
             CTxIn(
                 COutPoint(int(another_alp_genesis_tx_txid, 16), 4),
                 SCRIPTSIG_OP_TRUE,
@@ -320,26 +321,40 @@ class ChronikClientTokenAlp(SetupFramework):
                 SCRIPTSIG_OP_TRUE,
             ),
         ]
-        alp_send_two_tx.vout = [
+        # Genesis with nonstandard token ticker and name to test how the client handles this
+        # token_name and token_url fields from coinbase of block 833028
+        alp_nonutf8_genesis_tx.vout = [
             alp_opreturn(
-                alp_send(
-                    token_id=alp_genesis_tx_txid,
-                    output_amounts=[10, 1],
-                ),
+                alp_genesis(
+                    token_ticker=b"TEST",
+                    token_name=bytes.fromhex("0304b60c048de8d9650881002834d6490000"),
+                    url=bytes.fromhex(
+                        "00fabe6d6d6f5486f62c703086014607f5bed91d093b092a8faf5ac882a0ccf462682a22f002"
+                    ),
+                    data=b"Token Data",
+                    auth_pubkey=b"Token Pubkey",
+                    decimals=4,
+                    mint_amounts=[10, 20, 30, 0],
+                    num_batons=2,
+                )
             ),
+            CTxOut(10000, P2SH_OP_TRUE),
+            CTxOut(546, P2SH_OP_TRUE),
+            CTxOut(546, P2SH_OP_TRUE),
             CTxOut(coinvalue - 300000, P2SH_OP_TRUE),
+            CTxOut(5000, P2SH_OP_TRUE),
             CTxOut(546, P2SH_OP_TRUE),
         ]
-        alp_send_two_tx_txid = node.sendrawtransaction(
-            alp_send_two_tx.serialize().hex()
+        alp_nonutf8_genesis_tx_txid = node.sendrawtransaction(
+            alp_nonutf8_genesis_tx.serialize().hex()
         )
-        send_ipc_message({"alp_send_two_txid": alp_send_two_tx_txid})
+        send_ipc_message({"alp_nonutf8_genesis_txid": alp_nonutf8_genesis_tx_txid})
 
         # Another ALP Mint tx
         alp_mint_two_tx = CTransaction()
         alp_mint_two_tx.vin = [
-            CTxIn(                
-                COutPoint(int(alp_send_two_tx_txid, 16), 1),
+            CTxIn(
+                COutPoint(int(alp_nonutf8_genesis_tx_txid, 16), 4),
                 SCRIPTSIG_OP_TRUE,
             ),
             CTxIn(

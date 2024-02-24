@@ -240,6 +240,29 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
 
         // Normal status
         expect(slpVaultGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
+
+        // We can get token info of an slp vault token from the mempool
+        const slpGenesisMempoolInfo = await chronik.token(slpVaultGenesisTxid);
+        expect(slpGenesisMempoolInfo).to.deep.equal({
+            tokenId: slpVaultGenesisTxid,
+            timeFirstSeen: '1300000000',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_MINT_VAULT',
+                number: 2,
+            },
+            // We get mintVaultScripthash in GenesisInfo for SLP MINT VAULT
+            // We get hash in GenesisInfo for SLP
+            // We do not get data or authPubkey keys in GenesisInfo for non-ALP
+            genesisInfo: {
+                tokenTicker: 'SLPVAULT',
+                tokenName: '0',
+                url: '0',
+                hash: '7878787878787878787878787878787878787878787878787878787878787878',
+                mintVaultScripthash: '28e2146de5a061bf57845a04968d89cbdab733e3',
+                decimals: 0,
+            },
+        });
     });
     it('Gets a badly constructed SLP v2 Vault Mint tx from the mempool', async () => {
         const chronikUrl = await chronik_url;

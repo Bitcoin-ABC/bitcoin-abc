@@ -8,6 +8,7 @@ import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import {
     ChronikClientNode,
+    TokenInfo,
     Token_InNode,
     TxHistoryPage_InNode,
     Tx_InNode,
@@ -27,7 +28,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let get_alp_multi_txid: Promise<string>;
     let get_alp_mega_txid: Promise<string>;
     let get_alp_mint_two_txid: Promise<string>;
-    let get_alp_send_two_txid: Promise<string>;
+    let get_alp_nonutf8_genesis_txid: Promise<string>;
     const statusEvent = new EventEmitter();
 
     before(async () => {
@@ -82,9 +83,9 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 });
             }
 
-            if (message && message.alp_send_two_txid) {
-                get_alp_send_two_txid = new Promise(resolve => {
-                    resolve(message.alp_send_two_txid);
+            if (message && message.alp_nonutf8_genesis_txid) {
+                get_alp_nonutf8_genesis_txid = new Promise(resolve => {
+                    resolve(message.alp_nonutf8_genesis_txid);
                 });
             }
 
@@ -146,7 +147,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let alpMultiTxid = '';
     let alpMegaTxid = '';
     let alpMintTwoTxid = '';
-    let alpSendTwoTxid = '';
+    let alpNonUtf8GenesisTxid = '';
 
     let alpGenesis: Tx_InNode;
     let alpMint: Tx_InNode;
@@ -156,6 +157,28 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let alpMega: Tx_InNode;
     let alpMintTwo: Tx_InNode;
     let alpSendTwo: Tx_InNode;
+
+    const alpTokenInfo: TokenInfo = {
+        tokenId:
+            '1111111111111111111111111111111111111111111111111111111111111111',
+        timeFirstSeen: '1300000000',
+        tokenType: {
+            protocol: 'ALP',
+            type: 'ALP_TOKEN_TYPE_STANDARD',
+            number: 0,
+        },
+        // We do not get hash in GenesisInfo for ALP
+        // We get data and authPubkey keys in GenesisInfo for ALP
+        // We do not get mintVaultScripthash for non-SLP_MINT_VAULT
+        genesisInfo: {
+            tokenTicker: 'TEST',
+            tokenName: 'Test Token',
+            url: 'http://example.com',
+            data: new Uint8Array([84, 111, 107, 101, 110, 32, 68, 97, 116, 97]),
+            authPubkey: '546f6b656e205075626b6579',
+            decimals: 4,
+        },
+    };
 
     let confirmedTxsForAlpGenesisTxid: TxHistoryPage_InNode;
 
@@ -317,6 +340,27 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             .history();
         expect(historyForThisTokenId.txs.length).to.eql(1);
         expect(historyForThisTokenId.txs[0]).to.deep.equal(alpGenesis);
+
+        // We can get token info of an alp token from the mempool
+        const alpGenesisMempoolInfo = await chronik.token(alpGenesisTxid);
+        expect(alpGenesisMempoolInfo).to.deep.equal({
+            ...alpTokenInfo,
+            tokenId: alpGenesisTxid,
+        });
+        // Invalid tokenId is rejected
+        await expect(chronik.token('somestring')).to.be.rejectedWith(
+            Error,
+            `Failed getting /token/somestring (): 400: Not a txid: somestring`,
+        );
+        // We get expected error for a txid that is not in the mempool
+        await expect(
+            chronik.token(
+                '0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f',
+            ),
+        ).to.be.rejectedWith(
+            Error,
+            `Failed getting /token/0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f (): 404: Token 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f not found in the index`,
+        );
     });
     it('Gets an ALP mint tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
@@ -393,6 +437,12 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
         // Normal status
         expect(alpMint.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
+
+        // Error is thrown for a txid that is in the mempool but is not a tokenId
+        await expect(chronik.token(alpMintTxid)).to.be.rejectedWith(
+            Error,
+            `Failed getting /token/0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f (): 404: Token 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f not found in the index`,
+        );
     });
     it('Gets an ALP send tx from the mempool', async () => {
         const chronikUrl = await chronik_url;
@@ -736,6 +786,18 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     it('Can get all of the above txs, and a wild mega-tx, from the blockTxs endpoint after they are mined in a block', async () => {
         const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
+
+        // Now that we have a block, we get a block key from token info
+        const alpGenesisConfirmedInfo = await chronik.token(alpGenesisTxid);
+        expect(alpGenesisConfirmedInfo).to.deep.equal({
+            ...alpTokenInfo,
+            tokenId: alpGenesisTxid,
+            block: {
+                hash: '5e75fc2b2b101c4cf8beec2a68303fcdc5e6d0e3684cc8fbe5ebea60d781b1bb',
+                height: 102,
+                timestamp: 1300000500,
+            },
+        });
 
         alpMegaTxid = await get_alp_mega_txid;
 
@@ -1112,15 +1174,31 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
+        alpNonUtf8GenesisTxid = await get_alp_nonutf8_genesis_txid;
         alpMintTwoTxid = await get_alp_mint_two_txid;
-        alpSendTwoTxid = await get_alp_send_two_txid;
 
         // Can get the tx object from the tx endpoint
         alpMintTwo = await chronik.tx(alpMintTwoTxid);
-        alpSendTwo = await chronik.tx(alpSendTwoTxid);
+        alpSendTwo = await chronik.tx(alpNonUtf8GenesisTxid);
 
-        // alpSendTwoTxid eb227bec6fd4d270262e14efa128a970f0ea4e529c599b1eb28af5fc8eaf3452 (broadcast 1st, alphabetically 2nd)
-        // alpMintTwoTxid 665c70b6c01b8e9b4865136ee650bae344fb8b45def49eb7ec303b04d2520b4b (broadcast 2nd, alphabetically 1st)
+        // We can get genesis info even if utf8 expected fields are not utf8
+        // In practice we do not expect this to ever happen, but someone could do this
+        // We confirm it doesn't break anything
+        const thisTokenInfo = await chronik.token(alpNonUtf8GenesisTxid);
+
+        // hex 0304b60c048de8d9650881002834d6490000
+        // A user of chronik-client would see output of '\x03\x04�\f\x04���e\b�\x00(4�I\x00\x00' for tokenInfo.genesisInfo.tokenName
+        expect(thisTokenInfo.genesisInfo?.tokenName).to.eql(
+            '\x03\x04\uFFFD\f\x04\uFFFD\uFFFD\uFFFDe\b\uFFFD\x00(4\uFFFDI\x00\x00',
+        );
+        // hex 00fabe6d6d6f5486f62c703086014607f5bed91d093b092a8faf5ac882a0ccf462682a22f002
+        // A user of chronik-client would see output of '\x00��mmoT��,p0�\x01F\x07���\x1D\t;\t*��ZȂ���bh*"�\x02' for thisTokenInfo.genesisInfo.url
+        expect(thisTokenInfo.genesisInfo?.url).to.eql(
+            '\x00\uFFFD\uFFFDmmoT\uFFFD\uFFFD,p0\uFFFD\x01F\x07\uFFFD\uFFFD\uFFFD\x1D\t;\t*\uFFFD\uFFFDZȂ\uFFFD\uFFFD\uFFFDbh*"\uFFFD\x02',
+        );
+
+        // alpNonUtf8GenesisTxid 65c63c950ec88a723cd37fc40f2e6f7732508a3703febed620b91d8b0c423eea (broadcast 1st, alphabetically 2nd)
+        // alpMintTwoTxid 163ebdbd2b915d090d602970b2e2737abf631a1ce31345c90d656e98b60e2b8c (broadcast 2nd, alphabetically 1st)
         const alphabeticalUnconfirmedAlpGenesisTxs = [
             alpMintTwo,
             alpSendTwo,
@@ -1283,8 +1361,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             alpGenesisTxid, // blockheight 102, timeFirstSeen 1300000000 | bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2
             alpMultiTxid, // blockheight 102, timeFirstSeen 1300000000   | e3c47f14d7ba3ab9a6f32a0fa8fcac41d06d3af595ebb5bab77ad03633a52eba
             alpSendTxid, //blockheight 102, timeFirstSeen 1300000000     | e623ab8971c93fa1a831a4310da65554c8dfd811c16cd5d41c6612268cb5dd5f
-            alpMintTwoTxid, // blockheight 103, timeFirstSeen 1300000000 | 665c70b6c01b8e9b4865136ee650bae344fb8b45def49eb7ec303b04d2520b4b
-            alpSendTwoTxid, // blockheight 103, timeFirstSeen 1300000000 | eb227bec6fd4d270262e14efa128a970f0ea4e529c599b1eb28af5fc8eaf3452
+            alpMintTwoTxid, // blockheight 103, timeFirstSeen 1300000000 | 163ebdbd2b915d090d602970b2e2737abf631a1ce31345c90d656e98b60e2b8c
+            alpNonUtf8GenesisTxid, // blockheight 103, timeFirstSeen 1300000000 | 65c63c950ec88a723cd37fc40f2e6f7732508a3703febed620b91d8b0c423eea
         ];
 
         // Same amount of txs in each
@@ -1303,8 +1381,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         // alpMegaTxid has timeFirstSeen of 0 because it had to be manually mined in block. So, it comes first in the next block
         // The other txids in the alpMegaTxid block all have the same timeFirstSeen, so they are sorted reverse alphabetically
         const historyAlpTxids = [
-            alpSendTwoTxid, // timeFirstSeen 1300000000, blockheight 103 | eb227bec6fd4d270262e14efa128a970f0ea4e529c599b1eb28af5fc8eaf3452
-            alpMintTwoTxid, // timeFirstSeen 1300000000, blockheight 103 | 665c70b6c01b8e9b4865136ee650bae344fb8b45def49eb7ec303b04d2520b4b
+            alpNonUtf8GenesisTxid, // timeFirstSeen 1300000000, blockheight 103 | 65c63c950ec88a723cd37fc40f2e6f7732508a3703febed620b91d8b0c423eea
+            alpMintTwoTxid, // timeFirstSeen 1300000000, blockheight 103 | 163ebdbd2b915d090d602970b2e2737abf631a1ce31345c90d656e98b60e2b8c
             alpMegaTxid, // timeFirstSeen 0, blockheight 102             | 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565
             alpSendTxid, // timeFirstSeen 1300000000, blockheight 102    | e623ab8971c93fa1a831a4310da65554c8dfd811c16cd5d41c6612268cb5dd5f
             alpMultiTxid, // timeFirstSeen 1300000000, blockheight 102   | e3c47f14d7ba3ab9a6f32a0fa8fcac41d06d3af595ebb5bab77ad03633a52eba

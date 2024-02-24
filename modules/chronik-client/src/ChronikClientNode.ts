@@ -129,6 +129,13 @@ export class ChronikClientNode {
         return blocks.blocks.map(convertToBlockInfo);
     }
 
+    /** Fetch token info and stats given the tokenId. */
+    public async token(tokenId: string): Promise<TokenInfo> {
+        const data = await this._proxyInterface.get(`/token/${tokenId}`);
+        const tokenInfo = proto.TokenInfo.decode(data);
+        return convertToTokenInfo(tokenInfo);
+    }
+
     /** Fetch tx details given the txid. */
     public async tx(txid: string): Promise<Tx_InNode> {
         const data = await this._proxyInterface.get(`/tx/${txid}`);
@@ -863,6 +870,71 @@ function convertToTxMsgType(msgType: proto.TxMsgType): TxMsgType {
     return 'UNRECOGNIZED';
 }
 
+function convertToTokenInfo(tokenInfo: proto.TokenInfo): TokenInfo {
+    if (typeof tokenInfo.tokenType === 'undefined') {
+        // Not expected to ever happen
+        throw new Error(
+            `chronik returned undefined tokenInfo.tokenType for tokenId "${tokenInfo.tokenId}"`,
+        );
+    }
+    if (typeof tokenInfo.genesisInfo === 'undefined') {
+        // Not expected to ever happen
+        throw new Error(
+            `chronik returned undefined tokenInfo.genesisInfo for tokenId "${tokenInfo.tokenId}"`,
+        );
+    }
+
+    // We use tokenType to get the correct shape of genesisInfo
+    const tokenType = convertToTokenType(tokenInfo.tokenType);
+
+    const returnedTokenInfo: TokenInfo = {
+        tokenId: tokenInfo.tokenId,
+        tokenType,
+        timeFirstSeen: tokenInfo.timeFirstSeen,
+        genesisInfo: convertToGenesisInfo(tokenInfo.genesisInfo, tokenType),
+    };
+
+    // Only include block if the tx is confirmed
+    if (typeof tokenInfo.block !== 'undefined') {
+        returnedTokenInfo.block = convertToBlockMeta(tokenInfo.block);
+    }
+
+    return returnedTokenInfo;
+}
+
+function convertToGenesisInfo(
+    genesisInfo: proto.GenesisInfo,
+    tokenType: TokenType,
+): GenesisInfo {
+    const decoder = new TextDecoder();
+    const returnedGenesisInfo: GenesisInfo = {
+        tokenTicker: decoder.decode(genesisInfo.tokenTicker),
+        tokenName: decoder.decode(genesisInfo.tokenName),
+        url: decoder.decode(genesisInfo.url),
+        decimals: genesisInfo.decimals,
+    };
+
+    // Add ALP fields for ALP types only
+    if (tokenType.protocol === 'ALP') {
+        returnedGenesisInfo.data = genesisInfo.data;
+        returnedGenesisInfo.authPubkey = toHex(genesisInfo.authPubkey);
+    }
+
+    // Add mintVaultHash for SLP Mint Vault only
+    if (tokenType.type === 'SLP_TOKEN_TYPE_MINT_VAULT') {
+        returnedGenesisInfo.mintVaultScripthash = toHex(
+            genesisInfo.mintVaultScripthash,
+        );
+    }
+
+    // Add url for SLP only
+    if (tokenType.protocol === 'SLP') {
+        returnedGenesisInfo.hash = toHex(genesisInfo.hash);
+    }
+
+    return returnedGenesisInfo;
+}
+
 function isTxMsgType(msgType: any): msgType is TxMsgType {
     return TX_MSG_TYPES.includes(msgType);
 }
@@ -1321,4 +1393,42 @@ export interface TokenIdUtxos {
     tokenId: string;
     /** UTXOs */
     utxos: Utxo_InNode[];
+}
+
+/** Info about a token */
+export interface TokenInfo {
+    /**
+     * Hex token_id (in big-endian, like usually displayed to users) of the token.
+     * This is not `bytes` because SLP and ALP use different endiannnes,
+     * so to avoid this we use hex, which conventionally implies big-endian in a bitcoin context.
+     */
+    tokenId: string;
+    /** Token type of the token */
+    tokenType: TokenType;
+    /** Info found in the token's GENESIS tx */
+    genesisInfo: GenesisInfo;
+    /** Block of the GENESIS tx, if it's mined already */
+    block?: BlockMetadata_InNode;
+    /** Time the GENESIS tx has first been seen by the indexer */
+    timeFirstSeen: string;
+}
+
+/** Genesis info found in GENESIS txs of tokens */
+export interface GenesisInfo {
+    /** token_ticker of the token */
+    tokenTicker: string;
+    /** token_name of the token */
+    tokenName: string;
+    /** URL of the token */
+    url: string;
+    /** token_document_hash of the token (only on SLP) */
+    hash?: string;
+    /** mint_vault_scripthash (only on SLP V2 Mint Vault) */
+    mintVaultScripthash?: string;
+    /** Arbitray payload data of the token (only on ALP) */
+    data?: Uint8Array;
+    /** auth_pubkey of the token (only on ALP) */
+    authPubkey?: string;
+    /** decimals of the token, i.e. how many decimal places the token should be displayed with. */
+    decimals: number;
 }

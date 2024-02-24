@@ -99,3 +99,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 0.21.0 - Skipped as accidentally published 0.22.0 before diff approval at 0.21.1-rc.1
 0.22.0 - Add support for `tokenId` endpoints and token data in utxos to `ChronikClientNode`
 0.22.1 - Return `script` key for utxos fetched from `tokenId` endpoint
+0.23.0 - Add support for returning `TokenInfo` from `chronik.token(tokenId)` calls to `ChronikClientNode`
