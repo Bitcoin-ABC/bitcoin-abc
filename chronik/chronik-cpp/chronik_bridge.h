@@ -11,6 +11,7 @@
 
 class CBlock;
 class CBlockIndex;
+class CBlockUndo;
 class Coin;
 class Config;
 class CTransaction;
@@ -63,6 +64,9 @@ public:
 
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
 
+    std::unique_ptr<CBlockUndo>
+    load_block_undo(const CBlockIndex &bindex) const;
+
     const CBlockIndex &find_fork(const CBlockIndex &index) const;
 
     void lookup_spent_coins(Tx &, rust::Vec<OutPoint> &not_found,
@@ -78,7 +82,8 @@ std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
 
 Tx bridge_tx(const CTransaction &tx, const std::vector<Coin> &spent_coins);
 
-Block bridge_block(const CBlock &block, const CBlockIndex &bindex);
+Block bridge_block(const CBlock &block, const CBlockUndo &block_undo,
+                   const CBlockIndex &bindex);
 
 Tx load_tx(uint32_t file_num, uint32_t data_pos, uint32_t undo_pos);
 rust::Vec<uint8_t> load_raw_tx(uint32_t file_num, uint32_t data_pos);

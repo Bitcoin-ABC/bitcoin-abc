@@ -134,6 +134,7 @@ mod ffi_inner {
         include!("node/context.h");
         include!("primitives/block.h");
         include!("primitives/transaction.h");
+        include!("undo.h");
 
         /// node::NodeContext from node/context.h
         #[namespace = "node"]
@@ -146,6 +147,10 @@ mod ffi_inner {
         /// ::CBlock from primitives/block.h
         #[namespace = ""]
         type CBlock;
+
+        /// ::CBlockUndo from undo.h
+        #[namespace = ""]
+        type CBlockUndo;
 
         /// ::Coin from coins.h (renamed to CCoin to prevent a name clash)
         #[namespace = ""]
@@ -203,6 +208,12 @@ mod ffi_inner {
             block_index: &CBlockIndex,
         ) -> Result<UniquePtr<CBlock>>;
 
+        /// Load the CBlockUndo data of this CBlockIndex from the disk undo data
+        fn load_block_undo(
+            self: &ChronikBridge,
+            block_index: &CBlockIndex,
+        ) -> Result<UniquePtr<CBlockUndo>>;
+
         /// Find at which block the given block_index forks off from the node.
         fn find_fork(
             self: &ChronikBridge,
@@ -252,6 +263,7 @@ mod ffi_inner {
         /// Bridge bitcoind's classes to the shared struct [`Block`].
         fn bridge_block(
             block: &CBlock,
+            block_undo: &CBlockUndo,
             block_index: &CBlockIndex,
         ) -> Result<Block>;
 

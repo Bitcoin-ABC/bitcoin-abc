@@ -112,17 +112,14 @@ size_t GetFirstUndoOffset(const CBlock &block, const CBlockIndex &bindex) {
 }
 
 chronik_bridge::Block BridgeBlock(const CBlock &block,
+                                  const CBlockUndo &block_undo,
                                   const CBlockIndex &bindex) {
     size_t data_pos = GetFirstBlockTxOffset(block, bindex);
     size_t undo_pos = 0;
-    CBlockUndo block_undo;
 
-    // Read undo data (genesis block doesn't have undo data)
+    // Set undo offset; for the genesis block leave it at 0
     if (bindex.nHeight > 0) {
         undo_pos = GetFirstUndoOffset(block, bindex);
-        if (!node::UndoReadFromDisk(block_undo, &bindex)) {
-            throw std::runtime_error("Reading block undo data failed");
-        }
     }
 
     rust::Vec<chronik_bridge::BlockTx> bridged_txs;
@@ -201,6 +198,18 @@ ChronikBridge::load_block(const CBlockIndex &bindex) const {
         throw std::runtime_error("Reading block data failed");
     }
     return std::make_unique<CBlock>(std::move(block));
+}
+
+std::unique_ptr<CBlockUndo>
+ChronikBridge::load_block_undo(const CBlockIndex &bindex) const {
+    CBlockUndo block_undo;
+    // Read undo data (genesis block doesn't have undo data)
+    if (bindex.nHeight > 0) {
+        if (!node::UndoReadFromDisk(block_undo, &bindex)) {
+            throw std::runtime_error("Reading block undo data failed");
+        }
+    }
+    return std::make_unique<CBlockUndo>(std::move(block_undo));
 }
 
 Tx bridge_tx(const CTransaction &tx, const std::vector<::Coin> &spent_coins) {
@@ -292,8 +301,9 @@ std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
 }
 
 chronik_bridge::Block bridge_block(const CBlock &block,
+                                   const CBlockUndo &block_undo,
                                    const CBlockIndex &bindex) {
-    return BridgeBlock(block, bindex);
+    return BridgeBlock(block, block_undo, bindex);
 }
 
 Tx load_tx(uint32_t file_num, uint32_t data_pos, uint32_t undo_pos) {

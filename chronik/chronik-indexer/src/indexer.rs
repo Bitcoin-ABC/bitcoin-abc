@@ -240,9 +240,7 @@ impl ChronikIndexer {
                 return Ok(());
             }
             let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
-            let ffi_block = bridge.load_block(block_index)?;
-            let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-            let block = self.make_chronik_block(ffi_block, block_index)?;
+            let block = self.load_chronik_block(bridge, block_index)?;
             let hash = block.db_block.hash.clone();
             self.handle_block_connected(block)?;
             log_chronik!(
@@ -301,9 +299,7 @@ impl ChronikIndexer {
             let block_index = bridge
                 .lookup_block_index(db_block.hash.to_bytes())
                 .map_err(|_| CannotRewindChronik(db_block.hash))?;
-            let ffi_block = bridge.load_block(block_index)?;
-            let ffi_block = expect_unique_ptr("load_block", &ffi_block);
-            let block = self.make_chronik_block(ffi_block, block_index)?;
+            let block = self.load_chronik_block(bridge, block_index)?;
             self.handle_block_disconnected(block)?;
         }
         Ok(fork_info.height)
@@ -614,13 +610,8 @@ impl ChronikIndexer {
         &self.subs
     }
 
-    /// Build the ChronikBlock from the CBlockIndex
-    pub fn make_chronik_block(
-        &self,
-        block: &ffi::CBlock,
-        bindex: &ffi::CBlockIndex,
-    ) -> Result<ChronikBlock> {
-        let block = ffi::bridge_block(block, bindex)?;
+    /// Build a ChronikBlock from a ffi::Block.
+    pub fn make_chronik_block(&self, block: ffi::Block) -> ChronikBlock {
         let db_block = DbBlock {
             hash: BlockHash::from(block.hash),
             prev_hash: BlockHash::from(block.prev_hash),
@@ -655,12 +646,27 @@ impl ChronikIndexer {
             .into_iter()
             .map(|block_tx| Tx::from(block_tx.tx))
             .collect::<Vec<_>>();
-        Ok(ChronikBlock {
+        ChronikBlock {
             db_block,
             block_txs,
             size: block.size,
             txs,
-        })
+        }
+    }
+
+    /// Load a ChronikBlock from the node given the CBlockIndex.
+    pub fn load_chronik_block(
+        &self,
+        bridge: &ffi::ChronikBridge,
+        block_index: &ffi::CBlockIndex,
+    ) -> Result<ChronikBlock> {
+        let ffi_block = bridge.load_block(block_index)?;
+        let ffi_block = expect_unique_ptr("load_block", &ffi_block);
+        let ffi_block_undo = bridge.load_block_undo(block_index)?;
+        let ffi_block_undo =
+            expect_unique_ptr("load_block_undo", &ffi_block_undo);
+        let block = ffi::bridge_block(ffi_block, ffi_block_undo, block_index)?;
+        Ok(self.make_chronik_block(block))
     }
 }
 
