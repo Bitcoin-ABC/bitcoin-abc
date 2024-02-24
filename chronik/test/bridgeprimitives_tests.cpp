@@ -169,16 +169,16 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
         FlatFilePos(bridgedGenesisBlock.file_num, bridgedGenesisTx.data_pos)));
     BOOST_CHECK(genesisTxFromDisk.GetHash() == genesisBlock.vtx[0]->GetHash());
 
-    CheckTxsEqual(chronik_bridge::load_tx(bridgedGenesisBlock.file_num,
-                                          bridgedGenesisTx.data_pos,
-                                          bridgedGenesisTx.undo_pos),
+    CheckTxsEqual(bridge.load_tx(bridgedGenesisBlock.file_num,
+                                 bridgedGenesisTx.data_pos,
+                                 bridgedGenesisTx.undo_pos),
                   bridgedGenesisTx.tx);
 
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
     ss << genesisBlock.vtx[0];
-    BOOST_CHECK_EQUAL(HexStr(ss), HexStr(chronik_bridge::load_raw_tx(
-                                      bridgedGenesisBlock.file_num,
-                                      bridgedGenesisTx.data_pos)));
+    BOOST_CHECK_EQUAL(HexStr(ss),
+                      HexStr(bridge.load_raw_tx(bridgedGenesisBlock.file_num,
+                                                bridgedGenesisTx.data_pos)));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
@@ -324,16 +324,15 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
     CheckMatchesDisk(testBlock, bridgedTestBlock);
 
     for (const chronik_bridge::BlockTx &bridgedTx : bridgedTestBlock.txs) {
-        CheckTxsEqual(chronik_bridge::load_tx(bridgedTestBlock.file_num,
-                                              bridgedTx.data_pos,
-                                              bridgedTx.undo_pos),
+        CheckTxsEqual(bridge.load_tx(bridgedTestBlock.file_num,
+                                     bridgedTx.data_pos, bridgedTx.undo_pos),
                       bridgedTx.tx);
     }
 
     for (size_t i = 0; i < testBlock.vtx.size(); ++i) {
         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
         ss << testBlock.vtx[i];
-        BOOST_CHECK_EQUAL(HexStr(ss), HexStr(chronik_bridge::load_raw_tx(
+        BOOST_CHECK_EQUAL(HexStr(ss), HexStr(bridge.load_raw_tx(
                                           bridgedTestBlock.file_num,
                                           bridgedTestBlock.txs[i].data_pos)));
     }
@@ -448,37 +447,40 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
         CheckMatchesDisk(testBlock, bridgedBlock);
 
         for (const chronik_bridge::BlockTx &bridgedTx : bridgedBlock.txs) {
-            CheckTxsEqual(chronik_bridge::load_tx(bridgedBlock.file_num,
-                                                  bridgedTx.data_pos,
-                                                  bridgedTx.undo_pos),
+            CheckTxsEqual(bridge.load_tx(bridgedBlock.file_num,
+                                         bridgedTx.data_pos,
+                                         bridgedTx.undo_pos),
                           bridgedTx.tx);
         }
     }
 }
 
 BOOST_FIXTURE_TEST_CASE(test_load_tx_bad, TestChain100Setup) {
+    const CChainParams &params = GetConfig().GetChainParams();
+    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+
     BOOST_CHECK_EXCEPTION(
-        chronik_bridge::load_tx(0x7fffffff, 0, 0), std::runtime_error,
+        bridge.load_tx(0x7fffffff, 0, 0), std::runtime_error,
         [](const std::runtime_error &ex) {
             BOOST_CHECK_EQUAL(ex.what(), "Reading tx data from disk failed");
             return true;
         });
     BOOST_CHECK_EXCEPTION(
-        chronik_bridge::load_tx(0, 0x7fffffff, 0), std::runtime_error,
+        bridge.load_tx(0, 0x7fffffff, 0), std::runtime_error,
         [](const std::runtime_error &ex) {
             BOOST_CHECK_EQUAL(ex.what(), "Reading tx data from disk failed");
             return true;
         });
     uint32_t genesisCbDataPos = 89;
-    BOOST_CHECK_EXCEPTION(
-        chronik_bridge::load_tx(0, genesisCbDataPos, 0x7fffffff),
-        std::runtime_error, [](const std::runtime_error &ex) {
-            BOOST_CHECK_EQUAL(ex.what(),
-                              "Reading tx undo data from disk failed");
-            return true;
-        });
+    BOOST_CHECK_EXCEPTION(bridge.load_tx(0, genesisCbDataPos, 0x7fffffff),
+                          std::runtime_error, [](const std::runtime_error &ex) {
+                              BOOST_CHECK_EQUAL(
+                                  ex.what(),
+                                  "Reading tx undo data from disk failed");
+                              return true;
+                          });
     // sanity check
-    chronik_bridge::load_tx(0, genesisCbDataPos, 0);
+    bridge.load_tx(0, genesisCbDataPos, 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

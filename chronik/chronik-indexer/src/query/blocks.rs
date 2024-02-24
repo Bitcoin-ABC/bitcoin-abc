@@ -9,7 +9,6 @@ use bitcoinsuite_core::{
     block::BlockHash,
     tx::{Tx, TxId},
 };
-use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
     io::{
@@ -23,6 +22,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
+    indexer::Node,
     query::{make_tx_proto, HashOrHeight, OutputsSpent, TxTokenData},
 };
 
@@ -42,6 +42,8 @@ pub struct QueryBlocks<'a> {
     pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
+    /// Access to bitcoind to read txs
+    pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
 }
@@ -198,12 +200,14 @@ impl<'a> QueryBlocks<'a> {
                 .tx_by_tx_num(tx_num)?
                 .ok_or(BlockHasMissingTx(db_block.hash.clone(), tx_num))?;
             let tx = Tx::from(
-                ffi::load_tx(
-                    db_block.file_num,
-                    db_tx.entry.data_pos,
-                    db_tx.entry.undo_pos,
-                )
-                .wrap_err(ReadFailure(db_tx.entry.txid))?,
+                self.node
+                    .bridge
+                    .load_tx(
+                        db_block.file_num,
+                        db_tx.entry.data_pos,
+                        db_tx.entry.undo_pos,
+                    )
+                    .wrap_err(ReadFailure(db_tx.entry.txid))?,
             );
             let outputs_spent = OutputsSpent::query(
                 &spent_by_reader,

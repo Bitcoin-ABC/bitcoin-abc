@@ -9,7 +9,6 @@ use bitcoinsuite_core::{
     ser::BitcoinSer,
     tx::{Tx, TxId},
 };
-use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
     io::{BlockReader, SpentByReader, TxReader},
@@ -20,6 +19,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
+    indexer::Node,
     query::{
         make_genesis_info_proto, make_token_type_proto, make_tx_proto,
         read_token_info, OutputsSpent, QueryTxError::*, TxTokenData,
@@ -35,6 +35,8 @@ pub struct QueryTxs<'a> {
     pub avalanche: &'a Avalanche,
     /// Mempool
     pub mempool: &'a Mempool,
+    /// Access to bitcoind to read txs
+    pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
 }
@@ -87,12 +89,14 @@ impl<'a> QueryTxs<'a> {
                     .by_height(block_tx.block_height)?
                     .ok_or(DbTxHasNoBlock(txid))?;
                 let tx = Tx::from(
-                    ffi::load_tx(
-                        block.file_num,
-                        tx_entry.data_pos,
-                        tx_entry.undo_pos,
-                    )
-                    .wrap_err(ReadFailure(txid))?,
+                    self.node
+                        .bridge
+                        .load_tx(
+                            block.file_num,
+                            tx_entry.data_pos,
+                            tx_entry.undo_pos,
+                        )
+                        .wrap_err(ReadFailure(txid))?,
                 );
                 let outputs_spent = OutputsSpent::query(
                     &spent_by_reader,
@@ -134,7 +138,9 @@ impl<'a> QueryTxs<'a> {
                 let block = block_reader
                     .by_height(block_tx.block_height)?
                     .ok_or(DbTxHasNoBlock(*txid))?;
-                ffi::load_raw_tx(block.file_num, block_tx.entry.data_pos)
+                self.node
+                    .bridge
+                    .load_raw_tx(block.file_num, block_tx.entry.data_pos)
                     .wrap_err(ReadFailure(*txid))?
             }
         };

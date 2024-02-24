@@ -530,34 +530,40 @@ impl ChronikIndexer {
     }
 
     /// Return [`QueryBlocks`] to read blocks from the DB.
-    pub fn blocks(&self) -> QueryBlocks<'_> {
+    pub fn blocks<'a>(&'a self, node: &'a Node) -> QueryBlocks<'a> {
         QueryBlocks {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            node,
             is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
     /// Return [`QueryTxs`] to return txs from mempool/DB.
-    pub fn txs(&self) -> QueryTxs<'_> {
+    pub fn txs<'a>(&'a self, node: &'a Node) -> QueryTxs<'a> {
         QueryTxs {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
+            node,
             is_token_index_enabled: self.is_token_index_enabled,
         }
     }
 
     /// Return [`QueryGroupHistory`] for scripts to query the tx history of
     /// scripts.
-    pub fn script_history(&self) -> Result<QueryGroupHistory<'_, ScriptGroup>> {
+    pub fn script_history<'a>(
+        &'a self,
+        node: &'a Node,
+    ) -> Result<QueryGroupHistory<'a, ScriptGroup>> {
         Ok(QueryGroupHistory {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
             mempool_history: self.mempool.script_history(),
             group: self.script_group.clone(),
+            node,
             is_token_index_enabled: self.is_token_index_enabled,
         })
     }
@@ -579,13 +585,17 @@ impl ChronikIndexer {
 
     /// Return [`QueryGroupHistory`] for token IDs to query the tx history of
     /// token IDs.
-    pub fn token_id_history(&self) -> QueryGroupHistory<'_, TokenIdGroup> {
+    pub fn token_id_history<'a>(
+        &'a self,
+        node: &'a Node,
+    ) -> QueryGroupHistory<'a, TokenIdGroup> {
         QueryGroupHistory {
             db: &self.db,
             avalanche: &self.avalanche,
             mempool: &self.mempool,
             mempool_history: self.mempool.token_id_history(),
             group: TokenIdGroup,
+            node,
             is_token_index_enabled: self.is_token_index_enabled,
         }
     }

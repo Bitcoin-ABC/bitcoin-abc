@@ -4,7 +4,7 @@ use std::{collections::HashMap, fmt::Display, str::FromStr};
 
 use abc_rust_error::{Report, Result};
 use bitcoinsuite_slp::token_id::TokenId;
-use chronik_indexer::indexer::ChronikIndexer;
+use chronik_indexer::indexer::{ChronikIndexer, Node};
 use chronik_proto::proto;
 use hyper::Uri;
 use thiserror::Error;
@@ -59,8 +59,9 @@ pub async fn handle_block_txs(
     hash_or_height: String,
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
-    let blocks = indexer.blocks();
+    let blocks = indexer.blocks(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     blocks.block_txs(hash_or_height, page_num as usize, page_size as usize)
@@ -73,9 +74,10 @@ pub async fn handle_script_confirmed_txs(
     payload: &str,
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
     let script_variant = parse_script_variant_hex(script_type, payload)?;
-    let script_history = indexer.script_history()?;
+    let script_history = indexer.script_history(node)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     let script = script_variant.to_script();
@@ -90,9 +92,10 @@ pub async fn handle_script_history(
     payload: &str,
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
     let script_variant = parse_script_variant_hex(script_type, payload)?;
-    let script_history = indexer.script_history()?;
+    let script_history = indexer.script_history(node)?;
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     let script = script_variant.to_script();
@@ -105,9 +108,10 @@ pub async fn handle_script_unconfirmed_txs(
     script_type: &str,
     payload: &str,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
     let script_variant = parse_script_variant_hex(script_type, payload)?;
-    let script_history = indexer.script_history()?;
+    let script_history = indexer.script_history(node)?;
     let script = script_variant.to_script();
     script_history.unconfirmed_txs(&script)
 }
@@ -134,9 +138,10 @@ pub async fn handle_token_id_confirmed_txs(
     token_id_hex: &str,
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
     let token_id = token_id_hex.parse::<TokenId>()?;
-    let token_id_history = indexer.token_id_history();
+    let token_id_history = indexer.token_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     token_id_history.confirmed_txs(
@@ -153,9 +158,10 @@ pub async fn handle_token_id_history(
     token_id_hex: &str,
     query_params: &HashMap<String, String>,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
     let token_id = token_id_hex.parse::<TokenId>()?;
-    let token_id_history = indexer.token_id_history();
+    let token_id_history = indexer.token_id_history(node);
     let page_num: u32 = get_param(query_params, "page")?.unwrap_or(0);
     let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
     token_id_history.rev_history(
@@ -169,9 +175,10 @@ pub async fn handle_token_id_history(
 pub async fn handle_token_id_unconfirmed_txs(
     token_id_hex: &str,
     indexer: &ChronikIndexer,
+    node: &Node,
 ) -> Result<proto::TxHistoryPage> {
     let token_id = token_id_hex.parse::<TokenId>()?;
-    let token_id_history = indexer.token_id_history();
+    let token_id_history = indexer.token_id_history(node);
     token_id_history.unconfirmed_txs(token_id)
 }
 

@@ -214,6 +214,22 @@ mod ffi_inner {
             block_index: &CBlockIndex,
         ) -> Result<UniquePtr<CBlockUndo>>;
 
+        /// Load the CTransaction and CTxUndo data from disk and turn it into a
+        /// bridged Tx, containing spent coins etc.
+        fn load_tx(
+            self: &ChronikBridge,
+            file_num: u32,
+            data_pos: u32,
+            undo_pos: u32,
+        ) -> Result<Tx>;
+
+        /// Load the CTransaction from disk and serialize it.
+        fn load_raw_tx(
+            self: &ChronikBridge,
+            file_num: u32,
+            data_pos: u32,
+        ) -> Result<Vec<u8>>;
+
         /// Find at which block the given block_index forks off from the node.
         fn find_fork(
             self: &ChronikBridge,
@@ -266,13 +282,6 @@ mod ffi_inner {
             block_undo: &CBlockUndo,
             block_index: &CBlockIndex,
         ) -> Result<Block>;
-
-        /// Load the CTransaction and CTxUndo data from disk and turn it into a
-        /// bridged Tx, containing spent coins etc.
-        fn load_tx(file_num: u32, data_pos: u32, undo_pos: u32) -> Result<Tx>;
-
-        /// Load the CTransaction from disk and serialize it.
-        fn load_raw_tx(file_num: u32, data_pos: u32) -> Result<Vec<u8>>;
 
         /// Get a BlockInfo for this CBlockIndex.
         fn get_block_info(block_index: &CBlockIndex) -> BlockInfo;

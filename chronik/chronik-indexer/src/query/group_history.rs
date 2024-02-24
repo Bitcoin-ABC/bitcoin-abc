@@ -8,7 +8,6 @@ use std::collections::BTreeSet;
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
-use chronik_bridge::ffi;
 use chronik_db::{
     db::Db,
     group::Group,
@@ -21,6 +20,7 @@ use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
+    indexer::Node,
     query::{make_tx_proto, OutputsSpent, TxTokenData},
 };
 
@@ -44,6 +44,8 @@ pub struct QueryGroupHistory<'a, G: Group> {
     pub mempool_history: &'a MempoolGroupHistory<G>,
     /// Group to query txs by
     pub group: G,
+    /// Access to bitcoind to read txs
+    pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
 }
@@ -381,7 +383,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         let block = block_reader
             .by_height(block_tx.block_height)?
             .ok_or(MissingDbTxBlock(tx_num))?;
-        let tx = Tx::from(ffi::load_tx(
+        let tx = Tx::from(self.node.bridge.load_tx(
             block.file_num,
             block_tx.entry.data_pos,
             block_tx.entry.undo_pos,
