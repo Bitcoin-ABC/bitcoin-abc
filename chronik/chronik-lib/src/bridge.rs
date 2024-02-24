@@ -26,10 +26,7 @@ use chronik_util::{log, log_chronik, mount_loggers, Loggers};
 use thiserror::Error;
 use tokio::sync::RwLock;
 
-use crate::{
-    error::ok_or_abort_node,
-    ffi::{self, StartChronikValidationInterface},
-};
+use crate::ffi::{self, StartChronikValidationInterface};
 
 /// Errors for [`Chronik`] and [`setup_chronik`].
 #[derive(Debug, Eq, Error, PartialEq)]
@@ -83,7 +80,7 @@ fn try_setup_chronik(
         enable_perf_stats: params.enable_perf_stats,
     })?;
     indexer.resync_indexer(bridge_ref)?;
-    if chronik_bridge::ffi::shutdown_requested() {
+    if bridge.shutdown_requested() {
         // Don't setup Chronik if the user requested shutdown during resync
         return Ok(());
     }
@@ -110,8 +107,11 @@ fn try_setup_chronik(
             })
         }
     })?;
-    runtime.spawn(async move {
-        ok_or_abort_node("ChronikServer::serve", server.serve().await);
+    runtime.spawn({
+        let node = Arc::clone(&node);
+        async move {
+            node.ok_or_abort("ChronikServer::serve", server.serve().await);
+        }
     });
     let chronik = Box::new(Chronik {
         node: Arc::clone(&node),
@@ -154,7 +154,7 @@ impl Chronik {
         time_first_seen: i64,
     ) {
         self.block_if_paused();
-        ok_or_abort_node(
+        self.node.ok_or_abort(
             "handle_tx_added_to_mempool",
             self.add_tx_to_mempool(ptx, spent_coins, time_first_seen),
         );
@@ -165,7 +165,7 @@ impl Chronik {
         self.block_if_paused();
         let mut indexer = self.indexer.blocking_write();
         let txid = TxId::from(txid);
-        ok_or_abort_node(
+        self.node.ok_or_abort(
             "handle_tx_removed_from_mempool",
             indexer.handle_tx_removed_from_mempool(txid),
         );
@@ -179,7 +179,7 @@ impl Chronik {
         bindex: &ffi::CBlockIndex,
     ) {
         self.block_if_paused();
-        ok_or_abort_node(
+        self.node.ok_or_abort(
             "handle_block_connected",
             self.connect_block(block, bindex),
         );
@@ -192,7 +192,7 @@ impl Chronik {
         bindex: &ffi::CBlockIndex,
     ) {
         self.block_if_paused();
-        ok_or_abort_node(
+        self.node.ok_or_abort(
             "handle_block_disconnected",
             self.disconnect_block(block, bindex),
         );
@@ -201,7 +201,8 @@ impl Chronik {
     /// Block finalized with Avalanche
     pub fn handle_block_finalized(&self, bindex: &ffi::CBlockIndex) {
         self.block_if_paused();
-        ok_or_abort_node("handle_block_finalized", self.finalize_block(bindex));
+        self.node
+            .ok_or_abort("handle_block_finalized", self.finalize_block(bindex));
     }
 
     fn add_tx_to_mempool(

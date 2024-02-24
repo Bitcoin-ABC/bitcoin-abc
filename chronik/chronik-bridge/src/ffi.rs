@@ -270,6 +270,14 @@ mod ffi_inner {
             max_fee: i64,
         ) -> Result<[u8; 32]>;
 
+        /// Calls `AbortNode` from shutdown.h to gracefully shut down the node
+        /// when an unrecoverable error occured.
+        fn abort_node(self: &ChronikBridge, msg: &str, user_msg: &str);
+
+        /// Returns true if a shutdown is requested, false otherwise.
+        /// See `ShutdownRequested` in `shutdown.h`.
+        fn shutdown_requested(self: &ChronikBridge) -> bool;
+
         /// Bridge CTransaction -> ffi::Tx, using the given spent coins.
         fn bridge_tx(
             tx: &CTransaction,
@@ -311,14 +319,6 @@ mod ffi_inner {
         /// Calls `InitError` from `node/ui_interface.h` to report an error to
         /// the user and then gracefully shut down the node.
         fn init_error(msg: &str) -> bool;
-
-        /// Calls `AbortNode` from shutdown.h to gracefully shut down the node
-        /// when an unrecoverable error occured.
-        fn abort_node(msg: &str, user_msg: &str);
-
-        /// Returns true if a shutdown is requested, false otherwise.
-        /// See `ShutdownRequested` in `shutdown.h`.
-        fn shutdown_requested() -> bool;
     }
 }
 

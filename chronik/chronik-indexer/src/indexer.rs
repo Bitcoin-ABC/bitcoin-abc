@@ -235,7 +235,7 @@ impl ChronikIndexer {
         };
         let tip_height = node_tip_info.height;
         for height in start_height + 1..=tip_height {
-            if ffi::shutdown_requested() {
+            if bridge.shutdown_requested() {
                 log!("Stopped re-sync adding blocks\n");
                 return Ok(());
             }
@@ -285,7 +285,7 @@ impl ChronikIndexer {
         );
         log!("Reverting Chronik blocks {revert_height} to {indexer_height}.\n");
         for height in (revert_height..indexer_height).rev() {
-            if ffi::shutdown_requested() {
+            if bridge.shutdown_requested() {
                 log!("Stopped re-sync rewinding blocks\n");
                 // return MAX here so we don't add any blocks
                 return Ok(BlockHeight::MAX);
@@ -737,6 +737,19 @@ fn verify_enable_token_index(db: &Db, enable_token_index: bool) -> Result<()> {
         .update_is_token_index_enabled(&mut batch, enable_token_index)?;
     db.write_batch(batch)?;
     Ok(())
+}
+
+impl Node {
+    /// If `result` is [`Err`], logs and aborts the node.
+    pub fn ok_or_abort<T>(&self, func_name: &str, result: Result<T>) {
+        if let Err(report) = result {
+            log_chronik!("{report:?}\n");
+            self.bridge.abort_node(
+                &format!("ERROR Chronik in {func_name}"),
+                &format!("{report:#}"),
+            );
+        }
+    }
 }
 
 impl std::fmt::Debug for ChronikIndexerParams {

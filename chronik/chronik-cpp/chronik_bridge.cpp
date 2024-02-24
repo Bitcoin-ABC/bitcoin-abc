@@ -322,6 +322,15 @@ ChronikBridge::broadcast_tx(rust::Slice<const uint8_t> raw_tx,
     return chronik::util::HashToArray(tx_ref->GetId());
 }
 
+void ChronikBridge::abort_node(const rust::Str msg,
+                               const rust::Str user_msg) const {
+    AbortNode(std::string(msg), Untranslated(std::string(user_msg)));
+}
+
+bool ChronikBridge::shutdown_requested() const {
+    return ShutdownRequested();
+}
+
 std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
                                            const node::NodeContext &node) {
     return std::make_unique<ChronikBridge>(
@@ -380,14 +389,6 @@ void sync_with_validation_interface_queue() {
 
 bool init_error(const rust::Str msg) {
     return InitError(Untranslated(std::string(msg)));
-}
-
-void abort_node(const rust::Str msg, const rust::Str user_msg) {
-    AbortNode(std::string(msg), Untranslated(std::string(user_msg)));
-}
-
-bool shutdown_requested() {
-    return ShutdownRequested();
 }
 
 } // namespace chronik_bridge

@@ -79,6 +79,10 @@ public:
 
     std::array<uint8_t, 32> broadcast_tx(rust::Slice<const uint8_t> raw_tx,
                                          int64_t max_fee) const;
+
+    void abort_node(const rust::Str msg, const rust::Str user_msg) const;
+
+    bool shutdown_requested() const;
 };
 
 std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
@@ -104,10 +108,6 @@ int64_t default_max_raw_tx_fee_rate_per_kb();
 void sync_with_validation_interface_queue();
 
 bool init_error(const rust::Str msg);
-
-void abort_node(const rust::Str msg, const rust::Str user_msg);
-
-bool shutdown_requested();
 
 } // namespace chronik_bridge
 
