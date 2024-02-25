@@ -1,14 +1,11 @@
 // Chronik methods
 import { BN } from 'slp-mdm';
-import {
-    getHashArrayFromWallet,
-    convertEcashtoEtokenAddr,
-    outputScriptToAddress,
-} from 'utils/cashMethods';
+import { getHashArrayFromWallet } from 'utils/cashMethods';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import appConfig from 'config/app';
 import { getStackArray } from 'ecash-script';
+import cashaddr from 'ecashaddrjs';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -546,12 +543,12 @@ export const parseChronikTx = (tx, wallet, tokenInfoById) => {
             // Since you may have more than one address in inputs, assume the first one is the replyAddress
             if (i === 0) {
                 try {
-                    replyAddress = outputScriptToAddress(
+                    replyAddress = cashaddr.encodeOutputScript(
                         thisInput.outputScript,
                     );
                 } catch (err) {
                     console.log(
-                        `Error from outputScriptToAddress(${thisInput.outputScript})`,
+                        `Error from cashaddr.encodeOutputScript(${thisInput.outputScript})`,
                         err,
                     );
                     // If the transaction is nonstandard, don't worry about a reply address for now
@@ -952,8 +949,9 @@ export const getMintAddress = async (chronik, tokenId) => {
                 Number(thisOutput.slpToken.amount) > 0
             ) {
                 // then this is the minting address
-                return convertEcashtoEtokenAddr(
-                    outputScriptToAddress(thisOutput.outputScript),
+                return cashaddr.encodeOutputScript(
+                    thisOutput.outputScript,
+                    'etoken',
                 );
             }
         }
