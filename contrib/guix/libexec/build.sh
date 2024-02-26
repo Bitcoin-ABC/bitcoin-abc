@@ -62,6 +62,7 @@ store_path() {
 # includes/libs
 NATIVE_GCC="$(store_path gcc-toolchain)"
 NATIVE_GCC_STATIC="$(store_path gcc-toolchain static)"
+NATIVE_GCC_LIBS="$(store_path gcc lib)"
 
 unset LIBRARY_PATH
 unset CPATH
@@ -70,7 +71,7 @@ unset CPLUS_INCLUDE_PATH
 unset OBJC_INCLUDE_PATH
 unset OBJCPLUS_INCLUDE_PATH
 
-export LIBRARY_PATH="${NATIVE_GCC}/lib:${NATIVE_GCC_STATIC}/lib"
+export LIBRARY_PATH="${NATIVE_GCC}/lib:${NATIVE_GCC_STATIC}/lib:${NATIVE_GCC_LIBS}/lib"
 export C_INCLUDE_PATH="${NATIVE_GCC}/include"
 export CPLUS_INCLUDE_PATH="${NATIVE_GCC}/include/c++:${NATIVE_GCC}/include"
 export OBJC_INCLUDE_PATH="${NATIVE_GCC}/include"
@@ -211,20 +212,33 @@ make -C depends --jobs="$JOBS" HOST="$HOST" \
 case "$HOST" in
     *mingw*)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Win64.cmake"
+        RUST_TARGET="x86_64-pc-windows-gnu"
         ;;
     aarch64-linux-gnu)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/LinuxAArch64.cmake"
+        RUST_TARGET="aarch64-unknown-linux-gnu"
         ;;
     arm-linux-gnueabihf)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/LinuxARM.cmake"
+        RUST_TARGET="arm-unknown-linux-gnueabihf"
         ;;
     x86_64-linux-gnu)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/Linux64.cmake"
+        RUST_TARGET="x86_64-unknown-linux-gnu"
         ;;
     *darwin*)
         CMAKE_TOOLCHAIN_FILE="/bitcoin/cmake/platforms/OSX.cmake"
+        RUST_TARGET="x86_64-apple-darwin"
         ;;
 esac
+
+curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
+echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
+chmod +x rustup-init
+./rustup-init -y --default-toolchain=1.76.0
+# shellcheck disable=SC1091
+source "$HOME/.cargo/env"
+rustup target add "${RUST_TARGET}"
 
 mkdir -p source_package
 pushd source_package
@@ -283,7 +297,7 @@ case "$HOST" in
         CMAKE_EXTRA_OPTIONS=(-DBUILD_BITCOIN_SEEDER=OFF -DCPACK_PACKAGE_FILE_NAME="${DISTNAME}-win64-setup-unsigned")
         ;;
     *linux*)
-        CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON -DUSE_LINKER=)
+        CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON -DBUILD_BITCOIN_CHRONIK=ON -DUSE_LINKER=)
         ;;
     *darwin*)
         CMAKE_EXTRA_OPTIONS=(-DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage")
@@ -301,7 +315,14 @@ mkdir -p "$DISTSRC"
     # binary tarballs.
     INSTALLPATH=$(pwd)/installed/${DISTNAME}
     mkdir -p "${INSTALLPATH}"
-
+    # Needed for rustup, cargo and rustc
+    export LD_LIBRARY_PATH="${LIBRARY_PATH}"
+    # rocksdb-sys uses libclang to parse the headers but it doesn't know what
+    # the host arch is. As a consequence it fails to parse gnu/stubs.h if the
+    # multilib headers are not installed because it falls back to the 32 bits
+    # variant gnu/stubs-32.h that guix don't provide.
+    # Instead we can instruct clang to use the correct arch.
+    export BINDGEN_EXTRA_CLANG_ARGS="-D__x86_64__ -D__LP64__ -U__ILP32__"
     cmake -GNinja .. \
       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
       -DCLIENT_VERSION_IS_RELEASE=ON \

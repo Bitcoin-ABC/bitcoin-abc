@@ -91,6 +91,7 @@ add_crate_test_targets(chronik)
 # Compile Rust, generates chronik-lib
 corrosion_import_crate(
     MANIFEST_PATH "chronik-lib/Cargo.toml"
+    NO_LINKER_OVERRIDE
     FLAGS
         ${CHRONIK_CARGO_FLAGS}
         ${CHRONIK_FEATURE_FLAGS}

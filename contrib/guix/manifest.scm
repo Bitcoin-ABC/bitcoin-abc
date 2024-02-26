@@ -8,6 +8,7 @@
              (gnu packages commencement)
              (gnu packages compression)
              (gnu packages cross-base)
+             (gnu packages curl)
              (gnu packages file)
              (gnu packages gawk)
              (gnu packages gcc)
@@ -581,6 +582,7 @@ inspecting signatures in Mach-O binaries.")
         bzip2
         gzip
         xz
+        zlib
         ;; Build tools
         cmake-minimal
         ninja
@@ -593,13 +595,17 @@ inspecting signatures in Mach-O binaries.")
         ;; Native GCC 10 toolchain
         gcc-toolchain-10
         (list gcc-toolchain-10 "static")
+        (list gcc "lib")
         ;; Scripting
         python-minimal ;; (3.10)
         perl
         ;; Git
         git-minimal
         ;; Tests
-        python-lief)
+        python-lief
+        ;; Web
+        curl
+        nss-certs)
   (let ((target (getenv "HOST")))
     (cond ((string-suffix? "-mingw32" target)
            ;; Windows
@@ -609,7 +615,7 @@ inspecting signatures in Mach-O binaries.")
                  nss-certs
                  osslsigncode))
           ((string-contains target "-linux-")
-           (list (make-bitcoin-cross-toolchain target)))
+           (list clang-10 (make-bitcoin-cross-toolchain target)))
           ((string-contains target "darwin")
            (list clang-toolchain-10 binutils xorriso python-signapple))
           (else '())))))

@@ -426,6 +426,8 @@ EOF
         time-machine shell --manifest="${PWD}/contrib/guix/manifest.scm" \
                                  --container \
                                  --pure \
+                                 --network \
+                                 --emulate-fhs \
                                  --no-cwd \
                                  --share="$PWD"=/bitcoin \
                                  --share="$OUTDIR_BASE"=/outdir-base \
