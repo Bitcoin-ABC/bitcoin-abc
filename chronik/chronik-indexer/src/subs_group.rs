@@ -111,4 +111,9 @@ impl<G: Group> SubsGroup<G> {
             }
         }
     }
+
+    /// Whether there are no subscribers for this group
+    pub fn is_empty(&self) -> bool {
+        self.subs.is_empty()
+    }
 }

@@ -83,6 +83,24 @@ impl Subs {
             .handle_tx_event(tx, token_id_aux, msg_type);
     }
 
+    /// Send out msg_type updates for the txs of the block to subscribers.
+    pub fn handle_block_tx_events(
+        &mut self,
+        txs: &[Tx],
+        msg_type: TxMsgType,
+        token_id_aux: &TokenIdGroupAux,
+    ) {
+        if self.subs_script.is_empty() && self.subs_token_id.is_empty() {
+            // Short-circuit if no subscriptions
+            return;
+        }
+        for tx in txs {
+            self.subs_script.handle_tx_event(tx, &(), msg_type);
+            self.subs_token_id
+                .handle_tx_event(tx, token_id_aux, msg_type);
+        }
+    }
+
     pub(crate) fn broadcast_block_msg(&self, msg: BlockMsg) {
         if self.subs_block.receiver_count() > 0 {
             if let Err(err) = self.subs_block.send(msg) {

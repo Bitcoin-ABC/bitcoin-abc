@@ -411,9 +411,11 @@ impl ChronikIndexer {
             hash: block.db_block.hash,
             height: block.db_block.height,
         });
-        for tx in &block.txs {
-            subs.handle_tx_event(tx, TxMsgType::Confirmed, &token_id_aux);
-        }
+        subs.handle_block_tx_events(
+            &block.txs,
+            TxMsgType::Confirmed,
+            &token_id_aux,
+        );
         Ok(())
     }
 
@@ -512,9 +514,11 @@ impl ChronikIndexer {
         } else {
             TokenIdGroupAux::default()
         };
-        for tx in &block.txs {
-            subs.handle_tx_event(tx, TxMsgType::Finalized, &token_id_aux);
-        }
+        subs.handle_block_tx_events(
+            &block.txs,
+            TxMsgType::Finalized,
+            &token_id_aux,
+        );
         Ok(())
     }
 
