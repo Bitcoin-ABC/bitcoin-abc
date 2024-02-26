@@ -1,6 +1,6 @@
 {
     "name": "ecash-coinselect",
-    "version": "2.1.0",
+    "version": "2.2.0",
     "description": "An unspent transaction output (UTXO) selection module for eCash.",
     "main": "src/utxo.js",
     "scripts": {

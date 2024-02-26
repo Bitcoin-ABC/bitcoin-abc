@@ -49,4 +49,8 @@ See `test/` for usage.
 
 -   Support input param `tokenInputs` to create txs with user-specified inputs [diff](https://reviews.bitcoinabc.org/D15520)
 
+2.1.0
+
+-   Export new function `getMaxSendAmountSatoshis` [diff](https://reviews.bitcoinabc.org/D15555)
+
 ## License [MIT](LICENSE)

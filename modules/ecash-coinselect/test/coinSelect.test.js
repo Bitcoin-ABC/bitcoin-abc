@@ -4,7 +4,7 @@
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const assert = require('assert');
-const { coinSelect } = require('../src/coinSelect');
+const { coinSelect, getMaxSendAmountSatoshis } = require('../src/coinSelect');
 
 const MOCK_TOKEN_UTXO = { value: '546' };
 const MOCK_TOKEN_SEND_OUTPUT = {
@@ -14,6 +14,8 @@ const MOCK_TOKEN_SEND_OUTPUT = {
         'hex',
     ),
 };
+const OP_RETURN_MAX_SIZE =
+    '6a04007461624cd75f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f323135';
 
 describe('coinSelect() accumulative algorithm for utxo selection in coinselect.js', async function () {
     it('adds a change output if change > dust', function () {
@@ -406,5 +408,79 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
         assert.throws(() => {
             coinSelect(stubChronikUtxos, [{ value: 900 }], 1);
         }, Error('Insufficient funds'));
+    });
+    it('getMaxSendAmountSatoshis gets max send amount for a wallet with multiple utxos', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.equal(getMaxSendAmountSatoshis(stubChronikUtxos, 1), 5512);
+    });
+    it('getMaxSendAmountSatoshis gets the same result even if the wallet has token utxos with spendable amounts', function () {
+        const stubChronikUtxos = [
+            { value: '10000', token: {} }, // in-node chronik
+            { value: '10000', slpToken: {} }, // NNG chronik
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.equal(getMaxSendAmountSatoshis(stubChronikUtxos, 1), 5512);
+    });
+    it('getMaxSendAmountSatoshis gets max send amount for a wallet with one utxo', function () {
+        const stubChronikUtxos = [{ value: '1000' }];
+        assert.equal(getMaxSendAmountSatoshis(stubChronikUtxos, 1), 808);
+    });
+    it('getMaxSendAmountSatoshis gets max send amount for a wallet with multiple utxos if the user specifies an OP_RETURN output', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.equal(
+            getMaxSendAmountSatoshis(stubChronikUtxos, 1, [
+                {
+                    value: 0,
+                    script: Buffer.from(OP_RETURN_MAX_SIZE, 'hex'),
+                },
+            ]),
+            5280,
+        );
+    });
+    it('getMaxSendAmountSatoshis gets max send amount for a wallet with multiple utxos at an arbitrary fee', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.equal(getMaxSendAmountSatoshis(stubChronikUtxos, 5.01), 3555);
+    });
+    it('getMaxSendAmountSatoshis throws error if wallet has insufficient funds to send a tx with the requested inputs and outputs', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.throws(() => {
+            getMaxSendAmountSatoshis(stubChronikUtxos, 17.01);
+        }, Error('Insufficient funds to send any satoshis from this wallet at fee rate of 17.01 satoshis per byte'));
+    });
+    it('getMaxSendAmountSatoshis will return dust amount if that is the max sendable amount', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.equal(getMaxSendAmountSatoshis(stubChronikUtxos, 11.176), 546);
+    });
+    it('getMaxSendAmountSatoshis will throw error if amount is 1 sat lower than dust', function () {
+        const stubChronikUtxos = [
+            { value: '1000' },
+            { value: '2000' },
+            { value: '3000' },
+        ];
+        assert.throws(() => {
+            getMaxSendAmountSatoshis(stubChronikUtxos, 11.177);
+        }, Error('Insufficient funds to send any satoshis from this wallet at fee rate of 11.177 satoshis per byte'));
     });
 });

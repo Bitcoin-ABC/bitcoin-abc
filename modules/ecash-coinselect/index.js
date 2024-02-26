@@ -3,5 +3,5 @@
 // Distributed under the MIT software license, see the accompanying
 // file LICENSE or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
-const { coinSelect } = require('./src/coinSelect');
-module.exports = { coinSelect };
+const { coinSelect, getMaxSendAmountSatoshis } = require('./src/coinSelect');
+module.exports = { coinSelect, getMaxSendAmountSatoshis };
