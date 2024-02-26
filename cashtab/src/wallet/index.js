@@ -1,5 +1,7 @@
 import { BN } from 'slp-mdm';
 
+const SATOSHIS_PER_XEC = 100;
+
 /**
  * Get total value of satoshis associated with an array of chronik utxos
  * @param {array} nonSlpUtxos array of chronik utxos
@@ -10,9 +12,6 @@ import { BN } from 'slp-mdm';
  * @returns {number | NaN} integer, total balance of input utxos in satoshis
  * or NaN if any utxo is invalid
  */
-
-const SATOSHIS_PER_XEC = 100;
-
 export const getBalanceSats = nonSlpUtxos => {
     return nonSlpUtxos.reduce(
         (previousBalance, utxo) => previousBalance + parseInt(utxo.value),
