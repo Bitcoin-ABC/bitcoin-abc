@@ -2,7 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use bitcoinsuite_core::script::{compress_script_variant, Script};
+use bitcoinsuite_core::{
+    script::{compress_script_variant, Script},
+    tx::Tx,
+};
 use bytes::Bytes;
 
 use crate::{
@@ -32,9 +35,38 @@ pub type ScriptUtxoReader<'a> = GroupUtxoReader<'a, ScriptGroup>;
 #[derive(Clone, Debug)]
 pub struct ScriptGroup;
 
+/// Iterator over the scripts of a tx
+#[derive(Debug)]
+pub struct ScriptGroupIter<'a> {
+    is_coinbase: bool,
+    tx: &'a Tx,
+    idx: usize,
+    is_outputs: bool,
+}
+
+impl<'a> Iterator for ScriptGroupIter<'a> {
+    type Item = MemberItem<&'a Script>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.is_coinbase && !self.is_outputs {
+            return None;
+        }
+        let idx = self.idx;
+        self.idx += 1;
+        Some(MemberItem {
+            idx,
+            member: if self.is_outputs {
+                &self.tx.outputs.get(idx)?.script
+            } else {
+                &self.tx.inputs.get(idx)?.coin.as_ref()?.output.script
+            },
+        })
+    }
+}
+
 impl Group for ScriptGroup {
     type Aux = ();
-    type Iter<'a> = Vec<MemberItem<&'a Script>>;
+    type Iter<'a> = ScriptGroupIter<'a>;
     type Member<'a> = &'a Script;
     type MemberSer<'a> = Bytes;
     type UtxoData = UtxoDataValue;
@@ -44,19 +76,12 @@ impl Group for ScriptGroup {
         query: GroupQuery<'a>,
         _aux: &(),
     ) -> Self::Iter<'a> {
-        if query.is_coinbase {
-            return vec![];
+        ScriptGroupIter {
+            is_coinbase: query.is_coinbase,
+            tx: query.tx,
+            idx: 0,
+            is_outputs: false,
         }
-        let mut input_scripts = Vec::with_capacity(query.tx.inputs.len());
-        for (idx, input) in query.tx.inputs.iter().enumerate() {
-            if let Some(coin) = &input.coin {
-                input_scripts.push(MemberItem {
-                    idx,
-                    member: &coin.output.script,
-                });
-            }
-        }
-        input_scripts
     }
 
     fn output_members<'a>(
@@ -64,16 +89,12 @@ impl Group for ScriptGroup {
         query: GroupQuery<'a>,
         _aux: &(),
     ) -> Self::Iter<'a> {
-        let mut output_scripts = Vec::with_capacity(query.tx.outputs.len());
-        for (idx, output) in query.tx.outputs.iter().enumerate() {
-            if !output.script.is_opreturn() {
-                output_scripts.push(MemberItem {
-                    idx,
-                    member: &output.script,
-                });
-            }
+        ScriptGroupIter {
+            is_coinbase: query.is_coinbase,
+            tx: query.tx,
+            idx: 0,
+            is_outputs: true,
         }
-        output_scripts
     }
 
     fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a> {
@@ -160,14 +181,14 @@ mod tests {
             ],
         );
         assert_eq!(
-            script_group.input_members(query, &()),
+            script_group.input_members(query, &()).collect::<Vec<_>>(),
             vec![
                 make_member_item(0, &make_script(vec![0x51])),
                 make_member_item(1, &make_script(vec![0x52])),
             ],
         );
         assert_eq!(
-            script_group.output_members(query, &()),
+            script_group.output_members(query, &()).collect::<Vec<_>>(),
             vec![
                 make_member_item(0, &make_script(vec![0x53])),
                 make_member_item(1, &make_script(vec![0x51])),
@@ -185,9 +206,12 @@ mod tests {
                 &Script::new(vec![0x51].into()),
             ],
         );
-        assert_eq!(script_group.input_members(query, &()), vec![]);
         assert_eq!(
-            script_group.output_members(query, &()),
+            script_group.input_members(query, &()).collect::<Vec<_>>(),
+            vec![],
+        );
+        assert_eq!(
+            script_group.output_members(query, &()).collect::<Vec<_>>(),
             vec![
                 make_member_item(0, &make_script(vec![0x53])),
                 make_member_item(1, &make_script(vec![0x51])),
