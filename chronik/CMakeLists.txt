@@ -11,10 +11,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Corrosion)
 
-set(REQUIRED_RUST_VERSION "1.72.0")
+set(REQUIRED_RUST_VERSION "1.76.0")
 if(Rust_VERSION VERSION_LESS REQUIRED_RUST_VERSION)
     message(FATAL_ERROR "Minimum required Rust version is "
-            "${REQUIRED_RUST_VERSION}, but found ${Rust_VERSION}")
+            "${REQUIRED_RUST_VERSION}, but found ${Rust_VERSION}. "
+            "Use `rustup update stable` to update.")
 endif()
 
 set(CARGO_BUILD_DIR "${CMAKE_BINARY_DIR}/cargo/build")

@@ -192,7 +192,7 @@ pub enum ColorError {
 impl ColoredTx {
     /// Parse the OP_RETURN of the tx and color its outputs
     pub fn color_tx(tx: &Tx) -> Option<ColoredTx> {
-        let op_return = match tx.outputs.get(0) {
+        let op_return = match tx.outputs.first() {
             Some(output) if output.script.is_opreturn() => &output.script,
             _ => return None,
         };

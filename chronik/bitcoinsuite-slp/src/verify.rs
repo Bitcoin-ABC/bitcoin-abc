@@ -234,7 +234,7 @@ impl VerifyContext<'_> {
                 if section.meta.token_type
                     == TokenType::Slp(SlpTokenType::Nft1Child) =>
             {
-                match self.spent_tokens.get(0) {
+                match self.spent_tokens.first() {
                     Some(Some(spent_token))
                         if spent_token.token.meta.token_type
                             == TokenType::Slp(SlpTokenType::Nft1Group)

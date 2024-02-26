@@ -212,7 +212,7 @@ impl<'tx> BatchProcessor<'tx> {
         }
 
         // Add new tokens from GENESIS txs
-        if let Some(entry) = valid_tx.entries.get(0) {
+        if let Some(entry) = valid_tx.entries.first() {
             // Skip invalid GENESIS txs
             if !entry.is_invalid {
                 if let Some(info) = &entry.genesis_info {
@@ -255,7 +255,7 @@ impl<'tx> BatchProcessor<'tx> {
 
         let mut flags = 0;
         if is_mint_vault_mint {
-            let first_entry = valid_tx.entries.get(0);
+            let first_entry = valid_tx.entries.first();
             let has_mint_vault =
                 first_entry.map_or(false, |entry| !entry.is_invalid);
             if has_mint_vault {

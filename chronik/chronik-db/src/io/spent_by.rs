@@ -230,10 +230,7 @@ impl<'a> SpentByWriter<'a> {
                     tx_num: tx.tx_num,
                     input_idx: input_idx as u32,
                 };
-                spent_by_map
-                    .entry(input_tx_num)
-                    .or_insert(vec![])
-                    .push(spent_by);
+                spent_by_map.entry(input_tx_num).or_default().push(spent_by);
             }
         }
         for (tx_num, entries) in spent_by_map {
