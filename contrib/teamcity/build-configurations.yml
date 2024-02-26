@@ -419,6 +419,7 @@ builds:
         - install-secp256k1
       - - check-extended
         - check-upgrade-activated-extended
+        - check-electrum
     timeout: 4800
 
   build-native-osx:
