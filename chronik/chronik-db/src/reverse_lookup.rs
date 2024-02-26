@@ -120,14 +120,9 @@ impl IndexError {
 
 impl<L: LookupColumn> ReverseLookup<L> {
     /// Add the cfs required by the reverse lookup index.
-    pub(crate) fn add_cfs(
-        columns: &mut Vec<ColumnFamilyDescriptor>,
-        lookup_cf_name: &'static str,
-    ) {
-        columns.push(ColumnFamilyDescriptor::new(
-            lookup_cf_name,
-            Options::default(),
-        ));
+    pub(crate) fn add_cfs(columns: &mut Vec<ColumnFamilyDescriptor>) {
+        columns
+            .push(ColumnFamilyDescriptor::new(L::CF_INDEX, Options::default()));
     }
 
     /// Read by key from the DB using the index.
@@ -310,7 +305,7 @@ mod tests {
         let tempdir = tempdir::TempDir::new("chronik-db--lookup")?;
         let mut cfs =
             vec![ColumnFamilyDescriptor::new(CF_TEST, Options::default())];
-        Index::add_cfs(&mut cfs, CF_TEST_INDEX);
+        Index::add_cfs(&mut cfs);
         let db = Db::open_with_cfs(tempdir.path(), cfs)?;
         let cf_data = db.cf(CF_TEST)?;
         let column = TestColumn { db: &db, cf_data };
@@ -460,7 +455,7 @@ mod tests {
         let tempdir = tempdir::TempDir::new("chronik-db--lookup_rng")?;
         let mut cfs =
             vec![ColumnFamilyDescriptor::new(CF_TEST, Options::default())];
-        Index::add_cfs(&mut cfs, CF_TEST_INDEX);
+        Index::add_cfs(&mut cfs);
         let db = Db::open_with_cfs(tempdir.path(), cfs)?;
         let cf_data = db.cf(CF_TEST)?;
         let column = TestColumn { db: &db, cf_data };

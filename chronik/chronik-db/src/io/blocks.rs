@@ -181,7 +181,7 @@ impl<'a> BlockWriter<'a> {
             CF_BLK,
             rocksdb::Options::default(),
         ));
-        LookupByHash::add_cfs(columns, CF_LOOKUP_BLK_BY_HASH);
+        LookupByHash::add_cfs(columns);
     }
 }
 
@@ -238,8 +238,9 @@ impl<'a> BlockReader<'a> {
 
     /// [`DbBlock`] by height. The genesis block has height 0.
     pub fn by_height(&self, height: BlockHeight) -> Result<Option<DbBlock>> {
-        let Some(block_data) = self.col.get_block(height)?
-            else { return Ok(None) };
+        let Some(block_data) = self.col.get_block(height)? else {
+            return Ok(None);
+        };
         let prev_block_hash = self.get_prev_hash(height)?;
         Ok(Some(DbBlock {
             hash: BlockHash::from(block_data.hash),

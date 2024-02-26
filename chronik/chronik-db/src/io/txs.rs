@@ -323,7 +323,7 @@ impl<'a> TxWriter<'a> {
             CF_FIRST_TX_BY_BLK,
             Options::default(),
         ));
-        LookupByHash::add_cfs(columns, CF_LOOKUP_TX_BY_HASH);
+        LookupByHash::add_cfs(columns);
     }
 }
 
