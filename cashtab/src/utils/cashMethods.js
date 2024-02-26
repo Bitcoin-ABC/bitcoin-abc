@@ -1,46 +1,6 @@
 import { BN } from 'slp-mdm';
 import cashaddr from 'ecashaddrjs';
-import appConfig from 'config/app';
 import { toXec } from 'wallet';
-
-export const getCashtabByteCount = (p2pkhInputCount, p2pkhOutputCount) => {
-    // Simplifying bch-js function for P2PKH txs only, as this is all Cashtab supports for now
-    // https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L408
-    // The below magic numbers refer to:
-    // const types = {
-    //     inputs: {
-    //         'P2PKH': 148 * 4,
-    //     },
-    //     outputs: {
-    //         P2PKH: 34 * 4,
-    //     },
-    // };
-
-    const inputCount = new BN(p2pkhInputCount);
-    const outputCount = new BN(p2pkhOutputCount);
-    const inputWeight = new BN(148 * 4);
-    const outputWeight = new BN(34 * 4);
-    const nonSegwitWeightConstant = new BN(10 * 4);
-    let totalWeight = new BN(0);
-    totalWeight = totalWeight
-        .plus(inputCount.times(inputWeight))
-        .plus(outputCount.times(outputWeight))
-        .plus(nonSegwitWeightConstant);
-    const byteCount = totalWeight.div(4).integerValue(BN.ROUND_CEIL);
-
-    return Number(byteCount);
-};
-
-export const calcFee = (
-    utxos,
-    p2pkhOutputNumber = 2,
-    satoshisPerByte = appConfig.defaultFee,
-    opReturnByteCount = 0,
-) => {
-    const byteCount = getCashtabByteCount(utxos.length, p2pkhOutputNumber);
-    const txFee = Math.ceil(satoshisPerByte * (byteCount + opReturnByteCount));
-    return txFee;
-};
 
 /**
  * Get the total XEC amount sent in a one-to-many XEC tx

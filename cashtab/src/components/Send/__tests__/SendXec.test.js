@@ -1085,4 +1085,81 @@ describe('<SendXec />', () => {
         // The Cashtab Message collapse is now rendered because op_return_raw is no longer set
         expect(screen.getByText('Message')).toBeInTheDocument();
     });
+    it('We can calculate max send amount with and without a cashtab msg, and send a max sat tx with a cashtab msg', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Can check in electrum for opreturn and amount
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b483045022100c7afe57283adb7dae4ae4d72c40e9403f4673205ccb3bd25fb618919dc41984d02203433e27c83796c2bb4f89a20a51230e9db6a3c94aaf40f9ee51a284a8bdd40824121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0200000000000000003c6a040074616235486f772061626f75742061206c6f6e672d6973682043617368746162206d7367207769746820656d6f6a697320f09f8eaff09f988e03820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
+        const txid =
+            '5c7b3dbc88ff6a9991108ec650448a9e530591001b99f40133eb23434778cfa7';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, addressInput);
+
+        // We click "max" to populate the Amount field
+        await user.click(screen.getByText('max'));
+
+        // Amount input is the expected max send for Cashtab's fee and no other outputs
+        expect(amountInputEl).toHaveValue(9509.26);
+
+        // Let's add a message
+        await user.click(screen.getByText('Message'));
+
+        // Confirm that even a msg of blank spaces is added
+        await user.type(
+            screen.getByPlaceholderText('(max 215 bytes)'),
+            `     `,
+        );
+
+        // We click "max" again to recalculate the max send amount
+        await user.click(screen.getByText('max'));
+
+        // Amount input is now the expected max send for Cashtab's fee and an empty-space Cashtab Msg output
+        expect(amountInputEl).toHaveValue(9508.83);
+
+        // Clear the msg input and start again
+        await user.clear(screen.getByPlaceholderText('(max 215 bytes)'));
+
+        await user.type(
+            screen.getByPlaceholderText('(max 215 bytes)'),
+            `How about a long-ish Cashtab msg with emojis 🎯😎`,
+        );
+
+        // We click "max" again to recalculate the max send amount
+        await user.click(screen.getByText('max'));
+
+        // Amount input is now the expected max send for Cashtab's fee and a Cashtab Msg output
+        expect(amountInputEl).toHaveValue(9507.87);
+
+        // Click Send
+        await user.click(
+            screen.getByRole('button', { name: /Send/ }),
+            addressInput,
+        );
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText(
+            'Transaction successful. Click to view in block explorer.',
+        );
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
 });

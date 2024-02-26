@@ -7,8 +7,6 @@ import {
     getHashArrayFromWallet,
     isActiveWebsocket,
     getWalletBalanceFromUtxos,
-    getCashtabByteCount,
-    calcFee,
     sumOneToManyXec,
 } from 'utils/cashMethods';
 import { utxosLoadedFromCache } from '../__mocks__/mockCachedUtxos';
@@ -36,7 +34,6 @@ import {
     disconnectedWebsocketAlpha,
     unsubscribedWebsocket,
 } from '../__mocks__/chronikWs';
-import appConfig from 'config/app';
 
 it(`sumOneToManyXec() correctly parses the value for a valid one to many send XEC transaction`, () => {
     const destinationAddressAndValueArray = [
@@ -285,33 +282,5 @@ describe('Correctly executes cash utility functions', () => {
     });
     it(`isActiveWebsocket returns false for an active websocket connection with no subscriptions`, () => {
         expect(isActiveWebsocket(unsubscribedWebsocket)).toBe(false);
-    });
-    it(`getCashtabByteCount for 2 inputs, 2 outputs returns the same value as BCH.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: p2pkhOutputNumber },
-        );`, () => {
-        expect(getCashtabByteCount(2, 2)).toBe(374);
-    });
-    it(`getCashtabByteCount for 1 input, 2 outputs returns the same value as BCH.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: p2pkhOutputNumber },
-        );`, () => {
-        expect(getCashtabByteCount(1, 2)).toBe(226);
-    });
-    it(`getCashtabByteCount for 173 input, 1 outputs returns the same value as BCH.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: p2pkhOutputNumber },
-        );`, () => {
-        expect(getCashtabByteCount(173, 1)).toBe(25648);
-    });
-    it(`getCashtabByteCount for 1 input, 2000 outputs returns the same value as BCH.BitcoinCash.getByteCount(
-            { P2PKH: utxos.length },
-            { P2PKH: p2pkhOutputNumber },
-        );`, () => {
-        expect(getCashtabByteCount(1, 2000)).toBe(68158);
-    });
-    it('calculates fee correctly for 2 P2PKH outputs', () => {
-        const utxosMock = [{}, {}];
-        expect(calcFee(utxosMock, 2, appConfig.defaultFee)).toBe(752);
     });
 });

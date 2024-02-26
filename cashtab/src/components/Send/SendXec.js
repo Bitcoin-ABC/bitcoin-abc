@@ -13,11 +13,12 @@ import {
     CashReceivedNotificationIcon,
 } from 'components/Common/CustomIcons';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import { Form, message, Modal, Alert, Input } from 'antd';
+import { Form, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton, { DisabledButton } from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
-import { sumOneToManyXec, getWalletBalanceFromUtxos } from 'utils/cashMethods';
+import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
+import { sumOneToManyXec } from 'utils/cashMethods';
 import { Event } from 'utils/GoogleAnalytics';
 import {
     fiatToCrypto,
@@ -34,7 +35,7 @@ import {
     TxLink,
     MsgBytesizeError,
 } from 'components/Common/Atoms';
-import { getWalletState, calcFee } from 'utils/cashMethods';
+import { getWalletState } from 'utils/cashMethods';
 import {
     sendXec,
     getMultisendTargetOutputs,
@@ -671,31 +672,42 @@ const SendXec = ({ passLoadingStatus }) => {
     const onMax = async () => {
         // Clear amt error
         setSendAmountError(false);
+
         // Set currency to XEC
         setSelectedCurrency(appConfig.ticker);
+
+        // Account for CashtabMsg if it is set
+        const intendedTargetOutputs =
+            opReturnMsg !== false && opReturnMsg !== ''
+                ? getCashtabMsgTargetOutput(opReturnMsg)
+                : [];
+
+        // Get max send amount in satoshis
+        let maxSendSatoshis;
         try {
-            const txFeeSats = calcFee(spendableUtxos);
-            const spendableBalance = getWalletBalanceFromUtxos(spendableUtxos);
-
-            const txFeeXec = txFeeSats / 10 ** appConfig.cashDecimals;
-            let value =
-                spendableBalance.totalBalance - txFeeXec >= 0
-                    ? (spendableBalance.totalBalance - txFeeXec).toFixed(
-                          appConfig.cashDecimals,
-                      )
-                    : 0;
-
-            setFormData({
-                ...formData,
-                value,
-            });
-        } catch (err) {
-            console.log(`Error in onMax:`);
-            console.log(err);
-            message.error(
-                'Unable to calculate the max value due to network errors',
+            // An error will be thrown if the wallet has insufficient funds to send more than dust
+            maxSendSatoshis = getMaxSendAmountSatoshis(
+                spendableUtxos,
+                appConfig.defaultFee,
+                intendedTargetOutputs,
             );
+        } catch (err) {
+            // Set to zero. In this case, 0 is the max amount we can send, and we know
+            // this will trigger the expected dust validation error
+            maxSendSatoshis = 0;
         }
+
+        // Convert to XEC to set in form
+        const maxSendXec = toXec(maxSendSatoshis);
+
+        // Update value in the send field
+        // Note, if we are updating it to 0, we will get a 'dust' error
+        handleAmountChange({
+            target: {
+                name: 'value',
+                value: maxSendXec,
+            },
+        });
     };
     // Display price in USD below input field for send amount, if it can be calculated
     let fiatPriceString = '';
