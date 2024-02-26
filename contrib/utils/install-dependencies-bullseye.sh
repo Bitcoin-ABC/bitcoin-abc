@@ -168,7 +168,10 @@ apt-get install -y nodejs
 npm i -g nyc
 
 # Install Rust stable 1.72.0 and nightly from the 2023-12-29
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain=1.72.0
+curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
+echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
+chmod +x rustup-init
+./rustup-init -y --default-toolchain=1.72.0
 RUST_HOME="${HOME}/.cargo/bin"
 RUST_NIGHTLY_DATE=2023-12-29
 "${RUST_HOME}/rustup" install nightly-${RUST_NIGHTLY_DATE}
