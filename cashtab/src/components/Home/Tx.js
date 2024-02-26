@@ -479,7 +479,7 @@ const Tx = ({
                     <TxInfo>Open in Explorer</TxInfo>
                 </TxWrapper>
             ) : (
-                <AntdContextCollapseWrapper data-testid="tx-collapse">
+                <AntdContextCollapseWrapper>
                     <Collapse bordered={false}>
                         <Panel
                             showArrow={false}

@@ -123,12 +123,19 @@ describe('<Home />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
-        // Sideshift button is rendered
-        expect(
-            await screen.findByRole('button', {
-                name: /Exchange to XEC via SideShift/,
-            }),
-        ).toBeInTheDocument();
+        // Wait for the component to finish loading
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Sideshift button is rendered after we are no longer loading
+        await waitFor(() => {
+            expect(
+                screen.getByRole('button', {
+                    name: /Exchange to XEC via SideShift/,
+                }),
+            ).toBeInTheDocument();
+        });
     });
     it('Renders the onboarding screen for a new wallet', async () => {
         // localforage defaults

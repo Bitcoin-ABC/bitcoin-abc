@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent, {
+    PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
     walletWithXecAndTokens,
@@ -155,7 +157,7 @@ describe('<App />', () => {
         // Now we see the Settings screen
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
     });
-    it('Adding a contact to Configure.js from clicking on tx history adds it to localforage and wallet context', async () => {
+    it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             freshWalletWithOneIncomingCashtabMsg,
             localforage,
@@ -163,13 +165,24 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
-        // Open the collapse
-        await waitFor(async () => {
-            const contactListCollapseButton = screen
-                .queryByTestId('tx-collapse')
-                .querySelector('.ant-collapse-header');
-            await userEvent.click(contactListCollapseButton);
-        });
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // We see the home container
+        await screen.findByTestId('home-ctn');
+
+        // Open the collapse of this tx in tx history
+        await userEvent.click(
+            await screen.findByRole('button', {
+                name: /Warning: This sender is not in your contact list. Beware of scams./,
+            }),
+            {
+                // https://github.com/testing-library/user-event/issues/922
+                pointerEventsCheck: PointerEventsCheckLevel.Never,
+            },
+        );
 
         // Get the "Add to contacts" button of tx
         const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
@@ -215,13 +228,24 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
-        // Open the collapse
-        await waitFor(async () => {
-            const contactListCollapseButton = screen
-                .queryByTestId('tx-collapse')
-                .querySelector('.ant-collapse-header');
-            await userEvent.click(contactListCollapseButton);
-        });
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // We see the home container
+        await screen.findByTestId('home-ctn');
+
+        // Open the collapse of this tx in tx history
+        await userEvent.click(
+            await screen.findByRole('button', {
+                name: /Warning: This sender is not in your contact list. Beware of scams./,
+            }),
+            {
+                // https://github.com/testing-library/user-event/issues/922
+                pointerEventsCheck: PointerEventsCheckLevel.Never,
+            },
+        );
 
         // Get the "Add to contacts" button of tx
         const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
