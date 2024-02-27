@@ -1,6 +1,3 @@
-import { cashtabSettings } from 'config/cashtabSettings';
-import cashtabCache from 'config/cashtabCache';
-
 // Normal Cashtab wallet
 export const walletWithXecAndTokens = {
     mnemonic:
@@ -796,17 +793,4 @@ export const walletWithXecAndTokens = {
             },
         ],
     },
-};
-// Context mock for loading: true
-export const loadingTrue = {
-    loading: true,
-};
-const cashtabState = { settings: cashtabSettings };
-// Context mock for wallet with balances
-export const walletWithBalancesMockContext = {
-    wallet: walletWithXecAndTokens,
-    cashtabCache,
-    cashtabState,
-    loading: false,
-    apiError: false,
 };
