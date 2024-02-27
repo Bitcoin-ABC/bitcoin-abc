@@ -42,7 +42,7 @@ const EcashPrice = styled.p`
 
 const BalanceHeader = ({
     balanceSats = null,
-    cashtabSettings = defaultCashtabSettings,
+    settings = defaultCashtabSettings,
     fiatPrice = null,
     userLocale = 'en-US',
 }) => {
@@ -90,7 +90,7 @@ const BalanceHeader = ({
         <>
             <BalanceXec
                 data-testid="balance-xec"
-                balanceVisible={cashtabSettings.balanceVisible === false}
+                balanceVisible={settings.balanceVisible === false}
             >
                 {formattedBalanceXec} {appConfig.ticker}{' '}
             </BalanceXec>
@@ -98,23 +98,17 @@ const BalanceHeader = ({
                 <>
                     <BalanceFiat
                         data-testid="balance-fiat"
-                        balanceVisible={
-                            cashtabSettings.balanceVisible === false
-                        }
+                        balanceVisible={settings.balanceVisible === false}
                     >
-                        {
-                            supportedFiatCurrencies[
-                                cashtabSettings.fiatCurrency
-                            ].symbol
-                        }
+                        {supportedFiatCurrencies[settings.fiatCurrency].symbol}
                         {formattedBalanceFiat}&nbsp;
                         {supportedFiatCurrencies[
-                            cashtabSettings.fiatCurrency
+                            settings.fiatCurrency
                         ].slug.toUpperCase()}
                     </BalanceFiat>
                     <EcashPrice data-testid="ecash-price">
                         1 {appConfig.ticker} = {formattedExchangeRate}{' '}
-                        {cashtabSettings.fiatCurrency.toUpperCase()}
+                        {settings.fiatCurrency.toUpperCase()}
                     </EcashPrice>
                 </>
             )}
@@ -124,7 +118,7 @@ const BalanceHeader = ({
 
 BalanceHeader.propTypes = {
     balanceSats: PropTypes.number,
-    cashtabSettings: PropTypes.oneOfType([
+    settings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
             sendModal: PropTypes.bool,

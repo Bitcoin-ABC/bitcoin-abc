@@ -801,7 +801,7 @@ export const walletWithXecAndTokens = {
 export const mockWalletContext = {
     wallet: walletWithXecAndTokens,
     cashtabCache,
-    cashtabSettings,
+    cashtabState: { settings: cashtabSettings },
     loading: false,
 };
 

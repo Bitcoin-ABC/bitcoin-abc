@@ -24,7 +24,7 @@ const WalletName = styled.div`
     }
 `;
 
-const WalletLabel = ({ name, cashtabSettings, changeCashtabSettings }) => {
+const WalletLabel = ({ name, settings, updateCashtabState }) => {
     return (
         <LabelCtn>
             {name && typeof name === 'string' && (
@@ -39,8 +39,8 @@ const WalletLabel = ({ name, cashtabSettings, changeCashtabSettings }) => {
                 <ThemedEditOutlined />
             </Link>
             <HideBalanceSwitch
-                cashtabSettings={cashtabSettings}
-                changeCashtabSettings={changeCashtabSettings}
+                settings={settings}
+                updateCashtabState={updateCashtabState}
             />
         </LabelCtn>
     );
@@ -48,7 +48,7 @@ const WalletLabel = ({ name, cashtabSettings, changeCashtabSettings }) => {
 
 WalletLabel.propTypes = {
     name: PropTypes.string,
-    cashtabSettings: PropTypes.oneOfType([
+    settings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
             sendModal: PropTypes.bool,
@@ -58,7 +58,7 @@ WalletLabel.propTypes = {
         }),
         PropTypes.bool,
     ]),
-    changeCashtabSettings: PropTypes.func,
+    updateCashtabState: PropTypes.func,
 };
 
 export default WalletLabel;

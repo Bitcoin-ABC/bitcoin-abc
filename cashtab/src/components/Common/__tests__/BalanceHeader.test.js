@@ -36,7 +36,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000.23}
-                cashtabSettings={cashtabSettings}
+                settings={cashtabSettings}
                 fiatPrice={0.00003}
             />,
         );
@@ -51,7 +51,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                cashtabSettings={cashtabSettings}
+                settings={cashtabSettings}
                 fiatPrice={0.00003}
             />,
         );
@@ -84,7 +84,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                cashtabSettings={frenchSettings}
+                settings={frenchSettings}
                 fiatPrice={0.00003}
                 userLocale={'fr-FR'}
             />,
@@ -118,7 +118,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                cashtabSettings={hiddenSettings}
+                settings={hiddenSettings}
                 fiatPrice={0.00003}
             />,
         );
@@ -151,7 +151,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                cashtabSettings={nonUsdSettings}
+                settings={nonUsdSettings}
                 fiatPrice={0.00003}
             />,
         );
@@ -182,7 +182,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                cashtabSettings={cashtabSettings}
+                settings={cashtabSettings}
                 fiatPrice={null}
             />,
         );

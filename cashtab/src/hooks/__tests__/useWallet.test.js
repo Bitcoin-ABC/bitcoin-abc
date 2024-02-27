@@ -1,7 +1,6 @@
 import useWallet from '../useWallet';
 import { renderHook, act } from '@testing-library/react';
 import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
-import { cashtabSettings as cashtabDefaultConfig } from 'config/cashtabSettings';
 import aliasSettings from 'config/alias';
 import { when } from 'jest-when';
 
@@ -19,17 +18,6 @@ describe('useWallet hook', () => {
         expect(wallet).toStrictEqual(
             mockLegacyWallets.migratedLegacyAlphaMainnet,
         );
-    });
-
-    it('Verify default Cashtab settings are initialized', async () => {
-        const { result } = renderHook(() => useWallet());
-
-        let cashtabSettings;
-        await act(async () => {
-            cashtabSettings = await result.current.loadCashtabSettings();
-        });
-
-        expect(cashtabSettings).toStrictEqual(cashtabDefaultConfig);
     });
 
     it('processChronikWsMsg() refreshes alias prices when aliasPrices is null', async () => {

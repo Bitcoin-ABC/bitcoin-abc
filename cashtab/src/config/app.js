@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import mainLogo from 'assets/logo_primary.png';
 import tokenLogo from 'assets/logo_secondary.png';
+import { cashtabSettings } from 'config/cashtabSettings';
 
 // App settings not adjustable by the user
 const appConfig = {
@@ -24,7 +25,7 @@ const appConfig = {
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
     monitorExtension: false,
-    defaultCashtabState: { contactList: [] },
+    defaultCashtabState: { contactList: [], settings: cashtabSettings },
 };
 
 export default appConfig;

@@ -15,7 +15,7 @@ import {
     isValidAirdropOutputsArray,
     isValidAirdropExclusionArray,
     isValidContactList,
-    parseInvalidSettingsForMigration,
+    migrateLegacyCashtabSettings,
     parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
@@ -659,42 +659,6 @@ describe('Validation utils', () => {
             tokenInfoById: {},
         }));
 
-    it('updates an invalid settings object and keeps existing valid settings intact', () =>
-        expect(
-            parseInvalidSettingsForMigration({
-                fiatCurrency: 'gbp',
-            }),
-        ).toStrictEqual({
-            fiatCurrency: 'gbp',
-            sendModal: false,
-            autoCameraOn: true,
-            hideMessagesFromUnknownSenders: false,
-            balanceVisible: true,
-        }));
-    it('sets settings object with no exsting valid settings to default values', () =>
-        expect(parseInvalidSettingsForMigration({})).toStrictEqual({
-            fiatCurrency: 'usd',
-            sendModal: false,
-            autoCameraOn: true,
-            hideMessagesFromUnknownSenders: false,
-            balanceVisible: true,
-        }));
-    it('does nothing if valid settings object is present in localStorage', () =>
-        expect(
-            parseInvalidSettingsForMigration({
-                fiatCurrency: 'brl',
-                sendModal: true,
-                autoCameraOn: true,
-                hideMessagesFromUnknownSenders: false,
-                balanceVisible: true,
-            }),
-        ).toStrictEqual({
-            fiatCurrency: 'brl',
-            sendModal: true,
-            autoCameraOn: true,
-            hideMessagesFromUnknownSenders: false,
-            balanceVisible: true,
-        }));
     it(`accepts a valid wallet name`, () => {
         expect(isValidNewWalletNameLength('Apollo')).toBe(true);
     });
@@ -956,6 +920,19 @@ describe('Validating Cashtab Contact Lists', () => {
         const { description, contactList, isValid } = expectedReturn;
         it(`isValidContactList: ${description}`, () => {
             expect(isValidContactList(contactList)).toBe(isValid);
+        });
+    });
+});
+
+describe('Appropriately migrates users with legacy settings', () => {
+    const { expectedReturns } = vectors.migrateLegacyCashtabSettings;
+    expectedReturns.forEach(expectedReturn => {
+        const { description, legacySettings, migratedSettings } =
+            expectedReturn;
+        it(`migrateLegacyCashtabSettings: ${description}`, () => {
+            expect(migrateLegacyCashtabSettings(legacySettings)).toStrictEqual(
+                migratedSettings,
+            );
         });
     });
 });

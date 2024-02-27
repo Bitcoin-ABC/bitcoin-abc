@@ -253,19 +253,22 @@ export const isValidCashtabSettings = settings => {
     }
 };
 
-export const parseInvalidSettingsForMigration = invalidCashtabSettings => {
-    // create a copy of the invalidCashtabSettings
-    let migratedCashtabSettings = invalidCashtabSettings;
+/**
+ * When Cashtab adds a new setting, existing users will not have it set
+ * We do not want to force these users to start with fully-wiped default settings
+ * Instead, we add the missing key
+ * @param {object} settings cashtabSettings object from localforage
+ * @returns {object} migratedCashtabSettings
+ */
+export const migrateLegacyCashtabSettings = settings => {
     // determine if settings are invalid because it is missing a parameter
     for (let param in cashtabDefaultConfig) {
-        if (
-            !Object.prototype.hasOwnProperty.call(invalidCashtabSettings, param)
-        ) {
+        if (!Object.prototype.hasOwnProperty.call(settings, param)) {
             // adds the default setting for only that parameter
-            migratedCashtabSettings[param] = cashtabDefaultConfig[param];
+            settings[param] = cashtabDefaultConfig[param];
         }
     }
-    return migratedCashtabSettings;
+    return settings;
 };
 
 export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {

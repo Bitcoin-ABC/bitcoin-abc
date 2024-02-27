@@ -422,7 +422,7 @@ const Tx = ({
     fiatPrice,
     fiatCurrency,
     contactList,
-    cashtabSettings,
+    settings,
     cashtabCache,
 }) => {
     const [displayedMessage, setDisplayedMessage] = useState(false);
@@ -808,7 +808,7 @@ const Tx = ({
                                                         data.parsed.incoming
                                                     }
                                                     aria-expanded={
-                                                        cashtabSettings.hideMessagesFromUnknownSenders
+                                                        settings.hideMessagesFromUnknownSenders
                                                             ? displayedMessage
                                                             : false
                                                     }
@@ -847,7 +847,7 @@ const Tx = ({
                                                         ''
                                                     )}
                                                     <br />
-                                                    {cashtabSettings.hideMessagesFromUnknownSenders ? (
+                                                    {settings.hideMessagesFromUnknownSenders ? (
                                                         <>
                                                             {/*unencrypted OP_RETURN Message*/}
                                                             {data.parsed
@@ -946,11 +946,11 @@ const Tx = ({
                                                             )}
                                                         </>
                                                     )}
-                                                    {(!cashtabSettings.hideMessagesFromUnknownSenders &&
+                                                    {(!settings.hideMessagesFromUnknownSenders &&
                                                         data.parsed.incoming &&
                                                         data.parsed
                                                             .replyAddress) ||
-                                                    (cashtabSettings.hideMessagesFromUnknownSenders &&
+                                                    (settings.hideMessagesFromUnknownSenders &&
                                                         displayedMessage) ||
                                                     (fromKnownSender &&
                                                         data.parsed.incoming &&
@@ -1081,7 +1081,7 @@ Tx.propTypes = {
         }),
     ),
     cashtabCache: PropTypes.object,
-    cashtabSettings: PropTypes.oneOfType([
+    settings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
             sendModal: PropTypes.bool,

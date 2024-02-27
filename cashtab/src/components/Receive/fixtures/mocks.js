@@ -801,11 +801,12 @@ export const walletWithXecAndTokens = {
 export const loadingTrue = {
     loading: true,
 };
+const cashtabState = { settings: cashtabSettings };
 // Context mock for wallet with balances
 export const walletWithBalancesMockContext = {
     wallet: walletWithXecAndTokens,
     cashtabCache,
-    cashtabSettings,
+    cashtabState,
     loading: false,
     apiError: false,
 };

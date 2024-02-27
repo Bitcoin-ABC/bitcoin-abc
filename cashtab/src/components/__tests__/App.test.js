@@ -17,6 +17,7 @@ import {
     initializeCashtabStateForTests,
 } from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+import { explorer } from 'config/explorer';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -46,7 +47,13 @@ window.matchMedia = query => ({
 });
 
 describe('<App />', () => {
+    let user;
     beforeEach(() => {
+        // Set up userEvent to skip pointerEvents check, which returns false positives with antd
+        user = userEvent.setup({
+            // https://github.com/testing-library/user-event/issues/922
+            pointerEventsCheck: PointerEventsCheckLevel.Never,
+        });
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
@@ -90,7 +97,6 @@ describe('<App />', () => {
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
-        const user = userEvent.setup();
 
         // Default route is home
         await screen.findByTestId('home-ctn');
@@ -174,7 +180,7 @@ describe('<App />', () => {
         await screen.findByTestId('home-ctn');
 
         // Open the collapse of this tx in tx history
-        await userEvent.click(
+        await user.click(
             await screen.findByRole('button', {
                 name: /Warning: This sender is not in your contact list. Beware of scams./,
             }),
@@ -195,7 +201,7 @@ describe('<App />', () => {
         expect(storedContacts).toStrictEqual(null);
 
         // Click the button
-        await userEvent.click(addToContactsBtn);
+        await user.click(addToContactsBtn);
 
         // Now we see the Configure screen
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
@@ -237,7 +243,7 @@ describe('<App />', () => {
         await screen.findByTestId('home-ctn');
 
         // Open the collapse of this tx in tx history
-        await userEvent.click(
+        await user.click(
             await screen.findByRole('button', {
                 name: /Warning: This sender is not in your contact list. Beware of scams./,
             }),
@@ -258,7 +264,7 @@ describe('<App />', () => {
         expect(storedContacts).toEqual(initialContactList);
 
         // Click the button
-        await userEvent.click(addToContactsBtn);
+        await user.click(addToContactsBtn);
 
         // Now we see the Configure screen
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
@@ -392,5 +398,116 @@ describe('<App />', () => {
             },
             writable: true,
         });
+    });
+    it('Setting "Send Confirmations" settings will show send confirmations', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206e0875eb1b866bc063217eb55ba88ddb2a5c4f299278e0c7ce4f34194619a6d502201e2c373cfe93ed35c6502e22b748ab07893e22643107b58f018af8ffbd6b654e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88accd6c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '7eb806a83c48b0ab38b5af10aaa7452d4648f2c0d41975343ada9f4aa8255bd8';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Default route is home
+        await screen.findByTestId('home-ctn');
+
+        // Click the hamburger menu
+        await user.click(screen.queryByTestId('hamburger'));
+
+        // Navigate to Settings screen
+        await user.click(screen.queryByTestId('nav-btn-configure'));
+
+        // Now we see the Settings screen
+        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+
+        // Send confirmations are disabled by default
+        // Note, another antd issue. We can't get the switch by role bc antd switches are buttons with no name
+        // and no label
+        // So, use data-testid
+        console.log(screen.getByTestId('send-confirmations-switch'));
+        // We cannot get switch checked status from the antd switch. So, disabled has a grey background.
+        expect(screen.getByTestId('send-confirmations-switch')).toHaveStyle(
+            'background-color: #bdbdbd;',
+        );
+
+        // Enable send confirmations
+        await user.click(screen.getByTestId('send-confirmations-switch'));
+        // Now the switch does not have a grey background
+        expect(screen.getByTestId('send-confirmations-switch')).not.toHaveStyle(
+            'background-color: #bdbdbd;',
+        );
+
+        // Navigate to the Send screen
+        await user.click(screen.queryByTestId('nav-btn-send'));
+
+        // Now we see the Send screen
+        expect(screen.getByTestId('send-xec-ctn')).toBeInTheDocument();
+
+        // Fill out to and amount
+        await user.type(
+            screen.getByPlaceholderText('Address'),
+            'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
+        );
+        await user.type(screen.getByPlaceholderText('Amount'), '55');
+        // click send
+        await user.click(screen.getByRole('button', { name: /Send/ }));
+        // we see a modal
+        expect(
+            await screen.findByText(
+                `Are you sure you want to send 55 XEC to ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y?`,
+            ),
+        ).toBeInTheDocument();
+
+        // We can click ok to send the tx
+        await user.click(screen.getByText('OK'));
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText(
+            'Transaction successful. Click to view in block explorer.',
+        );
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {
+        // Note: this is what happens to existing users when we add a new key to cashtabState.settings
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Set settings with some keys missing
+        const legacySettings = {
+            fiatCurrency: 'gbp', // non-default value
+            sendModal: true, // non-default value
+            autoCameraOn: true,
+            // no hideMessagesFromUnknownSenders
+            // no balanceVisible:
+        };
+
+        // Update localforage with these legacy settings
+        await localforage.setItem('settings', legacySettings);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Confirm localforage has been updated and non-default values are preserved
+        await waitFor(async () =>
+            expect(await localforage.getItem('settings')).toEqual({
+                ...legacySettings,
+                hideMessagesFromUnknownSenders: false,
+                balanceVisible: true,
+            }),
+        );
     });
 });

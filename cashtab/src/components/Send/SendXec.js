@@ -163,10 +163,15 @@ const SendXec = ({ passLoadingStatus }) => {
         chaintipBlockheight,
         fiatPrice,
         apiError,
-        cashtabSettings,
+        cashtabState,
         chronik,
         cashtabCache,
     } = ContextValue;
+    // Ensure cashtabState is not undefined before context initializes
+    const { settings } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos } = walletState;
     // Use spendable utxos instead of all nonSlpUtxos for onMax function
@@ -179,9 +184,7 @@ const SendXec = ({ passLoadingStatus }) => {
 
     // Load with QR code open if device is mobile
     const openWithScanner =
-        cashtabSettings &&
-        cashtabSettings.autoCameraOn === true &&
-        isMobile(navigator);
+        settings && settings.autoCameraOn === true && isMobile(navigator);
 
     const [formData, setFormData] = useState({
         value: '',
@@ -228,8 +231,8 @@ const SendXec = ({ passLoadingStatus }) => {
     };
 
     const checkForConfirmationBeforeSendXec = () => {
-        if (cashtabSettings.sendModal) {
-            setIsModalVisible(cashtabSettings.sendModal);
+        if (settings.sendModal) {
+            setIsModalVisible(settings.sendModal);
         } else {
             // if the user does not have the send confirmation enabled in settings then send directly
             send();
@@ -726,15 +729,14 @@ const SendXec = ({ passLoadingStatus }) => {
 
             // insert symbol and currency before/after the locale formatted fiat balance
             fiatPriceString = `${
-                cashtabSettings
+                settings
                     ? `${
-                          supportedFiatCurrencies[cashtabSettings.fiatCurrency]
-                              .symbol
+                          supportedFiatCurrencies[settings.fiatCurrency].symbol
                       } `
                     : '$ '
             } ${fiatPriceString} ${
-                cashtabSettings && cashtabSettings.fiatCurrency
-                    ? cashtabSettings.fiatCurrency.toUpperCase()
+                settings && settings.fiatCurrency
+                    ? settings.fiatCurrency.toUpperCase()
                     : 'USD'
             }`;
         } else {
@@ -903,9 +905,9 @@ const SendXec = ({ passLoadingStatus }) => {
                                         </FormLabel>
                                         <SendXecInput
                                             activeFiatCode={
-                                                cashtabSettings &&
-                                                cashtabSettings.fiatCurrency
-                                                    ? cashtabSettings.fiatCurrency.toUpperCase()
+                                                settings &&
+                                                settings.fiatCurrency
+                                                    ? settings.fiatCurrency.toUpperCase()
                                                     : 'USD'
                                             }
                                             validateStatus={
@@ -958,7 +960,7 @@ const SendXec = ({ passLoadingStatus }) => {
                                             Error fetching fiat price. Setting
                                             send by{' '}
                                             {supportedFiatCurrencies[
-                                                cashtabSettings.fiatCurrency
+                                                settings.fiatCurrency
                                             ].slug.toUpperCase()}{' '}
                                             disabled
                                         </AlertMsg>

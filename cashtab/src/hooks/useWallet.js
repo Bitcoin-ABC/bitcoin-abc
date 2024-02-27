@@ -13,7 +13,7 @@ import {
     isValidCashtabSettings,
     isValidCashtabCache,
     isValidContactList,
-    parseInvalidSettingsForMigration,
+    migrateLegacyCashtabSettings,
     parseInvalidCashtabCacheForMigration,
 } from 'validation';
 import localforage from 'localforage';
@@ -32,10 +32,6 @@ import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import { websocket as websocketConfig } from 'config/websocket';
-import {
-    cashtabSettings as cashtabDefaultConfig,
-    cashtabSettingsValidation,
-} from 'config/cashtabSettings';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
@@ -61,7 +57,6 @@ const useWallet = chronik => {
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
-    const [cashtabSettings, setCashtabSettings] = useState(false);
     const [cashtabCache, setCashtabCache] = useState(defaultCashtabCache);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
@@ -87,6 +82,7 @@ const useWallet = chronik => {
     const [cashtabState, setCashtabState] = useState(
         appConfig.defaultCashtabState,
     );
+    const { settings } = cashtabState;
 
     const deriveAccount = async ({ masterHDNode, path }) => {
         const node = masterHDNode.derivePath(path);
@@ -289,6 +285,20 @@ const useWallet = chronik => {
             cashtabState.contactList = contactList;
         }
 
+        // settings
+        let settings = await localforage.getItem('settings');
+        if (settings !== null) {
+            // If we find settings in localforage
+            if (!isValidCashtabSettings(settings)) {
+                // If a settings object is present but invalid, parse to find and add missing keys
+                settings = migrateLegacyCashtabSettings(settings);
+                // Update localforage on app load only if existing values are in an obsolete format
+                updateCashtabState('settings', settings);
+            }
+
+            // Set cashtabState settings to valid localforage or migrated settings
+            cashtabState.settings = settings;
+        }
         setCashtabState(cashtabState);
     };
 
@@ -972,15 +982,15 @@ const useWallet = chronik => {
                     description: `
                             ${xecAmount.toLocaleString()} ${appConfig.ticker}
                             ${
-                                cashtabSettings &&
-                                cashtabSettings.fiatCurrency &&
+                                settings &&
+                                settings.fiatCurrency &&
                                 `(${
                                     supportedFiatCurrencies[
-                                        cashtabSettings.fiatCurrency
+                                        settings.fiatCurrency
                                     ].symbol
                                 }${(xecAmount * fiatPrice).toFixed(
                                     appConfig.cashDecimals,
-                                )} ${cashtabSettings.fiatCurrency.toUpperCase()})`
+                                )} ${settings.fiatCurrency.toUpperCase()})`
                             }
                         `,
                     icon: <CashReceivedNotificationIcon />,
@@ -1115,48 +1125,6 @@ const useWallet = chronik => {
         return setChronikWebsocket(ws);
     };
 
-    const loadCashtabSettings = async () => {
-        // get settings object from localforage
-        let localSettings;
-        try {
-            localSettings = await localforage.getItem('settings');
-            // If there is no keyvalue pair in localforage with key 'settings'
-            if (localSettings === null) {
-                // Create one with the default settings from Ticker.js
-                localforage.setItem('settings', cashtabDefaultConfig);
-                // Set state to default settings
-                setCashtabSettings(cashtabDefaultConfig);
-                return cashtabDefaultConfig;
-            }
-        } catch (err) {
-            console.log(`Error getting cashtabSettings`, err);
-            // TODO If they do not exist, write them
-            // TODO add function to change them
-            setCashtabSettings(cashtabDefaultConfig);
-            return cashtabDefaultConfig;
-        }
-        // If you found an object in localforage at the settings key, make sure it's valid
-        if (isValidCashtabSettings(localSettings)) {
-            setCashtabSettings(localSettings);
-            return localSettings;
-        }
-        // If a settings object is present but invalid, parse to find and add missing keys
-        let modifiedLocalSettings =
-            parseInvalidSettingsForMigration(localSettings);
-        if (isValidCashtabSettings(modifiedLocalSettings)) {
-            // modifiedLocalSettings placed in local storage
-            localforage.setItem('settings', modifiedLocalSettings);
-            setCashtabSettings(modifiedLocalSettings);
-            // update missing key in local storage without overwriting existing valid settings
-            return modifiedLocalSettings;
-        } else {
-            // if not valid, also set cashtabSettings to default
-            setCashtabSettings(cashtabDefaultConfig);
-            // Since this is returning default settings based on an error from reading storage, do not overwrite whatever is in storage
-            return cashtabDefaultConfig;
-        }
-    };
-
     const loadCashtabCache = async () => {
         // get cache object from localforage
         let localCashtabCache;
@@ -1207,59 +1175,6 @@ const useWallet = chronik => {
         clearInterval(fiatPriceApi);
     };
 
-    const changeCashtabSettings = async (key, newValue) => {
-        // Set loading to true as you do not want to display the fiat price of the last currency
-        // loading = true will lock the UI until the fiat price has updated
-        if (key !== 'balanceVisible') {
-            setLoading(true);
-        }
-        // Get settings from localforage
-        let currentSettings;
-        let newSettings;
-        try {
-            currentSettings = await localforage.getItem('settings');
-        } catch (err) {
-            console.log(`Error in changeCashtabSettings`, err);
-            // Set fiat price to null, which disables fiat sends throughout the app
-            setFiatPrice(null);
-            // Unlock the UI
-            setLoading(false);
-            return;
-        }
-
-        // Make sure function was called with valid params
-        if (cashtabSettingsValidation[key].includes(newValue)) {
-            // Update settings
-            newSettings = currentSettings;
-            newSettings[key] = newValue;
-        } else {
-            // Set fiat price to null, which disables fiat sends throughout the app
-            setFiatPrice(null);
-            // Unlock the UI
-            setLoading(false);
-            return;
-        }
-        // Set new settings in state so they are available in context throughout the app
-        setCashtabSettings(newSettings);
-        // If this settings change adjusted the fiat currency, update fiat price
-        if (key === 'fiatCurrency') {
-            clearFiatPriceApi(checkFiatInterval);
-            initializeFiatPriceApi(newValue);
-        }
-        // Write new settings in localforage
-        try {
-            await localforage.setItem('settings', newSettings);
-        } catch (err) {
-            console.log(
-                `Error writing newSettings object to localforage in changeCashtabSettings`,
-                err,
-            );
-            console.log(`newSettings`, newSettings);
-            // do nothing. If this happens, the user will see default currency next time they load the app.
-        }
-        setLoading(false);
-    };
-
     // Parse for incoming XEC transactions
     // hasUpdated is set to true in the useInterval function, and re-sets to false during activateWallet
     // Do not show this notification if websocket connection is live; in this case the websocket will handle it
@@ -1285,12 +1200,11 @@ const useWallet = chronik => {
                     ).toLocaleString()}
                     ${appConfig.ticker}
                     ${
-                        cashtabSettings &&
-                        cashtabSettings.fiatCurrency &&
+                        settings &&
+                        settings.fiatCurrency &&
                         `(${
-                            supportedFiatCurrencies[
-                                cashtabSettings.fiatCurrency
-                            ].symbol
+                            supportedFiatCurrencies[settings.fiatCurrency]
+                                .symbol
                         }${(
                             Number(
                                 balances.totalBalance -
@@ -1298,7 +1212,7 @@ const useWallet = chronik => {
                             ) * fiatPrice
                         ).toFixed(
                             appConfig.cashDecimals,
-                        )} ${cashtabSettings.fiatCurrency.toUpperCase()})`
+                        )} ${settings.fiatCurrency.toUpperCase()})`
                     }
                 `,
             icon: <CashReceivedNotificationIcon />,
@@ -1407,7 +1321,9 @@ const useWallet = chronik => {
     }, walletRefreshInterval);
 
     const fetchBchPrice = async (
-        fiatCode = cashtabSettings ? cashtabSettings.fiatCurrency : 'usd',
+        fiatCode = typeof cashtabState?.settings?.fiatCurrency !== 'undefined'
+            ? cashtabState.settings.fiatCurrency
+            : 'usd',
     ) => {
         // Split this variable out in case coingecko changes
         const cryptoId = appConfig.coingeckoId;
@@ -1481,13 +1397,19 @@ const useWallet = chronik => {
         setWallet(await getWallet());
         await loadCashtabState();
         await loadCashtabCache();
-        const initialSettings = await loadCashtabSettings();
-        initializeFiatPriceApi(initialSettings.fiatCurrency);
     };
 
     useEffect(() => {
         cashtabBootup();
     }, []);
+
+    // Clear price API and update to new price API when fiat currency changes
+    useEffect(() => {
+        // Clear existing fiat price API check
+        clearFiatPriceApi(checkFiatInterval);
+        // Reset fiat price API when fiatCurrency setting changes
+        initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
+    }, cashtabState.settings.fiatCurrency);
 
     /*
     Run initializeWebsocket(chronik, wallet, fiatPrice) each time chronik, wallet, or fiatPrice changes
@@ -1541,10 +1463,7 @@ const useWallet = chronik => {
         fiatPrice,
         loading,
         apiError,
-        cashtabSettings,
-        loadCashtabSettings,
         cashtabCache,
-        changeCashtabSettings,
         refreshAliases,
         aliases,
         setAliases,

@@ -452,13 +452,11 @@ const Configure = ({ passLoadingStatus }) => {
         renameActiveWallet,
         deleteWallet,
         getSavedWallets,
-        cashtabSettings,
-        changeCashtabSettings,
         updateCashtabState,
         cashtabState,
     } = ContextValue;
     // Ensure cashtabState is not undefined before context initializes
-    const { contactList } =
+    const { contactList, settings } =
         typeof cashtabState === 'undefined'
             ? appConfig.defaultCashtabState
             : cashtabState;
@@ -833,14 +831,23 @@ const Configure = ({ passLoadingStatus }) => {
     };
 
     const handleSendModalToggle = checkedState => {
-        changeCashtabSettings('sendModal', checkedState);
+        updateCashtabState('settings', {
+            ...settings,
+            sendModal: checkedState,
+        });
     };
 
     const handleCameraOverride = checkedState => {
-        changeCashtabSettings('autoCameraOn', checkedState);
+        updateCashtabState('settings', {
+            ...settings,
+            autoCameraOn: checkedState,
+        });
     };
     const handleUnknownSenderMsg = checkedState => {
-        changeCashtabSettings('hideMessagesFromUnknownSenders', checkedState);
+        updateCashtabState('settings', {
+            ...settings,
+            hideMessagesFromUnknownSenders: checkedState,
+        });
     };
 
     const getContactNameByAddress = contactAddress => {
@@ -1671,13 +1678,16 @@ const Configure = ({ passLoadingStatus }) => {
                 <AntdFormWrapper>
                     <CurrencySelectDropdown
                         defaultValue={
-                            cashtabSettings && cashtabSettings.fiatCurrency
-                                ? cashtabSettings.fiatCurrency
+                            settings && settings.fiatCurrency
+                                ? settings.fiatCurrency
                                 : 'usd'
                         }
-                        onChange={fiatCode =>
-                            changeCashtabSettings('fiatCurrency', fiatCode)
-                        }
+                        onChange={fiatCode => {
+                            updateCashtabState('settings', {
+                                ...settings,
+                                fiatCurrency: fiatCode,
+                            });
+                        }}
                     />
                 </AntdFormWrapper>
                 <StyledSpacer />
@@ -1689,12 +1699,11 @@ const Configure = ({ passLoadingStatus }) => {
                         <LockFilled /> Send Confirmations
                     </SettingsLabel>
                     <Switch
+                        data-testid="send-confirmations-switch"
                         size="small"
                         checkedChildren={<CheckOutlined />}
                         unCheckedChildren={<CloseOutlined />}
-                        checked={
-                            cashtabSettings ? cashtabSettings.sendModal : false
-                        }
+                        checked={settings ? settings.sendModal : false}
                         onChange={handleSendModalToggle}
                     />
                 </GeneralSettingsItem>
@@ -1710,11 +1719,7 @@ const Configure = ({ passLoadingStatus }) => {
                             size="small"
                             checkedChildren={<CheckOutlined />}
                             unCheckedChildren={<CloseOutlined />}
-                            checked={
-                                cashtabSettings
-                                    ? cashtabSettings.autoCameraOn
-                                    : false
-                            }
+                            checked={settings ? settings.autoCameraOn : false}
                             onChange={handleCameraOverride}
                         />
                     </GeneralSettingsItem>
@@ -1728,8 +1733,8 @@ const Configure = ({ passLoadingStatus }) => {
                         checkedChildren={<CheckOutlined />}
                         unCheckedChildren={<CloseOutlined />}
                         checked={
-                            cashtabSettings
-                                ? cashtabSettings.hideMessagesFromUnknownSenders
+                            settings
+                                ? settings.hideMessagesFromUnknownSenders
                                 : false
                         }
                         onChange={handleUnknownSenderMsg}

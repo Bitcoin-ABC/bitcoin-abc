@@ -7,7 +7,7 @@ const TxHistory = ({
     fiatPrice,
     fiatCurrency,
     contactList,
-    cashtabSettings,
+    settings,
     cashtabCache,
 }) => {
     return (
@@ -19,7 +19,7 @@ const TxHistory = ({
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
                     contactList={contactList}
-                    cashtabSettings={cashtabSettings}
+                    settings={settings}
                     cashtabCache={cashtabCache}
                 />
             ))}
@@ -38,7 +38,7 @@ TxHistory.propTypes = {
             name: PropTypes.string,
         }),
     ),
-    cashtabSettings: PropTypes.oneOfType([
+    settings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
             sendModal: PropTypes.bool,

@@ -3,9 +3,13 @@ import { Switch, Tooltip } from 'antd';
 import { ThemedEyeSVG, ThemedInvisibleEyeSVG } from './CustomIcons';
 import PropTypes from 'prop-types';
 
-const HideBalanceSwitch = ({ cashtabSettings, changeCashtabSettings }) => {
+const HideBalanceSwitch = ({ settings, updateCashtabState }) => {
     const handleShowHideBalance = checkedState => {
-        changeCashtabSettings('balanceVisible', checkedState);
+        // Update settings in state and localforage
+        updateCashtabState('settings', {
+            ...settings,
+            balanceVisible: checkedState,
+        });
     };
     return (
         <div>
@@ -15,9 +19,7 @@ const HideBalanceSwitch = ({ cashtabSettings, changeCashtabSettings }) => {
                     size="small"
                     checkedChildren={<ThemedEyeSVG />}
                     unCheckedChildren={<ThemedInvisibleEyeSVG />}
-                    checked={
-                        cashtabSettings ? cashtabSettings.balanceVisible : false
-                    }
+                    checked={settings ? settings.balanceVisible : false}
                     onChange={handleShowHideBalance}
                 />
             </Tooltip>
@@ -26,7 +28,7 @@ const HideBalanceSwitch = ({ cashtabSettings, changeCashtabSettings }) => {
 };
 
 HideBalanceSwitch.propTypes = {
-    cashtabSettings: PropTypes.oneOfType([
+    settings: PropTypes.oneOfType([
         PropTypes.shape({
             fiatCurrency: PropTypes.string,
             sendModal: PropTypes.bool,
@@ -36,7 +38,7 @@ HideBalanceSwitch.propTypes = {
         }),
         PropTypes.bool,
     ]),
-    changeCashtabSettings: PropTypes.func,
+    updateCashtabState: PropTypes.func,
 };
 
 export default HideBalanceSwitch;

@@ -50,6 +50,7 @@ import ExtensionHeader from './Common/ExtensionHeader';
 import { WalletInfoCtn } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
+import appConfig from 'config/app';
 
 const ExtensionFrame = createGlobalStyle`
     html, body {
@@ -433,13 +434,13 @@ const NavHeader = styled.div`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        cashtabSettings,
-        changeCashtabSettings,
-        fiatPrice,
-        loading,
-    } = ContextValue;
+    const { wallet, cashtabState, updateCashtabState, fiatPrice, loading } =
+        ContextValue;
+    // Ensure cashtabState is not undefined before context initializes
+    const { settings } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
@@ -549,9 +550,9 @@ const App = () => {
                                     <WalletInfoCtn data-testid="wallet-info-ctn">
                                         <WalletLabel
                                             name={wallet.name}
-                                            cashtabSettings={cashtabSettings}
-                                            changeCashtabSettings={
-                                                changeCashtabSettings
+                                            settings={settings}
+                                            updateCashtabState={
+                                                updateCashtabState
                                             }
                                         ></WalletLabel>
                                         <BalanceHeader
@@ -563,7 +564,7 @@ const App = () => {
                                                       )
                                                     : null
                                             }
-                                            cashtabSettings={cashtabSettings}
+                                            settings={settings}
                                             fiatPrice={fiatPrice}
                                             locale={navigator.language}
                                         />

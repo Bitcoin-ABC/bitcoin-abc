@@ -91,7 +91,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             ),
         );
         await waitFor(() =>
-            expect(result.current.cashtabSettings).toStrictEqual(
+            expect(result.current.cashtabState.settings).toStrictEqual(
                 cashtabSettingsGbp,
             ),
         );

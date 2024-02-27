@@ -4,6 +4,7 @@
 
 // Test vectors for validation functions
 import appConfig from 'config/app';
+import { cashtabSettings } from 'config/cashtabSettings';
 
 export default {
     shouldDisableXecSend: {
@@ -643,6 +644,46 @@ export default {
                     },
                 ],
                 isValid: true,
+            },
+        ],
+    },
+    migrateLegacyCashtabSettings: {
+        expectedReturns: [
+            {
+                description: 'User with only fiatCurrency in settings',
+                legacySettings: {
+                    fiatCurrency: 'gbp',
+                },
+                migratedSettings: {
+                    fiatCurrency: 'gbp',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                },
+            },
+            {
+                description: 'Migrates an empty object to default settings',
+                legacySettings: {},
+                migratedSettings: cashtabSettings,
+            },
+            {
+                description:
+                    'Returns object unchanged if it has all expected keys',
+                legacySettings: {
+                    fiatCurrency: 'brl',
+                    sendModal: true,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                },
+                migratedSettings: {
+                    fiatCurrency: 'brl',
+                    sendModal: true,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                },
             },
         ],
     },

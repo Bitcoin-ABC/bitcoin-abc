@@ -11,8 +11,13 @@ import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
 const CreateToken = ({ passLoadingStatus }) => {
-    const { wallet, apiError, fiatPrice, cashtabSettings } =
+    const { wallet, apiError, fiatPrice, cashtabState } =
         React.useContext(WalletContext);
+    // Ensure cashtabState is not undefined before context initializes
+    const { settings } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
 
@@ -26,17 +31,16 @@ const CreateToken = ({ passLoadingStatus }) => {
                     <AlertMsg>
                         You need at least {toXec(appConfig.dustSats).toString()}{' '}
                         {appConfig.ticker} (
-                        {cashtabSettings
+                        {settings
                             ? `${
-                                  supportedFiatCurrencies[
-                                      cashtabSettings.fiatCurrency
-                                  ].symbol
+                                  supportedFiatCurrencies[settings.fiatCurrency]
+                                      .symbol
                               }`
                             : '$'}
                         {(toXec(appConfig.dustSats) * fiatPrice).toFixed(4)}{' '}
-                        {cashtabSettings
+                        {settings
                             ? `${supportedFiatCurrencies[
-                                  cashtabSettings.fiatCurrency
+                                  settings.fiatCurrency
                               ].slug.toUpperCase()}`
                             : 'USD'}
                         ) to create a token

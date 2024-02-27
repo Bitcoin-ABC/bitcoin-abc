@@ -44,7 +44,7 @@ describe('<Tx />', () => {
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
                     contactList={[]}
-                    cashtabSettings={cashtabSettings}
+                    settings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
                 ,
@@ -72,7 +72,7 @@ describe('<Tx />', () => {
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
                     contactList={[]}
-                    cashtabSettings={cashtabSettings}
+                    settings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
             </ThemeProvider>,
@@ -100,7 +100,7 @@ describe('<Tx />', () => {
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
                     contactList={[]}
-                    cashtabSettings={cashtabSettings}
+                    settings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
             </ThemeProvider>,
@@ -127,7 +127,7 @@ describe('<Tx />', () => {
                                 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                         },
                     ]}
-                    cashtabSettings={cashtabSettings}
+                    settings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
                 ,
@@ -150,7 +150,7 @@ describe('<Tx />', () => {
                                 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
                         },
                     ]}
-                    cashtabSettings={cashtabSettings}
+                    settings={cashtabSettings}
                     cashtabCache={cashtabCache}
                 />
                 ,

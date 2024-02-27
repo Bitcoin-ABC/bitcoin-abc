@@ -106,11 +106,16 @@ const SendToken = ({ passLoadingStatus }) => {
     const {
         wallet,
         apiError,
-        cashtabSettings,
+        cashtabState,
         chronik,
         cashtabCache,
         chaintipBlockheight,
     } = React.useContext(WalletContext);
+    // Ensure cashtabState is not undefined before context initializes
+    const { settings } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
 
@@ -133,9 +138,7 @@ const SendToken = ({ passLoadingStatus }) => {
 
     // Load with QR code open if device is mobile
     const openWithScanner =
-        cashtabSettings &&
-        cashtabSettings.autoCameraOn === true &&
-        isMobile(navigator);
+        settings && settings.autoCameraOn === true && isMobile(navigator);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -354,8 +357,8 @@ const SendToken = ({ passLoadingStatus }) => {
     };
 
     const checkForConfirmationBeforeSendEtoken = () => {
-        if (cashtabSettings.sendModal) {
-            setIsModalVisible(cashtabSettings.sendModal);
+        if (settings.sendModal) {
+            setIsModalVisible(settings.sendModal);
         } else {
             // if the user does not have the send confirmation enabled in settings then send directly
             submit();
@@ -559,7 +562,6 @@ const SendToken = ({ passLoadingStatus }) => {
                     <BalanceHeaderToken
                         balance={new BN(token.balance)}
                         ticker={token.info.tokenTicker}
-                        cashtabSettings={cashtabSettings}
                         tokenDecimals={token.info.decimals}
                     />
                     <Row type="flex">
