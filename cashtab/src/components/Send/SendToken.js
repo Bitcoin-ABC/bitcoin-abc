@@ -437,7 +437,6 @@ const SendToken = ({ passLoadingStatus }) => {
                 message: 'Success',
                 description: (
                     <a
-                        data-testid="burn-token-notification"
                         href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -602,7 +601,6 @@ const SendToken = ({ passLoadingStatus }) => {
                                 />
                                 <AliasAddressPreviewLabel>
                                     <TxLink
-                                        data-testid="alias-address-preview"
                                         key={aliasInputAddress}
                                         href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                         target="_blank"
@@ -687,7 +685,6 @@ const SendToken = ({ passLoadingStatus }) => {
                                         </>
                                     ) : (
                                         <PrimaryButton
-                                            data-testid="send-token-btn"
                                             onClick={() =>
                                                 checkForConfirmationBeforeSendEtoken()
                                             }
@@ -806,7 +803,7 @@ const SendToken = ({ passLoadingStatus }) => {
                                                         onMax={onMaxBurn}
                                                         inputProps={{
                                                             placeholder:
-                                                                'Amount',
+                                                                'Burn Amount',
                                                             suffix: token.info
                                                                 .tokenTicker,
                                                             onChange: e =>
@@ -826,7 +823,6 @@ const SendToken = ({ passLoadingStatus }) => {
                                                         }}
                                                     />
                                                     <Button
-                                                        data-testid="burn-token-btn"
                                                         type="primary"
                                                         onClick={
                                                             handleBurnAmountInput
