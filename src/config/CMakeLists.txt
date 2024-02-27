@@ -19,32 +19,6 @@ option(CLIENT_VERSION_IS_RELEASE "Build a release version" OFF)
 # Generate the version.h file
 configure_file(version.h.cmake.in version.h ESCAPE_QUOTES)
 
-# Endianness
-check_include_files("endian.h" HAVE_ENDIAN_H)
-check_include_files("sys/endian.h" HAVE_SYS_ENDIAN_H)
-
-if(HAVE_ENDIAN_H)
-	set(ENDIAN_FILE "endian.h")
-elseif(HAVE_SYS_ENDIAN_H)
-	set(ENDIAN_FILE "sys/endian.h")
-else()
-endif()
-
-if(ENDIAN_FILE)
-	check_symbol_exists(htole16 ${ENDIAN_FILE} HAVE_DECL_HTOLE16)
-	check_symbol_exists(htobe16 ${ENDIAN_FILE} HAVE_DECL_HTOBE16)
-	check_symbol_exists(be16toh ${ENDIAN_FILE} HAVE_DECL_BE16TOH)
-	check_symbol_exists(le16toh ${ENDIAN_FILE} HAVE_DECL_LE16TOH)
-	check_symbol_exists(htobe32 ${ENDIAN_FILE} HAVE_DECL_HTOBE32)
-	check_symbol_exists(htole32 ${ENDIAN_FILE} HAVE_DECL_HTOLE32)
-	check_symbol_exists(be32toh ${ENDIAN_FILE} HAVE_DECL_BE32TOH)
-	check_symbol_exists(le32toh ${ENDIAN_FILE} HAVE_DECL_LE32TOH)
-	check_symbol_exists(htobe64 ${ENDIAN_FILE} HAVE_DECL_HTOBE64)
-	check_symbol_exists(htole64 ${ENDIAN_FILE} HAVE_DECL_HTOLE64)
-	check_symbol_exists(be64toh ${ENDIAN_FILE} HAVE_DECL_BE64TOH)
-	check_symbol_exists(le64toh ${ENDIAN_FILE} HAVE_DECL_LE64TOH)
-endif()
-
 # sys/select.h and sys/prctl.h headers
 check_include_files("sys/select.h" HAVE_SYS_SELECT_H)
 check_include_files("sys/prctl.h" HAVE_SYS_PRCTL_H)

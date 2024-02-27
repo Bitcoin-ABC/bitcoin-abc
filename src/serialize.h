@@ -59,27 +59,27 @@ template <typename Stream> inline void ser_writedata8(Stream &s, uint8_t obj) {
 }
 template <typename Stream>
 inline void ser_writedata16(Stream &s, uint16_t obj) {
-    obj = htole16(obj);
+    obj = htole16_internal(obj);
     s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata16be(Stream &s, uint16_t obj) {
-    obj = htobe16(obj);
+    obj = htobe16_internal(obj);
     s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata32(Stream &s, uint32_t obj) {
-    obj = htole32(obj);
+    obj = htole32_internal(obj);
     s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata32be(Stream &s, uint32_t obj) {
-    obj = htobe32(obj);
+    obj = htobe32_internal(obj);
     s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream>
 inline void ser_writedata64(Stream &s, uint64_t obj) {
-    obj = htole64(obj);
+    obj = htole64_internal(obj);
     s.write(AsBytes(Span{&obj, 1}));
 }
 template <typename Stream> inline uint8_t ser_readdata8(Stream &s) {
@@ -90,27 +90,27 @@ template <typename Stream> inline uint8_t ser_readdata8(Stream &s) {
 template <typename Stream> inline uint16_t ser_readdata16(Stream &s) {
     uint16_t obj;
     s.read(AsWritableBytes(Span{&obj, 1}));
-    return le16toh(obj);
+    return le16toh_internal(obj);
 }
 template <typename Stream> inline uint16_t ser_readdata16be(Stream &s) {
     uint16_t obj;
     s.read(AsWritableBytes(Span{&obj, 1}));
-    return be16toh(obj);
+    return be16toh_internal(obj);
 }
 template <typename Stream> inline uint32_t ser_readdata32(Stream &s) {
     uint32_t obj;
     s.read(AsWritableBytes(Span{&obj, 1}));
-    return le32toh(obj);
+    return le32toh_internal(obj);
 }
 template <typename Stream> inline uint32_t ser_readdata32be(Stream &s) {
     uint32_t obj;
     s.read(AsWritableBytes(Span{&obj, 1}));
-    return be32toh(obj);
+    return be32toh_internal(obj);
 }
 template <typename Stream> inline uint64_t ser_readdata64(Stream &s) {
     uint64_t obj;
     s.read(AsWritableBytes(Span{&obj, 1}));
-    return le64toh(obj);
+    return le64toh_internal(obj);
 }
 inline uint64_t ser_double_to_uint64(double x) {
     uint64_t tmp;
@@ -604,10 +604,10 @@ template <int Bytes, bool BigEndian = false> struct CustomUintFormatter {
                 "CustomUintFormatter value out of range");
         }
         if (BigEndian) {
-            uint64_t raw = htobe64(v);
+            uint64_t raw = htobe64_internal(v);
             s.write({BytePtr(&raw) + 8 - Bytes, Bytes});
         } else {
-            uint64_t raw = htole64(v);
+            uint64_t raw = htole64_internal(v);
             s.write({BytePtr(&raw), Bytes});
         }
     }
@@ -622,10 +622,10 @@ template <int Bytes, bool BigEndian = false> struct CustomUintFormatter {
         uint64_t raw = 0;
         if (BigEndian) {
             s.read({BytePtr(&raw) + 8 - Bytes, Bytes});
-            v = static_cast<I>(be64toh(raw));
+            v = static_cast<I>(be64toh_internal(raw));
         } else {
             s.read({BytePtr(&raw), Bytes});
-            v = static_cast<I>(le64toh(raw));
+            v = static_cast<I>(le64toh_internal(raw));
         }
     }
 };
