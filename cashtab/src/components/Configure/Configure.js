@@ -413,7 +413,7 @@ const StyledSpacer = styled.div`
 `;
 
 const HideableTextContainer = styled.div``;
-const AutoCameraTextCtn = styled.div`
+const SettingsLabel = styled.div`
     display: flex;
     white-space: nowrap;
     gap: 3px;
@@ -425,9 +425,6 @@ const GeneralSettingsItem = styled.div`
     justify-content: space-between;
     .ant-switch svg {
         fill: #717171;
-    }
-    .title {
-        color: ${props => props.theme.contrast};
     }
     .anticon {
         color: ${props => props.theme.contrast};
@@ -441,20 +438,7 @@ const GeneralSettingsItem = styled.div`
             fill: ${props => props.theme.contrast};
         }
     }
-    .SendConfirm {
-        color: ${props => props.theme.lightWhite};
-    }
-    ${AutoCameraTextCtn} {
-        color: ${props => props.theme.lightWhite};
-        ${HideableTextContainer} {
-            @media (max-width: 500px) {
-                display: none;
-            }
-        }
-    }
-    .ShowMessages {
-        color: ${props => props.theme.lightWhite};
-    }
+    color: ${props => props.theme.lightWhite};
 `;
 
 const Configure = ({ passLoadingStatus }) => {
@@ -1701,9 +1685,9 @@ const Configure = ({ passLoadingStatus }) => {
                     <ThemedSettingOutlined /> General Settings
                 </h2>
                 <GeneralSettingsItem>
-                    <div className="SendConfirm">
+                    <SettingsLabel>
                         <LockFilled /> Send Confirmations
-                    </div>
+                    </SettingsLabel>
                     <Switch
                         size="small"
                         checkedChildren={<CheckOutlined />}
@@ -1716,12 +1700,12 @@ const Configure = ({ passLoadingStatus }) => {
                 </GeneralSettingsItem>
                 {isMobile(navigator) && (
                     <GeneralSettingsItem>
-                        <AutoCameraTextCtn>
+                        <SettingsLabel>
                             <LockFilled /> Auto-open camera{' '}
                             <HideableTextContainer>
                                 on send
                             </HideableTextContainer>
-                        </AutoCameraTextCtn>
+                        </SettingsLabel>
                         <Switch
                             size="small"
                             checkedChildren={<CheckOutlined />}
@@ -1736,9 +1720,9 @@ const Configure = ({ passLoadingStatus }) => {
                     </GeneralSettingsItem>
                 )}
                 <GeneralSettingsItem>
-                    <div className="ShowMessages">
-                        <LockFilled /> Hide messages from unknown sender
-                    </div>
+                    <SettingsLabel>
+                        <LockFilled /> Hide msgs from unknown sender
+                    </SettingsLabel>
                     <Switch
                         size="small"
                         checkedChildren={<CheckOutlined />}
