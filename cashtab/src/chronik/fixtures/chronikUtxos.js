@@ -6981,8 +6981,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'developer.bitcoin.com',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
             },
         },
         block: {
@@ -8228,8 +8226,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
             },
         },
         block: {
@@ -8320,8 +8316,6 @@ export const mockChronikTxDetailsResponses = [
                     'https://c4.wallpaperflare.com/wallpaper/58/564/863/giant-hamburger-wallpaper-preview.jpg',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
             },
         },
         block: {
@@ -8411,8 +8405,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: '',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
             },
         },
         block: {
@@ -8502,8 +8494,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
             },
         },
         block: {
@@ -8596,8 +8586,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: '',
                 tokenDocumentHash: '',
                 decimals: 8,
-                tokenId:
-                    'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
             },
         },
         block: {
@@ -8670,8 +8658,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'boomertakes.com',
                 tokenDocumentHash: '',
                 decimals: 5,
-                tokenId:
-                    '22f4ba40312ea3e90e1bfa88d2aa694c271d2e07361907b6eb5568873ffa62bf',
             },
         },
         block: {
@@ -8744,8 +8730,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'aa7202397a06097e8ff36855aa72c0ee032659747e5bd7cbcd3099fc3a62b6b6',
             },
         },
         block: {
@@ -8822,8 +8806,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'da9460ce4b1c92b4f6ef4e4a6bc2d05539f49d02b17681389d9ce22b8dca50f0',
             },
         },
         block: {
@@ -8896,8 +8878,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
             },
         },
         block: {
@@ -8978,8 +8958,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://boomertakes.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
             },
         },
         block: {
@@ -9061,8 +9039,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://thecryptoguy.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
             },
         },
         block: {
@@ -9135,8 +9111,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 2,
-                tokenId:
-                    '9e9738e9ac3ff202736bf7775f875ebae6f812650df577a947c20c52475e43da',
             },
         },
         block: {
@@ -9209,8 +9183,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://www.proofofwriting.com/26',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
             },
         },
         block: {
@@ -9291,8 +9263,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'THE REAL HONK SLP TOKEN',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
             },
         },
         block: {
@@ -9365,8 +9335,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
             },
         },
         block: {
@@ -9435,8 +9403,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '3515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9',
             },
         },
         block: {
@@ -9505,8 +9471,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '6fb6122742cac8fd1df2d68997fdfa4c077bc22d9ef4a336bfb63d24225f9060',
             },
         },
         block: {
@@ -9575,8 +9539,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '2936188a41f22a3e0a47d13296147fb3f9ddd2f939fe6382904d21a610e8e49c',
             },
         },
         block: {
@@ -9649,8 +9611,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 1,
-                tokenId:
-                    'e859eeb52e7afca6217fb36784b3b6d3c7386a52f391dd0d00f2ec03a5e8e77b',
             },
         },
         block: {
@@ -9731,8 +9691,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
             },
         },
         block: {
@@ -9853,8 +9811,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentHash:
                     '85b591c15c9f49531e39fcfeb2a5a26b2bd0f7c018fb9cd71b5d92dfb732d5cc',
                 decimals: 7,
-                tokenId:
-                    '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
             },
         },
         block: {
@@ -9927,8 +9883,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://en.wikipedia.org/wiki/COVID-19',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
             },
         },
         block: {
@@ -9992,8 +9946,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc',
             },
         },
         block: {
@@ -10066,8 +10018,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'thecryptoguy.com',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '666c4318d1f7fef5f2c698262492c519018d4e9130f95d05f6be9f0fb7149e96',
             },
         },
         block: {
@@ -10140,8 +10090,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '157e0cdef5d5c51bdea00eac9ab821d809bb9d03cf98da85833614bedb129be6',
             },
         },
         block: {
@@ -10223,8 +10171,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
             },
         },
         block: {
@@ -10298,8 +10244,6 @@ export const mockChronikTxDetailsResponses = [
                     'https://twinpeaks.fandom.com/wiki/Garmonbozia',
                 tokenDocumentHash: '',
                 decimals: 8,
-                tokenId:
-                    'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
             },
         },
         block: {
@@ -10390,8 +10334,6 @@ export const mockChronikTxDetailsResponses = [
                     'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
             },
         },
         block: {
@@ -10464,8 +10406,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
             },
         },
         block: {
@@ -10555,8 +10495,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://boomertakes.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
             },
         },
         block: {
@@ -10629,8 +10567,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'boomertakes.com',
                 tokenDocumentHash: '',
                 decimals: 2,
-                tokenId:
-                    '3de671a7107d3803d78f7f4a4e5c794d0903a8d28d16076445c084943c1e2db8',
             },
         },
         block: {
@@ -10699,8 +10635,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '44929ff3b1fc634f982fede112cf12b21199a2ebbcf718412a38de9177d77168',
             },
         },
         block: {
@@ -10773,8 +10707,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    '639a8dba34788ff3ebd3977d4ac045825394285ee648bb1d159e1c12b787ff25',
             },
         },
         block: {
@@ -10843,8 +10775,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'd376ebcd518067c8e10c0505865cf7336160b47807e6f1a95739ba90ae838840',
             },
         },
         block: {
@@ -10917,8 +10847,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'b40d1f6acdb6ee68d7eca0167fe2753c076bc309b2e3b1af8bff70ca34b945b0',
             },
         },
         block: {
@@ -10982,8 +10910,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtab.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'b39fdb53e21d67fa5fd3a11122f1452f15884047f2b80e8efe633c3b520b7a39',
             },
         },
         block: {
@@ -11056,8 +10982,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'cdc.gov',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '3adbf501e21c711d20118e003711168eb39f560c01f4c6d6736fa3f3fceaa577',
             },
         },
         block: {
@@ -11138,8 +11062,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'thecryptoguy.com',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
             },
         },
         block: {
@@ -11212,8 +11134,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '6e24e89b6d5284138c69777527760500b99614631bca7f2a5c38f4648dae9524',
             },
         },
         block: {
@@ -11287,8 +11207,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentHash:
                     'b1674191a88ec5cdd733e4240a81803105dc412d6c6708d53ab94fc248f4f553',
                 decimals: 8,
-                tokenId:
-                    '8ead21ce4b3b9e7b57607b97b65b5013496dc6e3dfdea162c08ce7265a66ebc8',
             },
         },
         block: {
@@ -11369,8 +11287,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'thecryptoguy.com',
                 tokenDocumentHash: '',
                 decimals: 8,
-                tokenId:
-                    'e4e1a2fb071fa71ca727e08ed1d8ea52a9531c79d1e5f1ebf483c66b71a8621c',
             },
         },
         block: {
@@ -11443,8 +11359,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 5,
-                tokenId:
-                    '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
             },
         },
         block: {
@@ -11525,8 +11439,6 @@ export const mockChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'coinex.com',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
             },
         },
         block: {
@@ -11553,8 +11465,6 @@ export const mockFinalTokenArray = [
                 'https://c4.wallpaperflare.com/wallpaper/58/564/863/giant-hamburger-wallpaper-preview.jpg',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
         },
     },
     {
@@ -11567,8 +11477,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '3515f4a9851ad44124e0ddf6149344deb27a97720fc7e5254a9d2c86da7415a9',
         },
     },
     {
@@ -11581,8 +11489,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '6fb6122742cac8fd1df2d68997fdfa4c077bc22d9ef4a336bfb63d24225f9060',
         },
     },
     {
@@ -11595,8 +11501,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '2936188a41f22a3e0a47d13296147fb3f9ddd2f939fe6382904d21a610e8e49c',
         },
     },
     {
@@ -11609,8 +11513,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '6e24e89b6d5284138c69777527760500b99614631bca7f2a5c38f4648dae9524',
         },
     },
     {
@@ -11623,8 +11525,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                '639a8dba34788ff3ebd3977d4ac045825394285ee648bb1d159e1c12b787ff25',
         },
     },
     {
@@ -11637,8 +11537,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'd376ebcd518067c8e10c0505865cf7336160b47807e6f1a95739ba90ae838840',
         },
     },
     {
@@ -11651,8 +11549,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://boomertakes.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
         },
     },
     {
@@ -11665,8 +11561,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'boomertakes.com',
             tokenDocumentHash: '',
             decimals: 5,
-            tokenId:
-                '22f4ba40312ea3e90e1bfa88d2aa694c271d2e07361907b6eb5568873ffa62bf',
         },
     },
     {
@@ -11679,8 +11573,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'boomertakes.com',
             tokenDocumentHash: '',
             decimals: 2,
-            tokenId:
-                '3de671a7107d3803d78f7f4a4e5c794d0903a8d28d16076445c084943c1e2db8',
         },
     },
     {
@@ -11693,8 +11585,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '157e0cdef5d5c51bdea00eac9ab821d809bb9d03cf98da85833614bedb129be6',
         },
     },
     {
@@ -11707,8 +11597,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '6376cae692cf0302ecdd63234c14cbb2b21cec75ab538335f90254cfb3ed44cc',
         },
     },
     {
@@ -11721,8 +11609,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 5,
-            tokenId:
-                '45f0ff5cae7e89da6b96c26c8c48a959214c5f0e983e78d0925f8956ca8848c6',
         },
     },
     {
@@ -11735,8 +11621,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '44929ff3b1fc634f982fede112cf12b21199a2ebbcf718412a38de9177d77168',
         },
     },
     {
@@ -11749,8 +11633,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://en.wikipedia.org/wiki/COVID-19',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '7bbf452698a24b138b0357f689587fc6ea58410c34503b1179b91e40e10bba8b',
         },
     },
     {
@@ -11763,8 +11645,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'thecryptoguy.com',
             tokenDocumentHash: '',
             decimals: 8,
-            tokenId:
-                'e4e1a2fb071fa71ca727e08ed1d8ea52a9531c79d1e5f1ebf483c66b71a8621c',
         },
     },
     {
@@ -11777,8 +11657,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'thecryptoguy.com',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '666c4318d1f7fef5f2c698262492c519018d4e9130f95d05f6be9f0fb7149e96',
         },
     },
     {
@@ -11791,8 +11669,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
         },
     },
     {
@@ -11805,8 +11681,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
         },
     },
     {
@@ -11819,8 +11693,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'aa7202397a06097e8ff36855aa72c0ee032659747e5bd7cbcd3099fc3a62b6b6',
         },
     },
     {
@@ -11833,8 +11705,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'thecryptoguy.com',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
         },
     },
     {
@@ -11847,8 +11717,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'coinex.com',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
         },
     },
     {
@@ -11861,8 +11729,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
         },
     },
     {
@@ -11875,8 +11741,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 2,
-            tokenId:
-                '9e9738e9ac3ff202736bf7775f875ebae6f812650df577a947c20c52475e43da',
         },
     },
     {
@@ -11889,8 +11753,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
         },
     },
     {
@@ -11903,8 +11765,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'THE REAL HONK SLP TOKEN',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '7f8889682d57369ed0e32336f8b7e0ffec625a35cca183f4e81fde4e71a538a1',
         },
     },
     {
@@ -11918,8 +11778,6 @@ export const mockFinalTokenArray = [
             tokenDocumentHash:
                 'b1674191a88ec5cdd733e4240a81803105dc412d6c6708d53ab94fc248f4f553',
             decimals: 8,
-            tokenId:
-                '8ead21ce4b3b9e7b57607b97b65b5013496dc6e3dfdea162c08ce7265a66ebc8',
         },
     },
     {
@@ -11932,8 +11790,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'b40d1f6acdb6ee68d7eca0167fe2753c076bc309b2e3b1af8bff70ca34b945b0',
         },
     },
     {
@@ -11946,8 +11802,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
         },
     },
     {
@@ -11960,8 +11814,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: '',
             tokenDocumentHash: '',
             decimals: 8,
-            tokenId:
-                'df808a41672a0a0ae6475b44f272a107bc9961b90f29dc918d71301f24fe92fb',
         },
     },
     {
@@ -11975,8 +11827,6 @@ export const mockFinalTokenArray = [
                 'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
         },
     },
     {
@@ -11989,8 +11839,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'cdc.gov',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '3adbf501e21c711d20118e003711168eb39f560c01f4c6d6736fa3f3fceaa577',
         },
     },
     {
@@ -12003,8 +11851,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://www.proofofwriting.com/26',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
         },
     },
     {
@@ -12017,8 +11863,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'da9460ce4b1c92b4f6ef4e4a6bc2d05539f49d02b17681389d9ce22b8dca50f0',
         },
     },
     {
@@ -12031,8 +11875,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'b39fdb53e21d67fa5fd3a11122f1452f15884047f2b80e8efe633c3b520b7a39',
         },
     },
     {
@@ -12045,8 +11887,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
         },
     },
     {
@@ -12059,8 +11899,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'developer.bitcoin.com',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
         },
     },
     {
@@ -12073,8 +11911,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: '',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                'dd84ca78db4d617221b58eabc6667af8fe2f7eadbfcc213d35be9f1b419beb8d',
         },
     },
     {
@@ -12087,8 +11923,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
         },
     },
     {
@@ -12101,8 +11935,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://thecryptoguy.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
         },
     },
     {
@@ -12115,8 +11947,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://cashtab.com/',
             tokenDocumentHash: '',
             decimals: 1,
-            tokenId:
-                'e859eeb52e7afca6217fb36784b3b6d3c7386a52f391dd0d00f2ec03a5e8e77b',
         },
     },
     {
@@ -12132,8 +11962,6 @@ export const mockFinalTokenArray = [
             tokenDocumentHash:
                 '85b591c15c9f49531e39fcfeb2a5a26b2bd0f7c018fb9cd71b5d92dfb732d5cc',
             decimals: 7,
-            tokenId:
-                '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
         },
     },
     {
@@ -12146,8 +11974,6 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://boomertakes.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                '1101bd5d7b6bbc3176fb2b93d08e76ab532b04ff731d71502249e3cb9b6fcb1a',
         },
     },
     {
@@ -12160,13 +11986,11 @@ export const mockFinalTokenArray = [
             tokenDocumentUrl: 'https://twinpeaks.fandom.com/wiki/Garmonbozia',
             tokenDocumentHash: '',
             decimals: 8,
-            tokenId:
-                'ccf5fe5a387559c8ab9efdeb0c0ef1b444e677298cfddf07671245ce3cb3c79f',
         },
     },
 ];
 
-export const mockFinalCachedTokenInfo = {
+export const legacyMockFinalCachedTokenInfo = {
     'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd': {
         tokenTicker: 'ST',
         tokenName: 'ST',
@@ -12570,8 +12394,19 @@ export const mockFinalCachedTokenInfo = {
             '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
     },
 };
+const calculatedMockFinalCachedTokenInfo = new Map();
+const legacyCachedTokenIds = Object.keys(legacyMockFinalCachedTokenInfo);
+for (const tokenId of legacyCachedTokenIds) {
+    const legacyGenesisInfo = JSON.parse(
+        JSON.stringify(legacyMockFinalCachedTokenInfo[tokenId]),
+    );
+    // Remove the tokenId key which we do not need stored at the value
+    delete legacyGenesisInfo.tokenId;
+    calculatedMockFinalCachedTokenInfo.set(tokenId, legacyGenesisInfo);
+}
+export const mockFinalCachedTokenInfo = calculatedMockFinalCachedTokenInfo;
 
-export const mockPartialCachedTokenInfo = {
+export const legacyMockPartialCachedTokenInfo = {
     '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901': {
         tokenTicker: '🍔',
         tokenName: 'Burger',
@@ -12949,6 +12784,19 @@ export const mockPartialCachedTokenInfo = {
             '77ec4036ef8546ac46df6d3a5374e961216f92624627eaeef5d2e1a253df9fc6',
     },
 };
+const calculatedMockPartialCachedTokenInfo = new Map();
+const legacyMockPartialCachedTokenIds = Object.keys(
+    legacyMockPartialCachedTokenInfo,
+);
+for (const tokenId of legacyMockPartialCachedTokenIds) {
+    const legacyGenesisInfo = JSON.parse(
+        JSON.stringify(legacyMockPartialCachedTokenInfo[tokenId]),
+    );
+    // Remove the tokenId key which we do not need stored at the value
+    delete legacyGenesisInfo.tokenId;
+    calculatedMockPartialCachedTokenInfo.set(tokenId, legacyGenesisInfo);
+}
+export const mockPartialCachedTokenInfo = calculatedMockPartialCachedTokenInfo;
 
 export const mockPartialChronikTxDetailsResponses = [
     {
@@ -13024,8 +12872,6 @@ export const mockPartialChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'developer.bitcoin.com',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd',
             },
         },
         block: {
@@ -14271,8 +14117,6 @@ export const mockPartialChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://cashtabapp.com/',
                 tokenDocumentHash: '',
                 decimals: 9,
-                tokenId:
-                    'bef614aac85c0c866f4d39e4d12a96851267d38d1bca5bdd6488bbd42e28b6b1',
             },
         },
         block: {
@@ -14345,8 +14189,6 @@ export const mockPartialChronikTxDetailsResponses = [
                 tokenDocumentUrl: 'https://www.proofofwriting.com/26',
                 tokenDocumentHash: '',
                 decimals: 0,
-                tokenId:
-                    'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
             },
         },
         block: {
@@ -16387,7 +16229,8 @@ export const mockPreliminarySlpUtxos = [
         tokenQty: '888.88888888',
     },
 ];
-export const mockTokenInfoById = {
+
+export const legacyMockTokenInfoById = {
     'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd': {
         tokenTicker: 'ST',
         tokenName: 'ST',
@@ -16800,6 +16643,17 @@ export const mockTokenInfoById = {
             '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55',
     },
 };
+const calculatedMockTokenInfoById = new Map();
+const legacyMockTokenInfoByIdTokenIds = Object.keys(legacyMockTokenInfoById);
+for (const tokenId of legacyMockTokenInfoByIdTokenIds) {
+    const legacyGenesisInfo = JSON.parse(
+        JSON.stringify(legacyMockTokenInfoById[tokenId]),
+    );
+    // Remove the tokenId key which we do not need stored at the value
+    delete legacyGenesisInfo.tokenId;
+    calculatedMockTokenInfoById.set(tokenId, legacyGenesisInfo);
+}
+export const mockTokenInfoById = calculatedMockTokenInfoById;
 export const mockFinalizedSlpUtxos = [
     {
         outpoint: {

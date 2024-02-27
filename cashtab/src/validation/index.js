@@ -12,7 +12,6 @@ import {
 } from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
 import { queryAliasServer } from 'alias';
-import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
@@ -275,19 +274,6 @@ export const migrateLegacyCashtabSettings = settings => {
     return settings;
 };
 
-export const parseInvalidCashtabCacheForMigration = invalidCashtabCache => {
-    // create a copy of the invalidCashtabCache
-    let migratedCashtabCache = invalidCashtabCache;
-    // determine if settings are invalid because it is missing a parameter
-    for (let param in defaultCashtabCache) {
-        if (!Object.prototype.hasOwnProperty.call(invalidCashtabCache, param)) {
-            // adds the default setting for only that parameter
-            migratedCashtabCache[param] = defaultCashtabCache[param];
-        }
-    }
-    return migratedCashtabCache;
-};
-
 /**
  * Check if an array is a valid Cashtab contact list
  * A valid contact list is an array of objects
@@ -325,69 +311,27 @@ export const isValidContactList = contactList => {
     return true;
 };
 
+/**
+ * Validate cashtabCache object found in localforage
+ * @param {object} cashtabCache
+ * @returns {boolean}
+ */
 export const isValidCashtabCache = cashtabCache => {
-    /* 
-        Object must contain all keys listed in defaultCashtabCache
-        The tokenInfoById object must have keys that are valid token IDs, 
-        and at each one an object like:
-        {
-            "tokenTicker": "ST",
-            "tokenName": "ST",
-            "tokenDocumentUrl": "developer.bitcoin.com",
-            "tokenDocumentHash": "",
-            "decimals": 0,
-            "tokenId": "bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd"
-        }
+    // Legacy cashtabCache is an object with key tokenInfoById
+    // At this key is an object with keys of tokenId
+    // We are replacing this with a map
 
-        i.e. an object that contains these keys
-        'tokenTicker' is a string
-        'tokenName' is a string
-        'tokenDocumentUrl' is a string
-        'tokenDocumentHash' is a string
-        'decimals' is a number
-        'tokenId' is a valid tokenId
-    */
-
-    // Check that every key in defaultCashtabCache is also in this cashtabCache
-    const cashtabCacheKeys = Object.keys(defaultCashtabCache);
-    for (let i = 0; i < cashtabCacheKeys.length; i += 1) {
-        if (!(cashtabCacheKeys[i] in cashtabCache)) {
-            return false;
-        }
+    const existingKeys = Object.keys(cashtabCache);
+    if (existingKeys.length !== 1 || existingKeys[0] !== 'tokens') {
+        return false;
     }
-
-    // Check that tokenInfoById is expected type and that tokenIds are valid
-
-    const { tokenInfoById } = cashtabCache;
-
-    const tokenIds = Object.keys(tokenInfoById);
-
-    for (let i = 0; i < tokenIds.length; i += 1) {
-        const thisTokenId = tokenIds[i];
-        if (!isValidTokenId(thisTokenId)) {
-            return false;
-        }
-        const {
-            tokenTicker,
-            tokenName,
-            tokenDocumentUrl,
-            tokenDocumentHash,
-            decimals,
-            tokenId,
-        } = tokenInfoById[thisTokenId];
-
-        if (
-            typeof tokenTicker !== 'string' ||
-            typeof tokenName !== 'string' ||
-            typeof tokenDocumentUrl !== 'string' ||
-            typeof tokenDocumentHash !== 'string' ||
-            typeof decimals !== 'number' ||
-            !isValidTokenId(tokenId)
-        ) {
-            return false;
-        }
+    // Validate that there is a map at the tokens key in case localforage saved the map without
+    // first converting it to a JSON at some point
+    if (!(cashtabCache.tokens instanceof Map)) {
+        return false;
     }
-
+    // We do not validate all contents of the stored map, as these are from chronik
+    // We assume chronik unit tests handle this
     return true;
 };
 

@@ -21,6 +21,7 @@ import {
 } from 'components/fixtures/helpers';
 import aliasSettings from 'config/alias';
 import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
+import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 
 const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 50;
 
@@ -58,7 +59,11 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
         // Set valid and non-default items for wallet context keys that come from indexedDb
         await localforage.setItem('contactList', nonDefaultContactList);
-        await localforage.setItem('cashtabCache', nonDefaultCashtabCache);
+        // cashtabCache contains a Map and must be stored as JSON
+        await localforage.setItem(
+            'cashtabCache',
+            cashtabCacheToJSON(nonDefaultCashtabCache),
+        );
         await localforage.setItem('settings', cashtabSettingsGbp);
 
         const { result } = renderHook(() => useWallet(mockedChronik));
@@ -76,23 +81,26 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         // Note: we expect cashtabCache to update on wallet load as there is a token tx
         // in tx history that is not in cashtabCache
-        const expectedUpdatedCache = JSON.parse(
-            JSON.stringify(nonDefaultCashtabCache),
+        const expectedUpdatedCache = storedCashtabCacheToMap(
+            JSON.parse(
+                JSON.stringify(cashtabCacheToJSON(nonDefaultCashtabCache)),
+            ),
         );
-        expectedUpdatedCache.tokenInfoById[
-            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109'
-        ] = {
-            decimals: 0,
-            success: true,
-            tokenDocumentHash: '',
-            tokenDocumentUrl: 'https://cashtab.com/',
-            tokenId:
-                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            tokenName: 'BearNip',
-            tokenTicker: 'BEAR',
-        };
+
+        expectedUpdatedCache.tokens.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                decimals: 0,
+                success: true,
+                tokenDocumentHash: '',
+                tokenDocumentUrl: 'https://cashtab.com/',
+                tokenName: 'BearNip',
+                tokenTicker: 'BEAR',
+            },
+        );
+
         await waitFor(() =>
-            expect(result.current.cashtabCache).toStrictEqual(
+            expect(result.current.cashtabState.cashtabCache).toStrictEqual(
                 expectedUpdatedCache,
             ),
         );
@@ -111,6 +119,44 @@ describe('useWallet hook rendering in different localforage states', () => {
                 websocketConfig.websocketRefreshInterval,
             ),
         );
+    });
+    it('localforage can set and get a map of tokeninfo by tokenId', async () => {
+        const mockTokenCache = new Map();
+
+        mockTokenCache.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                tokenTicker: 'BEAR',
+                tokenName: 'BearNip',
+                url: 'https://cashtab.com/',
+                decimals: 0,
+                hash: '',
+            },
+        );
+
+        mockTokenCache.set(
+            'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
+            {
+                tokenTicker: 'CTD',
+                tokenName: 'Cashtab Dark',
+                url: 'https://cashtab.com/',
+                decimals: 0,
+                hash: '',
+            },
+        );
+
+        const mockCashtabCache = { tokens: mockTokenCache };
+
+        await localforage.setItem(
+            'testCache',
+            cashtabCacheToJSON(mockCashtabCache),
+        );
+
+        const revivedCashtabCache = storedCashtabCacheToMap(
+            await localforage.getItem('testCache'),
+        );
+
+        expect(mockCashtabCache).toStrictEqual(revivedCashtabCache);
     });
     it('XEC price is set in state on successful API fetch', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

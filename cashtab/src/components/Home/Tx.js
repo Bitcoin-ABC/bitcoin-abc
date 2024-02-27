@@ -421,14 +421,13 @@ const ReceivedFromCtn = styled.div`
     }
 `;
 
-const Tx = ({
-    data,
-    fiatPrice,
-    fiatCurrency,
-    contactList,
-    settings,
-    cashtabCache,
-}) => {
+const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
+    const { contactList, settings, cashtabCache } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
+
+    const { tokens } = cashtabCache;
     const [displayedMessage, setDisplayedMessage] = useState(false);
     const handleShowMessage = () => {
         setDisplayedMessage(!displayedMessage);
@@ -691,29 +690,22 @@ const Tx = ({
                                                                     .airdropTokenId
                                                             }
                                                         />
-                                                        {cashtabCache &&
-                                                            Object.keys(
-                                                                cashtabCache.tokenInfoById,
-                                                            ).includes(
-                                                                data.parsed
-                                                                    .airdropTokenId,
-                                                            ) && (
-                                                                <h4>
-                                                                    {cashtabCache
-                                                                        .tokenInfoById[
+                                                        {tokens.has(
+                                                            data.parsed
+                                                                .airdropTokenId,
+                                                        ) && (
+                                                            <h4>
+                                                                {
+                                                                    tokens.get(
                                                                         data
                                                                             .parsed
-                                                                            .airdropTokenId
-                                                                    ] &&
-                                                                        cashtabCache
-                                                                            .tokenInfoById[
-                                                                            data
-                                                                                .parsed
-                                                                                .airdropTokenId
-                                                                        ]
-                                                                            .tokenName}
-                                                                </h4>
-                                                            )}
+                                                                            .airdropTokenId,
+                                                                    )[
+                                                                        'tokenName'
+                                                                    ]
+                                                                }
+                                                            </h4>
+                                                        )}
                                                     </AirdropTokenInfoCtn>
                                                 )}
                                                 <TxInfo
@@ -1078,23 +1070,25 @@ Tx.propTypes = {
     data: PropTypes.object,
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
-    contactList: PropTypes.arrayOf(
-        PropTypes.shape({
-            address: PropTypes.string,
-            name: PropTypes.string,
+    cashtabState: PropTypes.shape({
+        contactList: PropTypes.arrayOf(
+            PropTypes.shape({
+                address: PropTypes.string.isRequired,
+                name: PropTypes.string.isRequired,
+            }),
+        ),
+        settings: PropTypes.shape({
+            fiatCurrency: PropTypes.string.isRequired,
+            sendModal: PropTypes.bool.isRequired,
+            autoCameraOn: PropTypes.bool.isRequired,
+            hideMessagesFromUnknownSenders: PropTypes.bool.isRequired,
+            balanceVisible: PropTypes.bool.isRequired,
+            minFeeSends: PropTypes.bool.isRequired,
         }),
-    ),
-    cashtabCache: PropTypes.object,
-    settings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSenders: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
+        cashtabCache: PropTypes.shape({
+            tokens: PropTypes.object.isRequired,
         }),
-        PropTypes.bool,
-    ]),
+    }),
 };
 
 export default Tx;

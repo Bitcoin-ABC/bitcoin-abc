@@ -12,8 +12,8 @@ import {
     walletWithXecAndTokens,
     freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
-    vipTokenChronikTx,
-    easterEggTokenChronikTx,
+    easterEggTokenChronikTokenDetails,
+    vipTokenChronikTokenDetails,
 } from 'components/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -25,6 +25,8 @@ import {
 } from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
+import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
+import { cashtabCacheToJSON } from 'helpers';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -540,7 +542,10 @@ describe('<App />', () => {
         );
 
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('tx', vipTokenChronikTx);
+        mockedChronik.setMock('token', {
+            input: appConfig.vipSettingsTokenId,
+            output: vipTokenChronikTokenDetails,
+        });
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const hex =
@@ -690,14 +695,55 @@ describe('<App />', () => {
         );
 
         // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('tx', {
+        mockedChronik.setMock('token', {
             input: EASTER_EGG_TOKENID,
-            output: easterEggTokenChronikTx,
+            output: easterEggTokenChronikTokenDetails,
         });
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // We see the easter egg
         expect(await screen.findByAltText('tabcash')).toBeInTheDocument();
+    });
+    it('If Cashtab starts with 1.5.* cashtabCache, it is wiped and migrated to 1.6.* cashtabCache', async () => {
+        // Note: this is what will happen for all Cashtab users when this diff lands
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Mock cashtabCache at 1.5.*
+        await localforage.setItem('cashtabCache', legacyMockTokenInfoById);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        const expectedCashtabCacheTokens = new Map();
+
+        // Tokens from wallet utxos will be added to cache on app load
+        expectedCashtabCacheTokens.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                decimals: 0,
+                success: true,
+                tokenDocumentHash: '',
+                tokenDocumentUrl: 'https://cashtab.com/',
+                tokenId:
+                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                tokenName: 'BearNip',
+                tokenTicker: 'BEAR',
+            },
+        );
+
+        // Result will be stored as a keyvalue array and must be converted to a map
+        // We do the reverse to get the expected storage value
+        const expectedStoredCashtabCache = cashtabCacheToJSON({
+            tokens: expectedCashtabCacheTokens,
+        });
+        // Confirm cashtabCache in localforage matches expected result
+        await waitFor(async () =>
+            expect(await localforage.getItem('cashtabCache')).toEqual(
+                expectedStoredCashtabCache,
+            ),
+        );
     });
 });

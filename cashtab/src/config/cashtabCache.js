@@ -4,7 +4,7 @@
 
 // Default cashtab cache object used for validation and initialization of new wallets without a cache
 const defaultCashtabCache = {
-    tokenInfoById: {},
+    tokens: new Map(),
 };
 
 export default defaultCashtabCache;

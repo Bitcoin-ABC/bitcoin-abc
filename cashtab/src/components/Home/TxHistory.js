@@ -6,14 +6,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tx from './Tx';
 
-const TxHistory = ({
-    txs,
-    fiatPrice,
-    fiatCurrency,
-    contactList,
-    settings,
-    cashtabCache,
-}) => {
+const TxHistory = ({ txs, fiatPrice, fiatCurrency, cashtabState }) => {
     return (
         <div>
             {txs.map(tx => (
@@ -22,9 +15,7 @@ const TxHistory = ({
                     data={tx}
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
-                    contactList={contactList}
-                    settings={settings}
-                    cashtabCache={cashtabCache}
+                    cashtabState={cashtabState}
                 />
             ))}
         </div>
@@ -34,24 +25,26 @@ const TxHistory = ({
 TxHistory.propTypes = {
     txs: PropTypes.array,
     fiatPrice: PropTypes.number,
-    cashtabCache: PropTypes.object,
     fiatCurrency: PropTypes.string,
-    contactList: PropTypes.arrayOf(
-        PropTypes.shape({
-            address: PropTypes.string,
-            name: PropTypes.string,
+    cashtabState: PropTypes.shape({
+        contactList: PropTypes.arrayOf(
+            PropTypes.shape({
+                address: PropTypes.string.isRequired,
+                name: PropTypes.string.isRequired,
+            }),
+        ),
+        settings: PropTypes.shape({
+            fiatCurrency: PropTypes.string.isRequired,
+            sendModal: PropTypes.bool.isRequired,
+            autoCameraOn: PropTypes.bool.isRequired,
+            hideMessagesFromUnknownSenders: PropTypes.bool.isRequired,
+            balanceVisible: PropTypes.bool.isRequired,
+            minFeeSends: PropTypes.bool.isRequired,
         }),
-    ),
-    settings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSender: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
+        cashtabCache: PropTypes.shape({
+            tokens: PropTypes.object.isRequired,
         }),
-        PropTypes.bool,
-    ]),
+    }),
 };
 
 export default TxHistory;

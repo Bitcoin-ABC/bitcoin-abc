@@ -85,8 +85,6 @@ export const walletWithXecAndTokens = {
                     tokenDocumentUrl: 'https://cashtab.com/',
                     tokenDocumentHash: '',
                     decimals: 0,
-                    tokenId:
-                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
                     success: true,
                 },
             },
@@ -198,8 +196,6 @@ export const walletWithXecAndTokens = {
                         tokenDocumentUrl: 'https://cashtab.com/',
                         tokenDocumentHash: '',
                         decimals: 0,
-                        tokenId:
-                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
                         success: true,
                     },
                     airdropFlag: false,
@@ -806,17 +802,18 @@ export const nonDefaultContactList = [
     },
 ];
 export const nonDefaultCashtabCache = {
-    tokenInfoById: {
-        '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901': {
-            decimals: 0,
-            tokenDocumentHash: '',
-            tokenDocumentUrl: '',
-            tokenId:
-                '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
-            tokenName: 'Burger',
-            tokenTicker: '🍔',
-        },
-    },
+    tokens: new Map([
+        [
+            '1f6a65e7a4bde92c0a012de2bcf4007034504a765377cdf08a3ee01d1eaa6901',
+            {
+                decimals: 0,
+                tokenDocumentHash: '',
+                tokenDocumentUrl: '',
+                tokenName: 'Burger',
+                tokenTicker: '🍔',
+            },
+        ],
+    ]),
 };
 
 // Clone cashtabSettings

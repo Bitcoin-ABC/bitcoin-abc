@@ -119,10 +119,9 @@ export const AddrSwitchContainer = styled.div`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, apiError, cashtabCache, cashtabState } =
-        ContextValue;
+    const { wallet, fiatPrice, apiError, cashtabState } = ContextValue;
     // Ensure cashtabState is not undefined before context initializes
-    const { contactList, settings } =
+    const { settings } =
         typeof cashtabState === 'undefined'
             ? appConfig.defaultCashtabState
             : cashtabState;
@@ -149,9 +148,7 @@ const WalletInfo = () => {
                                 ? settings.fiatCurrency
                                 : 'usd'
                         }
-                        contactList={contactList}
-                        settings={settings}
-                        cashtabCache={cashtabCache}
+                        cashtabState={cashtabState}
                     />
                     {!hasHistory && (
                         <>

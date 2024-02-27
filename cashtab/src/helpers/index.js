@@ -14,3 +14,28 @@ export const isMobile = navigator => {
         navigator.userAgentData.mobile === true
     );
 };
+
+/**
+ * Convert cashtabCache to a JSON for storage
+ * @param {object} cashtabCache {tokens: <Map of genesis info by tokenId>}
+ * @returns {JSON}
+ */
+export const cashtabCacheToJSON = cashtabCache => {
+    return {
+        ...cashtabCache,
+        tokens: Array.from(cashtabCache.tokens.entries()),
+    };
+};
+
+/**
+ * Convert stored cashtabCache from JSON to more useful data types
+ * For now, this means converting the one key 'tokens' from a keyvalue array to a Map
+ * @param {JSON} storedCashtabCache
+ * @returns {Map}
+ */
+export const storedCashtabCacheToMap = storedCashtabCache => {
+    return {
+        ...storedCashtabCache,
+        tokens: new Map(storedCashtabCache.tokens),
+    };
+};

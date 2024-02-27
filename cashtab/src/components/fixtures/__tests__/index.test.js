@@ -12,6 +12,7 @@ import localforage from 'localforage';
 import { chronik as chronikConfig } from 'config/chronik';
 import { cashtabSettings } from 'config/cashtabSettings';
 import cashtabCache from 'config/cashtabCache';
+import { cashtabCacheToJSON } from 'helpers';
 
 describe('Correctly prepares Cashtab mocked chronik client and localforage environment for unit tests', () => {
     afterEach(async () => {
@@ -154,8 +155,9 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
 
             // Expect localforage wallet and defaults
             expect(await localforage.getItem('wallet')).toEqual(wallet);
+            // We expect the JSON conversion to be in storage
             expect(await localforage.getItem('cashtabCache')).toEqual(
-                cashtabCache,
+                cashtabCacheToJSON(cashtabCache),
             );
             expect(await localforage.getItem('settings')).toEqual(
                 cashtabSettings,

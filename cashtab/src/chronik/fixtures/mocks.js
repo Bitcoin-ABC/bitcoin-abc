@@ -10777,7 +10777,7 @@ export const mockSwapWallet = {
         parsedTxHistory: [],
     },
 };
-export const txHistoryTokenInfoById = {
+export const legacyTxHistoryTokenInfoById = {
     'bf24d955f59351e738ecd905966606a6837e478e1982943d724eab10caad82fd': {
         tokenTicker: 'ST',
         tokenName: 'ST',
@@ -11316,6 +11316,19 @@ export const txHistoryTokenInfoById = {
             'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
     },
 };
+const calculatedTxHistoryTokenInfoById = new Map();
+const legacyTxHistoryTokenInfoByIdTokenIds = Object.keys(
+    legacyTxHistoryTokenInfoById,
+);
+for (const tokenId of legacyTxHistoryTokenInfoByIdTokenIds) {
+    const legacyGenesisInfo = JSON.parse(
+        JSON.stringify(legacyTxHistoryTokenInfoById[tokenId]),
+    );
+    // Remove the tokenId key which we do not need stored at the value
+    delete legacyGenesisInfo.tokenId;
+    calculatedTxHistoryTokenInfoById.set(tokenId, legacyGenesisInfo);
+}
+export const txHistoryTokenInfoById = calculatedTxHistoryTokenInfoById;
 export const stakingRwd = {
     tx: {
         txid: 'c8b0783e36ab472f26108007ffa522ee82b79db3777c84b0448f5b9ef35be895',
@@ -11624,8 +11637,6 @@ export const incomingEtoken = {
             tokenDocumentHash: '',
             tokenDocumentUrl:
                 'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
-            tokenId:
-                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
             tokenName: 'Covid19 Lifetime Immunity',
             tokenTicker: 'NOCOVID',
         },
@@ -11731,8 +11742,6 @@ export const outgoingEtoken = {
             tokenDocumentHash: '',
             tokenDocumentUrl:
                 'https://www.who.int/emergencies/diseases/novel-coronavirus-2019/covid-19-vaccines',
-            tokenId:
-                '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
             tokenName: 'Covid19 Lifetime Immunity',
             tokenTicker: 'NOCOVID',
         },
@@ -11822,8 +11831,6 @@ export const genesisTx = {
             success: true,
             tokenDocumentHash: '',
             tokenDocumentUrl: 'https://cashtab.com/',
-            tokenId:
-                'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
             tokenName: 'UpdateTest',
             tokenTicker: 'UDT',
         },
@@ -11930,8 +11937,6 @@ export const incomingEtokenNineDecimals = {
             success: true,
             tokenDocumentHash: '',
             tokenDocumentUrl: 'https://cashtabapp.com/',
-            tokenId:
-                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
             tokenName: 'CashTabBits',
             tokenTicker: 'CTB',
         },
@@ -12634,8 +12639,6 @@ export const tokenBurn = {
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 0,
-            tokenId:
-                '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
             success: true,
         },
         airdropFlag: false,
@@ -12739,8 +12742,6 @@ export const tokenBurnDecimals = {
             tokenDocumentHash:
                 '85b591c15c9f49531e39fcfeb2a5a26b2bd0f7c018fb9cd71b5d92dfb732d5cc',
             decimals: 7,
-            tokenId:
-                '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
             success: true,
         },
         airdropFlag: false,
@@ -12860,8 +12861,6 @@ export const incomingEtokenTwo = {
             tokenDocumentUrl: 'https://cashtabapp.com/',
             tokenDocumentHash: '',
             decimals: 9,
-            tokenId:
-                'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
             success: true,
         },
         airdropFlag: false,

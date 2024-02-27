@@ -5,6 +5,7 @@
 import mainLogo from 'assets/logo_primary.png';
 import tokenLogo from 'assets/logo_secondary.png';
 import { cashtabSettings } from 'config/cashtabSettings';
+import defaultCashtabCache from 'config/cashtabCache';
 
 // App settings not adjustable by the user
 const appConfig = {
@@ -27,7 +28,11 @@ const appConfig = {
     notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
     monitorExtension: false,
-    defaultCashtabState: { contactList: [], settings: cashtabSettings },
+    defaultCashtabState: {
+        contactList: [],
+        settings: cashtabSettings,
+        cashtabCache: defaultCashtabCache,
+    },
     vipSettingsTokenId:
         'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa', // GRP
     vipSettingsTokenQty: '1000000',

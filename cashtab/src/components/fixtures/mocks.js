@@ -1678,142 +1678,38 @@ export const requiredUtxoThisToken = {
     decimals: 2,
 };
 
-export const vipTokenChronikTx = {
-    input: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-    output: {
-        txid: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-        version: 2,
-        inputs: [
-            {
-                prevOut: {
-                    txid: 'b8af3a4ad68cc300e1f9d331762a1a62c0c344c3b3fb554af6a35e634907feab',
-                    outIdx: 0,
-                },
-                inputScript:
-                    '47304402204db8555a3141e86b979257feadc41e903a779a61971e2e63a386f1084c52ff2a022010d7f7f9d41b474ff5c4bd979916e2cd29627a2d6194fcc6af6485a979091cbe412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1e',
-                outputScript:
-                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
-                value: '50000',
-                sequenceNo: 4294967295,
-            },
-        ],
-        outputs: [
-            {
-                value: '0',
-                outputScript:
-                    '6a04534c500001010747454e4553495303475250064752554d50591868747470733a2f2f6269742e6c792f4772756d7079446f634c0001024c0008000000e8d4a51000',
-            },
-            {
-                value: '546',
-                outputScript:
-                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
-                slpToken: {
-                    amount: '1000000000000',
-                    isMintBaton: false,
-                },
-                spentBy: {
-                    txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
-                    outIdx: 1,
-                },
-            },
-            {
-                value: '48931',
-                outputScript:
-                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
-                spentBy: {
-                    txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
-                    outIdx: 0,
-                },
-            },
-        ],
-        lockTime: 0,
-        slpTxData: {
-            slpMeta: {
-                tokenType: 'FUNGIBLE',
-                txType: 'GENESIS',
-                tokenId:
-                    'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-            },
-            genesisInfo: {
-                tokenTicker: 'GRP',
-                tokenName: 'GRUMPY',
-                tokenDocumentUrl: 'https://bit.ly/GrumpyDoc',
-                tokenDocumentHash: '',
-                decimals: 2,
-            },
+export const vipTokenChronikTokenDetails = {
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'GENESIS',
+            tokenId:
+                'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
         },
-        block: {
-            height: 713853,
-            hash: '0000000000000000006a051e51b50e44d3394ab49c9db896c2484770ed613fb2',
-            timestamp: '1637109257',
+        genesisInfo: {
+            tokenTicker: 'GRP',
+            tokenName: 'GRUMPY',
+            tokenDocumentUrl: 'https://bit.ly/GrumpyDoc',
+            tokenDocumentHash: '',
+            decimals: 2,
         },
-        timeFirstSeen: '0',
-        size: 301,
-        isCoinbase: false,
-        network: 'XEC',
     },
+    tokenStats: {
+        totalMinted: '1000000000000',
+        totalBurned: '86651110097',
+    },
+    block: {
+        height: 713853,
+        hash: '0000000000000000006a051e51b50e44d3394ab49c9db896c2484770ed613fb2',
+        timestamp: '1637109257',
+    },
+    timeFirstSeen: '0',
+    initialTokenQuantity: '1000000000000',
+    containsBaton: false,
+    network: 'XEC',
 };
 
-export const easterEggTokenChronikTx = {
-    txid: '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
-    version: 2,
-    inputs: [
-        {
-            prevOut: {
-                txid: 'be38b0488679e25823b7a72b925ac695a7b486e7f78122994b913f3079b0b939',
-                outIdx: 2,
-            },
-            inputScript:
-                '483045022100e28006843eb071ec6d8dd105284f2ca625a28f4dc85418910b59a5ab13fc6c2002205921fb12b541d1cd1a63e7e012aca5735df3398525f64bac04337d21029413614121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
-            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
-            value: '91048',
-            sequenceNo: 4294967295,
-            slpBurn: {
-                token: {
-                    amount: '0',
-                    isMintBaton: false,
-                },
-                tokenId:
-                    'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
-            },
-        },
-    ],
-    outputs: [
-        {
-            value: '0',
-            outputScript:
-                '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
-        },
-        {
-            value: '546',
-            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
-            slpToken: {
-                amount: '100',
-                isMintBaton: false,
-            },
-            spentBy: {
-                txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
-                outIdx: 1,
-            },
-        },
-        {
-            value: '546',
-            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
-            slpToken: {
-                amount: '0',
-                isMintBaton: true,
-            },
-        },
-        {
-            value: '89406',
-            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
-            spentBy: {
-                txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
-                outIdx: 0,
-            },
-        },
-    ],
-    lockTime: 0,
+export const easterEggTokenChronikTokenDetails = {
     slpTxData: {
         slpMeta: {
             tokenType: 'FUNGIBLE',
@@ -1829,13 +1725,17 @@ export const easterEggTokenChronikTx = {
             decimals: 0,
         },
     },
+    tokenStats: {
+        totalMinted: '100',
+        totalBurned: '0',
+    },
     block: {
         height: 674143,
         hash: '000000000000000034c77993a35c74fe2dddace27198681ca1e89e928d0c2fff',
         timestamp: '1613859311',
     },
     timeFirstSeen: '0',
-    size: 336,
-    isCoinbase: false,
+    initialTokenQuantity: '100',
+    containsBaton: true,
     network: 'XEC',
 };

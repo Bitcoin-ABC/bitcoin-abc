@@ -119,12 +119,12 @@ it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfo
         'https://FakeChronikUrlToEnsureMocksOnly.com',
     );
     /* 
-        Mock the API response from chronik.tx('tokenId') called 
+        Mock the API response from chronik.token('tokenId') called 
         in returnGetTokenInfoChronikPromise -- for each tokenId used
     */
-    chronik.tx = jest.fn();
+    chronik.token = jest.fn();
     for (let i = 0; i < mockChronikTxDetailsResponses.length; i += 1) {
-        when(chronik.tx)
+        when(chronik.token)
             .calledWith(mockChronikTxDetailsResponses[i].txid)
             .mockResolvedValue(mockChronikTxDetailsResponses[i]);
     }
@@ -133,7 +133,7 @@ it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfo
         await finalizeTokensArray(chronik, mockPreliminaryTokensArray),
     ).toStrictEqual({
         tokens: mockFinalTokenArray,
-        updatedTokenInfoById: mockFinalCachedTokenInfo,
+        cachedTokens: mockFinalCachedTokenInfo,
         newTokensToCache: true,
     });
 });
@@ -152,7 +152,7 @@ it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfo
         ),
     ).toStrictEqual({
         tokens: mockFinalTokenArray,
-        updatedTokenInfoById: mockFinalCachedTokenInfo,
+        cachedTokens: mockFinalCachedTokenInfo,
         newTokensToCache: false,
     });
 });
@@ -163,12 +163,12 @@ it(`updateCachedTokenInfoAndFinalizeTokensArray successfully returns finalTokenA
         'https://FakeChronikUrlToEnsureMocksOnly.com',
     );
     /* 
-        Mock the API response from chronik.tx('tokenId') called 
+        Mock the API response from chronik.token('tokenId') called 
         in returnGetTokenInfoChronikPromise -- for each tokenId used
     */
-    chronik.tx = jest.fn();
+    chronik.token = jest.fn();
     for (let i = 0; i < mockPartialChronikTxDetailsResponses.length; i += 1) {
-        when(chronik.tx)
+        when(chronik.token)
             .calledWith(mockPartialChronikTxDetailsResponses[i].txid)
             .mockResolvedValue(mockPartialChronikTxDetailsResponses[i]);
     }
@@ -181,7 +181,7 @@ it(`updateCachedTokenInfoAndFinalizeTokensArray successfully returns finalTokenA
         ),
     ).toStrictEqual({
         tokens: mockFinalTokenArray,
-        updatedTokenInfoById: mockFinalCachedTokenInfo,
+        cachedTokens: mockFinalCachedTokenInfo,
         newTokensToCache: true,
     });
 });

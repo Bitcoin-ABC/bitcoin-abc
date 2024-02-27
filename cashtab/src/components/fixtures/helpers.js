@@ -5,6 +5,7 @@
 import { MockChronikClient } from '../../../../apps/mock-chronik-client';
 import { cashtabSettings } from 'config/cashtabSettings';
 import cashtabCache from 'config/cashtabCache';
+import { cashtabCacheToJSON } from 'helpers';
 
 /**
  * Get expected mock values for chronik client for a given mock wallet
@@ -31,7 +32,7 @@ export const initializeCashtabStateForTests = async (
 
     // Set localforage items. All defaults may be overwritten in a test for
     // specific purposes of the test.
-    await localforage.setItem('cashtabCache', cashtabCache);
+    await localforage.setItem('cashtabCache', cashtabCacheToJSON(cashtabCache));
     await localforage.setItem('settings', cashtabSettings);
     // 'contactList' key will be empty if user has never added contacts
     await localforage.setItem('savedWallets', [wallet]);
@@ -103,7 +104,7 @@ export const initializeCashtabStateForTests = async (
             slpTxData: { genesisInfo: tx.parsed.genesisInfo },
         };
         if (tx.parsed.isEtokenTx) {
-            chronikClient.setMock('tx', {
+            chronikClient.setMock('token', {
                 input: tx.parsed.slpMeta.tokenId,
                 output: mockedTokenResponse,
             });

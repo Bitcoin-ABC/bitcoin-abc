@@ -5,6 +5,8 @@
 // Test vectors for validation functions
 import appConfig from 'config/app';
 import { cashtabSettings } from 'config/cashtabSettings';
+import defaultCashtabCache from 'config/cashtabCache';
+import { mockCashtabCache } from 'helpers/fixtures/mocks';
 
 export default {
     shouldDisableXecSend: {
@@ -769,6 +771,31 @@ export default {
                     balanceVisible: true,
                 },
                 isValid: false,
+            },
+        ],
+    },
+    isValidCashtabCache: {
+        expectedReturns: [
+            {
+                description: 'Returns false for legacy cashtabCache',
+                cashtabCache: { tokenInfoById: {} },
+                isValid: false,
+            },
+            {
+                description:
+                    'Returns false if there is not a map at tokens key',
+                cashtabCache: { tokens: {} },
+                isValid: false,
+            },
+            {
+                description: 'Returns true for current version cashtabCache',
+                cashtabCache: mockCashtabCache,
+                isValid: true,
+            },
+            {
+                description: 'Returns true for default cashtabCache',
+                cashtabCache: defaultCashtabCache,
+                isValid: true,
             },
         ],
     },

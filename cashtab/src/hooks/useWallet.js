@@ -18,7 +18,6 @@ import {
     isValidCashtabCache,
     isValidContactList,
     migrateLegacyCashtabSettings,
-    parseInvalidCashtabCacheForMigration,
 } from 'validation';
 import localforage from 'localforage';
 import {
@@ -29,6 +28,7 @@ import {
     finalizeSlpUtxos,
     getTxHistoryChronik,
     parseChronikTx,
+    returnGetTokenInfoChronikPromise,
 } from 'chronik';
 import { queryAliasServer } from 'alias';
 import cashaddr from 'ecashaddrjs';
@@ -45,6 +45,7 @@ import {
 } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import { notification } from 'antd';
+import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 // Cashtab is always running the `update` function at an interval
 // When the websocket detects an incoming tx (or when the wallet is first loaded)
 // Set this interval to near-instant (50ms)
@@ -61,7 +62,6 @@ const useWallet = chronik => {
     );
     const [wallet, setWallet] = useState(false);
     const [chronikWebsocket, setChronikWebsocket] = useState(null);
-    const [cashtabCache, setCashtabCache] = useState(defaultCashtabCache);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
@@ -86,7 +86,7 @@ const useWallet = chronik => {
     const [cashtabState, setCashtabState] = useState(
         appConfig.defaultCashtabState,
     );
-    const { settings } = cashtabState;
+    const { settings, cashtabCache } = cashtabState;
 
     const deriveAccount = async ({ masterHDNode, path }) => {
         const node = masterHDNode.derivePath(path);
@@ -143,50 +143,32 @@ const useWallet = chronik => {
             const preliminaryTokensArray =
                 getPreliminaryTokensArray(preliminarySlpUtxos);
 
-            const { tokens, updatedTokenInfoById, newTokensToCache } =
+            const { tokens, cachedTokens, newTokensToCache } =
                 await finalizeTokensArray(
                     chronik,
                     preliminaryTokensArray,
-                    cashtabCache.tokenInfoById,
+                    cashtabCache.tokens,
                 );
-
-            // If you have more token info now, write this to local storage
-            if (newTokensToCache) {
-                writeTokenInfoByIdToCache(updatedTokenInfoById);
-                // Update the tokenInfoById key in cashtabCache
-                setCashtabCache({
-                    ...cashtabCache,
-                    tokenInfoById: updatedTokenInfoById,
-                });
-            }
 
             const slpUtxos = finalizeSlpUtxos(
                 preliminarySlpUtxos,
-                updatedTokenInfoById,
+                cachedTokens,
             );
 
             const {
                 parsedTxHistory,
-                txHistoryUpdatedTokenInfoById,
+                cachedTokensAfterHistory,
                 txHistoryNewTokensToCache,
-            } = await getTxHistoryChronik(
-                chronik,
-                wallet,
-                updatedTokenInfoById,
-            );
-            if (txHistoryNewTokensToCache) {
-                console.log(
-                    `Uncached token info found in tx history, adding to cache`,
-                );
-                writeTokenInfoByIdToCache(txHistoryUpdatedTokenInfoById);
-                // Update the tokenInfoById key in cashtabCache
-                setCashtabCache({
+            } = await getTxHistoryChronik(chronik, wallet, cachedTokens);
+
+            // If you have updated cachedTokens from finalizeTokensArray or getTxHistoryChronik
+            // Update in state and localforage
+            if (newTokensToCache || txHistoryNewTokensToCache) {
+                updateCashtabState('cashtabCache', {
                     ...cashtabCache,
-                    tokenInfoById: txHistoryUpdatedTokenInfoById,
+                    tokens: cachedTokensAfterHistory,
                 });
             }
-
-            // If you were missing any token info for tokens in this tx history, get it
 
             const newState = {
                 balances: getWalletBalanceFromUtxos(nonSlpUtxos),
@@ -245,9 +227,18 @@ const useWallet = chronik => {
         // We lock the UI by setting loading to true while we set items in localforage
         // This is to prevent rapid user action from corrupting the db
         setLoading(true);
+
         // Update the changed key in state
         setCashtabState({ ...cashtabState, [`${key}`]: value });
+
         // Update the changed key in localforage
+
+        // Handle any items that must be converted to JSON before storage
+        // For now, this is just cashtabCache
+        if (key === 'cashtabCache') {
+            value = cashtabCacheToJSON(value);
+        }
+
         try {
             await localforage.setItem(key, value);
         } catch (err) {
@@ -303,6 +294,27 @@ const useWallet = chronik => {
             // Set cashtabState settings to valid localforage or migrated settings
             cashtabState.settings = settings;
         }
+
+        // cashtabCache
+        let cashtabCache = await localforage.getItem('cashtabCache');
+
+        if (cashtabCache !== null) {
+            // If we find cashtabCache in localforage
+
+            // cashtabCache must be converted from JSON as it stores a Map
+            cashtabCache = storedCashtabCacheToMap(cashtabCache);
+
+            if (!isValidCashtabCache(cashtabCache)) {
+                // If a cashtabCache object is present but invalid, nuke it and start again
+                cashtabCache = defaultCashtabCache;
+                // Update localforage on app load only if existing values are in an obsolete format
+                updateCashtabState('cashtabCache', cashtabCache);
+            }
+
+            // Set cashtabState cashtabCache to valid localforage or migrated settings
+            cashtabState.cashtabCache = cashtabCache;
+        }
+
         setCashtabState(cashtabState);
     };
 
@@ -400,18 +412,6 @@ const useWallet = chronik => {
         }
 
         return wallet;
-    };
-
-    const writeTokenInfoByIdToCache = async tokenInfoById => {
-        console.log(`writeTokenInfoByIdToCache`);
-        const cashtabCache = defaultCashtabCache;
-        cashtabCache.tokenInfoById = tokenInfoById;
-        try {
-            await localforage.setItem('cashtabCache', cashtabCache);
-            console.log(`cashtabCache successfully updated`);
-        } catch (err) {
-            console.log(`Error in writeCashtabCache()`, err);
-        }
     };
 
     const writeWalletState = async (wallet, newState) => {
@@ -906,22 +906,11 @@ const useWallet = chronik => {
             );
         }
 
-        // Get tokenInfoById from cashtabCache to parse this tx
-        let tokenInfoById = {};
-        try {
-            tokenInfoById = cashtabCache.tokenInfoById;
-        } catch (err) {
-            console.log(
-                `Error getting tokenInfoById from cache on incoming tx`,
-                err,
-            );
-        }
-
         // parse tx for notification
         const parsedChronikTx = parseChronikTx(
             incomingTxDetails,
             wallet,
-            tokenInfoById,
+            cashtabCache.tokens,
         );
         /* If this is an incoming eToken tx and parseChronikTx was not able to get genesis info
            from cache, then get genesis info from API and add to cache */
@@ -939,26 +928,19 @@ const useWallet = chronik => {
                 } else {
                     // Get genesis info from API and add to cache
                     try {
-                        // Get the tokenID
+                        // Get the genesis info and add it to cache
                         const incomingTokenId = parsedChronikTx.slpMeta.tokenId;
 
-                        // chronik call to genesis tx to get this info
-                        const tokenGenesisInfo = await chronik.tx(
-                            incomingTokenId,
-                        );
-                        const { genesisInfo } = tokenGenesisInfo.slpTxData;
-                        // Add this to cashtabCache
-                        let tokenInfoByIdUpdatedForThisToken = tokenInfoById;
-                        tokenInfoByIdUpdatedForThisToken[incomingTokenId] =
-                            genesisInfo;
-                        writeTokenInfoByIdToCache(
-                            tokenInfoByIdUpdatedForThisToken,
-                        );
-                        // Update the tokenInfoById key in cashtabCache
-                        setCashtabCache({
-                            ...cashtabCache,
-                            tokenInfoById: tokenInfoByIdUpdatedForThisToken,
-                        });
+                        const genesisInfoPromise =
+                            returnGetTokenInfoChronikPromise(
+                                chronik,
+                                incomingTokenId,
+                                cashtabCache.tokens,
+                            );
+
+                        const genesisInfo = await genesisInfoPromise;
+
+                        // Do not update in state and localforage, as update loop will do this
 
                         // Calculate eToken amount with decimals
                         eTokenAmountReceived = new BN(
@@ -966,7 +948,7 @@ const useWallet = chronik => {
                         ).shiftedBy(-1 * genesisInfo.decimals);
 
                         notification.success({
-                            message: `${appConfig.tokenTicker} transaction received: ${genesisInfo.tokenTicker}`,
+                            message: `${appConfig.tokenTicker} ${genesisInfo.tokenTicker} received for the first time.`,
                             description: `You received ${eTokenAmountReceived.toString()} ${
                                 genesisInfo.tokenName
                             }`,
@@ -974,7 +956,7 @@ const useWallet = chronik => {
                         });
                     } catch (err) {
                         console.log(
-                            `Error in getting and setting new token info for incoming eToken tx`,
+                            `Error fetching genesisInfo for incoming token tx ${parsedChronikTx}`,
                             err,
                         );
                     }
@@ -1127,36 +1109,6 @@ const useWallet = chronik => {
 
         // Put connected websocket in state
         return setChronikWebsocket(ws);
-    };
-
-    const loadCashtabCache = async () => {
-        // get cache object from localforage
-        let localCashtabCache;
-        try {
-            localCashtabCache = await localforage.getItem('cashtabCache');
-            // If there is no keyvalue pair in localforage with key 'cashtabCache'
-            if (localCashtabCache === null) {
-                // Use the default
-                localforage.setItem('cashtabCache', defaultCashtabCache);
-                setCashtabCache(defaultCashtabCache);
-                return defaultCashtabCache;
-            }
-        } catch (err) {
-            console.log(`Error getting cashtabCache`, err);
-            setCashtabCache(defaultCashtabCache);
-            return defaultCashtabCache;
-        }
-        // If you found an object in localforage at the cashtabCache key, make sure it's valid
-        if (isValidCashtabCache(localCashtabCache)) {
-            setCashtabCache(localCashtabCache);
-            return localCashtabCache;
-        }
-        // if not valid, parse the cache object, finds what param is missing, and sticks it in
-        const migratedCashtabCache =
-            parseInvalidCashtabCacheForMigration(localCashtabCache);
-        localforage.setItem('cashtabCache', migratedCashtabCache);
-        setCashtabCache(migratedCashtabCache);
-        return defaultCashtabCache;
     };
 
     // With different currency selections possible, need unique intervals for price checks
@@ -1400,7 +1352,6 @@ const useWallet = chronik => {
     const cashtabBootup = async () => {
         setWallet(await getWallet());
         await loadCashtabState();
-        await loadCashtabCache();
     };
 
     useEffect(() => {
@@ -1467,7 +1418,6 @@ const useWallet = chronik => {
         fiatPrice,
         loading,
         apiError,
-        cashtabCache,
         refreshAliases,
         aliases,
         setAliases,

@@ -20,7 +20,6 @@ import {
     isValidAirdropExclusionArray,
     isValidContactList,
     migrateLegacyCashtabSettings,
-    parseInvalidCashtabCacheForMigration,
     isValidCashtabCache,
     validateMnemonic,
     meetsAliasSpec,
@@ -40,15 +39,9 @@ import {
     invalidXecAirdropListMultipleValidValues,
     validXecAirdropExclusionList,
     invalidXecAirdropExclusionList,
-    validCashtabCache,
-    cashtabCacheWithOneBadTokenId,
-    cashtabCacheWithDecimalNotNumber,
-    cashtabCacheWithTokenNameNotString,
-    cashtabCacheWithMissingTokenName,
 } from 'validation/fixtures/mocks';
 import vectors from 'validation/fixtures/vectors';
 import { when } from 'jest-when';
-import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { toXec } from 'wallet';
@@ -344,30 +337,6 @@ describe('Validation utils', () => {
     it(`Rejects a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
     });
-    it(`Recognizes the default cashtabCache object as valid`, () => {
-        expect(isValidCashtabCache(defaultCashtabCache)).toBe(true);
-    });
-    it(`Recognizes a valid cashtabCache object`, () => {
-        expect(isValidCashtabCache(validCashtabCache)).toBe(true);
-    });
-    it(`Rejects a cashtabCache object if one token id is invalid`, () => {
-        expect(isValidCashtabCache(cashtabCacheWithOneBadTokenId)).toBe(false);
-    });
-    it(`Rejects a cashtabCache object if decimals is not a number`, () => {
-        expect(isValidCashtabCache(cashtabCacheWithDecimalNotNumber)).toBe(
-            false,
-        );
-    });
-    it(`Rejects a cashtabCache object if tokenName is not a string`, () => {
-        expect(isValidCashtabCache(cashtabCacheWithTokenNameNotString)).toBe(
-            false,
-        );
-    });
-    it(`Rejects a cashtabCache object if tokenName is missing`, () => {
-        expect(isValidCashtabCache(cashtabCacheWithMissingTokenName)).toBe(
-            false,
-        );
-    });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
         const testXecSendAmount = toXec(appConfig.dustSats).toString();
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
@@ -572,62 +541,6 @@ describe('Validation utils', () => {
     it(`isValidAirdropExclusionArray rejects a null airdrop exclusion list`, () => {
         expect(isValidAirdropExclusionArray(null)).toBe(false);
     });
-    it('parseInvalidCashtabCacheForMigration updates an invalid cashtabCache object and keeps existing valid cache params intact', () =>
-        expect(
-            parseInvalidCashtabCacheForMigration({
-                tokenInfoById: {
-                    '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e':
-                        {
-                            decimals: 2,
-                            tokenDocumentHash: '',
-                            tokenDocumentUrl: 'https://cashtab.com/',
-                            tokenId:
-                                '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
-                            tokenName: 'test',
-                            tokenTicker: 'TEST',
-                        },
-                    'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa':
-                        {
-                            decimals: 2,
-                            tokenDocumentHash: '',
-                            tokenDocumentUrl: 'https://cashtab.com/',
-                            tokenId:
-                                'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-                            tokenName: 'test2',
-                            tokenTicker: 'TEST2',
-                        },
-                },
-            }),
-        ).toStrictEqual({
-            tokenInfoById: {
-                '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e':
-                    {
-                        decimals: 2,
-                        tokenDocumentHash: '',
-                        tokenDocumentUrl: 'https://cashtab.com/',
-                        tokenId:
-                            '1c6c9c64d70b285befe733f175d0f384538576876bd280b10587df81279d3f5e',
-                        tokenName: 'test',
-                        tokenTicker: 'TEST',
-                    },
-                'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa':
-                    {
-                        decimals: 2,
-                        tokenDocumentHash: '',
-                        tokenDocumentUrl: 'https://cashtab.com/',
-                        tokenId:
-                            'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-                        tokenName: 'test2',
-                        tokenTicker: 'TEST2',
-                    },
-            },
-        }));
-
-    it('parseInvalidCashtabCacheForMigration sets cashtabCache object with no exsting valid cache to default values', () =>
-        expect(parseInvalidCashtabCacheForMigration({})).toStrictEqual({
-            tokenInfoById: {},
-        }));
-
     it(`accepts a valid wallet name`, () => {
         expect(isValidNewWalletNameLength('Apollo')).toBe(true);
     });
@@ -912,6 +825,16 @@ describe('Determines if the user has valid cashtab settings', () => {
         const { description, settings, isValid } = expectedReturn;
         it(`isValidCashtabSettings: ${description}`, () => {
             expect(isValidCashtabSettings(settings)).toBe(isValid);
+        });
+    });
+});
+
+describe('Determines if cashtabCache is valid or invalid', () => {
+    const { expectedReturns } = vectors.isValidCashtabCache;
+    expectedReturns.forEach(expectedReturn => {
+        const { description, cashtabCache, isValid } = expectedReturn;
+        it(`isValidCashtabCache: ${description}`, () => {
+            expect(isValidCashtabCache(cashtabCache)).toBe(isValid);
         });
     });
 });

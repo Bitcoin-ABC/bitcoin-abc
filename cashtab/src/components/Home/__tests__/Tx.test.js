@@ -8,9 +8,8 @@ import { theme } from 'assets/styles/theme';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Tx from 'components/Home/Tx';
-import { cashtabSettings } from 'config/cashtabSettings';
 import { mockReceivedTxData } from 'components/Home/fixtures/mocks';
-import cashtabCache from 'config/cashtabCache';
+import appConfig from 'config/app';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -47,9 +46,7 @@ describe('<Tx />', () => {
                     data={mockReceivedTxData}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    contactList={[]}
-                    settings={cashtabSettings}
-                    cashtabCache={cashtabCache}
+                    cashtabState={appConfig.defaultCashtabState}
                 />
                 ,
             </ThemeProvider>,
@@ -75,9 +72,7 @@ describe('<Tx />', () => {
                     data={noTimeFirstSeenMock}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    contactList={[]}
-                    settings={cashtabSettings}
-                    cashtabCache={cashtabCache}
+                    cashtabState={appConfig.defaultCashtabState}
                 />
             </ThemeProvider>,
         );
@@ -103,9 +98,7 @@ describe('<Tx />', () => {
                     data={noTimeFirstSeenUnconfirmedMock}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    contactList={[]}
-                    settings={cashtabSettings}
-                    cashtabCache={cashtabCache}
+                    cashtabState={appConfig.defaultCashtabState}
                 />
             </ThemeProvider>,
         );
@@ -124,15 +117,16 @@ describe('<Tx />', () => {
                     data={mockReceivedTxData}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    contactList={[
-                        {
-                            name: 'inTheList',
-                            address:
-                                'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                        },
-                    ]}
-                    settings={cashtabSettings}
-                    cashtabCache={cashtabCache}
+                    cashtabState={{
+                        ...appConfig.defaultCashtabState,
+                        contactList: [
+                            {
+                                name: 'inTheList',
+                                address:
+                                    'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                            },
+                        ],
+                    }}
                 />
                 ,
             </ThemeProvider>,
@@ -147,15 +141,7 @@ describe('<Tx />', () => {
                     data={mockReceivedTxData}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    contactList={[
-                        {
-                            name: 'inTheList',
-                            address:
-                                'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
-                        },
-                    ]}
-                    settings={cashtabSettings}
-                    cashtabCache={cashtabCache}
+                    cashtabState={appConfig.defaultCashtabState}
                 />
                 ,
             </ThemeProvider>,
