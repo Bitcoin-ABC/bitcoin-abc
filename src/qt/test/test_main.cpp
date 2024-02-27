@@ -13,7 +13,6 @@
 #include <qt/bitcoin.h>
 #include <qt/test/apptests.h>
 #include <qt/test/bitcoinaddressvalidatortests.h>
-#include <qt/test/compattests.h>
 #include <qt/test/guiutiltests.h>
 #include <qt/test/optiontests.h>
 #include <qt/test/rpcnestedtests.h>
@@ -108,9 +107,6 @@ int main(int argc, char *argv[]) {
 
     RPCNestedTests test3(app.node());
     num_test_failures += QTest::qExec(&test3);
-
-    CompatTests test4;
-    num_test_failures += QTest::qExec(&test4);
 
     GUIUtilTests test5;
     num_test_failures += QTest::qExec(&test5);

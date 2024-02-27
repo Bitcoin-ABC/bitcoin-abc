@@ -28,12 +28,6 @@
 #cmakedefine HAVE_DECL_BE64TOH 1
 #cmakedefine HAVE_DECL_LE64TOH 1
 
-#cmakedefine HAVE_BYTESWAP_H 1
-
-#cmakedefine HAVE_DECL_BSWAP_16 1
-#cmakedefine HAVE_DECL_BSWAP_32 1
-#cmakedefine HAVE_DECL_BSWAP_64 1
-
 #cmakedefine HAVE_SYS_SELECT_H 1
 #cmakedefine HAVE_SYS_PRCTL_H 1
 

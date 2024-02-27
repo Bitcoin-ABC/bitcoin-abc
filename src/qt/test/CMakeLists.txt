@@ -9,7 +9,6 @@ add_dependencies(check check-bitcoin-qt)
 add_test_to_suite(bitcoin-qt test_bitcoin-qt
 	apptests.cpp
 	bitcoinaddressvalidatortests.cpp
-	compattests.cpp
 	guiutiltests.cpp
 	optiontests.cpp
 	rpcnestedtests.cpp

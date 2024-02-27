@@ -45,13 +45,6 @@ if(ENDIAN_FILE)
 	check_symbol_exists(le64toh ${ENDIAN_FILE} HAVE_DECL_LE64TOH)
 endif()
 
-# Byte swap
-check_include_files("byteswap.h" HAVE_BYTESWAP_H)
-
-check_symbol_exists(bswap_16 "byteswap.h" HAVE_DECL_BSWAP_16)
-check_symbol_exists(bswap_32 "byteswap.h" HAVE_DECL_BSWAP_32)
-check_symbol_exists(bswap_64 "byteswap.h" HAVE_DECL_BSWAP_64)
-
 # sys/select.h and sys/prctl.h headers
 check_include_files("sys/select.h" HAVE_SYS_SELECT_H)
 check_include_files("sys/prctl.h" HAVE_SYS_PRCTL_H)
