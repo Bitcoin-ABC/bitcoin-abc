@@ -16,7 +16,7 @@ import {
     initializeCashtabStateForTests,
 } from 'components/fixtures/helpers';
 
-const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
+const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 50;
 
 describe('useWallet hook rendering in different localforage states', () => {
     const xecPrice = 0.00003;

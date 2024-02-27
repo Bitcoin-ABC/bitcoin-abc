@@ -43,13 +43,13 @@ import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import { notification } from 'antd';
 // Cashtab is always running the `update` function at an interval
 // When the websocket detects an incoming tx (or when the wallet is first loaded)
-// Set this interval to near-instant (10ms)
+// Set this interval to near-instant (50ms)
 // If the `update` function runs and this is the refresh interval, it will throttle back to
 // the standard interval set in websocketConfig
 // Note: react setState is async. If you set this to 0, the update function will run 2 or 3 times before
 // the interval is updated in state
-// 10ms and update will only run once before backing off the interval, which is all you need
-const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 10;
+// 50ms and update will only run once before backing off the interval, which is all you need
+const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 50;
 
 const useWallet = chronik => {
     const [walletRefreshInterval, setWalletRefreshInterval] = useState(
