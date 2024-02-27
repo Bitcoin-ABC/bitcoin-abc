@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 import { Form, Modal, Input } from 'antd';
 import { WalletContext } from 'utils/context';
 import {
@@ -428,20 +427,6 @@ const SignVerifyMsg = () => {
             </SidePaddingCtn>
         </Wrapper>
     );
-};
-
-SignVerifyMsg.propTypes = {
-    cashtabSettings: PropTypes.oneOfType([
-        PropTypes.shape({
-            fiatCurrency: PropTypes.string,
-            sendModal: PropTypes.bool,
-            autoCameraOn: PropTypes.bool,
-            hideMessagesFromUnknownSender: PropTypes.bool,
-            toggleShowHideBalance: PropTypes.bool,
-        }),
-        PropTypes.bool,
-    ]),
-    changeCashtabSettings: PropTypes.func,
 };
 
 export default SignVerifyMsg;
