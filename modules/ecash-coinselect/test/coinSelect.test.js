@@ -260,9 +260,6 @@ describe('coinSelect() accumulative algorithm for utxo selection in coinselect.j
         }
     });
     it('handles eCash max length OP_RETURN in output script', function () {
-        const OP_RETURN_MAX_SIZE =
-            '6a04007461624cd75f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f5f5f5f5f5f5f31305f5f323135';
-
         const FEE_OF_SAME_TX_WITHOUT_OP_RETURN_OUTPUT_SEE_TEST_ABOVE = 226;
 
         const TX_OUTPUT_BASE = 8 + 1;
