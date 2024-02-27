@@ -187,6 +187,22 @@ impl Db {
             .map(|result| Ok(result.map_err(RocksDb)?))
     }
 
+    pub(crate) fn full_iterator(
+        &self,
+        cf: &CF,
+    ) -> impl Iterator<Item = Result<(Box<[u8]>, Box<[u8]>)>> + '_ {
+        self.db
+            .full_iterator_cf(cf, IteratorMode::Start)
+            .map(|result| Ok(result.map_err(RocksDb)?))
+    }
+
+    pub(crate) fn estimate_num_keys(&self, cf: &CF) -> Result<Option<u64>> {
+        Ok(self
+            .db
+            .property_int_value_cf(cf, "rocksdb.estimate-num-keys")
+            .map_err(RocksDb)?)
+    }
+
     /// Writes the batch to the Db atomically.
     pub fn write_batch(&self, write_batch: WriteBatch) -> Result<()> {
         self.db.write_without_wal(write_batch).map_err(RocksDb)?;

@@ -99,7 +99,9 @@ pub trait Group {
 /// the member is anything, e.g. a token ID) and one without script, where the
 /// member is the script itself and therefore storing it in the UTXO is
 /// redundant.
-pub trait UtxoData: Default + for<'a> Deserialize<'a> + Serialize {
+pub trait UtxoData:
+    Default + for<'a> Deserialize<'a> + Serialize + 'static
+{
     /// Function that extracts the [`UtxoData`] from an output.
     fn from_output(output: &TxOutput) -> Self;
 }
