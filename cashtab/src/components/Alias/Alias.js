@@ -31,6 +31,7 @@ import aliasSettings from 'config/alias';
 import { explorer } from 'config/explorer';
 import { getAliasTargetOutput, getAliasByteCount } from 'opreturn';
 import { sendXec } from 'transactions';
+import { hasEnoughToken } from 'wallet';
 
 export const CheckboxContainer = styled.div`
     text-align: left;
@@ -84,9 +85,15 @@ const Alias = ({ passLoadingStatus }) => {
         aliasServerError,
         aliasPrices,
         setAliasPrices,
+        cashtabState,
     } = ContextValue;
+    // Ensure cashtabState is not undefined before context initializes
+    const { settings } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
     const walletState = getWalletState(wallet);
-    const { balances } = walletState;
+    const { balances, tokens } = walletState;
     const [formData, setFormData] = useState({
         aliasName: '',
         aliasAddress: '',
@@ -294,7 +301,14 @@ const Alias = ({ passLoadingStatus }) => {
                     chronik,
                     wallet,
                     targetOutputs,
-                    appConfig.defaultFee,
+                    settings.minFeeSends &&
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipSettingsTokenId,
+                            appConfig.vipSettingsTokenQty,
+                        )
+                        ? appConfig.minFee
+                        : appConfig.defaultFee,
                 );
                 clearInputForms();
                 registerAliasNotification(

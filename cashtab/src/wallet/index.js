@@ -45,3 +45,19 @@ export const toXec = satoshis => {
     }
     return new BN(satoshis).div(SATOSHIS_PER_XEC).toNumber();
 };
+
+/**
+ * Determine if a given wallet has enough of a certain token to unlock a feature
+ * @param {object} tokens decimalized balance summary tokens reference from wallet.state
+ * @param {string} tokenId tokenId of the token we are checking
+ * @param {string} tokenQty quantity of the token required for unlock, decimalized string
+ */
+export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
+    // Filter for tokenId
+    const thisToken = tokens.filter(token => token.tokenId === tokenId);
+    // Confirm we have this token at all
+    if (thisToken.length === 0) {
+        return false;
+    }
+    return new BN(thisToken[0].balance).gte(tokenQty);
+};

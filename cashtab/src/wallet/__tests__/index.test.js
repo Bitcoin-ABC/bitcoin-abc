@@ -1,4 +1,4 @@
-import { getBalanceSats, toXec, toSatoshis } from 'wallet';
+import { getBalanceSats, toXec, toSatoshis, hasEnoughToken } from 'wallet';
 import vectors from '../fixtures/vectors';
 
 describe('Calculates total balance in satoshis from a valid set of chronik utxos', () => {
@@ -48,6 +48,17 @@ describe('Converts satoshis to XEC and XEC to satoshis', () => {
         const { description, xec, errorMsg } = expectedError;
         it(`toSatoshis throws error for: ${description}`, () => {
             expect(() => toSatoshis(xec)).toThrow(errorMsg);
+        });
+    });
+});
+
+describe('Determines if the wallet has greater than or equal to a specified qty of a specified token', () => {
+    const { expectedReturns } = vectors.hasEnoughToken;
+    expectedReturns.forEach(expectedReturn => {
+        const { description, tokens, tokenId, tokenQty, hasEnough } =
+            expectedReturn;
+        it(`hasEnoughToken: ${description}`, () => {
+            expect(hasEnoughToken(tokens, tokenId, tokenQty)).toBe(hasEnough);
         });
     });
 });

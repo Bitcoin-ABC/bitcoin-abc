@@ -51,6 +51,7 @@ import {
     getSlpBurnTargetOutputs,
 } from 'slpv1';
 import { sendXec } from 'transactions';
+import { hasEnoughToken } from 'wallet';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -209,7 +210,14 @@ const SendToken = ({ passLoadingStatus }) => {
                 chronik,
                 wallet,
                 tokenSendTargetOutputs,
-                appConfig.defaultFee,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
                 chaintipBlockheight,
                 tokenInputInfo.tokenInputs,
             );
@@ -424,7 +432,14 @@ const SendToken = ({ passLoadingStatus }) => {
                 chronik,
                 wallet,
                 tokenBurnTargetOutputs,
-                appConfig.defaultFee,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
                 chaintipBlockheight,
                 tokenInputInfo.tokenInputs,
                 true, // skip SLP burn checks

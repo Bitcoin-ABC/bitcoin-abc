@@ -58,6 +58,7 @@ import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { notification } from 'antd';
 import { isMobile } from 'helpers';
+import { hasEnoughToken } from 'wallet';
 const { TextArea } = Input;
 
 const TextAreaLabel = styled.div`
@@ -172,7 +173,7 @@ const SendXec = ({ passLoadingStatus }) => {
             ? appConfig.defaultCashtabState
             : cashtabState;
     const walletState = getWalletState(wallet);
-    const { balances, nonSlpUtxos } = walletState;
+    const { balances, nonSlpUtxos, tokens } = walletState;
     // Use spendable utxos instead of all nonSlpUtxos for onMax function
     const spendableUtxos = ignoreUnspendableUtxos(
         nonSlpUtxos,
@@ -507,7 +508,14 @@ const SendXec = ({ passLoadingStatus }) => {
                 chronik,
                 wallet,
                 targetOutputs,
-                appConfig.defaultFee,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
                 chaintipBlockheight,
             );
 
@@ -694,7 +702,14 @@ const SendXec = ({ passLoadingStatus }) => {
             // An error will be thrown if the wallet has insufficient funds to send more than dust
             maxSendSatoshis = getMaxSendAmountSatoshis(
                 spendableUtxos,
-                appConfig.defaultFee,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
                 intendedTargetOutputs,
             );
         } catch (err) {

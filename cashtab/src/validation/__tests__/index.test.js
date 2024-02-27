@@ -364,41 +364,6 @@ describe('Validation utils', () => {
             false,
         );
     });
-    it(`Recognizes a valid cashtab settings object`, () => {
-        expect(
-            isValidCashtabSettings({
-                fiatCurrency: 'usd',
-                sendModal: false,
-                autoCameraOn: true,
-                hideMessagesFromUnknownSenders: true,
-                balanceVisible: false,
-            }),
-        ).toBe(true);
-    });
-    it(`Rejects a cashtab settings object for an unsupported currency`, () => {
-        expect(
-            isValidCashtabSettings({ fiatCurrency: 'xau', sendModal: false }),
-        ).toBe(false);
-    });
-    it(`Rejects a corrupted cashtab settings object for an unsupported currency`, () => {
-        expect(
-            isValidCashtabSettings({
-                fiatCurrencyWrongLabel: 'usd',
-                sendModal: false,
-            }),
-        ).toBe(false);
-    });
-    it(`Rejects a valid fiatCurrency setting but undefined sendModal setting`, () => {
-        expect(isValidCashtabSettings({ fiatCurrency: 'usd' })).toBe(false);
-    });
-    it(`Rejects a valid fiatCurrency setting but invalid sendModal setting`, () => {
-        expect(
-            isValidCashtabSettings({
-                fiatCurrency: 'usd',
-                sendModal: 'NOTVALID',
-            }),
-        ).toBe(false);
-    });
     it(`isValidXecSendAmount accepts the dust minimum`, () => {
         const testXecSendAmount = toXec(appConfig.dustSats).toString();
         expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
@@ -933,6 +898,16 @@ describe('Appropriately migrates users with legacy settings', () => {
             expect(migrateLegacyCashtabSettings(legacySettings)).toStrictEqual(
                 migratedSettings,
             );
+        });
+    });
+});
+
+describe('Determines if the user has valid cashtab settings', () => {
+    const { expectedReturns } = vectors.isValidCashtabSettings;
+    expectedReturns.forEach(expectedReturn => {
+        const { description, settings, isValid } = expectedReturn;
+        it(`isValidCashtabSettings: ${description}`, () => {
+            expect(isValidCashtabSettings(settings)).toBe(isValid);
         });
     });
 });

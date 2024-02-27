@@ -1740,3 +1740,104 @@ export const getWalletWithOneIncomingCashtabMsgChronikClient = () => {
 
     return mockedChronik;
 };
+
+export const requiredUtxoThisToken = {
+    outpoint: {
+        txid: '423e24bf0715cfb80727e5e7a6ff7b9e37cb2f555c537ab06fdc7fd9b3a0ba3a',
+        outIdx: 1,
+    },
+    blockHeight: 833612,
+    isCoinbase: false,
+    value: '546',
+    slpMeta: {
+        tokenType: 'FUNGIBLE',
+        txType: 'SEND',
+        tokenId:
+            'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+    },
+    slpToken: {
+        amount: '10000000000',
+        isMintBaton: false,
+    },
+    network: 'XEC',
+    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+    tokenQty: '100000000',
+    tokenId: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+    decimals: 2,
+};
+
+export const vipTokenChronikTx = {
+    input: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+    output: {
+        txid: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'b8af3a4ad68cc300e1f9d331762a1a62c0c344c3b3fb554af6a35e634907feab',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '47304402204db8555a3141e86b979257feadc41e903a779a61971e2e63a386f1084c52ff2a022010d7f7f9d41b474ff5c4bd979916e2cd29627a2d6194fcc6af6485a979091cbe412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1e',
+                outputScript:
+                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                value: '50000',
+                sequenceNo: 4294967295,
+            },
+        ],
+        outputs: [
+            {
+                value: '0',
+                outputScript:
+                    '6a04534c500001010747454e4553495303475250064752554d50591868747470733a2f2f6269742e6c792f4772756d7079446f634c0001024c0008000000e8d4a51000',
+            },
+            {
+                value: '546',
+                outputScript:
+                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                slpToken: {
+                    amount: '1000000000000',
+                    isMintBaton: false,
+                },
+                spentBy: {
+                    txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: '48931',
+                outputScript:
+                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                spentBy: {
+                    txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        slpTxData: {
+            slpMeta: {
+                tokenType: 'FUNGIBLE',
+                txType: 'GENESIS',
+                tokenId:
+                    'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+            },
+            genesisInfo: {
+                tokenTicker: 'GRP',
+                tokenName: 'GRUMPY',
+                tokenDocumentUrl: 'https://bit.ly/GrumpyDoc',
+                tokenDocumentHash: '',
+                decimals: 2,
+            },
+        },
+        block: {
+            height: 713853,
+            hash: '0000000000000000006a051e51b50e44d3394ab49c9db896c2484770ed613fb2',
+            timestamp: '1637109257',
+        },
+        timeFirstSeen: '0',
+        size: 301,
+        isCoinbase: false,
+        network: 'XEC',
+    },
+};

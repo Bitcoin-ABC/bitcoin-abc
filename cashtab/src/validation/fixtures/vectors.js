@@ -650,6 +650,24 @@ export default {
     migrateLegacyCashtabSettings: {
         expectedReturns: [
             {
+                description: 'Migrates a 1.4.x user to 1.5.0 settings',
+                legacySettings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                },
+                migratedSettings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    minFeeSends: false,
+                },
+            },
+            {
                 description: 'User with only fiatCurrency in settings',
                 legacySettings: {
                     fiatCurrency: 'gbp',
@@ -660,6 +678,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
+                    minFeeSends: false,
                 },
             },
             {
@@ -676,6 +695,7 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
+                    minFeeSends: false,
                 },
                 migratedSettings: {
                     fiatCurrency: 'brl',
@@ -683,7 +703,72 @@ export default {
                     autoCameraOn: true,
                     hideMessagesFromUnknownSenders: false,
                     balanceVisible: true,
+                    minFeeSends: false,
                 },
+            },
+        ],
+    },
+    isValidCashtabSettings: {
+        expectedReturns: [
+            {
+                description: 'A 1.4.x settings object is invalid',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                },
+                isValid: false,
+            },
+            {
+                description: 'A 1.5.0 settings object is valid',
+                settings: {
+                    fiatCurrency: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    minFeeSends: false,
+                },
+                isValid: true,
+            },
+            {
+                description:
+                    'Rejects an otherwise-valid settings object if the currency is not supported',
+                settings: {
+                    fiatCurrency: 'xau',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    minFeeSends: false,
+                },
+                isValid: false,
+            },
+            {
+                description:
+                    'Rejects an otherwise-valid settings object if a ticker is misnamed',
+                settings: {
+                    fiatCurrencyTicker: 'usd',
+                    sendModal: false,
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                    minFeeSends: false,
+                },
+                isValid: false,
+            },
+            {
+                description:
+                    'Rejects an otherwise-valid settings object if it is from before the introduction of sendModal',
+                settings: {
+                    fiatCurrencyTicker: 'usd',
+                    autoCameraOn: true,
+                    hideMessagesFromUnknownSenders: false,
+                    balanceVisible: true,
+                },
+                isValid: false,
             },
         ],
     },

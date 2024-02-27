@@ -20,6 +20,7 @@ import {
     clearLocalForage,
 } from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+import { cashtabSettings } from 'config/cashtabSettings';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -1153,5 +1154,132 @@ describe('<SendXec />', () => {
                 `${explorer.blockExplorerUrl}/tx/${txid}`,
             ),
         );
+    });
+    it('If the user has minFeeSends set to true but no longer has the right token amount, the feature is disabled', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Adjust initial settings so that minFeeSends is true
+        await localforage.setItem('settings', {
+            ...cashtabSettings,
+            minFeeSends: true,
+        });
+
+        // Can check in electrum to confirm this is not sent at 1.0 sat/byte
+        // It's 2.02
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206d45893e238b7e30110d4e0d47e63204a7d6347169547bebad5200be510b8790022014eb3457545423b9eb04aec14e28551548c011ee3544cb40619063dfbb20a1c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac417b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '79e6afc28d4149c51c4e2a32c05c57fb59c1c164fde1afc655590ce99ed70cb8';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Confirm we have minFeeSends true in settings
+        expect(await localforage.getItem('settings')).toEqual({
+            ...cashtabSettings,
+            minFeeSends: true,
+        });
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput =
+            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
+        await user.type(addressInputEl, addressInput);
+
+        // The 'Send To' input field has this address as a value
+        expect(addressInputEl).toHaveValue(addressInput);
+
+        // The 'Send To' input field is not disabled
+        expect(addressInputEl).toHaveProperty('disabled', false);
+
+        // The multiple recipients switch is NOT rendered
+        expect(
+            screen.queryByText('Multiple Recipients:'),
+        ).not.toBeInTheDocument();
+
+        // Amount input is the valid amount param value
+        expect(amountInputEl).toHaveValue(17);
+
+        // The amount input is disabled because it is set by a bip21 query string
+        expect(amountInputEl).toHaveProperty('disabled', true);
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
+
+        // The Send button is enabled as we have valid address and amount params
+        expect(screen.getByRole('button', { name: /Send/ })).not.toHaveStyle(
+            'cursor: not-allowed',
+        );
+
+        // The Bip21Alert span is rendered
+        expect(
+            screen.getByText('(set by BIP21 query string)'),
+        ).toBeInTheDocument();
+
+        // The Cashtab Message collapse is NOT rendered because op_return_raw is set
+        expect(screen.queryByText('Message')).not.toBeInTheDocument();
+
+        // The Bip21Alert op_return_raw span is rendered
+        expect(
+            screen.getByText(
+                `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
+            ),
+        ).toBeInTheDocument();
+
+        // Click Send
+        await user.click(
+            screen.getByRole('button', { name: /Send/ }),
+            addressInput,
+        );
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText(
+            'Transaction successful. Click to view in block explorer.',
+        );
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+        await waitFor(() =>
+            // The op_return_raw set alert is now removed
+            expect(
+                screen.queryByText(
+                    `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
+                ),
+            ).not.toBeInTheDocument(),
+        );
+        await waitFor(() =>
+            // The amount input is no longer disabled
+            expect(amountInputEl).toHaveProperty('disabled', false),
+        );
+        await waitFor(() =>
+            // Amount input is reset
+            expect(amountInputEl).toHaveValue(null),
+        );
+
+        // The multiple recipients switch is now rendered
+        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+
+        // The 'Send To' input field has been cleared
+        expect(addressInputEl).toHaveValue('');
+
+        // The Cashtab Message collapse is now rendered because op_return_raw is no longer set
+        expect(screen.getByText('Message')).toBeInTheDocument();
     });
 });

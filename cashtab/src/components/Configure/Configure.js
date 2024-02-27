@@ -52,6 +52,7 @@ import {
     SocialContainer,
     SocialLink,
 } from 'components/Common/CustomIcons';
+import TokenIcon from 'components/Etokens/TokenIcon';
 import { Event } from 'utils/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
@@ -61,9 +62,10 @@ import {
     validateMnemonic,
     isValidRecipient,
 } from 'validation';
-import { convertToEcashPrefix } from 'utils/cashMethods';
+import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { isMobile } from 'helpers';
+import { hasEnoughToken } from 'wallet';
 const { Panel } = Collapse;
 
 const VersionContainer = styled.div`
@@ -441,6 +443,13 @@ const GeneralSettingsItem = styled.div`
     color: ${props => props.theme.lightWhite};
 `;
 
+const VIPSettingsHolder = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+`;
+
 const Configure = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const {
@@ -460,6 +469,9 @@ const Configure = ({ passLoadingStatus }) => {
         typeof cashtabState === 'undefined'
             ? appConfig.defaultCashtabState
             : cashtabState;
+
+    const walletState = getWalletState(wallet);
+    const { tokens } = walletState;
 
     const location = useLocation();
 
@@ -834,6 +846,13 @@ const Configure = ({ passLoadingStatus }) => {
         updateCashtabState('settings', {
             ...settings,
             sendModal: checkedState,
+        });
+    };
+
+    const handleMinFeesToggle = checkedState => {
+        updateCashtabState('settings', {
+            ...settings,
+            minFeeSends: checkedState,
         });
     };
 
@@ -1740,6 +1759,41 @@ const Configure = ({ passLoadingStatus }) => {
                         onChange={handleUnknownSenderMsg}
                     />
                 </GeneralSettingsItem>
+
+                {hasEnoughToken(
+                    tokens,
+                    appConfig.vipSettingsTokenId,
+                    appConfig.vipSettingsTokenQty,
+                ) && (
+                    <>
+                        <StyledSpacer />
+                        <VIPSettingsHolder>
+                            {' '}
+                            <TokenIcon
+                                size={64}
+                                tokenId={appConfig.vipSettingsTokenId}
+                            />
+                            <h2>VIP Settings</h2>
+                        </VIPSettingsHolder>
+                        <GeneralSettingsItem>
+                            <SettingsLabel>
+                                {' '}
+                                <LockFilled /> ABSOLUTE MINIMUM fees
+                            </SettingsLabel>
+                            <Switch
+                                data-testid="settings-minFeeSends-switch"
+                                size="small"
+                                checkedChildren={<CheckOutlined />}
+                                unCheckedChildren={<CloseOutlined />}
+                                checked={
+                                    settings ? settings.minFeeSends : false
+                                }
+                                onChange={handleMinFeesToggle}
+                            />
+                        </GeneralSettingsItem>
+                    </>
+                )}
+
                 <StyledSpacer />
                 <SocialContainer>
                     <SocialLink

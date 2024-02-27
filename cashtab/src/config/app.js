@@ -13,6 +13,7 @@ const appConfig = {
     legacyPrefix: 'bitcoincash',
     coingeckoId: 'ecash',
     defaultFee: 2.01,
+    minFee: 1,
     dustSats: 550,
     etokenSats: 546,
     cashDecimals: 2,
@@ -26,6 +27,9 @@ const appConfig = {
     localStorageMaxCharacters: 24,
     monitorExtension: false,
     defaultCashtabState: { contactList: [], settings: cashtabSettings },
+    vipSettingsTokenId:
+        'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa', // GRP
+    vipSettingsTokenQty: '1000000',
 };
 
 export default appConfig;

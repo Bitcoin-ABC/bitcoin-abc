@@ -11,6 +11,7 @@ export const cashtabSettings = {
     autoCameraOn: true,
     hideMessagesFromUnknownSenders: false,
     balanceVisible: true,
+    minFeeSends: false,
 };
 
 // Cashtab supported fiat currencies
@@ -51,4 +52,5 @@ export const cashtabSettingsValidation = {
     autoCameraOn: [true, false],
     hideMessagesFromUnknownSenders: [true, false],
     balanceVisible: [true, false],
+    minFeeSends: [true, false],
 };

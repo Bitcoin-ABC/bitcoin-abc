@@ -45,6 +45,9 @@ import { sendXec } from 'transactions';
 import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
+import { getWalletState } from 'utils/cashMethods';
+import { hasEnoughToken } from 'wallet';
+
 const { Dragger } = Upload;
 
 export const CreateTokenCtn = styled.div`
@@ -67,8 +70,16 @@ export const CreateTokenCtn = styled.div`
 `;
 
 const CreateTokenForm = ({ passLoadingStatus }) => {
-    const { wallet, chronik, chaintipBlockheight } =
+    const { wallet, chronik, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
+    // Ensure cashtabState is not undefined before context initializes
+    const { settings } =
+        typeof cashtabState === 'undefined'
+            ? appConfig.defaultCashtabState
+            : cashtabState;
+
+    const walletState = getWalletState(wallet);
+    const { tokens } = walletState;
 
     // eToken icon adds
     const [tokenIcon, setTokenIcon] = useState('');
@@ -463,7 +474,14 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                 chronik,
                 wallet,
                 targetOutputs,
-                appConfig.defaultFee,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
                 chaintipBlockheight,
             );
 
