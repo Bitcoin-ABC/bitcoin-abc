@@ -998,6 +998,10 @@ void BitcoinGUI::gotoLoadPSBT() {
 #endif // ENABLE_WALLET
 
 void BitcoinGUI::updateNetworkState() {
+    if (!clientModel) {
+        return;
+    }
+
     int count = clientModel->getNumConnections();
     QString icon;
     switch (count) {
