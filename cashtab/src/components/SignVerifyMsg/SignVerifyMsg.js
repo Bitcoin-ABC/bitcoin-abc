@@ -251,7 +251,7 @@ const SignVerifyMsg = () => {
                             <Form.Item>
                                 <SignMessageLabel>Message:</SignMessageLabel>
                                 <TextArea
-                                    data-testid="sign-message-textarea"
+                                    placeholder="Enter message to sign"
                                     name="signMessage"
                                     onChange={e => handleSignMsgChange(e)}
                                     showCount
@@ -296,7 +296,6 @@ const SignVerifyMsg = () => {
                                     )}
                             </Form.Item>
                             <SmartButton
-                                data-testid="sign-message-button"
                                 onClick={() => setShowConfirmMsgToSign(true)}
                                 disabled={!signMessageIsValid}
                             >
@@ -362,7 +361,7 @@ const SignVerifyMsg = () => {
                                     Message:
                                 </VerifyMessageLabel>
                                 <TextArea
-                                    data-testid="verify-message-textarea"
+                                    placeholder="Enter message to verify"
                                     name="verifyMessage"
                                     onChange={e => handleVerifyMsgChange(e)}
                                     showCount
@@ -400,7 +399,7 @@ const SignVerifyMsg = () => {
                                     Signature:
                                 </VerifyMessageLabel>
                                 <TextArea
-                                    data-testid="verify-message-signature"
+                                    placeholder="Input signature"
                                     name="verifySignature"
                                     onChange={e => handleVerifySigChange(e)}
                                     showCount
@@ -410,7 +409,6 @@ const SignVerifyMsg = () => {
                                 </SignatureValidation>
                             </Form.Item>
                             <SmartButton
-                                data-testid="verify-message-button"
                                 onClick={() => setShowConfirmMsgToVerify(true)}
                                 disabled={
                                     !messageVerificationAddrIsValid ||

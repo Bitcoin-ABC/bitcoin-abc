@@ -1,13 +1,19 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import userEvent from '@testing-library/user-event';
-import SignVerifyMsg from '../SignVerifyMsg';
-import { ThemeProvider } from 'styled-components';
-import { theme } from 'assets/styles/theme';
-import { mockWalletContext } from '../../Send/fixtures/mocks';
-import { WalletContext } from 'utils/context';
-import { BrowserRouter } from 'react-router-dom';
+import userEvent, {
+    PointerEventsCheckLevel,
+} from '@testing-library/user-event';
+import { walletWithXecAndTokens } from '../../Send/fixtures/mocks';
+import { when } from 'jest-when';
+import 'fake-indexeddb/auto';
+import localforage from 'localforage';
+import appConfig from 'config/app';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -36,134 +42,160 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
-const TestSignVerifyMsgScreen = (
-    <BrowserRouter>
-        <WalletContext.Provider value={mockWalletContext}>
-            <ThemeProvider theme={theme}>
-                <SignVerifyMsg />
-            </ThemeProvider>
-        </WalletContext.Provider>
-    </BrowserRouter>
-);
-
 describe('<SignVerifyMsg />', () => {
+    let user;
+    beforeEach(() => {
+        // Set up userEvent to skip pointerEvents check, which returns false positives with antd
+        user = userEvent.setup({
+            // https://github.com/testing-library/user-event/issues/922
+            pointerEventsCheck: PointerEventsCheckLevel.Never,
+        });
+        // Mock the fetch call for Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await clearLocalForage(localforage);
+    });
     it('Notification is rendered upon successfully signing a message', async () => {
-        render(TestSignVerifyMsgScreen);
-
-        // Ensure the notification is NOT rendered prior to signing
-        const initialSignMsgSuccessNotification = screen.queryByText(
-            'Message Signature Generated',
+        // Mock the app with context at the SignVerifyMsg screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
         );
-        expect(initialSignMsgSuccessNotification).not.toBeInTheDocument();
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/signverifymsg"
+            />,
+        );
 
-        // Open the Sign Message dropdown and expose the inner contents
-        const signMsgDropdown = screen.getByText(/Sign/i);
-        await userEvent.click(signMsgDropdown);
+        // Open the Sign Message dropdown
+        await user.click(screen.getByText('Sign'));
 
         // Insert message to be signed
-        const signMsgText = screen.getByTestId('sign-message-textarea');
-        await userEvent.type(signMsgText, 'test message');
+        await user.type(
+            screen.getByPlaceholderText('Enter message to sign'),
+            'test message',
+        );
 
         // Click the Sign button
-        const signMsgBtn = screen.getByTestId('sign-message-button');
-        await userEvent.click(signMsgBtn);
+        await user.click(screen.getByRole('button', { name: /Sign Message/ }));
 
-        // Click OK on the confirmation modal and verify the correct notification is fired
-        const signMsgModalOkBtn = screen.queryByText('OK');
-        await userEvent.click(signMsgModalOkBtn);
-        // Using queryByText because the callsite directly calling the antd notifications
-        // component does not facilitate the insertion of 'data-testid' prop
-        const signMsgSuccessNotification = screen.queryByText(
-            'Message Signature Generated',
-        );
-        expect(signMsgSuccessNotification).toBeInTheDocument();
+        // Click OK on the confirmation modal
+        await user.click(screen.getByText('OK'));
+
+        expect(
+            await screen.findByText('Message Signature Generated'),
+        ).toBeInTheDocument();
     });
 
     it('Notification is rendered upon successfully verifying a message', async () => {
-        render(TestSignVerifyMsgScreen);
-
-        // Ensure the notification is NOT rendered prior to signing
-        const initialVerifyMsgSuccessNotification = screen.queryByText(
-            'Signature successfully verified',
+        // Mock the app with context at the SignVerifyMsg screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
         );
-        expect(initialVerifyMsgSuccessNotification).not.toBeInTheDocument();
-
-        // Open the Verify Message dropdown and expose the inner contents
-        const verifyMsgDropdown = screen.getByText(/Verify/i);
-        await userEvent.click(verifyMsgDropdown);
-
-        // Insert message, address and signature to be verified
-        const verifyMsgText = screen.getByTestId('verify-message-textarea');
-        const verifyMsgAddress = screen.getByTestId(
-            'destination-address-single-without-qrscan',
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/signverifymsg"
+            />,
         );
-        const verifyMsgSig = screen.getByTestId('verify-message-signature');
-        await userEvent.type(verifyMsgText, 'test message');
+
+        // Open the Verify Message dropdown
+        await user.click(screen.getByText('Verify'));
+
+        // Insert message to be signed
+        await user.type(
+            screen.getByPlaceholderText('Enter message to verify'),
+            'test message',
+        );
+
+        // Input the address
         await userEvent.type(
-            verifyMsgSig,
-            'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
-        );
-        await userEvent.type(
-            verifyMsgAddress,
+            screen.getByPlaceholderText('XEC Address'),
             'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
         );
 
+        // Insert signature in Signature textarea of Verify collapse
+        await userEvent.type(
+            screen.getByPlaceholderText('Input signature'),
+            'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
+        );
+
         // Click the Verify button
-        const verifyMsgBtn = screen.getByTestId('verify-message-button');
-        await userEvent.click(verifyMsgBtn);
+        await userEvent.click(
+            screen.getByRole('button', { name: /Verify Message/ }),
+        );
 
         // Click OK on the confirmation modal and verify the correct notification is fired
-        const verifyMsgModalOkBtn = screen.queryByText('OK');
-        await userEvent.click(verifyMsgModalOkBtn);
-        // Using queryByText because the callsite directly calling the antd notifications
-        // component does not facilitate the insertion of 'data-testid' prop
-        const verifyMsgSuccessNotification = screen.queryByText(
-            'Signature successfully verified',
-        );
-        expect(verifyMsgSuccessNotification).toBeInTheDocument();
+        await userEvent.click(screen.getByText('OK'));
+
+        expect(
+            screen.getByText('Signature successfully verified'),
+        ).toBeInTheDocument();
     });
 
     it('Notification is rendered upon signature verification error', async () => {
-        render(TestSignVerifyMsgScreen);
-
-        // Ensure the notification is NOT rendered prior to signing
-        const initialVerifyMsgErrorNotification = screen.queryByText(
-            'Signature does not match address and message',
+        // Mock the app with context at the SignVerifyMsg screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
         );
-        expect(initialVerifyMsgErrorNotification).not.toBeInTheDocument();
-
-        // Open the Verify Message dropdown and expose the inner contents
-        const verifyMsgDropdown = screen.getByText(/Verify/i);
-        await userEvent.click(verifyMsgDropdown);
-
-        // Insert message, address and signature to be verified
-        const verifyMsgText = screen.getByTestId('verify-message-textarea');
-        const verifyMsgAddress = screen.getByTestId(
-            'destination-address-single-without-qrscan',
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/signverifymsg"
+            />,
         );
-        const verifyMsgSig = screen.getByTestId('verify-message-signature');
-        await userEvent.type(verifyMsgText, 'NOT THE RIGHT MESSAGE');
+
+        // Open the Verify Message dropdown
+        await user.click(screen.getByText('Verify'));
+
+        // Insert message to be signed
+        await user.type(
+            screen.getByPlaceholderText('Enter message to verify'),
+            'NOT THE RIGHT MESSAGE',
+        );
+
+        // Input the address
         await userEvent.type(
-            verifyMsgSig,
-            'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
-        );
-        await userEvent.type(
-            verifyMsgAddress,
+            screen.getByPlaceholderText('XEC Address'),
             'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
         );
 
+        // Insert signature in Signature textarea of Verify collapse
+        await userEvent.type(
+            screen.getByPlaceholderText('Input signature'),
+            'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
+        );
+
         // Click the Verify button
-        const verifyMsgBtn = screen.getByTestId('verify-message-button');
-        await userEvent.click(verifyMsgBtn);
+        await userEvent.click(
+            screen.getByRole('button', { name: /Verify Message/ }),
+        );
 
         // Click OK on the confirmation modal and verify the correct notification is fired
-        const verifyMsgModalOkBtn = screen.queryByText('OK');
-        await userEvent.click(verifyMsgModalOkBtn);
-        // Using queryByText because the callsite directly calling the antd notifications
-        // component does not facilitate the insertion of 'data-testid' prop
-        const verifyMsgErrorNotification = screen.queryByText(
-            'Signature does not match address and message',
-        );
-        expect(verifyMsgErrorNotification).toBeInTheDocument();
+        await userEvent.click(screen.getByText('OK'));
+        expect(
+            screen.getByText('Signature does not match address and message'),
+        ).toBeInTheDocument();
     });
 });
