@@ -4,7 +4,9 @@ $(package)_download_path=https://download.qt.io/official_releases/qt/5.15/$($(pa
 $(package)_suffix=everywhere-opensource-src-$($(package)_version).tar.xz
 $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=0c42c799aa7c89e479a07c451bf5a301e291266ba789e81afc18f95049524edc
+ifneq ($(openssl_packages_),)
 $(package)_dependencies=openssl
+endif
 $(package)_linux_dependencies=freetype fontconfig libxcb libxkbcommon libxcb_util libxcb_util_render libxcb_util_keysyms libxcb_util_image libxcb_util_wm
 $(package)_qt_libs=corelib network widgets gui plugins testlib
 $(package)_linguist_tools = lrelease lupdate lconvert
@@ -80,7 +82,11 @@ $(package)_config_opts += -nomake examples
 $(package)_config_opts += -nomake tests
 $(package)_config_opts += -nomake tools
 $(package)_config_opts += -opensource
+ifneq ($(openssl_packages_),)
 $(package)_config_opts += -openssl-linked
+else
+$(package)_config_opts += -no-openssl
+endif
 $(package)_config_opts += -pkg-config
 $(package)_config_opts += -prefix $(host_prefix)
 $(package)_config_opts += -qt-libpng
@@ -152,7 +158,6 @@ $(package)_config_opts_linux += -system-freetype
 $(package)_config_opts_linux += -fontconfig
 $(package)_config_opts_linux += -no-feature-vulkan
 $(package)_config_opts_linux += -dbus-runtime
-$(package)_config_opts_linux += OPENSSL_LIBS="-lssl -lcrypto -lpthread"
 $(package)_config_opts_linux += -platform linux-g++ -xplatform bitcoin-linux-g++
 $(package)_config_opts_mingw32 = -no-dbus
 $(package)_config_opts_mingw32 += -no-freetype
@@ -162,7 +167,11 @@ $(package)_config_opts_mingw32 += "QMAKE_CXXFLAGS = '$($(package)_cflags) $($(pa
 $(package)_config_opts_mingw32 += "QMAKE_LFLAGS = '$($(package)_ldflags)'"
 $(package)_config_opts_mingw32 += -device-option CROSS_COMPILE="$(host)-"
 $(package)_config_opts_mingw32 += -pch
+
+ifneq ($(openssl_packages_),)
+$(package)_config_opts_linux += OPENSSL_LIBS="-lssl -lcrypto -lpthread"
 $(package)_config_opts_mingw32 += OPENSSL_LIBS="-lssl -lcrypto -lws2_32"
+endif
 endef
 
 define $(package)_fetch_cmds

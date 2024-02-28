@@ -1,7 +1,9 @@
-packages:=boost openssl libevent
+packages:=boost libevent
 
 protobuf_native_packages = native_protobuf
 protobuf_packages = protobuf
+
+openssl_packages = openssl
 
 qrencode_packages = qrencode
 

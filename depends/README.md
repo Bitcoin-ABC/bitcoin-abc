@@ -95,6 +95,7 @@ The following can be set when running make: `make FOO=bar`
 - `NO_JEMALLOC`: Don't download/build/cache jemalloc
 - `DEBUG`: Disable some optimizations and enable more runtime checking
 - `NO_PROTOBUF`: Don't download/build/cache protobuf (used for BIP70 support)
+- `NO_OPENSSL`: Don't download/build/cache OpenSSL (used for BIP70 support)
 - `HOST_ID_SALT`: Optional salt to use when generating host package ids
 - `BUILD_ID_SALT`: Optional salt to use when generating build package ids
 - `JOBS`: Number of jobs to use for each package build
