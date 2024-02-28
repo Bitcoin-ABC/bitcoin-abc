@@ -14,6 +14,7 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get script().history and script().utxos()', () => {
+    // Define variables used in scope of this test
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
     let get_txs_broadcast: Promise<string>;
@@ -33,11 +34,13 @@ describe('Get script().history and script().utxos()', () => {
     let get_mixed_output_txid: Promise<string>;
     const statusEvent = new EventEmitter();
 
-    before(async () => {
+    before(async function () {
+        // Initialize testRunner before mocha tests
         testRunner = initializeTestRunner(
             'chronik-client_script_utxos_and_history',
         );
 
+        // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
                 console.log('Setting chronik url to ', message.chronik);

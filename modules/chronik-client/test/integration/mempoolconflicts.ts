@@ -21,22 +21,22 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Test expected websocket behavior of chronik-client when txs are removed from the mempool', () => {
+    // Define variables used in scope of this test
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
-
-    // Collect websocket msgs in an array for analysis in each step
-    let msgCollector: Array<WsMsgClient> = [];
-
     let get_cointx: Promise<string>;
     let get_tx1_txid: Promise<string>;
     let get_tx2_txid: Promise<string>;
     let get_tx3_txid: Promise<string>;
-
     const statusEvent = new EventEmitter();
+    // Collect websocket msgs in an array for analysis in each step
+    let msgCollector: Array<WsMsgClient> = [];
 
-    before(async () => {
+    before(async function () {
+        // Initialize testRunner before mocha tests
         testRunner = initializeTestRunner('chronik-client_mempool_conflicts');
 
+        // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
                 console.log('Setting chronik url to ', message.chronik);

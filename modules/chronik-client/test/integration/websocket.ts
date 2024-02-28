@@ -19,35 +19,30 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Test expected websocket behavior of chronik-client', () => {
+    // Define variables used in scope of this test
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
-
-    // Collect websocket msgs in an array for analysis in each step
-    let msgCollector: Array<WsMsgClient> = [];
-
     let get_p2pkh_address: Promise<string>;
     let get_p2pkh_txid: Promise<string>;
-
     let get_p2sh_address: Promise<string>;
     let get_p2sh_txid: Promise<string>;
-
     let get_p2pk_script: Promise<string>;
     let get_p2pk_txid: Promise<string>;
-
     let get_other_script: Promise<string>;
     let get_other_txid: Promise<string>;
-
     let get_next_blockhash: Promise<string>;
     let get_finalized_block_blockhash: Promise<string>;
     let get_finalized_height: Promise<number>;
-
     let get_mixed_output_txid: Promise<string>;
-
     const statusEvent = new EventEmitter();
+    // Collect websocket msgs in an array for analysis in each step
+    let msgCollector: Array<WsMsgClient> = [];
 
-    before(async () => {
+    before(async function () {
+        // Initialize testRunner before mocha tests
         testRunner = initializeTestRunner('chronik-client_websocket');
 
+        // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
                 console.log('Setting chronik url to ', message.chronik);

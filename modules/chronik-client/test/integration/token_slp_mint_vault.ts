@@ -13,6 +13,7 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => {
+    // Define variables used in scope of this test
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
     let get_vault_setup_txid: Promise<string>;
@@ -20,11 +21,13 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     let get_slp_vault_mint_txid: Promise<string>;
     const statusEvent = new EventEmitter();
 
-    before(async () => {
+    before(async function () {
+        // Initialize testRunner before mocha tests
         testRunner = initializeTestRunner(
             'chronik-client_token_slp_mint_vault',
         );
 
+        // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
                 console.log('Setting chronik url to ', message.chronik);

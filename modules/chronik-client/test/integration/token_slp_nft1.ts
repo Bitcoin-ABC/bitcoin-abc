@@ -13,6 +13,7 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
+    // Define variables used in scope of this test
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
     let get_slp_nft1_genesis_txid: Promise<string>;
@@ -21,9 +22,11 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
     let get_slp_nft1_child_genesis1_txid: Promise<string>;
     const statusEvent = new EventEmitter();
 
-    before(async () => {
+    before(async function () {
+        // Initialize testRunner before mocha tests
         testRunner = initializeTestRunner('chronik-client_token_slp_nft1');
 
+        // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
                 console.log('Setting chronik url to ', message.chronik);

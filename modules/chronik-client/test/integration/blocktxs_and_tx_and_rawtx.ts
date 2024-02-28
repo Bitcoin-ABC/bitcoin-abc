@@ -13,16 +13,19 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs and tx', () => {
+    // Define variables used in scope of this test
     let testRunner: ChildProcess;
     let chronik_url: Promise<Array<string>>;
     let chronik_txs_and_rawtxs: Promise<{ [key: string]: string }>;
     const statusEvent = new EventEmitter();
 
-    before(async () => {
+    before(async function () {
+        // Initialize testRunner before mocha tests
         testRunner = initializeTestRunner(
             'chronik-client_blocktxs_and_tx_and_rawtx',
         );
 
+        // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
             if (message && message.chronik) {
                 console.log('Setting chronik url to ', message.chronik);
