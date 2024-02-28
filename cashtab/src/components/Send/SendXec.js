@@ -358,43 +358,52 @@ const SendXec = ({ passLoadingStatus }) => {
 
         if (validUrlParams) {
             // This is a tx request from the URL
+
+            // Save this flag in state var so it can be parsed in useEffect
+            txInfo.parseAllAsBip21 = parseAllAsBip21;
             setTxInfoFromUrl(txInfo);
-            if (parseAllAsBip21) {
-                handleAddressChange({
-                    target: {
-                        name: 'address',
-                        value: txInfo.bip21,
-                    },
-                });
-            } else {
-                // Enter address into input field and trigger handleAddressChange for validation
-                handleAddressChange({
-                    target: {
-                        name: 'address',
-                        value: txInfo.address,
-                    },
-                });
-                if (
-                    'value' in txInfo &&
-                    !Number.isNaN(parseFloat(txInfo.value))
-                ) {
-                    // Only update the amount field if txInfo.value is a good input
-                    // Sometimes we want this field to be adjusted by the user, e.g. a donation amount
-
-                    // Do not populate the field if the value param is not parseable as a number
-                    // the strings 'undefined' and 'null', which PayButton passes to signify 'no amount', fail this test
-
-                    // TODO deprecate this support once PayButton and cashtab-components do not require it
-                    handleAmountChange({
-                        target: {
-                            name: 'value',
-                            value: txInfo.value,
-                        },
-                    });
-                }
-            }
         }
     }, []);
+
+    useEffect(() => {
+        if (txInfoFromUrl === false) {
+            return;
+        }
+        if (txInfoFromUrl.parseAllAsBip21) {
+            handleAddressChange({
+                target: {
+                    name: 'address',
+                    value: txInfoFromUrl.bip21,
+                },
+            });
+        } else {
+            // Enter address into input field and trigger handleAddressChange for validation
+            handleAddressChange({
+                target: {
+                    name: 'address',
+                    value: txInfoFromUrl.address,
+                },
+            });
+            if (
+                'value' in txInfoFromUrl &&
+                !Number.isNaN(parseFloat(txInfoFromUrl.value))
+            ) {
+                // Only update the amount field if txInfo.value is a good input
+                // Sometimes we want this field to be adjusted by the user, e.g. a donation amount
+
+                // Do not populate the field if the value param is not parseable as a number
+                // the strings 'undefined' and 'null', which PayButton passes to signify 'no amount', fail this test
+
+                // TODO deprecate this support once PayButton and cashtab-components do not require it
+                handleAmountChange({
+                    target: {
+                        name: 'value',
+                        value: txInfoFromUrl.value,
+                    },
+                });
+            }
+        }
+    }, [txInfoFromUrl, balances.totalBalance]);
 
     function handleSendXecError(errorObj, oneToManyFlag) {
         // Set loading to false here as well, as balance may not change depending on where error occured in try loop

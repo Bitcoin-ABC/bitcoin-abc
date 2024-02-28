@@ -1,12 +1,20 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import SendXec from '../SendXec';
-import { ThemeProvider } from 'styled-components';
-import { theme } from 'assets/styles/theme';
-import { mockWalletContext } from '../fixtures/mocks';
-import { WalletContext } from 'utils/context';
-import { BrowserRouter } from 'react-router-dom';
+import {
+    walletWithXecAndTokens,
+    SEND_ADDRESS_VALIDATION_ERRORS,
+    SEND_AMOUNT_VALIDATION_ERRORS,
+} from '../fixtures/mocks';
+import { when } from 'jest-when';
+import 'fake-indexeddb/auto';
+import localforage from 'localforage';
+import appConfig from 'config/app';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
+import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -35,20 +43,30 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
-const TestSendXecScreen = (
-    <BrowserRouter>
-        <WalletContext.Provider value={mockWalletContext}>
-            <ThemeProvider theme={theme}>
-                <SendXec />
-            </ThemeProvider>
-        </WalletContext.Provider>
-    </BrowserRouter>
-);
-
-// Getting by class name is the only practical way to get some antd components
-/* eslint testing-library/no-container: 0 */
 describe('<SendXec /> rendered with params in URL', () => {
-    afterEach(() => {
+    beforeEach(() => {
+        // Mock the fetch call for Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await clearLocalForage(localforage);
         // Unset the window location so it does not impact other tests in this file
         Object.defineProperty(window, 'location', {
             value: {
@@ -60,24 +78,27 @@ describe('<SendXec /> rendered with params in URL', () => {
     it('Legacy params. Address and value keys are set and valid.', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
-        const hash = `#/send?address=${destinationAddress}&value=500`;
+        const value = 500;
+        const hash = `#/send?address=${destinationAddress}&value=${value}`;
+        // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=500
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true, // possibility to override
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -85,48 +106,65 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
-        // The amount input is empty
-        expect(amountInputEl).toHaveValue(500);
+        // The amount input is set to the expected value
+        expect(amountInputEl).toHaveValue(value);
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
+
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
 
         // The Send button is not disabled because we have a valid amount
-        expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
-        );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: /Send/ }),
+        ).not.toHaveStyle('cursor: not-allowed');
     });
-    it('Legacy params. Address and value keys are set and valid. Unsupported legacy params are ignored.', async () => {
+    it('Legacy params. Address and value keys are set and valid. Invalid bip21 string is ignored.', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
-        const hash = `#/send?address=${destinationAddress}&value=500&bip21=isthisgoingtodosomething&someotherparam=false&anotherstill=true`;
+        const legacyPassedAmount = 500;
+        const hash = `#/send?address=${destinationAddress}&value=${legacyPassedAmount}&bip21=isthisgoingtodosomething&someotherparam=false&anotherstill=true`;
+        // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=500&bip21=isthisgoingtodosomething&someotherparam=false&anotherstill=true
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true, // possibility to override
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
 
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -134,48 +172,56 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
-        // The amount input is empty
-        expect(amountInputEl).toHaveValue(500);
+        // The amount input is filled out per legacy passed amount
+        expect(amountInputEl).toHaveValue(legacyPassedAmount);
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Send button is not disabled because we have a valid amount
-        expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: /Send/ }),
+        ).not.toHaveStyle('cursor: not-allowed');
 
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
-        );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
     it('Legacy params. Address field is populated + disabled while value field is empty + enabled if legacy url params have address defined and value present as undefined', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const hash = `#/send?address=${destinationAddress}&value=undefined`;
+        // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=undefined
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -188,43 +234,51 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
+        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+            'cursor: not-allowed',
         );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
     it('Legacy params. Address field is populated + disabled while value field is empty + enabled if legacy url params have address defined and no value key present', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const hash = `#/send?address=${destinationAddress}`;
+        // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -237,42 +291,48 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
+        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+            'cursor: not-allowed',
         );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
     it('Legacy params. Params are ignored if only value param is present', async () => {
         const hash = `#/send?value=500`;
+        // ?value=500
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is rendered
-        expect(
-            screen.getByTestId('multiple-recipients-switch'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
 
         // The 'Send To' input field is untouched
         expect(addressInputEl).toHaveValue('');
@@ -284,44 +344,50 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The app-created-tx is not rendered
-        expect(screen.queryByTestId('app-created-tx')).not.toBeInTheDocument();
+        // The "Webapp Tx Request" notice is NOT rendered
+        expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
+        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+            'cursor: not-allowed',
         );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
     it('Legacy params. Params are ignored if param is duplicated', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const hash = `#/send?address=${destinationAddress}&amount=500&amount=1000`;
+        // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&amount=500&amount=1000
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is rendered
-        expect(
-            screen.getByTestId('multiple-recipients-switch'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
 
         // The 'Send To' input field is untouched
         expect(addressInputEl).toHaveValue('');
@@ -333,43 +399,56 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The app-created-tx is not rendered
-        expect(screen.queryByTestId('app-created-tx')).not.toBeInTheDocument();
+        // The "Webapp Tx Request" notice is NOT rendered
+        expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
+        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+            'cursor: not-allowed',
         );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
     it('Legacy params are not parsed as bip21 even if the bip21 param appears in the string', async () => {
         const destinationAddress =
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
-        const hash = `#/send?address=${destinationAddress}&value=500&bip21=ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177`;
+        const legacyPassedAmount = 500;
+        const hash = `#/send?address=${destinationAddress}&value=${legacyPassedAmount}&bip21=ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177`;
+        // ?address=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm&value=500&bip21=ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -377,26 +456,32 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
-        // The amount input is empty
-        expect(amountInputEl).toHaveValue(500);
+        // The amount input has the expected value
+        expect(amountInputEl).toHaveValue(legacyPassedAmount);
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Send button is not disabled because we have a valid amount
-        expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: /Send/ }),
+        ).not.toHaveStyle('cursor: not-allowed');
 
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
-        );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
     it('bip21 param - valid bip21 param with amount and op_return_raw is parsed as expected', async () => {
         const destinationAddress =
@@ -406,23 +491,29 @@ describe('<SendXec /> rendered with params in URL', () => {
             '04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
+        // ?bip21=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Wait for balance to be loaded
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -435,7 +526,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // Amount input is the valid amount param value
@@ -444,21 +535,27 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
 
-        // No validation errors
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
-        );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
 
         // The Send button is enabled as we have valid address and amount params
-        expect(screen.queryByTestId('disabled-send')).not.toBeInTheDocument();
+        expect(
+            await screen.findByRole('button', { name: /Send/ }),
+        ).not.toHaveStyle('cursor: not-allowed');
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is rendered
-        const bip21Alert = screen.getByTestId('bip-alert');
-        expect(bip21Alert).toBeInTheDocument();
+        // The Bip21Alert span is not rendered
+        expect(
+            screen.getByText('(set by BIP21 query string)'),
+        ).toBeInTheDocument();
 
         // The Cashtab Message collapse is not rendered
         expect(
@@ -483,23 +580,25 @@ describe('<SendXec /> rendered with params in URL', () => {
         // Repeat the op_return_raw param
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}&op_return_raw=${op_return_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
+        // ?bip21=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
         Object.defineProperty(window, 'location', {
             value: {
                 hash,
             },
             writable: true,
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
@@ -512,7 +611,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The multiple recipients switch is not rendered
         expect(
-            screen.queryByTestId('multiple-recipients-switch'),
+            screen.queryByText('Multiple Recipients:'),
         ).not.toBeInTheDocument();
 
         // Amount input is not updated as the bip21 query is invalid
@@ -521,24 +620,26 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled because it is not set by the invalid bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // Check for antd error div
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
-        );
-        expect(addressValidationErrorDiv).toBeInTheDocument();
-        expect(addressValidationErrorDiv).toHaveTextContent(
-            'bip21 parameters may not appear more than once',
-        );
+        // We get the expected validation error
+        expect(
+            // Note that, due to antd quirks, we get 2 of these
+            screen.getAllByText(
+                'bip21 parameters may not appear more than once',
+            )[0],
+        ).toBeInTheDocument();
 
         // The Send button is disabled
-        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
+        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+            'cursor: not-allowed',
+        );
 
-        // The app-created-tx is rendered
-        expect(screen.getByTestId('app-created-tx')).toBeInTheDocument();
+        // The "Webapp Tx Request" notice is rendered
+        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Bip21Alert span is not rendered as no info about the tx is set for invalid bip21
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
         // The Cashtab Message collapse is not rendered
         expect(
@@ -559,18 +660,17 @@ describe('<SendXec /> rendered with params in URL', () => {
             },
             writable: true, // possibility to override
         });
-        const { container } = render(TestSendXecScreen);
-        const addressInputEl = screen.getByTestId('destination-address-single');
-        const amountInputEl = screen.getByTestId('send-xec-input');
-
-        // Input fields are rendered
-        expect(addressInputEl).toBeInTheDocument();
-        expect(amountInputEl).toBeInTheDocument();
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The multiple recipients switch is rendered
-        expect(
-            screen.getByTestId('multiple-recipients-switch'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue('');
@@ -582,20 +682,26 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The app-created-tx is not rendered
-        expect(screen.queryByTestId('app-created-tx')).not.toBeInTheDocument();
+        // The "Webapp Tx Request" notice is NOT rendered
+        expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Bip21Alert span is not rendered
-        const bip21Alert = screen.queryByTestId('bip-alert');
-        expect(bip21Alert).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('(set by BIP21 query string)'),
+        ).not.toBeInTheDocument();
 
-        // The Send button is disable
-        expect(screen.getByTestId('disabled-send')).toBeInTheDocument();
-
-        // No validation errors on load
-        const addressValidationErrorDiv = container.querySelector(
-            '[class="ant-form-item-explain-error"]',
+        // The Send button is disabled
+        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+            'cursor: not-allowed',
         );
-        expect(addressValidationErrorDiv).not.toBeInTheDocument();
+
+        // No addr validation errors on load
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+            expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
+        }
+        // No amount validation errors on load
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+            expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
+        }
     });
 });

@@ -54,13 +54,13 @@ const SEND_TOKEN_BALANCE = walletWithXecAndTokens.state.tokens[0].balance;
 // See SendToken for some modified errors (SendToken does not support bip21)
 // These could change, which would break tests, which is expected behavior if we haven't
 // updated tests properly on changing the app
-const SEND_ADDRESS_VALIDATION_ERRORS = [
+const SEND_ADDRESS_VALIDATION_ERRORS_TOKEN = [
     `Aliases must end with '.xec'`,
     'eCash Alias does not exist or yet to receive 1 confirmation',
     'Invalid address',
     'eToken sends do not support bip21 query strings',
 ];
-const SEND_AMOUNT_VALIDATION_ERRORS = [
+const SEND_AMOUNT_VALIDATION_ERRORS_TOKEN = [
     `Amount must be a number`,
     'Amount must be greater than 0',
     `Amount cannot exceed your ${SEND_TOKEN_TICKER} balance of ${SEND_TOKEN_BALANCE}`,
@@ -151,11 +151,11 @@ describe('<SendToken />', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
         }
         // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
     });
@@ -182,11 +182,11 @@ describe('<SendToken />', () => {
         expect(addressInputEl).toHaveValue(addressInput);
 
         // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
         }
         // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
     });
@@ -214,11 +214,11 @@ describe('<SendToken />', () => {
         expect(addressInputEl).toHaveValue(addressInput);
 
         // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
         }
         // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
     });
@@ -264,11 +264,11 @@ describe('<SendToken />', () => {
         expect(addressInputEl).toHaveValue(addressInput);
 
         // No addr validation errors on load
-        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
+        for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
         }
         // No amount validation errors on load
-        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
+        for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS_TOKEN) {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
 

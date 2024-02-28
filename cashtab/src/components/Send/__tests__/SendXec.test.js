@@ -4,7 +4,11 @@ import '@testing-library/jest-dom';
 import userEvent, {
     PointerEventsCheckLevel,
 } from '@testing-library/user-event';
-import { walletWithXecAndTokens } from '../fixtures/mocks';
+import {
+    walletWithXecAndTokens,
+    SEND_ADDRESS_VALIDATION_ERRORS,
+    SEND_AMOUNT_VALIDATION_ERRORS,
+} from '../fixtures/mocks';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
 import { explorer } from 'config/explorer';
@@ -44,18 +48,6 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
-// See src/validation, ref parseAddressInput
-// These could change, which would break tests, which is expected behavior if we haven't
-// updated tests properly on changing the app
-const SEND_ADDRESS_VALIDATION_ERRORS = [
-    `Aliases must end with '.xec'`,
-    'eToken addresses are not supported for ${appConfig.ticker} sends',
-    'Invalid address',
-    'bip21 parameters may not appear more than once',
-    `Unsupported param`,
-    `Invalid op_return_raw param`,
-];
-const SEND_AMOUNT_VALIDATION_ERRORS = [`Invalid XEC send amount`];
 describe('<SendXec />', () => {
     let user;
     beforeEach(() => {
