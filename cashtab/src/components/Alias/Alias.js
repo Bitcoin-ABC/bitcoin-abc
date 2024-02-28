@@ -78,7 +78,6 @@ const Alias = ({ passLoadingStatus }) => {
     const {
         wallet,
         chronik,
-        cashtabCache,
         refreshAliases,
         aliases,
         setAliases,
@@ -161,14 +160,8 @@ const Alias = ({ passLoadingStatus }) => {
     };
 
     useEffect(() => {
-        // only run this useEffect block if wallet or cashtabCache is defined
-        if (
-            !wallet ||
-            typeof wallet === 'undefined' ||
-            !wallet.Path1899 ||
-            !cashtabCache ||
-            typeof cashtabCache === 'undefined'
-        ) {
+        // only run this useEffect block if wallet is defined
+        if (!wallet || typeof wallet === 'undefined' || !wallet.Path1899) {
             return;
         }
         passLoadingStatus(true);

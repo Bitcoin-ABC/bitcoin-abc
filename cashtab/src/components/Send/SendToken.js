@@ -103,14 +103,8 @@ const AirdropButton = styled.div`
 
 const SendToken = ({ passLoadingStatus }) => {
     let navigate = useNavigate();
-    const {
-        wallet,
-        apiError,
-        cashtabState,
-        chronik,
-        cashtabCache,
-        chaintipBlockheight,
-    } = React.useContext(WalletContext);
+    const { wallet, apiError, cashtabState, chronik, chaintipBlockheight } =
+        React.useContext(WalletContext);
     // Ensure cashtabState is not undefined before context initializes
     const { settings } =
         typeof cashtabState === 'undefined'
@@ -495,12 +489,7 @@ const SendToken = ({ passLoadingStatus }) => {
         ) {
             passLoadingStatus(false);
         }
-
-        // only run this useEffect block if cashtabCache is defined
-        if (!cashtabCache || typeof cashtabCache === 'undefined') {
-            return;
-        }
-    }, [walletState, cashtabCache]);
+    }, [walletState]);
 
     return (
         <>

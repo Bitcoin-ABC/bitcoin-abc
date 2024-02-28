@@ -165,7 +165,6 @@ const SendXec = ({ passLoadingStatus }) => {
         apiError,
         cashtabState,
         chronik,
-        cashtabCache,
     } = ContextValue;
     // Ensure cashtabState is not undefined before context initializes
     const { settings } =
@@ -255,11 +254,6 @@ const SendXec = ({ passLoadingStatus }) => {
     }, [balances.totalBalance]);
 
     useEffect(() => {
-        // only run this useEffect block if cashtabCache is defined
-        if (!cashtabCache || typeof cashtabCache === 'undefined') {
-            return;
-        }
-
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
 
         // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field
@@ -400,7 +394,7 @@ const SendXec = ({ passLoadingStatus }) => {
                 }
             }
         }
-    }, [cashtabCache]);
+    }, []);
 
     function handleSendXecError(errorObj, oneToManyFlag) {
         // Set loading to false here as well, as balance may not change depending on where error occured in try loop
