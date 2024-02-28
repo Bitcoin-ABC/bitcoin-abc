@@ -100,6 +100,12 @@ pub(crate) trait LookupColumn {
 
     /// Fetch the data from the db using the serial num.
     fn get_data(&self, number: Self::SerialNum) -> Result<Option<Self::Data>>;
+
+    /// Fetch data from the batched db using the serial nums.
+    fn get_data_multi(
+        &self,
+        number: impl IntoIterator<Item = Self::SerialNum>,
+    ) -> Result<Vec<Option<Self::Data>>>;
 }
 
 #[derive(Debug, Error, PartialEq)]
@@ -230,6 +236,50 @@ impl<L: LookupColumn> ReverseLookup<L> {
         }
         // We have a key that collides with others but no actual match
         Ok(None)
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub(crate) fn get_multi<'a>(
+        lookup_column: &L,
+        db: &Db,
+        keys: impl IntoIterator<Item = &'a [u8; 32]> + Clone,
+    ) -> Result<Vec<Option<(L::SerialNum, L::Data)>>> {
+        let cf_index = db.cf(L::CF_INDEX)?;
+        let serial_lists = db.multi_get(
+            cf_index,
+            keys.clone().into_iter().map(L::cheap_hash),
+            false,
+        )?;
+        let serial_lists = serial_lists
+            .iter()
+            .map(|serials| match serials {
+                Some(serials) => db_deserialize::<Vec<L::SerialNum>>(serials),
+                None => Ok(vec![]),
+            })
+            .collect::<Result<Vec<_>>>()?;
+        let mut data_lists = lookup_column.get_data_multi(
+            serial_lists.iter().flat_map(|s| s.iter().cloned()),
+        )?;
+        let mut data_idx = 0;
+        let mut result = Vec::with_capacity(serial_lists.len());
+        for (serial_list, key) in serial_lists.into_iter().zip(keys) {
+            let mut has_found = false;
+            for serial in serial_list {
+                if !has_found {
+                    if let Some(data) = data_lists[data_idx].take() {
+                        if L::data_key(&data) == key {
+                            result.push(Some((serial, data)));
+                            has_found = true;
+                        }
+                    }
+                }
+                data_idx += 1;
+            }
+            if !has_found {
+                result.push(None);
+            }
+        }
+        Ok(result)
     }
 
     /// Insert into the index.
@@ -364,6 +414,25 @@ mod tests {
                 Some(bytes) => Ok(Some(db_deserialize(&bytes)?)),
                 None => Ok(None),
             }
+        }
+
+        fn get_data_multi(
+            &self,
+            numbers: impl IntoIterator<Item = Self::SerialNum>,
+        ) -> Result<Vec<Option<Self::Data>>> {
+            let data_ser = self.db.multi_get(
+                self.cf_data,
+                numbers.into_iter().map(|num| num.to_be_bytes()),
+                false,
+            )?;
+            data_ser
+                .into_iter()
+                .map(|data_ser| {
+                    data_ser
+                        .map(|data_ser| db_deserialize::<TestData>(&data_ser))
+                        .transpose()
+                })
+                .collect::<_>()
         }
     }
 
@@ -568,6 +637,15 @@ mod tests {
                 assert_eq!(expected_num, actual_num);
                 assert_eq!(*expected_data, actual_data);
             }
+            let batch_result = Index::get_multi(
+                &column,
+                &db,
+                entries.iter().map(|(_, data)| &data.key),
+            )?;
+            assert_eq!(
+                batch_result,
+                entries.iter().map(|entry| Some(*entry)).collect::<Vec<_>>(),
+            );
             Ok(())
         };
 
@@ -575,6 +653,12 @@ mod tests {
             for (_, data) in entries {
                 assert!(Index::get(&column, &db, &data.key)?.is_none());
             }
+            let batch_result = Index::get_multi(
+                &column,
+                &db,
+                entries.iter().map(|(_, data)| &data.key),
+            )?;
+            assert_eq!(batch_result, vec![None; entries.len()]);
             Ok(())
         };
 

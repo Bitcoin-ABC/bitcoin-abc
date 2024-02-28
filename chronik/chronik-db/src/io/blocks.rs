@@ -84,6 +84,25 @@ impl LookupColumn for BlockColumn<'_> {
     fn get_data(&self, block_height: BlockHeight) -> Result<Option<SerBlock>> {
         self.get_block(block_height)
     }
+
+    fn get_data_multi(
+        &self,
+        block_heights: impl IntoIterator<Item = Self::SerialNum>,
+    ) -> Result<Vec<Option<Self::Data>>> {
+        let data_ser = self.db.multi_get(
+            self.cf_blk,
+            block_heights.into_iter().map(bh_to_bytes),
+            false,
+        )?;
+        data_ser
+            .into_iter()
+            .map(|data_ser| {
+                data_ser
+                    .map(|data_ser| db_deserialize::<SerBlock>(&data_ser))
+                    .transpose()
+            })
+            .collect::<_>()
+    }
 }
 
 /// Errors for [`BlockWriter`] and [`BlockReader`].

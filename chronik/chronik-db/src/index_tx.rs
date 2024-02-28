@@ -4,7 +4,7 @@
 
 //! Module for [`IndexTx`] and [`prepare_indexed_txs`].
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{OutPoint, Tx};
@@ -54,7 +54,17 @@ pub fn prepare_indexed_txs<'a>(
     for (tx_idx, tx) in txs.iter().enumerate() {
         tx_nums_by_txid.insert(tx.txid_ref(), first_tx_num + tx_idx as TxNum);
     }
+    let mut db_txids = BTreeSet::new();
+    for tx in txs {
+        for tx_input in &tx.inputs {
+            if !tx_nums_by_txid.contains_key(&&tx_input.prev_out.txid) {
+                db_txids.insert(&tx_input.prev_out.txid);
+            }
+        }
+    }
     let tx_reader = TxReader::new(db)?;
+    let db_tx_nums = tx_reader.tx_nums_by_txids(db_txids.iter().copied())?;
+    let db_txids = db_txids.into_iter().collect::<Vec<_>>();
     txs.iter()
         .enumerate()
         .map(|(tx_idx, tx)| {
@@ -68,9 +78,15 @@ pub fn prepare_indexed_txs<'a>(
                     .map(|input| {
                         Ok(match tx_nums_by_txid.get(&input.prev_out.txid) {
                             Some(&tx_num) => tx_num,
-                            None => tx_reader
-                                .tx_num_by_txid(&input.prev_out.txid)?
-                                .ok_or(UnknownInputSpent(input.prev_out))?,
+                            None => {
+                                let tx_num_idx = db_txids
+                                    .binary_search(&&input.prev_out.txid)
+                                    .map_err(|_| {
+                                        UnknownInputSpent(input.prev_out)
+                                    })?;
+                                db_tx_nums[tx_num_idx]
+                                    .ok_or(UnknownInputSpent(input.prev_out))?
+                            }
                         })
                     })
                     .collect::<Result<Vec<_>>>()?
