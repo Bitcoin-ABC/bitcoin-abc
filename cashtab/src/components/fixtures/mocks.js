@@ -1,7 +1,3 @@
-// @generated
-import { cashtabSettings } from 'config/cashtabSettings';
-import cashtabCache from 'config/cashtabCache';
-
 export const walletWithXecAndTokens = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
@@ -796,20 +792,6 @@ export const walletWithXecAndTokens = {
             },
         ],
     },
-};
-
-export const mockWalletContext = {
-    wallet: walletWithXecAndTokens,
-    cashtabCache,
-    cashtabState: { settings: cashtabSettings },
-    loading: false,
-};
-
-export const newCashtabUserContext = {
-    wallet: false,
-    cashtabCache,
-    cashtabSettings,
-    loading: false,
 };
 
 export const freshWalletWithOneIncomingCashtabMsg = {
@@ -1666,80 +1648,6 @@ export const freshWalletWithOneIncomingCashtabMsgTxs = [
         },
     },
 ];
-
-// Initialize chronik client with tx history and utxos of desired mock
-// For now, not in a beforeEach as we do not want to do it before every test
-// But we do want to do it before more than one
-export const getWalletWithOneIncomingCashtabMsgChronikClient = () => {
-    // Mock successful utxos calls in chronik
-    const mockedChronik = new MockChronikClient();
-    // Mock scriptutxos to match context
-    const TYPE = 'p2pkh';
-    mockedChronik.setScript(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path1899.hash160,
-    );
-    mockedChronik.setUtxos(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path1899.hash160,
-        [
-            {
-                outputScript: `76a914${freshWalletWithOneIncomingCashtabMsg.Path1899.hash160}88ac`,
-                utxos: [
-                    {
-                        outpoint: {
-                            txid: 'f11648484c5ac6bf65c04632208d60e809014ed288171cb96e059d0ed7678fde',
-                            outIdx: 1,
-                        },
-                        blockHeight: -1,
-                        isCoinbase: false,
-                        value: '1000000',
-                        network: 'XEC',
-                        address:
-                            'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
-                    },
-                ],
-            },
-        ],
-    );
-    mockedChronik.setScript(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path145.hash160,
-    );
-    mockedChronik.setUtxos(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path145.hash160,
-        [],
-    );
-    mockedChronik.setScript(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path245.hash160,
-    );
-    mockedChronik.setUtxos(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path245.hash160,
-        [],
-    );
-    // TX history mocks
-    // TODO mock-chronik-client should support mocking tx history fetch for other scripts
-    mockedChronik.setTxHistory(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path1899.hash160,
-        freshWalletWithOneIncomingCashtabMsgTxs,
-    );
-    mockedChronik.setTxHistory(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path145.hash160,
-        [],
-    );
-    mockedChronik.setTxHistory(
-        TYPE,
-        freshWalletWithOneIncomingCashtabMsg.Path245.hash160,
-        [],
-    );
-
-    return mockedChronik;
-};
 
 export const requiredUtxoThisToken = {
     outpoint: {

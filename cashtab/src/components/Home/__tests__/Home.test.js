@@ -1,8 +1,6 @@
 import React from 'react';
-import {
-    walletWithXecAndTokens,
-    walletWithZeroBalanceZeroHistory,
-} from '../fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import { walletWithZeroBalanceZeroHistory } from 'components/Home/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import 'fake-indexeddb/auto';

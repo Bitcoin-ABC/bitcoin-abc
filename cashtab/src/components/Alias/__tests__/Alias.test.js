@@ -1,11 +1,11 @@
 import React from 'react';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 import {
-    walletWithXecAndTokens,
     aliasPricesResp,
     aliasAddressTwoRegisteredOnePending,
     aliasAddressOneRegisteredNoPending,
     aliasAddressNoRegisteredOnePending,
-} from '../fixtures/mocks';
+} from 'components/Alias/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import 'fake-indexeddb/auto';

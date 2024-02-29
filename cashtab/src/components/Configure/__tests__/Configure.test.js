@@ -1,8 +1,6 @@
 import React from 'react';
-import {
-    walletWithXecAndTokens,
-    populatedContactList,
-} from '../fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import { populatedContactList } from '../fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent, {
     PointerEventsCheckLevel,

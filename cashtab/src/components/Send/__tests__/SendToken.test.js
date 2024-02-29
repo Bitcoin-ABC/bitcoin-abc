@@ -15,7 +15,7 @@ import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 import appConfig from 'config/app';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
-import { walletWithXecAndTokens } from '../fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {

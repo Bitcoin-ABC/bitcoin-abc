@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import userEvent, {
     PointerEventsCheckLevel,
 } from '@testing-library/user-event';
-import { walletWithXecAndTokens } from '../fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 import { when } from 'jest-when';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';

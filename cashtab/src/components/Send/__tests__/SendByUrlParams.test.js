@@ -1,11 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 import {
-    walletWithXecAndTokens,
     SEND_ADDRESS_VALIDATION_ERRORS,
     SEND_AMOUNT_VALIDATION_ERRORS,
-} from '../fixtures/mocks';
+} from 'components/Send/fixtures/mocks';
 import { when } from 'jest-when';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';

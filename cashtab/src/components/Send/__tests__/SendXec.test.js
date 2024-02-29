@@ -4,11 +4,11 @@ import '@testing-library/jest-dom';
 import userEvent, {
     PointerEventsCheckLevel,
 } from '@testing-library/user-event';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 import {
-    walletWithXecAndTokens,
     SEND_ADDRESS_VALIDATION_ERRORS,
     SEND_AMOUNT_VALIDATION_ERRORS,
-} from '../fixtures/mocks';
+} from 'components/Send/fixtures/mocks';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
 import { explorer } from 'config/explorer';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { walletWithXecAndTokens } from '../fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 import { render, screen } from '@testing-library/react';
 import userEvent, {
     PointerEventsCheckLevel,
