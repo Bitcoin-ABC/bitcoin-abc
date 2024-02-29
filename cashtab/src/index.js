@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './components/App';
-import { WalletProvider } from './utils/context';
+import { WalletProvider } from 'wallet/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from './utils/GoogleAnalytics';
 import { ChronikClient } from 'chronik-client';

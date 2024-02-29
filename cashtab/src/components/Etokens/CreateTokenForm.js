@@ -7,7 +7,7 @@ import {
     CropperContainer,
     ControlsContainer,
 } from '../Common/CropControlModal';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import {
     isValidTokenName,
     isValidTokenTicker,

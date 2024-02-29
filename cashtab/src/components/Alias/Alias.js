@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import PropTypes from 'prop-types';
 import { SidePaddingCtn, AlertMsg } from 'components/Common/Atoms';
 import { PendingAliasWarningIcon } from 'components/Common/CustomIcons';

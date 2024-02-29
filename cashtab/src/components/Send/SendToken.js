@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import {
     Form,
     message,

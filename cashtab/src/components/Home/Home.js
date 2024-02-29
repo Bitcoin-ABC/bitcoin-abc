@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { Link } from 'react-router-dom';
 import TxHistory from './TxHistory';

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
 import CreateTokenForm from './CreateTokenForm';

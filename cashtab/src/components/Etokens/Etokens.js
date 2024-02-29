@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
 import { Link } from 'react-router-dom';
 import TokenList from './TokenList';

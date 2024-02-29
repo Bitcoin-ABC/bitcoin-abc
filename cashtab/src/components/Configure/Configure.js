@@ -22,7 +22,7 @@ import {
     CloseOutlined,
     LockFilled,
 } from '@ant-design/icons';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import { SidePaddingCtn, FormLabel } from 'components/Common/Atoms';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
 import {

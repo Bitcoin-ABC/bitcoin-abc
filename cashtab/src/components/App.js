@@ -30,7 +30,7 @@ import Swap from 'components/Swap/Swap';
 import NotFound from 'components/NotFound';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import { isValidStoredWallet, getWalletState } from 'utils/cashMethods';
 import {
     Route,

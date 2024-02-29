@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { QRCode } from 'components/Receive/QRCode';
 import { LoadingCtn } from 'components/Common/Atoms';

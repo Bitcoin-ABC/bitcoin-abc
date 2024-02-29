@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import { Input, Form, Modal } from 'antd';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
 import {

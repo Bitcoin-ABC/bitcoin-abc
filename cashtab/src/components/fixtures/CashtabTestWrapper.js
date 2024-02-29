@@ -2,7 +2,7 @@ import React from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import { MemoryRouter } from 'react-router-dom';
-import { WalletProvider } from 'utils/context';
+import { WalletProvider } from 'wallet/context';
 import App from 'components/App';
 import PropTypes from 'prop-types';
 

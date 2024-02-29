@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Form, Modal, Input } from 'antd';
-import { WalletContext } from 'utils/context';
+import { WalletContext } from 'wallet/context';
 import {
     TokenParamLabel,
     MessageVerificationParamLabel,
