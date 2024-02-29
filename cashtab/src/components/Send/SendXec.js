@@ -19,7 +19,7 @@ import PrimaryButton, { DisabledButton } from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
 import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
 import { sumOneToManyXec } from 'utils/cashMethods';
-import { Event } from 'utils/GoogleAnalytics';
+import { Event } from 'components/Common/GoogleAnalytics';
 import {
     fiatToCrypto,
     shouldRejectAmountInput,

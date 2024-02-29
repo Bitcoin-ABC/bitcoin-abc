@@ -13,7 +13,7 @@ import PrimaryButton, {
     SecondaryButton,
     SmartButton,
 } from 'components/Common/PrimaryButton';
-import { Event } from 'utils/GoogleAnalytics';
+import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
 import appConfig from 'config/app';
 

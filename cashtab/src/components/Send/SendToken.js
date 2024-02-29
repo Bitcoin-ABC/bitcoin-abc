@@ -28,7 +28,7 @@ import usePrevious from 'hooks/usePrevious';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
-import { Event } from 'utils/GoogleAnalytics';
+import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';

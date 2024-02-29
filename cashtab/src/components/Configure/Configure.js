@@ -53,7 +53,7 @@ import {
     SocialLink,
 } from 'components/Common/CustomIcons';
 import TokenIcon from 'components/Etokens/TokenIcon';
-import { Event } from 'utils/GoogleAnalytics';
+import { Event } from 'components/Common/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { formatSavedBalance } from 'utils/formatting';
