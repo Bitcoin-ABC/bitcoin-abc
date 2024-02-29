@@ -13,7 +13,6 @@ import {
     SwapIcon,
     EtokensIcon,
 } from 'components/Common/CustomIcons';
-import '../index.css';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import Home from 'components/Home/Home';
