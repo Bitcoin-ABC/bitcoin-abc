@@ -93,7 +93,6 @@ export default {
             {
                 description:
                     'Returns true if wallet has token in exactly required amount',
-
                 tokens: [
                     {
                         tokenId:
@@ -101,7 +100,6 @@ export default {
                         balance: '100',
                     },
                 ],
-
                 tokenId:
                     '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
                 tokenQty: '100',
@@ -110,7 +108,6 @@ export default {
             {
                 description:
                     'Returns false if wallet has token but less than required amount',
-
                 tokens: [
                     {
                         tokenId:
@@ -118,7 +115,6 @@ export default {
                         balance: '99',
                     },
                 ],
-
                 tokenId:
                     '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
                 tokenQty: '100',
@@ -126,7 +122,6 @@ export default {
             },
             {
                 description: 'Returns false if wallet does not have this token',
-
                 tokens: [
                     {
                         tokenId:
@@ -134,7 +129,6 @@ export default {
                         balance: '99',
                     },
                 ],
-
                 tokenId:
                     '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
                 tokenQty: '100',
