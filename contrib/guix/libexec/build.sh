@@ -232,13 +232,20 @@ case "$HOST" in
         ;;
 esac
 
-curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
-echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
-chmod +x rustup-init
-./rustup-init -y --default-toolchain=1.76.0
-# shellcheck disable=SC1091
-source "$HOME/.cargo/env"
-rustup target add "${RUST_TARGET}"
+case "$HOST" in
+    *darwin*)
+        # We don't build chronik for MacOS, so we don't need rustup
+        ;;
+    *)
+        curl -sSf https://static.rust-lang.org/rustup/archive/1.26.0/x86_64-unknown-linux-gnu/rustup-init -o rustup-init
+        echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
+        chmod +x rustup-init
+        ./rustup-init -y --default-toolchain=1.76.0
+        # shellcheck disable=SC1091
+        source "$HOME/.cargo/env"
+        rustup target add "${RUST_TARGET}"
+        ;;
+esac
 
 mkdir -p source_package
 pushd source_package
@@ -301,6 +308,19 @@ case "$HOST" in
         ;;
     *darwin*)
         CMAKE_EXTRA_OPTIONS=(-DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage")
+        # GUIX doesn't properly set /bin/cc and /bin/c++ so cmake will pick the
+        # wrong compiler for the native builds. Setting the compiler via the
+        # environment variables fixes this.
+        export CC=clang
+        export CXX=clang++
+
+        # Prevent clang from using gcc libs
+        unset LIBRARY_PATH
+        unset CPATH
+        unset C_INCLUDE_PATH
+        unset CPLUS_INCLUDE_PATH
+        unset OBJC_INCLUDE_PATH
+        unset OBJCPLUS_INCLUDE_PATH
         ;;
 esac
 
@@ -323,6 +343,17 @@ mkdir -p "$DISTSRC"
     # variant gnu/stubs-32.h that guix don't provide.
     # Instead we can instruct clang to use the correct arch.
     export BINDGEN_EXTRA_CLANG_ARGS="-D__x86_64__ -D__LP64__ -U__ILP32__"
+
+    if [ -n "${HOST_CFLAGS}" ]; then
+        CMAKE_C_FLAGS="-DCMAKE_C_FLAGS=${HOST_CFLAGS}"
+    fi
+    if [ -n "${HOST_CXXFLAGS}" ]; then
+        CMAKE_CXX_FLAGS="-DCMAKE_CXX_FLAGS=${HOST_CXXFLAGS}"
+    fi
+    if [ -n "${HOST_LDFLAGS}" ]; then
+        CMAKE_LD_FLAGS="-DCMAKE_EXE_LINKER_FLAGS=${HOST_LDFLAGS}"
+    fi
+
     cmake -GNinja .. \
       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
       -DCLIENT_VERSION_IS_RELEASE=ON \
@@ -330,10 +361,10 @@ mkdir -p "$DISTSRC"
       -DENABLE_REDUCE_EXPORTS=ON \
       -DCMAKE_INSTALL_PREFIX="${INSTALLPATH}" \
       -DCCACHE=OFF \
-      -DCMAKE_C_FLAGS="${HOST_CFLAGS}" \
-      -DCMAKE_CXX_FLAGS="${HOST_CXXFLAGS}" \
-      -DCMAKE_EXE_LINKER_FLAGS="${HOST_LDFLAGS}" \
-      "${CMAKE_EXTRA_OPTIONS[@]}"
+      "${CMAKE_EXTRA_OPTIONS[@]}" \
+      "${CMAKE_C_FLAGS}" \
+      "${CMAKE_CXX_FLAGS}" \
+      "${CMAKE_LD_FLAGS}"
 
     # Build Bitcoin ABC
     ninja

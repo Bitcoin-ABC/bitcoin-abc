@@ -43,8 +43,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # When cross-compiling for Darwin using Clang, -mlinker-version must be passed
 # to ensure that modern linker features are enabled.
-string(APPEND CMAKE_C_FLAGS_INIT " -B${CMAKE_PREFIX_PATH}/bin")
-string(APPEND CMAKE_CXX_FLAGS_INIT " -B${CMAKE_PREFIX_PATH}/bin -stdlib=libc++ -mlinker-version=${LD64_VERSION}")
+string(APPEND CMAKE_C_FLAGS_INIT " -B${CMAKE_PREFIX_PATH}/bin -mlinker-version=${LD64_VERSION} -iwithsysroot/usr/include -iframeworkwithsysroot/System/Library/Frameworks")
+string(APPEND CMAKE_CXX_FLAGS_INIT " -B${CMAKE_PREFIX_PATH}/bin -mlinker-version=${LD64_VERSION} -iwithsysroot/usr/include/c++/v1 -iwithsysroot/usr/include -iframeworkwithsysroot/System/Library/Frameworks")
 
 # Ensure we use an OSX specific version the binary manipulation tools.
 find_program(CMAKE_AR ${TOOLCHAIN_PREFIX}-ar)
