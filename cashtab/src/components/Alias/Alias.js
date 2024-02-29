@@ -21,7 +21,7 @@ import {
     registerAliasNotification,
 } from 'components/Common/Notifications';
 import { meetsAliasSpec } from 'validation';
-import { queryAliasServer } from 'utils/aliasUtils';
+import { queryAliasServer } from 'alias';
 import cashaddr from 'ecashaddrjs';
 import { Space, Tag } from 'antd';
 import CopyToClipboard from 'components/Common/CopyToClipboard';

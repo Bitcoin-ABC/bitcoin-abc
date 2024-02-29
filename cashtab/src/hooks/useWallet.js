@@ -26,7 +26,7 @@ import {
     getTxHistoryChronik,
     parseChronikTx,
 } from 'chronik';
-import { queryAliasServer } from 'utils/aliasUtils';
+import { queryAliasServer } from 'alias';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';

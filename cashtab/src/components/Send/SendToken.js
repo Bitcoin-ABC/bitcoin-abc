@@ -38,7 +38,7 @@ import styled, { css } from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { token as tokenConfig } from 'config/token';
 import { explorer } from 'config/explorer';
-import { queryAliasServer } from 'utils/aliasUtils';
+import { queryAliasServer } from 'alias';
 import aliasSettings from 'config/alias';
 import cashaddr from 'ecashaddrjs';
 import { notification } from 'antd';

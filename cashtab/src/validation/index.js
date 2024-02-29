@@ -7,7 +7,7 @@ import {
     cashtabSettingsValidation,
 } from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
-import { queryAliasServer } from 'utils/aliasUtils';
+import { queryAliasServer } from 'alias';
 import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';

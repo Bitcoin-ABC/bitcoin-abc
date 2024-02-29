@@ -52,7 +52,7 @@ import { formatFiatBalance, formatBalance } from 'utils/formatting';
 import styled from 'styled-components';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { explorer } from 'config/explorer';
-import { queryAliasServer } from 'utils/aliasUtils';
+import { queryAliasServer } from 'alias';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';

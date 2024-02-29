@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
-import { queryAliasServer } from 'utils/aliasUtils';
+import { queryAliasServer } from 'alias';
 import {
     mockAddressApiResponse,
     mockAliasApiResponse,
     mockUnregisteredAliasApiResponse,
-} from '../__mocks__/mockAliasServerResponses';
+} from 'alias/fixtures/mocks';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
 
