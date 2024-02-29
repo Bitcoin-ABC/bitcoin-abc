@@ -35,9 +35,9 @@ import {
 } from 'antd';
 import { TokenParamLabel, FormLabel } from 'components/Common/Atoms';
 import Cropper from 'react-easy-crop';
-import getCroppedImg from 'utils/icons/cropImage';
-import getRoundImg from 'utils/icons/roundImage';
-import getResizedImage from 'utils/icons/resizeImage';
+import getCroppedImg from 'components/Etokens/icons/cropImage';
+import getRoundImg from 'components/Etokens/icons/roundImage';
+import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
 import { getSlpGenesisTargetOutput } from 'slpv1';
