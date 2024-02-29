@@ -41,16 +41,8 @@ MAX_VERSIONS = {
 
 # Ignore symbols that are exported as part of every executable
 IGNORE_EXPORTS = {
-    "_edata",
-    "_end",
-    "__end__",
-    "_init",
-    "__bss_start",
-    "__bss_start__",
-    "_bss_end__",
-    "__bss_end__",
     "_fini",
-    "_IO_stdin_used",
+    "_init",
     "stdin",
     "stdout",
     "stderr",
@@ -68,11 +60,6 @@ IGNORE_EXPORTS = {
     "posix_memalign",
     "aligned_alloc",
     "valloc",
-    # Figure out why we get these symbols exported on xenial.
-    "_ZNKSt5ctypeIcE8do_widenEc",
-    "in6addr_any",
-    "optarg",
-    "_ZNSt16_Sp_counted_baseILN9__gnu_cxx12_Lock_policyE2EE10_M_destroyEv",
 }
 
 # Expected linker-loader names can be found here:
@@ -270,7 +257,6 @@ def check_PE_libraries(binary) -> bool:
 
 
 def check_PE_subsystem_version(binary) -> bool:
-    binary = lief.parse(filename)
     major: int = binary.optional_header.major_subsystem_version
     minor: int = binary.optional_header.minor_subsystem_version
     return major == 6 and minor == 1
