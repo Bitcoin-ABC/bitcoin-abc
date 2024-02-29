@@ -89,3 +89,9 @@ await assert.rejects(
 ## Questions?
 
 If you have any implementation questions regarding this mock tool please check the test suite in `/test/index.test.js` or feel free to reach out to the development team via the [eCash Development Telegram](https://t.me/eCashDevelopment).
+
+### Change Log
+
+1.1.0
+
+-   Add support to in-node subscribeToBlocks method and check flag, isSubscribedBlocks

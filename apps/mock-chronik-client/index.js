@@ -74,6 +74,7 @@ module.exports = {
                         autoReconnect: wsObj.autoReconnect || true, // default to true if unset
                         manuallyClosed: false,
                         subs: [],
+                        isSubscribedBlocks: false,
                         waitForOpen: async function () {
                             self.wsWaitForOpenCalled = true;
                         },
@@ -83,6 +84,9 @@ module.exports = {
                                 scriptPayload: hash,
                             });
                             self.wsSubscribeCalled = true;
+                        },
+                        subscribeToBlocks: function () {
+                            this.isSubscribedBlocks = true;
                         },
                     };
                     return returnedWs;

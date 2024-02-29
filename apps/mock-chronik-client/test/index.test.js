@@ -142,6 +142,11 @@ it('Mock the ws() API response', async function () {
     });
     mockedChronik.wsClose();
 
+    // We can subscribe to blocks (in-node chronik-client)
+    ws.subscribeToBlocks();
+
+    // Verify subscription functions were called
+    assert.strictEqual(ws.isSubscribedBlocks, true);
     // Verify subscription functions were called
     assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
     assert.strictEqual(mockedChronik.wsSubscribeCalled, true);
