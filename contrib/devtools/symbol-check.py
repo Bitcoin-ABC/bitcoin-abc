@@ -162,6 +162,9 @@ PE_ALLOWED_LIBRARIES = {
     "SHELL32.dll",  # shell API
     "USER32.dll",  # user interface
     "WS2_32.dll",  # sockets
+    "bcrypt.dll",  # password hashing
+    "ntdll.dll",  # user-mode face of the Windows kernel
+    "RPCRT4.dll",  # RPC API
     # bitcoin-qt only
     "dwmapi.dll",  # desktop window manager
     "CRYPT32.dll",  # openssl

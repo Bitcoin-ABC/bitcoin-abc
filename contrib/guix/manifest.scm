@@ -610,6 +610,7 @@ inspecting signatures in Mach-O binaries.")
     (cond ((string-suffix? "-mingw32" target)
            ;; Windows
            (list zip
+                 clang-10
                  (make-mingw-pthreads-cross-toolchain "x86_64-w64-mingw32")
                  nsis-x86_64
                  nss-certs
