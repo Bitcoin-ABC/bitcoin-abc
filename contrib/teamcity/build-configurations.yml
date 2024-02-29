@@ -729,6 +729,15 @@ builds:
     templates:
       - js-mocha
 
+  token-server-tests:
+    runOnDiffRegex:
+      - apps/token-server/
+      - apps/mock-chronik-client/
+    env:
+      JS_PROJECT_ROOT: apps/token-server
+    templates:
+      - js-mocha
+
   mock-chronik-client-tests:
     runOnDiffRegex:
       - apps/mock-chronik-client/
