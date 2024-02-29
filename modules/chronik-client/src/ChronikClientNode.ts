@@ -479,6 +479,27 @@ export class WsEndpoint_InNode {
     }
 
     /**
+     * Subscribe to an address
+     * Method can be used for p2pkh or p2sh addresses
+     */
+    public subscribeToAddress(address: string) {
+        // Get type and hash
+        const { type, hash } = cashaddr.decode(address, true);
+
+        // Subscribe to script
+        this.subscribeToScript(type as 'p2pkh' | 'p2sh', hash as string);
+    }
+
+    /** Unsubscribe from the given script type and payload. */
+    public unsubscribeFromAddress(address: string) {
+        // Get type and hash
+        const { type, hash } = cashaddr.decode(address, true);
+
+        // Unsubscribe from script
+        this.unsubscribeFromScript(type as 'p2pkh' | 'p2sh', hash as string);
+    }
+
+    /**
      * Close the WebSocket connection and prevent any future reconnection
      * attempts.
      */

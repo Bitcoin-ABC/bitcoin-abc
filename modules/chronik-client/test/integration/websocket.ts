@@ -261,6 +261,32 @@ describe('Test expected websocket behavior of chronik-client', () => {
             expect(ws.subs).to.deep.equal(remainingSubscriptions);
         }
 
+        // We can subscribe to p2sh and p2pkh scripts with subscribeToAddress
+        ws.subscribeToAddress(p2pkhAddress);
+        ws.subscribeToAddress(p2shAddress);
+
+        // The ws object is updated with expected subscriptions
+        expect(ws.subs).to.deep.equal([
+            { scriptType: 'p2pkh', payload: p2pkhHash },
+            { scriptType: 'p2sh', payload: p2shHash },
+        ]);
+
+        // We can unsubscribe from p2sha nd p2pkh scripts with unsubscribeFromAddress
+        ws.unsubscribeFromAddress(p2pkhAddress);
+        ws.unsubscribeFromAddress(p2shAddress);
+
+        // The ws object is updated with expected subscriptions
+        expect(ws.subs).to.deep.equal([]);
+
+        // We get the validation error from ecashaddrjs if we attempt to subscribe or unsubscribe
+        // from anything that is not a valid p2pkh or p2sh address
+        expect(() => ws.subscribeToAddress('notAnAddress')).to.throw(
+            'Invalid address: notAnAddress.',
+        );
+        expect(() => ws.unsubscribeFromAddress('alsoNotAnAddress')).to.throw(
+            'Invalid address: alsoNotAnAddress.',
+        );
+
         // We can subscribe to blocks
         ws.subscribeToBlocks();
         expect(ws.isSubscribedBlocks).to.eql(true);
@@ -294,6 +320,14 @@ describe('Test expected websocket behavior of chronik-client', () => {
             const { scriptType, payload } = sub;
             ws.subscribeToScript(scriptType, payload);
         }
+
+        // Unsubscribe from p2pkh script, and resubscribe to it as address,
+        // to confirm the sub is active in the same was as the script sub
+        // in later steps
+        ws.unsubscribeFromScript('p2pkh', p2pkhHash);
+        ws.subscribeToAddress(p2pkhAddress);
+
+        // Resubscribe to blocks
         ws.subscribeToBlocks();
     });
     it('After a block is avalanche finalized', async () => {
