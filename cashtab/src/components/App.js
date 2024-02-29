@@ -40,7 +40,7 @@ import {
 } from 'react-router-dom';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
-import { checkForTokenById } from 'utils/tokenMethods.js';
+import { hasEnoughToken } from 'wallet';
 import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
 import aliasSettings from 'config/alias';
 import WebApp from './AppModes/WebApp';
@@ -457,9 +457,10 @@ const App = () => {
 
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
-        ? checkForTokenById(
+        ? hasEnoughToken(
               wallet.state.tokens,
               '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+              1,
           )
         : false;
 

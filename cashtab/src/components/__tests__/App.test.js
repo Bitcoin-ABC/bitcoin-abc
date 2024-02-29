@@ -9,6 +9,7 @@ import {
     freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
     vipTokenChronikTx,
+    easterEggTokenChronikTx,
 } from 'components/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -655,5 +656,44 @@ describe('<App />', () => {
         // to regtest
 
         // See SendXec test, "If the user has minFeeSends set to true but no longer has the right token amount, the feature is disabled"
+    });
+    it('Wallet with easter egg token sees easter egg', async () => {
+        const EASTER_EGG_TOKENID =
+            '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e';
+        const requiredEasterEggUtxo = {
+            ...requiredUtxoThisToken,
+            slpMeta: {
+                ...requiredUtxoThisToken.slpMeta,
+                tokenId: EASTER_EGG_TOKENID,
+            },
+            tokenId: EASTER_EGG_TOKENID,
+        };
+        // Modify walletWithXecAndTokens to have the required token for this feature
+        const walletWithEasterEggToken = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    requiredEasterEggUtxo,
+                ],
+            },
+        };
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithEasterEggToken,
+            localforage,
+        );
+
+        // Make sure the app can get this token's genesis info by calling a mock
+        mockedChronik.setMock('tx', {
+            input: EASTER_EGG_TOKENID,
+            output: easterEggTokenChronikTx,
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // We see the easter egg
+        expect(await screen.findByAltText('tabcash')).toBeInTheDocument();
     });
 });

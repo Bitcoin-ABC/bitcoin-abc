@@ -1749,3 +1749,89 @@ export const vipTokenChronikTx = {
         network: 'XEC',
     },
 };
+
+export const easterEggTokenChronikTx = {
+    txid: '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: 'be38b0488679e25823b7a72b925ac695a7b486e7f78122994b913f3079b0b939',
+                outIdx: 2,
+            },
+            inputScript:
+                '483045022100e28006843eb071ec6d8dd105284f2ca625a28f4dc85418910b59a5ab13fc6c2002205921fb12b541d1cd1a63e7e012aca5735df3398525f64bac04337d21029413614121034509251caa5f01e2787c436949eb94d71dcc451bcde5791ae5b7109255f5f0a3',
+            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+            value: '91048',
+            sequenceNo: 4294967295,
+            slpBurn: {
+                token: {
+                    amount: '0',
+                    isMintBaton: false,
+                },
+                tokenId:
+                    'bd1acc4c986de57af8d6d2a64aecad8c30ee80f37ae9d066d758923732ddc9ba',
+            },
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
+        },
+        {
+            value: '546',
+            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+            slpToken: {
+                amount: '100',
+                isMintBaton: false,
+            },
+            spentBy: {
+                txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
+                outIdx: 1,
+            },
+        },
+        {
+            value: '546',
+            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+            slpToken: {
+                amount: '0',
+                isMintBaton: true,
+            },
+        },
+        {
+            value: '89406',
+            outputScript: '76a914b8d9512d2adf8b4e70c45c26b6b00d75c28eaa9688ac',
+            spentBy: {
+                txid: '618d0dd8c0c5fa5a34c6515c865dd72bb76f8311cd6ee9aef153bab20dabc0e6',
+                outIdx: 0,
+            },
+        },
+    ],
+    lockTime: 0,
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'GENESIS',
+            tokenId:
+                '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+        },
+        genesisInfo: {
+            tokenTicker: 'TBC',
+            tokenName: 'tabcash',
+            tokenDocumentUrl: 'https://cashtabapp.com/',
+            tokenDocumentHash: '',
+            decimals: 0,
+        },
+    },
+    block: {
+        height: 674143,
+        hash: '000000000000000034c77993a35c74fe2dddace27198681ca1e89e928d0c2fff',
+        timestamp: '1613859311',
+    },
+    timeFirstSeen: '0',
+    size: 336,
+    isCoinbase: false,
+    network: 'XEC',
+};
