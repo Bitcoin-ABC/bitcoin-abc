@@ -12,8 +12,12 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
 import aliasSettings from 'config/alias';
-import { initializeCashtabStateForTests } from 'components/fixtures/helpers';
+import {
+    initializeCashtabStateForTests,
+    clearLocalForage,
+} from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+import appConfig from 'config/app';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -46,9 +50,29 @@ window.matchMedia = query => ({
 aliasSettings.aliasEnabled = true;
 
 describe('<Alias />', () => {
+    beforeEach(() => {
+        // Mock the fetch call for Cashtab's price API
+        global.fetch = jest.fn();
+        const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
+        const cryptoId = appConfig.coingeckoId;
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
+        const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
+        const xecPrice = 0.00003;
+        const priceResponse = {
+            ecash: {
+                usd: xecPrice,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(priceResponse),
+            });
+    });
     afterEach(async () => {
         jest.clearAllMocks();
-        await localforage.clear();
+        await clearLocalForage(localforage);
     });
     it('Registered and Pending Aliases are correctly rendered', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

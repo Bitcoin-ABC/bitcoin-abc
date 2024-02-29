@@ -121,11 +121,11 @@ describe('useWallet hook rendering in different localforage states', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        // Mock the fetch call Cashtab's price API
+        // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
         const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs require different parsing
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
 
         when(fetch)
@@ -140,11 +140,11 @@ describe('useWallet hook rendering in different localforage states', () => {
         });
     });
     it('XEC price is set in state to fiat currency of user settings on successful API fetch', async () => {
-        // Mock the fetch call Cashtab's price API
+        // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'gbp'; // Use usd until you mock getting settings from localforage
         const cryptoId = appConfig.coingeckoId;
-        // Keep this in the code, because different URLs will have different outputs require different parsing
+        // Keep this in the code, because different URLs will have different outputs requiring different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
         const xecPriceGbp = 0.00003132;
         const priceResponseGbp = {
