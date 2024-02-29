@@ -1409,7 +1409,7 @@ const useWallet = chronik => {
         clearFiatPriceApi(checkFiatInterval);
         // Reset fiat price API when fiatCurrency setting changes
         initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
-    }, cashtabState.settings.fiatCurrency);
+    }, [cashtabState.settings.fiatCurrency]);
 
     /*
     Run initializeWebsocket(chronik, wallet, fiatPrice) each time chronik, wallet, or fiatPrice changes
