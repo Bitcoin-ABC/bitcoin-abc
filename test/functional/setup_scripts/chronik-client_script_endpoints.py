@@ -37,15 +37,13 @@ class ChronikClient_Block_Setup(SetupFramework):
         self.skip_if_no_chronik()
         self.skip_if_no_wallet()
 
-    def send_chronik_info(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
-
     def run_test(self):
         # Init
         node = self.nodes[0]
 
-        self.send_chronik_info()
+        yield True
 
+        self.log.info("Step 1. Initialized regtest chain.")
         # p2pkh
         # IFP address p2pkh
         # Note: we use this instead of node.getnewaddress() so we don't get change
@@ -55,6 +53,7 @@ class ChronikClient_Block_Setup(SetupFramework):
         p2pkh_output_script = bytes.fromhex(
             "76a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6088ac"
         )
+        self.log.info(f"(p2pkh_address): {p2pkh_address}")
         send_ipc_message({"p2pkh_address": p2pkh_address})
 
         # p2sh
@@ -78,9 +77,10 @@ class ChronikClient_Block_Setup(SetupFramework):
         other_script = "deadbeef"
         send_ipc_message({"other_script": other_script})
         other_script_for_tx_building = bytes.fromhex(other_script)
+        assert_equal(node.getblockcount(), 200)
         yield True
 
-        self.log.info("Step 1: Broadcast txs to a p2pk, p2pkh, and p2sh address")
+        self.log.info("Step 2: Broadcast txs to a p2pk, p2pkh, and p2sh address")
         # Set the number of txs you wish to broadcast
         # Tested up to 100, takes 25s
         # 200 goes over regtest 60s timeout
@@ -134,12 +134,12 @@ class ChronikClient_Block_Setup(SetupFramework):
         assert_equal(node.getblockcount(), 200)
         yield True
 
-        self.log.info("Step 2: Mine a block with these txs")
+        self.log.info("Step 3: Mine a block with these txs")
         self.generate(node, 1)
         assert_equal(node.getblockcount(), 201)
         yield True
 
-        self.log.info("Step 3: Avalanche finalize a block with these txs")
+        self.log.info("Step 4: Avalanche finalize a block with these txs")
 
         # Build a fake quorum of nodes.
         def get_quorum():

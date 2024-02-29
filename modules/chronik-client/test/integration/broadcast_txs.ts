@@ -6,16 +6,21 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import { ChronikClientNode } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let get_alp_genesis_rawtx: Promise<string>;
     let get_alp_genesis_txid: Promise<string>;
     let get_ok_rawtx: Promise<string>;
@@ -25,17 +30,19 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
     let get_alp_burn_2_rawtx: Promise<string>;
     let get_alp_burn_2_txid: Promise<string>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner('chronik-client_broadcast_txs');
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
 
@@ -91,10 +98,31 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -107,7 +135,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
 
     it('New regtest chain', async () => {
         // Initialize new ChronikClientNode
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
 
         // We can't broadcast an invalid tx
         const BAD_RAW_TX =
@@ -210,7 +238,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
     });
     it('After broadcastTxs are mined', async () => {
         // Initialize new ChronikClientNode
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
 
         const alpGenesisRawTx = await get_alp_genesis_rawtx;
         // If we broadcast a tx already in the mempool, we get a normal response

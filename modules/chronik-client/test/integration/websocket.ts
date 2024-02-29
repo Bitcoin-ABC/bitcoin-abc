@@ -7,21 +7,26 @@ import chaiAsPromised from 'chai-as-promised';
 import cashaddr from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import {
     ChronikClientNode,
     WsEndpoint_InNode,
     WsMsgClient,
     WsSubScriptClient,
 } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Test expected websocket behavior of chronik-client', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let get_p2pkh_address: Promise<string>;
     let get_p2pkh_txid: Promise<string>;
     let get_p2sh_address: Promise<string>;
@@ -37,17 +42,19 @@ describe('Test expected websocket behavior of chronik-client', () => {
     const statusEvent = new EventEmitter();
     // Collect websocket msgs in an array for analysis in each step
     let msgCollector: Array<WsMsgClient> = [];
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner('chronik-client_websocket');
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
 
@@ -127,10 +134,31 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -145,8 +173,6 @@ describe('Test expected websocket behavior of chronik-client', () => {
     });
 
     // Will get these values from node ipc, then use in multiple steps
-    let chronikUrl = [''];
-
     let p2pkhAddress = '';
     let p2pkhHash = '';
     let p2pkhTxid = '';
@@ -172,9 +198,6 @@ describe('Test expected websocket behavior of chronik-client', () => {
     let subscriptions: Array<WsSubScriptClient> = [];
 
     it('New regtest chain', async () => {
-        // Get chronik URL (used in all tests)
-        chronikUrl = await chronik_url;
-
         // Get addresses / scripts (used in all tests)
         p2pkhAddress = await get_p2pkh_address;
         p2pkhHash = cashaddr.decode(p2pkhAddress, true).hash as string;

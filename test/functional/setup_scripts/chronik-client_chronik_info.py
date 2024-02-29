@@ -6,8 +6,8 @@ Setup script to exercise the chronik-client js library chronikinfo() function
 """
 
 import pathmagic  # noqa
-from ipc import send_ipc_message
 from setup_framework import SetupFramework
+from test_framework.util import assert_equal
 
 
 class ChronikClient_ChronikInfo_Setup(SetupFramework):
@@ -19,8 +19,13 @@ class ChronikClient_ChronikInfo_Setup(SetupFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
+        # Init
+        node = self.nodes[0]
 
+        yield True
+
+        self.log.info("Step 1: Initialized regtest chain")
+        assert_equal(node.getblockcount(), 200)
         yield True
 
 

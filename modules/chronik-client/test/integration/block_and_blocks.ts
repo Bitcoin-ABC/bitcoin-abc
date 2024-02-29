@@ -6,28 +6,35 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import { ChronikClientNode } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('/block and /blocks', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner('chronik-client_block_and_blocks');
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
 
@@ -35,10 +42,31 @@ describe('/block and /blocks', () => {
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -52,7 +80,6 @@ describe('/block and /blocks', () => {
     const REGTEST_CHAIN_INIT_HEIGHT = 200;
 
     it('gives us the block and blocks', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
         const blockFromHeight = await chronik.block(REGTEST_CHAIN_INIT_HEIGHT);
         expect(blockFromHeight.blockInfo.height).to.eql(
@@ -99,7 +126,7 @@ describe('/block and /blocks', () => {
         );
     });
     it('gives us the block at 10 higher', async () => {
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 10,
         );
@@ -136,7 +163,7 @@ describe('/block and /blocks', () => {
         }
     });
     it('gives us the block after parking the last block and throws expected error attempting to get parked block', async () => {
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 9,
         );
@@ -188,7 +215,7 @@ describe('/block and /blocks', () => {
         expect(latestBlockAvailableByBlocks).to.deep.equal([]);
     });
     it('gives us the block and blocks after unparking the last block', async () => {
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 10,
         );
@@ -235,7 +262,7 @@ describe('/block and /blocks', () => {
         );
     });
     it('gives us the block and blocks after invalidating the last block and throws expected error attempting to get invalidated block', async () => {
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 9,
         );
@@ -287,7 +314,7 @@ describe('/block and /blocks', () => {
         expect(latestBlockAvailableByBlocks).to.deep.equal([]);
     });
     it('gives us the block and blocks after reconsiderblock called on the last block', async () => {
-        const chronik = new ChronikClientNode(await chronik_url);
+        const chronik = new ChronikClientNode(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 10,
         );

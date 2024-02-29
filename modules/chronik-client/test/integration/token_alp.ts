@@ -6,6 +6,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import {
     ChronikClientNode,
     TokenInfo,
@@ -13,15 +14,19 @@ import {
     TxHistoryPage_InNode,
     Tx_InNode,
 } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs, txs, and history for ALP token txs', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let get_alp_genesis_txid: Promise<string>;
     let get_alp_mint_txid: Promise<string>;
     let get_alp_send_txid: Promise<string>;
@@ -31,17 +36,19 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let get_alp_mint_two_txid: Promise<string>;
     let get_alp_nonutf8_genesis_txid: Promise<string>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner('chronik-client_token_alp');
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
             if (message && message.alp_genesis_txid) {
@@ -96,10 +103,31 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -186,7 +214,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let confirmedTxsForAlpGenesisTxid: TxHistoryPage_InNode;
 
     it('Gets an ALP genesis tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         alpGenesisTxid = await get_alp_genesis_txid;
@@ -366,7 +393,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         );
     });
     it('Gets an ALP mint tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // We can get an alp mint tx from the mempool
@@ -448,7 +474,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         );
     });
     it('Gets an ALP send tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // We can get an alp send tx from the mempool
@@ -534,7 +559,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpSend.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets another ALP genesis tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // We can get another alp genesis tx from the mempool
@@ -616,7 +640,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpNextGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets an ALP genesis, mint, and send (also a burn) combo tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // We can get an ALP GENESIS + MINT + SEND all in one tx from the mempool
@@ -787,7 +810,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         }
     });
     it('Can get all of the above txs, and a wild mega-tx, from the blockTxs endpoint after they are mined in a block', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // Now that we have a block, we get a block key from token info
@@ -1174,7 +1196,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         }
     });
     it('Can get confirmed and unconfirmed txs from tokenId.history()', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         alpNonUtf8GenesisTxid = await get_alp_nonutf8_genesis_txid;
@@ -1348,7 +1369,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         );
     });
     it('We get tx history in expected order from both tokenId().history() and tokenId.confirmedTxs()', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // Can get all confirmed token txs for alpGenesisTxid

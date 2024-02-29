@@ -29,16 +29,15 @@ class ChronikClient_Broadcast_Setup(SetupFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
 
-    def send_chronik_info(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
-
     def run_test(self):
         # Init
         node = self.nodes[0]
 
-        self.send_chronik_info()
+        yield True
 
-        self.log.info("Build some raw txs for chronik to broadcast")
+        self.log.info(
+            "Step 1: Initialized regtest chain. Build some raw txs for chronik to broadcast"
+        )
 
         # ALP txs
 

@@ -21,20 +21,19 @@ class ChronikClient_Block_Setup(SetupFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
 
-    def send_chronik_info(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
-
     def run_test(self):
         # Init
         node = self.nodes[0]
         wallet = MiniWallet(node)
         wallet.rescan_utxos()
 
-        self.send_chronik_info()
-
         yield True
 
-        self.log.info("Step 1: Broadcast ten txs")
+        self.log.info("Step 1: Initialized regtest chain")
+        assert_equal(node.getblockcount(), 200)
+        yield True
+
+        self.log.info("Step 2: Broadcast ten txs")
         txs_and_rawtxs = {}
         for x in range(10):
             # Make the fee rate vary to have txs with varying amounts
@@ -44,12 +43,12 @@ class ChronikClient_Block_Setup(SetupFramework):
         assert_equal(node.getblockcount(), 200)
         yield True
 
-        self.log.info("Step 2: Mine a block with these txs")
+        self.log.info("Step 3: Mine a block with these txs")
         self.generate(node, 1)
         assert_equal(node.getblockcount(), 201)
         yield True
 
-        self.log.info("Step 3: Park the last block")
+        self.log.info("Step 4: Park the last block")
         node.parkblock(node.getbestblockhash())
         assert_equal(node.getblockcount(), 200)
         yield True

@@ -6,33 +6,38 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import { ChronikClientNode, Tx_InNode } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let get_vault_setup_txid: Promise<string>;
     let get_slp_vault_genesis_txid: Promise<string>;
     let get_slp_vault_mint_txid: Promise<string>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner(
-            'chronik-client_token_slp_mint_vault',
-        );
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
             if (message && message.vault_setup_txid) {
@@ -57,10 +62,31 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -117,7 +143,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     let slpVaultMint: Tx_InNode;
 
     it('Gets an SLP vault setup tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         vaultSetupTxid = await get_vault_setup_txid;
@@ -160,7 +185,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         expect(vaultSetup.tokenStatus).to.eql('TOKEN_STATUS_NON_TOKEN');
     });
     it('Gets this tx from a block', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         const blockTxs = await chronik.blockTxs(CHAIN_INIT_HEIGHT + 2);
@@ -182,7 +206,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         expect(history.txs[0]).to.deep.equal(confirmedVaultSetup);
     });
     it('Gets an SLP vault genesis tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpVaultGenesisTxid = await get_slp_vault_genesis_txid;
@@ -268,7 +291,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         });
     });
     it('Gets a badly constructed SLP v2 Vault Mint tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpVaultMintTxid = await get_slp_vault_mint_txid;

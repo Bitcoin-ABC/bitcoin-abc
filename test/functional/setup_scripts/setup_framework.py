@@ -6,7 +6,7 @@ Extend the test framework to run IPC messaging stepped setup scripts.
 """
 
 import pathmagic  # noqa
-from ipc import ready, receive_ipc_messages
+from ipc import ready, receive_ipc_messages, send_ipc_message
 from test_framework.test_framework import BitcoinTestFramework
 
 IPC_RECEIVE_DEFAULT_TIMEOUT = 60
@@ -18,6 +18,14 @@ class SetupFramework(BitcoinTestFramework):
     def set_test_params(self):
         raise NotImplementedError
 
+    # This will be overridden by the child class
+    def setup_test_info(self):
+        test_info = {}
+        test_info["chronik"] = f"http://127.0.0.1:{self.nodes[0].chronik_port}"
+        test_info["setup_script_timeout"] = self.rpc_timeout
+        send_ipc_message({"test_info": test_info})
+        self.log.info("Passed test setup data to mocha")
+
     # Make the metaclass happy by providing the expected method.
     # This will be overridden by the child class.
     def run_test(self):
@@ -25,6 +33,9 @@ class SetupFramework(BitcoinTestFramework):
 
     def _run_test_internal(self):
         timeout = getattr(self, "ipc_timeout", IPC_RECEIVE_DEFAULT_TIMEOUT)
+
+        # Initialize test params used in all chronik-client tests and pass to mocha
+        self.setup_test_info()
 
         # Build the generator
         setup_steps = self.run_test()

@@ -6,32 +6,39 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import { ChronikClientNode, Tx_InNode } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let get_slp_fungible_genesis_txid: Promise<string>;
     let get_slp_fungible_mint_txid: Promise<string>;
     let get_slp_fungible_send_txid: Promise<string>;
     let get_slp_fungible_genesis_empty_txid: Promise<string>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner('chronik-client_token_slp_fungible');
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
             if (message && message.slp_fungible_genesis_txid) {
@@ -62,10 +69,31 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -120,7 +148,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
     let slpEmptyGenesis: Tx_InNode;
 
     it('Gets an SLP genesis tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpGenesisTxid = await get_slp_fungible_genesis_txid;
@@ -214,7 +241,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         });
     });
     it('Gets an SLP fungible mint tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpMintTxid = await get_slp_fungible_mint_txid;
@@ -288,7 +314,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpMint.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets an SLP fungible send tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpSendTxid = await get_slp_fungible_send_txid;
@@ -361,7 +386,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpSend.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets an SLP fungible empty genesis tx from the mempool', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpEmptyGenesisTxid = await get_slp_fungible_genesis_empty_txid;
@@ -417,7 +441,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         expect(slpEmptyGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Can get all of the above txs from the blockTxs endpoint after they are mined in a block', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // Now that we have a block, we get a block key from token info

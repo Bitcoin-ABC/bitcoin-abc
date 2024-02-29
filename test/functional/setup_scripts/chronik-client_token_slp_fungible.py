@@ -29,9 +29,6 @@ class ChronikClientTokenSlpFungible(SetupFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
 
-    def send_chronik_info(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
-
     def run_test(self):
         from test_framework.chronik.client import pb
 
@@ -40,7 +37,7 @@ class ChronikClientTokenSlpFungible(SetupFramework):
         mocktime = 1300000000
         node.setmocktime(mocktime)
 
-        self.send_chronik_info()
+        yield True
 
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)

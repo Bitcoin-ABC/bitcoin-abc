@@ -6,31 +6,36 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import { ChronikClientNode } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get blocktxs and tx', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let chronik_txs_and_rawtxs: Promise<{ [key: string]: string }>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner(
-            'chronik-client_blocktxs_and_tx_and_rawtx',
-        );
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
             if (message && message.txs_and_rawtxs) {
@@ -43,10 +48,31 @@ describe('Get blocktxs and tx', () => {
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -64,7 +90,6 @@ describe('Get blocktxs and tx', () => {
     let broadcastTxids: string[] = [];
 
     it('New regtest chain', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // Gets the block by height (need the block hash)
@@ -134,7 +159,6 @@ describe('Get blocktxs and tx', () => {
         );
     });
     it('After some txs have been broadcast', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
         txsAndRawTxsBroadcastInTest = await chronik_txs_and_rawtxs;
         broadcastTxids = Object.keys(txsAndRawTxsBroadcastInTest);
@@ -152,7 +176,6 @@ describe('Get blocktxs and tx', () => {
         }
     });
     it('After these txs are mined', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // We have another block
@@ -226,7 +249,6 @@ describe('Get blocktxs and tx', () => {
         expect(emptyPage.txs.length).to.eql(0);
     });
     it('After this mined block has been parked', async () => {
-        const chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // We can't get blockTxs for the now-parked block

@@ -32,19 +32,17 @@ class ChronikClient_Mempool_Conflict_Setup(SetupFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
 
-    def send_chronik_info(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
-
     def run_test(self):
         # Init
         node = self.nodes[0]
         peer = node.add_p2p_connection(P2PDataStore())
 
-        self.send_chronik_info()
-
-        self.log.info("Step 1: Send subscription script to jest")
-
         yield True
+
+        self.log.info("Step 1: New clean chain. Send subscription script to jest")
+        assert_equal(node.getblockcount(), 0)
+        yield True
+
         self.log.info("Step 2: Broadcast some txs")
         # Send some txs
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]

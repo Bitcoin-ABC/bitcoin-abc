@@ -7,16 +7,21 @@ import chaiAsPromised from 'chai-as-promised';
 import cashaddr from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import path from 'path';
 import { ChronikClientNode, ScriptType_InNode } from '../../index';
-import initializeTestRunner from '../setup/testRunner';
+import initializeTestRunner, {
+    cleanupMochaRegtest,
+    setMochaTimeout,
+    TestInfo,
+} from '../setup/testRunner';
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
 describe('Get script().history and script().utxos()', () => {
     // Define variables used in scope of this test
+    const testName = path.basename(__filename);
     let testRunner: ChildProcess;
-    let chronik_url: Promise<Array<string>>;
     let get_txs_broadcast: Promise<string>;
 
     let get_p2pkh_address: Promise<string>;
@@ -33,19 +38,19 @@ describe('Get script().history and script().utxos()', () => {
 
     let get_mixed_output_txid: Promise<string>;
     const statusEvent = new EventEmitter();
+    let get_test_info: Promise<TestInfo>;
+    let chronikUrl: string[];
+    let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
         // Initialize testRunner before mocha tests
-        testRunner = initializeTestRunner(
-            'chronik-client_script_utxos_and_history',
-        );
+        testRunner = initializeTestRunner(testName, statusEvent);
 
         // Handle IPC messages from the setup script
         testRunner.on('message', function (message: any) {
-            if (message && message.chronik) {
-                console.log('Setting chronik url to ', message.chronik);
-                chronik_url = new Promise(resolve => {
-                    resolve([message.chronik]);
+            if (message && message.test_info) {
+                get_test_info = new Promise(resolve => {
+                    resolve(message.test_info);
                 });
             }
 
@@ -113,10 +118,31 @@ describe('Get script().history and script().utxos()', () => {
                 statusEvent.emit(message.status);
             }
         });
+
+        await once(statusEvent, 'ready');
+
+        const testInfo = await get_test_info;
+
+        chronikUrl = [testInfo.chronik];
+        console.log(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
+
+        setupScriptTermination = setMochaTimeout(
+            this,
+            testName,
+            testInfo,
+            testRunner,
+        );
+
+        testRunner.send('next');
     });
 
-    after(() => {
-        testRunner.send('stop');
+    after(async () => {
+        await cleanupMochaRegtest(
+            testName,
+            testRunner,
+            setupScriptTermination,
+            statusEvent,
+        );
     });
 
     beforeEach(async () => {
@@ -130,7 +156,6 @@ describe('Get script().history and script().utxos()', () => {
     const REGTEST_CHAIN_INIT_HEIGHT = 200;
 
     // Will get these values from node ipc, then use in multiple steps
-    let chronikUrl = [''];
     let txsBroadcast = 0;
 
     let p2pkhAddress = '';
@@ -149,8 +174,6 @@ describe('Get script().history and script().utxos()', () => {
     let otherTxids: string[] = [];
 
     it('New regtest chain', async () => {
-        // Get chronik URL (used in all tests)
-        chronikUrl = await chronik_url;
         const chronik = new ChronikClientNode(chronikUrl);
 
         // Get addresses / scripts (used in all tests)

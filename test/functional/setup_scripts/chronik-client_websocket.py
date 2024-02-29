@@ -37,14 +37,11 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         self.skip_if_no_chronik()
         self.skip_if_no_wallet()
 
-    def send_chronik_info(self):
-        send_ipc_message({"chronik": f"http://127.0.0.1:{self.nodes[0].chronik_port}"})
-
     def run_test(self):
         # Init
         node = self.nodes[0]
 
-        self.send_chronik_info()
+        yield True
 
         # p2pkh
         # IFP address p2pkh
