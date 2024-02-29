@@ -1,3 +1,7 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 export const missingPath1899Wallet = {
     Path145: {
         cashAddress: 'bitcoincash:qq47pcxfn8n7w7jy86njd7pvgsv39l9f9v0lgx569z',

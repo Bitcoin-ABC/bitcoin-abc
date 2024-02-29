@@ -1,3 +1,7 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 export const mockFilteredSortedAliasTxHistoryWithDuplicateTxs = [
     {
         txid: '03bc75198ecd0491faed1cd03e14c97bd9ec205f4ecf0f6b239a538f5f0d8479',

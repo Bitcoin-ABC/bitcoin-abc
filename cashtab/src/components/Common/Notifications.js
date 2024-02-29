@@ -1,8 +1,10 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import * as React from 'react';
 import { notification } from 'antd';
-import {
-    ThemedUserProfileIcon,
-} from 'components/Common/CustomIcons';
+import { ThemedUserProfileIcon } from 'components/Common/CustomIcons';
 import appConfig from 'config/app';
 
 const registerAliasNotification = (link, alias) => {
@@ -36,8 +38,4 @@ const generalNotification = (data, msgStr) => {
     });
 };
 
-export {
-    registerAliasNotification,
-    errorNotification,
-    generalNotification,
-};
+export { registerAliasNotification, errorNotification, generalNotification };

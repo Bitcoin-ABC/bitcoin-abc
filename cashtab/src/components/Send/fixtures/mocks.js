@@ -1,3 +1,7 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 // See src/validation, ref parseAddressInput
 // These could change, which would break tests, which is expected behavior if we haven't
 // updated tests properly on changing the app

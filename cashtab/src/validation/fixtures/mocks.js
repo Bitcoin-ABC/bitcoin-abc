@@ -1,3 +1,7 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 export const validXecAirdropList =
     'ecash:qrqgwxnaxlfagezvr2zj4s9yee6rrs96dyguh7zsvk,7\n' +
     'ecash:qzsha6zk9m0f3hlfe5q007zdwnzvn3vwuuzel2lfzv,67\n' +

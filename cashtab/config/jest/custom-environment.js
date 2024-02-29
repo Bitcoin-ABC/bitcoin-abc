@@ -1,3 +1,7 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import JSDOMEnvironment from 'jest-environment-jsdom';
 export default class CustomEnvironment extends JSDOMEnvironment {
     constructor(config, context) {

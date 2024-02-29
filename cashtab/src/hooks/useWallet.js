@@ -1,3 +1,7 @@
+// Copyright (c) 2024 The Bitcoin developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import React, { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';

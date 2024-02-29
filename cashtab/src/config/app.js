@@ -1,6 +1,7 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2023-2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 import mainLogo from 'assets/logo_primary.png';
 import tokenLogo from 'assets/logo_secondary.png';
 import { cashtabSettings } from 'config/cashtabSettings';
