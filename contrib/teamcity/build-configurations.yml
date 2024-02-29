@@ -647,6 +647,7 @@ builds:
   cashtab-tests:
     runOnDiffRegex:
       - cashtab/
+      - apps/mock-chronik-client/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
     env:
@@ -713,6 +714,7 @@ builds:
   alias-server-tests:
     runOnDiffRegex:
       - apps/alias-server/
+      - apps/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/alias-server
     templates:
@@ -721,14 +723,24 @@ builds:
   ecash-herald-tests:
     runOnDiffRegex:
       - apps/ecash-herald/
+      - apps/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/ecash-herald
+    templates:
+      - js-mocha
+
+  mock-chronik-client-tests:
+    runOnDiffRegex:
+      - apps/mock-chronik-client/
+    env:
+      JS_PROJECT_ROOT: apps/mock-chronik-client
     templates:
       - js-mocha
 
   app-dev-examples:
     runOnDiffRegex:
       - apps/examples/
+      - apps/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/examples
     templates:
