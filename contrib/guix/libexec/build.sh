@@ -371,11 +371,28 @@ mkdir -p "$DISTSRC"
     ninja security-check
     ninja symbol-check
 
-    ninja install-debug
-
-    cd installed
-    find ${DISTNAME} -not -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
-    find ${DISTNAME} -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}-debug.tar.gz
+    case "$HOST" in
+        *mingw*)
+            ninja install-debug
+            # Generate NSIS installer
+            ninja package
+            mv ${DISTNAME}*setup-unsigned.exe ${OUTDIR}/
+            # ZIP the individual .exe files
+            pushd installed
+            mkdir -p ${DISTNAME}/lib
+            mv ${DISTNAME}/bin/*.dll* ${DISTNAME}/lib/
+            find ${DISTNAME} -not -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-win64.zip
+            find ${DISTNAME} -name "*.dbg"  -type f | sort | zip -X@ ${OUTDIR}/${DISTNAME}-win64-debug.zip
+            popd
+            ;;
+        *linux*)
+            ninja install-debug
+            pushd installed
+            find ${DISTNAME} -not -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
+            find ${DISTNAME} -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}-debug.tar.gz
+            popd
+            ;;
+    esac
 )  # $DISTSRC
 
 rm -rf "$ACTUAL_OUTDIR"
@@ -391,4 +408,5 @@ mv ${SOURCEDIST} "$ACTUAL_OUTDIR"
       | xargs sha256sum \
       | sort -k2 \
       | sponge "$ACTUAL_OUTDIR"/SHA256SUMS.part
+    cat "$ACTUAL_OUTDIR"/SHA256SUMS.part
 )
