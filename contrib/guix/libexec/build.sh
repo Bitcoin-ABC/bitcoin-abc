@@ -392,6 +392,32 @@ mkdir -p "$DISTSRC"
             find ${DISTNAME} -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}-debug.tar.gz
             popd
             ;;
+        *darwin*)
+            ninja install/strip
+
+            export PYTHONPATH="${BASEPREFIX}/${HOST}/native/lib/python3/dist-packages:${PYTHONPATH}"
+            ninja osx-deploydir
+
+            OSX_VOLNAME="$(cat osx_volname)"
+            mkdir -p unsigned-app-${HOST}
+            cp osx_volname unsigned-app-${HOST}/
+            cp ../contrib/macdeploy/detached-sig-apply.sh unsigned-app-${HOST}
+            cp ../contrib/macdeploy/detached-sig-create.sh unsigned-app-${HOST}
+            cp ${BASEPREFIX}/${HOST}/native/bin/${HOST}-codesign_allocate unsigned-app-${HOST}/codesign_allocate
+            cp ${BASEPREFIX}/${HOST}/native/bin/${HOST}-pagestuff unsigned-app-${HOST}/pagestuff
+            mv dist unsigned-app-${HOST}
+            pushd unsigned-app-${HOST}
+            find . | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-osx-unsigned.tar.gz
+            popd
+
+            ninja osx-dmg
+            mv "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
+
+            cd installed
+            find . -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
+            find ${DISTNAME} -not -path "*.app*" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
+            cd ../../
+            ;;
     esac
 )  # $DISTSRC
 
