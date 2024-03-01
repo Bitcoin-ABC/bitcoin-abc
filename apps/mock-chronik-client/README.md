@@ -99,3 +99,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.1.1
 
 -   Patch error tests
+
+1.2.0
+
+-   Add support to calls by `address(address)` returning same as `script(type, hash)`

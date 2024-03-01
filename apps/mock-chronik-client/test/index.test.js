@@ -98,6 +98,17 @@ it('Mock the script().utxos() API response', async function () {
     assert.deepEqual(result, mockP2pkhUtxos);
 });
 
+it('We get the same script().utxos() API response using address().utxos()', async function () {
+    // Initialize chronik mock with a utxo set
+    const mockedChronik = new MockChronikClient();
+    mockedChronik.setAddress(P2PKH_ADDRESS);
+    mockedChronik.setUtxosByAddress(P2PKH_ADDRESS, mockP2pkhUtxos);
+
+    // Execute the API call
+    const result = await mockedChronik.address(P2PKH_ADDRESS).utxos();
+    assert.deepEqual(result, mockP2pkhUtxos);
+});
+
 it('Mock the script().history() API response', async function () {
     // Initialize chronik mock with history info
     const mockedChronik = new MockChronikClient();
@@ -107,6 +118,17 @@ it('Mock the script().history() API response', async function () {
 
     // Execute the API call
     const result = await mockedChronik.script(type, hash).history(0, 2);
+    assert.deepEqual(result, mockTxHistory);
+});
+
+it('We get the same script().history() API response using address().history()', async function () {
+    // Initialize chronik mock with history info
+    const mockedChronik = new MockChronikClient();
+    mockedChronik.setAddress(P2PKH_ADDRESS);
+    mockedChronik.setTxHistoryByAddress(P2PKH_ADDRESS, mockTxHistory.txs);
+
+    // Execute the API call
+    const result = await mockedChronik.address(P2PKH_ADDRESS).history(0, 2);
     assert.deepEqual(result, mockTxHistory);
 });
 
@@ -147,7 +169,6 @@ it('Mock the ws() API response', async function () {
 
     // Verify subscription functions were called
     assert.strictEqual(ws.isSubscribedBlocks, true);
-    // Verify subscription functions were called
     assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
     assert.strictEqual(mockedChronik.wsSubscribeCalled, true);
     assert.strictEqual(mockedChronik.manuallyClosed, true);
@@ -240,6 +261,19 @@ it('Mock an error returned from the script().utxos() API', async function () {
     );
 });
 
+it('Mock an error returned from the address().utxos() API', async function () {
+    const mockedChronik = new MockChronikClient();
+    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
+    const expectedError = new Error('Bad response from Chronik');
+    mockedChronik.setAddress(P2PKH_ADDRESS);
+    mockedChronik.setUtxosByAddress(P2PKH_ADDRESS, expectedError);
+
+    await assert.rejects(
+        mockedChronik.address(P2PKH_ADDRESS).utxos(),
+        expectedError,
+    );
+});
+
 it('Mock an error returned from the script().history() API', async function () {
     const mockedChronik = new MockChronikClient();
     const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
@@ -250,6 +284,19 @@ it('Mock an error returned from the script().history() API', async function () {
     // Execute the API call
     await assert.rejects(
         mockedChronik.script(type, hash).history(0, 2),
+        expectedError,
+    );
+});
+
+it('Mock an error returned from the address().history() API', async function () {
+    const mockedChronik = new MockChronikClient();
+    const expectedError = new Error('Bad response from Chronik');
+    mockedChronik.setAddress(P2PKH_ADDRESS);
+    mockedChronik.setTxHistoryByAddress(P2PKH_ADDRESS, expectedError);
+
+    // Execute the API call
+    await assert.rejects(
+        async () => mockedChronik.address(P2PKH_ADDRESS).history(0, 2),
         expectedError,
     );
 });

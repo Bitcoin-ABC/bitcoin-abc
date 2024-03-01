@@ -50,6 +50,11 @@ module.exports = {
                 return self.mockedMethods[type][hash];
             };
 
+            // Return assigned address mocks
+            self.address = function (address) {
+                return self.mockedMethods[address];
+            };
+
             // Checks whether the user set this mock response to be an error.
             // If so, throw it to simulate an API error response.
             function throwOrReturnValue(mockResponse) {
@@ -112,6 +117,10 @@ module.exports = {
                 self.mockedResponses[type][hash].txHistory = txHistory;
             };
 
+            self.setTxHistoryByAddress = function (address, txHistory) {
+                self.mockedResponses[address].txHistory = txHistory;
+            };
+
             /**
              * Set utxos to custom response; must be called after setScript
              * @param {string} type 'p2sh' or 'p2pkh'
@@ -120,6 +129,15 @@ module.exports = {
              */
             self.setUtxos = function (type, hash, utxos) {
                 self.mockedResponses[type][hash].utxos = utxos;
+            };
+
+            /**
+             * Set utxos to custom response; must be called after setAddress
+             * @param {string} address 'p2sh' or 'p2pkh' address
+             * @param {array} utxos mocked response of chronik.address(address).utxos()
+             */
+            self.setUtxosByAddress = function (address, utxos) {
+                self.mockedResponses[address].utxos = utxos;
             };
 
             // Allow users to set expected chronik script call responses
@@ -144,6 +162,33 @@ module.exports = {
                     utxos: async function () {
                         return throwOrReturnValue(
                             self.mockedResponses[type][hash].utxos,
+                        );
+                    },
+                };
+            };
+
+            // Allow users to set expected chronik address call responses
+            self.setAddress = function (address) {
+                // Initialize object that will hold utxos if set
+                self.mockedResponses[address] = {};
+
+                self.mockedMethods[address] = {
+                    history: async function (pageNumber = 0, pageSize) {
+                        if (
+                            self.mockedResponses[address].txHistory instanceof
+                            Error
+                        ) {
+                            throw self.mockedResponses[address].txHistory;
+                        }
+                        return self.getTxHistory(
+                            pageNumber,
+                            pageSize,
+                            self.mockedResponses[address].txHistory,
+                        );
+                    },
+                    utxos: async function () {
+                        return throwOrReturnValue(
+                            self.mockedResponses[address].utxos,
                         );
                     },
                 };
