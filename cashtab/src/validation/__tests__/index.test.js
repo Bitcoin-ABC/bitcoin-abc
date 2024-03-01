@@ -31,6 +31,7 @@ import {
     isValidOpreturnParam,
     shouldSendXecBeDisabled,
     parseAddressInput,
+    isValidCashtabWallet,
 } from 'validation';
 import {
     validXecAirdropList,
@@ -835,6 +836,16 @@ describe('Determines if cashtabCache is valid or invalid', () => {
         const { description, cashtabCache, isValid } = expectedReturn;
         it(`isValidCashtabCache: ${description}`, () => {
             expect(isValidCashtabCache(cashtabCache)).toBe(isValid);
+        });
+    });
+});
+
+describe('Determines if a cashtab wallet is valid or invalid', () => {
+    const { expectedReturns } = vectors.isValidCashtabWallet;
+    expectedReturns.forEach(expectedReturn => {
+        const { description, wallet, returned } = expectedReturn;
+        it(`isValidCashtabWallet: ${description}`, () => {
+            expect(isValidCashtabWallet(wallet)).toBe(returned);
         });
     });
 });

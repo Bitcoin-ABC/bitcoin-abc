@@ -38,6 +38,24 @@ export const initializeCashtabStateForTests = async (
     await localforage.setItem('savedWallets', [wallet]);
     await localforage.setItem('wallet', wallet);
 
+    // Mock returns for chronik calls expected in useWallet's update routine
+    prepareMockedChronikCallsForWallet(chronikClient, wallet, apiError);
+
+    return chronikClient;
+};
+
+/**
+ *
+ * @param {object} chronikClient a mockedChronikClient object
+ * @param {object} wallet a valid cashtab wallet object
+ * @param {boolean} apiError true if we want to set api errors in mocked chronik
+ * @returns modifies chronikClient in place to have expected API calls for wallet loading available
+ */
+export const prepareMockedChronikCallsForWallet = (
+    chronikClient,
+    wallet,
+    apiError = false,
+) => {
     // mock chronik endpoint returns
     const CASHTAB_TESTS_TIPHEIGHT = 800000;
     chronikClient.setMock('blockchainInfo', {
@@ -110,8 +128,6 @@ export const initializeCashtabStateForTests = async (
             });
         }
     }
-
-    return chronikClient;
 };
 
 /**

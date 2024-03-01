@@ -687,3 +687,39 @@ export function parseAddressInput(addressInput) {
 
     return parsedAddressInput;
 }
+
+/**
+ * Determine if a given object is a valid Cashtab wallet
+ * @param {object} wallet Cashtab wallet object
+ * @returns {boolean}
+ */
+export const isValidCashtabWallet = wallet => {
+    return (
+        typeof wallet === 'object' &&
+        'state' in wallet &&
+        'mnemonic' in wallet &&
+        'name' in wallet &&
+        'Path145' in wallet &&
+        'publicKey' in wallet.Path145 &&
+        'hash160' in wallet.Path145 &&
+        'cashAddress' in wallet.Path145 &&
+        wallet.Path145.cashAddress.startsWith('ecash:') &&
+        'Path245' in wallet &&
+        'publicKey' in wallet.Path245 &&
+        'hash160' in wallet.Path245 &&
+        'cashAddress' in wallet.Path245 &&
+        wallet.Path245.cashAddress.startsWith('ecash:') &&
+        'Path1899' in wallet &&
+        'publicKey' in wallet.Path1899 &&
+        'hash160' in wallet.Path1899 &&
+        'cashAddress' in wallet.Path1899 &&
+        wallet.Path1899.cashAddress.startsWith('ecash:') &&
+        typeof wallet.state === 'object' &&
+        'balances' in wallet.state &&
+        'slpUtxos' in wallet.state &&
+        'nonSlpUtxos' in wallet.state &&
+        'tokens' in wallet.state &&
+        !('hydratedUtxoDetails' in wallet.state) &&
+        !('slpBalancesAndUtxos' in wallet.state)
+    );
+};

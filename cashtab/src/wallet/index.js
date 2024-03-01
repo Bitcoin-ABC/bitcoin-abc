@@ -3,6 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { BN } from 'slp-mdm';
+import * as bip39 from 'bip39';
+import * as utxolib from '@bitgo/utxo-lib';
+import cashaddr from 'ecashaddrjs';
 
 const SATOSHIS_PER_XEC = 100;
 
@@ -64,4 +67,55 @@ export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
         return false;
     }
     return new BN(thisToken[0].balance).gte(tokenQty);
+};
+
+/**
+ * Create a Cashtab wallet object from a valid bip39 mnemonic
+ * @param {string} mnemonic a valid bip39 mnemonic
+ */
+export const createCashtabWallet = async mnemonic => {
+    // Initialize wallet with empty state
+    const wallet = {
+        state: { balances: {}, slpUtxos: [], nonSlpUtxos: [], tokens: [] },
+    };
+    wallet.mnemonic = mnemonic;
+
+    const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
+
+    const masterHDNode = utxolib.bip32.fromSeed(
+        rootSeedBuffer,
+        utxolib.networks.ecash,
+    );
+
+    // TODO if we have multiple paths, should be in an array at key paths, or a map
+    wallet.Path145 = deriveAccount(masterHDNode, "m/44'/145'/0'/0/0");
+    wallet.Path245 = deriveAccount(masterHDNode, "m/44'/245'/0'/0/0");
+    wallet.Path1899 = deriveAccount(masterHDNode, "m/44'/1899'/0'/0/0");
+
+    // Initialize name with first 5 chars of Path1899 address
+    wallet.name = wallet.Path1899.cashAddress.slice(6, 11);
+    return wallet;
+};
+
+/**
+ * Get PathXXX key for a Cashtab Wallet
+ *
+ * TODO cashtab wallets should use one path or store paths at an array, not separate keys
+ *
+ * @param {utxolib.bip32Interface} masterHDNode calculated from utxolib
+ * @param {string} path
+ * @returns {object} {publicKey, hash160, cashAddress, fundingWif}
+ */
+const deriveAccount = (masterHDNode, path) => {
+    const node = masterHDNode.derivePath(path);
+    const publicKey = node.publicKey.toString('hex');
+    const cashAddress = cashaddr.encode('ecash', 'P2PKH', node.identifier);
+    const { hash } = cashaddr.decode(cashAddress, true);
+
+    return {
+        publicKey,
+        hash160: hash,
+        cashAddress,
+        fundingWif: node.toWIF(),
+    };
 };

@@ -43,3 +43,35 @@ export const invalidXecAirdropExclusionList =
     'ecash:qqlqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqyz0v403dj,' +
     'ecash:qz2taa43tljkvnvkeqv9pyx337hmg0zclqfqjrqst4,' +
     'ecash:qp0hlj26nwjpk9c3f0umjz7qmwpzfh0fhckq4zj9s6';
+
+export const validWallet = {
+    mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
+    name: 'test',
+    Path145: {
+        cashAddress: 'ecash:',
+        fundingWif: '',
+        hash160: 'present',
+        publicKey: 'present',
+    },
+    Path245: {
+        cashAddress: 'ecash:',
+        fundingWif: '',
+        hash160: 'present',
+        publicKey: 'present',
+    },
+    Path1899: {
+        cashAddress: 'ecash:',
+        fundingWif: '',
+        hash160: 'present',
+        publicKey: 'present',
+    },
+    state: {
+        balances: {
+            totalBalance: '100',
+            totalBalanceInSatoshis: '1000',
+        },
+        nonSlpUtxos: [],
+        slpUtxos: [],
+        tokens: [],
+    },
+};

@@ -22,11 +22,13 @@ import appConfig from 'config/app';
 import {
     clearLocalForage,
     initializeCashtabStateForTests,
+    prepareMockedChronikCallsForWallet,
 } from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
 import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
 import { cashtabCacheToJSON } from 'helpers';
+import { createCashtabWallet } from 'wallet';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -745,5 +747,77 @@ describe('<App />', () => {
                 expectedStoredCashtabCache,
             ),
         );
+    });
+    it('A new user can import a mnemonic', async () => {
+        // Initialize for new user with wallet = false, so localstorage gets defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            false,
+            localforage,
+        );
+
+        // Prepare chronik mocks for expected utxo set to populate wallet
+        prepareMockedChronikCallsForWallet(
+            mockedChronik,
+            walletWithXecAndTokens,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // We click the Import Wallet button
+        await user.click(
+            await screen.findByRole('button', {
+                name: /Import Wallet/,
+            }),
+        );
+
+        // Mnemonic input field is rendered
+        expect(
+            screen.getByPlaceholderText('mnemonic (seed phrase)'),
+        ).toBeInTheDocument();
+
+        // The import button is disabled if no mnemonic is entered
+        const importButton = screen.getByRole('button', {
+            name: 'Import',
+        });
+        expect(importButton).toHaveAttribute('disabled');
+
+        // We enter a valid mnemonic
+        const VALID_MNEMONIC =
+            'beauty shoe decline spend still weird slot snack coach flee between paper';
+        await user.type(
+            screen.getByPlaceholderText('mnemonic (seed phrase)'),
+            VALID_MNEMONIC,
+        );
+
+        // The validation msg is not in the document
+        expect(
+            screen.queryByText('Valid mnemonic seed phrase required'),
+        ).not.toBeInTheDocument();
+
+        // The import button is no longer disabled
+        expect(importButton).not.toHaveAttribute('disabled');
+
+        // Click it
+        await user.click(importButton);
+
+        // We are forwarded to the home screen after the wallet loads
+        expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
+
+        // The imported wallet is in localforage
+        const importedWallet = await localforage.getItem('wallet');
+
+        // The imported wallet matches our expected mock except for name, which is autoset on import
+        expect(importedWallet).toEqual({
+            ...walletWithXecAndTokens,
+            name: 'qqa9l',
+        });
+
+        // Apart from state, which is blank from createCashtabWallet,
+        // the imported wallet matches what we get from createCashtabWallet
+        const createdWallet = await createCashtabWallet(VALID_MNEMONIC);
+        expect(importedWallet).toEqual({
+            ...createdWallet,
+            state: importedWallet.state,
+        });
     });
 });

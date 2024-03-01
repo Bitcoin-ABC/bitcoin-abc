@@ -7,6 +7,13 @@ import appConfig from 'config/app';
 import { cashtabSettings } from 'config/cashtabSettings';
 import defaultCashtabCache from 'config/cashtabCache';
 import { mockCashtabCache } from 'helpers/fixtures/mocks';
+import { validWallet } from 'validation/fixtures/mocks';
+
+const cloneObjectWithDeletedKey = (object, key) => {
+    const clonedObject = JSON.parse(JSON.stringify(object));
+    delete clonedObject[key];
+    return clonedObject;
+};
 
 export default {
     shouldDisableXecSend: {
@@ -796,6 +803,234 @@ export default {
                 description: 'Returns true for default cashtabCache',
                 cashtabCache: defaultCashtabCache,
                 isValid: true,
+            },
+        ],
+    },
+    isValidCashtabWallet: {
+        expectedReturns: [
+            {
+                description: 'Returns true for a valid Cashtab wallet',
+                wallet: validWallet,
+                returned: true,
+            },
+            {
+                description: 'Returns false if not an object',
+                wallet: 'a string',
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if false (used to indicate no wallet yet set)',
+                wallet: false,
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet is missing state',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'state'),
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet is missing mnemonic',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'mnemonic'),
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet is missing name',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'name'),
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet is missing Path145',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'Path145'),
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path145.hash160',
+                wallet: {
+                    ...validWallet,
+                    Path145: cloneObjectWithDeletedKey(
+                        validWallet.Path145,
+                        'hash160',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path145.cashAddress',
+                wallet: {
+                    ...validWallet,
+                    Path145: cloneObjectWithDeletedKey(
+                        validWallet.Path145,
+                        'cashAddress',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path145.publicKey',
+                wallet: {
+                    ...validWallet,
+                    Path145: cloneObjectWithDeletedKey(
+                        validWallet.Path145,
+                        'publicKey',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet is missing Path245',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'Path245'),
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path245.hash160',
+                wallet: {
+                    ...validWallet,
+                    Path245: cloneObjectWithDeletedKey(
+                        validWallet.Path245,
+                        'hash160',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path245.cashAddress',
+                wallet: {
+                    ...validWallet,
+                    Path245: cloneObjectWithDeletedKey(
+                        validWallet.Path245,
+                        'cashAddress',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path245.publicKey',
+                wallet: {
+                    ...validWallet,
+                    Path245: cloneObjectWithDeletedKey(
+                        validWallet.Path245,
+                        'publicKey',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet is missing Path1899',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'Path1899'),
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path1899.hash160',
+                wallet: {
+                    ...validWallet,
+                    Path1899: cloneObjectWithDeletedKey(
+                        validWallet.Path1899,
+                        'hash160',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path1899.cashAddress',
+                wallet: {
+                    ...validWallet,
+                    Path1899: cloneObjectWithDeletedKey(
+                        validWallet.Path1899,
+                        'cashAddress',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if wallet is missing Path1899.publicKey',
+                wallet: {
+                    ...validWallet,
+                    Path1899: cloneObjectWithDeletedKey(
+                        validWallet.Path1899,
+                        'publicKey',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if wallet.state is not an object',
+                wallet: {
+                    ...validWallet,
+                    state: 'string',
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if no balances in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: cloneObjectWithDeletedKey(
+                        validWallet.state,
+                        'balances',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if no slpUtxos in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: cloneObjectWithDeletedKey(
+                        validWallet.state,
+                        'slpUtxos',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if no nonSlpUtxos in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: cloneObjectWithDeletedKey(
+                        validWallet.state,
+                        'nonSlpUtxos',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if no tokens in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: cloneObjectWithDeletedKey(
+                        validWallet.state,
+                        'tokens',
+                    ),
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if hydratedUtxoDetails is in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: { ...validWallet.state, hydratedUtxoDetails: [] },
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if slpBalancesAndUtxos is in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: { ...validWallet.state, slpBalancesAndUtxos: [] },
+                },
+                returned: false,
             },
         ],
     },
