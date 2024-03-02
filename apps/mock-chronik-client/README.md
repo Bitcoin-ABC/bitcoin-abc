@@ -95,3 +95,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.1.0
 
 -   Add support to in-node subscribeToBlocks method and check flag, isSubscribedBlocks
+
+1.1.1
+
+-   Patch error tests

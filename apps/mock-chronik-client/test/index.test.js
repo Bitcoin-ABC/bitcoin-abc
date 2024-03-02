@@ -170,9 +170,10 @@ it('Mock an error returned from the block() API', async function () {
     });
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.block(blockHash);
-    }, expectedError);
+    await assert.rejects(
+        async () => mockedChronik.block(blockHash),
+        expectedError,
+    );
 });
 
 it('Mock an error returned from the tx() API', async function () {
@@ -185,9 +186,7 @@ it('Mock an error returned from the tx() API', async function () {
     });
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.tx(txid);
-    }, expectedError);
+    await assert.rejects(mockedChronik.tx(txid), expectedError);
 });
 
 it('Mock an error returned from the token() API', async function () {
@@ -200,9 +199,7 @@ it('Mock an error returned from the token() API', async function () {
     });
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.token(tokenId);
-    }, expectedError);
+    await assert.rejects(mockedChronik.token(tokenId), expectedError);
 });
 
 it('Mock an error returned from the blockchainInfo() API', async function () {
@@ -213,9 +210,7 @@ it('Mock an error returned from the blockchainInfo() API', async function () {
     });
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.blockchainInfo();
-    }, expectedError);
+    await assert.rejects(mockedChronik.blockchainInfo(), expectedError);
 });
 
 it('Mock an error returned from the broadcastTx() API', async function () {
@@ -228,9 +223,7 @@ it('Mock an error returned from the broadcastTx() API', async function () {
     });
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.broadcastTx(rawTxHex);
-    }, expectedError);
+    await assert.rejects(mockedChronik.broadcastTx(rawTxHex), expectedError);
 });
 
 it('Mock an error returned from the script().utxos() API', async function () {
@@ -241,9 +234,10 @@ it('Mock an error returned from the script().utxos() API', async function () {
     mockedChronik.setUtxos(type, hash, expectedError);
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.script(type, hash).utxos();
-    }, expectedError);
+    await assert.rejects(
+        mockedChronik.script(type, hash).utxos(),
+        expectedError,
+    );
 });
 
 it('Mock an error returned from the script().history() API', async function () {
@@ -254,7 +248,8 @@ it('Mock an error returned from the script().history() API', async function () {
     mockedChronik.setTxHistory(type, hash, expectedError);
 
     // Execute the API call
-    await assert.rejects(async () => {
-        await mockedChronik.script(type, hash).history(0, 2);
-    }, expectedError);
+    await assert.rejects(
+        mockedChronik.script(type, hash).history(0, 2),
+        expectedError,
+    );
 });
