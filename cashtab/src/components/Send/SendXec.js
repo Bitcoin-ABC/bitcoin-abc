@@ -163,19 +163,10 @@ const SendXec = ({ passLoadingStatus }) => {
     // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
-    const {
-        wallet,
-        chaintipBlockheight,
-        fiatPrice,
-        apiError,
-        cashtabState,
-        chronik,
-    } = ContextValue;
-    // Ensure cashtabState is not undefined before context initializes
-    const { settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { chaintipBlockheight, fiatPrice, apiError, cashtabState, chronik } =
+        ContextValue;
+    const { settings, wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balances, nonSlpUtxos, tokens } = walletState;
     // Use spendable utxos instead of all nonSlpUtxos for onMax function

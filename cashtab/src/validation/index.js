@@ -7,7 +7,7 @@ import { toXec } from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import {
-    cashtabSettings as cashtabDefaultConfig,
+    CashtabSettings,
     cashtabSettingsValidation,
 } from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
@@ -237,6 +237,7 @@ export const isValidTokenDocumentUrl = tokenDocumentUrl => {
 };
 
 export const isValidCashtabSettings = settings => {
+    const cashtabDefaultConfig = new CashtabSettings();
     try {
         let isValidSettingParams = true;
         for (let param in cashtabDefaultConfig) {
@@ -264,6 +265,7 @@ export const isValidCashtabSettings = settings => {
  * @returns {object} migratedCashtabSettings
  */
 export const migrateLegacyCashtabSettings = settings => {
+    const cashtabDefaultConfig = new CashtabSettings();
     // determine if settings are invalid because it is missing a parameter
     for (let param in cashtabDefaultConfig) {
         if (!Object.prototype.hasOwnProperty.call(settings, param)) {

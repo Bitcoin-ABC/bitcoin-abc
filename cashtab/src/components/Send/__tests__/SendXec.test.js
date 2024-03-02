@@ -24,7 +24,7 @@ import {
     clearLocalForage,
 } from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
-import { cashtabSettings } from 'config/cashtabSettings';
+import { CashtabSettings } from 'config/cashtabSettings';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -1168,7 +1168,7 @@ describe('<SendXec />', () => {
 
         // Adjust initial settings so that minFeeSends is true
         await localforage.setItem('settings', {
-            ...cashtabSettings,
+            ...new CashtabSettings(),
             minFeeSends: true,
         });
 
@@ -1187,7 +1187,7 @@ describe('<SendXec />', () => {
 
         // Confirm we have minFeeSends true in settings
         expect(await localforage.getItem('settings')).toEqual({
-            ...cashtabSettings,
+            ...new CashtabSettings(),
             minFeeSends: true,
         });
 

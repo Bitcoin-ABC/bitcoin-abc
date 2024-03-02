@@ -74,13 +74,11 @@ export const CreateTokenCtn = styled.div`
 `;
 
 const CreateTokenForm = ({ passLoadingStatus }) => {
-    const { wallet, chronik, chaintipBlockheight, cashtabState } =
+    const { chronik, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
-    // Ensure cashtabState is not undefined before context initializes
-    const { settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { settings, wallets } = cashtabState;
+
+    const wallet = wallets.length > 0 ? wallets[0] : false;
 
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;

@@ -81,7 +81,6 @@ const StyledSpacer = styled.div`
 const Alias = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
     const {
-        wallet,
         chronik,
         refreshAliases,
         aliases,
@@ -91,11 +90,8 @@ const Alias = ({ passLoadingStatus }) => {
         setAliasPrices,
         cashtabState,
     } = ContextValue;
-    // Ensure cashtabState is not undefined before context initializes
-    const { settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { settings, wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balances, tokens } = walletState;
     const [formData, setFormData] = useState({

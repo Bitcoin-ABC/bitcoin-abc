@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { cashtabSettings } from 'config/cashtabSettings';
+import { CashtabSettings } from 'config/cashtabSettings';
 
 export const walletWithXecAndTokens = {
     mnemonic:
@@ -795,12 +795,14 @@ export const walletWithXecAndTokens = {
         ],
     },
 };
+
 export const nonDefaultContactList = [
     {
         address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
         name: 'test',
     },
 ];
+
 export const nonDefaultCashtabCache = {
     tokens: new Map([
         [
@@ -816,7 +818,79 @@ export const nonDefaultCashtabCache = {
     ]),
 };
 
-// Clone cashtabSettings
-const cashtabSettingsCloneGbp = JSON.parse(JSON.stringify(cashtabSettings));
-cashtabSettingsCloneGbp.fiatCurrency = 'gbp';
-export const cashtabSettingsGbp = cashtabSettingsCloneGbp;
+// Create a CashtabSettings object at default settings except fiat currency is gbp
+export const cashtabSettingsGbp = new CashtabSettings('gbp');
+
+// NNG shape
+export const mockIncomingTokenTxDetails = {
+    txid: '6ca8ace20c3a54679944f6a0bacf1bfc45d9558040bfa505a17f81aef312b55d',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: '965aea37b511b763224dd6bcb17639d3bfce52051fbc14431aac0e295929b4c8',
+                outIdx: 2,
+            },
+            inputScript:
+                '483045022100df9dd02d4dc55cb55e57c9dfd4cb36f2ebb6917bd31370e06ac7f3060b8c527802204f7e43934aaadb7799c96a1bad6f42804dcfa5d24422dec3ffacde8d8df2059e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            value: '546',
+            sequenceNo: 4294967295,
+            slpToken: {
+                amount: '6',
+                isMintBaton: false,
+            },
+        },
+        {
+            prevOut: {
+                txid: '2fdc62afe089efb603cbb8c794628f284fbacb359c70d957dc19ca358b108af9',
+                outIdx: 0,
+            },
+            inputScript:
+                '473044022076f3399f433167b449c2007a4e838fc457102c2b236b7cd6428481fe7d38ef6d022063d9389f09a8dfd5cfb1f6b607aad3784de601280591c2c88ec5fb75482e9dfc412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            value: '3300',
+            sequenceNo: 4294967295,
+        },
+    ],
+    outputs: [
+        {
+            value: '0',
+            outputScript:
+                '6a04534c500001010453454e4420b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7080000000000000001080000000000000005',
+        },
+        {
+            value: '546',
+            outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+            slpToken: {
+                amount: '1',
+                isMintBaton: false,
+            },
+        },
+        {
+            value: '546',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            slpToken: {
+                amount: '5',
+                isMintBaton: false,
+            },
+        },
+        {
+            value: '1787',
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+        },
+    ],
+    lockTime: 0,
+    slpTxData: {
+        slpMeta: {
+            tokenType: 'FUNGIBLE',
+            txType: 'SEND',
+            tokenId:
+                'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
+        },
+    },
+    timeFirstSeen: '1709836907',
+    size: 480,
+    isCoinbase: false,
+    network: 'XEC',
+};

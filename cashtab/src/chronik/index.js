@@ -9,7 +9,7 @@ import { chronik as chronikConfig } from 'config/chronik';
 import appConfig from 'config/app';
 import { getStackArray } from 'ecash-script';
 import cashaddr from 'ecashaddrjs';
-import defaultCashtabCache from 'config/cashtabCache';
+import CashtabCache from 'config/CashtabCache';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -354,7 +354,7 @@ export const processPreliminaryTokensArray = (
 export const finalizeTokensArray = async (
     chronik,
     preliminaryTokensArray,
-    cachedTokens = defaultCashtabCache.tokens,
+    cachedTokens = new CashtabCache().tokens,
 ) => {
     // Iterate over preliminaryTokensArray to determine what tokens you need to make API calls for
 

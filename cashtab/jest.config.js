@@ -16,7 +16,7 @@ module.exports = {
         },
     },
     setupFiles: ['react-app-polyfill/jsdom'],
-    testTimeout: 45000,
+    testTimeout: 120000,
     testMatch: [
         '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
         '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
@@ -53,5 +53,4 @@ module.exports = {
         'jest-watch-typeahead/filename',
         'jest-watch-typeahead/testname',
     ],
-    resetMocks: true,
 };

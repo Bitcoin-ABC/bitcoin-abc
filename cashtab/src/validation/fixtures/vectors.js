@@ -4,8 +4,8 @@
 
 // Test vectors for validation functions
 import appConfig from 'config/app';
-import { cashtabSettings } from 'config/cashtabSettings';
-import defaultCashtabCache from 'config/cashtabCache';
+import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabCache from 'config/CashtabCache';
 import { mockCashtabCache } from 'helpers/fixtures/mocks';
 import { validWallet } from 'validation/fixtures/mocks';
 
@@ -693,7 +693,7 @@ export default {
             {
                 description: 'Migrates an empty object to default settings',
                 legacySettings: {},
-                migratedSettings: cashtabSettings,
+                migratedSettings: new CashtabSettings(),
             },
             {
                 description:
@@ -801,7 +801,7 @@ export default {
             },
             {
                 description: 'Returns true for default cashtabCache',
-                cashtabCache: defaultCashtabCache,
+                cashtabCache: new CashtabCache(),
                 isValid: true,
             },
         ],

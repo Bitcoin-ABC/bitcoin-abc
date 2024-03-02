@@ -14,6 +14,7 @@ import {
     requiredUtxoThisToken,
     easterEggTokenChronikTokenDetails,
     vipTokenChronikTokenDetails,
+    validSavedWallets,
 } from 'components/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -22,6 +23,7 @@ import appConfig from 'config/app';
 import {
     clearLocalForage,
     initializeCashtabStateForTests,
+    initializeCashtabStateAtLegacyWalletKeysForTests,
     prepareMockedChronikCallsForWallet,
 } from 'components/fixtures/helpers';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
@@ -29,6 +31,8 @@ import { explorer } from 'config/explorer';
 import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
 import { cashtabCacheToJSON } from 'helpers';
 import { createCashtabWallet } from 'wallet';
+import { isValidCashtabWallet } from 'validation';
+import cashaddr from 'ecashaddrjs';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -680,12 +684,15 @@ describe('<App />', () => {
             tokenId: EASTER_EGG_TOKENID,
         };
         // Modify walletWithXecAndTokens to have the required token for this feature
-        const walletWithEasterEggToken = {
-            ...walletWithXecAndTokens,
+        let walletWithEasterEggToken = JSON.parse(
+            JSON.stringify(walletWithXecAndTokens),
+        );
+        walletWithEasterEggToken = {
+            ...walletWithEasterEggToken,
             state: {
-                ...walletWithXecAndTokens.state,
+                ...walletWithEasterEggToken.state,
                 slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
+                    ...walletWithEasterEggToken.state.slpUtxos,
                     requiredEasterEggUtxo,
                 ],
             },
@@ -709,10 +716,11 @@ describe('<App />', () => {
     });
     it('If Cashtab starts with 1.5.* cashtabCache, it is wiped and migrated to 1.6.* cashtabCache', async () => {
         // Note: this is what will happen for all Cashtab users when this diff lands
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-        );
+        const mockedChronik =
+            await initializeCashtabStateAtLegacyWalletKeysForTests(
+                walletWithXecAndTokens,
+                localforage,
+            );
 
         // Mock cashtabCache at 1.5.*
         await localforage.setItem('cashtabCache', legacyMockTokenInfoById);
@@ -800,11 +808,22 @@ describe('<App />', () => {
         // Click it
         await user.click(importButton);
 
+        // The wallet must load from API calls
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
         // We are forwarded to the home screen after the wallet loads
         expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
 
         // The imported wallet is in localforage
-        const importedWallet = await localforage.getItem('wallet');
+        const wallets = await localforage.getItem('wallets');
+        const importedWallet = wallets[0];
 
         // The imported wallet matches our expected mock except for name, which is autoset on import
         expect(importedWallet).toEqual({
@@ -820,16 +839,224 @@ describe('<App />', () => {
             state: importedWallet.state,
         });
     });
-    it('A user with an invalid Cashtab wallet is migrated on startup', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            {
-                ...walletWithXecAndTokens,
-                Path1899: {
-                    ...walletWithXecAndTokens.Path1899,
-                    // not ecash: prefixed
-                    cashAddress: '16KeqDEUhAVaoCFV9TjLVkFEvNMErPmoiX',
+    it('Migrating from wallet/savedWallet keys (version < 1.6.*): A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
+        const mockedChronik =
+            await initializeCashtabStateAtLegacyWalletKeysForTests(
+                {
+                    ...walletWithXecAndTokens,
+                    Path1899: {
+                        ...walletWithXecAndTokens.Path1899,
+                        // not ecash: prefixed
+                        cashAddress: '16KeqDEUhAVaoCFV9TjLVkFEvNMErPmoiX',
+                    },
                 },
+                localforage,
+            );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallet in localforage
+        const wallets = await localforage.getItem('wallets');
+        const migratedWallet = wallets[0];
+
+        // The wallet has been migrated
+        expect(migratedWallet.Path1899.cashAddress).toBe(
+            walletWithXecAndTokens.Path1899.cashAddress,
+        );
+    });
+    it('Migrating from wallet/savedWallet keys (version < 1.6.*): A user with all valid wallets in savedWallets does not have any savedWallets migrated', async () => {
+        const mockedChronik =
+            await initializeCashtabStateAtLegacyWalletKeysForTests(
+                walletWithXecAndTokens,
+                localforage,
+            );
+
+        // Mock 5 valid wallets stored at savedWallets key of localforage
+        // Note that, in Cashtab legacy model, savedWallets also includes the active wallet
+        await localforage.setItem('savedWallets', [
+            ...validSavedWallets,
+            walletWithXecAndTokens,
+        ]);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // The savedWallets array stored at the savedWallets key is unchanged
+        expect(savedWallets).toEqual(validSavedWallets);
+    });
+    it('Migrating from wallet/savedWallet keys (version < 1.6.*): A user with an invalid wallet in savedWallets has that savedWallet migrated', async () => {
+        const mockedChronik =
+            await initializeCashtabStateAtLegacyWalletKeysForTests(
+                walletWithXecAndTokens,
+                localforage,
+            );
+
+        // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
+        const savedWalletsClone = JSON.parse(JSON.stringify(validSavedWallets));
+        // Get the last wallet in the array
+        let invalidSavedWallet = savedWalletsClone.pop();
+        // Make it invalid
+        invalidSavedWallet = {
+            ...invalidSavedWallet,
+            Path1899: {
+                ...invalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    invalidSavedWallet.Path1899.cashAddress,
+                ),
             },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(invalidSavedWallet)).toBe(false);
+
+        // Re-insert it as an invalid wallet
+        savedWalletsClone.push(invalidSavedWallet);
+
+        // Mock 4 valid wallets and 1 invalid wallet stored at savedWallets key of localforage
+        // Note that, in Cashtab legacy model, savedWallets also includes the active wallet
+        await localforage.setItem('savedWallets', [
+            walletWithXecAndTokens,
+            ...savedWalletsClone,
+        ]);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // We expect savedWallets in localforage to have been migrated
+        await waitFor(async () => {
+            expect(savedWallets).toEqual(validSavedWallets);
+        });
+    });
+    it('Migrating from wallet/savedWallet keys (version < 1.6.*): A user with multiple invalid wallets in savedWallets has them migrated', async () => {
+        const mockedChronik =
+            await initializeCashtabStateAtLegacyWalletKeysForTests(
+                walletWithXecAndTokens,
+                localforage,
+            );
+
+        // Create a savedWallets array with 2 valid wallets and 3 invalid wallets
+        const savedWalletsClone = JSON.parse(JSON.stringify(validSavedWallets));
+        // Get the last wallet in the array
+
+        // First invalid savedWallet
+        let firstInvalidSavedWallet = savedWalletsClone.pop();
+        firstInvalidSavedWallet = {
+            ...firstInvalidSavedWallet,
+            Path1899: {
+                ...firstInvalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    firstInvalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(firstInvalidSavedWallet)).toBe(false);
+
+        // Second invalid savedWallet
+        let secondInvalidSavedWallet = savedWalletsClone.pop();
+        secondInvalidSavedWallet = {
+            ...secondInvalidSavedWallet,
+            Path1899: {
+                ...secondInvalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    secondInvalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(secondInvalidSavedWallet)).toBe(false);
+
+        // Third invalid savedWallet
+        let thirdInvalidSavedWallet = savedWalletsClone.pop();
+        thirdInvalidSavedWallet = {
+            ...thirdInvalidSavedWallet,
+            Path1899: {
+                ...thirdInvalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    thirdInvalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(thirdInvalidSavedWallet)).toBe(false);
+
+        // Re-insert these into savedWallets
+        savedWalletsClone.push(firstInvalidSavedWallet);
+        savedWalletsClone.push(secondInvalidSavedWallet);
+        savedWalletsClone.push(thirdInvalidSavedWallet);
+
+        // Mock 2 valid wallets and 3 invalid wallets stored at savedWallets key of localforage
+        // Note that, in Cashtab legacy model, savedWallets also includes the active wallet
+        await localforage.setItem('savedWallets', [
+            walletWithXecAndTokens,
+            ...savedWalletsClone,
+        ]);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // We expect savedWallets in localforage to have been migrated
+        await waitFor(async () => {
+            expect(savedWallets).toEqual(validSavedWallets);
+        });
+    });
+    it('A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
+        // Make an invalid wallet
+        const thisInvalidWallet = {
+            ...walletWithXecAndTokens,
+            Path1899: {
+                ...walletWithXecAndTokens.Path1899,
+                // not ecash: prefixed
+                cashAddress: '16KeqDEUhAVaoCFV9TjLVkFEvNMErPmoiX',
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(thisInvalidWallet)).toBe(false);
+
+        // Initialize a >= 1.7.* Cashtab user with these wallets in localforage
+        // Use walletWithXecAndTokens as the active wallet
+        const mockedChronik = await initializeCashtabStateForTests(
+            thisInvalidWallet,
             localforage,
         );
 
@@ -841,11 +1068,174 @@ describe('<App />', () => {
         );
 
         // Check wallet in localforage
-        const migratedWallet = await localforage.getItem('wallet');
+        const wallets = await localforage.getItem('wallets');
+        const migratedWallet = wallets[0];
 
         // The wallet has been migrated
         expect(migratedWallet.Path1899.cashAddress).toBe(
             walletWithXecAndTokens.Path1899.cashAddress,
         );
+    });
+    it('A user with all valid wallets in savedWallets does not have any savedWallets migrated', async () => {
+        // Create a wallets array of valid saved wallets
+        const savedWalletsClone = JSON.parse(JSON.stringify(validSavedWallets));
+
+        // The wallets in localforage are expected to be sorted alphabetically by name
+        savedWalletsClone.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Initialize a >= 1.7.* Cashtab user with these wallets in localforage
+        // Use walletWithXecAndTokens as the active wallet
+        const mockedChronik = await initializeCashtabStateForTests(
+            [walletWithXecAndTokens, ...savedWalletsClone],
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // The savedWallets array stored at the savedWallets key is unchanged
+        expect(savedWallets).toEqual(validSavedWallets);
+    });
+    it('A user with an invalid wallet in savedWallets has that savedWallet migrated', async () => {
+        // Create a wallets array with 4 valid wallets and 1 invalid wallet
+        const savedWalletsClone = JSON.parse(JSON.stringify(validSavedWallets));
+        // Get the last wallet in the array
+        let invalidSavedWallet = savedWalletsClone.pop();
+        // Make it invalid
+        invalidSavedWallet = {
+            ...invalidSavedWallet,
+            Path1899: {
+                ...invalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    invalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(invalidSavedWallet)).toBe(false);
+
+        // Re-insert it as an invalid wallet
+        savedWalletsClone.push(invalidSavedWallet);
+
+        // The wallets in localforage are expected to be sorted alphabetically by name
+        savedWalletsClone.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Initialize a >= 1.7.* Cashtab user with these wallets in localforage
+        const mockedChronik = await initializeCashtabStateForTests(
+            [walletWithXecAndTokens, ...savedWalletsClone],
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // We expect savedWallets in localforage to have been migrated
+        await waitFor(async () => {
+            expect(savedWallets).toEqual(validSavedWallets);
+        });
+    });
+    it('A user with multiple invalid wallets in savedWallets has them migrated', async () => {
+        // Create a savedWallets array with 2 valid wallets and 3 invalid wallets
+        const savedWalletsClone = JSON.parse(JSON.stringify(validSavedWallets));
+        // Get the last wallet in the array
+
+        // First invalid savedWallet
+        let firstInvalidSavedWallet = savedWalletsClone.pop();
+        firstInvalidSavedWallet = {
+            ...firstInvalidSavedWallet,
+            Path1899: {
+                ...firstInvalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    firstInvalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(firstInvalidSavedWallet)).toBe(false);
+
+        // Second invalid savedWallet
+        let secondInvalidSavedWallet = savedWalletsClone.pop();
+        secondInvalidSavedWallet = {
+            ...secondInvalidSavedWallet,
+            Path1899: {
+                ...secondInvalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    secondInvalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(secondInvalidSavedWallet)).toBe(false);
+
+        // Third invalid savedWallet
+        let thirdInvalidSavedWallet = savedWalletsClone.pop();
+        thirdInvalidSavedWallet = {
+            ...thirdInvalidSavedWallet,
+            Path1899: {
+                ...thirdInvalidSavedWallet.Path1899,
+                // cashaddress is not ecash: prefixed (legacy format)
+                cashAddress: cashaddr.toLegacy(
+                    thirdInvalidSavedWallet.Path1899.cashAddress,
+                ),
+            },
+        };
+
+        // It's definitely invalid
+        expect(isValidCashtabWallet(thirdInvalidSavedWallet)).toBe(false);
+
+        // Re-insert these into savedWallets
+        savedWalletsClone.push(firstInvalidSavedWallet);
+        savedWalletsClone.push(secondInvalidSavedWallet);
+        savedWalletsClone.push(thirdInvalidSavedWallet);
+
+        // The wallets in localforage are expected to be sorted alphabetically by name
+        savedWalletsClone.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Initialize a >= 1.7.* Cashtab user with these wallets in localforage
+        const mockedChronik = await initializeCashtabStateForTests(
+            [walletWithXecAndTokens, ...savedWalletsClone],
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = await localforage.getItem('wallets');
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // We expect savedWallets in localforage to have been migrated
+        await waitFor(async () => {
+            expect(savedWallets).toEqual(validSavedWallets);
+        });
     });
 });

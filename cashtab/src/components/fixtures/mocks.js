@@ -1739,3 +1739,171 @@ export const easterEggTokenChronikTokenDetails = {
     containsBaton: true,
     network: 'XEC',
 };
+
+export const validSavedWallets = [
+    {
+        mnemonic:
+            'giggle release model music congress choice library bottom story hole tiger document',
+        name: 'alpha',
+        Path245: {
+            publicKey:
+                '03ed5126bf336af98c614167168de75076cfc566177876a8f638d90135eb6758c8',
+            hash160: 'e4a99c3b667511399056be4a90993a0ebb77b5b7',
+            cashAddress: 'ecash:qrj2n8pmve63zwvs26ly4yye8g8tkaa4ku3umdavhp',
+            fundingWif: 'L16kPC4749KuGpmzNAg1gUJLbB6Q9DeL6XNJZRzZEPApRYvCwcBH',
+        },
+        Path145: {
+            publicKey:
+                '02503651ff13c1aa8bbb77e7ee2ed6a5e412f4088c344c8fde3c2d929df1832e3e',
+            hash160: 'b69091895b2e25e902a676456ec051b86a2d8983',
+            cashAddress: 'ecash:qzmfpyvftvhzt6gz5emy2mkq2xux5tvfsvz5798p70',
+            fundingWif: 'L2ZprxokgYLCaHGLpbJptKueQZRTHVjTurn4kb6PkDRZeHytjQy6',
+        },
+        Path1899: {
+            publicKey:
+                '03504b4c2eb4f41b554dbbc7c734a9c59849a346b7d8d1cc0e98666ad71538d5eb',
+            hash160: 'a15108d07a1891e35953817b6d92ab77bbc62ac3',
+            cashAddress: 'ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep',
+            fundingWif: 'L4PMeJxHDWMJurbU4yhWtEn4qy3kYcPJKpG9f5yrqJcJzCY8cKnU',
+        },
+        state: {
+            balances: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+            parsedTxHistory: [],
+        },
+    },
+    {
+        mnemonic:
+            'guilt cricket congress vessel tumble tennis off rapid parade eyebrow loop young',
+        name: 'bravo',
+        Path245: {
+            publicKey:
+                '0397c403805267f9e5d0e3ae0e0fd09151edda9c256539996250ea2d07f0e49d2b',
+            hash160: 'af657c9aa1eb6a573eced4bbfdc8ebb756e2a9fd',
+            cashAddress: 'ecash:qzhk2ly6584k54e7em2thlwgawm4dc4fl5eslkgm7u',
+            fundingWif: 'KxBCkRKGiYxHVQyGFaQJMM1Y1ApJtupR82JWik317gPRC58FLmEV',
+        },
+        Path145: {
+            publicKey:
+                '0266058962ae3e68199c8352f55e028e7740b2b39a6e01e4fdac6f787332c2c90e',
+            hash160: '063f8dba9f543f694bc2c045e3a6d62e430c8158',
+            cashAddress: 'ecash:qqrrlrd6na2r762tctqytcax6chyxryptqjx7wfpun',
+            fundingWif: 'L1wHwQr5sFgC6zr86NPRqUTccjscLr9N4rwfXjWdgszqmNBSPfEs',
+        },
+        Path1899: {
+            publicKey:
+                '03a63f0a273fb25370866bc4554a4d0e6b63fb4df7e11ddbd0885d194a474d8ee7',
+            hash160: 'a55e283f54d91b77616ce72c2b117a4bf77e8fe3',
+            cashAddress: 'ecash:qzj4u2pl2nv3kampdnnjc2c30f9lwl50uvvg4nfkfz',
+            fundingWif: 'KwyN1LbHeWS2XfP7E7V4kEJmgwhB13VUfDidtpkwzSD77KBKaRpi',
+        },
+        state: {
+            balances: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+            parsedTxHistory: [],
+        },
+    },
+    {
+        mnemonic:
+            'level render host glory brand hip multiply token pigeon vintage word term',
+        name: 'charlie',
+        Path245: {
+            publicKey:
+                '0242993d73596e744e8d51840ed77a012c07d30b47be42cb1584f882114be0b136',
+            hash160: '68946da96b143de027be006deac4cf7f1012bbf8',
+            cashAddress: 'ecash:qp5fgmdfdv2rmcp8hcqxm6kyeal3qy4mlqc8s2tme8',
+            fundingWif: 'L4H4BBgfNK4S9LrZaDg5XDPzZmmevxA6qSH1AfRGVf6meDERVnet',
+        },
+        Path145: {
+            publicKey:
+                '0223f160df25af9c4eeec492372b27f43548b2b305059d0d0d4ab2c828afbe9cc4',
+            hash160: '4cb5f392830a8515591dde5c970603cb8747743d',
+            cashAddress: 'ecash:qpxttuujsv9g292erh09e9cxq09cw3m585h96jn4wu',
+            fundingWif: 'Kz7CZqAckHkPSJ15bcPKqzMwBAArhUquFAmfq9UBqKNkgyZz4dxz',
+        },
+        Path1899: {
+            publicKey:
+                '03be84e190407f1549da4863ebcc4a9f2ae27d8484d404d1286034d94677ce3d12',
+            hash160: 'fb85cd3ca04fb8579983624451413f5fdfd1bebb',
+            cashAddress: 'ecash:qractnfu5p8ms4uesd3yg52p8a0al5d7hvpnus5vsy',
+            fundingWif: 'Kwjipw1HNsv5o7xcGPL6oBpYudCgFfKt44fC49r87n924acnoytj',
+        },
+        state: {
+            balances: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+            parsedTxHistory: [],
+        },
+    },
+    {
+        mnemonic:
+            'quality pretty cricket item tail avocado sound north salute era stool island',
+        name: 'delta',
+        Path245: {
+            publicKey:
+                '028eb5f461f40d4d59388973787a8d354a8a0651f19014b8b01fe628394525fa27',
+            hash160: '184d10e2817e25b21a7e9edcd0a6684365a6ed7b',
+            cashAddress: 'ecash:qqvy6y8zs9lztvs6060de59xdppktfhd0vqd9270d2',
+            fundingWif: 'KxVVuyb4VZsT9EKCJ84s8fLkAoPwqoUDZTG3i7gENFiBkLrYN2J4',
+        },
+        Path145: {
+            publicKey:
+                '0375ffef70063f2f90db5e3392c780d8afc3d34882935d731ecd026f5438fa1c85',
+            hash160: 'e2e04af76098d4237f055de9eaa159e2de808f92',
+            cashAddress: 'ecash:qr3wqjhhvzvdggmlq4w7n64pt83daqy0jg8me2q8fp',
+            fundingWif: 'L1hhvHyRvbGgCJa4ncRktWbdsJiANRca9mR9Yp4x11vVxQ89a36S',
+        },
+        Path1899: {
+            publicKey:
+                '02d54b79e41b60e8c0e4e2315843e4707e9905486e5b8df4fe45dd5331a4e5c80c',
+            hash160: '52a54e9ca3ed7f3afa163df948b6c2a1e340c7a4',
+            cashAddress: 'ecash:qpf22n5u50kh7wh6zc7ljj9kc2s7xsx85sdsjvxeyf',
+            fundingWif: 'L5eyTTvwEsJPHCr6hmNt2c1PRwjiyu7wLkdKw5X2prduRdzSQhTV',
+        },
+        state: {
+            balances: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+            parsedTxHistory: [],
+        },
+    },
+    {
+        mnemonic:
+            'forest spike doctor harsh dutch trash powder wool topple tortoise file that',
+        name: 'echo',
+        Path245: {
+            publicKey:
+                '03b3f3d7a8da74742956c4f45566eb5692cc887e3121027be6ba6e771b8bef4801',
+            hash160: 'fe1666692e5ee9aaefe847fc010bc2c61d7ab363',
+            cashAddress: 'ecash:qrlpvenf9e0wn2h0aprlcqgtctrp674nvvg92cn35t',
+            fundingWif: 'L5bVvbc1gLhxCxvZ2FapBpAfs5JX1EB7KaRkHFq8yejzPpBEq1sN',
+        },
+        Path145: {
+            publicKey:
+                '028e7b40e388c683dbabbe237970fcbdb42e796ed81b937a6e6163f0bd4e20bdea',
+            hash160: 'e9e04e7a62212ebc5eb2958d9998455247862a8b',
+            cashAddress: 'ecash:qr57qnn6vgsja0z7k22cmxvcg4fy0p323vzjk7wt73',
+            fundingWif: 'L1LWFja6VTsaiGvHamFTPE1CxPdnR3dYxCPTnjdBhsr9rQcjzmGe',
+        },
+        Path1899: {
+            publicKey:
+                '02e1323cc997925c0dd119700e37c12f2a8c608724b814216ee1d30d911a298c91',
+            hash160: '60194f10f15d9a8ffd20618e418d6ab47a46fa3c',
+            cashAddress: 'ecash:qpspjncs79we4rlaypscusvdd26853h68s2ach6ket',
+            fundingWif: 'KwVChvBpEjmY1Yqt7fkeb5ZqzWW6QDn7CWDCkcnNizVi3CVCPTKK',
+        },
+        state: {
+            balances: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+            parsedTxHistory: [],
+        },
+    },
+];

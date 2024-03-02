@@ -3,12 +3,55 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
-import { cashtabSettings } from 'config/cashtabSettings';
-import cashtabCache from 'config/cashtabCache';
+import { CashtabSettings } from 'config/cashtabSettings';
+import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
 
 /**
  * Get expected mock values for chronik client for a given mock wallet
+ * Used to support integration testing in Cashtab
+ * Default methods may be overwritten in individual unit tests to test special conditions
+ * @param {array | object | boolean} wallets Array of wallets stored in localforage.
+ * If object, convert to array of length 1.
+ * False if user has not yet created a wallet.
+ * @param {object} localforage the localforage instance used in your test
+ * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
+ * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
+ */
+export const initializeCashtabStateForTests = async (
+    wallets,
+    localforage,
+    apiError = false,
+) => {
+    // Mock successful utxos calls in chronik
+    const chronikClient = new MockChronikClient();
+
+    if (wallets === false) {
+        // No info to give to chronik, do not populate mocks
+        return chronikClient;
+        // We do not expect anything in localforage for this case
+    }
+
+    wallets = Array.isArray(wallets) ? wallets : [wallets];
+
+    // Set wallets in localforage
+    await localforage.setItem('wallets', wallets);
+
+    // All other localforage items will be unset unless the user has customized them
+    // Cashtab will use defaults
+    // localforage may be modified in individual test cases to test cases of user with
+    // non-default settings, cashtabCache, or contactList
+
+    // Mock returns for chronik calls expected in useWallet's update routine for all wallets
+    for (const wallet of wallets) {
+        prepareMockedChronikCallsForWallet(chronikClient, wallet, apiError);
+    }
+
+    return chronikClient;
+};
+
+/**
+ * Get expected mock values for chronik client for a given mock wallet for a pre 2.0.0 Cashtab user
  * Used to support integration testing in Cashtab
  * Default methods may be overwritten in individual unit tests to test special conditions
  * @param {object | boolean} wallet A mock Cashtab wallet
@@ -16,7 +59,7 @@ import { cashtabCacheToJSON } from 'helpers';
  * @param {boolean} apiError Default false. If true, return a mockedChronik that throws errors.
  * @returns {object} mockChronikClient, a mock chronik client instance prepopulated for expected Cashtab API calls
  */
-export const initializeCashtabStateForTests = async (
+export const initializeCashtabStateAtLegacyWalletKeysForTests = async (
     wallet,
     localforage,
     apiError = false,
@@ -32,8 +75,11 @@ export const initializeCashtabStateForTests = async (
 
     // Set localforage items. All defaults may be overwritten in a test for
     // specific purposes of the test.
-    await localforage.setItem('cashtabCache', cashtabCacheToJSON(cashtabCache));
-    await localforage.setItem('settings', cashtabSettings);
+    await localforage.setItem(
+        'cashtabCache',
+        cashtabCacheToJSON(new CashtabCache()),
+    );
+    await localforage.setItem('settings', new CashtabSettings());
     // 'contactList' key will be empty if user has never added contacts
     await localforage.setItem('savedWallets', [wallet]);
     await localforage.setItem('wallet', wallet);
@@ -141,6 +187,7 @@ export const clearLocalForage = async localforage => {
         'savedWallets',
         'settings',
         'wallet',
+        'wallets',
     ];
     for (const key of SUPPORTED_CASHTAB_STORAGE_KEYS) {
         await localforage.removeItem(key);

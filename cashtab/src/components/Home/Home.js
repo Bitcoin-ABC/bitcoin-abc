@@ -119,12 +119,9 @@ export const AddrSwitchContainer = styled.div`
 
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, fiatPrice, apiError, cashtabState } = ContextValue;
-    // Ensure cashtabState is not undefined before context initializes
-    const { settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { fiatPrice, apiError, cashtabState } = ContextValue;
+    const { settings, wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { parsedTxHistory } = walletState;
     const sideshift = window.sideshift;
@@ -182,7 +179,10 @@ const WalletInfo = () => {
 
 const Home = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, previousWallet, loading } = ContextValue;
+    const { previousWallet, loading, cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
+
+    const wallet = wallets.length > 0 ? wallets[0] : false;
 
     return (
         <>
@@ -190,7 +190,8 @@ const Home = () => {
                 <LoadingCtn data-testid="loading-ctn" />
             ) : (
                 <>
-                    {(wallet && wallet.Path1899) ||
+                    {(wallet !== false &&
+                        typeof wallet.Path1899 !== 'undefined') ||
                     (previousWallet && previousWallet.path1899) ? (
                         <WalletInfo />
                     ) : (

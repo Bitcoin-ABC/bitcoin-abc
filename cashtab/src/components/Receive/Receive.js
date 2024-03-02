@@ -63,7 +63,9 @@ const ReceiveWithWalletPresent = ({ wallet }) => {
 
 const Receive = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, previousWallet, loading } = ContextValue;
+    const { previousWallet, loading, cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     return (
         <>
             {loading ? (

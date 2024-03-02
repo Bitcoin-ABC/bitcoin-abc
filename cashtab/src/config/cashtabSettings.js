@@ -5,14 +5,23 @@
 'use strict';
 
 // Default settings which can be modified within Cashtab
-export const cashtabSettings = {
-    fiatCurrency: 'usd',
-    sendModal: false,
-    autoCameraOn: true,
-    hideMessagesFromUnknownSenders: false,
-    balanceVisible: true,
-    minFeeSends: false,
-};
+export class CashtabSettings {
+    constructor(
+        fiatCurrency = 'usd',
+        sendModal = false,
+        autoCameraOn = true,
+        hideMessagesFromUnknownSenders = false,
+        balanceVisible = true,
+        minFeeSends = false,
+    ) {
+        this.fiatCurrency = fiatCurrency;
+        this.sendModal = sendModal;
+        this.autoCameraOn = autoCameraOn;
+        this.hideMessagesFromUnknownSenders = hideMessagesFromUnknownSenders;
+        this.balanceVisible = balanceVisible;
+        this.minFeeSends = minFeeSends;
+    }
+}
 
 // Cashtab supported fiat currencies
 export const supportedFiatCurrencies = {

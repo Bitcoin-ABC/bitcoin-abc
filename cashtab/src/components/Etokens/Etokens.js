@@ -40,7 +40,9 @@ const CreateToken = styled(Link)`
 const Etokens = () => {
     let navigate = useNavigate();
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, loading } = ContextValue;
+    const { loading, cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
     return (

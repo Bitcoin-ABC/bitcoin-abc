@@ -20,6 +20,7 @@ import PrimaryButton, {
 import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
 import appConfig from 'config/app';
+import { createCashtabWallet, generateMnemonic } from 'wallet';
 
 export const WelcomeCtn = styled.div`
     margin-top: 20px;
@@ -48,7 +49,8 @@ export const WelcomeLink = styled.a`
 
 const OnBoarding = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { createWallet } = ContextValue;
+    const { updateCashtabState, cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
     const [formData, setFormData] = useState({
         dirty: true,
         mnemonic: '',
@@ -70,7 +72,8 @@ const OnBoarding = () => {
         // Event("Category", "Action", "Label")
         // Track number of created wallets from onboarding
         Event('Onboarding.js', 'Create Wallet', 'Imported');
-        createWallet(formData.mnemonic);
+        const importedWallet = await createCashtabWallet(formData.mnemonic);
+        updateCashtabState('wallets', [...wallets, importedWallet]);
     }
 
     const handleChange = e => {
@@ -90,11 +93,12 @@ const OnBoarding = () => {
             cancelButtonProps: { style: { display: 'none' } },
             content: `Once your wallet is created you can back it up by writing down your 12-word seed. You can find your seed on the Settings page. If you are browsing in Incognito mode or if you clear your browser history, you will lose any funds that are not backed up!`,
             okText: 'Okay, make me a wallet!',
-            onOk() {
+            async onOk() {
                 // Event("Category", "Action", "Label")
                 // Track number of created wallets from onboarding
                 Event('Onboarding.js', 'Create Wallet', 'New');
-                createWallet();
+                const newWallet = await createCashtabWallet(generateMnemonic());
+                updateCashtabState('wallets', [...wallets, newWallet]);
             },
         });
     }

@@ -69,7 +69,7 @@ import {
 import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { isMobile } from 'helpers';
-import { hasEnoughToken } from 'wallet';
+import { hasEnoughToken, createCashtabWallet, generateMnemonic } from 'wallet';
 const { Panel } = Collapse;
 
 const VersionContainer = styled.div`
@@ -454,32 +454,20 @@ const VIPSettingsHolder = styled.div`
     justify-content: center;
 `;
 
-const Configure = ({ passLoadingStatus }) => {
+const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
-    const {
-        wallet,
-        apiError,
-        addNewSavedWallet,
-        activateWallet,
-        renameSavedWallet,
-        renameActiveWallet,
-        deleteWallet,
-        getSavedWallets,
-        updateCashtabState,
-        cashtabState,
-    } = ContextValue;
-    // Ensure cashtabState is not undefined before context initializes
-    const { contactList, settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { apiError, updateCashtabState, cashtabState } = ContextValue;
+    const { contactList, settings, wallets } = cashtabState;
 
+    const wallet = wallets.length > 0 ? wallets[0] : false;
+
+    // TODO deprecate getWalletState function
     const walletState = getWalletState(wallet);
+
     const { tokens } = walletState;
 
     const location = useLocation();
 
-    const [savedWallets, setSavedWallets] = useState([]);
     const [formData, setFormData] = useState({
         mnemonic: '',
     });
@@ -487,7 +475,7 @@ const Configure = ({ passLoadingStatus }) => {
     const [showDeleteWalletModal, setShowDeleteWalletModal] = useState(false);
     const [walletToBeRenamed, setWalletToBeRenamed] = useState(null);
     const [walletToBeDeleted, setWalletToBeDeleted] = useState(null);
-    const [newWalletName, setNewWalletName] = useState('');
+    const [newWalletName, setNewWalletName] = useState(null);
     const [
         confirmationOfWalletToBeDeleted,
         setConfirmationOfWalletToBeDeleted,
@@ -519,20 +507,6 @@ const Configure = ({ passLoadingStatus }) => {
         setConfirmationOfWalletToBeDeleted('');
         setShowDeleteWalletModal(false);
     };
-    const updateSavedWallets = async activeWallet => {
-        // Lock the UI while getting the correct savedWallets value from indexedDb into state
-        passLoadingStatus(true);
-        if (activeWallet) {
-            let savedWallets;
-            try {
-                savedWallets = await getSavedWallets(activeWallet);
-                setSavedWallets(savedWallets);
-            } catch (err) {
-                console.log(`Error in getSavedWallets()`);
-                console.log(err);
-            }
-        }
-    };
 
     const [isValidMnemonic, setIsValidMnemonic] = useState(null);
 
@@ -560,17 +534,6 @@ const Configure = ({ passLoadingStatus }) => {
         useState(null);
     const [manualContactAddressIsValid, setManualContactAddressIsValid] =
         useState(null);
-
-    useEffect(() => {
-        // Update savedWallets every time the active wallet changes
-        // Use wallet.name and not wallet as the dep param, since wallet changes every time new txs come in or update function from useWallet.js runs
-        updateSavedWallets(wallet);
-    }, [wallet.name]);
-
-    useEffect(() => {
-        // Only unlock UI when savedWallets is updated in state
-        passLoadingStatus(false);
-    }, [savedWallets]);
 
     const handleContactListRouting = async () => {
         // if this was routed from Home screen's Add to Contact link
@@ -626,112 +589,215 @@ const Configure = ({ passLoadingStatus }) => {
         handleContactListRouting();
     }, []);
 
-    // Need this function to ensure that savedWallets are updated on new wallet creation
-    const updateSavedWalletsOnCreate = async importMnemonic => {
+    // Generate a new wallet from a random seed and add it to wallets
+    const addNewWallet = async () => {
+        // Generate a new wallet with a new mnemonic
+        const mnemonic = generateMnemonic();
+        const newAddedWallet = await createCashtabWallet(mnemonic);
+
+        // Note: technically possible though highly unlikley that a wallet already exists with this name
+        // Also technically possible though ... er, almost impossibly improbable for wallet with same mnemonic to exist
+        // In both cases, the odds are tremendously low.
+        // Let's cover the edge case anyway though. It's easy enough for the user to just create
+        // a wallet again if we some crazy how get here
+        const walletAlreadyInWalletsSomehow = wallets.find(
+            wallet =>
+                wallet.name === newAddedWallet.name ||
+                wallet.mnemonic === newAddedWallet.mnemonic,
+        );
+        if (typeof walletAlreadyInWalletsSomehow !== 'undefined') {
+            Modal.error({
+                content: `By a vanishingly small chance, "${newAddedWallet.name}" already existed in saved wallets. Please try again.`,
+            });
+            // Do not add this wallet
+            return;
+        }
+
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Create Wallet', 'New');
-        const walletAdded = await addNewSavedWallet(importMnemonic);
-        if (!walletAdded) {
-            Modal.error({
-                title: 'This wallet already exists!',
-                content: 'Wallet not added',
-            });
-        } else {
-            Modal.success({
-                content: 'Wallet added to your saved wallets',
-            });
-        }
-        await updateSavedWallets(wallet);
+        // Add it to the end of the wallets object
+        updateCashtabState('wallets', [...wallets, newAddedWallet]);
+
+        Modal.success({
+            content: `New wallet "${newAddedWallet.name}" added to your saved wallets`,
+        });
     };
 
-    const updateSavedWalletsOnLoad = async (wallet, walletToActivate) => {
+    const activateWallet = (walletToActivate, wallets) => {
+        // Find this wallet in wallets
+        const indexOfWalletToActivate = wallets.findIndex(
+            wallet => wallet.mnemonic === walletToActivate.mnemonic,
+        );
+
+        if (typeof indexOfWalletToActivate === 'undefined') {
+            // should never happen
+            return console.log(
+                `Error activating ${walletToActivate.name}: Could not find wallet in wallets`,
+            );
+        }
+
+        // Remove walletToActivate from wallets
+        // Note that .splice returns newActiveWallet in an array of length 1
+        const newActiveWallet = wallets.splice(indexOfWalletToActivate, 1)[0];
+
+        // Sort inactive wallets alphabetically by name
+        wallets.sort((a, b) => a.name.localeCompare(b.name));
+
+        // Add newActiveWallet to index 0 of now-sorted wallets
+        wallets.unshift(newActiveWallet);
+
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Activate', '');
-        await activateWallet(wallet, walletToActivate);
+
+        // Update wallets to activate this wallet
+        updateCashtabState('wallets', wallets);
     };
 
-    async function submit() {
-        setFormData({
-            ...formData,
-        });
+    /**
+     * Add a new imported wallet to cashtabState wallets object
+     * @param {mnemonic} string
+     */
+    async function importNewWallet(mnemonic) {
+        // Make sure no existing wallets have this mnemonic
+        const walletInWallets = wallets.find(
+            wallet => wallet.mnemonic === mnemonic,
+        );
 
-        // Exit if no user input
-        if (!formData.mnemonic) {
+        if (typeof walletInWallets !== 'undefined') {
+            // Import error modal
+            console.log(
+                `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
+            );
+            Modal.error({
+                content: `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
+            });
+            // Do not clear form data in this case
             return;
         }
 
-        // Exit if mnemonic is invalid
-        if (!isValidMnemonic) {
+        // Create a new wallet from mnemonic
+        const newImportedWallet = await createCashtabWallet(formData.mnemonic);
+
+        // Handle edge case of another wallet having the same name
+        const existingWalletHasSameName = wallets.find(
+            wallet => wallet.name === newImportedWallet,
+        );
+        if (typeof existingWalletHasSameName !== 'undefined') {
+            // Import error modal for wallet existing with the same name
+            console.log(
+                `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
+            );
+            Modal.error({
+                content: `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
+            });
+            // Do not clear form data in this case
             return;
         }
+
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Create Wallet', 'Imported');
-        updateSavedWalletsOnCreate(formData.mnemonic);
+
+        // Add it to the end of the wallets object
+        updateCashtabState('wallets', [...wallets, newImportedWallet]);
+
+        // Import success modal
+        Modal.success({
+            content: `New imported wallet "${newImportedWallet.name}" added to your saved wallets`,
+        });
+
+        // Clear formdata
+        setFormData({ ...formData, mnemonic: '' });
     }
 
-    const handleChange = e => {
+    const handleImportMnemonicInput = e => {
         const { value, name } = e.target;
+
+        const isValidMnemonic = validateMnemonic(value);
 
         // Validate mnemonic on change
         // Import button should be disabled unless mnemonic is valid
-        setIsValidMnemonic(validateMnemonic(value));
+        setIsValidMnemonic(isValidMnemonic);
 
         setFormData(p => ({ ...p, [name]: value }));
     };
 
-    const changeWalletName = async () => {
-        let oldActiveWalletName;
-        if (!isValidNewWalletNameLength(newWalletName)) {
+    /**
+     * Change wallet.name of an existing wallet
+     * @param {string} oldName previous wallet name
+     * @param {string} newName potential new wallet name
+     */
+    const renameWallet = async (oldName, newName) => {
+        if (!isValidNewWalletNameLength(newName)) {
             setNewWalletNameIsValid(false);
+            // Clear the input
+            setNewWalletName(null);
             return;
         }
+
         // Hide modal
         setShowRenameWalletModal(false);
+
         // Change wallet name
-        console.log(
-            `Changing wallet ${walletToBeRenamed.name} name to ${newWalletName}`,
+        const walletOfWalletsWithThisNameAlready = wallets.find(
+            wallet => wallet.name === newName,
         );
-        let renameSuccess;
 
-        if (walletToBeRenamed.name === wallet.name) {
-            oldActiveWalletName = walletToBeRenamed.name;
-            renameSuccess = await renameActiveWallet(
-                wallet,
-                walletToBeRenamed.name,
-                newWalletName,
-            );
-        } else {
-            renameSuccess = await renameSavedWallet(
-                walletToBeRenamed.name,
-                newWalletName,
-            );
-        }
-
-        if (renameSuccess) {
-            Modal.success({
-                content: `Wallet "${
-                    oldActiveWalletName !== undefined
-                        ? oldActiveWalletName
-                        : walletToBeRenamed.name
-                }" renamed to "${newWalletName}"`,
-            });
-        } else {
+        if (typeof walletOfWalletsWithThisNameAlready !== 'undefined') {
+            // If there is already a wallet with this name, show an error modal
             Modal.error({
                 content: `Rename failed. All wallets must have a unique name.`,
             });
+
+            // Clear the input
+            setNewWalletName(null);
+
+            // Do not attempt to rename the wallet if you already have a wallet with this name
+            return;
         }
-        await updateSavedWallets(wallet);
+
+        // Find the wallet and rename it
+        const indexOfWalletToBeRenamed = wallets.findIndex(
+            wallet => wallet.name === oldName,
+        );
+
+        if (typeof indexOfWalletToBeRenamed === 'undefined') {
+            // If we can't find this, we are also in trouble
+            // Should never happen
+            Modal.error({
+                content: `Rename failed. Cashtab could not find existing wallet "${oldName}".`,
+            });
+
+            // Clear new wallet name input
+            setNewWalletName(null);
+            return;
+        }
+
+        const renamedWallet = wallets[indexOfWalletToBeRenamed];
+        renamedWallet.name = newName;
+
+        // Update cashtabState and localforage
+        updateCashtabState('wallets', wallets);
+
+        Modal.success({
+            content: `Wallet "${oldName}" renamed to "${newName}"`,
+        });
+
         // Clear wallet name for form
-        setNewWalletName('');
+        setNewWalletName(null);
     };
 
-    const deleteSelectedWallet = async () => {
+    /**
+     * Delete a specified wallet from users wallets array
+     * @param {object} walletToBeDeleted
+     */
+    const deleteWallet = async walletToBeDeleted => {
         if (!walletDeleteValid && walletDeleteValid !== null) {
             return;
         }
+
         if (
             confirmationOfWalletToBeDeleted !==
             `delete ${walletToBeDeleted.name}`
@@ -742,21 +808,33 @@ const Configure = ({ passLoadingStatus }) => {
 
         // Hide modal
         setShowDeleteWalletModal(false);
-        // Change wallet name
-        console.log(`Deleting wallet "${walletToBeDeleted.name}"`);
-        const walletDeletedSuccess = await deleteWallet(walletToBeDeleted);
 
-        if (walletDeletedSuccess) {
-            Modal.success({
-                content: `Wallet "${walletToBeDeleted.name}" successfully deleted`,
-            });
-        } else {
+        // Find the wallet by mnemonic as this is guaranteed to be unique
+        const indexOfWalletToDelete = wallets.find(
+            wallet => wallet.mnemonic === walletToBeDeleted.mnemonic,
+        );
+
+        if (typeof indexOfWalletToDelete === 'undefined') {
+            // If we can't find it, there is some kind of problem
+            // Should never happen
             Modal.error({
                 content: `Error deleting ${walletToBeDeleted.name}.`,
             });
+            return;
         }
-        await updateSavedWallets(wallet);
-        // Clear wallet delete confirmation from form
+
+        // Update in state and localforage with the same list, less the deleted wallet
+        updateCashtabState(
+            'wallets',
+            wallets.filter(
+                wallet => wallet.mnemonic !== walletToBeDeleted.mnemonic,
+            ),
+        );
+
+        Modal.success({
+            content: `Wallet "${walletToBeDeleted.name}" successfully deleted`,
+        });
+
         setConfirmationOfWalletToBeDeleted('');
     };
 
@@ -1262,7 +1340,9 @@ const Configure = ({ passLoadingStatus }) => {
                     <Modal
                         title={`Rename Wallet ${walletToBeRenamed.name}`}
                         open={showRenameWalletModal}
-                        onOk={changeWalletName}
+                        onOk={() =>
+                            renameWallet(walletToBeRenamed.name, newWalletName)
+                        }
                         onCancel={() => cancelRenameWallet()}
                     >
                         <AntdFormWrapper>
@@ -1297,7 +1377,7 @@ const Configure = ({ passLoadingStatus }) => {
                     <Modal
                         title={`Are you sure you want to delete wallet "${walletToBeDeleted.name}"?`}
                         open={showDeleteWalletModal}
-                        onOk={deleteSelectedWallet}
+                        onOk={() => deleteWallet(walletToBeDeleted)}
                         onCancel={() => cancelDeleteWallet()}
                     >
                         <AntdFormWrapper>
@@ -1401,10 +1481,9 @@ const Configure = ({ passLoadingStatus }) => {
                     <ApiError />
                 ) : (
                     <>
-                        <PrimaryButton
-                            onClick={() => updateSavedWalletsOnCreate()}
-                        >
-                            <PlusSquareOutlined /> New Wallet
+                        <PrimaryButton onClick={() => addNewWallet()}>
+                            <PlusSquareOutlined />
+                            New Wallet
                         </PrimaryButton>
                         <SecondaryButton
                             onClick={() => openSeedInput(!seedInput)}
@@ -1438,15 +1517,22 @@ const Configure = ({ passLoadingStatus }) => {
                                                 type="email"
                                                 placeholder="mnemonic (seed phrase)"
                                                 name="mnemonic"
+                                                value={formData.mnemonic}
                                                 autoComplete="off"
-                                                onChange={e => handleChange(e)}
+                                                onChange={e =>
+                                                    handleImportMnemonicInput(e)
+                                                }
                                                 required
                                                 title=""
                                             />
                                         </Form.Item>
                                         <SmartButton
-                                            disabled={!isValidMnemonic}
-                                            onClick={() => submit()}
+                                            disabled={isValidMnemonic !== true}
+                                            onClick={() =>
+                                                importNewWallet(
+                                                    formData.mnemonic,
+                                                )
+                                            }
                                         >
                                             Import
                                         </SmartButton>
@@ -1456,93 +1542,102 @@ const Configure = ({ passLoadingStatus }) => {
                         )}
                     </>
                 )}
-                {savedWallets && savedWallets.length > 0 && (
+                {wallet !== false && wallets.length > 0 && (
                     <>
                         <StyledCollapse defaultActiveKey={['1']}>
                             <Panel header="Saved wallets" key="1">
-                                <AWRow>
-                                    <Tooltip title={wallet.name}>
-                                        <h3 className="notranslate">
-                                            {wallet.name}
-                                        </h3>
-                                    </Tooltip>
-                                    <h4>Currently active</h4>
-                                    <SWButtonCtn>
-                                        <ThemedEditOutlined
-                                            onClick={() =>
-                                                showPopulatedRenameWalletModal(
-                                                    wallet,
-                                                )
-                                            }
-                                        />
-                                        <ThemedContactsOutlined
-                                            onClick={() =>
-                                                addSavedWalletToContact(wallet)
-                                            }
-                                        />
-                                    </SWButtonCtn>
-                                </AWRow>
                                 <div>
-                                    {savedWallets.map(sw => (
-                                        <SWRow key={sw.name}>
-                                            <Tooltip
-                                                title={sw.name}
-                                                autoAdjustOverflow={true}
-                                            >
-                                                <SWName>
-                                                    <h3 className="overflow notranslate">
-                                                        {sw.name}
+                                    {wallets.map((wallet, index) =>
+                                        index === 0 ? (
+                                            <AWRow key={wallet.name}>
+                                                <Tooltip title={wallet.name}>
+                                                    <h3 className="notranslate">
+                                                        {wallet.name}
                                                     </h3>
-                                                </SWName>
-                                            </Tooltip>
-                                            <SWBalance>
-                                                <div className="overflow">
-                                                    [
-                                                    {sw && sw.state
-                                                        ? formatSavedBalance(
-                                                              sw.state.balances
-                                                                  .totalBalance,
-                                                          )
-                                                        : 'N/A'}{' '}
-                                                    XEC]
-                                                </div>
-                                            </SWBalance>
-                                            <SWButtonCtn>
-                                                <ThemedEditOutlined
-                                                    onClick={() =>
-                                                        showPopulatedRenameWalletModal(
-                                                            sw,
-                                                        )
-                                                    }
-                                                />
-                                                <ThemedContactsOutlined
-                                                    data-testid="add-saved-wallet-to-contact-btn"
-                                                    onClick={() =>
-                                                        addSavedWalletToContact(
-                                                            sw,
-                                                        )
-                                                    }
-                                                />
-                                                <ThemedTrashcanOutlined
-                                                    onClick={() =>
-                                                        showPopulatedDeleteWalletModal(
-                                                            sw,
-                                                        )
-                                                    }
-                                                />
-                                                <button
-                                                    onClick={() =>
-                                                        updateSavedWalletsOnLoad(
-                                                            wallet,
-                                                            sw,
-                                                        )
-                                                    }
+                                                </Tooltip>
+                                                <h4>Currently active</h4>
+                                                <SWButtonCtn>
+                                                    <ThemedEditOutlined
+                                                        data-testid="rename-active-wallet"
+                                                        onClick={() =>
+                                                            showPopulatedRenameWalletModal(
+                                                                wallet,
+                                                            )
+                                                        }
+                                                    />
+                                                    <ThemedContactsOutlined
+                                                        onClick={() =>
+                                                            addSavedWalletToContact(
+                                                                wallet,
+                                                            )
+                                                        }
+                                                    />
+                                                </SWButtonCtn>
+                                            </AWRow>
+                                        ) : (
+                                            <SWRow key={wallet.name}>
+                                                <Tooltip
+                                                    title={wallet.name}
+                                                    autoAdjustOverflow={true}
                                                 >
-                                                    Activate
-                                                </button>
-                                            </SWButtonCtn>
-                                        </SWRow>
-                                    ))}
+                                                    <SWName>
+                                                        <h3 className="overflow notranslate">
+                                                            {wallet.name}
+                                                        </h3>
+                                                    </SWName>
+                                                </Tooltip>
+                                                <SWBalance>
+                                                    <div className="overflow">
+                                                        [
+                                                        {wallet && wallet.state
+                                                            ? formatSavedBalance(
+                                                                  wallet.state
+                                                                      .balances
+                                                                      .totalBalance,
+                                                              )
+                                                            : 'N/A'}{' '}
+                                                        XEC]
+                                                    </div>
+                                                </SWBalance>
+                                                <SWButtonCtn>
+                                                    <ThemedEditOutlined
+                                                        data-testid="rename-saved-wallet"
+                                                        onClick={() =>
+                                                            showPopulatedRenameWalletModal(
+                                                                wallet,
+                                                            )
+                                                        }
+                                                    />
+                                                    <ThemedContactsOutlined
+                                                        data-testid="add-saved-wallet-to-contact-btn"
+                                                        onClick={() =>
+                                                            addSavedWalletToContact(
+                                                                wallet,
+                                                            )
+                                                        }
+                                                    />
+                                                    <ThemedTrashcanOutlined
+                                                        data-testid="delete-saved-wallet"
+                                                        onClick={() =>
+                                                            showPopulatedDeleteWalletModal(
+                                                                wallet,
+                                                            )
+                                                        }
+                                                    />
+                                                    <button
+                                                        onClick={() =>
+                                                            activateWallet(
+                                                                wallet,
+                                                                wallets,
+                                                            )
+                                                        }
+                                                    >
+                                                        Activate
+                                                    </button>
+                                                </SWButtonCtn>
+                                            </SWRow>
+                                        ),
+                                    )}
                                 </div>
                             </Panel>
                         </StyledCollapse>

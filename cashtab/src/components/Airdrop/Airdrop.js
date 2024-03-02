@@ -81,7 +81,9 @@ const StyledModal = styled(Modal)`
 
 const Airdrop = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, chronik } = ContextValue;
+    const { chronik, cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const location = useLocation();
     const [isAirdropCalcModalVisible, setIsAirdropCalcModalVisible] =
         useState(false);

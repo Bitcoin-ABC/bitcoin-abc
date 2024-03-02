@@ -4,6 +4,7 @@
 
 import { BN } from 'slp-mdm';
 import * as bip39 from 'bip39';
+import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 
@@ -76,7 +77,13 @@ export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
 export const createCashtabWallet = async mnemonic => {
     // Initialize wallet with empty state
     const wallet = {
-        state: { balances: {}, slpUtxos: [], nonSlpUtxos: [], tokens: [] },
+        state: {
+            balances: {},
+            slpUtxos: [],
+            nonSlpUtxos: [],
+            tokens: [],
+            parsedTxHistory: [],
+        },
     };
     wallet.mnemonic = mnemonic;
 
@@ -118,4 +125,17 @@ const deriveAccount = (masterHDNode, path) => {
         cashAddress,
         fundingWif: node.toWIF(),
     };
+};
+
+/**
+ * Generate a mnemonic using the bip39 library
+ * This function is a conenvience wrapper for a long lib method
+ */
+export const generateMnemonic = () => {
+    const mnemonic = bip39.generateMnemonic(
+        128,
+        randomBytes,
+        bip39.wordlists['english'],
+    );
+    return mnemonic;
 };

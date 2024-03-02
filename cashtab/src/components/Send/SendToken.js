@@ -108,13 +108,10 @@ const AirdropButton = styled.div`
 
 const SendToken = ({ passLoadingStatus }) => {
     let navigate = useNavigate();
-    const { wallet, apiError, cashtabState, chronik, chaintipBlockheight } =
+    const { apiError, cashtabState, chronik, chaintipBlockheight } =
         React.useContext(WalletContext);
-    // Ensure cashtabState is not undefined before context initializes
-    const { settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { settings, wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
 

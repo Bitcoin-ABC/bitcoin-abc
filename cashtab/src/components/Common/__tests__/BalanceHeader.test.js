@@ -6,7 +6,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import BalanceHeader from 'components/Common/BalanceHeader';
-import { cashtabSettings } from 'config/cashtabSettings';
+import { CashtabSettings } from 'config/cashtabSettings';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -40,7 +40,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000.23}
-                settings={cashtabSettings}
+                settings={new CashtabSettings()}
                 fiatPrice={0.00003}
             />,
         );
@@ -55,7 +55,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                settings={cashtabSettings}
+                settings={new CashtabSettings()}
                 fiatPrice={0.00003}
             />,
         );
@@ -83,7 +83,7 @@ describe('<BalanceHeader />', () => {
         );
     });
     it('Renders the BalanceHeader component correctly with fr-FR locale', async () => {
-        const frenchSettings = JSON.parse(JSON.stringify(cashtabSettings));
+        const frenchSettings = new CashtabSettings();
         frenchSettings.fiatCurrency = 'eur';
         render(
             <BalanceHeader
@@ -117,7 +117,7 @@ describe('<BalanceHeader />', () => {
         );
     });
     it('Balance is hidden if cashtabSettings.balanceVisible is false', async () => {
-        const hiddenSettings = JSON.parse(JSON.stringify(cashtabSettings));
+        const hiddenSettings = new CashtabSettings();
         hiddenSettings.balanceVisible = false;
         render(
             <BalanceHeader
@@ -150,7 +150,7 @@ describe('<BalanceHeader />', () => {
         );
     });
     it('Renders fiat price for a non-USD currency', async () => {
-        const nonUsdSettings = JSON.parse(JSON.stringify(cashtabSettings));
+        const nonUsdSettings = new CashtabSettings();
         nonUsdSettings.fiatCurrency = 'gbp';
         render(
             <BalanceHeader
@@ -186,7 +186,7 @@ describe('<BalanceHeader />', () => {
         render(
             <BalanceHeader
                 balanceSats={1000000000}
-                settings={cashtabSettings}
+                settings={new CashtabSettings()}
                 fiatPrice={null}
             />,
         );

@@ -422,11 +422,7 @@ const ReceivedFromCtn = styled.div`
 `;
 
 const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
-    const { contactList, settings, cashtabCache } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
-
+    const { contactList, settings, cashtabCache } = cashtabState;
     const { tokens } = cashtabCache;
     const [displayedMessage, setDisplayedMessage] = useState(false);
     const handleShowMessage = () => {

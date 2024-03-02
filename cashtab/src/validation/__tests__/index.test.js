@@ -813,7 +813,7 @@ describe('Appropriately migrates users with legacy settings', () => {
         const { description, legacySettings, migratedSettings } =
             expectedReturn;
         it(`migrateLegacyCashtabSettings: ${description}`, () => {
-            expect(migrateLegacyCashtabSettings(legacySettings)).toStrictEqual(
+            expect(migrateLegacyCashtabSettings(legacySettings)).toEqual(
                 migratedSettings,
             );
         });

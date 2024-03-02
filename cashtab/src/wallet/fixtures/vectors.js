@@ -153,6 +153,7 @@ export default {
                         slpUtxos: [],
                         nonSlpUtxos: [],
                         tokens: [],
+                        parsedTxHistory: [],
                     },
                     mnemonic:
                         'beauty shoe decline spend still weird slot snack coach flee between paper',

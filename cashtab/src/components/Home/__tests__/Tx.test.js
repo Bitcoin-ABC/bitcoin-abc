@@ -9,7 +9,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Tx from 'components/Home/Tx';
 import { mockReceivedTxData } from 'components/Home/fixtures/mocks';
-import appConfig from 'config/app';
+import CashtabState from 'config/CashtabState';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -46,7 +46,7 @@ describe('<Tx />', () => {
                     data={mockReceivedTxData}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    cashtabState={appConfig.defaultCashtabState}
+                    cashtabState={new CashtabState()}
                 />
                 ,
             </ThemeProvider>,
@@ -72,7 +72,7 @@ describe('<Tx />', () => {
                     data={noTimeFirstSeenMock}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    cashtabState={appConfig.defaultCashtabState}
+                    cashtabState={new CashtabState()}
                 />
             </ThemeProvider>,
         );
@@ -98,7 +98,7 @@ describe('<Tx />', () => {
                     data={noTimeFirstSeenUnconfirmedMock}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    cashtabState={appConfig.defaultCashtabState}
+                    cashtabState={new CashtabState()}
                 />
             </ThemeProvider>,
         );
@@ -118,7 +118,7 @@ describe('<Tx />', () => {
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
                     cashtabState={{
-                        ...appConfig.defaultCashtabState,
+                        ...new CashtabState(),
                         contactList: [
                             {
                                 name: 'inTheList',
@@ -141,7 +141,7 @@ describe('<Tx />', () => {
                     data={mockReceivedTxData}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
-                    cashtabState={appConfig.defaultCashtabState}
+                    cashtabState={new CashtabState()}
                 />
                 ,
             </ThemeProvider>,

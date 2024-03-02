@@ -67,7 +67,9 @@ const SignatureValidation = styled.div`
 
 const SignVerifyMsg = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet } = ContextValue;
+    const { cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const [messageSignature, setMessageSignature] = useState('');
     const [showConfirmMsgToSign, setShowConfirmMsgToSign] = useState(false);
     const [msgToSign, setMsgToSign] = useState('');

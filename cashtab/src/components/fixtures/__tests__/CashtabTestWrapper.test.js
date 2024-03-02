@@ -82,6 +82,14 @@ describe('<CashtabTestWrapper />', () => {
             expect(screen.queryByTestId('api-error')).not.toBeInTheDocument(),
         );
 
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait for the balance to render
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
         // Home container
         expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
     });

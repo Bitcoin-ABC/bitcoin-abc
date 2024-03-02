@@ -53,7 +53,6 @@ import ExtensionHeader from './Common/ExtensionHeader';
 import { WalletInfoCtn } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
-import appConfig from 'config/app';
 import { isValidCashtabWallet } from 'validation';
 
 const ExtensionFrame = createGlobalStyle`
@@ -438,13 +437,10 @@ const NavHeader = styled.div`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { wallet, cashtabState, updateCashtabState, fiatPrice, loading } =
+    const { cashtabState, updateCashtabState, fiatPrice, loading } =
         ContextValue;
-    // Ensure cashtabState is not undefined before context initializes
-    const { settings } =
-        typeof cashtabState === 'undefined'
-            ? appConfig.defaultCashtabState
-            : cashtabState;
+    const { settings, wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
     const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);

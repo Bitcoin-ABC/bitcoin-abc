@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import usePrevious from 'hooks/usePrevious';
-import useInterval from './useInterval';
 import { BN } from 'slp-mdm';
 import {
     getHashArrayFromWallet,
@@ -30,12 +29,6 @@ import {
     returnGetTokenInfoChronikPromise,
 } from 'chronik';
 import { queryAliasServer } from 'alias';
-import cashaddr from 'ecashaddrjs';
-import * as bip39 from 'bip39';
-import * as randomBytes from 'randombytes';
-import * as utxolib from '@bitgo/utxo-lib';
-import { websocket as websocketConfig } from 'config/websocket';
-import defaultCashtabCache from 'config/cashtabCache';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import {
@@ -45,26 +38,15 @@ import {
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import { notification } from 'antd';
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
-// Cashtab is always running the `update` function at an interval
-// When the websocket detects an incoming tx (or when the wallet is first loaded)
-// Set this interval to near-instant (50ms)
-// If the `update` function runs and this is the refresh interval, it will throttle back to
-// the standard interval set in websocketConfig
-// Note: react setState is async. If you set this to 0, the update function will run 2 or 3 times before
-// the interval is updated in state
-// 50ms and update will only run once before backing off the interval, which is all you need
-const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 50;
+import { createCashtabWallet } from 'wallet';
+import CashtabState from 'config/CashtabState';
 
 const useWallet = chronik => {
-    const [walletRefreshInterval, setWalletRefreshInterval] = useState(
-        TRIGGER_UTXO_REFRESH_INTERVAL_MS,
-    );
-    const [wallet, setWallet] = useState(false);
-    const [chronikWebsocket, setChronikWebsocket] = useState(null);
+    const [cashtabLoaded, setCashtabLoaded] = useState(false);
+    const [ws, setWs] = useState(null);
     const [fiatPrice, setFiatPrice] = useState(null);
     const [apiError, setApiError] = useState(false);
     const [checkFiatInterval, setCheckFiatInterval] = useState(null);
-    const [hasUpdated, setHasUpdated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [aliases, setAliases] = useState({
         registered: [],
@@ -74,44 +56,26 @@ const useWallet = chronik => {
     const [aliasServerError, setAliasServerError] = useState(false);
     const [aliasIntervalId, setAliasIntervalId] = useState(null);
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
-    const { balances, tokens } = isValidCashtabWallet(wallet)
-        ? wallet.state
-        : {
-              balances: {},
-              tokens: [],
-          };
+    const [cashtabState, setCashtabState] = useState(new CashtabState());
+    const { settings, cashtabCache, wallets } = cashtabState;
+
+    const { balances, tokens } =
+        wallets.length > 0
+            ? wallets[0].state
+            : {
+                  balances: {},
+                  tokens: [],
+              };
     const previousBalances = usePrevious(balances);
     const previousTokens = usePrevious(tokens);
-    const [cashtabState, setCashtabState] = useState(
-        appConfig.defaultCashtabState,
-    );
-    const { settings, cashtabCache } = cashtabState;
 
-    const deriveAccount = async ({ masterHDNode, path }) => {
-        const node = masterHDNode.derivePath(path);
-        const publicKey = node.publicKey.toString('hex');
-        const cashAddress = cashaddr.encode('ecash', 'P2PKH', node.identifier);
-        const { hash } = cashaddr.decode(cashAddress, true);
-
-        return {
-            publicKey,
-            hash160: hash,
-            cashAddress,
-            fundingWif: node.toWIF(),
-        };
-    };
-
-    const update = async ({ wallet }) => {
-        // Check if walletRefreshInterval is set to TRIGGER_UTXO_REFRESH_INTERVAL_MS, i.e. this was called by websocket tx detection
-        if (walletRefreshInterval === TRIGGER_UTXO_REFRESH_INTERVAL_MS) {
-            // If so, set it back to the usual refresh rate
-            setWalletRefreshInterval(websocketConfig.websocketRefreshInterval);
+    const update = async wallet => {
+        if (!cashtabLoaded) {
+            // Wait for cashtab to get state from localforage before updating
+            return;
         }
-        try {
-            if (!wallet) {
-                return;
-            }
 
+        try {
             /*
                This strange data structure is necessary because chronik requires the hash160
                of an address to tell you what utxos are at that address
@@ -179,15 +143,15 @@ const useWallet = chronik => {
 
             // Set wallet with new state field
             wallet.state = newState;
-            setWallet(wallet);
+            setCashtabState({ ...cashtabState, wallet });
 
-            // Write this state to indexedDb using localForage
-            writeWalletState(wallet, newState);
+            // Update only the active wallet, wallets[0], in state
+            updateCashtabState('wallets', [wallet, ...wallets.slice(1)]);
 
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
-            console.log(`Error in update({wallet})`);
+            console.log(`Error in update(wallet) from wallet`, wallet);
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
@@ -205,17 +169,6 @@ const useWallet = chronik => {
         }
     };
 
-    const getActiveWalletFromLocalForage = async () => {
-        let wallet;
-        try {
-            wallet = await localforage.getItem('wallet');
-        } catch (err) {
-            console.log(`Error in getActiveWalletFromLocalForage`, err);
-            wallet = null;
-        }
-        return wallet;
-    };
-
     /**
      * Lock UI while you update cashtabState in state and indexedDb
      * @param {key} string
@@ -223,9 +176,10 @@ const useWallet = chronik => {
      * @returns {boolean}
      */
     const updateCashtabState = async (key, value) => {
-        // We lock the UI by setting loading to true while we set items in localforage
-        // This is to prevent rapid user action from corrupting the db
-        setLoading(true);
+        // If we are dealing with savedWallets, sort alphabetically by wallet name
+        if (key === 'savedWallets') {
+            value.sort((a, b) => a.name.localeCompare(b.name));
+        }
 
         // Update the changed key in state
         setCashtabState({ ...cashtabState, [`${key}`]: value });
@@ -238,12 +192,13 @@ const useWallet = chronik => {
             value = cashtabCacheToJSON(value);
         }
 
-        try {
-            await localforage.setItem(key, value);
-        } catch (err) {
-            console.log('Error in updateCashtabState', err);
-        }
+        // We lock the UI by setting loading to true while we set items in localforage
+        // This is to prevent rapid user action from corrupting the db
+        setLoading(true);
+        await localforage.setItem(key, value);
         setLoading(false);
+
+        return true;
     };
 
     /**
@@ -259,8 +214,10 @@ const useWallet = chronik => {
      * so that these persist if the user navigates away from Cashtab     *
      */
     const loadCashtabState = async () => {
-        // Initialize state with defaults
-        const cashtabState = appConfig.defaultCashtabState;
+        // Initialize flag var
+        // We will need to set loading to false if we do not do any write operations to state at bootup
+        let stateUpdatedAtBootup = false;
+        // cashtabState is initialized with defaults when this component loads
 
         // contactList
         let contactList = await localforage.getItem('contactList');
@@ -274,6 +231,7 @@ const useWallet = chronik => {
                 contactList = [];
                 // Update localforage on app load only if existing values are in an obsolete format
                 updateCashtabState('contactList', contactList);
+                stateUpdatedAtBootup = true;
             }
             // Set cashtabState contactList to valid localforage or migrated
             cashtabState.contactList = contactList;
@@ -287,7 +245,10 @@ const useWallet = chronik => {
                 // If a settings object is present but invalid, parse to find and add missing keys
                 settings = migrateLegacyCashtabSettings(settings);
                 // Update localforage on app load only if existing values are in an obsolete format
-                updateCashtabState('settings', settings);
+                stateUpdatedAtBootup = await updateCashtabState(
+                    'settings',
+                    settings,
+                );
             }
 
             // Set cashtabState settings to valid localforage or migrated settings
@@ -305,548 +266,264 @@ const useWallet = chronik => {
 
             if (!isValidCashtabCache(cashtabCache)) {
                 // If a cashtabCache object is present but invalid, nuke it and start again
-                cashtabCache = defaultCashtabCache;
+                cashtabCache = cashtabState.cashtabCache;
                 // Update localforage on app load only if existing values are in an obsolete format
-                updateCashtabState('cashtabCache', cashtabCache);
+                stateUpdatedAtBootup = await updateCashtabState(
+                    'cashtabCache',
+                    cashtabCache,
+                );
             }
 
             // Set cashtabState cashtabCache to valid localforage or migrated settings
             cashtabState.cashtabCache = cashtabCache;
         }
 
+        // Load wallets if present
+        // Make sure case of nothing at wallet or wallets is handled properly
+
+        // A legacy Cashtab user may have the active wallet stored at the wallet key
+        let wallet = await localforage.getItem('wallet');
+
+        // After version 1.7.x, Cashtab users have all wallets stored at the wallets key
+        let wallets = await localforage.getItem('wallets');
+
+        /**
+         * Possible cases
+         *
+         * 1 - NEW CASHTAB USER
+         * wallet === null && wallets === null
+         * nothing in localforage for wallet or wallets
+         *
+         * 2 - PARTIALLY MIGRATED CASHTAB USER
+         * wallet !== null && wallets !== null
+         * User first used Cashtab.com on legacy wallet/savedWallet keys
+         * but has now been migrated to use the wallets key
+         * No action required, load as normal. We could delete the legacy keys
+         * but we do not need the space so there is no expected benefit
+         *
+         * 3 - FULLY MIGRATED CASHTAB USER
+         * wallet === null && wallets !== null
+         * User created first wallet at Cashtab 1.7.0 or higher
+         *
+         * 4 - MIGRATION REQUIRED
+         * wallet !== null && wallets === null
+         * User has stored wallet information at old keys
+         * wallet for active wallet
+         * savedWallets for savedWallets
+         * Migrate to wallets key
+         */
+
+        const legacyMigrationRequired = wallet !== null && wallets === null;
+
+        if (legacyMigrationRequired) {
+            // Initialize wallets array
+            wallets = [];
+
+            // Migrate this Cashtab user from keys "wallet" and "savedWallets" to key "wallets"
+            if (!isValidCashtabWallet(wallet)) {
+                // If wallet is invalid, rebuild to latest Cashtab schema
+                wallet = await createCashtabWallet(wallet.mnemonic);
+            }
+
+            // wallets[0] is the active wallet in upgraded Cashtab localforage model
+            wallets.push(wallet);
+
+            // Also migrate savedWallets
+            let savedWallets = await localforage.getItem('savedWallets');
+
+            if (savedWallets !== null) {
+                // If we find savedWallets in localforage
+
+                // Iterate over all savedWallets.
+                // If valid, do not change.
+                // If invalid, migrate and update savedWallets
+                savedWallets = await Promise.all(
+                    savedWallets.map(async savedWallet => {
+                        if (!isValidCashtabWallet(savedWallet)) {
+                            // Recreate this wallet at latest format from mnemonic
+                            const newSavedWallet = await createCashtabWallet(
+                                savedWallet.mnemonic,
+                            );
+
+                            return {
+                                ...newSavedWallet,
+                                name: savedWallet.name,
+                            };
+                        }
+                        // No modification if it is valid
+                        return savedWallet;
+                    }),
+                );
+
+                // Because Promise.all() will not preserve order, sort savedWallets alphabetically by name
+                savedWallets.sort((a, b) => a.name.localeCompare(b.name));
+
+                // In legacy Cashtab storage, the key savedWallets also stored the active wallet
+                // Delete wallet from savedWallets
+                const indexOfSavedWalletMatchingWallet = savedWallets.findIndex(
+                    savedWallet => savedWallet.mnemonic === wallet.mnemonic,
+                );
+                savedWallets.splice(indexOfSavedWalletMatchingWallet, 1);
+
+                // Update wallets array to include legacy wallet and legacy savedWallets
+                // migrated to current Cashtab format
+                wallets = wallets.concat(savedWallets);
+
+                // Set cashtabState wallets to migrated wallet + savedWallets
+                cashtabState.wallets = wallets;
+
+                // We do not updateCashtabState('wallets', wallets) here
+                // because it will happen in the update routine as soon as
+                // the active wallet is populated
+            }
+        } else {
+            // Load from wallets key, or initialize new user
+
+            // If the user has already migrated, we load wallets from localforage key directly
+
+            if (wallets !== null) {
+                // If we find wallets in localforage
+
+                // Iterate over all wallets. If valid, do not change. If invalid, migrate and update array.
+                wallets = await Promise.all(
+                    wallets.map(async wallet => {
+                        if (!isValidCashtabWallet(wallet)) {
+                            // Recreate this wallet at latest format from mnemonic
+                            const migratedWallet = await createCashtabWallet(
+                                wallet.mnemonic,
+                            );
+
+                            // Keep the same name as existing wallet
+                            return {
+                                ...migratedWallet,
+                                name: wallet.name,
+                            };
+                        }
+
+                        // No modification if it is valid
+                        return wallet;
+                    }),
+                );
+
+                // Because Promise.all() will not preserve order, sort wallets alphabetically by name
+                // First remove wallets[0] as this is the active wallet and we do not want to sort it
+                const activeWallet = wallets.shift();
+                // Sort other wallets alphabetically
+                wallets.sort((a, b) => a.name.localeCompare(b.name));
+                // Replace the active wallet at the 0-index
+                wallets.unshift(activeWallet);
+
+                // Set cashtabState wallets to wallets from localforage
+                // (or migrated wallets if localforage included any invalid wallet)
+                cashtabState.wallets = wallets;
+
+                // We do not updateCashtabState('wallets', wallets) here
+                // because it will happen in the update routine as soon as
+                // the active wallet is populated
+            }
+
+            // So, if we do not find wallets from localforage, cashtabState will be initialized with default
+            // wallets []
+        }
+
         setCashtabState(cashtabState);
-    };
+        setCashtabLoaded(true);
 
-    const getWallet = async () => {
-        let wallet;
-        let existingWallet;
-        try {
-            existingWallet = await getActiveWalletFromLocalForage();
-            // existing wallet will be
-            // 1 - the 'wallet' value from localForage, if it exists
-            // 2 - false if it does not exist in localForage
-            // 3 - null if error
+        // Initialize the websocket connection
 
-            // If the wallet does not have Path1899, add it
-            // or each Path1899, Path145, Path245 does not have a public key, add them
-            if (existingWallet) {
-                if (!isValidCashtabWallet(existingWallet)) {
-                    console.log(
-                        `Wallet does not have Path1899 or does not have public key`,
-                    );
-                    existingWallet = await migrateLegacyWallet(existingWallet);
-                }
-            }
-
-            // If not in localforage then existingWallet = false, check localstorage
-            if (!existingWallet) {
-                console.log(`no existing wallet, checking local storage`);
-                existingWallet = JSON.parse(
-                    window.localStorage.getItem('wallet'),
-                );
-                console.log(`existingWallet from localStorage`, existingWallet);
-                // If you find it here, move it to indexedDb
-                if (existingWallet !== null) {
-                    wallet = await getWalletDetails(existingWallet);
-                    await localforage.setItem('wallet', wallet);
-                    return wallet;
-                }
-            }
-        } catch (err) {
-            console.log(`Error in getWallet()`, err);
-            /* 
-            Error here implies problem interacting with localForage or localStorage API
-            
-            Have not seen this error in testing
-
-            In this case, you still want to return 'wallet' using the logic below based on 
-            the determination of 'existingWallet' from the logic above
-            */
-        }
-
-        if (existingWallet === null || !existingWallet) {
-            wallet = await getWalletDetails(existingWallet);
-            await localforage.setItem('wallet', wallet);
-        } else {
-            wallet = existingWallet;
-        }
-        return wallet;
-    };
-
-    const migrateLegacyWallet = async wallet => {
-        console.log(`migrateLegacyWallet`);
-        console.log(`legacyWallet`, wallet);
-        const mnemonic = wallet.mnemonic;
-        const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
-
-        const masterHDNode = utxolib.bip32.fromSeed(
-            rootSeedBuffer,
-            utxolib.networks.ecash,
-        );
-
-        const Path245 = await deriveAccount({
-            masterHDNode,
-            path: "m/44'/245'/0'/0/0",
-        });
-        const Path145 = await deriveAccount({
-            masterHDNode,
-            path: "m/44'/145'/0'/0/0",
-        });
-        const Path1899 = await deriveAccount({
-            masterHDNode,
-            path: "m/44'/1899'/0'/0/0",
+        // Initialize onMessage with loaded wallet. fiatPrice may be null.
+        // The onMessage routine will update when active wallet or fiatPrice updates
+        const ws = chronik.ws({
+            onReconnect: e => {
+                // Fired before a reconnect attempt is made.
+                // Should never happen with chronik ping keepalive websocket
+                console.log('Reconnecting websocket, disconnection cause: ', e);
+            },
+            onConnect: e => {
+                console.log(`Chronik websocket connected`, e);
+            },
         });
 
-        wallet.Path245 = Path245;
-        wallet.Path145 = Path145;
-        wallet.Path1899 = Path1899;
+        // Wait for websocket to be connected:
+        await ws.waitForOpen();
 
-        try {
-            await localforage.setItem('wallet', wallet);
-        } catch (err) {
-            console.log(
-                `Error setting wallet to wallet indexedDb in migrateLegacyWallet()`,
+        if (cashtabState.wallets.length > 0) {
+            // Subscribe to addresses of current wallet, if you have one
+            const hash160Array = getHashArrayFromWallet(
+                cashtabState.wallets[0],
             );
-            console.log(err);
+            for (const hash of hash160Array) {
+                ws.subscribe('p2pkh', hash);
+            }
         }
+        // When the user creates or imports a wallet, ws subscriptions will be handled by updateWebsocket
 
-        return wallet;
+        // Put connected websocket in state
+        setWs(ws);
+
+        // TODO I think we can lose this flag and check
+        // It's probably ok to leave loading as true until update syncs the active wallet
+        // Need to test what kind of observed delay this causes
+        if (!stateUpdatedAtBootup) {
+            // If we have not modified state in loadCashtabState, we are no longer loading
+            setLoading(false);
+        }
     };
 
-    const writeWalletState = async (wallet, newState) => {
-        // Add new state as an object on the active wallet
-        wallet.state = newState;
-        try {
-            await localforage.setItem('wallet', wallet);
-        } catch (err) {
-            console.log(`Error in writeWalletState()`);
-            console.log(err);
-        }
-    };
-
-    const getWalletDetails = async wallet => {
-        if (!wallet) {
-            return false;
-        }
-        // Since this info is in localforage now, only get the var
-        const mnemonic = wallet.mnemonic;
-        const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
-        const masterHDNode = utxolib.bip32.fromSeed(
-            rootSeedBuffer,
-            utxolib.networks.ecash,
-        );
-
-        const Path245 = await deriveAccount({
-            masterHDNode,
-            path: "m/44'/245'/0'/0/0",
-        });
-        const Path145 = await deriveAccount({
-            masterHDNode,
-            path: "m/44'/145'/0'/0/0",
-        });
-        const Path1899 = await deriveAccount({
-            masterHDNode,
-            path: "m/44'/1899'/0'/0/0",
-        });
-
-        let name = Path1899.cashAddress.slice(6, 11);
-        // Only set the name if it does not currently exist
-        if (wallet && wallet.name) {
-            name = wallet.name;
-        }
-
-        return {
-            mnemonic: wallet.mnemonic,
-            name,
-            Path245,
-            Path145,
-            Path1899,
+    /**
+     * Update websocket subscriptions when active wallet changes
+     * Update websocket onMessage handler when fiatPrice changes
+     * @param {object} wallet
+     * @param {number} fiatPrice
+     */
+    const updateWebsocket = (wallet, fiatPrice) => {
+        // Set or update the onMessage handler
+        // We can only set this when wallet is defined, so we do not set it in loadCashtabState
+        ws.onMessage = msg => {
+            processChronikWsMsg(msg, wallet, fiatPrice);
         };
-    };
 
-    const getSavedWallets = async activeWallet => {
-        setLoading(true);
-
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-            if (savedWallets === null) {
-                savedWallets = [];
-            }
-        } catch (err) {
-            console.log(`Error in getSavedWallets`, err);
-            savedWallets = [];
-        }
-        // Even though the active wallet is still stored in savedWallets, don't return it in this function
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (
-                typeof activeWallet !== 'undefined' &&
-                activeWallet.name &&
-                savedWallets[i].name === activeWallet.name
-            ) {
-                savedWallets.splice(i, 1);
-            }
+        // Check if current subscriptions match current wallet
+        const { subs } = ws;
+        // Get the subscribed payloads so we can iterate over these to unsub
+        // If we iterate over ws.subs to unsubscribe, we are modifying ws.subs as we iterate
+        // Can lead to off-by-one and other errors
+        const subscribedPayloads = [];
+        for (const sub of subs) {
+            subscribedPayloads.push(sub.scriptPayload);
         }
 
-        // Sort alphabetically
-        savedWallets.sort((a, b) => a.name.localeCompare(b.name));
-
-        setLoading(false);
-        return savedWallets;
-    };
-
-    const activateWallet = async (currentlyActiveWallet, walletToActivate) => {
-        /*
-    If the user is migrating from old version to this version, make sure to save the activeWallet
-
-    1 - check savedWallets for the previously active wallet
-    2 - If not there, add it
-    */
-        console.log(`Activating wallet ${walletToActivate.name}`);
-        setHasUpdated(false);
-
-        // Get savedwallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in localforage.getItem("savedWallets") in activateWallet()`,
-            );
-            return false;
+        let subscriptionUpdateRequired = false;
+        const hash160Array = getHashArrayFromWallet(wallet);
+        if (subs.length !== hash160Array.length) {
+            // If the websocket is not subscribed to the same amount of addresses as the wallet,
+            // we need to update subscriptions
+            subscriptionUpdateRequired = true;
         }
-        /*
-        When a legacy user runs cashtab.com/, their active wallet will be migrated to Path1899 by 
-        the getWallet function. getWallet function also makes sure that each Path has a public key
 
-        Wallets in savedWallets are migrated when they are activated, in this function
-
-        Two cases to handle
-
-        1 - currentlyActiveWallet is valid but its stored keyvalue pair in savedWallets is not
-            > Update savedWallets so this saved wallet is valid
-        
-        2 - walletToActivate is not valid (because it's a legacy saved wallet)
-            > Update walletToActivate before activation
-        
-        */
-
-        // Check savedWallets for currentlyActiveWallet
-        let walletInSavedWallets = false;
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === currentlyActiveWallet.name) {
-                walletInSavedWallets = true;
-                // Make sure the savedWallet entry matches the currentlyActiveWallet entry
-                savedWallets[i] = currentlyActiveWallet;
-                console.log(
-                    `Updating savedWallet ${savedWallets[i].name} to match state as currentlyActiveWallet ${currentlyActiveWallet.name}`,
-                );
+        for (const sub of subs) {
+            // If any wallet hash is not subscribed to, we need to update subscriptions
+            if (!hash160Array.includes(sub.scriptPayload)) {
+                subscriptionUpdateRequired = true;
             }
         }
 
-        // resave savedWallets
-        try {
-            // Set walletName as the active wallet
-            console.log(`Saving updated savedWallets`);
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets") in activateWallet() for unmigrated wallet`,
-            );
-        }
+        if (subscriptionUpdateRequired) {
+            // If we need to update subscriptions
 
-        if (!walletInSavedWallets) {
-            console.log(`Wallet is not in saved Wallets, adding`);
-            savedWallets.push(currentlyActiveWallet);
-            // resave savedWallets
-            try {
-                // Set walletName as the active wallet
-                await localforage.setItem('savedWallets', savedWallets);
-            } catch (err) {
-                console.log(
-                    `Error in localforage.setItem("savedWallets") in activateWallet()`,
-                );
+            // Unsubscribe from all existing subscriptions
+            for (const payload of subscribedPayloads) {
+                ws.unsubscribe('p2pkh', payload);
             }
-        }
-        // If wallet does not have Path1899, add it
-        // or each of the Path1899, Path145, Path245 does not have a public key, add them
-        // by calling migrateLagacyWallet()
-        if (!isValidCashtabWallet(walletToActivate)) {
-            // Case 2, described above
-            console.log(
-                `Case 2: Wallet to activate is not in the most up to date Cashtab format`,
-            );
-            console.log(`walletToActivate`, walletToActivate);
-            walletToActivate = await migrateLegacyWallet(walletToActivate);
-        } else {
-            // Otherwise activate it as normal
-            // Now that we have verified the last wallet was saved, we can activate the new wallet
-            try {
-                await localforage.setItem('wallet', walletToActivate);
-            } catch (err) {
-                console.log(
-                    `Error in localforage.setItem("wallet", walletToActivate) in activateWallet()`,
-                );
-                return false;
-            }
-        }
-        console.log(`Returning walletToActivate ${walletToActivate.name}`);
-        return walletToActivate;
-    };
 
-    const renameSavedWallet = async (oldName, newName) => {
-        setLoading(true);
-        // Load savedWallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-        // Verify that no existing wallet has this name
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === newName) {
-                // return an error
-                setLoading(false);
-                return false;
+            // Subscribe to all hashes in the active wallet
+            for (const hash of hash160Array) {
+                ws.subscribe('p2pkh', hash);
             }
         }
 
-        // change name of desired wallet
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === oldName) {
-                // Replace the name of this entry with the new name
-                savedWallets[i].name = newName;
-            }
-        }
-        // resave savedWallets
-        try {
-            // Set walletName as the active wallet
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets", savedWallets) in renameSavedWallet()`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-        setLoading(false);
-        return true;
-    };
-
-    const renameActiveWallet = async (activeWallet, oldName, newName) => {
-        setLoading(true);
-        // Load savedWallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in await localforage.getItem("savedWallets") in renameSavedWallet`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-        // Verify that no existing wallet has this name
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === newName) {
-                // return an error
-                setLoading(false);
-                return false;
-            }
-        }
-
-        // Change name of active wallet at its entry in savedWallets
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === oldName) {
-                // Replace the name of this entry with the new name
-                savedWallets[i].name = newName;
-            }
-        }
-
-        // resave savedWallets
-        try {
-            // Set walletName as the active wallet
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("wallet", wallet) in renameActiveWallet()`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-
-        // Change name of active wallet param in this function
-        activeWallet.name = newName;
-
-        // Update the active wallet entry in indexedDb
-        try {
-            await localforage.setItem('wallet', activeWallet);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("wallet", ${activeWallet.name}) in renameActiveWallet()`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-
-        // Only set the renamed activeWallet in state if no errors earlier in this function
-        setWallet(activeWallet);
-
-        setLoading(false);
-        return true;
-    };
-
-    const deleteWallet = async walletToBeDeleted => {
-        setLoading(true);
-        // delete a wallet
-        // returns true if wallet is successfully deleted
-        // otherwise returns false
-        // Load savedWallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-        } catch (err) {
-            console.log(
-                `Error in await localforage.getItem("savedWallets") in deleteWallet`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-        // Iterate over to find the wallet to be deleted
-        // Verify that no existing wallet has this name
-        let walletFoundAndRemoved = false;
-        for (let i = 0; i < savedWallets.length; i += 1) {
-            if (savedWallets[i].name === walletToBeDeleted.name) {
-                // Verify it has the same mnemonic too, that's a better UUID
-                if (savedWallets[i].mnemonic === walletToBeDeleted.mnemonic) {
-                    // Delete it
-                    savedWallets.splice(i, 1);
-                    walletFoundAndRemoved = true;
-                }
-            }
-        }
-        // If you don't find the wallet, return false
-        if (!walletFoundAndRemoved) {
-            setLoading(false);
-            return false;
-        }
-
-        // Resave savedWallets less the deleted wallet
-        try {
-            // Set walletName as the active wallet
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets", savedWallets) in deleteWallet()`,
-                err,
-            );
-            setLoading(false);
-            return false;
-        }
-        setLoading(false);
-        return true;
-    };
-
-    const addNewSavedWallet = async importMnemonic => {
-        setLoading(true);
-        // Add a new wallet to savedWallets from importMnemonic or just new wallet
-        const lang = 'english';
-
-        // create 128 bit BIP39 mnemonic
-        const Bip39128BitMnemonic = importMnemonic
-            ? importMnemonic
-            : bip39.generateMnemonic(128, randomBytes, bip39.wordlists[lang]);
-
-        const newSavedWallet = await getWalletDetails({
-            mnemonic: Bip39128BitMnemonic.toString(),
-        });
-        // Get saved wallets
-        let savedWallets;
-        try {
-            savedWallets = await localforage.getItem('savedWallets');
-            // If this doesn't exist yet, savedWallets === null
-            if (savedWallets === null) {
-                savedWallets = [];
-            }
-        } catch (err) {
-            console.log(
-                `Error in savedWallets = await localforage.getItem("savedWallets") in addNewSavedWallet()`,
-                err,
-            );
-            console.log(`savedWallets in error state`, savedWallets);
-        }
-        // If this wallet is from an imported mnemonic, make sure it does not already exist in savedWallets
-        if (importMnemonic) {
-            for (let i = 0; i < savedWallets.length; i += 1) {
-                // Check for condition "importing new wallet that is already in savedWallets"
-                if (savedWallets[i].mnemonic === importMnemonic) {
-                    // set this as the active wallet to keep name history
-                    console.log(
-                        `Error: this wallet already exists in savedWallets`,
-                    );
-                    console.log(`Wallet not being added.`);
-                    setLoading(false);
-                    return false;
-                }
-            }
-        }
-        // add newSavedWallet
-        savedWallets.push(newSavedWallet);
-        // update savedWallets
-        try {
-            await localforage.setItem('savedWallets', savedWallets);
-        } catch (err) {
-            console.log(
-                `Error in localforage.setItem("savedWallets", activeWallet) called in createWallet with ${importMnemonic}`,
-                err,
-            );
-            console.log(`savedWallets`, savedWallets);
-        }
-        setLoading(false);
-        return true;
-    };
-
-    const createWallet = async importMnemonic => {
-        const lang = 'english';
-
-        // create 128 bit BIP39 mnemonic
-        const Bip39128BitMnemonic = importMnemonic
-            ? importMnemonic
-            : bip39.generateMnemonic(128, randomBytes, bip39.wordlists[lang]);
-
-        const wallet = await getWalletDetails({
-            mnemonic: Bip39128BitMnemonic.toString(),
-        });
-
-        try {
-            await localforage.setItem('wallet', wallet);
-        } catch (err) {
-            console.log(
-                `Error setting wallet to wallet indexedDb in createWallet()`,
-            );
-            console.log(err);
-        }
-        // Since this function is only called from OnBoarding.js, also add this to the saved wallet
-        try {
-            await localforage.setItem('savedWallets', [wallet]);
-        } catch (err) {
-            console.log(
-                `Error setting wallet to savedWallets indexedDb in createWallet()`,
-            );
-            console.log(err);
-        }
-        return wallet;
+        // Update ws in state
+        return setWs(ws);
     };
 
     // Parse chronik ws message for incoming tx notifications
@@ -887,9 +564,8 @@ const useWallet = chronik => {
             return;
         }
 
-        // If you see a tx from your subscribed addresses added to the mempool, then the wallet utxo set has changed
-        // Update it
-        setWalletRefreshInterval(TRIGGER_UTXO_REFRESH_INTERVAL_MS);
+        // For all other messages, update the active wallet
+        update(wallet);
 
         // get txid info
         const txid = msg.txid;
@@ -982,132 +658,9 @@ const useWallet = chronik => {
                 });
             }
         }
-    };
 
-    // Chronik websockets
-    const initializeWebsocket = async (chronik, wallet, fiatPrice) => {
-        // Because wallet is set to `false` before it is loaded, do nothing if you find this case
-        // Also return and wait for legacy migration if wallet is not migrated
-        const hash160Array = getHashArrayFromWallet(wallet);
-        if (!wallet || !hash160Array) {
-            return setChronikWebsocket(null);
-        }
-
-        let ws = chronikWebsocket;
-
-        // Initialize websocket if not in state
-        if (ws === null) {
-            if (
-                chronik &&
-                chronik._proxyInterface &&
-                chronik._proxyInterface._endpointArray &
-                    chronik._proxyInterface._workingIndex
-            )
-                console.log(
-                    `Opening websocket connection at ${
-                        chronik._proxyInterface._endpointArray[
-                            chronik._proxyInterface._workingIndex
-                        ].wsUrl
-                    }`,
-                );
-            try {
-                ws = chronik.ws({
-                    onMessage: msg => {
-                        processChronikWsMsg(msg, wallet, fiatPrice);
-                    },
-                    autoReconnect: true,
-                    onReconnect: e => {
-                        // Fired before a reconnect attempt is made:
-                        console.log(
-                            'Reconnecting websocket, disconnection cause: ',
-                            e,
-                        );
-                    },
-                    onConnect: e => {
-                        console.log(`Chronik websocket connected`, e);
-                        console.log(
-                            `Websocket connected, adjusting wallet refresh interval to ${
-                                websocketConfig.websocketRefreshInterval / 1000
-                            }s`,
-                        );
-                        setWalletRefreshInterval(
-                            websocketConfig.websocketRefreshInterval,
-                        );
-                    },
-                });
-
-                // Need to keep in state so subscriptions can be modified when wallet changes
-                setChronikWebsocket(ws);
-
-                // Wait for websocket to be connected:
-                await ws.waitForOpen();
-            } catch (err) {
-                console.log(`Error creating websocket`, err);
-                return setChronikWebsocket(null);
-            }
-        } else {
-            /*        
-            If the websocket connection is not null, initializeWebsocket was called
-            because one of the websocket's dependencies changed
-
-            Update the onMessage method to get the latest dependencies (wallet, fiatPrice)
-            */
-
-            ws.onMessage = msg => {
-                processChronikWsMsg(msg, wallet, fiatPrice);
-            };
-        }
-
-        // Check if current subscriptions match current wallet
-        let activeSubscriptionsMatchActiveWallet = true;
-
-        const previousWebsocketSubscriptions = ws.subs;
-        // If there are no previous subscriptions, then activeSubscriptionsMatchActiveWallet is certainly false
-        if (previousWebsocketSubscriptions.length === 0) {
-            activeSubscriptionsMatchActiveWallet = false;
-        } else {
-            const subscribedHash160Array = previousWebsocketSubscriptions.map(
-                function (subscription) {
-                    return subscription.scriptPayload;
-                },
-            );
-            // Confirm that websocket is subscribed to every address in wallet hash160Array
-            for (let i = 0; i < hash160Array.length; i += 1) {
-                if (!subscribedHash160Array.includes(hash160Array[i])) {
-                    activeSubscriptionsMatchActiveWallet = false;
-                }
-            }
-        }
-
-        // If you are already subscribed to the right addresses, exit here
-        // You get to this situation if fiatPrice changed but wallet.mnemonic did not
-        if (activeSubscriptionsMatchActiveWallet) {
-            // Put connected websocket in state
-            return setChronikWebsocket(ws);
-        }
-
-        // Unsubscribe to any active subscriptions
-        console.log(
-            `previousWebsocketSubscriptions`,
-            previousWebsocketSubscriptions,
-        );
-        if (previousWebsocketSubscriptions.length > 0) {
-            for (let i = 0; i < previousWebsocketSubscriptions.length; i += 1) {
-                const unsubHash160 =
-                    previousWebsocketSubscriptions[i].scriptPayload;
-                ws.unsubscribe('p2pkh', unsubHash160);
-                console.log(`ws.unsubscribe('p2pkh', ${unsubHash160})`);
-            }
-        }
-
-        // Subscribe to addresses of current wallet
-        for (let i = 0; i < hash160Array.length; i += 1) {
-            ws.subscribe('p2pkh', hash160Array[i]);
-            console.log(`ws.subscribe('p2pkh', ${hash160Array[i]})`);
-        }
-
-        // Put connected websocket in state
-        return setChronikWebsocket(ws);
+        // Return true if we get here
+        return true;
     };
 
     // With different currency selections possible, need unique intervals for price checks
@@ -1131,18 +684,14 @@ const useWallet = chronik => {
     };
 
     // Parse for incoming XEC transactions
-    // hasUpdated is set to true in the useInterval function, and re-sets to false during activateWallet
     // Do not show this notification if websocket connection is live; in this case the websocket will handle it
     if (
-        !isActiveWebsocket(chronikWebsocket) &&
+        !isActiveWebsocket(ws) &&
         previousBalances &&
         balances &&
         'totalBalance' in previousBalances &&
         'totalBalance' in balances &&
-        new BN(balances.totalBalance)
-            .minus(previousBalances.totalBalance)
-            .gt(0) &&
-        hasUpdated
+        new BN(balances.totalBalance).minus(previousBalances.totalBalance).gt(0)
     ) {
         notification.success({
             message: 'Transaction received',
@@ -1177,14 +726,13 @@ const useWallet = chronik => {
     // Parse for incoming eToken transactions
     // Do not show this notification if websocket connection is live; in this case the websocket will handle it
     if (
-        !isActiveWebsocket(chronikWebsocket) &&
+        !isActiveWebsocket(ws) &&
         tokens &&
         tokens[0] &&
         tokens[0].balance &&
         previousTokens &&
         previousTokens[0] &&
-        previousTokens[0].balance &&
-        hasUpdated === true
+        previousTokens[0].balance
     ) {
         // If tokens length is greater than previousTokens length, a new token has been received
         // Note, a user could receive a new token, AND more of existing tokens in between app updates
@@ -1262,19 +810,6 @@ const useWallet = chronik => {
         }
     }
 
-    // Update wallet according to defined interval
-    useInterval(async () => {
-        const wallet = await getWallet();
-        update({
-            wallet,
-        }).finally(() => {
-            setLoading(false);
-            if (!hasUpdated) {
-                setHasUpdated(true);
-            }
-        });
-    }, walletRefreshInterval);
-
     const fetchXecPrice = async (
         fiatCode = typeof cashtabState?.settings?.fiatCurrency !== 'undefined'
             ? cashtabState.settings.fiatCurrency
@@ -1349,13 +884,24 @@ const useWallet = chronik => {
     };
 
     const cashtabBootup = async () => {
-        setWallet(await getWallet());
         await loadCashtabState();
     };
 
     useEffect(() => {
         cashtabBootup();
     }, []);
+
+    // Call the update loop every time the user changes the active wallet
+    // and immediately after cashtab is loaded
+    useEffect(() => {
+        if (cashtabLoaded !== true || cashtabState.wallets.length === 0) {
+            // Do not update the active wallet unless
+            // 1. Cashtab is loaded
+            // 2. You have a valid active wallet in cashtabState
+            return;
+        }
+        update(cashtabState.wallets[0]);
+    }, [cashtabLoaded, cashtabState.wallets[0]?.name]);
 
     // Clear price API and update to new price API when fiat currency changes
     useEffect(() => {
@@ -1365,37 +911,42 @@ const useWallet = chronik => {
         initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
     }, [cashtabState.settings.fiatCurrency]);
 
-    /*
-    Run initializeWebsocket(chronik, wallet, fiatPrice) each time chronik, wallet, or fiatPrice changes
-    
-    Use wallet.mnemonic as the useEffect parameter here because we 
-    want to run initializeWebsocket(chronik, wallet, fiatPrice) when a new unique wallet
-    is selected, not when the active wallet changes state
-    */
+    // Update websocket subscriptions and websocket onMessage handler whenever
+    // the active wallet changes (denoted by mnemonic changing, not when name changes)
+    // or the fiat price updates (the onMessage handler needs to have the most up-to-date
+    // fiat price)
     useEffect(() => {
-        initializeWebsocket(chronik, wallet, fiatPrice);
-    }, [chronik, wallet.mnemonic, fiatPrice]);
+        if (
+            cashtabLoaded !== true ||
+            ws === null ||
+            typeof cashtabState.wallets[0] === 'undefined'
+        ) {
+            // Only update the websocket if
+            // 1. ws is not null
+            // 2. Cashtab has loaded
+            // 3. We have an active wallet
+            // 4. fiatPrice has changed
+            // We can call with fiatPrice of null, we will not always have fiatPrice
+            return;
+        }
+        updateWebsocket(cashtabState.wallets[0], fiatPrice);
+    }, [cashtabState.wallets[0]?.mnemonic, fiatPrice, ws, cashtabLoaded]);
 
     const refreshAliasesOnStartup = async () => {
         // Initialize a new periodic refresh of aliases which ONLY calls the API if
         // there are pending aliases since confirmed aliases would not change over time
         // The interval is also only initialized if there are no other intervals present.
         if (aliasSettings.aliasEnabled) {
-            if (
-                wallet &&
-                wallet.Path1899 &&
-                wallet.Path1899.cashAddress &&
-                aliasIntervalId === null
-            ) {
+            if (wallets.length > 0 && aliasIntervalId === null) {
                 // Initial refresh to ensure `aliases` state var is up to date
-                await refreshAliases(wallet.Path1899.cashAddress);
+                await refreshAliases(wallets[0].Path1899.cashAddress);
                 const aliasRefreshInterval = 30000;
                 const intervalId = setInterval(async function () {
                     if (aliases?.pending?.length > 0) {
                         console.log(
                             'useEffect(): Refreshing registered and pending aliases',
                         );
-                        await refreshAliases(wallet.Path1899.cashAddress);
+                        await refreshAliases(wallets[0].Path1899.cashAddress);
                     }
                 }, aliasRefreshInterval);
                 setAliasIntervalId(intervalId);
@@ -1411,8 +962,6 @@ const useWallet = chronik => {
 
     return {
         chronik,
-        wallet,
-        walletRefreshInterval,
         chaintipBlockheight,
         fiatPrice,
         loading,
@@ -1424,38 +973,7 @@ const useWallet = chronik => {
         setAliasServerError,
         aliasPrices,
         setAliasPrices,
-        getActiveWalletFromLocalForage,
-        getWallet,
-        getWalletDetails,
-        getSavedWallets,
-        migrateLegacyWallet,
         updateCashtabState,
-        createWallet: async importMnemonic => {
-            setLoading(true);
-            const newWallet = await createWallet(importMnemonic);
-            setWallet(newWallet);
-            update({
-                wallet: newWallet,
-            }).finally(() => setLoading(false));
-        },
-        activateWallet: async (currentlyActiveWallet, walletToActivate) => {
-            setLoading(true);
-            const newWallet = await activateWallet(
-                currentlyActiveWallet,
-                walletToActivate,
-            );
-            console.log(`activateWallet gives newWallet ${newWallet.name}`);
-            // Changing the wallet here will cause `initializeWebsocket` to fire which will update the websocket interval on a successful connection
-            setWallet(newWallet);
-            // Immediately call update on this wallet to populate it in the latest format
-            // Use the instant interval of TRIGGER_UTXO_REFRESH_INTERVAL_MS that the update function will cancel
-            setWalletRefreshInterval(TRIGGER_UTXO_REFRESH_INTERVAL_MS);
-            setLoading(false);
-        },
-        addNewSavedWallet,
-        renameSavedWallet,
-        renameActiveWallet,
-        deleteWallet,
         processChronikWsMsg,
         cashtabState,
     };

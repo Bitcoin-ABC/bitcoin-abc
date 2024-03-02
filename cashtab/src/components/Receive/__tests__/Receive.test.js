@@ -104,6 +104,10 @@ describe('<Receive />', () => {
         await waitFor(() =>
             expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument(),
         );
+
+        // Wait for the balance to render
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
         expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
 
         // We render the rest of the component as expected
@@ -236,6 +240,11 @@ describe('<Receive />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
+
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // We see the Onboarding screen
         expect(

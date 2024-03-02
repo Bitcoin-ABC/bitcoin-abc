@@ -8,22 +8,20 @@ import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import {
     walletWithXecAndTokens,
+    cashtabSettingsGbp,
     nonDefaultContactList,
     nonDefaultCashtabCache,
-    cashtabSettingsGbp,
+    mockIncomingTokenTxDetails,
 } from 'hooks/fixtures/mocks';
 import appConfig from 'config/app';
 import { when } from 'jest-when';
-import { websocket as websocketConfig } from 'config/websocket';
 import {
     clearLocalForage,
     initializeCashtabStateForTests,
 } from 'components/fixtures/helpers';
 import aliasSettings from 'config/alias';
-import mockLegacyWallets from '../__mocks__/mockLegacyWallets';
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
-
-const TRIGGER_UTXO_REFRESH_INTERVAL_MS = 50;
+import CashtabCache from 'config/CashtabCache';
 
 describe('useWallet hook rendering in different localforage states', () => {
     const xecPrice = 0.00003;
@@ -50,75 +48,6 @@ describe('useWallet hook rendering in different localforage states', () => {
     afterEach(async () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
-    });
-
-    it('Cashtab loads wallet, settings, cache, and contactlist from localforage to context if they are present', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-        );
-        // Set valid and non-default items for wallet context keys that come from indexedDb
-        await localforage.setItem('contactList', nonDefaultContactList);
-        // cashtabCache contains a Map and must be stored as JSON
-        await localforage.setItem(
-            'cashtabCache',
-            cashtabCacheToJSON(nonDefaultCashtabCache),
-        );
-        await localforage.setItem('settings', cashtabSettingsGbp);
-
-        const { result } = renderHook(() => useWallet(mockedChronik));
-
-        // On load, we have the 'instant' refresh interval
-        expect(result.current.walletRefreshInterval).toBe(
-            TRIGGER_UTXO_REFRESH_INTERVAL_MS,
-        );
-
-        await waitFor(() =>
-            expect(result.current.cashtabState.contactList).toStrictEqual(
-                nonDefaultContactList,
-            ),
-        );
-
-        // Note: we expect cashtabCache to update on wallet load as there is a token tx
-        // in tx history that is not in cashtabCache
-        const expectedUpdatedCache = storedCashtabCacheToMap(
-            JSON.parse(
-                JSON.stringify(cashtabCacheToJSON(nonDefaultCashtabCache)),
-            ),
-        );
-
-        expectedUpdatedCache.tokens.set(
-            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            {
-                decimals: 0,
-                success: true,
-                tokenDocumentHash: '',
-                tokenDocumentUrl: 'https://cashtab.com/',
-                tokenName: 'BearNip',
-                tokenTicker: 'BEAR',
-            },
-        );
-
-        await waitFor(() =>
-            expect(result.current.cashtabState.cashtabCache).toStrictEqual(
-                expectedUpdatedCache,
-            ),
-        );
-        await waitFor(() =>
-            expect(result.current.cashtabState.settings).toStrictEqual(
-                cashtabSettingsGbp,
-            ),
-        );
-        await waitFor(() =>
-            expect(result.current.wallet).toStrictEqual(walletWithXecAndTokens),
-        );
-        await waitFor(() =>
-            // Expect the wallet refresh interval to have been set from TRIGGER_UTXO_REFRESH_INTERVAL_MS to standard setting
-            // i.e. the update function has been called
-            expect(result.current.walletRefreshInterval).toBe(
-                websocketConfig.websocketRefreshInterval,
-            ),
-        );
     });
     it('localforage can set and get a map of tokeninfo by tokenId', async () => {
         const mockTokenCache = new Map();
@@ -224,23 +153,70 @@ describe('useWallet hook rendering in different localforage states', () => {
             expect(result.current.fiatPrice).toBe(xecPriceGbp);
         });
     });
-    it('Migrating legacy wallet on mainnet', async () => {
-        const { result } = renderHook(() => useWallet());
-        result.current.getWallet = false;
+    it('Cashtab loads wallet, settings, cache, and contactlist from localforage to context if they are present', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        // Set valid and non-default items for wallet context keys that come from indexedDb
+        await localforage.setItem('contactList', nonDefaultContactList);
+        // cashtabCache contains a Map and must be stored as JSON
+        await localforage.setItem(
+            'cashtabCache',
+            cashtabCacheToJSON(nonDefaultCashtabCache),
+        );
+        await localforage.setItem('settings', cashtabSettingsGbp);
 
-        let wallet;
-        await act(async () => {
-            wallet = await result.current.migrateLegacyWallet(
-                mockLegacyWallets.legacyAlphaMainnet,
-            );
-        });
-        expect(wallet).toStrictEqual(
-            mockLegacyWallets.migratedLegacyAlphaMainnet,
+        const { result } = renderHook(() => useWallet(mockedChronik));
+
+        await waitFor(() =>
+            expect(result.current.cashtabState.contactList).toStrictEqual(
+                nonDefaultContactList,
+            ),
+        );
+
+        // Note: we expect cashtabCache to update on wallet load as there is a token tx
+        // in tx history that is not in cashtabCache
+        const expectedUpdatedCache = storedCashtabCacheToMap(
+            JSON.parse(
+                JSON.stringify(cashtabCacheToJSON(nonDefaultCashtabCache)),
+            ),
+        );
+
+        expectedUpdatedCache.tokens.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                decimals: 0,
+                success: true,
+                tokenDocumentHash: '',
+                tokenDocumentUrl: 'https://cashtab.com/',
+                tokenName: 'BearNip',
+                tokenTicker: 'BEAR',
+            },
+        );
+
+        await waitFor(() =>
+            expect(result.current.cashtabState.cashtabCache).toEqual(
+                expectedUpdatedCache,
+            ),
+        );
+        await waitFor(() =>
+            expect(result.current.cashtabState.settings).toEqual(
+                cashtabSettingsGbp,
+            ),
+        );
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
         );
     });
-
     it('processChronikWsMsg() refreshes alias prices when aliasPrices is null', async () => {
-        const { result } = renderHook(() => useWallet());
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        const { result } = renderHook(() => useWallet(mockedChronik));
         const mockWebsocketMsg = { type: 'BlockConnected' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockAliasServerResponse = {
@@ -283,6 +259,13 @@ describe('useWallet hook rendering in different localforage states', () => {
                 json: () => Promise.resolve(mockAliasServerResponse),
             });
 
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
         await act(async () => {
             await result.current.processChronikWsMsg(mockWebsocketMsg);
         });
@@ -294,7 +277,11 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
 
     it('processChronikWsMsg() refreshes alias prices when aliasPrices exists, server and cashtab prices array length do not match', async () => {
-        const { result } = renderHook(() => useWallet());
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        const { result } = renderHook(() => useWallet(mockedChronik));
         const mockWebsocketMsg = { type: 'BlockConnected' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockExistingAliasPrices = {
@@ -397,6 +384,13 @@ describe('useWallet hook rendering in different localforage states', () => {
                 json: () => Promise.resolve(mockAliasServerResponse),
             });
 
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
         await act(async () => {
             await result.current.processChronikWsMsg(mockWebsocketMsg);
         });
@@ -406,7 +400,11 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
 
     it('processChronikWsMsg() does not refresh alias prices when aliasPrices exists, server and cashtab array length do match', async () => {
-        const { result } = renderHook(() => useWallet());
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        const { result } = renderHook(() => useWallet(mockedChronik));
         const mockWebsocketMsg = { type: 'BlockConnected' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockExistingAliasPrices = {
@@ -527,6 +525,13 @@ describe('useWallet hook rendering in different localforage states', () => {
             ],
         };
 
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
         // Mock the existing aliasPrices state value
         await act(async () => {
             result.current.setAliasPrices(mockExistingAliasPrices);
@@ -551,7 +556,11 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
 
     it('Verify a processChronikWsMsg() new block event updates the `aliasServerError` state var upon a /prices/ endpoint error', async () => {
-        const { result } = renderHook(() => useWallet());
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        const { result } = renderHook(() => useWallet(mockedChronik));
         const mockWebsocketMsg = { type: 'BlockConnected' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const expectedError = 'Invalid response from alias prices endpoint';
@@ -564,6 +573,13 @@ describe('useWallet hook rendering in different localforage states', () => {
                 json: () => Promise.resolve('not a valid prices response'),
             });
 
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
         await act(async () => {
             await result.current.processChronikWsMsg(mockWebsocketMsg);
         });
@@ -575,7 +591,11 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
 
     it('Verify refreshAliases() updates the `aliases` state variable on a successful /address/ endpoint response', async () => {
-        const { result } = renderHook(() => useWallet());
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        const { result } = renderHook(() => useWallet(mockedChronik));
         const address = 'ecash:qzth8qvakhr6y8zcefdrvx30zrdmt2z2gvp7zc5vj8';
         const endPoint = 'address';
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
@@ -605,6 +625,13 @@ describe('useWallet hook rendering in different localforage states', () => {
                 json: () => Promise.resolve(mockAliasServerResponse),
             });
 
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
         // Execute the refreshAliases function with the mocked alias-server call
         await act(async () => {
             await result.current.refreshAliases(address);
@@ -615,7 +642,11 @@ describe('useWallet hook rendering in different localforage states', () => {
     });
 
     it('Verify refreshAliases() updates the `aliasServerError` state variable upon an /address/ endpoint error', async () => {
-        const { result } = renderHook(() => useWallet());
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        const { result } = renderHook(() => useWallet(mockedChronik));
         const address = 'ecash:qzth8qvakhr6y8zcefdrvx30zrdmt2z2gvp7zc5vj8';
         const endPoint = 'address';
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/${endPoint}/${address}`;
@@ -631,6 +662,13 @@ describe('useWallet hook rendering in different localforage states', () => {
                 json: () => Promise.resolve(expectedError),
             });
 
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
         // Execute the refreshAliases function with the mocked alias-server call
         await act(async () => {
             await result.current.refreshAliases(address);
@@ -640,5 +678,66 @@ describe('useWallet hook rendering in different localforage states', () => {
         expect(result.current.aliasServerError).toStrictEqual(
             expectedError.error,
         );
+    });
+    it('An incoming tx message from the websocket causes the wallet to update', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        // Mock chronik.tx response for this tx to be a new token tx
+        const MOCK_TXID =
+            '1111111111111111111111111111111111111111111111111111111111111111';
+        mockedChronik.setMock('tx', {
+            input: MOCK_TXID,
+            output: mockIncomingTokenTxDetails,
+        });
+        const { result } = renderHook(() => useWallet(mockedChronik));
+
+        // Wait for the wallet to load
+        await waitFor(() =>
+            expect(result.current.cashtabState.wallets[0]).toStrictEqual(
+                walletWithXecAndTokens,
+            ),
+        );
+
+        const expectedCache = new CashtabCache();
+        expectedCache.tokens.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                decimals: 0,
+                success: true,
+                tokenDocumentHash: '',
+                tokenDocumentUrl: 'https://cashtab.com/',
+                tokenName: 'BearNip',
+                tokenTicker: 'BEAR',
+            },
+        );
+
+        // cashtabCache has one token added from tx history
+        await waitFor(() =>
+            expect(result.current.cashtabState.cashtabCache).toEqual(
+                expectedCache,
+            ),
+        );
+
+        // Mock msg for an incoming tx
+        const mockWebsocketMsg = {
+            type: 'AddedToMempool',
+            txid: MOCK_TXID,
+        };
+
+        // processChronikWsMsg returns true if it makes it to the end of the function without returning
+        // i.e., update() was called
+        // TODO we can test this better with a jest bridge to regtest
+        // We can't with mockedChronikClient bc we need to change the tx history after the component renders
+        await act(async () => {
+            expect(
+                await result.current.processChronikWsMsg(
+                    mockWebsocketMsg,
+                    result.current.cashtabState.wallets[0],
+                    result.current.fiatPrice,
+                ),
+            ).toBe(true);
+        });
     });
 });

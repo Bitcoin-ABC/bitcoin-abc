@@ -4,10 +4,12 @@
 
 import * as React from 'react';
 import styled from 'styled-components';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import {
+    CashtabSettings,
+    supportedFiatCurrencies,
+} from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
-import { cashtabSettings as defaultCashtabSettings } from 'config/cashtabSettings';
 import { CashLoader } from 'components/Common/CustomIcons';
 import PropTypes from 'prop-types';
 
@@ -46,7 +48,7 @@ const EcashPrice = styled.p`
 
 const BalanceHeader = ({
     balanceSats = null,
-    settings = defaultCashtabSettings,
+    settings = new CashtabSettings(),
     fiatPrice = null,
     userLocale = 'en-US',
 }) => {

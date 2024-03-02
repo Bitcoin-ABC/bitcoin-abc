@@ -91,10 +91,15 @@ describe('<Home />', () => {
         expect(screen.getByTestId('loading-ctn')).toBeInTheDocument();
 
         // After wallet loads, this is reversed
-        expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
         await waitFor(() =>
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
+
+        // Wait for the balance to render
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
+        // The home screen is in the document
+        expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
 
         // No API Error
         await waitFor(() =>
@@ -145,8 +150,17 @@ describe('<Home />', () => {
             false, // no wallet created
             localforage,
         );
+
         render(<CashtabTestWrapper chronik={mockedChronik} />);
-        // onboarding component is rendered
+
+        // Initially, Loading ctn is rendered
+        expect(screen.getByTestId('loading-ctn')).toBeInTheDocument();
+
+        // After wallet loads, this is reversed
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         expect(
             await screen.findByText('Welcome to Cashtab!'),
         ).toBeInTheDocument();
