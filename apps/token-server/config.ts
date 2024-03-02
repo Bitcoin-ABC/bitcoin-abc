@@ -3,7 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-module.exports = {
+
+interface TokenServerConfig {
+    port: Number;
+    chronikUrls: string[];
+}
+
+const config: TokenServerConfig = {
     port: 3333,
     chronikUrls: [
         'https://chronik-native.fabien.cash',
@@ -11,3 +17,5 @@ module.exports = {
         'https://chronik.be.cash/xec2',
     ],
 };
+
+export default config;

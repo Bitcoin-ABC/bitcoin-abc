@@ -3,10 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const config = require('./config');
-const { startExpressServer } = require('./src/routes');
-const { initializeWebsocket } = require('./src/chronik/wsHandler');
-const { ChronikClientNode } = require('chronik-client');
+import config from './config';
+import { startExpressServer } from './src/routes';
+import { initializeWebsocket } from './src/chronik/wsHandler';
+import { ChronikClientNode } from 'chronik-client';
 
 // Connect to available in-node chronik servers
 const chronik = new ChronikClientNode(config.chronikUrls);
@@ -14,11 +14,6 @@ const chronik = new ChronikClientNode(config.chronikUrls);
 // Initialize websocket connection and log incoming blocks
 initializeWebsocket(chronik).then(
     ws => {
-        console.log(
-            `chronik-client connected to websocket hosted by`,
-            ws._proxyInterface._endpointArray[ws._proxyInterface._workingIndex]
-                .wsUrl,
-        );
         // Start the express app to expose API endpoints
         const server = startExpressServer(config.port);
         console.log(`Express server started on port ${config.port}`);

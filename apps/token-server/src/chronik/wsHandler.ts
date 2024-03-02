@@ -2,15 +2,20 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
-
+import {
+    ChronikClientNode,
+    WsEndpoint_InNode,
+    WsMsgClient,
+} from 'chronik-client';
 /**
  * Connect to websocket with msg handler and subscribe to blocks
  * @param {object} chronik intialized chronik-client
  * @returns {object} connected websocket
  */
-const initializeWebsocket = async chronik => {
-    const ws = chronik.ws({
+export const initializeWebsocket = async (
+    chronik: ChronikClientNode,
+): Promise<WsEndpoint_InNode> => {
+    const ws: WsEndpoint_InNode = chronik.ws({
         onMessage: msg => {
             handleWsMsg(msg);
         },
@@ -26,8 +31,6 @@ const initializeWebsocket = async chronik => {
  * Handle msgs received from the websocket
  * @param {object} msg type WsMsgClient from ChronikClientNode
  */
-const handleWsMsg = msg => {
+export const handleWsMsg = (msg: WsMsgClient) => {
     console.log(msg);
 };
-
-module.exports = { initializeWebsocket, handleWsMsg };

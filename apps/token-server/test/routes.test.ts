@@ -2,13 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
-
-const request = require('supertest');
-const { startExpressServer } = require('../src/routes');
+import * as http from 'http';
+import request from 'supertest';
+import { startExpressServer } from '../src/routes';
 
 describe('routes.js', async function () {
-    let app;
+    let app: http.Server;
     beforeEach(async () => {
         const TEST_PORT = 5000;
         app = startExpressServer(TEST_PORT);

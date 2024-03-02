@@ -4,7 +4,8 @@
     "description": "Manage a token issuing hot wallet for Cashtab rewards tokens",
     "main": "index.js",
     "scripts": {
-        "test": "mocha --recursive",
+        "test": "mocha",
+        "build": "tsc",
         "coverage": "nyc mocha",
         "junit": "mocha test --reporter mocha-junit-reporter"
     },
@@ -26,6 +27,11 @@
     },
     "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc#readme",
     "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^4.17.21",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.11.24",
+        "@types/supertest": "^6.0.2",
         "eslint": "^8.57.0",
         "eslint-plugin-header": "^3.1.1",
         "mocha": "^10.3.0",
@@ -33,14 +39,15 @@
         "mocha-suppress-logs": "^0.5.1",
         "mock-chronik-client": "^1.2.0",
         "nyc": "^15.1.0",
-        "supertest": "^6.3.4"
+        "supertest": "^6.3.4",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
     },
     "dependencies": {
         "chronik-client": "^0.23.0",
         "cors": "^2.8.5",
         "ecashaddrjs": "^1.5.6",
         "express": "^4.18.3",
-        "helmet": "^7.1.0",
-        "request-ip": "^3.3.0"
+        "helmet": "^7.1.0"
     }
 }

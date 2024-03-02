@@ -2,10 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
-const assert = require('assert');
-const { initializeWebsocket } = require('../../src/chronik/wsHandler');
-const { MockChronikClient } = require('mock-chronik-client');
+import * as assert from 'assert';
+import { initializeWebsocket } from '../../src/chronik/wsHandler';
+// TODO use the module here after it exports type declarations
+import { MockChronikClient } from '../../../mock-chronik-client';
 
 describe('chronik/wsHandler.js', async function () {
     it('initializeWebsocket returns expected websocket object', async function () {
@@ -21,6 +21,6 @@ describe('chronik/wsHandler.js', async function () {
         assert.equal(result.isSubscribedBlocks, true);
 
         // Confirm onMessage has been set
-        assert.strictEqual(typeof result.onMessage, 'function');
+        assert.equal(typeof result.onMessage, 'function');
     });
 });
