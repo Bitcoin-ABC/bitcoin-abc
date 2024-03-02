@@ -103,3 +103,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.2.0
 
 -   Add support to calls by `address(address)` returning same as `script(type, hash)`
+
+1.3.0
+
+-   Add support for `subscribeToAddress` and `unsubscribeFromAddress` websocket methods

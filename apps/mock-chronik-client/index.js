@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
+const cashaddr = require('ecashaddrjs');
 
 module.exports = {
     MockChronikClient: class {
@@ -89,6 +90,38 @@ module.exports = {
                                 scriptPayload: hash,
                             });
                             self.wsSubscribeCalled = true;
+                        },
+                        subscribeToAddress: function (address) {
+                            const { type, hash } = cashaddr.decode(
+                                address,
+                                true,
+                            );
+                            this.subs.push({
+                                scriptType: type,
+                                scriptPayload: hash,
+                            });
+                        },
+                        unsubscribeFromAddress: function (address) {
+                            const { type, hash } = cashaddr.decode(
+                                address,
+                                true,
+                            );
+                            // Find the requested unsub script and remove it
+                            const unsubIndex = this.subs.findIndex(
+                                sub =>
+                                    sub.scriptType === type &&
+                                    sub.scriptPayload === hash,
+                            );
+                            if (unsubIndex === -1) {
+                                // If we cannot find this subscription in this.subs, throw an error
+                                // We do not want an app developer thinking they have unsubscribed from something
+                                throw new Error(
+                                    `No existing sub at ${type}, ${hash}`,
+                                );
+                            }
+
+                            // Remove the requested subscription from this.subs
+                            this.subs.splice(unsubIndex, 1);
                         },
                         subscribeToBlocks: function () {
                             this.isSubscribedBlocks = true;

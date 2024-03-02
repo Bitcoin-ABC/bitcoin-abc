@@ -14,7 +14,7 @@ const {
     mockBlockchainInfo,
     mockRawTxHex,
 } = require('../mocks/mockChronikResponses');
-const ecashaddr = require('ecashaddrjs');
+const cashaddr = require('ecashaddrjs');
 const P2PKH_ADDRESS = 'ecash:qzth8qvakhr6y8zcefdrvx30zrdmt2z2gvp7zc5vj8';
 
 it('Mock the block() API response', async function () {
@@ -89,7 +89,7 @@ it('Mock the broadcastTx() API response', async function () {
 it('Mock the script().utxos() API response', async function () {
     // Initialize chronik mock with a utxo set
     const mockedChronik = new MockChronikClient();
-    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
     mockedChronik.setScript(type, hash);
     mockedChronik.setUtxos(type, hash, mockP2pkhUtxos);
 
@@ -112,7 +112,7 @@ it('We get the same script().utxos() API response using address().utxos()', asyn
 it('Mock the script().history() API response', async function () {
     // Initialize chronik mock with history info
     const mockedChronik = new MockChronikClient();
-    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
     mockedChronik.setScript(type, hash);
     mockedChronik.setTxHistory(type, hash, mockTxHistory.txs);
 
@@ -135,7 +135,7 @@ it('We get the same script().history() API response using address().history()', 
 it('Mock the ws() API response', async function () {
     // Initialize chronik mock with script info
     const mockedChronik = new MockChronikClient();
-    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
     const txid =
         'f7d71433af9a4e0081ea60349becf2a60efed8890df7c3e8e079b3427f51d5ea';
 
@@ -179,6 +179,34 @@ it('Mock the ws() API response', async function () {
     // Verify ws confirmation event on the given txid
     assert.strictEqual(mockedChronik.mockedResponses.ws.type, 'Confirmed');
     assert.strictEqual(mockedChronik.mockedResponses.ws.txid, txid);
+});
+
+it('We can subscribe to and unsubscribe from addresses with the ws object', async function () {
+    // Initialize chronik mock with script info
+    const mockedChronik = new MockChronikClient();
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
+
+    // Create websocket subscription to listen to confirmations on txid
+    const ws = mockedChronik.ws({
+        onMessage: msg => {
+            console.log(msg);
+        },
+    });
+
+    // Wait for WS to be connected:
+    await ws.waitForOpen();
+
+    // Subscribe to address
+    ws.subscribeToAddress(P2PKH_ADDRESS);
+
+    // Verify websocket subscription is as expected
+    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+
+    // Unsubscribe from address
+    ws.unsubscribeFromAddress(P2PKH_ADDRESS);
+
+    // Verify websocket subscription is as expected
+    assert.deepEqual(ws.subs, []);
 });
 
 it('Mock an error returned from the block() API', async function () {
@@ -249,7 +277,7 @@ it('Mock an error returned from the broadcastTx() API', async function () {
 
 it('Mock an error returned from the script().utxos() API', async function () {
     const mockedChronik = new MockChronikClient();
-    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
     const expectedError = new Error('Bad response from Chronik');
     mockedChronik.setScript(type, hash);
     mockedChronik.setUtxos(type, hash, expectedError);
@@ -263,7 +291,6 @@ it('Mock an error returned from the script().utxos() API', async function () {
 
 it('Mock an error returned from the address().utxos() API', async function () {
     const mockedChronik = new MockChronikClient();
-    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
     const expectedError = new Error('Bad response from Chronik');
     mockedChronik.setAddress(P2PKH_ADDRESS);
     mockedChronik.setUtxosByAddress(P2PKH_ADDRESS, expectedError);
@@ -276,7 +303,7 @@ it('Mock an error returned from the address().utxos() API', async function () {
 
 it('Mock an error returned from the script().history() API', async function () {
     const mockedChronik = new MockChronikClient();
-    const { type, hash } = ecashaddr.decode(P2PKH_ADDRESS, true);
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
     const expectedError = new Error('Bad response from Chronik');
     mockedChronik.setScript(type, hash);
     mockedChronik.setTxHistory(type, hash, expectedError);
