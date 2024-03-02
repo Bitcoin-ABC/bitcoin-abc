@@ -1115,11 +1115,11 @@ const useWallet = chronik => {
     // Must be able to end them and set new ones with new currencies
     const initializeFiatPriceApi = async selectedFiatCurrency => {
         // Update fiat price and confirm it is set to make sure ap keeps loading state until this is updated
-        await fetchBchPrice(selectedFiatCurrency);
+        await fetchXecPrice(selectedFiatCurrency);
         // Set interval for updating the price with given currency
 
         const thisFiatInterval = setInterval(function () {
-            fetchBchPrice(selectedFiatCurrency);
+            fetchXecPrice(selectedFiatCurrency);
         }, 60000);
 
         // set interval in state
@@ -1276,7 +1276,7 @@ const useWallet = chronik => {
         });
     }, walletRefreshInterval);
 
-    const fetchBchPrice = async (
+    const fetchXecPrice = async (
         fiatCode = typeof cashtabState?.settings?.fiatCurrency !== 'undefined'
             ? cashtabState.settings.fiatCurrency
             : 'usd',
@@ -1285,22 +1285,22 @@ const useWallet = chronik => {
         const cryptoId = appConfig.coingeckoId;
         // Keep this in the code, because different URLs will have different outputs require different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        let bchPrice;
-        let bchPriceJson;
+        let xecPrice;
+        let xecPriceJson;
         try {
-            bchPrice = await fetch(priceApiUrl);
+            xecPrice = await fetch(priceApiUrl);
         } catch (err) {
-            console.log(`Error fetching BCH Price`);
+            console.log(`Error fetching XEC Price`);
             console.log(err);
         }
         try {
-            bchPriceJson = await bchPrice.json();
-            let bchPriceInFiat = bchPriceJson[cryptoId][fiatCode];
+            xecPriceJson = await xecPrice.json();
+            let xecPriceInFiat = xecPriceJson[cryptoId][fiatCode];
 
-            const validEcashPrice = typeof bchPriceInFiat === 'number';
+            const validEcashPrice = typeof xecPriceInFiat === 'number';
 
             if (validEcashPrice) {
-                setFiatPrice(bchPriceInFiat);
+                setFiatPrice(xecPriceInFiat);
             } else {
                 // If API price looks fishy, do not allow app to send using fiat settings
                 setFiatPrice(null);

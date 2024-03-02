@@ -420,8 +420,7 @@ export const finalizeSlpUtxos = (preliminarySlpUtxos, cachedTokens) => {
             .shiftedBy(-1 * decimals)
             .toString();
         // SLP utxos also require tokenId and decimals directly in the utxo object
-        // This is bad organization but necessary until bch-js is refactored
-        // https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/slp/tokentype1.js#L217
+        // TODO refactor after migrating to in-node chronik-client
         thisUtxo.tokenId = thisTokenId;
         thisUtxo.decimals = decimals;
         finalizedSlpUtxos.push(thisUtxo);
