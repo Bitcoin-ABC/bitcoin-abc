@@ -12,7 +12,7 @@ const cashaddr = require('ecashaddrjs');
 const recentStakersApiResponse = require('../test/mocks/recentStakersApiResponse');
 
 const { handleBlockConnected } = require('../src/events');
-const { MockChronikClient } = require('../../mock-chronik-client');
+const { MockChronikClient } = require('mock-chronik-client');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 const axios = require('axios');

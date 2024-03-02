@@ -11,6 +11,7 @@
     "devDependencies": {
         "mocha": "^10.2.0",
         "mocha-junit-reporter": "^2.2.0",
+        "mock-chronik-client": "^1.2.0",
         "nyc": "^15.1.0"
     },
     "scripts": {

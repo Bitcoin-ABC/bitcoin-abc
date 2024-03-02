@@ -13,7 +13,7 @@ const {
     initializeWebsocket,
     parseWebsocketMessage,
 } = require('../src/chronikWsHandler');
-const { MockChronikClient } = require('../../mock-chronik-client');
+const { MockChronikClient } = require('mock-chronik-client');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');

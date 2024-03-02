@@ -5,7 +5,7 @@
 'use strict';
 const assert = require('assert');
 const { initializeWebsocket } = require('../../src/chronik/wsHandler');
-const { MockChronikClient } = require('../../../mock-chronik-client');
+const { MockChronikClient } = require('mock-chronik-client');
 
 describe('chronik/wsHandler.js', async function () {
     it('initializeWebsocket returns expected websocket object', async function () {

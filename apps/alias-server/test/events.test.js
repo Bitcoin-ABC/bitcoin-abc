@@ -13,7 +13,7 @@ const {
     handleBlockConnected,
     handleAddedToMempool,
 } = require('../src/events');
-const { MockChronikClient } = require('../../mock-chronik-client');
+const { MockChronikClient } = require('mock-chronik-client');
 const MockAdapter = require('axios-mock-adapter');
 const axios = require('axios');
 // Mock mongodb

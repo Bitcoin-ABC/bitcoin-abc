@@ -12,7 +12,7 @@ import {
     getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
 } from 'slpv1';
-import { MockChronikClient } from '../../../../apps/mock-chronik-client';
+import { MockChronikClient } from 'mock-chronik-client';
 import {
     sendXecVectors,
     getMultisendTargetOutputsVectors,
