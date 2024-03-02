@@ -5,6 +5,7 @@
 
 #include <rpc/blockchain.h>
 
+#include <avalanche/processor.h>
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -1611,6 +1612,30 @@ static RPCHelpMan preciousblock() {
     };
 }
 
+static void InvalidateBlock(ChainstateManager &chainman,
+                            avalanche::Processor *const avalanche,
+                            const BlockHash &block_hash) {
+    BlockValidationState state;
+    CBlockIndex *pblockindex;
+    {
+        LOCK(chainman.GetMutex());
+        pblockindex = chainman.m_blockman.LookupBlockIndex(block_hash);
+        if (!pblockindex) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
+    }
+    chainman.ActiveChainstate().InvalidateBlock(state, pblockindex);
+
+    if (state.IsValid()) {
+        chainman.ActiveChainstate().ActivateBestChain(state, /*pblock=*/nullptr,
+                                                      avalanche);
+    }
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
+    }
+}
+
 static RPCHelpMan invalidateblock() {
     return RPCHelpMan{
         "invalidateblock",
@@ -1625,31 +1650,11 @@ static RPCHelpMan invalidateblock() {
                     HelpExampleRpc("invalidateblock", "\"blockhash\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
-            BlockValidationState state;
-
             NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
-            CBlockIndex *pblockindex;
-            {
-                LOCK(cs_main);
-                pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
-                if (!pblockindex) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                       "Block not found");
-                }
-            }
-            chainman.ActiveChainstate().InvalidateBlock(state, pblockindex);
+            const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
 
-            if (state.IsValid()) {
-                chainman.ActiveChainstate().ActivateBestChain(
-                    state, /*pblock=*/nullptr, node.avalanche.get());
-            }
-
-            if (!state.IsValid()) {
-                throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
-            }
-
+            InvalidateBlock(chainman, node.avalanche.get(), hash);
             // Block to make sure wallet/indexers sync before returning
             SyncWithValidationInterfaceQueue();
 
@@ -1713,6 +1718,29 @@ RPCHelpMan parkblock() {
     };
 }
 
+static void ReconsiderBlock(ChainstateManager &chainman,
+                            avalanche::Processor *const avalanche,
+                            const BlockHash &block_hash) {
+    {
+        LOCK(chainman.GetMutex());
+        CBlockIndex *pblockindex =
+            chainman.m_blockman.LookupBlockIndex(block_hash);
+        if (!pblockindex) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
+        }
+
+        chainman.ActiveChainstate().ResetBlockFailureFlags(pblockindex);
+    }
+
+    BlockValidationState state;
+    chainman.ActiveChainstate().ActivateBestChain(state, /*pblock=*/nullptr,
+                                                  avalanche);
+
+    if (!state.IsValid()) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
+    }
+}
+
 static RPCHelpMan reconsiderblock() {
     return RPCHelpMan{
         "reconsiderblock",
@@ -1732,25 +1760,7 @@ static RPCHelpMan reconsiderblock() {
             ChainstateManager &chainman = EnsureChainman(node);
             const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
 
-            {
-                LOCK(cs_main);
-                CBlockIndex *pblockindex =
-                    chainman.m_blockman.LookupBlockIndex(hash);
-                if (!pblockindex) {
-                    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                                       "Block not found");
-                }
-
-                chainman.ActiveChainstate().ResetBlockFailureFlags(pblockindex);
-            }
-
-            BlockValidationState state;
-            chainman.ActiveChainstate().ActivateBestChain(
-                state, /*pblock=*/nullptr, node.avalanche.get());
-
-            if (!state.IsValid()) {
-                throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
-            }
+            ReconsiderBlock(chainman, node.avalanche.get(), hash);
 
             // Block to make sure wallet/indexers sync before returning
             SyncWithValidationInterfaceQueue();
