@@ -618,6 +618,10 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
 
             const lokad = stackArray[0];
             switch (lokad) {
+                case opreturnConfig.appPrefixesHex.eToken: {
+                    // Do not set opReturnMsg for etoken txs
+                    break;
+                }
                 case opreturnConfig.appPrefixesHex.airdrop: {
                     // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
                     // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
@@ -636,9 +640,15 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
                             stackArray.length >= 4
                         ) {
                             // Legacy airdrops also pushed hte cashtab msg lokad before the msg
-                            opReturnMessage = Buffer.from(stackArray[3], 'hex');
+                            opReturnMessage = Buffer.from(
+                                stackArray[3],
+                                'hex',
+                            ).toString();
                         } else {
-                            opReturnMessage = Buffer.from(stackArray[2], 'hex');
+                            opReturnMessage = Buffer.from(
+                                stackArray[2],
+                                'hex',
+                            ).toString();
                         }
                     }
                     break;
@@ -646,7 +656,10 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
                 case opreturnConfig.appPrefixesHex.cashtab: {
                     isCashtabMessage = true;
                     if (stackArray.length >= 2) {
-                        opReturnMessage = Buffer.from(stackArray[1], 'hex');
+                        opReturnMessage = Buffer.from(
+                            stackArray[1],
+                            'hex',
+                        ).toString();
                     } else {
                         opReturnMessage = 'off-spec Cashtab Msg';
                     }
@@ -662,7 +675,10 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
                 case opreturnConfig.appPrefixesHex.aliasRegistration: {
                     aliasFlag = true;
                     if (stackArray.length >= 3) {
-                        opReturnMessage = Buffer.from(stackArray[2], 'hex');
+                        opReturnMessage = Buffer.from(
+                            stackArray[2],
+                            'hex',
+                        ).toString();
                     } else {
                         opReturnMessage = 'off-spec alias registration';
                     }
@@ -697,11 +713,18 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
                     break;
                 }
                 default: {
-                    // utf8 decode
-                    opReturnMessage = Buffer.from(
-                        thisOutputReceivedAtHash160,
-                        'hex',
-                    );
+                    // Unrecognized lokad
+                    // In this case, utf8 decode the stack array
+
+                    const decodedStackArray = [];
+                    for (const hexStr of stackArray) {
+                        decodedStackArray.push(
+                            Buffer.from(hexStr, 'hex').toString(),
+                        );
+                    }
+
+                    // join with space
+                    opReturnMessage = decodedStackArray.join(' ');
 
                     break;
                 }
@@ -775,9 +798,6 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
 
     // Get decimal info for correct etokenAmount
     let genesisInfo = {};
-
-    // Convert opReturnMessage to string
-    opReturnMessage = Buffer.from(opReturnMessage).toString();
 
     if (isEtokenTx) {
         // Get token genesis info from cache

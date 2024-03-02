@@ -13259,3 +13259,58 @@ export const PayButtonBadVersion = {
         xecAmount: '0',
     },
 };
+
+export const MsgFromElectrum = {
+    tx: {
+        txid: 'd0c4c5b86016b7a021470180cb4afd1f8456fcf683a19d8b061b2225abd71be4',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '7e439e4a1dde6f4380ed1afddbd5f484db80b00f26c85b3f10f6ccb245da5800',
+                    outIdx: 4,
+                },
+                inputScript:
+                    '416d2f67c38b81b6fdd13f4cb2c2d0a9194800e98b80a1054ca83b1ea3d739e70f9c4e2c8a61050b40161a0d741db9a6e71d155cf61623b9279739b50446d3ec6a4121026769c23182aaa572c16c82121caff660a7c13befd0d20c263e577ca01c4f029e',
+                outputScript:
+                    '76a914eff9a0ba847ae97697a9f97c05887aba2b41060e88ac',
+                value: '81319',
+                sequenceNo: 4294967294,
+            },
+        ],
+        outputs: [
+            {
+                value: '0',
+                outputScript:
+                    '6a1774657374696e672061206d736720666f72206572726f72',
+            },
+            {
+                value: '80213',
+                outputScript:
+                    '76a914731fbd873b3603e8dafd62923b954d38571e10fc88ac',
+            },
+            {
+                value: '600',
+                outputScript:
+                    '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: '1709353270',
+        size: 253,
+        isCoinbase: false,
+        network: 'XEC',
+    },
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        aliasFlag: false,
+        incoming: true,
+        isCashtabMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: false,
+        opReturnMessage: 'testing a msg for error',
+        replyAddress: 'ecash:qrhlng96s3awja5h48uhcpvg02azksgxpce6nvshln',
+        xecAmount: '0',
+    },
+};

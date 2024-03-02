@@ -31,6 +31,7 @@ import {
     PayButtonOffSpec,
     PayButtonEmpty,
     PayButtonYesDataNoNonce,
+    MsgFromElectrum,
 } from './mocks';
 
 export default {
@@ -190,6 +191,13 @@ export default {
                 wallet: mockParseTxWallet,
                 tokenInfoById: txHistoryTokenInfoById,
                 parsed: PayButtonOffSpec.parsed,
+            },
+            {
+                description: 'External msg received from Electrum',
+                tx: MsgFromElectrum.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: MsgFromElectrum.parsed,
             },
         ],
         expectedErrors: [],
