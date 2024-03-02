@@ -820,4 +820,32 @@ describe('<App />', () => {
             state: importedWallet.state,
         });
     });
+    it('A user with an invalid Cashtab wallet is migrated on startup', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...walletWithXecAndTokens,
+                Path1899: {
+                    ...walletWithXecAndTokens.Path1899,
+                    // not ecash: prefixed
+                    cashAddress: '16KeqDEUhAVaoCFV9TjLVkFEvNMErPmoiX',
+                },
+            },
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallet in localforage
+        const migratedWallet = await localforage.getItem('wallet');
+
+        // The wallet has been migrated
+        expect(migratedWallet.Path1899.cashAddress).toBe(
+            walletWithXecAndTokens.Path1899.cashAddress,
+        );
+    });
 });

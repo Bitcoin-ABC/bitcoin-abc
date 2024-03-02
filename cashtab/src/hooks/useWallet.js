@@ -7,8 +7,6 @@ import usePrevious from 'hooks/usePrevious';
 import useInterval from './useInterval';
 import { BN } from 'slp-mdm';
 import {
-    isValidStoredWallet,
-    isLegacyMigrationRequired,
     getHashArrayFromWallet,
     isActiveWebsocket,
     getWalletBalanceFromUtxos,
@@ -18,6 +16,7 @@ import {
     isValidCashtabCache,
     isValidContactList,
     migrateLegacyCashtabSettings,
+    isValidCashtabWallet,
 } from 'validation';
 import localforage from 'localforage';
 import {
@@ -75,7 +74,7 @@ const useWallet = chronik => {
     const [aliasServerError, setAliasServerError] = useState(false);
     const [aliasIntervalId, setAliasIntervalId] = useState(null);
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
-    const { balances, tokens } = isValidStoredWallet(wallet)
+    const { balances, tokens } = isValidCashtabWallet(wallet)
         ? wallet.state
         : {
               balances: {},
@@ -331,7 +330,7 @@ const useWallet = chronik => {
             // If the wallet does not have Path1899, add it
             // or each Path1899, Path145, Path245 does not have a public key, add them
             if (existingWallet) {
-                if (isLegacyMigrationRequired(existingWallet)) {
+                if (!isValidCashtabWallet(existingWallet)) {
                     console.log(
                         `Wallet does not have Path1899 or does not have public key`,
                     );
@@ -572,7 +571,7 @@ const useWallet = chronik => {
         // If wallet does not have Path1899, add it
         // or each of the Path1899, Path145, Path245 does not have a public key, add them
         // by calling migrateLagacyWallet()
-        if (isLegacyMigrationRequired(walletToActivate)) {
+        if (!isValidCashtabWallet(walletToActivate)) {
             // Case 2, described above
             console.log(
                 `Case 2: Wallet to activate is not in the most up to date Cashtab format`,

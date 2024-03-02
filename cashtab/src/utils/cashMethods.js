@@ -33,25 +33,6 @@ export const getWalletBalanceFromUtxos = nonSlpUtxos => {
     };
 };
 
-export const isValidStoredWallet = walletStateFromStorage => {
-    return (
-        typeof walletStateFromStorage === 'object' &&
-        'state' in walletStateFromStorage &&
-        'mnemonic' in walletStateFromStorage &&
-        'name' in walletStateFromStorage &&
-        'Path245' in walletStateFromStorage &&
-        'Path145' in walletStateFromStorage &&
-        'Path1899' in walletStateFromStorage &&
-        typeof walletStateFromStorage.state === 'object' &&
-        'balances' in walletStateFromStorage.state &&
-        !('hydratedUtxoDetails' in walletStateFromStorage.state) &&
-        !('slpBalancesAndUtxos' in walletStateFromStorage.state) &&
-        'slpUtxos' in walletStateFromStorage.state &&
-        'nonSlpUtxos' in walletStateFromStorage.state &&
-        'tokens' in walletStateFromStorage.state
-    );
-};
-
 export const getWalletState = wallet => {
     if (!wallet || !wallet.state) {
         return {
@@ -152,28 +133,6 @@ export function convertEcashtoEtokenAddr(eCashAddress) {
     }
     return eTokenAddress;
 }
-
-export const isLegacyMigrationRequired = wallet => {
-    // If the wallet does not have Path1899,
-    // Or each Path1899, Path145, Path245 does not have a public key
-    // Then it requires migration
-    if (
-        !wallet.Path1899 ||
-        !wallet.Path1899.publicKey ||
-        !wallet.Path1899.hash160 ||
-        !wallet.Path145.publicKey ||
-        !wallet.Path145.hash160 ||
-        !wallet.Path245.publicKey ||
-        !wallet.Path245.hash160 ||
-        !wallet.Path1899.cashAddress.startsWith('ecash:') ||
-        !wallet.Path145.cashAddress.startsWith('ecash:') ||
-        !wallet.Path245.cashAddress.startsWith('ecash:')
-    ) {
-        return true;
-    }
-
-    return false;
-};
 
 export const getHashArrayFromWallet = wallet => {
     // If the wallet has wallet.Path1899.hash160, it's migrated and will have all of them

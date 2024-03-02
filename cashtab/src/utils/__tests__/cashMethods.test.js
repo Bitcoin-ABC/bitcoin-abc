@@ -3,9 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
-    isValidStoredWallet,
     convertToEcashPrefix,
-    isLegacyMigrationRequired,
     convertEtokenToEcashAddr,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
@@ -16,22 +14,8 @@ import {
 import { utxosLoadedFromCache } from '../__mocks__/mockCachedUtxos';
 import {
     pre20221123validStoredWallet,
-    invalidStoredWallet,
-    invalidpreChronikStoredWallet,
     validStoredWalletAfter20221123Streamline,
-    invalidStoredWalletMissingPath1899AndMnemonic,
 } from '../__mocks__/mockStoredWallets';
-import {
-    missingPath1899Wallet,
-    missingPublicKeyInPath1899Wallet,
-    missingPublicKeyInPath145Wallet,
-    missingPublicKeyInPath245Wallet,
-    notLegacyWalletWithXecPrefixes,
-    notLegacyWalletWithPath145OnBchPrefix,
-    notLegacyWalletWithPath1899OnBchPrefix,
-    notLegacyWalletWithPath245OnBchPrefix,
-    missingHash160,
-} from '../__mocks__/mockLegacyWalletsUtils';
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
 import {
     activeWebsocketAlpha,
@@ -78,25 +62,6 @@ describe('Correctly executes cash utility functions', () => {
             getWalletBalanceFromUtxos(utxosLoadedFromCache.nonSlpUtxos),
         ).toStrictEqual(utxosLoadedFromCache.balances);
     });
-    it(`A wallet with format from before the 20221123 migration is invalid`, () => {
-        expect(isValidStoredWallet(pre20221123validStoredWallet)).toBe(false);
-    });
-    it(`Recognizes a stored wallet as valid if it has all required fields in 20221123 updated format`, () => {
-        expect(
-            isValidStoredWallet(validStoredWalletAfter20221123Streamline),
-        ).toBe(true);
-    });
-    it(`Recognizes a stored wallet as invalid if it is missing required fields`, () => {
-        expect(isValidStoredWallet(invalidStoredWallet)).toBe(false);
-    });
-    it(`Recognizes a stored wallet as invalid if it includes hydratedUtxoDetails in the state field`, () => {
-        expect(isValidStoredWallet(invalidpreChronikStoredWallet)).toBe(false);
-    });
-    it(`Recognizes a stored wallet as invalid if it's missing the Path1899 and mnemonic keys`, () => {
-        expect(
-            isValidStoredWallet(invalidStoredWalletMissingPath1899AndMnemonic),
-        ).toBe(false);
-    });
     it(`convertToEcashPrefix converts a bitcoincash: prefixed address to an ecash: prefixed address`, () => {
         expect(
             convertToEcashPrefix(
@@ -110,47 +75,6 @@ describe('Correctly executes cash utility functions', () => {
                 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
             ),
         ).toBe('ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035');
-    });
-    it(`Recognizes a wallet with missing Path1889 is a Legacy Wallet and requires migration`, () => {
-        expect(isLegacyMigrationRequired(missingPath1899Wallet)).toBe(true);
-    });
-    it(`Recognizes a wallet with missing PublicKey in Path1889 is a Legacy Wallet and requires migration`, () => {
-        expect(
-            isLegacyMigrationRequired(missingPublicKeyInPath1899Wallet),
-        ).toBe(true);
-    });
-    it(`Recognizes a wallet with missing PublicKey in Path145 is a Legacy Wallet and requires migration`, () => {
-        expect(isLegacyMigrationRequired(missingPublicKeyInPath145Wallet)).toBe(
-            true,
-        );
-    });
-    it(`Recognizes a wallet with missing PublicKey in Path245 is a Legacy Wallet and requires migration`, () => {
-        expect(isLegacyMigrationRequired(missingPublicKeyInPath245Wallet)).toBe(
-            true,
-        );
-    });
-    it(`Recognizes a wallet with missing Hash160 values is a Legacy Wallet and requires migration`, () => {
-        expect(isLegacyMigrationRequired(missingHash160)).toBe(true);
-    });
-    it(`Recognizes a latest, current wallet that does not require migration`, () => {
-        expect(isLegacyMigrationRequired(notLegacyWalletWithXecPrefixes)).toBe(
-            false,
-        );
-    });
-    it(`Recognizes a non-eCash prefixed Path245 address and requires migration`, () => {
-        expect(
-            isLegacyMigrationRequired(notLegacyWalletWithPath245OnBchPrefix),
-        ).toBe(true);
-    });
-    it(`Recognizes a non-eCash prefixed Path1899 address and requires migration`, () => {
-        expect(
-            isLegacyMigrationRequired(notLegacyWalletWithPath1899OnBchPrefix),
-        ).toBe(true);
-    });
-    it(`Recognizes a non-eCash prefixed Path145 address and requires migration`, () => {
-        expect(
-            isLegacyMigrationRequired(notLegacyWalletWithPath145OnBchPrefix),
-        ).toBe(true);
     });
 
     test('convertEtokenToEcashAddr successfully converts a valid eToken address to eCash', async () => {

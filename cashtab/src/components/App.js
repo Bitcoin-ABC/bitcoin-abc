@@ -34,7 +34,7 @@ import NotFound from 'components/NotFound';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'wallet/context';
-import { isValidStoredWallet, getWalletState } from 'utils/cashMethods';
+import { getWalletState } from 'utils/cashMethods';
 import {
     Route,
     Navigate,
@@ -54,6 +54,7 @@ import { WalletInfoCtn } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import appConfig from 'config/app';
+import { isValidCashtabWallet } from 'validation';
 
 const ExtensionFrame = createGlobalStyle`
     html, body {
@@ -452,7 +453,7 @@ const App = () => {
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
-    const validWallet = isValidStoredWallet(wallet);
+    const validWallet = isValidCashtabWallet(wallet);
     const location = useLocation();
     const navigate = useNavigate();
 
