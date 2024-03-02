@@ -4,6 +4,7 @@
 """Helpful routines for regression testing."""
 
 import enum
+import hashlib
 import inspect
 import json
 import logging
@@ -309,6 +310,16 @@ def wait_until_helper(
     raise AssertionError(
         f"Predicate {predicate_source} not true after {timeout} seconds"
     )
+
+
+def sha256sum_file(filename):
+    h = hashlib.sha256()
+    with open(filename, "rb") as f:
+        d = f.read(4096)
+        while len(d) > 0:
+            h.update(d)
+            d = f.read(4096)
+    return h.digest()
 
 
 # RPC/P2P connection constants and functions

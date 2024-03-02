@@ -24,7 +24,7 @@ class DumptxoutsetTest(BitcoinTestFramework):
         self.generate(node, COINBASE_MATURITY)
 
         FILENAME = "txoutset.dat"
-        out = node.dumptxoutset(FILENAME)
+        out = node.dumptxoutset(FILENAME, "latest")
         expected_path = Path(node.datadir) / self.chain / FILENAME
 
         assert expected_path.is_file()
@@ -54,7 +54,16 @@ class DumptxoutsetTest(BitcoinTestFramework):
 
         # Specifying a path to an existing file will fail.
         assert_raises_rpc_error(
-            -8, f"{FILENAME} already exists", node.dumptxoutset, FILENAME
+            -8, f"{FILENAME} already exists", node.dumptxoutset, FILENAME, "latest"
+        )
+
+        self.log.info("Test that dumptxoutset with unknown dump type fails")
+        assert_raises_rpc_error(
+            -8,
+            'Invalid snapshot type "bogus" specified. Please specify "rollback" or "latest"',
+            node.dumptxoutset,
+            "utxos.dat",
+            "bogus",
         )
 
 
