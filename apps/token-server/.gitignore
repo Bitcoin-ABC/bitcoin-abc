@@ -7,5 +7,8 @@ node_modules/
 # npm run junit artifact
 test-results.xml
 
+# artifact from testing CI locally
+test_results/
+
 # compiled ts
 dist/
