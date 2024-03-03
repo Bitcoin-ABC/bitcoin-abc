@@ -51,7 +51,7 @@ impl Group for TokenIdGroup {
     type Aux = TokenIdGroupAux;
     type Iter<'a> = Vec<MemberItem<TokenId>>;
     type Member<'a> = TokenId;
-    type MemberSer<'a> = [u8; 32];
+    type MemberSer = [u8; 32];
     type UtxoData = UtxoDataOutput;
 
     fn input_members<'a>(
@@ -99,7 +99,7 @@ impl Group for TokenIdGroup {
         output_scripts
     }
 
-    fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a> {
+    fn ser_member(&self, member: &Self::Member<'_>) -> Self::MemberSer {
         member.to_be_bytes()
     }
 

@@ -68,7 +68,7 @@ impl Group for ScriptGroup {
     type Aux = ();
     type Iter<'a> = ScriptGroupIter<'a>;
     type Member<'a> = &'a Script;
-    type MemberSer<'a> = Bytes;
+    type MemberSer = Bytes;
     type UtxoData = UtxoDataValue;
 
     fn input_members<'a>(
@@ -97,7 +97,7 @@ impl Group for ScriptGroup {
         }
     }
 
-    fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a> {
+    fn ser_member(&self, member: &Self::Member<'_>) -> Self::MemberSer {
         compress_script_variant(&member.variant())
     }
 

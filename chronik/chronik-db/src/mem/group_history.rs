@@ -39,7 +39,7 @@ impl<G: Group> MempoolGroupHistory<G> {
             tx: &tx.tx,
         };
         for member in tx_members_for_group(&self.group, query, aux) {
-            let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
+            let member_ser: G::MemberSer = self.group.ser_member(&member);
             if !self.history.contains_key(member_ser.as_ref()) {
                 self.history
                     .insert(member_ser.as_ref().to_vec(), BTreeSet::new());
@@ -59,7 +59,7 @@ impl<G: Group> MempoolGroupHistory<G> {
             tx: &tx.tx,
         };
         for member in tx_members_for_group(&self.group, query, aux) {
-            let member_ser: G::MemberSer<'_> = self.group.ser_member(&member);
+            let member_ser: G::MemberSer = self.group.ser_member(&member);
             if let Some(entries) = self.history.get_mut(member_ser.as_ref()) {
                 entries.remove(&(tx.time_first_seen, tx.tx.txid()));
                 if entries.is_empty() {

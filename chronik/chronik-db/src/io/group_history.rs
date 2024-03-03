@@ -116,7 +116,7 @@ pub enum GroupHistoryError {
 struct FetchedNumTxs<'tx, G: Group> {
     members_num_txs: Vec<NumTxs>,
     grouped_txs: BTreeMap<G::Member<'tx>, Vec<TxNum>>,
-    ser_members: Vec<G::MemberSer<'tx>>,
+    ser_members: Vec<G::MemberSer>,
 }
 
 pub(crate) fn bytes_to_num_txs(bytes: &[u8]) -> Result<NumTxs> {

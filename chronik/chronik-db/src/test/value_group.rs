@@ -20,7 +20,7 @@ impl Group for ValueGroup {
     type Aux = ();
     type Iter<'a> = Vec<MemberItem<i64>>;
     type Member<'a> = i64;
-    type MemberSer<'a> = [u8; 8];
+    type MemberSer = [u8; 8];
     type UtxoData = UtxoDataValue;
 
     fn input_members(
@@ -57,7 +57,7 @@ impl Group for ValueGroup {
         outputs
     }
 
-    fn ser_member<'a>(&self, value: &i64) -> Self::MemberSer<'a> {
+    fn ser_member(&self, value: &i64) -> Self::MemberSer {
         ser_value(*value)
     }
 

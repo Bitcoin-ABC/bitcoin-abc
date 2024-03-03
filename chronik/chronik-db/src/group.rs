@@ -54,7 +54,7 @@ pub trait Group {
     /// time we compare/hash elements for grouping.
     ///
     /// Note: For group history, this will be suffixed by a 4-byte page number.
-    type MemberSer<'a>: AsRef<[u8]> + 'a;
+    type MemberSer: AsRef<[u8]>;
 
     /// Auxillary data when grouping members
     type Aux;
@@ -85,7 +85,7 @@ pub trait Group {
     ) -> Self::Iter<'a>;
 
     /// Serialize the given member.
-    fn ser_member<'a>(&self, member: &Self::Member<'a>) -> Self::MemberSer<'a>;
+    fn ser_member(&self, member: &Self::Member<'_>) -> Self::MemberSer;
 
     /// The [`GroupHistoryConf`] for this group.
     fn tx_history_conf() -> GroupHistoryConf;
