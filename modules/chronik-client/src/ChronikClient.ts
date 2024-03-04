@@ -84,6 +84,27 @@ export class ChronikClient {
         };
     }
 
+    /**
+     *  Validate a tx by rawtx
+     *  This is a sort of preflight check before broadcasting a tx
+     *  Allows us to
+     *  - check before broadcast if a tx unintentionally burns tokens
+     */
+    public async validateRawTx(rawTx: Uint8Array | string): Promise<Tx> {
+        // Validate input
+        if (typeof rawTx !== 'string' && !(rawTx instanceof Uint8Array)) {
+            // User has called validateRawTx with invalid input, no need to use chronik
+            // to validate this rawTx
+            throw new Error('rawTx must be a hex string or a Uint8Array');
+        }
+        const request = proto.RawTx.encode({
+            rawTx: typeof rawTx === 'string' ? fromHex(rawTx) : rawTx,
+        }).finish();
+        const data = await this._proxyInterface.post('/validate-tx', request);
+        const validateResponse = proto.Tx.decode(data);
+        return convertToTx(validateResponse);
+    }
+
     /** Fetch current info of the blockchain, such as tip hash and height. */
     public async blockchainInfo(): Promise<BlockchainInfo> {
         const data = await this._proxyInterface.get(`/blockchain-info`);

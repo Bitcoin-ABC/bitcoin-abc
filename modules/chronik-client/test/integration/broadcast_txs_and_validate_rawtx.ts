@@ -7,7 +7,8 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClient } from '../../index';
+import { ChronikClient, Tx } from '../../index';
+import { fromHex } from '../../src/hex';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -33,6 +34,9 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
     let setupScriptTermination: ReturnType<typeof setTimeout>;
+    let alpGenesisRawTx: string;
+    let alpGenesisPreview: Tx;
+    let alpGenesisAfter: Tx;
 
     before(async function () {
         // Initialize testRunner before mocha tests
@@ -129,29 +133,84 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
         testRunner.send('next');
     });
 
-    it('New regtest chain', async () => {
+    it('New regtest chain. Behavior of broadcastTx and validateRawTx.', async () => {
+        // Initialize new ChronikClientNode
         const chronik = new ChronikClient(chronikUrl);
 
+        // validateTx input validation
+        await expect(
+            chronik.validateRawTx({
+                rawTx: 'not a string or a Uint8Array',
+            } as unknown as Uint8Array),
+        ).to.be.rejectedWith(
+            Error,
+            'rawTx must be a hex string or a Uint8Array',
+        );
+
         // We can't broadcast an invalid tx
+        const BAD_VALUE_IN_SATS = 2500000000;
+        const BAD_VALUE_OUT_SATS = 4999999960000;
+        const SATOSHIS_PER_XEC = 100;
         const BAD_RAW_TX =
             '0100000001fa5b8f14f5b63ae42f7624a416214bdfffd1de438e9db843a4ddf4d392302e2100000000020151000000000800000000000000003c6a5039534c5032000747454e4553495300000000000006e80300000000d00700000000b80b00000000a00f0000000088130000000070170000000000102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b8760c937278c04000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b8700000000';
         await expect(chronik.broadcastTx(BAD_RAW_TX)).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: bad-txns-in-belowout, value in (25000000.00) < value out (49999999600.00)`,
+            `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: bad-txns-in-belowout, value in (${(
+                BAD_VALUE_IN_SATS / SATOSHIS_PER_XEC
+            ).toFixed(2)}) < value out (${(
+                BAD_VALUE_OUT_SATS / SATOSHIS_PER_XEC
+            ).toFixed(2)})`,
         );
 
-        // We can broadcast an ALP genesis tx
-        const alpGenesisRawTx = await get_alp_genesis_rawtx;
+        // We can, though, preview an invalid tx using chronik.validateRawTx
+        const invalidTx = await chronik.validateRawTx(BAD_RAW_TX);
+        expect(invalidTx.txid).to.eql(
+            '5c91ef5b654d21ad5db2c7af71f2924a0c31a5ef347498bbcba8ee1374d6c6a9',
+        );
+        // We can also call validateTx with rawTx as a Uint8Array
+        const sameInvalidTx = await chronik.validateRawTx(fromHex(BAD_RAW_TX));
+        expect(sameInvalidTx.txid).to.eql(invalidTx.txid);
+        const invalidTxSumInputs = invalidTx.inputs
+            .map(input => input.value)
+            .reduce((prev, curr) => prev + curr, 0);
+        const invalidTxSumOutputs = invalidTx.outputs
+            .map(output => output.value)
+            .reduce((prev, curr) => prev + curr, 0);
+
+        // Indeed, the outputs are greater than the inputs, and such that the tx is invalid
+        expect(invalidTxSumInputs).to.eql(BAD_VALUE_IN_SATS);
+        expect(invalidTxSumOutputs).to.eql(BAD_VALUE_OUT_SATS);
+
+        // We cannot call validateRawTx to get a tx from a rawtx of a normal token send tx if its inputs are not in the mempool or db
+        // txid in blockchain but not regtest, 423e24bf0715cfb80727e5e7a6ff7b9e37cb2f555c537ab06fdc7fd9b3a0ba3a
+        const NORMAL_TOKEN_SEND =
+            '020000000278e5886fb86174d9abd4af331a4b67a3baf37d052703c176009a92dba60181d9020000006b4830450221009149768d5e8b2bedf8259f91741db160ae389451ed11bb376f372c61c88d58ec02202492c21df1b21b99d7b021eb6eef78be99b45a64e9c7d9ce8f8880abfa28a5e4412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1effffffff78e5886fb86174d9abd4af331a4b67a3baf37d052703c176009a92dba60181d9030000006b483045022100f7311d000d3fbe672dd742e85f372cd6d52435210d0c92f21e73ca6588918a4702204b5a7a90a73e5fd48f90af24c02c4f15e8c40515af931dd44f8030691a2e5d8d412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1effffffff040000000000000000406a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa0800000002540be40008000000079d6e2ee722020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac22020000000000001976a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88acf7190600000000001976a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac00000000';
+
+        await expect(
+            chronik.validateRawTx(NORMAL_TOKEN_SEND),
+        ).to.be.rejectedWith(
+            Error,
+            'Failed getting /validate-tx: 400: Failed indexing mempool token tx: Tx is spending d98101a6db929a0076c10327057df3baa3674b1a33afd4abd97461b86f88e578 which is found neither in the mempool nor DB',
+        );
+
+        alpGenesisRawTx = await get_alp_genesis_rawtx;
         const alpGenesisTxid = await get_alp_genesis_txid;
 
+        // We can validateRawTx an ALP genesis tx before it is broadcast
+        alpGenesisPreview = await chronik.validateRawTx(alpGenesisRawTx);
+
+        // We can broadcast an ALP genesis tx
         expect(await chronik.broadcastTx(alpGenesisRawTx)).to.deep.equal({
             txid: alpGenesisTxid,
         });
 
-        // We can't broadcast an ALP burn tx without setting skipTokenChecks
         const alpBurnRawTx = await get_alp_burn_rawtx;
         const alpBurnTxid = await get_alp_burn_txid;
 
+        // We can preview an ALP burn tx before it is broadcast
+        const alpBurnPreview = await chronik.validateRawTx(alpBurnRawTx);
+
+        // We can't broadcast an ALP burn tx without setting skipTokenChecks
         await expect(chronik.broadcastTx(alpBurnRawTx)).to.be.rejectedWith(
             Error,
             `Failed getting /broadcast-tx: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
@@ -178,6 +237,9 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
             `Failed getting /broadcast-txs: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict`,
         );
 
+        // We can also preview okRawTx before it is broadcast
+        const okPreview = await chronik.validateRawTx(okRawTx);
+
         // We can broadcast multiple txs including a burn if we set skipTokenChecks
         expect(
             await chronik.broadcastTxs([okRawTx, alpBurnRawTx], true),
@@ -186,23 +248,53 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
         // We can broadcast an ALP burn tx if we set skipTokenChecks
         const alpBurnTwoRawTx = await get_alp_burn_2_rawtx;
         const alpBurnTwoTxid = await get_alp_burn_2_txid;
+
+        // And we can preview it before it is broadcast
+        const alpBurnTwoPreview = await chronik.validateRawTx(alpBurnTwoRawTx);
+
         expect(await chronik.broadcastTx(alpBurnTwoRawTx, true)).to.deep.equal({
             txid: alpBurnTwoTxid,
         });
 
         // All of these txs are in the mempool, i.e. they have been broadcast
-        const broadcastTxids = [
-            alpGenesisTxid,
-            okTxid,
-            alpBurnTxid,
-            alpBurnTwoTxid,
+        const broadcastTxs = [
+            { txid: alpGenesisTxid, preview: alpGenesisPreview },
+            { txid: okTxid, preview: okPreview },
+            { txid: alpBurnTxid, preview: alpBurnPreview },
+            { txid: alpBurnTwoTxid, preview: alpBurnTwoPreview },
         ];
-        for (const txid of broadcastTxids) {
-            expect((await chronik.tx(txid)).txid).to.eql(txid);
+        for (const tx of broadcastTxs) {
+            const { txid, preview } = tx;
+            const txInMempool = await chronik.tx(txid);
+            // We get the same tx from the mempool
+            expect(txInMempool.txid).to.eql(txid);
+            // Previewing the tx gives us the same info as calling chronik.tx on the tx in the mempool
+            // Except for expected changes
+            // - spentBy key is present in mempool if it was spentBy
+            // - timeFirstSeen is 0 in the preview txs
+            expect({ ...preview }).to.deep.equal({
+                ...txInMempool,
+                // preview txs have timeFirstSeen of 0
+                timeFirstSeen: 0,
+                // preview txs have output.spentBy undefined
+                outputs: [...preview.outputs],
+            });
         }
 
-        // We can't broadcast an invalid rawtx
+        // If we use validateRawTx on a tx that has been broadcast, we still get timeFirstSeen of 0
+        // and outputs.spentBy of undefined, even if the outputs have been spent
+        // We can validateRawTx an ALP genesis tx after it is broadcast
+        alpGenesisAfter = await chronik.validateRawTx(alpGenesisRawTx);
+        expect(alpGenesisAfter).to.deep.equal(alpGenesisPreview);
+
+        // We can't broadcast an invalid hex rawtx
         await expect(chronik.broadcastTx('not a rawtx')).to.be.rejectedWith(
+            Error,
+            `Odd hex length: not a rawtx`,
+        );
+
+        // We can't preview an invalid hex rawtx
+        await expect(chronik.validateRawTx('not a rawtx')).to.be.rejectedWith(
             Error,
             `Odd hex length: not a rawtx`,
         );
@@ -235,11 +327,28 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
         const chronik = new ChronikClient(chronikUrl);
 
         const alpGenesisRawTx = await get_alp_genesis_rawtx;
-        // If we broadcast a tx already in the mempool, we get a normal response
 
+        // We can't broadcast a rawtx if it is already in a block
         await expect(chronik.broadcastTx(alpGenesisRawTx)).to.be.rejectedWith(
             Error,
             `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction already in block chain`,
         );
+
+        // If we use validateRawTx on a tx that has been mined, we still get timeFirstSeen of 0
+        // and outputs.spentBy of undefined, even if the outputs have been spent
+        const alpGenesisAfterMined = await chronik.validateRawTx(
+            alpGenesisRawTx,
+        );
+
+        expect(alpGenesisPreview).to.deep.equal({
+            ...alpGenesisAfterMined,
+            inputs: [
+                {
+                    ...alpGenesisAfterMined.inputs[0],
+                    outputScript: alpGenesisPreview.inputs[0].outputScript,
+                    value: alpGenesisPreview.inputs[0].value,
+                },
+            ],
+        });
     });
 });
