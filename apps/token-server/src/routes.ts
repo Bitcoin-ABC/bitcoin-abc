@@ -7,6 +7,11 @@ import * as http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 
+/**
+ * routes.ts
+ * Start Express server and expose API endpoints
+ */
+
 export const startExpressServer = (port: Number): http.Server => {
     // Initialize express
     const app: Express = express();

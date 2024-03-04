@@ -7,6 +7,12 @@ import {
     WsEndpoint_InNode,
     WsMsgClient,
 } from 'chronik-client';
+
+/**
+ * wsHandler.ts
+ * Methods to work with the ChronikClientNode websocket connection
+ */
+
 /**
  * Connect to websocket with msg handler and subscribe to blocks
  * @param {object} chronik intialized chronik-client
