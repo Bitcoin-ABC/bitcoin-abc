@@ -490,7 +490,7 @@ export class WsEndpoint_InNode {
         this.subscribeToScript(type as 'p2pkh' | 'p2sh', hash as string);
     }
 
-    /** Unsubscribe from the given script type and payload. */
+    /** Unsubscribe from the given address */
     public unsubscribeFromAddress(address: string) {
         // Get type and hash
         const { type, hash } = cashaddr.decode(address, true);
