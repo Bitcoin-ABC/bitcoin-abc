@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-'use strict';
 import config from './config';
 import { startExpressServer } from './src/routes';
 import { initializeWebsocket } from './src/chronik/wsHandler';
