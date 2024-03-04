@@ -14,10 +14,10 @@ const {
     mockSimpleP2pkhUtxos,
     mockSendXecRawTxHex,
     mockSendXecNoChangeRawTxHex,
-} = require('mock-chronik-client/mocks/mockChronikResponses');
+} = require('../../mock-chronik-client/mocks/mockChronikResponses');
 
 // Mock chronik
-const { MockChronikClient } = require('mock-chronik-client');
+const { MockChronikClient } = require('../../mock-chronik-client/index');
 
 // Throw away test wallet
 const throwAwayMnemonic =

@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
 const assert = require('assert');
-const { MockChronikClient } = require('mock-chronik-client');
+const { MockChronikClient } = require('../../mock-chronik-client');
 const { getTokenInfoMap } = require('../src/chronik');
 const { tx } = require('./mocks/chronikResponses');
 // Initialize chronik on app startup

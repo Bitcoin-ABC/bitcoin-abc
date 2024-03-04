@@ -20,7 +20,7 @@ const {
 const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 // Mock chronik
-const { MockChronikClient } = require('mock-chronik-client');
+const { MockChronikClient } = require('../../mock-chronik-client');
 const NodeCache = require('node-cache');
 
 describe('alias-server main.js', async function () {
