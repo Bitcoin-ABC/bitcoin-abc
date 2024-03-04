@@ -382,10 +382,7 @@ export class WsEndpoint_InNode {
     public ws: ws.WebSocket | undefined;
     public connected: Promise<ws.Event> | undefined;
     public manuallyClosed: boolean;
-    public subs: WsSubScriptClient[];
-
-    /* Is the websocket subscribed to block updates */
-    public isSubscribedBlocks: boolean;
+    public subs: WsSubscriptions;
 
     constructor(proxyInterface: FailoverProxy, config: WsConfig_InNode) {
         this.onMessage = config.onMessage;
@@ -395,8 +392,7 @@ export class WsEndpoint_InNode {
         this.autoReconnect =
             config.autoReconnect !== undefined ? config.autoReconnect : true;
         this.manuallyClosed = false;
-        this.subs = [];
-        this.isSubscribedBlocks = false;
+        this.subs = { scripts: [], tokens: [], blocks: false };
         this._proxyInterface = proxyInterface;
     }
 
@@ -410,7 +406,7 @@ export class WsEndpoint_InNode {
      * Subscribe to block messages
      */
     public subscribeToBlocks() {
-        this.isSubscribedBlocks = true;
+        this.subs.blocks = true;
         if (this.ws?.readyState === WebSocket.OPEN) {
             this._subUnsubBlocks(false);
         }
@@ -420,7 +416,7 @@ export class WsEndpoint_InNode {
      * Unsubscribe from block messages
      */
     public unsubscribeFromBlocks() {
-        this.isSubscribedBlocks = false;
+        this.subs.blocks = false;
         if (this.ws?.readyState === WebSocket.OPEN) {
             this._subUnsubBlocks(true);
         }
@@ -445,7 +441,7 @@ export class WsEndpoint_InNode {
             throw new Error(scriptSubscriptionValidationCheck as string);
         }
 
-        this.subs.push(subscription as WsSubScriptClient);
+        this.subs.scripts.push(subscription as WsSubScriptClient);
 
         if (this.ws?.readyState === WebSocket.OPEN) {
             this._subUnsubScript(false, subscription);
@@ -461,7 +457,7 @@ export class WsEndpoint_InNode {
         };
 
         // Find the requested unsub script and remove it
-        const unsubIndex = this.subs.findIndex(
+        const unsubIndex = this.subs.scripts.findIndex(
             sub => sub.scriptType === type && sub.payload === payload,
         );
         if (unsubIndex === -1) {
@@ -471,7 +467,7 @@ export class WsEndpoint_InNode {
         }
 
         // Remove the requested subscription from this.subs
-        this.subs.splice(unsubIndex, 1);
+        this.subs.scripts.splice(unsubIndex, 1);
 
         if (this.ws?.readyState === WebSocket.OPEN) {
             this._subUnsubScript(true, subscription);
@@ -1459,4 +1455,13 @@ export interface GenesisInfo {
     authPubkey?: string;
     /** decimals of the token, i.e. how many decimal places the token should be displayed with. */
     decimals: number;
+}
+
+interface WsSubscriptions {
+    /** Subscriptions to scripts */
+    scripts: WsSubScriptClient[];
+    /** Subscriptions to tokens by tokenId */
+    tokens: string[];
+    /** Subscription to blocks */
+    blocks: boolean;
 }

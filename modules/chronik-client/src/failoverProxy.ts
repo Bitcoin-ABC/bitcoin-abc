@@ -280,14 +280,16 @@ export class FailoverProxy {
                               // WsEndpoint_InNode has a slightly different API vs NNG
                               ws.onopen = msg => {
                                   // Subscribe to all previously-subscribed endpoints
-                                  wsEndpoint.subs.forEach(sub =>
+                                  wsEndpoint.subs.scripts.forEach(sub =>
                                       wsEndpoint.subscribeToScript(
                                           sub.scriptType,
                                           sub.payload,
                                       ),
                                   );
+                                  // TODO subscribe to all tokenIds in subs.tokens
+
                                   // Subscribe to blocks method, if previously subscribed
-                                  if (wsEndpoint.isSubscribedBlocks) {
+                                  if (wsEndpoint.subs.blocks === true) {
                                       wsEndpoint.subscribeToBlocks();
                                   }
                                   resolve(msg);

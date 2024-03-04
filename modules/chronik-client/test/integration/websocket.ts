@@ -230,7 +230,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
         }
 
         // The ws object is updated with expected subscriptions
-        expect(ws.subs).to.deep.equal(subscriptions);
+        expect(ws.subs.scripts).to.deep.equal(subscriptions);
 
         // No change if we unsub from a valid hash we were never subscribed to
         expect(() =>
@@ -258,7 +258,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
                 (unsub as WsSubScriptClient).payload,
             );
             // The ws object has removed this subscription
-            expect(ws.subs).to.deep.equal(remainingSubscriptions);
+            expect(ws.subs.scripts).to.deep.equal(remainingSubscriptions);
         }
 
         // We can subscribe to p2sh and p2pkh scripts with subscribeToAddress
@@ -266,7 +266,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
         ws.subscribeToAddress(p2shAddress);
 
         // The ws object is updated with expected subscriptions
-        expect(ws.subs).to.deep.equal([
+        expect(ws.subs.scripts).to.deep.equal([
             { scriptType: 'p2pkh', payload: p2pkhHash },
             { scriptType: 'p2sh', payload: p2shHash },
         ]);
@@ -276,7 +276,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
         ws.unsubscribeFromAddress(p2shAddress);
 
         // The ws object is updated with expected subscriptions
-        expect(ws.subs).to.deep.equal([]);
+        expect(ws.subs.scripts).to.deep.equal([]);
 
         // We get the validation error from ecashaddrjs if we attempt to subscribe or unsubscribe
         // from anything that is not a valid p2pkh or p2sh address
@@ -289,11 +289,11 @@ describe('Test expected websocket behavior of chronik-client', () => {
 
         // We can subscribe to blocks
         ws.subscribeToBlocks();
-        expect(ws.isSubscribedBlocks).to.eql(true);
+        expect(ws.subs.blocks).to.eql(true);
 
         // We can unsubscribe from blocks
         ws.unsubscribeFromBlocks();
-        expect(ws.isSubscribedBlocks).to.eql(false);
+        expect(ws.subs.blocks).to.eql(false);
 
         // Test some thrown errors
         // These are exhaustively unit tested in src/test/test.ts
@@ -580,9 +580,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
             ws.unsubscribeFromScript(scriptType, payload);
         }
         // The ws object is updated to reflect no subscriptions
-        expect(ws.subs).to.deep.equal([]);
+        expect(ws.subs.scripts).to.deep.equal([]);
         // The ws object is updated to reflect no block subscription
-        expect(ws.isSubscribedBlocks).to.eql(false);
+        expect(ws.subs.blocks).to.eql(false);
     });
     it('After we have unsubscribed to all and another block is found', async () => {
         // We get no new msgs after unsubscribing from blocks and txs, even after block connected

@@ -158,7 +158,7 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
 
         // We are subscribed to the expected script
         // The ws object is updated with expected subscriptions
-        expect(ws.subs).to.deep.equal(subscriptions);
+        expect(ws.subs.scripts).to.deep.equal(subscriptions);
     });
     it('Txs sent', async () => {
         coinTx = await get_cointx;

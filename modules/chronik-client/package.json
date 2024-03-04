@@ -1,6 +1,6 @@
 {
     "name": "chronik-client",
-    "version": "0.24.1",
+    "version": "0.25.0",
     "description": "A client for accessing the Chronik Indexer API",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
