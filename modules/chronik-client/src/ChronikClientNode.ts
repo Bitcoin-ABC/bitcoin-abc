@@ -625,14 +625,12 @@ function convertToBlockInfo(block: proto.BlockInfo): BlockInfo_InNode {
 }
 
 function convertToTx(tx: proto.Tx): Tx_InNode {
-    return {
+    const convertedTx: Tx_InNode = {
         txid: toHexRev(tx.txid),
         version: tx.version,
         inputs: tx.inputs.map(convertToTxInput),
         outputs: tx.outputs.map(convertToTxOutput),
         lockTime: tx.lockTime,
-        block:
-            tx.block !== undefined ? convertToBlockMeta(tx.block) : undefined,
         timeFirstSeen: parseInt(tx.timeFirstSeen),
         size: tx.size,
         isCoinbase: tx.isCoinbase,
@@ -642,6 +640,11 @@ function convertToTx(tx: proto.Tx): Tx_InNode {
         ),
         tokenStatus: convertToTokenStatus(tx.tokenStatus),
     };
+    if (typeof tx.block !== 'undefined') {
+        // Only include block if the tx is in a block
+        convertedTx.block = convertToBlockMeta(tx.block);
+    }
+    return convertedTx;
 }
 
 function convertToTxInput(input: proto.TxInput): TxInput_InNode {
@@ -654,16 +657,19 @@ function convertToTxInput(input: proto.TxInput): TxInput_InNode {
             outIdx: input.prevOut.outIdx,
         },
         inputScript: toHex(input.inputScript),
-        outputScript:
-            input.outputScript.length > 0
-                ? toHex(input.outputScript)
-                : undefined,
         value: parseInt(input.value),
         sequenceNo: input.sequenceNo,
     };
     if (typeof input.token !== 'undefined') {
         // We only return a token key if we have token data for this input
         txInput.token = convertToTokenInNode(input.token);
+    }
+    if (
+        typeof input.outputScript !== 'undefined' &&
+        input.outputScript.length > 0
+    ) {
+        // Coinbase tx inputs do not have an outputScript
+        txInput.outputScript = toHex(input.outputScript);
     }
     return txInput;
 }
@@ -672,17 +678,17 @@ function convertToTxOutput(output: proto.TxOutput): TxOutput_InNode {
     const txOutput: TxOutput_InNode = {
         value: parseInt(output.value),
         outputScript: toHex(output.outputScript),
-        spentBy:
-            output.spentBy !== undefined
-                ? {
-                      txid: toHexRev(output.spentBy.txid),
-                      outIdx: output.spentBy.inputIdx,
-                  }
-                : undefined,
     };
     if (typeof output.token !== 'undefined') {
         // We only return a token key if we have token data for this input
         txOutput.token = convertToTokenInNode(output.token);
+    }
+    if (typeof output.spentBy !== 'undefined') {
+        // We only return a spentBy key if this output has been spent
+        txOutput.spentBy = {
+            txid: toHexRev(output.spentBy.txid),
+            outIdx: output.spentBy.inputIdx,
+        };
     }
     return txOutput;
 }
@@ -915,8 +921,8 @@ function convertToTokenInfo(tokenInfo: proto.TokenInfo): TokenInfo {
         genesisInfo: convertToGenesisInfo(tokenInfo.genesisInfo, tokenType),
     };
 
-    // Only include block if the tx is confirmed
     if (typeof tokenInfo.block !== 'undefined') {
+        // Only include block if the tx is in a block
         returnedTokenInfo.block = convertToBlockMeta(tokenInfo.block);
     }
 
@@ -1033,8 +1039,8 @@ export interface Tx_InNode {
     outputs: TxOutput_InNode[];
     /** `locktime` field of the transaction, tx is not valid before this time. */
     lockTime: number;
-    /** Block data for this tx, or undefined if not mined yet. */
-    block: BlockMetadata_InNode | undefined;
+    /** Block data for this tx, if it is in a block. */
+    block?: BlockMetadata_InNode;
     /**
      * UNIX timestamp when this tx has first been seen in the mempool.
      * 0 if unknown -> make sure to check.
@@ -1067,8 +1073,9 @@ export interface TxInput_InNode {
     /**
      * Script of the output, in hex encoding.
      * Aka. `scriptPubKey` in bitcoind parlance.
+     * Not present for coinbase txs
      */
-    outputScript: string | undefined;
+    outputScript?: string;
     /** Value of the output spent by this input, in satoshis. */
     value: number;
     /** `sequence` field of the input; can be used for relative time locking. */
@@ -1087,10 +1094,10 @@ export interface TxOutput_InNode {
      */
     outputScript: string;
     /**
-     * Transaction & input index spending this output, or undefined if
-     * unspent.
+     * Transaction & input index spending this output, if
+     * spent.
      */
-    spentBy: OutPoint | undefined;
+    spentBy?: OutPoint;
     /** Token value attached to this output */
     token?: Token_InNode;
 }

@@ -112,7 +112,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     const BASE_TX_OUTPUT = {
         value: 10000,
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
-        spentBy: undefined,
     };
     const BASE_TX_TOKEN_INFO_SLP_V2 = {
         tokenType: {

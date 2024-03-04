@@ -150,7 +150,6 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     const BASE_TX_OUTPUT = {
         value: 546,
         outputScript: 'a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87',
-        spentBy: undefined,
     };
     const BASE_TX_TOKEN_INFO_ALP = {
         tokenType: {
