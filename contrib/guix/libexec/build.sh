@@ -241,6 +241,7 @@ case "$HOST" in
         echo "0b2f6c8f85a3d02fde2efc0ced4657869d73fccfce59defb4e8d29233116e6db rustup-init" | sha256sum -c
         chmod +x rustup-init
         ./rustup-init -y --default-toolchain=1.76.0
+        rm ./rustup-init
         # shellcheck disable=SC1091
         source "$HOME/.cargo/env"
         rustup target add "${RUST_TARGET}"
