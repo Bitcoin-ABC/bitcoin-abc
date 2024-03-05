@@ -2,9 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-use crate::io::{
-    GroupHistoryMemData, GroupHistoryStats, GroupUtxoMemData, GroupUtxoStats,
-    SpentByMemData, SpentByStats, TxsMemData, TxsStats,
+use crate::{
+    index_tx::{TxNumCache, TxNumCacheSettings},
+    io::{
+        GroupHistoryMemData, GroupHistoryStats, GroupUtxoMemData,
+        GroupUtxoStats, SpentByMemData, SpentByStats, TxsMemData, TxsStats,
+    },
 };
 
 /// In-memory data for Chronik, e.g. caches, perf statistics.
@@ -12,6 +15,8 @@ use crate::io::{
 pub struct MemData {
     /// In-memory data for indexing txs.
     pub txs: TxsMemData,
+    /// In-memory TxNumCache.
+    pub tx_num_cache: TxNumCache,
     /// In-memory data for indexing script tx history.
     pub script_history: GroupHistoryMemData,
     /// In-memory data for indexing script UTXOs.
@@ -35,13 +40,17 @@ pub struct StatsData {
 
 /// Config for in-memory data for Chronik.
 #[derive(Clone, Debug)]
-pub struct MemDataConf {}
+pub struct MemDataConf {
+    /// Settings for tuning TxNumCache.
+    pub tx_num_cache: TxNumCacheSettings,
+}
 
 impl MemData {
     /// Create a new [`MemData`] from the given configuration.
-    pub fn new(_: MemDataConf) -> Self {
+    pub fn new(conf: MemDataConf) -> Self {
         MemData {
             txs: TxsMemData::default(),
+            tx_num_cache: TxNumCache::new(conf.tx_num_cache),
             script_history: GroupHistoryMemData::default(),
             script_utxos: GroupUtxoMemData::default(),
             spent_by: SpentByMemData::default(),

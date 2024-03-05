@@ -57,6 +57,15 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
                 params.NetworkIDString() == CBaseChainParams::REGTEST
                     ? uint64_t(count_seconds(WS_PING_INTERVAL_REGTEST))
                     : uint64_t(count_seconds(WS_PING_INTERVAL_DEFAULT)),
+            .tx_num_cache =
+                {
+                    .num_buckets =
+                        (size_t)gArgs.GetIntArg("-chroniktxnumcachebuckets",
+                                                DEFAULT_TX_NUM_CACHE_BUCKETS),
+                    .bucket_size = (size_t)gArgs.GetIntArg(
+                        "-chroniktxnumcachebucketsize",
+                        DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
+                },
         },
         config, node);
 }

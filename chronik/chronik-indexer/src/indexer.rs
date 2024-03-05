@@ -18,7 +18,9 @@ use chronik_db::{
         ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter, TokenIdGroup,
         TokenIdGroupAux, TokenIdHistoryWriter, TokenIdUtxoWriter,
     },
-    index_tx::prepare_indexed_txs,
+    index_tx::{
+        prepare_indexed_txs_cached, PrepareUpdateMode, TxNumCacheSettings,
+    },
     io::{
         merge, token::TokenWriter, BlockHeight, BlockReader, BlockStatsWriter,
         BlockTxs, BlockWriter, DbBlock, GroupHistoryMemData, GroupUtxoMemData,
@@ -56,6 +58,8 @@ pub struct ChronikIndexerParams {
     pub enable_token_index: bool,
     /// Whether to output Chronik performance statistics into a perf/ folder
     pub enable_perf_stats: bool,
+    /// Settings for tuning TxNumCache.
+    pub tx_num_cache: TxNumCacheSettings,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
@@ -187,7 +191,9 @@ impl ChronikIndexer {
         Ok(ChronikIndexer {
             db,
             mempool,
-            mem_data: MemData::new(MemDataConf {}),
+            mem_data: MemData::new(MemDataConf {
+                tx_num_cache: params.tx_num_cache,
+            }),
             script_group: ScriptGroup,
             avalanche: Avalanche::default(),
             subs: RwLock::new(Subs::new(ScriptGroup)),
@@ -362,8 +368,13 @@ impl ChronikIndexer {
             &block.block_txs,
             &mut self.mem_data.txs,
         )?;
-        let index_txs =
-            prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        let index_txs = prepare_indexed_txs_cached(
+            &self.db,
+            first_tx_num,
+            &block.txs,
+            &mut self.mem_data.tx_num_cache,
+            PrepareUpdateMode::Add,
+        )?;
         block_stats_writer
             .insert(&mut batch, height, block.size, &index_txs)?;
         script_history_writer.insert(
@@ -448,8 +459,13 @@ impl ChronikIndexer {
             &block.block_txs,
             &mut self.mem_data.txs,
         )?;
-        let index_txs =
-            prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        let index_txs = prepare_indexed_txs_cached(
+            &self.db,
+            first_tx_num,
+            &block.txs,
+            &mut self.mem_data.tx_num_cache,
+            PrepareUpdateMode::Delete,
+        )?;
         block_stats_writer.delete(&mut batch, block.db_block.height);
         script_history_writer.delete(
             &mut batch,
@@ -511,8 +527,13 @@ impl ChronikIndexer {
         let first_tx_num = tx_reader
             .first_tx_num_by_block(block.db_block.height)?
             .unwrap();
-        let index_txs =
-            prepare_indexed_txs(&self.db, first_tx_num, &block.txs)?;
+        let index_txs = prepare_indexed_txs_cached(
+            &self.db,
+            first_tx_num,
+            &block.txs,
+            &mut self.mem_data.tx_num_cache,
+            PrepareUpdateMode::Read,
+        )?;
         let token_id_aux = if self.is_token_index_enabled {
             TokenIdGroupAux::from_db(&index_txs, &self.db)?
         } else {
@@ -831,6 +852,7 @@ mod tests {
             wipe_db: false,
             enable_token_index: false,
             enable_perf_stats: false,
+            tx_num_cache: Default::default(),
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
@@ -899,6 +921,7 @@ mod tests {
             wipe_db: false,
             enable_token_index: false,
             enable_perf_stats: false,
+            tx_num_cache: Default::default(),
         };
 
         // Setting up DB first time sets the schema version

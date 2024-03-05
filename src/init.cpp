@@ -650,6 +650,26 @@ void SetupServerArgs(NodeContext &node) {
                    "Reindex the Chronik indexer from genesis, but leave the "
                    "other indexes untouched",
                    ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chroniktxnumcachebuckets",
+        strprintf(
+            "Tuning param of the TxNumCache, specifies how many buckets "
+            "to use on the belt. Caution against setting this too high, "
+            "it may slow down indexing. Set to 0 to disable. (default: %d)",
+            chronik::DEFAULT_TX_NUM_CACHE_BUCKETS),
+        ArgsManager::ALLOW_INT, OptionsCategory::CHRONIK);
+    argsman.AddArg(
+        "-chroniktxnumcachebucketsize",
+        strprintf(
+            "Tuning param of the TxNumCache, specifies the size of each bucket "
+            "on the belt. Unlike the number of buckets, this may be increased "
+            "without much danger of slowing the indexer down. The total cache "
+            "size will be `num_buckets * bucket_size * 40B`, so by default the "
+            "cache will require %dkB of memory. (default: %d)",
+            chronik::DEFAULT_TX_NUM_CACHE_BUCKETS *
+                chronik::DEFAULT_TX_NUM_CACHE_BUCKET_SIZE * 40 / 1000,
+            chronik::DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
+        ArgsManager::ALLOW_INT, OptionsCategory::CHRONIK);
     argsman.AddArg("-chronikperfstats",
                    "Output some performance statistics (e.g. num cache hits, "
                    "seconds spent) into a <datadir>/perf folder. (default: 0)",

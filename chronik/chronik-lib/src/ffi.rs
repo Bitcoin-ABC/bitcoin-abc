@@ -31,6 +31,17 @@ mod ffi_inner {
         pub enable_perf_stats: bool,
         /// Duration between WebSocket pings initiated by Chronik.
         pub ws_ping_interval_secs: u64,
+        /// Tuning settings for the TxNumCache.
+        pub tx_num_cache: TxNumCacheSettings,
+    }
+
+    /// Settings for tuning the TxNumCache.
+    #[derive(Debug)]
+    pub struct TxNumCacheSettings {
+        /// How many buckets are on the belt
+        pub num_buckets: usize,
+        /// How many txs are cached in each bucket
+        pub bucket_size: usize,
     }
 
     extern "Rust" {

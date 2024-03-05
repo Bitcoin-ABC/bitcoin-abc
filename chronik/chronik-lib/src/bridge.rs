@@ -13,7 +13,7 @@ use std::{
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{Tx, TxId};
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
-use chronik_db::mem::MempoolTx;
+use chronik_db::{index_tx::TxNumCacheSettings, mem::MempoolTx};
 use chronik_http::server::{
     ChronikServer, ChronikServerParams, ChronikSettings,
 };
@@ -78,6 +78,10 @@ fn try_setup_chronik(
         wipe_db: params.wipe_db,
         enable_token_index: params.enable_token_index,
         enable_perf_stats: params.enable_perf_stats,
+        tx_num_cache: TxNumCacheSettings {
+            bucket_size: params.tx_num_cache.bucket_size,
+            num_buckets: params.tx_num_cache.num_buckets,
+        },
     })?;
     indexer.resync_indexer(bridge_ref)?;
     if bridge.shutdown_requested() {
