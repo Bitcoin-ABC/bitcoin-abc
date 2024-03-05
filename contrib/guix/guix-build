@@ -339,6 +339,7 @@ for host in $HOSTS; do
     case "$host" in
         *darwin*)
             # We don't need --emulate-fhs because we don't build chronik
+            unset EMULATE_FHS
             ;;
         *)
             EMULATE_FHS=--emulate-fhs
