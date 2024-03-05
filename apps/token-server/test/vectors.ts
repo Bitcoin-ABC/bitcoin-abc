@@ -36,7 +36,6 @@ const MOCK_TX_INPUT: TxInput_InNode = {
 const MOCK_TX_OUTPUT: TxOutput_InNode = {
     value: 546,
     outputScript: 'to be updated in test',
-    spentBy: { txid: 'n/a', outIdx: 0 },
 };
 
 const MOCK_TX_INNODE: Tx_InNode = {
@@ -51,7 +50,6 @@ const MOCK_TX_INNODE: Tx_InNode = {
     tokenEntries: [],
     tokenFailedParsings: [],
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
-    block: undefined, // TODO fix Tx_InNode so this is optional
 };
 
 const MOCK_TX_OUTPUT_TOKEN: Token_InNode = {
