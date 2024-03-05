@@ -37,6 +37,7 @@ Required environment variables as seen inside the container:
 EOF
 
 ACTUAL_OUTDIR="${OUTDIR}"
+OUTDIR_BASE=$(dirname "${OUTDIR}")
 OUTDIR="${DISTSRC}/output"
 
 #####################
@@ -248,37 +249,43 @@ case "$HOST" in
         ;;
 esac
 
-mkdir -p source_package
-pushd source_package
+# Produce the source package if it does not already exist
+if ! ls "${OUTDIR_BASE}"/bitcoin-abc-*.tar.gz 1> /dev/null 2>&1; then
+    mkdir -p source_package
+    pushd source_package
 
-cmake -GNinja .. \
-    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
-    -DBUILD_BITCOIN_WALLET=OFF \
-    -DBUILD_BITCOIN_CHRONIK=OFF \
-    -DBUILD_BITCOIN_QT=OFF \
-    -DBUILD_BITCOIN_ZMQ=OFF \
-    -DENABLE_QRCODE=OFF \
-    -DENABLE_NATPMP=OFF \
-    -DENABLE_UPNP=OFF \
-    -DUSE_JEMALLOC=OFF \
-    -DENABLE_CLANG_TIDY=OFF \
-    -DENABLE_BIP70=OFF \
-    -DUSE_LINKER=
+    cmake -GNinja .. \
+        -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
+        -DBUILD_BITCOIN_WALLET=OFF \
+        -DBUILD_BITCOIN_CHRONIK=OFF \
+        -DBUILD_BITCOIN_QT=OFF \
+        -DBUILD_BITCOIN_ZMQ=OFF \
+        -DENABLE_QRCODE=OFF \
+        -DENABLE_NATPMP=OFF \
+        -DENABLE_UPNP=OFF \
+        -DUSE_JEMALLOC=OFF \
+        -DENABLE_CLANG_TIDY=OFF \
+        -DENABLE_BIP70=OFF \
+        -DUSE_LINKER=
 
-ninja package_source
-SOURCEDIST=$(echo bitcoin-abc-*.tar.gz)
-mv ${SOURCEDIST} ..
+    ninja package_source
+    SOURCEDIST=$(echo bitcoin-abc-*.tar.gz)
+    mv ${SOURCEDIST} ..
 
-popd
-rm -rf source_package
+    popd
+    rm -rf source_package
 
-DISTNAME=${SOURCEDIST//.tar.*/}
+    DISTNAME=${SOURCEDIST//.tar.*/}
 
-# Correct tar file order
-tar -xf ${SOURCEDIST}
-rm ${SOURCEDIST}
-tar --create --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > ${SOURCEDIST}
-rm -rf ${DISTNAME}
+    # Correct tar file order
+    tar -xf ${SOURCEDIST}
+    rm ${SOURCEDIST}
+    tar --create --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > "${OUTDIR_BASE}/${SOURCEDIST}"
+    rm -rf ${DISTNAME}
+else
+    echo Skipping source package generation because it already exists.
+    DISTNAME=$(basename -s .tar.gz "${OUTDIR_BASE}"/bitcoin-abc-*.tar.gz)
+fi
 
 mkdir -p "$OUTDIR"
 OUTDIR=$(realpath "${OUTDIR}")
@@ -374,6 +381,18 @@ mkdir -p "$DISTSRC"
       "${CMAKE_CXX_FLAGS}" \
       "${CMAKE_LD_FLAGS}"
 
+    # Sanity check for the source tarball version
+    RELEASE_VERSION=$(ninja print-version | sed '$!d')
+    if [[ ${DISTNAME} == *${RELEASE_VERSION} ]]; then
+        echo Release version ${RELEASE_VERSION} matches source package filename ${DISTNAME}
+    else
+        cat << EOF
+Error: Release version ${RELEASE_VERSION} does not match source package filename ${DISTNAME}
+Delete the source archive from the output/ directory before rerunning the build.
+EOF
+        exit 1
+    fi
+
     # Build Bitcoin ABC
     ninja
     ninja security-check
@@ -435,14 +454,16 @@ rm -rf "$ACTUAL_OUTDIR"
 mv --no-target-directory "$OUTDIR" "$ACTUAL_OUTDIR" \
     || ( rm -rf "$ACTUAL_OUTDIR" && exit 1 )
 
-mv ${SOURCEDIST} "$ACTUAL_OUTDIR"
-
 (
-    cd /outdir-base
+    cd "${OUTDIR_BASE}"
     find "$ACTUAL_OUTDIR" -type f -print0 \
       | xargs -0 realpath --relative-base="$PWD" \
       | xargs sha256sum \
       | sort -k2 \
       | sponge "$ACTUAL_OUTDIR"/SHA256SUMS.part
+    # $SOURCEDIST is defined if the source package was created for this host.
+    if [ -n "${SOURCEDIST}" ]; then
+        sha256sum ${SOURCEDIST} >> "$ACTUAL_OUTDIR"/SHA256SUMS.part
+    fi
     cat "$ACTUAL_OUTDIR"/SHA256SUMS.part
 )
