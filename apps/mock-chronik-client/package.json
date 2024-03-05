@@ -4,7 +4,7 @@
     },
     "name": "mock-chronik-client",
     "description": "Testing utility to mock the Chronik indexer client and support unit tests that need to mock chronik related API calls.",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "main": "index.js",
     "devDependencies": {
         "mocha": "^10.2.0",

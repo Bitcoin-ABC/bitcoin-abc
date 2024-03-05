@@ -107,3 +107,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.3.0
 
 -   Add support for `subscribeToAddress` and `unsubscribeFromAddress` websocket methods
+
+1.4.0
+
+-   Add support for `ws.unsubscribe` method and fix errors in `ws` tests

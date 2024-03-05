@@ -85,11 +85,24 @@ module.exports = {
                             self.wsWaitForOpenCalled = true;
                         },
                         subscribe: function (type, hash) {
-                            returnedWs.subs.push({
+                            this.subs.push({
                                 scriptType: type,
                                 scriptPayload: hash,
                             });
                             self.wsSubscribeCalled = true;
+                        },
+                        unsubscribe: function (type, hash) {
+                            const thisSubInSubsIndex = this.subs.findIndex(
+                                sub =>
+                                    sub.scriptType === type &&
+                                    sub.scriptPayload === hash,
+                            );
+
+                            if (typeof thisSubInSubsIndex !== 'undefined') {
+                                // Remove from subs
+                                this.subs.splice(thisSubInSubsIndex, 1);
+                            }
+                            // Otherwise do nothing
                         },
                         subscribeToAddress: function (address) {
                             const { type, hash } = cashaddr.decode(

@@ -132,53 +132,74 @@ it('We get the same script().history() API response using address().history()', 
     assert.deepEqual(result, mockTxHistory);
 });
 
-it('Mock the ws() API response', async function () {
+it('We can sub and unsub to scripts with the websocket', async function () {
     // Initialize chronik mock with script info
     const mockedChronik = new MockChronikClient();
     const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
-    const txid =
-        'f7d71433af9a4e0081ea60349becf2a60efed8890df7c3e8e079b3427f51d5ea';
 
     // Create websocket subscription to listen to confirmations on txid
     const ws = mockedChronik.ws({
         onMessage: msg => {
-            if (msg.type === 'Confirmed' && msg.txid === txid) {
-                // Confirmation received, unsubscribe and close websocket
-                ws.unsubscribe(type, hash);
-                ws.close();
-            }
+            console.log(`msg`, msg);
         },
     });
+
     // Wait for WS to be connected:
     await ws.waitForOpen();
 
     // Subscribe to scripts
     ws.subscribe(type, hash);
 
-    // Tell mockedChronik what response we expect
-    mockedChronik.setMock('ws', {
-        output: {
-            type: 'Confirmed',
-            txid: txid,
+    // The sub is in ws.subs
+    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+
+    // We can unsubscribe from the script
+    ws.unsubscribe(type, hash);
+
+    // The sub is no longer there
+    assert.deepEqual(ws.subs, []);
+});
+
+it('We can mock a chronik websocket connection', async function () {
+    // Initialize chronik mock with script info
+    const mockedChronik = new MockChronikClient();
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
+
+    // Create websocket subscription to listen to confirmations on txid
+    const ws = mockedChronik.ws({
+        onMessage: msg => {
+            console.log(`msg`, msg);
         },
     });
+
+    // Wait for WS to be connected:
+    await ws.waitForOpen();
+
+    // Subscribe to scripts
+    ws.subscribe(type, hash);
+    // We can test that ws.subscribe was called
+    assert.strictEqual(mockedChronik.wsSubscribeCalled, true);
+
+    // The sub is in ws.subs
+    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+
+    // We can unsubscribe from the script
+    ws.unsubscribe(type, hash);
+
+    // The sub is no longer there
+    assert.deepEqual(ws.subs, []);
+
+    // We can test that waitForOpen() has been called
+    await ws.waitForOpen();
+    assert.equal(mockedChronik.wsWaitForOpenCalled, true);
+
+    // We can test if a websocket was closed by calling wsClose() (aka "manually closed")
     mockedChronik.wsClose();
+    assert.equal(mockedChronik.manuallyClosed, true);
 
     // We can subscribe to blocks (in-node chronik-client)
     ws.subscribeToBlocks();
-
-    // Verify subscription functions were called
     assert.strictEqual(ws.isSubscribedBlocks, true);
-    assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
-    assert.strictEqual(mockedChronik.wsSubscribeCalled, true);
-    assert.strictEqual(mockedChronik.manuallyClosed, true);
-
-    // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
-
-    // Verify ws confirmation event on the given txid
-    assert.strictEqual(mockedChronik.mockedResponses.ws.type, 'Confirmed');
-    assert.strictEqual(mockedChronik.mockedResponses.ws.txid, txid);
 });
 
 it('We can subscribe to and unsubscribe from addresses with the ws object', async function () {
@@ -207,6 +228,12 @@ it('We can subscribe to and unsubscribe from addresses with the ws object', asyn
 
     // Verify websocket subscription is as expected
     assert.deepEqual(ws.subs, []);
+
+    // We expect an error if we unsubscribe from an address and there is no existing subscription
+    assert.throws(
+        () => ws.unsubscribeFromAddress(P2PKH_ADDRESS),
+        new Error(`No existing sub at ${type}, ${hash}`),
+    );
 });
 
 it('Mock an error returned from the block() API', async function () {
