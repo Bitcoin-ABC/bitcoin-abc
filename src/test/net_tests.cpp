@@ -1293,7 +1293,7 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
                /*inbound_onion=*/false};
 
     const uint64_t services{NODE_NETWORK};
-    const int64_t time{0};
+    const int64_t time{Params().GenesisBlock().nTime};
     const CNetMsgMaker msg_maker{PROTOCOL_VERSION};
 
     // Force ChainstateManager::IsInitialBlockDownload() to return false.

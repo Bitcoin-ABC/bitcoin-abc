@@ -2713,10 +2713,8 @@ bool PeerManagerImpl::MaybePunishNodeForBlock(NodeId nodeid,
             return true;
         // Conflicting (but not necessarily invalid) data or different policy:
         case BlockValidationResult::BLOCK_MISSING_PREV:
-            // TODO: Handle this much more gracefully (10 DoS points is super
-            // arbitrary)
             if (peer) {
-                Misbehaving(*peer, 10, message);
+                Misbehaving(*peer, 100, message);
             }
             return true;
         case BlockValidationResult::BLOCK_TIME_FUTURE:
@@ -3679,7 +3677,7 @@ bool PeerManagerImpl::CheckHeadersPoW(const std::vector<CBlockHeader> &headers,
 
     // Are these headers connected to each other?
     if (!CheckHeadersAreContinuous(headers)) {
-        Misbehaving(peer, 20, "non-continuous headers sequence");
+        Misbehaving(peer, 100, "non-continuous headers sequence");
         return false;
     }
     return true;
@@ -5032,7 +5030,7 @@ void PeerManagerImpl::ProcessMessage(
         if (nTime < int64_t(m_chainparams.GenesisBlock().nTime)) {
             // Ignore time offsets that are improbable (before the Genesis
             // block) and may underflow our adjusted time.
-            Misbehaving(*peer, 20,
+            Misbehaving(*peer, 100,
                         "Ignoring invalid timestamp in version message");
         } else if (!pfrom.IsInboundConn()) {
             // Don't use timedata samples from inbound peers to make it
@@ -5052,7 +5050,7 @@ void PeerManagerImpl::ProcessMessage(
 
     if (pfrom.nVersion == 0) {
         // Must have a version message before anything else
-        Misbehaving(*peer, 10, "non-version message before version handshake");
+        Misbehaving(*peer, 100, "non-version message before version handshake");
         return;
     }
 
@@ -5122,7 +5120,7 @@ void PeerManagerImpl::ProcessMessage(
 
     if (!pfrom.fSuccessfullyConnected) {
         // Must have a verack message before anything else
-        Misbehaving(*peer, 10, "non-verack message before version handshake");
+        Misbehaving(*peer, 100, "non-verack message before version handshake");
         return;
     }
 
@@ -5148,7 +5146,7 @@ void PeerManagerImpl::ProcessMessage(
 
         if (vAddr.size() > m_opts.max_addr_to_send) {
             Misbehaving(
-                *peer, 20,
+                *peer, 100,
                 strprintf("%s message size = %u", msg_type, vAddr.size()));
             return;
         }
@@ -5285,7 +5283,7 @@ void PeerManagerImpl::ProcessMessage(
         std::vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
-            Misbehaving(*peer, 20,
+            Misbehaving(*peer, 100,
                         strprintf("inv message size = %u", vInv.size()));
             return;
         }
@@ -5419,7 +5417,7 @@ void PeerManagerImpl::ProcessMessage(
         std::vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) {
-            Misbehaving(*peer, 20,
+            Misbehaving(*peer, 100,
                         strprintf("getdata message size = %u", vInv.size()));
             return;
         }
@@ -6418,7 +6416,7 @@ void PeerManagerImpl::ProcessMessage(
         // deserializing 2000 full blocks.
         unsigned int nCount = ReadCompactSize(vRecv);
         if (nCount > MAX_HEADERS_RESULTS) {
-            Misbehaving(*peer, 20,
+            Misbehaving(*peer, 100,
                         strprintf("too-many-headers: headers message size = %u",
                                   nCount));
             return;

@@ -65,6 +65,7 @@ class VersionTimestampTest(BitcoinTestFramework):
         ):
             self.nodes[0].add_p2p_connection(
                 ModifiedVersionTimestampP2PInterface(-9223372036854775807),
+                wait_for_connection=False,
                 send_version=False,
             )
 
@@ -77,6 +78,7 @@ class VersionTimestampTest(BitcoinTestFramework):
         ):
             self.nodes[0].add_p2p_connection(
                 ModifiedVersionTimestampP2PInterface(TIME_GENESIS_BLOCK - 1),
+                wait_for_connection=False,
                 send_version=False,
             )
 
@@ -91,7 +93,7 @@ class VersionTimestampTest(BitcoinTestFramework):
 
         # This check verifies that the mocktime was indeed used in the VERSION message
         assert_equal(
-            self.nodes[0].getpeerinfo()[2]["timeoffset"],
+            self.nodes[0].getpeerinfo()[0]["timeoffset"],
             TIME_GENESIS_BLOCK - NODE0_TIME,
         )
 

@@ -150,11 +150,10 @@ class P2PLeakTest(BitcoinTestFramework):
             NoVerackIdlePeer(), wait_for_verack=False
         )
 
-        # Send enough ping messages (any non-version message will do) prior
+        # Send a ping message (any non-version message will do) prior
         # to sending version to reach the peer discouragement threshold. This
         # should get us disconnected.
-        for _ in range(DISCOURAGEMENT_THRESHOLD):
-            no_version_disconnect_peer.send_message(msg_ping())
+        no_version_disconnect_peer.send_message(msg_ping())
 
         # Wait until we got the verack in response to the version. Though, don't wait for the node to receive the
         # verack, since we never sent one

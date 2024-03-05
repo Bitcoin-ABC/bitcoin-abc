@@ -96,6 +96,23 @@ class MutatedBlocksTest(BitcoinTestFramework):
         honest_relayer.send_and_ping(block_txn)
         assert_equal(self.nodes[0].getbestblockhash(), block.hash)
 
+        # Note that the following test is a bit out of place in this suite, due to a
+        # non-applicable backport (core#29524). We keep it anyway because this is
+        # the only coverage for disconnecting a node due to non-connecting blocks.
+        assert_equal(len(self.nodes[0].getpeerinfo()), 1)
+        attacker = self.nodes[0].add_p2p_connection(P2PInterface())
+        block_missing_prev = copy.deepcopy(block)
+        block_missing_prev.hashPrevBlock = 123
+        block_missing_prev.solve()
+
+        # Check that non-connecting block causes disconnect
+        assert_equal(len(self.nodes[0].getpeerinfo()), 2)
+        with self.nodes[0].assert_debug_log(
+            expected_msgs=["AcceptBlock FAILED (prev-blk-not-found)"]
+        ):
+            attacker.send_message(msg_block(block_missing_prev))
+        attacker.wait_for_disconnect(timeout=5)
+
 
 if __name__ == "__main__":
     MutatedBlocksTest().main()

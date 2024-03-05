@@ -268,15 +268,14 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     dummyNode2.SetCommonVersion(PROTOCOL_VERSION);
     peerLogic->InitializeNode(config, dummyNode2, NODE_NETWORK);
     dummyNode2.fSuccessfullyConnected = true;
-    peerLogic->UnitTestMisbehaving(dummyNode2.GetId(),
-                                   DISCOURAGEMENT_THRESHOLD - 1);
     BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode2));
     // 2 not discouraged yet...
     BOOST_CHECK(!banman->IsDiscouraged(addr2));
     // ... but 1 still should be
     BOOST_CHECK(banman->IsDiscouraged(addr1));
     // 2 reaches discouragement threshold
-    peerLogic->UnitTestMisbehaving(dummyNode2.GetId(), 1);
+    peerLogic->UnitTestMisbehaving(dummyNode2.GetId(),
+                                   DISCOURAGEMENT_THRESHOLD);
     BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode2));
     BOOST_CHECK(banman->IsDiscouraged(addr1)); // Expect both 1 and 2
     BOOST_CHECK(banman->IsDiscouraged(addr2)); // to be discouraged now

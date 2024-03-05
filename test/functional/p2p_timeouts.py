@@ -6,22 +6,19 @@
 - Create three peers:
 
     no_verack_node - we never send a verack in response to their version
-    no_version_node - we never send a version (only a ping)
+    no_version_node - we never send a version
     no_send_node - we never send any P2P message.
 
 - Wait 1 second
 - Assert that we're connected
-- Send a ping to no_verack_node and no_version_node
 - Wait 1 second
 - Assert that we're still connected
-- Send a ping to no_verack_node and no_version_node
 - Wait 2 seconds
 - Assert that we're no longer connected (timeout to receive version/verack is 3 seconds)
 """
 
 import time
 
-from test_framework.messages import msg_ping
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 
@@ -68,9 +65,6 @@ class TimeoutsTest(BitcoinTestFramework):
         assert no_version_node.is_connected
         assert no_send_node.is_connected
 
-        no_verack_node.send_message(msg_ping())
-        no_version_node.send_message(msg_ping())
-
         self.mock_forward(1)
 
         assert "version" in no_verack_node.last_message
@@ -79,12 +73,14 @@ class TimeoutsTest(BitcoinTestFramework):
         assert no_version_node.is_connected
         assert no_send_node.is_connected
 
-        no_verack_node.send_message(msg_ping())
-        no_version_node.send_message(msg_ping())
-
+        # Note that we no longer send a ping with no_version_node, because sending
+        # anything before the version message results in a disconnection, which
+        # makes the test brittle (race between the timeout disconnect and the
+        # misbehavior disconnection).
+        # As a result, the test is identical for no_send_node and no_version_node.
         expected_timeout_logs = [
             "version handshake timeout peer=0",
-            "socket no message in first 3 seconds, 1 0 peer=1",
+            "socket no message in first 3 seconds, 0 0 peer=1",
             "socket no message in first 3 seconds, 0 0 peer=2",
         ]
 

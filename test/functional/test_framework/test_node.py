@@ -894,7 +894,9 @@ class TestNode:
         ctx = FromHex(CTransaction(), self.getrawtransaction(txid))
         return self.calculate_fee(ctx)
 
-    def add_p2p_connection(self, p2p_conn, *, wait_for_verack=True, **kwargs):
+    def add_p2p_connection(
+        self, p2p_conn, *, wait_for_verack=True, wait_for_connection=True, **kwargs
+    ):
         """Add an inbound p2p connection to the node.
 
         This method adds the p2p connection to the self.p2ps list and also
@@ -908,28 +910,31 @@ class TestNode:
             **kwargs, net=self.chain, timeout_factor=self.timeout_factor
         )()
         self.p2ps.append(p2p_conn)
+        if not wait_for_connection:
+            return p2p_conn
         p2p_conn.wait_until(lambda: p2p_conn.is_connected, check_connected=False)
-        if wait_for_verack:
-            # Wait for the node to send us the version and verack
-            p2p_conn.wait_for_verack()
-            # At this point we have sent our version message and received the version and verack, however the full node
-            # has not yet received the verack from us (in reply to their version). So, the connection is not yet fully
-            # established (fSuccessfullyConnected).
-            #
-            # This shouldn't lead to any issues when sending messages, since the verack will be in-flight before the
-            # message we send. However, it might lead to races where we are expecting to receive a message. E.g. a
-            # transaction that will be added to the mempool as soon as we return here.
-            #
-            # So syncing here is redundant when we only want to send a message, but the cost is low (a few milliseconds)
-            # in comparison to the upside of making tests less fragile and
-            # unexpected intermittent errors less likely.
-            p2p_conn.sync_with_ping()
+        if not wait_for_verack:
+            return p2p_conn
+        # Wait for the node to send us the version and verack
+        p2p_conn.wait_for_verack()
+        # At this point we have sent our version message and received the version and verack, however the full node
+        # has not yet received the verack from us (in reply to their version). So, the connection is not yet fully
+        # established (fSuccessfullyConnected).
+        #
+        # This shouldn't lead to any issues when sending messages, since the verack will be in-flight before the
+        # message we send. However, it might lead to races where we are expecting to receive a message. E.g. a
+        # transaction that will be added to the mempool as soon as we return here.
+        #
+        # So syncing here is redundant when we only want to send a message, but the cost is low (a few milliseconds)
+        # in comparison to the upside of making tests less fragile and
+        # unexpected intermittent errors less likely.
+        p2p_conn.sync_with_ping()
 
-            # Consistency check that the Bitcoin ABC has received our user agent
-            # string. This checks the node's newest peer. It could be racy if
-            # another Bitcoin ABC node has connected since we opened our
-            # connection, but we don't expect that to happen.
-            assert_equal(self.getpeerinfo()[-1]["subver"], P2P_SUBVERSION)
+        # Consistency check that the Bitcoin ABC has received our user agent
+        # string. This checks the node's newest peer. It could be racy if
+        # another Bitcoin ABC node has connected since we opened our
+        # connection, but we don't expect that to happen.
+        assert_equal(self.getpeerinfo()[-1]["subver"], P2P_SUBVERSION)
 
         return p2p_conn
 

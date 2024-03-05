@@ -290,7 +290,9 @@ class InvalidMessagesTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             ["Misbehaving", f"{msg_type} message size = {size}"]
         ):
-            self.nodes[0].add_p2p_connection(P2PInterface()).send_and_ping(msg)
+            conn = self.nodes[0].add_p2p_connection(P2PInterface())
+            conn.send_message(msg)
+            conn.wait_for_disconnect()
         self.nodes[0].disconnect_p2ps()
 
     def test_not_oversized_msg(self, msg_type, msg_size):
@@ -452,7 +454,8 @@ class InvalidMessagesTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             expected_msgs=MISBEHAVING_NONCONTINUOUS_HEADERS_MSGS
         ):
-            peer.send_and_ping(msg_headers(block_headers))
+            peer.send_message(msg_headers(block_headers))
+            peer.wait_for_disconnect()
         self.nodes[0].disconnect_p2ps()
 
     def test_resource_exhaustion(self):
