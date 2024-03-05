@@ -811,7 +811,7 @@ builds:
     templates:
       - js-mocha
 
-  ecash-coinselect:
+  ecash-coinselect-tests:
     runOnDiffRegex:
       - modules/ecash-coinselect/
     env:
