@@ -3907,9 +3907,9 @@ bool PeerManagerImpl::IsContinuationOfLowWorkHeadersSync(
 bool PeerManagerImpl::TryLowWorkHeadersSync(
     Peer &peer, CNode &pfrom, const CBlockIndex *chain_start_header,
     std::vector<CBlockHeader> &headers) {
-    // Calculate the total work on this chain.
+    // Calculate the claimed total work on this chain.
     arith_uint256 total_work =
-        chain_start_header->nChainWork + CalculateHeadersWork(headers);
+        chain_start_header->nChainWork + CalculateClaimedHeadersWork(headers);
 
     // Our dynamic anti-DoS threshold (minimum work required on a headers chain
     // before we'll store it)
@@ -6082,7 +6082,7 @@ void PeerManagerImpl::ProcessMessage(
                 return;
             }
             if (prev_block->nChainWork +
-                    CalculateHeadersWork({cmpctblock.header}) <
+                    CalculateClaimedHeadersWork({cmpctblock.header}) <
                 GetAntiDoSWorkThreshold()) {
                 // If we get a low-work header in a compact block, we can ignore
                 // it.
@@ -6591,10 +6591,10 @@ void PeerManagerImpl::ProcessMessage(
             // cs_main in ProcessNewBlock is fine.
             mapBlockSource.emplace(hash, std::make_pair(pfrom.GetId(), true));
 
-            // Check work on this block against our anti-dos thresholds.
+            // Check claimed work on this block against our anti-dos thresholds.
             if (prev_block &&
-                prev_block->nChainWork +
-                        CalculateHeadersWork({pblock->GetBlockHeader()}) >=
+                prev_block->nChainWork + CalculateClaimedHeadersWork(
+                                             {pblock->GetBlockHeader()}) >=
                     GetAntiDoSWorkThreshold()) {
                 min_pow_checked = true;
             }
