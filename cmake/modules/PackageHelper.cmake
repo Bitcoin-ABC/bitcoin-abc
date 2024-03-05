@@ -57,6 +57,11 @@ function(exclude_git_ignored_files_from_source_package)
 		)
 
 		if(IS_DIRECTORY "${_git_ignored_file}")
+			# Remove the directory as well
+			set(_git_ignored_dir "${_git_ignored_file}$")
+			set_property(GLOBAL APPEND PROPERTY SOURCE_PACKAGE_IGNORE_FILES
+				"${_git_ignored_dir}"
+			)
 			# get_filename_component() removes the trailing /, add it back.
 			string(APPEND _git_ignored_file "/")
 		else()

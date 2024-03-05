@@ -75,6 +75,11 @@ exclude_from_source_package(
 
 	# Files
 	"[^.]+[.]md$"
+
+	# GUIX
+	"var/"
+	"output/"
+	"distsrc-.*/"
 )
 
 option(ENABLE_COVERAGE "Enable coverage" OFF)
