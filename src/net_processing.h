@@ -36,9 +36,6 @@ static const uint32_t DEFAULT_MAX_CONFLICTING_TRANSACTIONS{100};
  */
 static const uint32_t DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN{100};
 static const bool DEFAULT_PEERBLOCKFILTERS = false;
-/** Threshold for marking a node to be discouraged, e.g. disconnected and added
- * to the discouragement filter. */
-static const int DISCOURAGEMENT_THRESHOLD{100};
 /** Maximum number of outstanding CMPCTBLOCK requests for the same block. */
 static const unsigned int MAX_CMPCTBLOCKS_INFLIGHT_PER_BLOCK = 3;
 /** The maximum number of address records permitted in an ADDR message. */
@@ -146,8 +143,7 @@ public:
     virtual void SetBestHeight(int height) = 0;
 
     /** Public for unit testing. */
-    virtual void UnitTestMisbehaving(const NodeId peer_id,
-                                     const int howmuch) = 0;
+    virtual void UnitTestMisbehaving(const NodeId peer_id) = 0;
 
     /**
      * Evict extra outbound peers. If we think our tip may be stale, connect to

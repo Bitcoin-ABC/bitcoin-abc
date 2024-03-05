@@ -252,8 +252,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     peerLogic->InitializeNode(config, dummyNode1, NODE_NETWORK);
     dummyNode1.fSuccessfullyConnected = true;
     // Should be discouraged
-    peerLogic->UnitTestMisbehaving(dummyNode1.GetId(),
-                                   DISCOURAGEMENT_THRESHOLD);
+    peerLogic->UnitTestMisbehaving(dummyNode1.GetId());
     BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode1));
     BOOST_CHECK(banman->IsDiscouraged(addr1));
     // Different IP, not discouraged
@@ -274,8 +273,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
     // ... but 1 still should be
     BOOST_CHECK(banman->IsDiscouraged(addr1));
     // 2 reaches discouragement threshold
-    peerLogic->UnitTestMisbehaving(dummyNode2.GetId(),
-                                   DISCOURAGEMENT_THRESHOLD);
+    peerLogic->UnitTestMisbehaving(dummyNode2.GetId());
     BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode2));
     BOOST_CHECK(banman->IsDiscouraged(addr1)); // Expect both 1 and 2
     BOOST_CHECK(banman->IsDiscouraged(addr2)); // to be discouraged now
@@ -312,7 +310,7 @@ BOOST_AUTO_TEST_CASE(DoS_bantime) {
     peerLogic->InitializeNode(config, dummyNode, NODE_NETWORK);
     dummyNode.fSuccessfullyConnected = true;
 
-    peerLogic->UnitTestMisbehaving(dummyNode.GetId(), DISCOURAGEMENT_THRESHOLD);
+    peerLogic->UnitTestMisbehaving(dummyNode.GetId());
     BOOST_CHECK(peerLogic->SendMessages(config, &dummyNode));
     BOOST_CHECK(banman->IsDiscouraged(addr));
 

@@ -218,15 +218,7 @@ class AvalanchePeerDiscoveryTest(BitcoinTestFramework):
         bad_interface = get_ava_p2p_interface_no_handshake(node)
         wrong_key = ECKey()
         wrong_key.generate()
-        with node.assert_debug_log(
-            [
-                "Misbehaving",
-                (
-                    "peer=1 (0 -> 100) DISCOURAGE THRESHOLD EXCEEDED: "
-                    "invalid-avahello-signature"
-                ),
-            ]
-        ):
+        with node.assert_debug_log(["Misbehaving", "invalid-avahello-signature"]):
             bad_interface.send_avahello(interface_delegation_hex, wrong_key)
             bad_interface.wait_for_disconnect()
 
