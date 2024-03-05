@@ -3,7 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as assert from 'assert';
-import { hasInputsFromOutputScript } from '../../src/chronik/parse';
+import {
+    hasInputsFromOutputScript,
+    addressReceivedToken,
+} from '../../src/chronik/parse';
 import vectors from '../vectors';
 
 describe('chronik/parse.ts', function () {
@@ -14,6 +17,18 @@ describe('chronik/parse.ts', function () {
             it(description, function () {
                 assert.equal(
                     hasInputsFromOutputScript(tx, outputScript),
+                    returned,
+                );
+            });
+        });
+    });
+    describe('We can determine if an address received any of a given tokenId in a given tx', function () {
+        const { returns } = vectors.addressReceivedToken;
+        returns.forEach(vector => {
+            const { description, tx, address, tokenId, returned } = vector;
+            it(description, function () {
+                assert.equal(
+                    addressReceivedToken(tx, address, tokenId),
                     returned,
                 );
             });
