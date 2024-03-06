@@ -10,7 +10,7 @@ const {
     initializeWebsocket,
     parseWebsocketMessage,
 } = require('../src/chronikWsHandler');
-const { MockChronikClient } = require('../../mock-chronik-client');
+const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 const { mockBlock } = require('./mocks/chronikResponses');
 const mockSecrets = require('../secrets.sample');
 const MockAdapter = require('axios-mock-adapter');

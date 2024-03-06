@@ -6,7 +6,7 @@
 const assert = require('assert');
 const config = require('../config');
 const { main } = require('../src/main');
-const { MockChronikClient } = require('../../mock-chronik-client');
+const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 
 describe('ecash-herald main.js', async function () {

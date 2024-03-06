@@ -75,7 +75,7 @@ templates:
         echo "Test does not depend on mock-chronik-client, skipping mock-chronik-client dependencies..."
       else
         echo "Test depends on mock-chronik-client. Installing mock-chronik-client dependencies..."
-        pushd "${TOPLEVEL}/apps/mock-chronik-client"
+        pushd "${TOPLEVEL}/modules/mock-chronik-client"
         npm ci
       fi
 
@@ -658,7 +658,7 @@ builds:
   cashtab-tests:
     runOnDiffRegex:
       - cashtab/
-      - apps/mock-chronik-client/
+      - modules/mock-chronik-client/
     artifacts:
       coverage.tar.gz: coverage.tar.gz
     env:
@@ -672,7 +672,7 @@ builds:
       # Cashtab tests depend on mock-chronik-cleint
       # Install any mock-chronik-client dependencies before running tests
       echo "Installing mock-chronik-client dependencies..."
-      pushd "${TOPLEVEL}/apps/mock-chronik-client"
+      pushd "${TOPLEVEL}/modules/mock-chronik-client"
       npm ci
 
       pushd "${TOPLEVEL}/cashtab"
@@ -731,7 +731,7 @@ builds:
   alias-server-tests:
     runOnDiffRegex:
       - apps/alias-server/
-      - apps/mock-chronik-client/
+      - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/alias-server
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
@@ -741,7 +741,7 @@ builds:
   ecash-herald-tests:
     runOnDiffRegex:
       - apps/ecash-herald/
-      - apps/mock-chronik-client/
+      - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/ecash-herald
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
@@ -751,7 +751,7 @@ builds:
   token-server-tests:
     runOnDiffRegex:
       - apps/token-server/
-      - apps/mock-chronik-client/
+      - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/token-server
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
@@ -760,16 +760,16 @@ builds:
 
   mock-chronik-client-tests:
     runOnDiffRegex:
-      - apps/mock-chronik-client/
+      - modules/mock-chronik-client/
     env:
-      JS_PROJECT_ROOT: apps/mock-chronik-client
+      JS_PROJECT_ROOT: modules/mock-chronik-client
     templates:
       - js-mocha
 
   app-dev-examples:
     runOnDiffRegex:
       - apps/examples/
-      - apps/mock-chronik-client/
+      - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/examples
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"

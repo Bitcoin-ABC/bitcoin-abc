@@ -13,7 +13,7 @@ const {
     unconfirmedTxs,
     unconfirmedTxsAfterConfirmation,
 } = require('./mocks/txHistoryMocks');
-const { MockChronikClient } = require('../../mock-chronik-client');
+const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 
 // todo make txsperpage a param and test different values
 describe('alias-server chronik.js', () => {
