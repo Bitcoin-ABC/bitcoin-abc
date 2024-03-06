@@ -68,3 +68,27 @@ export function addressReceivedToken(
     // return false
     return false;
 }
+
+/**
+ * Get timestamp from a chronik tx
+ * @param tx
+ * @returns timestamp (seconds)
+ */
+export function getTxTimestamp(tx: Tx_InNode): number {
+    const { timeFirstSeen } = tx;
+
+    if (timeFirstSeen !== 0) {
+        // If we have timeFirstSeen from the node, this is the best timestamp
+        return timeFirstSeen;
+    }
+
+    if (typeof tx.block === 'undefined') {
+        // Edge case, it is possible we cannot tell the time for this tx
+        // i.e. timeFirstSeen === 0 and the tx has not yet confirmed, so there is no block key in tx
+        // We return -1 to denote this
+        return -1;
+    }
+
+    // If we do not have timeFirstSeen but the tx is in a block, use the block time
+    return tx.block.timestamp;
+}

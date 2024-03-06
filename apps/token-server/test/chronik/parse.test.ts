@@ -6,6 +6,7 @@ import * as assert from 'assert';
 import {
     hasInputsFromOutputScript,
     addressReceivedToken,
+    getTxTimestamp,
 } from '../../src/chronik/parse';
 import vectors from '../vectors';
 
@@ -31,6 +32,15 @@ describe('chronik/parse.ts', function () {
                     addressReceivedToken(tx, address, tokenId),
                     returned,
                 );
+            });
+        });
+    });
+    describe('We get a timestamp from a chronik tx', function () {
+        const { returns } = vectors.getTxTimestamp;
+        returns.forEach(vector => {
+            const { description, tx, timestamp } = vector;
+            it(description, function () {
+                assert.equal(getTxTimestamp(tx), timestamp);
             });
         });
     });

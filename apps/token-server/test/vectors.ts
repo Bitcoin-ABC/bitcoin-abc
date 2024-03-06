@@ -8,6 +8,7 @@ import {
     TxOutput_InNode,
     Token_InNode,
     Tx_InNode,
+    BlockMetadata_InNode,
 } from 'chronik-client';
 
 const MOCK_CHECKED_ADDRESS = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
@@ -52,6 +53,12 @@ const MOCK_TX_INNODE: Tx_InNode = {
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
 };
 
+const MOCK_BLOCK_METADATA_INNODE: BlockMetadata_InNode = {
+    hash: '0000000000000000115e051672e3d4a6c523598594825a1194862937941296fe',
+    height: 800000,
+    timestamp: 1688808780,
+};
+
 const MOCK_TX_OUTPUT_TOKEN: Token_InNode = {
     tokenId: 'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
     tokenType: {
@@ -87,9 +94,20 @@ interface AddressReceivedTokenReturn {
     returned: boolean;
 }
 
+interface GetTxTimestampReturnVector {
+    returns: GetTxTimestampReturn[];
+}
+
+interface GetTxTimestampReturn {
+    description: string;
+    tx: Tx_InNode;
+    timestamp: number;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
+    getTxTimestamp: GetTxTimestampReturnVector;
 }
 
 const vectors: TestVectors = {
@@ -290,6 +308,34 @@ const vectors: TestVectors = {
                 address: MOCK_CHECKED_ADDRESS,
                 tokenId: MOCK_REWARD_TOKENID,
                 returned: false,
+            },
+        ],
+    },
+    getTxTimestamp: {
+        returns: [
+            {
+                description: 'Returns timeFirstSeen if it is not 0',
+                tx: { ...MOCK_TX_INNODE, timeFirstSeen: 2222222222 },
+                timestamp: 2222222222,
+            },
+            {
+                description:
+                    'Returns block.timestamp if timeFirstSeen is 0 and the tx has confirmed',
+                tx: {
+                    ...MOCK_TX_INNODE,
+                    timeFirstSeen: 0,
+                    block: {
+                        ...MOCK_BLOCK_METADATA_INNODE,
+                        timestamp: 1111111111,
+                    },
+                },
+                timestamp: 1111111111,
+            },
+            {
+                description:
+                    'Returns -1 for edge case of timeFirstSeen 0 and unconfirmed tx',
+                tx: { ...MOCK_TX_INNODE, timeFirstSeen: 0 },
+                timestamp: -1,
             },
         ],
     },
