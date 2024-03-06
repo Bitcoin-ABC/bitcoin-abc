@@ -2,6 +2,7 @@ Name "@CPACK_NSIS_DISPLAY_NAME@"
 
 RequestExecutionLevel highest
 SetCompressor @CPACK_NSIS_COMPRESSOR@
+SetDateSave off
 Unicode true
 
 # General Symbol Definitions
