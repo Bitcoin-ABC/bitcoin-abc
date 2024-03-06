@@ -27,7 +27,7 @@ if ! [ -d dist ] ; then
                 ./config --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
                 ;;
             darwin)
-                ./Configure darwin64-x86_64-cc --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
+                ./Configure darwin64-$(uname -m)-cc --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
                 ;;
             wine)
                 ./Configure --cross-compile-prefix=${GCC_TRIPLET_HOST}- mingw --prefix="$pkgbuilddir/dist" $CONFIG_OPTIONS
