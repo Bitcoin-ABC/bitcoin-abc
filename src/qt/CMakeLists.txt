@@ -555,6 +555,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	if(CMAKE_CROSSCOMPILING)
 		find_program_or_fail(XORRISOFS_EXECUTABLE xorrisofs)
 
+		if (DEFINED ENV{SOURCE_DATE_EPOCH})
+			set(OVERRIDE_DATE -- -volume_date all_file_dates "=$ENV{SOURCE_DATE_EPOCH}")
+		endif()
+
 		add_custom_target(osx-dmg
 			COMMAND
 				"${XORRISOFS_EXECUTABLE}"
@@ -566,6 +570,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 				-dir-mode 0755
 				-o "${OSX_VOLNAME}.dmg"
 				"${DMG_DIST}"
+				${OVERRIDE_DATE}
 			WORKING_DIRECTORY
 				"${CMAKE_BINARY_DIR}"
 		)
