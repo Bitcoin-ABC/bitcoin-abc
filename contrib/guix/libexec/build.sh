@@ -277,7 +277,7 @@ DISTNAME=${SOURCEDIST//.tar.*/}
 # Correct tar file order
 tar -xf ${SOURCEDIST}
 rm ${SOURCEDIST}
-tar --create --no-recursion --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > ${SOURCEDIST}
+tar --create --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > ${SOURCEDIST}
 rm -rf ${DISTNAME}
 
 mkdir -p "$OUTDIR"
