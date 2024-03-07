@@ -316,7 +316,6 @@ case "$HOST" in
         CMAKE_EXTRA_OPTIONS=(-DENABLE_STATIC_LIBSTDCXX=ON -DENABLE_GLIBC_BACK_COMPAT=ON -DBUILD_BITCOIN_CHRONIK=ON -DUSE_LINKER=)
         ;;
     *darwin*)
-        CMAKE_EXTRA_OPTIONS=(-DGENISOIMAGE_EXECUTABLE="${WRAP_DIR}/genisoimage")
         # GUIX doesn't properly set /bin/cc and /bin/c++ so cmake will pick the
         # wrong compiler for the native builds. Setting the compiler via the
         # environment variables fixes this.
