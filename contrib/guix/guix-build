@@ -416,3 +416,8 @@ EOF
     )
 
 done
+
+cat ${OUTDIR_BASE}/**/SHA256SUMS.part > ${OUTDIR_BASE}/SHA256SUMS
+echo "---8<----------------------8<------------------------8<---"
+cat ${OUTDIR_BASE}/SHA256SUMS
+echo "---8<----------------------8<------------------------8<---"
