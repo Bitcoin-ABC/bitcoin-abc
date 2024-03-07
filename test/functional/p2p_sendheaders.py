@@ -70,19 +70,13 @@ f. Announce 1 more header that builds on that fork.
    Expect: no response.
 
 Part 5: Test handling of headers that don't connect.
-a. Repeat 10 times:
+a. Repeat 100 times:
    1. Announce a header that doesn't connect.
       Expect: getheaders message
    2. Send headers chain.
       Expect: getdata for the missing blocks, tip update.
-b. Then send 9 more headers that don't connect.
+b. Then send 99 more headers that don't connect.
    Expect: getheaders message each time.
-c. Announce a header that does connect.
-   Expect: no response.
-d. Announce 49 headers that don't connect.
-   Expect: getheaders message each time.
-e. Announce one more that doesn't connect.
-   Expect: disconnect.
 """
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import (
@@ -572,7 +566,8 @@ class SendHeadersTest(BitcoinTestFramework):
         self.log.info("Part 5: Testing handling of unconnecting headers")
         # First we test that receipt of an unconnecting header doesn't prevent
         # chain sync.
-        for i in range(10):
+        NUM_HEADERS = 100
+        for i in range(NUM_HEADERS):
             self.log.debug(f"Part 5.{i}: starting...")
             test_node.last_message.pop("getdata", None)
             blocks = []
@@ -597,15 +592,14 @@ class SendHeadersTest(BitcoinTestFramework):
         blocks = []
         # Now we test that if we repeatedly don't send connecting headers, we
         # don't go into an infinite loop trying to get them to connect.
-        MAX_NUM_UNCONNECTING_HEADERS_MSGS = 10
-        for _ in range(MAX_NUM_UNCONNECTING_HEADERS_MSGS + 1):
+        for _ in range(NUM_HEADERS + 1):
             blocks.append(create_block(tip, create_coinbase(height), block_time))
             blocks[-1].solve()
             tip = blocks[-1].sha256
             block_time += 1
             height += 1
 
-        for i in range(1, MAX_NUM_UNCONNECTING_HEADERS_MSGS):
+        for i in range(1, NUM_HEADERS):
             with p2p_lock:
                 test_node.last_message.pop("getheaders", None)
             # Send an empty header as a failed response to the received getheaders
@@ -615,31 +609,6 @@ class SendHeadersTest(BitcoinTestFramework):
             # Send the actual unconnecting header, which should trigger a new getheaders.
             test_node.send_header_for_blocks([blocks[i]])
             test_node.wait_for_getheaders()
-
-        # Next header will connect, should re-set our count:
-        test_node.send_header_for_blocks([blocks[0]])
-
-        # Remove the first two entries (blocks[1] would connect):
-        blocks = blocks[2:]
-
-        # Now try to see how many unconnecting headers we can send
-        # before we get disconnected.  Should be 5*MAX_NUM_UNCONNECTING_HEADERS_MSGS
-        for i in range(5 * MAX_NUM_UNCONNECTING_HEADERS_MSGS - 1):
-            # Send a header that doesn't connect, check that we get a
-            # getheaders.
-            with p2p_lock:
-                test_node.last_message.pop("getheaders", None)
-            test_node.send_header_for_blocks([])
-            test_node.send_header_for_blocks([blocks[i % len(blocks)]])
-            test_node.wait_for_getheaders()
-
-        # Eventually this stops working.
-        test_node.send_header_for_blocks([blocks[-1]])
-
-        # Should get disconnected
-        test_node.wait_for_disconnect()
-
-        self.log.info("Part 5: success!")
 
         # Finally, check that the inv node never received a getdata request,
         # throughout the test
