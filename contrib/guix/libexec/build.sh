@@ -250,7 +250,7 @@ esac
 
 mkdir -p source_package
 pushd source_package
-rm -f CMakeCache.txt
+
 cmake -GNinja .. \
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} \
     -DBUILD_BITCOIN_WALLET=OFF \
@@ -268,9 +268,17 @@ cmake -GNinja .. \
 ninja package_source
 SOURCEDIST=$(echo bitcoin-abc-*.tar.gz)
 mv ${SOURCEDIST} ..
+
 popd
 rm -rf source_package
+
 DISTNAME=${SOURCEDIST//.tar.*/}
+
+# Correct tar file order
+tar -xf ${SOURCEDIST}
+rm ${SOURCEDIST}
+tar --create --no-recursion --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > ${SOURCEDIST}
+rm -rf ${DISTNAME}
 
 mkdir -p "$OUTDIR"
 OUTDIR=$(realpath "${OUTDIR}")
@@ -393,8 +401,8 @@ mkdir -p "$DISTSRC"
         *linux*)
             ninja install-debug
             pushd installed
-            find ${DISTNAME} -not -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
-            find ${DISTNAME} -name "*.dbg" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}-debug.tar.gz
+            find ${DISTNAME} -not -name "*.dbg" -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
+            find ${DISTNAME} -name "*.dbg" -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}-debug.tar.gz
             popd
             ;;
         *darwin*)
@@ -411,17 +419,15 @@ mkdir -p "$DISTSRC"
             cp ${BASEPREFIX}/${HOST}/native/bin/${HOST}-codesign_allocate unsigned-app-${HOST}/codesign_allocate
             cp ${BASEPREFIX}/${HOST}/native/bin/${HOST}-pagestuff unsigned-app-${HOST}/pagestuff
             mv dist unsigned-app-${HOST}
-            pushd unsigned-app-${HOST}
-            find . | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-osx-unsigned.tar.gz
-            popd
+            find unsigned-app-${HOST} -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-osx-unsigned.tar.gz
 
             ninja osx-dmg
             mv "${OSX_VOLNAME}.dmg" ${OUTDIR}/${DISTNAME}-osx-unsigned.dmg
 
-            cd installed
+            pushd installed
             find . -path "*.app*" -type f -executable -exec mv {} ${DISTNAME}/bin/bitcoin-qt \;
-            find ${DISTNAME} -not -path "*.app*" | sort | tar --mtime=@${SOURCE_DATE_EPOCH} --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
-            cd ../../
+            find ${DISTNAME} -not -path "*.app*" -print0 | sort --zero-terminated | tar --create --no-recursion --mode='u+rw,go+r-w,a+X' --null --files-from=- | gzip -9n > ${OUTDIR}/${DISTNAME}-${HOST}.tar.gz
+            popd
             ;;
     esac
 )  # $DISTSRC
