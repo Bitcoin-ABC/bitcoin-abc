@@ -11,6 +11,7 @@ import {
     BlockMetadata_InNode,
 } from 'chronik-client';
 
+const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
 const MOCK_CHECKED_ADDRESS = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
 const MOCK_CHECKED_OUTPUTSCRIPT =
     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac';
@@ -104,10 +105,38 @@ interface GetTxTimestampReturn {
     timestamp: number;
 }
 
+interface GetHistoryAfterTimestampVector {
+    returns: GetHistoryAfterTimestampReturn[];
+    errors: GetHistoryAfterTimestampError[];
+}
+
+interface GetHistoryAfterTimestampReturn {
+    description: string;
+    mocks: ChronikMock;
+    address: string;
+    timestamp: number;
+    pageSize: number;
+    returned: Tx_InNode[];
+}
+
+interface GetHistoryAfterTimestampError {
+    description: string;
+    mocks: ChronikMock;
+    address: string;
+    timestamp: number;
+    pageSize: number;
+    error: Error;
+}
+
+interface ChronikMock {
+    history: Tx_InNode[] | Error;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
     getTxTimestamp: GetTxTimestampReturnVector;
+    getHistoryAfterTimestamp: GetHistoryAfterTimestampVector;
 }
 
 const vectors: TestVectors = {
@@ -336,6 +365,91 @@ const vectors: TestVectors = {
                     'Returns -1 for edge case of timeFirstSeen 0 and unconfirmed tx',
                 tx: { ...MOCK_TX_INNODE, timeFirstSeen: 0 },
                 timestamp: -1,
+            },
+        ],
+    },
+    // chronik/clientHandler.ts
+    getHistoryAfterTimestamp: {
+        returns: [
+            {
+                description: 'A tx exactly at the given timestamp is returned',
+                mocks: { history: [{ ...MOCK_TX_INNODE, timeFirstSeen: 10 }] },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                returned: [{ ...MOCK_TX_INNODE, timeFirstSeen: 10 }],
+            },
+            {
+                description: 'A tx before the given timestamp is ignored',
+                mocks: { history: [{ ...MOCK_TX_INNODE, timeFirstSeen: 9 }] },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                returned: [],
+            },
+            {
+                description:
+                    'If all txs on first page are at or before the given timestamp, we return an empty array',
+                mocks: {
+                    history: [
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 9 },
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 8 },
+                    ],
+                },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                returned: [],
+            },
+            {
+                description:
+                    'If all txs on first page are at or after the given timestamp, we get the next page and return the ones there that are also after',
+                mocks: {
+                    history: [
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                    ],
+                },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                returned: [
+                    { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
+                    { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
+                    { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                ],
+            },
+            {
+                description:
+                    'If all txs on first page are at or after the given timestamp, and some are and some arent on the 2nd page, we only return the txs after expected timestamp',
+                mocks: {
+                    history: [
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                        { ...MOCK_TX_INNODE, timeFirstSeen: 9 },
+                    ],
+                },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                returned: [
+                    { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
+                    { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
+                    { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                ],
+            },
+        ],
+        errors: [
+            {
+                description:
+                    'If chronik API call throws an error, the function throws an error',
+                mocks: { history: new Error('Some chronik error') },
+                address: IFP_ADDRESS,
+                timestamp: 10,
+                pageSize: 2,
+                error: new Error('Some chronik error'),
             },
         ],
     },
