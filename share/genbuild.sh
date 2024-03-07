@@ -31,7 +31,7 @@ if [ -e "$(command -v git)" ] && [ "$(git rev-parse --is-inside-work-tree 2>/dev
     fi
 
     # otherwise generate suffix from git, i.e. string like "59887e8-dirty"
-    GIT_COMMIT=$(git rev-parse --short HEAD)
+    GIT_COMMIT=$(git rev-parse --short=12 HEAD)
     git diff-index --quiet HEAD -- || GIT_COMMIT="$GIT_COMMIT-dirty"
 fi
 
