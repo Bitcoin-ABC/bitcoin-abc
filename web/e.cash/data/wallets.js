@@ -3,11 +3,19 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 export const wallets = [
     {
-        name: 'Cashtab',
-        text: 'Cashtab is an open source, highly secure, non-custodial web wallet for eCash (XEC) & eTokens. Cashtab is a fast, secure & easy-to-use XEC wallet! Cashtab is also available as a browser extension for Google Chrome and Brave.',
+        name: 'Cashtab Web',
+        text: 'Cashtab (Web) is an open source, highly secure, non-custodial web wallet for eCash (XEC) & eTokens. It is a fast & easy-to-use XEC wallet designed for everyday use.',
         image: '/images/cashtab.png',
         link: 'https://cashtab.com/',
-        availableOn: ['Web App', 'Web Extension'],
+        availableOn: ['Web App'],
+        features: ['eTokens', 'Message Signing'],
+    },
+    {
+        name: 'Cashtab Extension',
+        text: 'Cashtab (Extension) is a browser-integrated version of Cashtab Web for Google Chrome and Brave browsers. No sign-in or account required. Think MetaMask for eCash.',
+        image: '/images/cashtab-extension.png',
+        link: 'https://chromewebstore.google.com/detail/cashtab/obldfcmebhllhjlhjbnghaipekcppeag',
+        availableOn: ['Browser Extension'],
         features: ['eTokens', 'Message Signing'],
     },
     {
