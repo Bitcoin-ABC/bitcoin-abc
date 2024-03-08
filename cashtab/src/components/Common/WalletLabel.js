@@ -5,8 +5,6 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { ThemedEditOutlined } from 'components/Common/CustomIcons';
-import { Link } from 'react-router-dom';
 import HideBalanceSwitch from './HideBalanceSwitch';
 const LabelCtn = styled.div`
     display: flex;
@@ -34,14 +32,6 @@ const WalletLabel = ({ name, settings, updateCashtabState }) => {
             {name && typeof name === 'string' && (
                 <WalletName>{name}</WalletName>
             )}
-            <Link
-                to="/configure"
-                state={{
-                    showRenameWalletModal: true,
-                }}
-            >
-                <ThemedEditOutlined />
-            </Link>
             <HideBalanceSwitch
                 settings={settings}
                 updateCashtabState={updateCashtabState}

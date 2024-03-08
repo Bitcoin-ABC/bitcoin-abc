@@ -577,15 +577,6 @@ const Configure = () => {
             setShowTranslationWarning(true);
         }
 
-        if (
-            location &&
-            location.state &&
-            location.state.showRenameWalletModal
-        ) {
-            setShowRenameWalletModal(true);
-            setWalletToBeRenamed(wallet);
-        }
-
         handleContactListRouting();
     }, []);
 
