@@ -7,7 +7,6 @@ import {
     convertEtokenToEcashAddr,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
-    isActiveWebsocket,
     getWalletBalanceFromUtxos,
     sumOneToManyXec,
 } from 'utils/cashMethods';
@@ -17,11 +16,6 @@ import {
     validStoredWalletAfter20221123Streamline,
 } from '../__mocks__/mockStoredWallets';
 import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
-import {
-    activeWebsocketAlpha,
-    disconnectedWebsocketAlpha,
-    unsubscribedWebsocket,
-} from '../__mocks__/chronikWs';
 
 it(`sumOneToManyXec() correctly parses the value for a valid one to many send XEC transaction`, () => {
     const destinationAddressAndValueArray = [
@@ -198,17 +192,5 @@ describe('Correctly executes cash utility functions', () => {
             '2be0e0c999e7e77a443ea726f82c441912fca92b',
             'ba8257db65f40359989c7b894c5e88ed7b6344f6',
         ]);
-    });
-    it(`isActiveWebsocket returns true for an active chronik websocket connection`, () => {
-        expect(isActiveWebsocket(activeWebsocketAlpha)).toBe(true);
-    });
-    it(`isActiveWebsocket returns false for a disconnected chronik websocket connection`, () => {
-        expect(isActiveWebsocket(disconnectedWebsocketAlpha)).toBe(false);
-    });
-    it(`isActiveWebsocket returns false for a null chronik websocket connection`, () => {
-        expect(isActiveWebsocket(null)).toBe(false);
-    });
-    it(`isActiveWebsocket returns false for an active websocket connection with no subscriptions`, () => {
-        expect(isActiveWebsocket(unsubscribedWebsocket)).toBe(false);
     });
 });

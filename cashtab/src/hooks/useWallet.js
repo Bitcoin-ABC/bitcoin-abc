@@ -3,11 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import usePrevious from 'hooks/usePrevious';
 import { BN } from 'slp-mdm';
 import {
     getHashArrayFromWallet,
-    isActiveWebsocket,
     getWalletBalanceFromUtxos,
 } from 'utils/cashMethods';
 import {
@@ -58,16 +56,6 @@ const useWallet = chronik => {
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState(new CashtabState());
     const { settings, cashtabCache, wallets } = cashtabState;
-
-    const { balances, tokens } =
-        wallets.length > 0
-            ? wallets[0].state
-            : {
-                  balances: {},
-                  tokens: [],
-              };
-    const previousBalances = usePrevious(balances);
-    const previousTokens = usePrevious(tokens);
 
     const update = async wallet => {
         if (!cashtabLoaded) {
@@ -682,133 +670,6 @@ const useWallet = chronik => {
         // Clear fiat price check interval of previously selected currency
         clearInterval(fiatPriceApi);
     };
-
-    // Parse for incoming XEC transactions
-    // Do not show this notification if websocket connection is live; in this case the websocket will handle it
-    if (
-        !isActiveWebsocket(ws) &&
-        previousBalances &&
-        balances &&
-        'totalBalance' in previousBalances &&
-        'totalBalance' in balances &&
-        new BN(balances.totalBalance).minus(previousBalances.totalBalance).gt(0)
-    ) {
-        notification.success({
-            message: 'Transaction received',
-            description: `
-                    ${parseFloat(
-                        Number(
-                            balances.totalBalance -
-                                previousBalances.totalBalance,
-                        ).toFixed(appConfig.cashDecimals),
-                    ).toLocaleString()}
-                    ${appConfig.ticker}
-                    ${
-                        settings &&
-                        settings.fiatCurrency &&
-                        `(${
-                            supportedFiatCurrencies[settings.fiatCurrency]
-                                .symbol
-                        }${(
-                            Number(
-                                balances.totalBalance -
-                                    previousBalances.totalBalance,
-                            ) * fiatPrice
-                        ).toFixed(
-                            appConfig.cashDecimals,
-                        )} ${settings.fiatCurrency.toUpperCase()})`
-                    }
-                `,
-            icon: <CashReceivedNotificationIcon />,
-        });
-    }
-
-    // Parse for incoming eToken transactions
-    // Do not show this notification if websocket connection is live; in this case the websocket will handle it
-    if (
-        !isActiveWebsocket(ws) &&
-        tokens &&
-        tokens[0] &&
-        tokens[0].balance &&
-        previousTokens &&
-        previousTokens[0] &&
-        previousTokens[0].balance
-    ) {
-        // If tokens length is greater than previousTokens length, a new token has been received
-        // Note, a user could receive a new token, AND more of existing tokens in between app updates
-        // In this case, the app will only notify about the new token
-        // TODO better handling for all possible cases to cover this
-        // TODO handle with websockets for better response time, less complicated calc
-        if (tokens.length > previousTokens.length) {
-            // Find the new token
-            const tokenIds = tokens.map(({ tokenId }) => tokenId);
-            const previousTokenIds = previousTokens.map(
-                ({ tokenId }) => tokenId,
-            );
-
-            // An array with the new token Id
-            const newTokenIdArr = tokenIds.filter(
-                tokenId => !previousTokenIds.includes(tokenId),
-            );
-            // It's possible that 2 new tokens were received
-            // To do, handle this case
-            const newTokenId = newTokenIdArr[0];
-
-            // Find where the newTokenId is
-            const receivedTokenObjectIndex = tokens.findIndex(
-                x => x.tokenId === newTokenId,
-            );
-
-            // Calculate amount received
-            const receivedSlpQty =
-                tokens[receivedTokenObjectIndex].balance.toString();
-            const receivedSlpTicker =
-                tokens[receivedTokenObjectIndex].info.tokenTicker;
-            const receivedSlpName =
-                tokens[receivedTokenObjectIndex].info.tokenName;
-
-            // Notification if you received SLP
-            if (receivedSlpQty > 0) {
-                notification.success({
-                    message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
-                    description: `You received ${receivedSlpQty.toString()} ${receivedSlpName}`,
-                    icon: <TokenNotificationIcon />,
-                });
-            }
-            //
-        } else {
-            // If tokens[i].balance > previousTokens[i].balance, a new SLP tx of an existing token has been received
-            // Note that tokens[i].balance is of type BigNumber
-            for (let i = 0; i < tokens.length; i += 1) {
-                if (
-                    new BN(tokens[i].balance).gt(
-                        new BN(previousTokens[i].balance),
-                    )
-                ) {
-                    if (previousTokens[i].tokenId !== tokens[i].tokenId) {
-                        console.log(
-                            `TokenIds do not match, breaking from SLP notifications`,
-                        );
-                        // Then don't send the notification
-                        // Also don't 'continue' ; this means you have sent a token, just stop iterating through
-                        break;
-                    }
-                    const receivedSlpQty = new BN(tokens[i].balance).minus(
-                        new BN(previousTokens[i].balance),
-                    );
-
-                    const receivedSlpTicker = tokens[i].info.tokenTicker;
-                    const receivedSlpName = tokens[i].info.tokenName;
-
-                    notification.success({
-                        message: `${appConfig.tokenTicker} transaction received: ${receivedSlpTicker}`,
-                        description: `You received ${receivedSlpQty.toString()} ${receivedSlpName}`,
-                        icon: <TokenNotificationIcon />,
-                    });
-                }
-            }
-        }
-    }
 
     const fetchXecPrice = async (
         fiatCode = typeof cashtabState?.settings?.fiatCurrency !== 'undefined'

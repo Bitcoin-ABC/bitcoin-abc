@@ -147,17 +147,3 @@ export const getHashArrayFromWallet = wallet => {
             : false;
     return hash160Array;
 };
-
-export const isActiveWebsocket = ws => {
-    // Return true if websocket is connected and subscribed
-    // Otherwise return false
-    return (
-        ws !== null &&
-        ws &&
-        'ws' in ws &&
-        'readyState' in ws.ws &&
-        ws.ws.readyState === 1 &&
-        'subs' in ws &&
-        ws.subs.length > 0
-    );
-};
