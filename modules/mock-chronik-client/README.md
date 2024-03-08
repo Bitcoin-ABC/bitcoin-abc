@@ -111,3 +111,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.4.0
 
 -   Add support for `ws.unsubscribe` method and fix errors in `ws` tests
+
+1.4.1
+
+-   Patch repo path in package.json
