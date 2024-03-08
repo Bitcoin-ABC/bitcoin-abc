@@ -247,41 +247,45 @@ extern "C" void *ThreadDumper(void *data) {
     // occur every dump interval.
     UninterruptibleSleep(std::min(10s, dumpInterval));
     do {
-        std::vector<CAddrReport> v = db.GetAll();
-        sort(v.begin(), v.end(), StatCompare);
-        FILE *f = fsbridge::fopen("dnsseed.dat.new", "w+");
-        if (f) {
-            {
-                CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
-                cf << db;
+        {
+            std::vector<CAddrReport> v = db.GetAll();
+            sort(v.begin(), v.end(), StatCompare);
+            FILE *f = fsbridge::fopen("dnsseed.dat.new", "w+");
+            if (f) {
+                {
+                    CAutoFile cf(f, SER_DISK, CLIENT_VERSION);
+                    cf << db;
+                }
+                rename("dnsseed.dat.new", "dnsseed.dat");
             }
-            rename("dnsseed.dat.new", "dnsseed.dat");
-        }
-        std::ofstream d{"dnsseed.dump"};
-        tfm::format(d, "# address                                        good  "
-                       "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
-                       "%%(30d)  blocks      svcs  version\n");
-        double stat[5] = {0, 0, 0, 0, 0};
-        for (CAddrReport rep : v) {
+            std::ofstream d{"dnsseed.dump"};
             tfm::format(
-                d,
-                "%-47s  %4d  %11" PRId64
-                "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
-                "  %5i \"%s\"\n",
-                rep.ip.ToString(), (int)rep.fGood, rep.lastSuccess,
-                100.0 * rep.uptime[0], 100.0 * rep.uptime[1],
-                100.0 * rep.uptime[2], 100.0 * rep.uptime[3],
-                100.0 * rep.uptime[4], rep.blocks, rep.services,
-                rep.clientVersion, rep.clientSubVersion);
-            stat[0] += rep.uptime[0];
-            stat[1] += rep.uptime[1];
-            stat[2] += rep.uptime[2];
-            stat[3] += rep.uptime[3];
-            stat[4] += rep.uptime[4];
+                d, "# address                                        good  "
+                   "lastSuccess    %%(2h)   %%(8h)   %%(1d)   %%(7d)  "
+                   "%%(30d)  blocks      svcs  version\n");
+            double stat[5] = {0, 0, 0, 0, 0};
+            for (CAddrReport rep : v) {
+                tfm::format(
+                    d,
+                    "%-47s  %4d  %11" PRId64
+                    "  %6.2f%% %6.2f%% %6.2f%% %6.2f%% %6.2f%%  %6i  %08" PRIx64
+                    "  %5i \"%s\"\n",
+                    rep.ip.ToString(), (int)rep.fGood, rep.lastSuccess,
+                    100.0 * rep.uptime[0], 100.0 * rep.uptime[1],
+                    100.0 * rep.uptime[2], 100.0 * rep.uptime[3],
+                    100.0 * rep.uptime[4], rep.blocks, rep.services,
+                    rep.clientVersion, rep.clientSubVersion);
+                stat[0] += rep.uptime[0];
+                stat[1] += rep.uptime[1];
+                stat[2] += rep.uptime[2];
+                stat[3] += rep.uptime[3];
+                stat[4] += rep.uptime[4];
+            }
+            std::ofstream ff{"dnsstats.log", std::ios_base::app};
+            tfm::format(ff, "%llu %g %g %g %g %g\n", GetTime(), stat[0],
+                        stat[1], stat[2], stat[3], stat[4]);
+            // End scope so all streams flush before sleeping
         }
-        std::ofstream ff{"dnsstats.log", std::ios_base::app};
-        tfm::format(ff, "%llu %g %g %g %g %g\n", GetTime(), stat[0], stat[1],
-                    stat[2], stat[3], stat[4]);
 
         UninterruptibleSleep(dumpInterval);
     } while (1);
