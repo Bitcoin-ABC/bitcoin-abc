@@ -84,22 +84,22 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 
 ## Changelog
 
-0.10.1 - Deprecate client-side ping keepAlive. Server-side is now available.
-0.11.0 - Add support for `chronikInfo()` method to `ChronikClientNode`
-0.11.1 - Do not try next server if error is unrelated to server failure
-0.12.0 - Add support for `block(hashOrHeight)` and `blocks(startHeight, endHeight)` methods to `ChronikClientNode`
-0.13.0 - Add support for `blockTxs(hashOrHeight, page, pageSize)` and `tx(txid)` methods to `ChronikClientNode`
-0.14.0 - Add support for `rawTx(txid)` method to `ChronikClientNode`
-0.15.0 - Add support for `script` endpoints `history()` and `utxos()` to `ChronikClientNode`
-0.16.0 - Add support for `broadcastTx` and `broadcastTxs` endpoints to `ChronikClientNode`
-0.17.0 - Add support for token proto to endpoints that return `Tx_InNode` to `ChronikClientNode`
-0.18.0 - Add support for websocket connections to `ChronikClientNode`
-0.19.0 - Add support for token data in tx inputs and outputs to `ChronikClientNode`
-0.20.0 - Add support for calling script endpoints by address to `ChronikClientNode`
-0.21.0 - Skipped as accidentally published 0.22.0 before diff approval at 0.21.1-rc.1
-0.22.0 - Add support for `tokenId` endpoints and token data in utxos to `ChronikClientNode`
-0.22.1 - Return `script` key for utxos fetched from `tokenId` endpoint
-0.23.0 - Add support for returning `TokenInfo` from `chronik.token(tokenId)` calls to `ChronikClientNode`
-0.24.0 - Support `subscribeToAddress` and `unsubscribeFromAddress` methods in the `ChronikClientNode` websocket
-0.25.0 - Organize websocket subscriptions for `ChronikClientNode` under object instead of array
-0.25.1 - Move `ecashaddrjs` from dev dependency to dependency
+-   0.10.1 - Deprecate client-side ping keepAlive. Server-side is now available.
+-   0.11.0 - Add support for `chronikInfo()` method to `ChronikClientNode`
+-   0.11.1 - Do not try next server if error is unrelated to server failure
+-   0.12.0 - Add support for `block(hashOrHeight)` and `blocks(startHeight, endHeight)` methods to `ChronikClientNode`
+-   0.13.0 - Add support for `blockTxs(hashOrHeight, page, pageSize)` and `tx(txid)` methods to `ChronikClientNode`
+-   0.14.0 - Add support for `rawTx(txid)` method to `ChronikClientNode`
+-   0.15.0 - Add support for `script` endpoints `history()` and `utxos()` to `ChronikClientNode`
+-   0.16.0 - Add support for `broadcastTx` and `broadcastTxs` endpoints to `ChronikClientNode`
+-   0.17.0 - Add support for token proto to endpoints that return `Tx_InNode` to `ChronikClientNode`
+-   0.18.0 - Add support for websocket connections to `ChronikClientNode`
+-   0.19.0 - Add support for token data in tx inputs and outputs to `ChronikClientNode`
+-   0.20.0 - Add support for calling script endpoints by address to `ChronikClientNode`
+-   0.21.0 - Skipped as accidentally published 0.22.0 before diff approval at 0.21.1-rc.1
+-   0.22.0 - Add support for `tokenId` endpoints and token data in utxos to `ChronikClientNode`
+-   0.22.1 - Return `script` key for utxos fetched from `tokenId` endpoint
+-   0.23.0 - Add support for returning `TokenInfo` from `chronik.token(tokenId)` calls to `ChronikClientNode`
+-   0.24.0 - Support `subscribeToAddress` and `unsubscribeFromAddress` methods in the `ChronikClientNode` websocket
+-   0.25.0 - Organize websocket subscriptions for `ChronikClientNode` under object instead of array
+-   0.25.1 - Move `ecashaddrjs` from dev dependency to dependency
