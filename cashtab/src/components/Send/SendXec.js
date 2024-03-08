@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { WalletContext } from 'wallet/context';
 import {
     AntdFormWrapper,
@@ -155,7 +154,7 @@ const OpReturnRawSetByBip21Alert = styled.div`
     overflow-wrap: break-word;
 `;
 
-const SendXec = ({ passLoadingStatus }) => {
+const SendXec = () => {
     // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
     // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
 
@@ -242,12 +241,6 @@ const SendXec = ({ passLoadingStatus }) => {
     const handleCancel = () => {
         setIsModalVisible(false);
     };
-
-    // If the balance has changed, unlock the UI
-    // This is redundant, if backend has refreshed in 1.75s timeout below, UI will already be unlocked
-    useEffect(() => {
-        passLoadingStatus(false);
-    }, [balances.totalBalance]);
 
     useEffect(() => {
         // Manually parse for txInfo object on page load when Send.js is loaded with a query string
@@ -402,8 +395,6 @@ const SendXec = ({ passLoadingStatus }) => {
     }, [txInfoFromUrl, balances.totalBalance]);
 
     function handleSendXecError(errorObj, oneToManyFlag) {
-        // Set loading to false here as well, as balance may not change depending on where error occured in try loop
-        passLoadingStatus(false);
         let message;
         if (
             errorObj.error &&
@@ -494,8 +485,6 @@ const SendXec = ({ passLoadingStatus }) => {
 
             Event('Send.js', 'Send', selectedCurrency);
         }
-
-        passLoadingStatus(true);
 
         // Send and notify
         try {
@@ -1115,23 +1104,6 @@ const SendXec = ({ passLoadingStatus }) => {
             </SidePaddingCtn>
         </>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in Send.test.js
-
-status => {console.log(status)} is an arbitrary stub function
-*/
-
-SendXec.defaultProps = {
-    passLoadingStatus: status => {
-        console.log(status);
-    },
-};
-
-SendXec.propTypes = {
-    passLoadingStatus: PropTypes.func,
 };
 
 export default SendXec;

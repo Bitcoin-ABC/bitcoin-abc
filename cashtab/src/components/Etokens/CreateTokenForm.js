@@ -4,7 +4,6 @@
 
 import React, { useState, useCallback } from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
 import {
     CropControlModal,
@@ -73,7 +72,7 @@ export const CreateTokenCtn = styled.div`
     }
 `;
 
-const CreateTokenForm = ({ passLoadingStatus }) => {
+const CreateTokenForm = () => {
     const { chronik, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
@@ -445,7 +444,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
         }
     };
     const createPreviewedToken = async () => {
-        passLoadingStatus(true);
         // If data is for some reason not valid here, bail out
         if (!tokenGenesisDataIsValid) {
             return;
@@ -506,8 +504,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
                 submitTokenIcon(response.txid);
             }
         } catch (e) {
-            // Set loading to false here as well, as balance may not change depending on where error occured in try loop
-            passLoadingStatus(false);
             notification.error({
                 message: 'Creating eToken',
                 description: JSON.stringify(e),
@@ -516,8 +512,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
         }
         // Hide the modal
         setShowConfirmCreateToken(false);
-        // Stop spinner
-        passLoadingStatus(false);
     };
     return (
         <>
@@ -826,25 +820,6 @@ const CreateTokenForm = ({ passLoadingStatus }) => {
             </CreateTokenCtn>
         </>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in CreateTokenForm.test.js
-
-status => {console.log(status)} is an arbitrary stub function
-*/
-
-CreateTokenForm.defaultProps = {
-    passLoadingStatus: status => {
-        console.log(status);
-    },
-};
-
-CreateTokenForm.propTypes = {
-    createToken: PropTypes.func,
-    disabled: PropTypes.bool,
-    passLoadingStatus: PropTypes.func,
 };
 
 export default CreateTokenForm;

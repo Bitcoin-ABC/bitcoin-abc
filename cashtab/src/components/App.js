@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Spin } from 'antd';
 import {
     CashLoadingIcon,
@@ -443,7 +442,7 @@ const App = () => {
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
-    const [loadingUtxosAfterSend, setLoadingUtxosAfterSend] = useState(false);
+    const [spinner, setSpinner] = useState(false);
     const [updatingWalletInfo, setUpdatingWalletInfo] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
@@ -482,7 +481,7 @@ const App = () => {
             <Spin
                 spinning={
                     loading ||
-                    loadingUtxosAfterSend ||
+                    spinner ||
                     updatingWalletInfo ||
                     (wallet && !validWallet)
                 }
@@ -574,71 +573,30 @@ const App = () => {
                             </Header>
                             <Routes>
                                 <Route path="/wallet" element={<Home />} />
-                                <Route
-                                    path="/receive"
-                                    element={
-                                        <Receive
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    }
-                                />
+                                <Route path="/receive" element={<Receive />} />
 
                                 <Route
                                     path="/create-token"
-                                    element={
-                                        <CreateToken
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    }
+                                    element={<CreateToken />}
                                 />
 
-                                <Route
-                                    path="/send"
-                                    element={
-                                        <SendXec
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    }
-                                />
+                                <Route path="/send" element={<SendXec />} />
                                 <Route path="send-token">
                                     <Route
                                         path=":tokenId"
-                                        element={
-                                            <SendToken
-                                                passLoadingStatus={
-                                                    setLoadingUtxosAfterSend
-                                                }
-                                            />
-                                        }
+                                        element={<SendToken />}
                                     />
                                 </Route>
                                 <Route
                                     path="/airdrop"
                                     element={
                                         <Airdrop
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
+                                            passLoadingStatus={setSpinner}
                                         />
                                     }
                                 />
 
-                                <Route
-                                    path="/etokens"
-                                    element={
-                                        <Etokens
-                                            passLoadingStatus={
-                                                setLoadingUtxosAfterSend
-                                            }
-                                        />
-                                    }
-                                />
+                                <Route path="/etokens" element={<Etokens />} />
                                 <Route
                                     path="/signverifymsg"
                                     element={<SignVerifyMsg />}
@@ -648,9 +606,7 @@ const App = () => {
                                         path="/alias"
                                         element={
                                             <Alias
-                                                passLoadingStatus={
-                                                    setLoadingUtxosAfterSend
-                                                }
+                                                passLoadingStatus={setSpinner}
                                             />
                                         }
                                     />
@@ -789,10 +745,6 @@ const App = () => {
             </Spin>
         </ThemeProvider>
     );
-};
-
-App.propTypes = {
-    match: PropTypes.string,
 };
 
 export default App;

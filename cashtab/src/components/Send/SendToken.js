@@ -2,9 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { WalletContext } from 'wallet/context';
 import {
     Form,
@@ -28,7 +27,6 @@ import {
 import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
-import usePrevious from 'hooks/usePrevious';
 import { Img } from 'react-image';
 import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
@@ -106,7 +104,7 @@ const AirdropButton = styled.div`
     `}
 `;
 
-const SendToken = ({ passLoadingStatus }) => {
+const SendToken = () => {
     let navigate = useNavigate();
     const { apiError, cashtabState, chronik, chaintipBlockheight } =
         React.useContext(WalletContext);
@@ -119,7 +117,6 @@ const SendToken = ({ passLoadingStatus }) => {
     const tokenId = params.tokenId;
 
     const token = tokens.find(token => token.tokenId === tokenId);
-    const previousWalletState = usePrevious(walletState);
 
     const [tokenStats, setTokenStats] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
@@ -180,7 +177,6 @@ const SendToken = ({ passLoadingStatus }) => {
         // SLPA token IDs
         Event('SendToken.js', 'Send', tokenId);
 
-        passLoadingStatus(true);
         const { address, value } = formData;
 
         let cleanAddress;
@@ -240,7 +236,6 @@ const SendToken = ({ passLoadingStatus }) => {
             clearInputForms();
         } catch (e) {
             console.log(`Error sending token`, e);
-            passLoadingStatus(false);
             notification.error({
                 message: 'Sending eToken',
                 description: `${e}`,
@@ -412,8 +407,6 @@ const SendToken = ({ passLoadingStatus }) => {
 
         Event('SendToken.js', 'Burn eToken', tokenId);
 
-        passLoadingStatus(true);
-
         try {
             // Get input utxos for slpv1 burn tx
             // This is done the same way as for an slpv1 send tx
@@ -465,7 +458,6 @@ const SendToken = ({ passLoadingStatus }) => {
             setConfirmationOfEtokenToBeBurnt('');
         } catch (e) {
             setShowConfirmBurnEtoken(false);
-            passLoadingStatus(false);
             setConfirmationOfEtokenToBeBurnt('');
             notification.error({
                 message: 'Burning eToken',
@@ -491,21 +483,6 @@ const SendToken = ({ passLoadingStatus }) => {
             setShowConfirmBurnEtoken(true);
         }
     };
-    useEffect(() => {
-        // Unlock UI after user sends an eToken tx to their own wallet
-        if (
-            walletState &&
-            walletState.balances &&
-            walletState.balances.totalBalanceInSatoshis &&
-            previousWalletState &&
-            previousWalletState.balances &&
-            previousWalletState.balances.totalBalanceInSatoshis &&
-            walletState.balances.totalBalanceInSatoshis !==
-                previousWalletState.balances.totalBalanceInSatoshis
-        ) {
-            passLoadingStatus(false);
-        }
-    }, [walletState]);
 
     return (
         <>
@@ -851,23 +828,6 @@ const SendToken = ({ passLoadingStatus }) => {
             )}
         </>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in SendToken.test.js
-status => {console.log(status)} is an arbitrary stub function
-*/
-
-SendToken.defaultProps = {
-    passLoadingStatus: status => {
-        console.log(status);
-    },
-};
-
-SendToken.propTypes = {
-    tokenId: PropTypes.string,
-    passLoadingStatus: PropTypes.func,
 };
 
 export default SendToken;

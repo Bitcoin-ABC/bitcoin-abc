@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import { WalletContext } from 'wallet/context';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
@@ -14,7 +13,7 @@ import { BN } from 'slp-mdm';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
-const CreateToken = ({ passLoadingStatus }) => {
+const CreateToken = () => {
     const { apiError, fiatPrice, cashtabState } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
@@ -47,28 +46,11 @@ const CreateToken = ({ passLoadingStatus }) => {
                         ) to create a token
                     </AlertMsg>
                 ) : (
-                    <CreateTokenForm passLoadingStatus={passLoadingStatus} />
+                    <CreateTokenForm />
                 )}
             </SidePaddingCtn>
         </>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in Tokens.test.js
-
-status => {console.log(status)} is an arbitrary stub function
-*/
-
-CreateToken.defaultProps = {
-    passLoadingStatus: status => {
-        console.log(status);
-    },
-};
-
-CreateToken.propTypes = {
-    passLoadingStatus: PropTypes.func,
 };
 
 export default CreateToken;

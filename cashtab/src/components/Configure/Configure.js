@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
 import {
@@ -1920,23 +1919,6 @@ const Configure = () => {
             </StyledConfigure>
         </SidePaddingCtn>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in Configure.test.js
-
-status => {console.log(status)} is an arbitrary stub function
-*/
-
-Configure.defaultProps = {
-    passLoadingStatus: status => {
-        console.log(status);
-    },
-};
-
-Configure.propTypes = {
-    passLoadingStatus: PropTypes.func,
 };
 
 export default Configure;
