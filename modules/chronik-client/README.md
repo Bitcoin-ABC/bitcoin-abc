@@ -104,3 +104,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   0.25.0 - Organize websocket subscriptions for `ChronikClientNode` under object instead of array
 -   0.25.1 - Move `ecashaddrjs` from dev dependency to dependency
 -   0.25.2 - Fix this package to work in the browser without requiring `Buffer` shim
+-   0.26.0 - Add `confirmedTxs` and `unconfirmedTxs` to `script` endpoint

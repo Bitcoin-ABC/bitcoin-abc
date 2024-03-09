@@ -8,7 +8,7 @@ import cashaddr from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode, ScriptType_InNode } from '../../index';
+import { ChronikClientNode, ScriptType_InNode, Tx_InNode } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -204,7 +204,7 @@ describe('Get script().history and script().utxos()', () => {
             'Invalid address: notAnAddress.',
         );
 
-        const checkEmptyHistoryAndUtxos = async (
+        const checkEmptyScriptMethods = async (
             chronik: ChronikClientNode,
             type: ScriptType_InNode,
             payload: string,
@@ -212,10 +212,26 @@ describe('Get script().history and script().utxos()', () => {
         ) => {
             const chronikScript = chronik.script(type, payload);
             const history = await chronikScript.history();
+            const confirmedTxs = await chronikScript.confirmedTxs();
+            const unconfirmedTxs = await chronikScript.unconfirmedTxs();
             const utxos = await chronikScript.utxos();
 
             // Expect empty history
             expect(history).to.deep.equal({ txs: [], numPages: 0, numTxs: 0 });
+
+            // Expect empty confirmed txs
+            expect(confirmedTxs).to.deep.equal({
+                txs: [],
+                numPages: 0,
+                numTxs: 0,
+            });
+
+            // Expect empty unconfirmed txs
+            expect(unconfirmedTxs).to.deep.equal({
+                txs: [],
+                numPages: 0,
+                numTxs: 0,
+            });
 
             // Hash is returned at the outputScript key, no utxos
             expect(utxos).to.deep.equal({
@@ -227,7 +243,7 @@ describe('Get script().history and script().utxos()', () => {
         };
 
         // p2pkh
-        await checkEmptyHistoryAndUtxos(
+        await checkEmptyScriptMethods(
             chronik,
             'p2pkh',
             p2pkhAddressHash,
@@ -235,7 +251,7 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         // p2sh
-        await checkEmptyHistoryAndUtxos(
+        await checkEmptyScriptMethods(
             chronik,
             'p2sh',
             p2shAddressHash,
@@ -244,7 +260,7 @@ describe('Get script().history and script().utxos()', () => {
 
         // p2pk
         p2pkScriptBytecountHex = (p2pkScript.length / 2).toString(16);
-        await checkEmptyHistoryAndUtxos(
+        await checkEmptyScriptMethods(
             chronik,
             'p2pk',
             p2pkScript,
@@ -252,7 +268,7 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         // other
-        await checkEmptyHistoryAndUtxos(
+        await checkEmptyScriptMethods(
             chronik,
             'other',
             otherScript,
@@ -275,6 +291,18 @@ describe('Get script().history and script().utxos()', () => {
                 Error,
                 `Failed getting /script/${type}/${nonHexPayload}/history?page=0&page_size=25 (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
             );
+            await expect(
+                chronikScriptNonHexPayload.confirmedTxs(),
+            ).to.be.rejectedWith(
+                Error,
+                `Failed getting /script/${type}/${nonHexPayload}/confirmed-txs?page=0&page_size=25 (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+            );
+            await expect(
+                chronikScriptNonHexPayload.unconfirmedTxs(),
+            ).to.be.rejectedWith(
+                Error,
+                `Failed getting /script/${type}/${nonHexPayload}/unconfirmed-txs?page=0&page_size=25 (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+            );
             await expect(chronikScriptNonHexPayload.utxos()).to.be.rejectedWith(
                 Error,
                 `Failed getting /script/${type}/${nonHexPayload}/utxos (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
@@ -291,6 +319,18 @@ describe('Get script().history and script().utxos()', () => {
                     `Failed getting /script/${type}/${hexPayload}/history?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
                 );
                 await expect(
+                    chronikScriptHexPayload.confirmedTxs(),
+                ).to.be.rejectedWith(
+                    Error,
+                    `Failed getting /script/${type}/${hexPayload}/confirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                );
+                await expect(
+                    chronikScriptHexPayload.unconfirmedTxs(),
+                ).to.be.rejectedWith(
+                    Error,
+                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                );
+                await expect(
                     chronikScriptHexPayload.utxos(),
                 ).to.be.rejectedWith(
                     Error,
@@ -303,6 +343,18 @@ describe('Get script().history and script().utxos()', () => {
                 ).to.be.rejectedWith(
                     Error,
                     `Failed getting /script/${type}/${hexPayload}/history?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                );
+                await expect(
+                    chronikScriptHexPayload.confirmedTxs(),
+                ).to.be.rejectedWith(
+                    Error,
+                    `Failed getting /script/${type}/${hexPayload}/confirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                );
+                await expect(
+                    chronikScriptHexPayload.unconfirmedTxs(),
+                ).to.be.rejectedWith(
+                    Error,
+                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.utxos(),
@@ -326,7 +378,7 @@ describe('Get script().history and script().utxos()', () => {
         // 440 bytes
         const outTherePayload =
             'deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
-        await checkEmptyHistoryAndUtxos(
+        await checkEmptyScriptMethods(
             chronik,
             'other',
             outTherePayload,
@@ -339,7 +391,7 @@ describe('Get script().history and script().utxos()', () => {
 
         const chronik = new ChronikClientNode(chronikUrl);
 
-        const checkHistoryAndUtxosInMempool = async (
+        const checkScriptMethodsInMempool = async (
             chronik: ChronikClientNode,
             type: ScriptType_InNode,
             payload: string,
@@ -353,6 +405,43 @@ describe('Get script().history and script().utxos()', () => {
                 0,
                 broadcastTxids.length,
             );
+            // within history txs, confirmed txs are sorted in block order, unconfirmed txs are sorted by timeFirstSeen
+            // i.e., history.txs[0] will have the highest timeFirstSeen
+            // For txs with the same timeFirstSeen, the alphabetically-last txs appears first
+            const historyClone: Tx_InNode[] = JSON.parse(
+                JSON.stringify(history.txs),
+            );
+
+            // Sort historyClone by timeFirstSeen and then by txid
+            historyClone.sort(
+                (b, a) =>
+                    a.timeFirstSeen - b.timeFirstSeen ||
+                    a.txid.localeCompare(b.txid),
+            );
+
+            expect(history.txs).to.deep.equal(historyClone);
+
+            const confirmedTxs = await chronikScript.confirmedTxs(
+                0,
+                broadcastTxids.length,
+            );
+            const unconfirmedTxs = await chronikScript.unconfirmedTxs(
+                0,
+                broadcastTxids.length,
+            );
+
+            // If all txs are in the mempool, unconfirmedTxs matches what we get for history
+            // unconfirmed txs are sorted in chronological order, tiebreaker txid alphabetical
+
+            // NB we also expec the exact txs as the history endpoint, so we sort that output for our comparison
+            historyClone.sort(
+                // Note the order of a,b, now we sort chronologically and alphabetically (not reverse of both)
+                (a, b) =>
+                    a.timeFirstSeen - b.timeFirstSeen ||
+                    a.txid.localeCompare(b.txid),
+            );
+            expect(unconfirmedTxs.txs).to.deep.equal(historyClone);
+
             const utxos = await chronikScript.utxos();
 
             // fetched history tx count is the same as txids broadcast to this address
@@ -367,6 +456,13 @@ describe('Get script().history and script().utxos()', () => {
 
             // txids fetched from history match what the node broadcast
             expect(historyTxids).to.have.members(broadcastTxids);
+
+            // If all txs are in the mempool, confirmedTxs is empty
+            expect(confirmedTxs).to.deep.equal({
+                txs: [],
+                numPages: 0,
+                numTxs: 0,
+            });
 
             // The returned outputScript matches the calling script hash
             expect(utxos.outputScript).to.eql(expectedOutputScript);
@@ -393,7 +489,7 @@ describe('Get script().history and script().utxos()', () => {
 
         // p2pkh
         p2pkhTxids = await get_p2pkh_txids;
-        await checkHistoryAndUtxosInMempool(
+        await checkScriptMethodsInMempool(
             chronik,
             'p2pkh',
             p2pkhAddressHash,
@@ -403,7 +499,7 @@ describe('Get script().history and script().utxos()', () => {
 
         // p2sh
         p2shTxids = await get_p2sh_txids;
-        await checkHistoryAndUtxosInMempool(
+        await checkScriptMethodsInMempool(
             chronik,
             'p2sh',
             p2shAddressHash,
@@ -413,7 +509,7 @@ describe('Get script().history and script().utxos()', () => {
 
         // p2pk
         p2pkTxids = await get_p2pk_txids;
-        await checkHistoryAndUtxosInMempool(
+        await checkScriptMethodsInMempool(
             chronik,
             'p2pk',
             p2pkScript,
@@ -423,7 +519,7 @@ describe('Get script().history and script().utxos()', () => {
 
         // other
         otherTxids = await get_other_txids;
-        await checkHistoryAndUtxosInMempool(
+        await checkScriptMethodsInMempool(
             chronik,
             'other',
             otherScript,
@@ -508,7 +604,7 @@ describe('Get script().history and script().utxos()', () => {
     it('After these txs are mined', async () => {
         const chronik = new ChronikClientNode(chronikUrl);
 
-        const checkHistoryAndUtxosAfterConfirmation = async (
+        const checkScriptMethodsAfterConfirmation = async (
             chronik: ChronikClientNode,
             type: ScriptType_InNode,
             payload: string,
@@ -519,6 +615,29 @@ describe('Get script().history and script().utxos()', () => {
             // Use broadcastTxids.length for page size, so that we can be sure the first page has all the txs
             // Test pagination separately
             const history = await chronikScript.history(
+                0,
+                broadcastTxids.length,
+            );
+            // Clone history.txs to test sorting
+            const historyClone: Tx_InNode[] = JSON.parse(
+                JSON.stringify(history.txs),
+            );
+
+            // history txs within blocks sorting
+            // The history endpoint returns confirmed txs sorted by timeFirstSeen (high to low) and then by txid (alphabetical last to first)
+            historyClone.sort(
+                (b, a) =>
+                    a.timeFirstSeen - b.timeFirstSeen ||
+                    a.txid.localeCompare(b.txid),
+            );
+
+            expect(history.txs).to.deep.equal(historyClone);
+
+            const confirmedTxs = await chronikScript.confirmedTxs(
+                0,
+                broadcastTxids.length,
+            );
+            const unconfirmedTxs = await chronikScript.unconfirmedTxs(
                 0,
                 broadcastTxids.length,
             );
@@ -538,6 +657,23 @@ describe('Get script().history and script().utxos()', () => {
 
             // txids fetched from history match what the node broadcast
             expect(historyTxids).to.have.members(broadcastTxids);
+
+            // If all txs are mined, unconfirmedTxs is empty
+            expect(unconfirmedTxs).to.deep.equal({
+                txs: [],
+                numPages: 0,
+                numTxs: 0,
+            });
+
+            // If all txs are mined, confirmedTxs matches history
+            // Confirmed txs are sorted by block order
+            // coinbase txs come first, then alphabetically
+            // we have no coinbase txs, so alphabetically
+            historyClone.sort((a, b) => a.txid.localeCompare(b.txid));
+
+            // confirmedTxs txs are sorted in block order, txid alphabetical
+            // and to have the same txs as history
+            expect(confirmedTxs.txs).to.deep.equal(historyClone);
 
             // The returned outputScript matches the calling script hash
             expect(utxos.outputScript).to.eql(expectedOutputScript);
@@ -560,7 +696,7 @@ describe('Get script().history and script().utxos()', () => {
             console.log('\x1b[32m%s\x1b[0m', `✔ ${type}`);
         };
         // p2pkh
-        await checkHistoryAndUtxosAfterConfirmation(
+        await checkScriptMethodsAfterConfirmation(
             chronik,
             'p2pkh',
             p2pkhAddressHash,
@@ -569,7 +705,7 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         // p2sh
-        await checkHistoryAndUtxosAfterConfirmation(
+        await checkScriptMethodsAfterConfirmation(
             chronik,
             'p2sh',
             p2shAddressHash,
@@ -578,7 +714,7 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         // p2pk
-        await checkHistoryAndUtxosAfterConfirmation(
+        await checkScriptMethodsAfterConfirmation(
             chronik,
             'p2pk',
             p2pkScript,
@@ -587,7 +723,7 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         // other
-        await checkHistoryAndUtxosAfterConfirmation(
+        await checkScriptMethodsAfterConfirmation(
             chronik,
             'other',
             otherScript,
@@ -682,11 +818,14 @@ describe('Get script().history and script().utxos()', () => {
         ) => {
             const chronikScript = chronik.script(type, payload);
             const history = await chronikScript.history();
+            const unconfirmedTxs = await chronikScript.unconfirmedTxs();
             const utxos = await chronikScript.utxos();
             // We see a new tx in numTxs count
             expect(history.numTxs).to.eql(txsBroadcast + 1);
             // The most recent txid appears at the first element of the tx history array
             expect(history.txs[0].txid).to.eql(mixedTxid);
+            // We can also get this tx from unconfirmedTxs
+            expect(unconfirmedTxs.txs[0].txid).to.eql(mixedTxid);
             // The most recent txid appears at the last element of the utxos array
             expect(utxos.utxos[utxos.utxos.length - 1].outpoint.txid).to.eql(
                 mixedTxid,

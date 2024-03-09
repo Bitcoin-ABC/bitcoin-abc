@@ -224,6 +224,46 @@ export class ScriptEndpointInNode {
     }
 
     /**
+     * Fetches the confirmed tx history of this script, in the order they appear on the blockchain.
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async confirmedTxs(
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/script/${this._scriptType}/${this._scriptPayload}/confirmed-txs?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
+     * Fetches the unconfirmed tx history of this script, in chronological order.
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async unconfirmedTxs(
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/script/${this._scriptType}/${this._scriptPayload}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
      * Fetches the current UTXO set for this script.
      * It is grouped by output script, in case a script type can match multiple
      * different output scripts (e.g. Taproot on Lotus).
@@ -271,7 +311,7 @@ export class TokenIdEndpoint {
     }
 
     /**
-     * Fetches the confirmed tx history of this tokenId, in anti-chronological order.
+     * Fetches the confirmed tx history of this tokenId, in the order they appear on the blockchain.
      * @param page Page index of the tx history.
      * @param pageSize Number of txs per page.
      */
@@ -291,7 +331,7 @@ export class TokenIdEndpoint {
     }
 
     /**
-     * Fetches the unconfirmed tx history of this tokenId, in anti-chronological order.
+     * Fetches the unconfirmed tx history of this tokenId, in chronological order.
      * @param page Page index of the tx history.
      * @param pageSize Number of txs per page.
      */
