@@ -615,8 +615,11 @@ const Configure = () => {
     };
 
     const activateWallet = (walletToActivate, wallets) => {
+        // Initialize our new wallets array (copy so we do not mutate)
+        const otherWallets = [...wallets];
+
         // Find this wallet in wallets
-        const indexOfWalletToActivate = wallets.findIndex(
+        const indexOfWalletToActivate = otherWallets.findIndex(
             wallet => wallet.mnemonic === walletToActivate.mnemonic,
         );
 
@@ -627,22 +630,18 @@ const Configure = () => {
             );
         }
 
-        // Remove walletToActivate from wallets
-        // Note that .splice returns newActiveWallet in an array of length 1
-        const newActiveWallet = wallets.splice(indexOfWalletToActivate, 1)[0];
+        // Remove walletToActivate from otherWallets
+        otherWallets.splice(indexOfWalletToActivate, 1);
 
         // Sort inactive wallets alphabetically by name
-        wallets.sort((a, b) => a.name.localeCompare(b.name));
-
-        // Add newActiveWallet to index 0 of now-sorted wallets
-        wallets.unshift(newActiveWallet);
+        otherWallets.sort((a, b) => a.name.localeCompare(b.name));
 
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Activate', '');
 
         // Update wallets to activate this wallet
-        updateCashtabState('wallets', wallets);
+        updateCashtabState('wallets', [walletToActivate, ...otherWallets]);
     };
 
     /**
@@ -1539,7 +1538,9 @@ const Configure = () => {
                                 <div>
                                     {wallets.map((wallet, index) =>
                                         index === 0 ? (
-                                            <AWRow key={wallet.name}>
+                                            <AWRow
+                                                key={`${wallet.name}_${index}`}
+                                            >
                                                 <Tooltip title={wallet.name}>
                                                     <h3 className="notranslate">
                                                         {wallet.name}
@@ -1565,7 +1566,9 @@ const Configure = () => {
                                                 </SWButtonCtn>
                                             </AWRow>
                                         ) : (
-                                            <SWRow key={wallet.name}>
+                                            <SWRow
+                                                key={`${wallet.name}_${index}`}
+                                            >
                                                 <Tooltip
                                                     title={wallet.name}
                                                     autoAdjustOverflow={true}

@@ -443,7 +443,6 @@ const App = () => {
     const walletState = getWalletState(wallet);
     const { balances } = walletState;
     const [spinner, setSpinner] = useState(false);
-    const [updatingWalletInfo, setUpdatingWalletInfo] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
@@ -479,12 +478,7 @@ const App = () => {
                 </>
             )}
             <Spin
-                spinning={
-                    loading ||
-                    spinner ||
-                    updatingWalletInfo ||
-                    (wallet && !validWallet)
-                }
+                spinning={loading || spinner || (wallet && !validWallet)}
                 indicator={CashLoadingIcon}
             >
                 <CustomApp>
@@ -613,13 +607,7 @@ const App = () => {
                                 )}
                                 <Route
                                     path="/configure"
-                                    element={
-                                        <Configure
-                                            passLoadingStatus={
-                                                setUpdatingWalletInfo
-                                            }
-                                        />
-                                    }
+                                    element={<Configure />}
                                 />
                                 {process.env.REACT_APP_BUILD_ENV !==
                                     'extension' && (
