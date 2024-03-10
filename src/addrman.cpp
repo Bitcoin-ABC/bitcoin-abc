@@ -815,7 +815,7 @@ std::pair<CAddress, NodeSeconds> AddrManImpl::Select_(bool newOnly) const {
             assert(it_found != mapInfo.end());
             const AddrInfo &info{it_found->second};
             // With probability GetChance() * fChanceFactor, return the entry.
-            if (insecure_rand.randbits(30) <
+            if (insecure_rand.randbits<30>() <
                 fChanceFactor * info.GetChance() * (1 << 30)) {
                 LogPrint(BCLog::ADDRMAN, "Selected %s from tried\n",
                          info.ToString());
