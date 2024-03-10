@@ -679,7 +679,7 @@ void FastRandomContext::fillrand(Span<std::byte> output) noexcept {
 }
 
 FastRandomContext::FastRandomContext(const uint256 &seed) noexcept
-    : requires_seed(false), rng(MakeByteSpan(seed)), bitbuf_size(0) {}
+    : requires_seed(false), rng(MakeByteSpan(seed)) {}
 
 bool Random_SanityCheck() {
     uint64_t start = GetPerformanceCounter();
@@ -740,7 +740,7 @@ bool Random_SanityCheck() {
 static constexpr std::array<std::byte, ChaCha20::KEYLEN> ZERO_KEY{};
 
 FastRandomContext::FastRandomContext(bool fDeterministic) noexcept
-    : requires_seed(!fDeterministic), rng(ZERO_KEY), bitbuf_size(0) {
+    : requires_seed(!fDeterministic), rng(ZERO_KEY) {
     // Note that despite always initializing with ZERO_KEY, requires_seed is set
     // to true if not fDeterministic. That means the rng will be reinitialized
     // with a secure random key upon first use.
@@ -750,10 +750,8 @@ FastRandomContext &
 FastRandomContext::operator=(FastRandomContext &&from) noexcept {
     requires_seed = from.requires_seed;
     rng = from.rng;
-    bitbuf = from.bitbuf;
-    bitbuf_size = from.bitbuf_size;
     from.requires_seed = true;
-    from.bitbuf_size = 0;
+    static_cast<RandomMixin<FastRandomContext> &>(*this) = std::move(from);
     return *this;
 }
 
