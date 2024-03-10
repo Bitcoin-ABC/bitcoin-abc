@@ -110,7 +110,9 @@ class AssumeutxoTest(BitcoinTestFramework):
                 )
             )
 
-        self.log.info("  - snapshot file with alternated UTXO data")
+        self.log.info(
+            "  - snapshot file with alternated but parsable UTXO data results in different hash"
+        )
         cases = [
             # (content, offset, wrong_hash, custom_message)
             # wrong outpoint hash
@@ -120,10 +122,21 @@ class AssumeutxoTest(BitcoinTestFramework):
                 "74fab8900700c8a0a4c6b50330252d92d651088939a41b307a8fcdddfed65f77",
                 None,
             ],
+            # wrong txid coins count
+            # We expect the first txid in the dump to have one coin, and we set the value to 2.
+            # The deserialization code manages to accidentally read a second coin before choking
+            # on the third coin when if finally finds some random data that doesn't pass sanity
+            # tests (block height > snapshot height).
+            [
+                (2).to_bytes(1, "little"),
+                32,
+                None,
+                "[snapshot] bad snapshot data after deserializing 2 coins",
+            ],
             # wrong outpoint index
             [
-                (1).to_bytes(4, "little"),
-                32,
+                b"\x01",
+                33,
                 "3872c8e52554070ca410faff98e42f63c99d08f536be343af7c04143e0e8f2b2",
                 None,
             ],
@@ -131,28 +144,28 @@ class AssumeutxoTest(BitcoinTestFramework):
             # We expect b"\x81" (as seen in a dump of valid_snapshot_path)
             [
                 b"\x80",
-                36,
+                34,
                 "b14c9595737179fe57e6d7a9f8e879a440833fa95ba52d210f1f7e3c02be64b2",
                 None,
             ],
             # another wrong coin code
             [
                 b"\x83",
-                36,
+                34,
                 "296b4acd0d41dd4c0e845a7ed0cbdc602e5a7d092d5b4948a72835d2158f1e8e",
                 None,
             ],
             # wrong coin case with height 364 and coinbase 0
             [
                 b"\x84\x58",
-                36,
+                34,
                 None,
                 "[snapshot] bad snapshot data after deserializing 0 coins",
             ],
             # Amount exceeds MAX_MONEY
             [
                 b"\xCA\xD2\x8F\x5A",
-                38,
+                36,
                 None,
                 "[snapshot] bad snapshot data after deserializing 0 coins - bad tx out value",
             ],

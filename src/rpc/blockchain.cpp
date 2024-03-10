@@ -31,6 +31,7 @@
 #include <rpc/server_util.h>
 #include <rpc/util.h>
 #include <script/descriptor.h>
+#include <serialize.h>
 #include <streams.h>
 #include <txdb.h>
 #include <txmempool.h>
@@ -2730,26 +2731,61 @@ UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
     afile << metadata;
 
     COutPoint key;
+    TxId last_txid;
     Coin coin;
     unsigned int iter{0};
+    size_t written_coins_count{0};
+    std::vector<std::pair<uint32_t, Coin>> coins;
 
+    // To reduce space the serialization format of the snapshot avoids
+    // duplication of tx hashes. The code takes advantage of the guarantee by
+    // leveldb that keys are lexicographically sorted.
+    // In the coins vector we collect all coins that belong to a certain tx hash
+    // (key.hash) and when we have them all (key.hash != last_hash) we write
+    // them to file using the below lambda function.
+    // See also https://github.com/bitcoin/bitcoin/issues/25675
+    auto write_coins_to_file =
+        [&](AutoFile &afile, const TxId &last_txid,
+            const std::vector<std::pair<uint32_t, Coin>> &coins,
+            size_t &written_coins_count) {
+            afile << last_txid;
+            WriteCompactSize(afile, coins.size());
+            for (const auto &[n, coin_] : coins) {
+                WriteCompactSize(afile, n);
+                afile << coin_;
+                ++written_coins_count;
+            }
+        };
+
+    pcursor->GetKey(key);
+    last_txid = key.GetTxId();
     while (pcursor->Valid()) {
         if (iter % 5000 == 0) {
             node.rpc_interruption_point();
         }
         ++iter;
         if (pcursor->GetKey(key) && pcursor->GetValue(coin)) {
-            afile << key;
-            afile << coin;
+            if (key.GetTxId() != last_txid) {
+                write_coins_to_file(afile, last_txid, coins,
+                                    written_coins_count);
+                last_txid = key.GetTxId();
+                coins.clear();
+            }
+            coins.emplace_back(key.GetN(), coin);
         }
-
         pcursor->Next();
     }
+
+    if (!coins.empty()) {
+        write_coins_to_file(afile, last_txid, coins, written_coins_count);
+    }
+
+    CHECK_NONFATAL(written_coins_count == maybe_stats->coins_count);
 
     afile.fclose();
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("coins_written", maybe_stats->coins_count);
+    result.pushKV("coins_written", written_coins_count);
     result.pushKV("base_hash", tip->GetBlockHash().ToString());
     result.pushKV("base_height", tip->nHeight);
     result.pushKV("path", path.u8string());
