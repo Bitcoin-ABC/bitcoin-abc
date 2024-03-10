@@ -1066,8 +1066,7 @@ static std::vector<uint8_t> RandomData() {
 }
 
 BOOST_AUTO_TEST_CASE(rolling_bloom) {
-    SeedInsecureRand(SeedRand::ZEROS);
-    g_mock_deterministic_tests = true;
+    SeedRandomForTest(SeedRand::ZEROS);
 
     // last-100-entry, 1% false positive:
     CRollingBloomFilter rb1(100, 0.01);
@@ -1095,7 +1094,7 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
         }
     }
     // Expect about 100 hits
-    BOOST_CHECK_EQUAL(nHits, 75U);
+    BOOST_CHECK_EQUAL(nHits, 71U);
 
     BOOST_CHECK(rb1.contains(data[DATASIZE - 1]));
     rb1.reset();
@@ -1125,7 +1124,7 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
         }
     }
     // Expect about 5 false positives
-    BOOST_CHECK_EQUAL(nHits, 6U);
+    BOOST_CHECK_EQUAL(nHits, 3U);
 
     // last-1000-entry, 0.01% false positive:
     CRollingBloomFilter rb2(1000, 0.001);
@@ -1136,7 +1135,6 @@ BOOST_AUTO_TEST_CASE(rolling_bloom) {
     for (int i = 0; i < DATASIZE; i++) {
         BOOST_CHECK(rb2.contains(data[i]));
     }
-    g_mock_deterministic_tests = false;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

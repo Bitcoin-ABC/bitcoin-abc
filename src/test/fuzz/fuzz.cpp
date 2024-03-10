@@ -4,6 +4,7 @@
 
 #include <test/fuzz/fuzz.h>
 
+#include <test/util/random.h>
 #include <util/check.h>
 
 #include <cstdint>

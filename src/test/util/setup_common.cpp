@@ -114,7 +114,7 @@ BasicTestingSetup::BasicTestingSetup(
         assert(error.empty());
     }
     SelectParams(chainType);
-    SeedInsecureRand();
+    SeedRandomForTest();
     InitLogging(*m_node.args);
     AppInitParameterInteraction(config, *m_node.args);
     LogInstance().StartLogging();
