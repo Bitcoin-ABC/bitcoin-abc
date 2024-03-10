@@ -85,3 +85,4 @@ shift-base:leveldb/
 shift-base:streams.h
 shift-base:util/bip32.cpp
 shift-base:xoroshiro128plusplus.h
+shift-base:RandomMixin<*>::randbits
