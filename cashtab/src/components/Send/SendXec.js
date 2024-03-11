@@ -60,7 +60,7 @@ import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { notification } from 'antd';
-import { isMobile } from 'helpers';
+import { isMobile, getUserLocale } from 'helpers';
 import { hasEnoughToken } from 'wallet';
 const { TextArea } = Input;
 
@@ -213,7 +213,7 @@ const SendXec = () => {
 
     const [airdropFlag, setAirdropFlag] = useState(false);
 
-    const userLocale = navigator.language;
+    const userLocale = getUserLocale(navigator);
     const clearInputForms = () => {
         setFormData({
             value: '',

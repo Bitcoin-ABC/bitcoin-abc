@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import appConfig from 'config/app';
+
 /**
  * Call in a web browser. Return true if browser is on a mobile device.
  * Return false if browser is desktop or browser is too old to support navigator.userAgentData
@@ -13,6 +15,18 @@ export const isMobile = navigator => {
         typeof navigator?.userAgentData?.mobile !== 'undefined' &&
         navigator.userAgentData.mobile === true
     );
+};
+
+/**
+ * Call in a web browser. Return user locale if available or default (e.g. 'en-US') if not.
+ * @param {object | undefined} navigator
+ * @returns {string}
+ */
+export const getUserLocale = navigator => {
+    if (typeof navigator?.language !== 'undefined') {
+        return navigator.language;
+    }
+    return appConfig.defaultLocale;
 };
 
 /**

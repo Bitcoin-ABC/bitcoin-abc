@@ -29,6 +29,7 @@ const appConfig = {
     vipSettingsTokenId:
         'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa', // GRP
     vipSettingsTokenQty: '1000000',
+    defaultLocale: 'en-US',
 };
 
 export default appConfig;

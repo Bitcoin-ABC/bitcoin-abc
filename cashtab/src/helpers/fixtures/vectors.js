@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { mockCashtabCache } from 'helpers/fixtures/mocks';
+import appConfig from 'config/app';
 // Test vectors for helper functions
 
 export default {
@@ -29,6 +30,26 @@ export default {
                     'Mobile device on browser with userAgentData support',
                 navigator: { userAgentData: { mobile: true } },
                 result: true,
+            },
+        ],
+    },
+    getUserLocale: {
+        expectedReturns: [
+            {
+                description: 'navigator is undefined',
+                navigator: undefined,
+                result: appConfig.defaultLocale,
+            },
+            {
+                description: 'navigator.language is undefined',
+                navigator: { otherStuff: true },
+                result: appConfig.defaultLocale,
+            },
+            {
+                description:
+                    'navigator.language is defined and not the default',
+                navigator: { language: 'fr-FR' },
+                result: 'fr-FR',
             },
         ],
     },
