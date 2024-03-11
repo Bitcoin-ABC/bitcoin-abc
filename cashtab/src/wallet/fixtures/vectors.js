@@ -189,4 +189,50 @@ export default {
             },
         ],
     },
+    fiatToSatoshis: {
+        expectedReturns: [
+            {
+                description:
+                    'Converts 1 USD from fiat to satoshis for string input',
+                sendAmountFiat: '1',
+                fiatPrice: 0.00006739,
+                returned: 1483899,
+            },
+            {
+                description:
+                    'Converts total XEC supply in USD from fiat to satoshis for string input',
+                sendAmountFiat: '1415190000',
+                fiatPrice: 0.00006739,
+                returned: 2100000000000000,
+            },
+            {
+                description:
+                    'Returns an integer even if input has arbitrarily high decimal precision for string input',
+                sendAmountFiat: '123.123456789',
+                fiatPrice: 0.00006739,
+                returned: 182702859,
+            },
+            {
+                description:
+                    'Converts 1 USD from fiat to satoshis for number input',
+                sendAmountFiat: 1,
+                fiatPrice: 0.00006739,
+                returned: 1483899,
+            },
+            {
+                description:
+                    'Converts total XEC supply in USD from fiat to satoshis for number input',
+                sendAmountFiat: 1415190000,
+                fiatPrice: 0.00006739,
+                returned: 2100000000000000,
+            },
+            {
+                description:
+                    'Returns an integer even if input has arbitrarily high decimal precision for number input',
+                sendAmountFiat: 123.123456789,
+                fiatPrice: 0.00006739,
+                returned: 182702859,
+            },
+        ],
+    },
 };

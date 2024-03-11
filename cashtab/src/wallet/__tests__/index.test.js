@@ -8,6 +8,7 @@ import {
     toSatoshis,
     hasEnoughToken,
     createCashtabWallet,
+    fiatToSatoshis,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import vectors from '../fixtures/vectors';
@@ -86,6 +87,18 @@ describe('Cashtab wallet methods', () => {
 
                 // The created wallet is a valid Cashtab wallet
                 expect(isValidCashtabWallet(wallet)).toBe(true);
+            });
+        });
+    });
+    describe('Converts string input of fiat send amount to satoshis XEC', () => {
+        const { expectedReturns } = vectors.fiatToSatoshis;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, sendAmountFiat, fiatPrice, returned } =
+                expectedReturn;
+            it(`createCashtabWallet: ${description}`, () => {
+                expect(fiatToSatoshis(sendAmountFiat, fiatPrice)).toBe(
+                    returned,
+                );
             });
         });
     });

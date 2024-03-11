@@ -139,3 +139,15 @@ export const generateMnemonic = () => {
     );
     return mnemonic;
 };
+
+/**
+ * Convert user input send amount to satoshis
+ * @param {string | number} sendAmountFiat User input amount of fiat currency to send.
+ * Input from an amount field is of type number. If we extend fiat send support to bip21 or
+ * webapp txs, we should also handle string inputs
+ * @param {number} fiatPrice Price of XEC in units of selectedCurrency / XEC
+ * @return {Integer} satoshis value equivalent to this sendAmountFiat at exchange rate fiatPrice
+ */
+export const fiatToSatoshis = (sendAmountFiat, fiatPrice) => {
+    return Math.floor((Number(sendAmountFiat) / fiatPrice) * SATOSHIS_PER_XEC);
+};
