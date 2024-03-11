@@ -122,7 +122,7 @@ describe('<Home />', () => {
             await screen.findByText('Error in chronik connection'),
         ).toBeInTheDocument();
     });
-    it('Renders Sideshift button if user loads with a new wallet', async () => {
+    it('Renders backup warning and QR Code if user loads with a new wallet', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithZeroBalanceZeroHistory,
@@ -135,14 +135,15 @@ describe('<Home />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Sideshift button is rendered after we are no longer loading
-        await waitFor(() => {
-            expect(
-                screen.getByRole('button', {
-                    name: /Exchange to XEC via SideShift/,
-                }),
-            ).toBeInTheDocument();
-        });
+        // Backup warning is rendered
+        await screen.findByText('Backup your wallet');
+        await screen.findByText(
+            'Write down your 12-word seed and keep it in a safe place.',
+        );
+        await screen.findByText('Do not share your backup with anyone.');
+
+        // Receive QR code is rendered
+        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
     });
     it('Renders the onboarding screen for a new wallet', async () => {
         // localforage defaults

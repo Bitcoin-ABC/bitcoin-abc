@@ -5,10 +5,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
-import { Input, Form, Modal } from 'antd';
+import { Input, Form } from 'antd';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
 import {
-    ExclamationCircleOutlined,
     PlusSquareOutlined,
     ImportOutlined,
     LockOutlined,
@@ -52,20 +51,13 @@ const OnBoarding = () => {
     const { updateCashtabState, cashtabState } = ContextValue;
     const { wallets } = cashtabState;
     const [formData, setFormData] = useState({
-        dirty: true,
         mnemonic: '',
     });
 
     const [seedInput, openSeedInput] = useState(false);
     const [isValidMnemonic, setIsValidMnemonic] = useState(false);
-    const { confirm } = Modal;
 
-    async function submit() {
-        setFormData({
-            ...formData,
-            dirty: false,
-        });
-
+    async function importWallet() {
         if (!formData.mnemonic) {
             return;
         }
@@ -74,6 +66,14 @@ const OnBoarding = () => {
         Event('Onboarding.js', 'Create Wallet', 'Imported');
         const importedWallet = await createCashtabWallet(formData.mnemonic);
         updateCashtabState('wallets', [...wallets, importedWallet]);
+    }
+
+    async function createNewWallet() {
+        // Event("Category", "Action", "Label")
+        // Track number of created wallets from onboarding
+        Event('Onboarding.js', 'Create Wallet', 'New');
+        const newWallet = await createCashtabWallet(generateMnemonic());
+        updateCashtabState('wallets', [...wallets, newWallet]);
     }
 
     const handleChange = e => {
@@ -85,23 +85,6 @@ const OnBoarding = () => {
 
         setFormData(p => ({ ...p, [name]: value }));
     };
-
-    function showBackupConfirmModal() {
-        confirm({
-            title: "Don't forget to back up your wallet",
-            icon: <ExclamationCircleOutlined />,
-            cancelButtonProps: { style: { display: 'none' } },
-            content: `Once your wallet is created you can back it up by writing down your 12-word seed. You can find your seed on the Settings page. If you are browsing in Incognito mode or if you clear your browser history, you will lose any funds that are not backed up!`,
-            okText: 'Okay, make me a wallet!',
-            async onOk() {
-                // Event("Category", "Action", "Label")
-                // Track number of created wallets from onboarding
-                Event('Onboarding.js', 'Create Wallet', 'New');
-                const newWallet = await createCashtabWallet(generateMnemonic());
-                updateCashtabState('wallets', [...wallets, newWallet]);
-            },
-        });
-    }
 
     return (
         <WelcomeCtn>
@@ -118,7 +101,7 @@ const OnBoarding = () => {
                 non-custodial web wallet for {appConfig.name}.
             </WelcomeText>
 
-            <PrimaryButton onClick={() => showBackupConfirmModal()}>
+            <PrimaryButton onClick={() => createNewWallet()}>
                 <PlusSquareOutlined /> New Wallet
             </PrimaryButton>
 
@@ -130,13 +113,13 @@ const OnBoarding = () => {
                     <Form style={{ width: 'auto' }}>
                         <Form.Item
                             validateStatus={
-                                !formData.dirty && !formData.mnemonic
+                                !isValidMnemonic && formData.mnemonic.length > 0
                                     ? 'error'
                                     : ''
                             }
                             help={
-                                !formData.mnemonic || !isValidMnemonic
-                                    ? 'Valid mnemonic seed phrase required'
+                                !isValidMnemonic && formData.mnemonic.length > 0
+                                    ? 'invalid 12-word mnemonic'
                                     : ''
                             }
                         >
@@ -154,7 +137,7 @@ const OnBoarding = () => {
 
                         <SmartButton
                             disabled={!isValidMnemonic}
-                            onClick={() => submit()}
+                            onClick={() => importWallet()}
                         >
                             Import
                         </SmartButton>

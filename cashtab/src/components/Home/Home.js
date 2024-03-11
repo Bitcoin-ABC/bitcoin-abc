@@ -11,10 +11,7 @@ import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
-import { SmartButton } from 'components/Common/PrimaryButton';
-import { isValidSideshiftObj } from 'validation';
-
-import appConfig from 'config/app';
+import { ReceiveWithWalletPresent } from 'components/Receive/Receive';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -117,6 +114,13 @@ export const AddrSwitchContainer = styled.div`
     padding: 6px 0 12px 0;
 `;
 
+const BackupWalletAlert = styled.div`
+    background-color: #fff2f0;
+    border-radius: 12px;
+    color: red;
+    padding: 12px;
+`;
+
 const WalletInfo = () => {
     const ContextValue = React.useContext(WalletContext);
     const { fiatPrice, apiError, cashtabState } = ContextValue;
@@ -124,7 +128,6 @@ const WalletInfo = () => {
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { parsedTxHistory } = walletState;
-    const sideshift = window.sideshift;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
     return (
@@ -149,25 +152,20 @@ const WalletInfo = () => {
                     />
                     {!hasHistory && (
                         <>
-                            <span role="img" aria-label="party emoji">
-                                🎉
-                            </span>
-                            Congratulations on your new wallet!{' '}
-                            <span role="img" aria-label="party emoji">
-                                🎉
-                            </span>
-                            <br /> Start using the wallet immediately to receive{' '}
-                            {appConfig.ticker} payments, or load it up with{' '}
-                            {appConfig.ticker} to send to others
-                            <br />
-                            <br />
-                            {isValidSideshiftObj(sideshift) && (
-                                <SmartButton
-                                    data-testid="sideshift-btn"
-                                    onClick={() => sideshift.show()}
-                                >
-                                    Exchange to XEC via SideShift
-                                </SmartButton>
+                            <BackupWalletAlert>
+                                <p>
+                                    <b>Backup your wallet</b>
+                                </p>
+                                <p>
+                                    Write down your 12-word seed and keep it in
+                                    a safe place.{' '}
+                                    <em>
+                                        Do not share your backup with anyone.
+                                    </em>
+                                </p>
+                            </BackupWalletAlert>
+                            {wallet !== false && (
+                                <ReceiveWithWalletPresent wallet={wallet} />
                             )}
                         </>
                     )}

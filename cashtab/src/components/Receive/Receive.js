@@ -25,7 +25,7 @@ export const ReceiveCtn = styled.div`
     }
 `;
 
-const ReceiveWithWalletPresent = ({ wallet }) => {
+export const ReceiveWithWalletPresent = ({ wallet }) => {
     // Get device window width
     // Size the QR code depending on device width
     const { width, height } = useWindowDimensions();
