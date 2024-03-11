@@ -8,6 +8,13 @@ templates:
     artifacts:
       gitian-results: ''
 
+  guix_builds:
+    script: |
+      "${TOPLEVEL}/contrib/teamcity/guix.sh"
+    timeout: 14400
+    artifacts:
+      guix-results: ''
+
   check+secp256k1:
     targets:
       - - all
@@ -647,6 +654,24 @@ builds:
       - gitian_builds
     env:
       OS_NAME: win
+
+  guix-linux:
+    templates:
+      - guix_builds
+    env:
+      HOSTS: "x86_64-linux-gnu aarch64-linux-gnu arm-linux-gnueabihf"
+
+  guix-osx:
+    templates:
+      - guix_builds
+    env:
+      HOSTS: "x86_64-apple-darwin"
+
+  guix-win:
+    templates:
+      - guix_builds
+    env:
+      HOSTS: "x86_64-w64-mingw32"
 
   lint-circular-dependencies:
     runOnDiffRegex:

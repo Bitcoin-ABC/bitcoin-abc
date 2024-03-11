@@ -6,7 +6,12 @@ set -e -o pipefail
 # shellcheck source=libexec/prelude.bash
 source "$(dirname "${BASH_SOURCE[0]}")/libexec/prelude.bash"
 
+# Default to nothing
+: "${GUIX_CLEAN_EXTRA_EXCLUDES:=}"
+read -a GUIX_CLEAN_EXTRA_EXCLUDES <<< "${GUIX_CLEAN_EXTRA_EXCLUDES}"
+
 git clean -xdff \
  --exclude=depends/sources \
  --exclude=depends/built \
- --exclude=depends/SDKs
+ --exclude=depends/SDKs \
+ "${GUIX_CLEAN_EXTRA_EXCLUDES[@]}"
