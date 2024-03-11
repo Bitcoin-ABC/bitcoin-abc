@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { BN } from 'slp-mdm';
-import { toXec } from 'wallet';
+import { toXec, toSatoshis } from 'wallet';
 import cashaddr from 'ecashaddrjs';
 import * as bip39 from 'bip39';
 import {
@@ -17,6 +17,7 @@ import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
 import aliasSettings from 'config/alias';
 import { getAliasByteCount } from 'opreturn';
+import { fiatToSatoshis } from 'wallet';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -120,54 +121,69 @@ export const validateMnemonic = (
     }
 };
 
-// Validate cash amount
-export const shouldRejectAmountInput = (
-    cashAmount,
-    selectedCurrency,
-    fiatPrice,
-    totalCashBalance,
+/**
+ * Validate user input XEC send amount
+ * @param {number | string} sendAmountXec user input for XEC send amount. Number if from amount field. May be string if from multi-send or set by bip21.
+ * @param {number} balanceSats
+ * @param {string} userLocale navigator.language if available, or default if not
+ * @param {string} selectedCurrency
+ * @param {number} fiatPrice
+ * @returns {boolean | string} true if valid, string error msg of why invalid if not
+ */
+const VALID_XEC_USER_INPUT_REGEX = /^[0-9.]+$/;
+export const isValidXecSendAmount = (
+    sendAmount,
+    balanceSats,
+    userLocale,
+    selectedCurrency = appConfig.ticker,
+    fiatPrice = 0,
 ) => {
-    // Take cashAmount as input, a string from form input
-    let error = false;
-    let testedAmount = new BN(cashAmount);
-
-    if (selectedCurrency !== appConfig.ticker) {
-        // Ensure no more than appConfig.cashDecimals decimal places
-        testedAmount = new BN(fiatToCrypto(cashAmount, fiatPrice));
+    if (typeof sendAmount !== 'number' && typeof sendAmount !== 'string') {
+        return 'sendAmount type must be number or string';
+    }
+    if (typeof sendAmount === 'string' && isNaN(parseFloat(sendAmount))) {
+        return `Unable to parse sendAmount "${sendAmount}" as a number`;
+    }
+    // xecSendAmount may only contain numbers and '.'
+    // TODO support other locale decimal markers
+    const xecSendAmountCharCheck = VALID_XEC_USER_INPUT_REGEX.test(sendAmount);
+    if (!xecSendAmountCharCheck) {
+        return `Invalid amount "${sendAmount}": Amount can only contain numbers and '.' to denote decimal places.`;
     }
 
-    // Validate value for > 0
-    if (isNaN(testedAmount)) {
-        error = 'Amount must be a number';
-    } else if (testedAmount.lte(0)) {
-        error = 'Amount must be greater than 0';
-    } else if (testedAmount.lt(toXec(appConfig.dustSats))) {
-        error = `Send amount must be at least ${toXec(
-            appConfig.dustSats,
-        ).toString()} ${appConfig.ticker}`;
-    } else if (testedAmount.gt(totalCashBalance)) {
-        error = `Amount cannot exceed your ${appConfig.ticker} balance`;
-    } else if (!isNaN(testedAmount) && testedAmount.toString().includes('.')) {
+    const isFiatSendAmount = selectedCurrency !== appConfig.ticker;
+
+    // If it is not a fiat send amount, reject values with more than 2 decimal places
+    if (!isFiatSendAmount && sendAmount.toString().includes('.')) {
         if (
-            testedAmount.toString().split('.')[1].length >
-            appConfig.cashDecimals
+            sendAmount.toString().split('.')[1].length > appConfig.cashDecimals
         ) {
-            error = `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`;
+            return `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`;
         }
     }
-    // return false if no error, or string error msg if error
-    return error;
-};
 
-export const fiatToCrypto = (
-    fiatAmount,
-    fiatPrice,
-    cashDecimals = appConfig.cashDecimals,
-) => {
-    let cryptoAmount = new BN(fiatAmount)
-        .div(new BN(fiatPrice))
-        .toFixed(cashDecimals);
-    return cryptoAmount;
+    const sendAmountSatoshis = isFiatSendAmount
+        ? fiatToSatoshis(sendAmount, fiatPrice)
+        : toSatoshis(sendAmount);
+
+    if (sendAmountSatoshis <= 0) {
+        return 'Amount must be greater than 0';
+    }
+    if (sendAmountSatoshis < appConfig.dustSats) {
+        return `Send amount must be at least ${toXec(
+            appConfig.dustSats,
+        ).toString()} ${appConfig.ticker}`;
+    }
+    if (sendAmountSatoshis > balanceSats) {
+        return `Amount ${toXec(sendAmountSatoshis).toLocaleString(userLocale, {
+            minimumFractionDigits: appConfig.cashDecimals,
+        })} ${appConfig.ticker} exceeds wallet balance of ${toXec(
+            balanceSats,
+        ).toLocaleString(userLocale, { minimumFractionDigits: 2 })} ${
+            appConfig.ticker
+        }`;
+    }
+    return true;
 };
 
 export const isProbablyNotAScam = tokenNameOrTicker => {
@@ -337,40 +353,6 @@ export const isValidCashtabCache = cashtabCache => {
     return true;
 };
 
-/**
- * Returns true if input is a valid xec send amount
- * @param {string} xecSendAmount
- * @returns {boolean}
- */
-export const isValidXecSendAmount = xecSendAmount => {
-    // A valid XEC send amount must be
-    // - higher than the app dust limit
-    // - have no more than 2 decimal places
-    if (typeof xecSendAmount !== 'string') {
-        return false;
-    }
-    // xecSendAmount may only contain numbers and '.', must contain at least 1 char
-    const xecSendAmountFormatRegExp = /^[0-9.]+$/;
-    const xecSendAmountCharCheck =
-        xecSendAmountFormatRegExp.test(xecSendAmount);
-
-    if (!xecSendAmountCharCheck) {
-        return false;
-    }
-    if (xecSendAmount.includes('.')) {
-        // If you have decimal places
-        const decimalCount = xecSendAmount.split('.')[1].length;
-        const XEC_DECIMALS = 2;
-        if (decimalCount > XEC_DECIMALS) {
-            return false;
-        }
-    }
-    return (
-        !isNaN(parseFloat(xecSendAmount)) &&
-        parseFloat(xecSendAmount) >= toXec(appConfig.dustSats)
-    );
-};
-
 export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
     // A valid eToken burn amount must be between 1 and the wallet's token balance
     return (
@@ -464,9 +446,15 @@ export const isValidAirdropExclusionArray = airdropExclusionArray => {
 /**
  * Validate user input on Send.js for multi-input mode
  * @param {string} userMultisendInput formData.address from Send.js screen, validated for multi-send
+ * @param {number} balanceSats user wallet balance in satoshis
+ * @param {string} userLocale navigator.language, if available, or default if not
  * @returns {boolean | string} true if is valid, error msg about why if not
  */
-export const isValidMultiSendUserInput = userMultisendInput => {
+export const isValidMultiSendUserInput = (
+    userMultisendInput,
+    balanceSats,
+    userLocale,
+) => {
     if (typeof userMultisendInput !== 'string') {
         // In usage pairing to a form input, this should never happen
         return 'Input must be a string';
@@ -475,6 +463,7 @@ export const isValidMultiSendUserInput = userMultisendInput => {
         return 'Input must not be blank';
     }
     let inputLines = userMultisendInput.split('\n');
+    let totalSendSatoshis = 0;
     for (let i = 0; i < inputLines.length; i += 1) {
         if (inputLines[i].trim() === '') {
             return `Remove empty row at line ${i + 1}`;
@@ -499,16 +488,29 @@ export const isValidMultiSendUserInput = userMultisendInput => {
             return `Invalid address "${address}" at line ${i + 1}`;
         }
 
-        const value = addressAndValueThisLine[1].trim();
-        const isValidValue = isValidXecSendAmount(value);
+        const xecSendAmount = addressAndValueThisLine[1].trim();
 
-        if (!isValidValue) {
-            return `Invalid value ${
-                typeof value === 'string' ? value.trim() : `at line ${i + 1}`
-            }. Amount must be >= ${(appConfig.dustSats / 100).toFixed(
-                2,
-            )} XEC and <= 2 decimals.`;
+        const isValidValue = isValidXecSendAmount(xecSendAmount, balanceSats);
+
+        if (isValidValue !== true) {
+            // isValidXecSendAmount returns a string explaining the error if it does not return true
+            return `${isValidValue}: check value "${xecSendAmount}" at line ${
+                i + 1
+            }`;
         }
+        // If it is valid, then we know it has appropriate decimal places
+        totalSendSatoshis += toSatoshis(Number(xecSendAmount));
+    }
+
+    if (totalSendSatoshis > balanceSats) {
+        return `Total amount sent (${toXec(totalSendSatoshis).toLocaleString(
+            userLocale,
+            { minimumFractionDigits: appConfig.cashDecimals },
+        )} ${appConfig.ticker}) exceeds wallet balance of ${toXec(
+            balanceSats,
+        ).toLocaleString(userLocale, {
+            minimumFractionDigits: appConfig.cashDecimals,
+        })} ${appConfig.ticker}`;
     }
     // If you make it here, all good
     return true;
@@ -584,9 +586,15 @@ export const shouldSendXecBeDisabled = (
  * For now, Cashtab supports only
  * amount - amount to be sent in XEC
  * opreturn - raw hex for opreturn output
+ * @param {number} balanceSats user wallet balance in satoshis
+ * @param {string} userLocale navigator.language if available, or default value if not
  * @returns {object} addressInfo. Object with parsed params designed for use in Send.js
  */
-export function parseAddressInput(addressInput) {
+export function parseAddressInput(
+    addressInput,
+    balanceSats,
+    userLocale = appConfig.defaultLocale,
+) {
     // Build return obj
     const parsedAddressInput = {
         address: { value: null, error: false, isAlias: false },
@@ -667,9 +675,15 @@ export function parseAddressInput(addressInput) {
                 // Handle Cashtab-supported bip21 param 'amount'
                 const amount = paramKeyValue[1];
                 parsedAddressInput.amount = { value: amount, error: false };
-                if (!isValidXecSendAmount(amount)) {
-                    // amount must be a valid xec send amount
-                    parsedAddressInput.amount.error = `Invalid XEC send amount "${amount}"`;
+
+                const validXecSendAmount = isValidXecSendAmount(
+                    amount,
+                    balanceSats,
+                    userLocale,
+                );
+                if (validXecSendAmount !== true) {
+                    // If the result of isValidXecSendAmount is not true, it is an error msg explaining wy
+                    parsedAddressInput.amount.error = validXecSendAmount;
                 }
             }
             if (paramKey === 'op_return_raw') {

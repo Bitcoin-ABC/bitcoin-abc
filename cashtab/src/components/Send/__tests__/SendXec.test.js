@@ -652,7 +652,9 @@ describe('<SendXec />', () => {
         // We get expected addr validation error
         // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(`Amount cannot exceed your XEC balance`)[0],
+            screen.getAllByText(
+                `Amount 1,000,000.00 XEC exceeds wallet balance of 9,513.12 XEC`,
+            )[0],
         ).toBeInTheDocument();
 
         // The Send button is disabled
@@ -1285,5 +1287,57 @@ describe('<SendXec />', () => {
 
         // The Cashtab Message collapse is now rendered because op_return_raw is no longer set
         expect(screen.getByText('Message')).toBeInTheDocument();
+    });
+    it('We can send a tx with amount denominated in fiat currency', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Can check in electrum for opreturn and amount
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a4730440220449bd79f6aaa826afaae1ae2021bd2b3459d1a77c40a64f7ba85a98c0fc7d531022007cf8e1246091b6b647487c75a63002d2fbc0e3bf6c0a99e326afbe5bd30e6c74121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0260ae0a00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ace9d30300000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'aefbd7b1a93ec6914368d71deda3ce646aabdccdb99195b349675febeea976db';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        // The user enters a valid address
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, addressInput);
+
+        // Select USD from currency select
+        await user.click(
+            screen.getByTestId('currency-select-dropdown').firstElementChild,
+        );
+        await user.click(screen.getAllByTestId('currency-select-option')[1]);
+
+        // Send $0.21
+        // 7000 satoshis at 0.00003 USD / XEC
+        await user.type(amountInputEl, '0.21');
+
+        // Click Send
+        await user.click(
+            screen.getByRole('button', { name: /Send/ }),
+            addressInput,
+        );
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText(
+            'Transaction successful. Click to view in block explorer.',
+        );
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
     });
 });

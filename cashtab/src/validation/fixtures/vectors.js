@@ -8,6 +8,7 @@ import { CashtabSettings } from 'config/cashtabSettings';
 import CashtabCache from 'config/CashtabCache';
 import { mockCashtabCache } from 'helpers/fixtures/mocks';
 import { validWallet } from 'validation/fixtures/mocks';
+import { toXec } from 'wallet';
 
 const cloneObjectWithDeletedKey = (object, key) => {
     const clonedObject = JSON.parse(JSON.stringify(object));
@@ -275,12 +276,14 @@ export default {
             },
         ],
     },
-    parseAddressInputCases: {
+    parseAddressInput: {
         expectedReturns: [
             // address only
             {
                 description: 'Blank string',
                 addressInput: '',
+                balanceSats: 10000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: '',
@@ -293,6 +296,8 @@ export default {
                 description: 'Address only and no querystring',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                balanceSats: 10000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -304,6 +309,8 @@ export default {
             {
                 description: 'prefixless address input',
                 addressInput: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                balanceSats: 10000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -316,6 +323,8 @@ export default {
             {
                 description: 'alias only and no querystring',
                 addressInput: 'chicken.xec',
+                balanceSats: 10000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
@@ -327,6 +336,8 @@ export default {
             {
                 description: 'alias missing .xec suffix',
                 addressInput: 'chicken',
+                balanceSats: 10000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'chicken',
@@ -338,9 +349,11 @@ export default {
             // amount param only
             {
                 description:
-                    'Valid address with valid amount param, no decimals',
+                    'Valid address with valid amount param equal to user balance, no decimals',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500000',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -353,9 +366,31 @@ export default {
             },
             {
                 description:
+                    'Valid address with valid amount param exceeding user balance by one satoshi, no decimals',
+                addressInput:
+                    'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500001',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
+                parsedAddressInput: {
+                    address: {
+                        value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
+                        error: false,
+                        isAlias: false,
+                    },
+                    amount: {
+                        value: '500001',
+                        error: `Amount 500,001.00 XEC exceeds wallet balance of 500,000.00 XEC`,
+                    },
+                    queryString: { value: 'amount=500001', error: false },
+                },
+            },
+            {
+                description:
                     'Valid address with valid amount param, with decimals',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45',
+                balanceSats: 5000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -370,6 +405,8 @@ export default {
                 description: 'Invalid address with valid amount param',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfg?amount=500000',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfg',
@@ -384,6 +421,8 @@ export default {
                 description: 'etoken address with valid amount param',
                 addressInput:
                     'etoken:qq9h6d0a5q65fgywv4ry64x04ep906mdkufhx2swv3?amount=500000',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'etoken:qq9h6d0a5q65fgywv4ry64x04ep906mdkufhx2swv3',
@@ -399,6 +438,8 @@ export default {
                     'Valid address with invalid amount param (too many decimal places)',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.456',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -407,7 +448,7 @@ export default {
                     },
                     amount: {
                         value: '123.456',
-                        error: `Invalid XEC send amount "123.456"`,
+                        error: `XEC transactions do not support more than 2 decimal places`,
                     },
                     queryString: { value: 'amount=123.456', error: false },
                 },
@@ -415,6 +456,8 @@ export default {
             {
                 description: 'Valid alias with valid amount param',
                 addressInput: 'chicken.xec?amount=125',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
@@ -428,6 +471,8 @@ export default {
             {
                 description: 'Invalid alias with valid amount param',
                 addressInput: 'chicken?amount=125',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'chicken',
@@ -438,11 +483,14 @@ export default {
                     queryString: { value: 'amount=125', error: false },
                 },
             },
+
             // opreturn param only
             {
                 description: 'Valid address with valid op_return_raw param',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -463,6 +511,8 @@ export default {
                 description: 'Valid alias with valid op_return_raw param',
                 addressInput:
                     'chicken.xec?op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'chicken.xec',
@@ -483,6 +533,8 @@ export default {
                 description: 'Valid address with invalid op_return_raw param',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?op_return_raw=notvalid042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -504,6 +556,8 @@ export default {
                 description: 'Valid amount and op_return_raw params',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=500&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -526,6 +580,8 @@ export default {
                 description: 'invalid querystring (unsupported params)',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?*&@^&%@amount=-500000',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -543,6 +599,8 @@ export default {
                 description: 'Invalid queryString, repeated param',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?amount=123.45&amount=678.9',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -559,6 +617,8 @@ export default {
                 description: 'Repeated op_return_raw param',
                 addressInput:
                     'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx?op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d&op_return_raw=042e786563000474657374150095e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                balanceSats: 50000000,
+                userLocale: appConfig.defaultLocale,
                 parsedAddressInput: {
                     address: {
                         value: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
@@ -1031,6 +1091,291 @@ export default {
                     state: { ...validWallet.state, slpBalancesAndUtxos: [] },
                 },
                 returned: false,
+            },
+        ],
+    },
+    isValidXecSendAmount: {
+        expectedReturns: [
+            {
+                description: 'Dust minimum is valid',
+                sendAmount: toXec(appConfig.dustSats).toString(),
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: true,
+            },
+            {
+                description: '1 satoshi below dust min is invalid',
+                sendAmount: toXec(appConfig.dustSats - 1).toString(),
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `Send amount must be at least ${toXec(
+                    appConfig.dustSats,
+                ).toString()} ${appConfig.ticker}`,
+            },
+            {
+                description: '0 is not a valid send amount',
+                sendAmount: '0',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `Amount must be greater than 0`,
+            },
+            {
+                description:
+                    'A value with one decimal place not exceeding user balance is accepted',
+                sendAmount: '100.1',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: true,
+            },
+            {
+                description:
+                    'A value with two decimal places not exceeding user balance is accepted',
+                sendAmount: '100.12',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: true,
+            },
+            {
+                description:
+                    'A value with more than two decimal places not exceeding user balance is rejected',
+                sendAmount: '100.123',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`,
+            },
+            {
+                description:
+                    'A value using a decimal marker other than "." is rejected',
+                sendAmount: '100,12',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `Invalid amount "100,12": Amount can only contain numbers and '.' to denote decimal places.`,
+            },
+            {
+                description: 'A non-number string is rejected',
+                sendAmount: 'not a number',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `Unable to parse sendAmount "not a number" as a number`,
+            },
+            {
+                description: 'null is rejected',
+                sendAmount: null,
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `sendAmount type must be number or string`,
+            },
+            {
+                description: 'undefined is rejected',
+                sendAmount: undefined,
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `sendAmount type must be number or string`,
+            },
+            {
+                description:
+                    'A value including non-numerical characters is rejected',
+                sendAmount: '12a17',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `Invalid amount "12a17": Amount can only contain numbers and '.' to denote decimal places.`,
+            },
+            {
+                description:
+                    'A value exactly matching wallet balance is accepted',
+                sendAmount: '1000',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: true,
+            },
+            {
+                description:
+                    'A value exceeding wallet balance by 1 satoshi is rejected',
+                sendAmount: '1000.01',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 0.000003,
+                returned: `Amount ${toXec(100001).toLocaleString(
+                    appConfig.defaultLocale,
+                    {
+                        minimumFractionDigits: appConfig.cashDecimals,
+                    },
+                )} ${appConfig.ticker} exceeds wallet balance of ${toXec(
+                    100000,
+                ).toLocaleString(appConfig.defaultLocale, {
+                    minimumFractionDigits: 2,
+                })} ${appConfig.ticker}`,
+            },
+            {
+                description:
+                    'A fiat value that converts to less than the user total balance is accepted',
+                sendAmount: '1000',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: 'usd',
+                fiatPrice: 1, // fiatPrice * sendAmount = 1000 XEC
+                returned: true,
+            },
+            {
+                description:
+                    'A fiat value that converts to one satoshi more than the user total balance is rejected',
+                sendAmount: '1000.01',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: 'usd',
+                fiatPrice: 1, // fiatPrice * sendAmount = 1000 XEC
+                returned: `Amount 1,000.01 XEC exceeds wallet balance of 1,000.00 XEC`,
+            },
+            {
+                description:
+                    'A fiat value that converts to more than the user total balance is rejected',
+                sendAmount: '1000.01',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: appConfig.defaultLocale,
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 1, // fiatPrice * sendAmount = 1000.01 XEC
+                returned: `Amount ${toXec(100001).toLocaleString(
+                    appConfig.defaultLocale,
+                    {
+                        minimumFractionDigits: appConfig.cashDecimals,
+                    },
+                )} ${appConfig.ticker} exceeds wallet balance of ${toXec(
+                    100000,
+                ).toLocaleString(appConfig.defaultLocale, {
+                    minimumFractionDigits: 2,
+                })} ${appConfig.ticker}`,
+            },
+            {
+                description:
+                    'A fiat value that converts to more than the user total balance is rejected with error formatted in non-default locale',
+                sendAmount: '1000.01',
+                balanceSats: 100000, // 1,000.00 XEC
+                userLocale: 'fr-FR',
+                selectedCurrency: appConfig.ticker,
+                fiatPrice: 1, // fiatPrice * sendAmount = 1000.01 XEC
+                returned: `Amount ${toXec(100001).toLocaleString('fr-FR', {
+                    minimumFractionDigits: appConfig.cashDecimals,
+                })} ${appConfig.ticker} exceeds wallet balance of ${toXec(
+                    100000,
+                ).toLocaleString('fr-FR', {
+                    minimumFractionDigits: 2,
+                })} ${appConfig.ticker}`,
+            },
+        ],
+    },
+    isValidMultiSendUserInput: {
+        expectedReturns: [
+            {
+                description:
+                    'Accepts correctly formed multisend output for amount exactly equal to wallet total balance',
+                userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: true,
+            },
+            {
+                description:
+                    'Rejects correctly formed multisend output for amount exceeding wallet total balance by 1 satoshi',
+                userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 10999,
+                userLocale: appConfig.defaultLocale,
+                returned:
+                    'Total amount sent (110.00 XEC) exceeds wallet balance of 109.99 XEC',
+            },
+            {
+                description:
+                    'Accepts correctly formed multisend output for amount exactly equal to wallet total balance if addresses are padded by extra spaces',
+                userMultisendInput: `   ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr   , 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: true,
+            },
+            {
+                description:
+                    'Returns expected error msg and line number if string includes an invalid address',
+                userMultisendInput: `ecash:notValid, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Invalid address "ecash:notValid" at line 1`,
+            },
+            {
+                description:
+                    'Returns expected error msg for invalid value (dust)',
+                userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Send amount must be at least 5.5 XEC: check value "1" at line 1`,
+            },
+            {
+                description:
+                    'Returns expected error msg and line numberfor invalid value (too many decimal places)',
+                userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 10.12\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 10.123\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `XEC transactions do not support more than 2 decimal places: check value "10.123" at line 2`,
+            },
+            {
+                description: 'Returns expected error msg for an empty input',
+                userMultisendInput: `    `,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Input must not be blank`,
+            },
+            {
+                description:
+                    'Returns expected error msg and line number for an empty row',
+                userMultisendInput: `\n,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Remove empty row at line 1`,
+            },
+            {
+                description: 'Returns expected error msg for non-string input',
+                userMultisendInput: undefined,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Input must be a string`,
+            },
+            {
+                description:
+                    'Returns expected error msg and line number if csv line does not include address and value',
+                userMultisendInput: `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Line 1 must have address and value, separated by a comma`,
+            },
+            {
+                description:
+                    'Returns expected error msg and line number if a line has more than one comma',
+                userMultisendInput: `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 170,23`,
+                balanceSats: 11000,
+                userLocale: appConfig.defaultLocale,
+                returned: `Line 1: Comma can only separate address and value.`,
             },
         ],
     },

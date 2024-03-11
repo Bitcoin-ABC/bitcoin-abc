@@ -44,7 +44,7 @@ import cashaddr from 'ecashaddrjs';
 import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import appConfig from 'config/app';
-import { isMobile } from 'helpers';
+import { isMobile, getUserLocale } from 'helpers';
 import {
     getSendTokenInputs,
     getSlpSendTargetOutputs,
@@ -109,7 +109,7 @@ const SendToken = () => {
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
-    const { tokens } = walletState;
+    const { tokens, balances } = walletState;
 
     const params = useParams();
     const tokenId = params.tokenId;
@@ -136,6 +136,8 @@ const SendToken = () => {
         value: '',
         address: '',
     });
+
+    const userLocale = getUserLocale(navigator);
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {
@@ -280,7 +282,11 @@ const SendToken = () => {
         // validate for parameters
         // show warning that query strings are not supported
 
-        const parsedAddressInput = parseAddressInput(value);
+        const parsedAddressInput = parseAddressInput(
+            value,
+            parseInt(balances.totalBalanceInSatoshis),
+            userLocale,
+        );
         const address = parsedAddressInput.address.value;
         let renderedError = parsedAddressInput.address.error;
 

@@ -3,8 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
-    shouldRejectAmountInput,
-    fiatToCrypto,
     isValidTokenName,
     isValidTokenTicker,
     isValidTokenDecimals,
@@ -45,9 +43,8 @@ import vectors from 'validation/fixtures/vectors';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
-import { toXec } from 'wallet';
 
-describe('Validation utils', () => {
+describe('Cashtab validation functions', () => {
     it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
         const mockSideshift = {
             show: () => {
@@ -143,96 +140,6 @@ describe('Validation utils', () => {
     it(`validateMnemonic() returns false for an empty string mnemonic`, () => {
         const mnemonic = '';
         expect(validateMnemonic(mnemonic)).toBe(false);
-    });
-    it(`Returns 'false' if ${appConfig.ticker} send amount is a valid send amount`, () => {
-        expect(shouldRejectAmountInput('10', appConfig.ticker, 20.0, 300)).toBe(
-            false,
-        );
-    });
-    it(`Returns 'false' if ${appConfig.ticker} send amount is a valid send amount in USD`, () => {
-        // Here, user is trying to send $170 USD, where 1 BCHA = $20 USD, and the user has a balance of 15 BCHA or $300
-        expect(shouldRejectAmountInput('170', 'USD', 20.0, 15)).toBe(false);
-    });
-    it(`Returns not a number if ${appConfig.ticker} send amount is not a number`, () => {
-        const expectedValidationError = `Amount must be a number`;
-        expect(
-            shouldRejectAmountInput('Not a number', appConfig.ticker, 20.0, 3),
-        ).toBe(expectedValidationError);
-    });
-    it(`Returns amount must be greater than 0 if ${appConfig.ticker} send amount is 0`, () => {
-        const expectedValidationError = `Amount must be greater than 0`;
-        expect(shouldRejectAmountInput('0', appConfig.ticker, 20.0, 3)).toBe(
-            expectedValidationError,
-        );
-    });
-    it(`Returns amount must be greater than 0 if ${appConfig.ticker} send amount is less than 0`, () => {
-        const expectedValidationError = `Amount must be greater than 0`;
-        expect(
-            shouldRejectAmountInput('-0.031', appConfig.ticker, 20.0, 3),
-        ).toBe(expectedValidationError);
-    });
-    it(`Returns balance error if ${appConfig.ticker} send amount is greater than user balance`, () => {
-        const expectedValidationError = `Amount cannot exceed your ${appConfig.ticker} balance`;
-        expect(shouldRejectAmountInput('17', appConfig.ticker, 20.0, 3)).toBe(
-            expectedValidationError,
-        );
-    });
-    it(`Returns balance error if ${appConfig.ticker} send amount is greater than user balance`, () => {
-        const expectedValidationError = `Amount cannot exceed your ${appConfig.ticker} balance`;
-        expect(shouldRejectAmountInput('17', appConfig.ticker, 20.0, 3)).toBe(
-            expectedValidationError,
-        );
-    });
-    it(`Returns error if ${appConfig.ticker} send amount is less than ${toXec(
-        appConfig.dustSats,
-    ).toString()} minimum`, () => {
-        const expectedValidationError = `Send amount must be at least ${toXec(
-            appConfig.dustSats,
-        ).toString()} ${appConfig.ticker}`;
-        expect(
-            shouldRejectAmountInput(
-                (toXec(appConfig.dustSats).toString() - 0.00000001).toString(),
-                appConfig.ticker,
-                20.0,
-                3,
-            ),
-        ).toBe(expectedValidationError);
-    });
-    it(`Returns error if ${appConfig.ticker} send amount is less than ${toXec(
-        appConfig.dustSats,
-    ).toString()} minimum in fiat currency`, () => {
-        const expectedValidationError = `Send amount must be at least ${toXec(
-            appConfig.dustSats,
-        ).toString()} ${appConfig.ticker}`;
-        expect(
-            shouldRejectAmountInput('0.0000005', 'USD', 0.00005, 1000000),
-        ).toBe(expectedValidationError);
-    });
-    it(`Returns balance error if ${appConfig.ticker} send amount is greater than user balance with fiat currency selected`, () => {
-        const expectedValidationError = `Amount cannot exceed your ${appConfig.ticker} balance`;
-        // Here, user is trying to send $170 USD, where 1 BCHA = $20 USD, and the user has a balance of 5 BCHA or $100
-        expect(shouldRejectAmountInput('170', 'USD', 20.0, 5)).toBe(
-            expectedValidationError,
-        );
-    });
-    it(`Returns precision error if ${appConfig.ticker} send amount has more than ${appConfig.cashDecimals} decimal places`, () => {
-        const expectedValidationError = `${appConfig.ticker} transactions do not support more than ${appConfig.cashDecimals} decimal places`;
-        expect(
-            shouldRejectAmountInput('17.123456789', appConfig.ticker, 20.0, 35),
-        ).toBe(expectedValidationError);
-    });
-    it(`Returns expected crypto amount with ${appConfig.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
-        expect(fiatToCrypto('10.97231694823432', 20.323134234923423, 8)).toBe(
-            '0.53989295',
-        );
-    });
-    it(`Returns expected crypto amount with ${appConfig.cashDecimals} decimals of precision even if inputs have higher precision`, () => {
-        expect(fiatToCrypto('10.97231694823432', 20.323134234923423, 2)).toBe(
-            '0.54',
-        );
-    });
-    it(`Returns expected crypto amount with ${appConfig.cashDecimals} decimals of precision even if inputs have lower precision`, () => {
-        expect(fiatToCrypto('10.94', 10, 8)).toBe('1.09400000');
     });
     it(`Accepts a valid ${appConfig.tokenTicker} token name`, () => {
         expect(isValidTokenName('Valid token name')).toBe(true);
@@ -337,51 +244,6 @@ describe('Validation utils', () => {
     });
     it(`Rejects a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
-    });
-    it(`isValidXecSendAmount accepts the dust minimum`, () => {
-        const testXecSendAmount = toXec(appConfig.dustSats).toString();
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
-    });
-    it(`isValidXecSendAmount accepts arbitrary number above dust minimum`, () => {
-        const testXecSendAmount = (toXec(appConfig.dustSats) + 1.75).toString();
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
-    });
-    it(`isValidXecSendAmount rejects zero`, () => {
-        const testXecSendAmount = '0';
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
-    });
-    it(`isValidXecSendAmount accepts a string with 1 decimal place`, () => {
-        expect(isValidXecSendAmount('100.1')).toBe(true);
-    });
-    it(`isValidXecSendAmount accepts a string with 2 decimal places`, () => {
-        expect(isValidXecSendAmount('100.12')).toBe(true);
-    });
-    it(`isValidXecSendAmount rejects a string with more than 2 decimal places`, () => {
-        expect(isValidXecSendAmount('100.123')).toBe(false);
-    });
-    it(`isValidXecSendAmount rejects a non-number string`, () => {
-        const testXecSendAmount = 'not a number';
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
-    });
-    it(`isValidXecSendAmount accepts arbitrary number above dust minimum as a string`, () => {
-        const testXecSendAmount = `${toXec(appConfig.dustSats) + 1.75}`;
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(true);
-    });
-    it(`isValidXecSendAmount rejects null`, () => {
-        const testXecSendAmount = null;
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
-    });
-    it(`isValidXecSendAmount rejects undefined`, () => {
-        const testXecSendAmount = undefined;
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
-    });
-    it(`isValidXecSendAmount rejects a value including non-numerical characters`, () => {
-        const testXecSendAmount = '12a17';
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
-    });
-    it(`isValidXecSendAmount rejects a value including decimal marker that is not a period`, () => {
-        const testXecSendAmount = '12500,17';
-        expect(isValidXecSendAmount(testXecSendAmount)).toBe(false);
     });
     it(`isValidEtokenBurnAmount rejects null`, () => {
         const testEtokenBurnAmount = null;
@@ -595,80 +457,6 @@ describe('Validation utils', () => {
             ),
         ).toBe(true);
     });
-    it(`isValidMultiSendUserInput accepts correctly formed multisend output`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
-            ),
-        ).toBe(true);
-    });
-    it(`isValidMultiSendUserInput accepts correctly formed multisend output even if address has extra spaces`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `   ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr   , 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
-            ),
-        ).toBe(true);
-    });
-    it(`isValidMultiSendUserInput returns expected error msg for invalid address`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `ecash:notValid, 22\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
-            ),
-        ).toBe(`Invalid address "ecash:notValid" at line 1`);
-    });
-    it(`isValidMultiSendUserInput returns expected error msg for invalid value (dust)`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
-            ),
-        ).toBe(
-            `Invalid value 1. Amount must be >= ${(
-                appConfig.dustSats / 100
-            ).toFixed(2)} XEC and <= 2 decimals.`,
-        );
-    });
-    it(`isValidMultiSendUserInput returns expected error msg for invalid value (too many decimals)`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 10.123\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
-            ),
-        ).toBe(
-            `Invalid value 10.123. Amount must be >= ${(
-                appConfig.dustSats / 100
-            ).toFixed(2)} XEC and <= 2 decimals.`,
-        );
-    });
-    it(`isValidMultiSendUserInput returns expected error msg for a blank input`, () => {
-        expect(isValidMultiSendUserInput(`    `)).toBe(
-            `Input must not be blank`,
-        );
-    });
-    it(`isValidMultiSendUserInput returns expected error msg for extra spaces on a particular line`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `\n,  ecash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
-            ),
-        ).toBe(`Remove empty row at line 1`);
-    });
-    it(`isValidMultiSendUserInput returns expected error for non-string input`, () => {
-        expect(isValidMultiSendUserInput(undefined)).toBe(
-            `Input must be a string`,
-        );
-    });
-    it(`isValidMultiSendUserInput returns expected error msg for input without only an address`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y`,
-            ),
-        ).toBe(`Line 1 must have address and value, separated by a comma`);
-    });
-    it(`isValidMultiSendUserInput returns expected error msg if line has more than one comma`, () => {
-        expect(
-            isValidMultiSendUserInput(
-                `ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 170,23`,
-            ),
-        ).toBe(`Line 1: Comma can only separate address and value.`);
-    });
     it(`isValidOpreturnParam rejects a string that starts with 6a`, () => {
         expect(isValidOpreturnParam('6a')).toBe(false);
     });
@@ -722,130 +510,172 @@ describe('Validation utils', () => {
     it(`isValidOpreturnParam rejects a valid hex string that has uneven length (i.e., half a byte)`, () => {
         expect(isValidOpreturnParam('042e7')).toBe(false);
     });
-});
+    describe('Determining whether Send button should be disabled on SendXec screen', () => {
+        const { expectedReturns } = vectors.shouldDisableXecSend;
 
-describe('Determining whether Send button should be disabled on SendXec screen', () => {
-    const { expectedReturns } = vectors.shouldDisableXecSend;
-
-    // Successfully created targetOutputs
-    expectedReturns.forEach(expectedReturn => {
-        const {
-            description,
-            formData,
-            balances,
-            apiError,
-            sendBchAmountError,
-            sendBchAddressError,
-            isMsgError,
-            priceApiError,
-            isOneToManyXECSend,
-            sendDisabled,
-        } = expectedReturn;
-        it(`shouldSendXecBeDisabled: ${description}`, () => {
-            expect(
-                shouldSendXecBeDisabled(
-                    formData,
-                    balances,
-                    apiError,
-                    sendBchAmountError,
-                    sendBchAddressError,
-                    isMsgError,
-                    priceApiError,
-                    isOneToManyXECSend,
-                ),
-            ).toBe(sendDisabled);
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                formData,
+                balances,
+                apiError,
+                sendBchAmountError,
+                sendBchAddressError,
+                isMsgError,
+                priceApiError,
+                isOneToManyXECSend,
+                sendDisabled,
+            } = expectedReturn;
+            it(`shouldSendXecBeDisabled: ${description}`, () => {
+                expect(
+                    shouldSendXecBeDisabled(
+                        formData,
+                        balances,
+                        apiError,
+                        sendBchAmountError,
+                        sendBchAddressError,
+                        isMsgError,
+                        priceApiError,
+                        isOneToManyXECSend,
+                    ),
+                ).toBe(sendDisabled);
+            });
         });
     });
-});
+    describe('Parses user input address strings with parseAddressInput', () => {
+        const { expectedReturns } = vectors.parseAddressInput;
 
-describe('Parses user input address strings with parseAddressInput', () => {
-    const { expectedReturns } = vectors.parseAddressInputCases;
-
-    // Successfully created targetOutputs
-    expectedReturns.forEach(expectedReturn => {
-        const { description, addressInput, parsedAddressInput } =
-            expectedReturn;
-        it(`parseAddressInput: ${description}`, () => {
-            expect(parseAddressInput(addressInput)).toStrictEqual(
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                addressInput,
+                balanceSats,
+                userLocale,
                 parsedAddressInput,
-            );
+            } = expectedReturn;
+            it(`parseAddressInput: ${description}`, () => {
+                expect(
+                    parseAddressInput(addressInput, balanceSats, userLocale),
+                ).toStrictEqual(parsedAddressInput);
+            });
         });
     });
-});
+    describe('Returns true if a given input meets alias spec or expected error msg if it does not', () => {
+        const { expectedReturns } = vectors.meetsAliasSpecInputCases;
 
-describe('Returns true if a given input meets alias spec or expected error msg if it does not', () => {
-    const { expectedReturns } = vectors.meetsAliasSpecInputCases;
-
-    // Successfully created targetOutputs
-    expectedReturns.forEach(expectedReturn => {
-        const { description, inputStr, response } = expectedReturn;
-        it(`meetsAliasSpec: ${description}`, () => {
-            expect(meetsAliasSpec(inputStr)).toBe(response);
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, inputStr, response } = expectedReturn;
+            it(`meetsAliasSpec: ${description}`, () => {
+                expect(meetsAliasSpec(inputStr)).toBe(response);
+            });
         });
     });
-});
+    describe('Validates user alias input on Send and SendToken screens', () => {
+        const { expectedReturns } = vectors.validAliasSendInputCases;
 
-describe('Validates user alias input on Send and SendToken screens', () => {
-    const { expectedReturns } = vectors.validAliasSendInputCases;
-
-    // Successfully created targetOutputs
-    expectedReturns.forEach(expectedReturn => {
-        const { description, sendToAliasInput, response } = expectedReturn;
-        it(`isValidAliasSendInput: ${description}`, () => {
-            expect(isValidAliasSendInput(sendToAliasInput)).toBe(response);
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, sendToAliasInput, response } = expectedReturn;
+            it(`isValidAliasSendInput: ${description}`, () => {
+                expect(isValidAliasSendInput(sendToAliasInput)).toBe(response);
+            });
         });
     });
-});
-
-describe('Validating Cashtab Contact Lists', () => {
-    const { expectedReturns } = vectors.isValidContactList;
-    expectedReturns.forEach(expectedReturn => {
-        const { description, contactList, isValid } = expectedReturn;
-        it(`isValidContactList: ${description}`, () => {
-            expect(isValidContactList(contactList)).toBe(isValid);
+    describe('Validating Cashtab Contact Lists', () => {
+        const { expectedReturns } = vectors.isValidContactList;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, contactList, isValid } = expectedReturn;
+            it(`isValidContactList: ${description}`, () => {
+                expect(isValidContactList(contactList)).toBe(isValid);
+            });
         });
     });
-});
-
-describe('Appropriately migrates users with legacy settings', () => {
-    const { expectedReturns } = vectors.migrateLegacyCashtabSettings;
-    expectedReturns.forEach(expectedReturn => {
-        const { description, legacySettings, migratedSettings } =
-            expectedReturn;
-        it(`migrateLegacyCashtabSettings: ${description}`, () => {
-            expect(migrateLegacyCashtabSettings(legacySettings)).toEqual(
-                migratedSettings,
-            );
+    describe('Appropriately migrates users with legacy settings', () => {
+        const { expectedReturns } = vectors.migrateLegacyCashtabSettings;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, legacySettings, migratedSettings } =
+                expectedReturn;
+            it(`migrateLegacyCashtabSettings: ${description}`, () => {
+                expect(migrateLegacyCashtabSettings(legacySettings)).toEqual(
+                    migratedSettings,
+                );
+            });
         });
     });
-});
-
-describe('Determines if the user has valid cashtab settings', () => {
-    const { expectedReturns } = vectors.isValidCashtabSettings;
-    expectedReturns.forEach(expectedReturn => {
-        const { description, settings, isValid } = expectedReturn;
-        it(`isValidCashtabSettings: ${description}`, () => {
-            expect(isValidCashtabSettings(settings)).toBe(isValid);
+    describe('Determines if the user has valid cashtab settings', () => {
+        const { expectedReturns } = vectors.isValidCashtabSettings;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, settings, isValid } = expectedReturn;
+            it(`isValidCashtabSettings: ${description}`, () => {
+                expect(isValidCashtabSettings(settings)).toBe(isValid);
+            });
         });
     });
-});
-
-describe('Determines if cashtabCache is valid or invalid', () => {
-    const { expectedReturns } = vectors.isValidCashtabCache;
-    expectedReturns.forEach(expectedReturn => {
-        const { description, cashtabCache, isValid } = expectedReturn;
-        it(`isValidCashtabCache: ${description}`, () => {
-            expect(isValidCashtabCache(cashtabCache)).toBe(isValid);
+    describe('Determines if cashtabCache is valid or invalid', () => {
+        const { expectedReturns } = vectors.isValidCashtabCache;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, cashtabCache, isValid } = expectedReturn;
+            it(`isValidCashtabCache: ${description}`, () => {
+                expect(isValidCashtabCache(cashtabCache)).toBe(isValid);
+            });
         });
     });
-});
-
-describe('Determines if a cashtab wallet is valid or invalid', () => {
-    const { expectedReturns } = vectors.isValidCashtabWallet;
-    expectedReturns.forEach(expectedReturn => {
-        const { description, wallet, returned } = expectedReturn;
-        it(`isValidCashtabWallet: ${description}`, () => {
-            expect(isValidCashtabWallet(wallet)).toBe(returned);
+    describe('Determines if a cashtab wallet is valid or invalid', () => {
+        const { expectedReturns } = vectors.isValidCashtabWallet;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, wallet, returned } = expectedReturn;
+            it(`isValidCashtabWallet: ${description}`, () => {
+                expect(isValidCashtabWallet(wallet)).toBe(returned);
+            });
+        });
+    });
+    describe('Determines if a user input send amount is valid', () => {
+        const { expectedReturns } = vectors.isValidXecSendAmount;
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                sendAmount,
+                balanceSats,
+                userLocale,
+                selectedCurrency,
+                fiatPrice,
+                returned,
+            } = expectedReturn;
+            it(`isValidXecSendAmount: ${description}`, () => {
+                expect(
+                    isValidXecSendAmount(
+                        sendAmount,
+                        balanceSats,
+                        userLocale,
+                        selectedCurrency,
+                        fiatPrice,
+                    ),
+                ).toBe(returned);
+            });
+        });
+    });
+    describe('Determines if a user input multi-send CSV is valid', () => {
+        const { expectedReturns } = vectors.isValidMultiSendUserInput;
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                userMultisendInput,
+                balanceSats,
+                userLocale,
+                returned,
+            } = expectedReturn;
+            it(`isValidMultiSendUserInput: ${description}`, () => {
+                expect(
+                    isValidMultiSendUserInput(
+                        userMultisendInput,
+                        balanceSats,
+                        userLocale,
+                    ),
+                ).toBe(returned);
+            });
         });
     });
 });

@@ -189,6 +189,7 @@ export const SendXecInput = ({
     const currencyOptions = currencies.map(currency => {
         return (
             <Option
+                data-testid={`currency-select-option`}
                 key={currency.value}
                 value={currency.value}
                 className="selectedCurrencyOption"
@@ -200,6 +201,7 @@ export const SendXecInput = ({
 
     const CurrencySelect = (
         <Select
+            data-testid="currency-select-dropdown"
             defaultValue={appConfig.ticker}
             className="select-after"
             style={{ width: '30%' }}

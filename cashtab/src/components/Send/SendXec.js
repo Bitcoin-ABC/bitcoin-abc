@@ -24,11 +24,10 @@ import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
 import { sumOneToManyXec } from 'utils/cashMethods';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
-    fiatToCrypto,
-    shouldRejectAmountInput,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
     parseAddressInput,
+    isValidXecSendAmount,
 } from 'validation';
 import {
     ConvertAmount,
@@ -61,7 +60,7 @@ import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { notification } from 'antd';
 import { isMobile, getUserLocale } from 'helpers';
-import { hasEnoughToken } from 'wallet';
+import { hasEnoughToken, fiatToSatoshis } from 'wallet';
 const { TextArea } = Input;
 
 const TextAreaLabel = styled.div`
@@ -468,15 +467,10 @@ const SendXec = () => {
                 // Get the non-alias param-free address
                 cleanAddress = formData.address.split('?')[0];
             }
-            // Calculate the amount in XEC
-            let xecSendValue = formData.value;
-
-            if (selectedCurrency !== 'XEC') {
-                // If fiat send is selected, calculate send amount in XEC
-                xecSendValue = fiatToCrypto(xecSendValue, fiatPrice);
-            }
-
-            const satoshisToSend = toSatoshis(xecSendValue);
+            const satoshisToSend =
+                selectedCurrency === 'XEC'
+                    ? toSatoshis(formData.value)
+                    : fiatToSatoshis(formData.value, fiatPrice);
 
             targetOutputs.push({
                 address: cleanAddress,
@@ -532,7 +526,11 @@ const SendXec = () => {
     const handleAddressChange = async e => {
         setAliasInputAddress(false); // clear alias address preview
         const { value, name } = e.target;
-        const parsedAddressInput = parseAddressInput(value);
+        const parsedAddressInput = parseAddressInput(
+            value,
+            parseInt(balances.totalBalanceInSatoshis),
+            userLocale,
+        );
 
         // Set in state as various param outputs determine app rendering
         // For example, a valid amount param should disable user amount input
@@ -612,7 +610,11 @@ const SendXec = () => {
 
     const handleMultiAddressChange = e => {
         const { value, name } = e.target;
-        let errorOrIsValid = isValidMultiSendUserInput(value);
+        let errorOrIsValid = isValidMultiSendUserInput(
+            value,
+            parseInt(balances.totalBalanceInSatoshis),
+            userLocale,
+        );
 
         // If you get an error msg, set it. If validation is good, clear error msg.
         setSendAddressError(
@@ -637,13 +639,19 @@ const SendXec = () => {
 
     const handleAmountChange = e => {
         const { value, name } = e.target;
-        const error = shouldRejectAmountInput(
+
+        // Validate user input send amount
+        const isValidAmountOrErrorMsg = isValidXecSendAmount(
             value,
+            parseInt(balances.totalBalanceInSatoshis),
+            userLocale,
             selectedCurrency,
             fiatPrice,
-            balances.totalBalance,
         );
-        setSendAmountError(error);
+
+        setSendAmountError(
+            isValidAmountOrErrorMsg !== true ? isValidAmountOrErrorMsg : false,
+        );
 
         setFormData(p => ({
             ...p,
@@ -745,7 +753,7 @@ const SendXec = () => {
             fiatPriceString = `${
                 formData.value
                     ? formatFiatBalance(
-                          Number(fiatToCrypto(formData.value, fiatPrice)),
+                          toXec(fiatToSatoshis(formData.value, fiatPrice)),
                           userLocale,
                       )
                     : formatFiatBalance(0, userLocale)
