@@ -14,7 +14,7 @@ const chronik = new ChronikClientNode(config.chronikUrls);
 initializeWebsocket(chronik).then(
     ws => {
         // Start the express app to expose API endpoints
-        const server = startExpressServer(config.port);
+        const server = startExpressServer(config.port, chronik);
         console.log(`Express server started on port ${config.port}`);
 
         // Gracefully shut down on app termination

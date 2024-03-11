@@ -12,6 +12,7 @@ import {
 } from 'chronik-client';
 
 const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
+const IFP_OUTPUTSCRIPT = 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
 const MOCK_CHECKED_ADDRESS = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
 const MOCK_CHECKED_OUTPUTSCRIPT =
     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac';
@@ -132,11 +133,24 @@ interface ChronikMock {
     history: Tx_InNode[] | Error;
 }
 
+interface isAddressEligibleForTokenRewardVector {
+    returns: isAddressEligibleForTokenRewardReturn[];
+}
+interface isAddressEligibleForTokenRewardReturn {
+    description: string;
+    address: string;
+    tokenId: string;
+    tokenServerOutputScript: string;
+    historySinceEligibilityTimestamp: Tx_InNode[];
+    returned: boolean | number;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
     getTxTimestamp: GetTxTimestampReturnVector;
     getHistoryAfterTimestamp: GetHistoryAfterTimestampVector;
+    isAddressEligibleForTokenReward: isAddressEligibleForTokenRewardVector;
 }
 
 const vectors: TestVectors = {
@@ -450,6 +464,107 @@ const vectors: TestVectors = {
                 timestamp: 10,
                 pageSize: 2,
                 error: new Error('Some chronik error'),
+            },
+        ],
+    },
+    // rewards.ts
+    isAddressEligibleForTokenReward: {
+        returns: [
+            {
+                description:
+                    'An address with no historySinceEligibilityTimestamp is eligible for rewards',
+                address: MOCK_CHECKED_ADDRESS,
+                tokenId: MOCK_REWARD_TOKENID,
+                tokenServerOutputScript: IFP_OUTPUTSCRIPT,
+                historySinceEligibilityTimestamp: [],
+                returned: true,
+            },
+            {
+                description:
+                    'An address that has received a non-token tx from the server in historySinceEligibilityTimestamp is eligible for rewards',
+                address: MOCK_CHECKED_ADDRESS,
+                tokenId: MOCK_REWARD_TOKENID,
+                tokenServerOutputScript: IFP_OUTPUTSCRIPT,
+                historySinceEligibilityTimestamp: [
+                    {
+                        ...MOCK_TX_INNODE,
+                        inputs: [
+                            {
+                                ...MOCK_TX_INPUT,
+                                outputScript: IFP_OUTPUTSCRIPT,
+                            },
+                        ],
+                        outputs: [
+                            {
+                                ...MOCK_TX_OUTPUT,
+                                value: 546,
+                                outputScript: MOCK_CHECKED_OUTPUTSCRIPT,
+                            },
+                        ],
+                    },
+                ],
+                returned: true,
+            },
+            {
+                description:
+                    'An address that has received a token tx from some other tokenId from the server in historySinceEligibilityTimestamp is eligible for rewards',
+                address: MOCK_CHECKED_ADDRESS,
+                tokenId: MOCK_REWARD_TOKENID,
+                tokenServerOutputScript: IFP_OUTPUTSCRIPT,
+                historySinceEligibilityTimestamp: [
+                    {
+                        ...MOCK_TX_INNODE,
+                        inputs: [
+                            {
+                                ...MOCK_TX_INPUT,
+                                outputScript: IFP_OUTPUTSCRIPT,
+                            },
+                        ],
+                        outputs: [
+                            {
+                                ...MOCK_TX_OUTPUT,
+                                value: 546,
+                                token: {
+                                    ...MOCK_TX_OUTPUT_TOKEN,
+                                    tokenId: 'someOtherTokenId',
+                                },
+                                outputScript: MOCK_CHECKED_OUTPUTSCRIPT,
+                            },
+                        ],
+                    },
+                ],
+                returned: true,
+            },
+            {
+                description:
+                    'An address that has received a token tx of the given tokenId from the server in historySinceEligibilityTimestamp is NOT eligible for rewards',
+                address: MOCK_CHECKED_ADDRESS,
+                tokenId: MOCK_REWARD_TOKENID,
+                tokenServerOutputScript: IFP_OUTPUTSCRIPT,
+                historySinceEligibilityTimestamp: [
+                    {
+                        ...MOCK_TX_INNODE,
+                        inputs: [
+                            {
+                                ...MOCK_TX_INPUT,
+                                outputScript: IFP_OUTPUTSCRIPT,
+                            },
+                        ],
+                        outputs: [
+                            {
+                                ...MOCK_TX_OUTPUT,
+                                value: 546,
+                                token: {
+                                    ...MOCK_TX_OUTPUT_TOKEN,
+                                    tokenId: MOCK_REWARD_TOKENID,
+                                },
+                                outputScript: MOCK_CHECKED_OUTPUTSCRIPT,
+                            },
+                        ],
+                        timeFirstSeen: 111111,
+                    },
+                ],
+                returned: 111111,
             },
         ],
     },

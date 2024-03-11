@@ -5,6 +5,9 @@
 interface TokenServerConfig {
     port: Number;
     chronikUrls: string[];
+    eligibilityResetSeconds: number;
+    rewardsTokenId: string;
+    serverOutputScript: string;
 }
 
 const config: TokenServerConfig = {
@@ -14,6 +17,14 @@ const config: TokenServerConfig = {
         'https://chronik.pay2stay.com/xec',
         'https://chronik.be.cash/xec2',
     ],
+    eligibilityResetSeconds: 86400, // 24 hours
+    // Placeholder - rewards token not yet created
+    // TODO create specs for Cashtab rewards token and mint
+    rewardsTokenId:
+        'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
+    // Placeholder - tokenserver does not yet have a wallet
+    // TODO add ability to broadcast token reward txs
+    serverOutputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
 };
 
 export default config;
