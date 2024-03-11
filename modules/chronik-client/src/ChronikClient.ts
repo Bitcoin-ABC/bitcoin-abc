@@ -356,9 +356,11 @@ export class WsEndpoint {
             return;
         }
         const data =
-            wsMsg.data instanceof Buffer
-                ? (wsMsg.data as Uint8Array)
-                : new Uint8Array(await (wsMsg.data as Blob).arrayBuffer());
+            typeof window === 'undefined'
+                ? // NodeJS
+                  (wsMsg.data as Uint8Array)
+                : // Browser
+                  new Uint8Array(await (wsMsg.data as Blob).arrayBuffer());
         const msg = proto.SubscribeMsg.decode(data);
         if (msg.error) {
             this.onMessage({
