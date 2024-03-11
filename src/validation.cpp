@@ -6694,6 +6694,12 @@ bool ChainstateManager::PopulateAndValidateSnapshot(
                 coins_count - coins_left);
             return false;
         }
+        if (!MoneyRange(coin.GetTxOut().nValue)) {
+            LogPrintf("[snapshot] bad snapshot data after deserializing %d coins - bad tx out value\n",
+                      coins_count - coins_left);
+            return false;
+        }
+
         coins_cache.EmplaceCoinInternalDANGER(std::move(outpoint),
                                               std::move(coin));
 

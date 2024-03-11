@@ -13,8 +13,6 @@ The assumeutxo value generated and used here is committed to in
 
 Interesting test cases could be loading an assumeutxo snapshot file with:
 
-- TODO: Valid hash but invalid snapshot file (bad coin height or
-      bad other serialization)
 - TODO: Valid snapshot file, but referencing a snapshot block that turns out to be
       invalid, or has an invalid parent
 - TODO: Valid snapshot file and snapshot block, but the block is not on the
@@ -111,17 +109,20 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.log.info("  - snapshot file with alternated UTXO data")
         cases = [
+            # (content, offset, wrong_hash, custom_message)
             # wrong outpoint hash
             [
                 b"\xff" * 32,
                 0,
                 "74fab8900700c8a0a4c6b50330252d92d651088939a41b307a8fcdddfed65f77",
+                None,
             ],
             # wrong outpoint index
             [
                 (1).to_bytes(4, "little"),
                 32,
                 "3872c8e52554070ca410faff98e42f63c99d08f536be343af7c04143e0e8f2b2",
+                None,
             ],
             # fIXME:
             # # wrong coin code VARINT((coinbase ? 1 : 0) | (height << 1))
@@ -129,23 +130,44 @@ class AssumeutxoTest(BitcoinTestFramework):
             #     b"\x81",
             #     36,
             #     "d631a0dbf1bba8536d1dd7aba0881a0ad83bdb4a8502f53fec8b89c549659633",
+            #     None,
             # ],
             # another wrong coin code
             [
                 b"\x80",
                 36,
                 "b14c9595737179fe57e6d7a9f8e879a440833fa95ba52d210f1f7e3c02be64b2",
+                None,
             ],
+            # wrong coin case with height 364 and coinbase 0
+            [
+                b"\x84\x58",
+                36,
+                None,
+                "[snapshot] bad snapshot data after deserializing 0 coins",
+            ],
+            # FIXME: ???? does not trigger the correct error
+            # # Amount exceeds MAX_MONEY
+            # [
+            #     b"\xCA\xD2\x8F\x5A",
+            #     41,
+            #     None,
+            #     "[snapshot] bad snapshot data after deserializing 0 coins - bad tx out value",
+            # ],
         ]
 
-        for content, offset, wrong_hash in cases:
+        for content, offset, wrong_hash, custom_message in cases:
             with open(bad_snapshot_path, "wb") as f:
                 f.write(valid_snapshot_contents[: (32 + 8 + offset)])
                 f.write(content)
                 f.write(valid_snapshot_contents[(32 + 8 + offset + len(content)) :])
-            expected_error(
-                log_msg=f"[snapshot] bad snapshot content hash: expected a966794ed5a2f9debaefc7ca48dbc5d5e12a89ff9fe45bd00ec5732d074580a9, got {wrong_hash}"
+
+            log_msg = (
+                custom_message
+                if custom_message is not None
+                else f"[snapshot] bad snapshot content hash: expected a966794ed5a2f9debaefc7ca48dbc5d5e12a89ff9fe45bd00ec5732d074580a9, got {wrong_hash}"
             )
+            expected_error(log_msg=log_msg)
 
     def test_headers_not_synced(self, valid_snapshot_path):
         for node in self.nodes[1:]:
