@@ -441,7 +441,7 @@ const App = () => {
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
-    const { balances } = walletState;
+    const { balanceSats } = walletState;
     const [spinner, setSpinner] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
@@ -550,14 +550,7 @@ const App = () => {
                                             }
                                         ></WalletLabel>
                                         <BalanceHeader
-                                            balanceSats={
-                                                typeof balances.totalBalanceInSatoshis ===
-                                                'string'
-                                                    ? parseInt(
-                                                          balances.totalBalanceInSatoshis,
-                                                      )
-                                                    : null
-                                            }
+                                            balanceSats={balanceSats}
                                             settings={settings}
                                             fiatPrice={fiatPrice}
                                             locale={navigator.language}

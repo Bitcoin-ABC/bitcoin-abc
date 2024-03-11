@@ -7,15 +7,9 @@ import {
     convertEtokenToEcashAddr,
     convertEcashtoEtokenAddr,
     getHashArrayFromWallet,
-    getWalletBalanceFromUtxos,
     sumOneToManyXec,
 } from 'utils/cashMethods';
-import { utxosLoadedFromCache } from '../__mocks__/mockCachedUtxos';
-import {
-    pre20221123validStoredWallet,
-    validStoredWalletAfter20221123Streamline,
-} from '../__mocks__/mockStoredWallets';
-import mockLegacyWallets from 'hooks/__mocks__/mockLegacyWallets';
+import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 
 it(`sumOneToManyXec() correctly parses the value for a valid one to many send XEC transaction`, () => {
     const destinationAddressAndValueArray = [
@@ -44,18 +38,6 @@ it(`sumOneToManyXec() returns NaN for an address and value array that is partial
 });
 
 describe('Correctly executes cash utility functions', () => {
-    it(`Correctly determines a wallet's balance from its set of non-eToken utxos (nonSlpUtxos)`, () => {
-        expect(
-            getWalletBalanceFromUtxos(
-                validStoredWalletAfter20221123Streamline.state.nonSlpUtxos,
-            ),
-        ).toStrictEqual(pre20221123validStoredWallet.state.balances);
-    });
-    it(`Correctly determines a wallet's zero balance from its empty set of non-eToken utxos (nonSlpUtxos)`, () => {
-        expect(
-            getWalletBalanceFromUtxos(utxosLoadedFromCache.nonSlpUtxos),
-        ).toStrictEqual(utxosLoadedFromCache.balances);
-    });
     it(`convertToEcashPrefix converts a bitcoincash: prefixed address to an ecash: prefixed address`, () => {
         expect(
             convertToEcashPrefix(
@@ -176,21 +158,11 @@ describe('Correctly executes cash utility functions', () => {
             new Error(eCashAddress + ' is not a valid ecash address'),
         );
     });
-
-    it(`getHashArrayFromWallet returns false for a legacy wallet`, () => {
-        expect(
-            getHashArrayFromWallet(mockLegacyWallets.legacyAlphaMainnet),
-        ).toBe(false);
-    });
-    it(`Successfully extracts a hash160 array from a migrated wallet object`, () => {
-        expect(
-            getHashArrayFromWallet(
-                mockLegacyWallets.migratedLegacyAlphaMainnet,
-            ),
-        ).toStrictEqual([
-            '960c9ed561f1699f0c49974d50b3bb7cdc118625',
-            '2be0e0c999e7e77a443ea726f82c441912fca92b',
-            'ba8257db65f40359989c7b894c5e88ed7b6344f6',
+    it(`Successfully extracts a hash160 array from valid cashtab wallet`, () => {
+        expect(getHashArrayFromWallet(walletWithXecAndTokens)).toStrictEqual([
+            '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            'a28f8852f868f88e71ec666c632d6f86e978f046',
+            '600efb12a6f813eccf13171a8bc62055212d8d6c',
         ]);
     });
 });

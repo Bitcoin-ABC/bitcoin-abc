@@ -56,7 +56,6 @@ import TokenIcon from 'components/Etokens/TokenIcon';
 import { Event } from 'components/Common/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
-import { formatSavedBalance } from 'utils/formatting';
 import {
     isValidNewWalletNameLength,
     validateMnemonic,
@@ -64,8 +63,13 @@ import {
 } from 'validation';
 import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
-import { isMobile } from 'helpers';
-import { hasEnoughToken, createCashtabWallet, generateMnemonic } from 'wallet';
+import { isMobile, getUserLocale } from 'helpers';
+import {
+    hasEnoughToken,
+    createCashtabWallet,
+    generateMnemonic,
+    toXec,
+} from 'wallet';
 const { Panel } = Collapse;
 
 const VersionContainer = styled.div`
@@ -463,6 +467,7 @@ const Configure = () => {
     const { tokens } = walletState;
 
     const location = useLocation();
+    const userLocale = getUserLocale(navigator);
 
     const [formData, setFormData] = useState({
         mnemonic: '',
@@ -1085,7 +1090,9 @@ const Configure = () => {
         // initialise saved wallet name and address to state for confirmation modal
         setManualContactName(wallet.name);
         setManualContactAddress(
-            convertToEcashPrefix(wallet.Path1899.cashAddress),
+            convertToEcashPrefix(
+                wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
+            ),
         );
         setSavedWalletContactModal(true);
     };
@@ -1578,11 +1585,17 @@ const Configure = () => {
                                                 <SWBalance>
                                                     <div className="overflow">
                                                         [
-                                                        {wallet && wallet.state
-                                                            ? formatSavedBalance(
+                                                        {wallet?.state
+                                                            ?.balanceSats !== 0
+                                                            ? toXec(
                                                                   wallet.state
-                                                                      .balances
-                                                                      .totalBalance,
+                                                                      .balanceSats,
+                                                              ).toLocaleString(
+                                                                  userLocale,
+                                                                  {
+                                                                      maximumFractionDigits:
+                                                                          appConfig.cashDecimals,
+                                                                  },
                                                               )
                                                             : 'N/A'}{' '}
                                                         XEC]

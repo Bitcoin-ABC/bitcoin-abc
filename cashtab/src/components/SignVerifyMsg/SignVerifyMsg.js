@@ -18,7 +18,6 @@ import {
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
 const { TextArea } = Input;
-import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import PrimaryButton, {
@@ -95,7 +94,7 @@ const SignVerifyMsg = () => {
         try {
             // First, get required params
             const keyPair = utxolib.ECPair.fromWIF(
-                wallet.Path1899.fundingWif,
+                wallet.paths.find(pathInfo => pathInfo.path === 1899).wif,
                 utxolib.networks.ecash,
             );
             // Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L161
@@ -268,40 +267,40 @@ const SignVerifyMsg = () => {
                             </Form.Item>
                             <Form.Item>
                                 <SignMessageLabel>Address:</SignMessageLabel>
-                                {wallet &&
-                                    wallet.Path1899 &&
-                                    wallet.Path1899.cashAddress && (
-                                        <AddressCopyCtn>
-                                            <Input
-                                                name="signMessageAddress"
-                                                disabled={true}
-                                                value={
-                                                    wallet &&
-                                                    wallet.Path1899 &&
-                                                    wallet.Path1899.cashAddress
-                                                        ? convertToEcashPrefix(
-                                                              wallet.Path1899
-                                                                  .cashAddress,
-                                                          )
-                                                        : ''
-                                                }
-                                            />
-                                            <CopyToClipboard
-                                                data={convertToEcashPrefix(
-                                                    wallet.Path1899.cashAddress,
-                                                )}
-                                                optionalOnCopyNotification={{
-                                                    title: 'Copied',
-                                                    msg: `${convertToEcashPrefix(
-                                                        wallet.Path1899
-                                                            .cashAddress,
-                                                    )} copied to clipboard`,
-                                                }}
-                                            >
-                                                <ThemedCopySolid />
-                                            </CopyToClipboard>
-                                        </AddressCopyCtn>
-                                    )}
+                                {wallet !== false && (
+                                    <AddressCopyCtn>
+                                        <Input
+                                            name="signMessageAddress"
+                                            disabled={true}
+                                            value={
+                                                wallet.paths.find(
+                                                    pathInfo =>
+                                                        pathInfo.path === 1899,
+                                                ).address
+                                            }
+                                        />
+                                        <CopyToClipboard
+                                            data={
+                                                wallet.paths.find(
+                                                    pathInfo =>
+                                                        pathInfo.path === 1899,
+                                                ).address
+                                            }
+                                            optionalOnCopyNotification={{
+                                                title: 'Copied',
+                                                msg: `${
+                                                    wallet.paths.find(
+                                                        pathInfo =>
+                                                            pathInfo.path ===
+                                                            1899,
+                                                    ).address
+                                                } copied to clipboard`,
+                                            }}
+                                        >
+                                            <ThemedCopySolid />
+                                        </CopyToClipboard>
+                                    </AddressCopyCtn>
+                                )}
                             </Form.Item>
                             <PrimaryButton
                                 onClick={() => setShowConfirmMsgToSign(true)}

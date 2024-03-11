@@ -214,68 +214,51 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
 
             // All wallets have mocks ready
             for (const wallet of wallets) {
-                // Path1899 utxos as expected
-                expect(
-                    await mockChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path1899.hash160)
-                        .utxos(),
-                ).toEqual([
-                    {
-                        outputScript: `76a914${wallet.Path1899.hash160}88ac`,
-                        utxos: wallet.state.nonSlpUtxos.concat(
-                            wallet.state.slpUtxos,
-                        ),
-                    },
-                ]);
-                // Path145 utxos empty
-                expect(
-                    await mockChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path145.hash160)
-                        .utxos(),
-                ).toEqual([]);
-
-                // Path245 utxos empty
-                expect(
-                    await mockChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path245.hash160)
-                        .utxos(),
-                ).toEqual([]);
-
-                // Path1899 history
-                expect(
-                    (
-                        await mockChronikClient
-                            .script(
-                                CASHTAB_ADDRESS_TYPE,
-                                wallet.Path1899.hash160,
-                            )
-                            .history(0, chronikConfig.txHistoryCount)
-                    ).txs,
-                ).toEqual(wallet.state.parsedTxHistory);
-
-                // Path145 history empty
-                expect(
-                    (
-                        await mockChronikClient
-                            .script(
-                                CASHTAB_ADDRESS_TYPE,
-                                wallet.Path145.hash160,
-                            )
-                            .history(0, chronikConfig.txHistoryCount)
-                    ).txs,
-                ).toEqual([]);
-
-                // Path245 history set according to wallet
-                expect(
-                    (
-                        await mockChronikClient
-                            .script(
-                                CASHTAB_ADDRESS_TYPE,
-                                wallet.Path245.hash160,
-                            )
-                            .history(0, chronikConfig.txHistoryCount)
-                    ).txs,
-                ).toEqual([]);
+                for (const path of wallet.paths) {
+                    if (path.path === 1899) {
+                        // OK to ignore because we test if/else
+                        // eslint-disable-next-line jest/no-conditional-expect
+                        expect(
+                            await mockChronikClient
+                                .script(CASHTAB_ADDRESS_TYPE, path.hash)
+                                .utxos(),
+                        ).toEqual([
+                            {
+                                outputScript: `76a914${path.hash}88ac`,
+                                utxos: wallet.state.nonSlpUtxos.concat(
+                                    wallet.state.slpUtxos,
+                                ),
+                            },
+                        ]);
+                        // Path1899 history
+                        // eslint-disable-next-line jest/no-conditional-expect
+                        expect(
+                            (
+                                await mockChronikClient
+                                    .script(CASHTAB_ADDRESS_TYPE, path.hash)
+                                    .history(0, chronikConfig.txHistoryCount)
+                            ).txs,
+                        ).toEqual(wallet.state.parsedTxHistory);
+                    } else {
+                        // Other paths are empty
+                        // OK to ignore because we test if/else
+                        // eslint-disable-next-line jest/no-conditional-expect
+                        expect(
+                            await mockChronikClient
+                                .script(CASHTAB_ADDRESS_TYPE, path.hash)
+                                .utxos(),
+                        ).toEqual([]);
+                        // history
+                        // eslint-disable-next-line jest/no-conditional-expect
+                        expect(
+                            (
+                                await mockChronikClient
+                                    .script(CASHTAB_ADDRESS_TYPE, path.hash)
+                                    .history(0, chronikConfig.txHistoryCount)
+                            ).txs,
+                        ).toEqual([]);
+                    }
+                }
 
                 // Next, initialize with API error
                 const apiErrorChronikClient =
@@ -290,39 +273,18 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                     apiErrorChronikClient.blockchainInfo(),
                 ).rejects.toThrow('Error fetching blockchainInfo');
 
-                await expect(
-                    apiErrorChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path1899.hash160)
-                        .utxos(),
-                ).rejects.toThrow('Error fetching utxos');
-                await expect(
-                    apiErrorChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path145.hash160)
-                        .utxos(),
-                ).rejects.toThrow('Error fetching utxos');
-
-                await expect(
-                    apiErrorChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path245.hash160)
-                        .utxos(),
-                ).rejects.toThrow('Error fetching utxos');
-
-                await expect(
-                    apiErrorChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path1899.hash160)
-                        .history(0, chronikConfig.txHistoryCount),
-                ).rejects.toThrow('Error fetching history');
-                await expect(
-                    apiErrorChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path145.hash160)
-                        .history(0, chronikConfig.txHistoryCount),
-                ).rejects.toThrow('Error fetching history');
-
-                await expect(
-                    apiErrorChronikClient
-                        .script(CASHTAB_ADDRESS_TYPE, wallet.Path245.hash160)
-                        .history(0, chronikConfig.txHistoryCount),
-                ).rejects.toThrow('Error fetching history');
+                for (const path of wallet.paths) {
+                    await expect(
+                        apiErrorChronikClient
+                            .script(CASHTAB_ADDRESS_TYPE, path.hash)
+                            .utxos(),
+                    ).rejects.toThrow('Error fetching utxos');
+                    await expect(
+                        apiErrorChronikClient
+                            .script(CASHTAB_ADDRESS_TYPE, path.hash)
+                            .history(0, chronikConfig.txHistoryCount),
+                    ).rejects.toThrow('Error fetching history');
+                }
             }
 
             // Expect localforage wallet and defaults

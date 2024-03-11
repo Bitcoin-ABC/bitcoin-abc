@@ -11,7 +11,7 @@ import { toSatoshis } from 'wallet';
 /**
  * Sign tx inputs
  * @param {object} txBuilder an initialized TransactionBuilder with inputs and outputs added
- * @param {array} accounts [...{cashAddress: <cashaddr>, wif: <wif>}]
+ * @param {array} accounts [...{address: <cashaddr>, wif: <wif>}]
  * @param {array} inputs [...{address: <cashaddr>, value: <number>}]
  * @throws {error} if private key is corrupted or wif is undefined
  */
@@ -19,8 +19,8 @@ export const signInputs = (txBuilder, accounts, inputs) => {
     inputs.forEach((input, index) => {
         // Select the correct signing key based on the address of the input
         const wif = accounts
-            .filter(acc => acc.cashAddress === input.address)
-            .pop().fundingWif;
+            .filter(acc => acc.address === input.address)
+            .pop().wif;
 
         // TODO store this in wallet instead of generating it every time you sign a tx
         const utxoECPair = utxolib.ECPair.fromWIF(wif, utxolib.networks.ecash);
@@ -96,7 +96,10 @@ export const sendXec = async (
             // User provides target output, coinSelect adds change output if necessary (with no address key)
 
             // Change address is wallet address
-            output.address = wallet.Path1899.cashAddress;
+            // Use Path1899 address as change address
+            output.address = wallet.paths.find(
+                pathInfo => pathInfo.path === 1899,
+            ).address;
         }
 
         // TODO add cashaddr support for eCash to txBuilder in utxo-lib
@@ -106,11 +109,7 @@ export const sendXec = async (
         );
     }
 
-    signInputs(
-        txBuilder,
-        [wallet.Path245, wallet.Path145, wallet.Path1899],
-        inputs,
-    );
+    signInputs(txBuilder, wallet.paths, inputs);
 
     const hex = txBuilder.build().toHex();
 

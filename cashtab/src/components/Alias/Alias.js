@@ -92,8 +92,12 @@ const Alias = ({ passLoadingStatus }) => {
     } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
+    const defaultAddress =
+        wallet !== false
+            ? wallet.paths.find(pathInfo => pathInfo.path === 1899).address
+            : '';
     const walletState = getWalletState(wallet);
-    const { balances, tokens } = walletState;
+    const { balanceSats, tokens } = walletState;
     const [formData, setFormData] = useState({
         aliasName: '',
         aliasAddress: '',
@@ -113,11 +117,11 @@ const Alias = ({ passLoadingStatus }) => {
 
     useEffect(() => {
         passLoadingStatus(false);
-    }, [balances.totalBalance]);
+    }, [balanceSats]);
 
     const handleAliasWalletChange = async () => {
-        if (wallet.Path1899.cashAddress) {
-            await refreshAliases(wallet.Path1899.cashAddress);
+        if (defaultAddress !== '') {
+            await refreshAliases(defaultAddress);
         }
 
         // Refresh alias prices if none exist yet
@@ -168,7 +172,7 @@ const Alias = ({ passLoadingStatus }) => {
 
     useEffect(() => {
         // only run this useEffect block if wallet is defined
-        if (!wallet || typeof wallet === 'undefined' || !wallet.Path1899) {
+        if (wallet === false || typeof wallet === 'undefined') {
             return;
         }
         passLoadingStatus(true);
@@ -323,7 +327,7 @@ const Alias = ({ passLoadingStatus }) => {
                         ...previousAliases.pending,
                         {
                             alias: aliasInput,
-                            address: wallet.Path1899.cashAddress,
+                            address: defaultAddress,
                         },
                     ],
                 }));
@@ -381,7 +385,7 @@ const Alias = ({ passLoadingStatus }) => {
             handleAliasAddressInput({
                 target: {
                     name: 'aliasAddress',
-                    value: wallet.Path1899.cashAddress,
+                    value: defaultAddress,
                 },
             });
         } else {
@@ -489,7 +493,7 @@ const Alias = ({ passLoadingStatus }) => {
                     )}
                 {!useThisAddressChecked &&
                     !aliasAddressValidationError &&
-                    ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${wallet.Path1899?.cashAddress}.`}
+                    ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${defaultAddress}.`}
             </Modal>
             <SidePaddingCtn>
                 <Row type="flex">

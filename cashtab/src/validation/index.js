@@ -547,10 +547,10 @@ export const isValidOpreturnParam = testedParam => {
 /**
  * Should the Send button be disabled on the SendXec screen
  * @param {object} formData must have keys address: string and value: string
- * @param {object} balances must have key totalBalance: string
+ * @param {number} balanceSats
  * @param {boolean} apiError
- * @param {false | string} sendBchAmountError
- * @param {false | string} sendBchAddressError
+ * @param {false | string} sendAmountError
+ * @param {false | string} sendAddressError
  * @param {false | string} isMsgError
  * @param {boolean} priceApiError
  * @param {boolean} isOneToManyXECSend
@@ -558,7 +558,7 @@ export const isValidOpreturnParam = testedParam => {
  */
 export const shouldSendXecBeDisabled = (
     formData,
-    balances,
+    balanceSats,
     apiError,
     sendAmountError,
     sendAddressError,
@@ -568,7 +568,7 @@ export const shouldSendXecBeDisabled = (
 ) => {
     return (
         (formData.value === '' && formData.address === '') || // No user inputs
-        balances.totalBalance === '0' || // user has no funds
+        balanceSats === 0 || // user has no funds
         apiError || // API error
         typeof sendAmountError === 'string' || // validation error for send amount
         typeof sendAddressError === 'string' || // validation error for destinationa ddress
@@ -710,28 +710,45 @@ export function parseAddressInput(
  * @returns {boolean}
  */
 export const isValidCashtabWallet = wallet => {
+    if (wallet === false) {
+        // Unset cashtab wallet
+        return false;
+    }
+    if (typeof wallet !== 'object') {
+        // Wallet must be an object
+        return false;
+    }
+    if (!('paths' in wallet)) {
+        return false;
+    }
+    if (wallet.paths.length < 1) {
+        // Wallet must have at least one path info object
+        return false;
+    }
+    // Validate each path
+    for (const path of wallet.paths) {
+        if (
+            !('path' in path) ||
+            !('hash' in path) ||
+            !('address' in path) ||
+            !('wif' in path)
+        ) {
+            // If any given path does not have all of these keys, the wallet is invalid
+            return false;
+        }
+    }
     return (
         typeof wallet === 'object' &&
         'state' in wallet &&
         'mnemonic' in wallet &&
         'name' in wallet &&
-        'Path145' in wallet &&
-        'publicKey' in wallet.Path145 &&
-        'hash160' in wallet.Path145 &&
-        'cashAddress' in wallet.Path145 &&
-        wallet.Path145.cashAddress.startsWith('ecash:') &&
-        'Path245' in wallet &&
-        'publicKey' in wallet.Path245 &&
-        'hash160' in wallet.Path245 &&
-        'cashAddress' in wallet.Path245 &&
-        wallet.Path245.cashAddress.startsWith('ecash:') &&
-        'Path1899' in wallet &&
-        'publicKey' in wallet.Path1899 &&
-        'hash160' in wallet.Path1899 &&
-        'cashAddress' in wallet.Path1899 &&
-        wallet.Path1899.cashAddress.startsWith('ecash:') &&
+        !('Path145' in wallet) &&
+        !('Path245' in wallet) &&
+        !('Path1899' in wallet) &&
         typeof wallet.state === 'object' &&
-        'balances' in wallet.state &&
+        'balanceSats' in wallet.state &&
+        typeof wallet.state.balanceSats === 'number' &&
+        !('balances' in wallet.state) &&
         'slpUtxos' in wallet.state &&
         'nonSlpUtxos' in wallet.state &&
         'tokens' in wallet.state &&

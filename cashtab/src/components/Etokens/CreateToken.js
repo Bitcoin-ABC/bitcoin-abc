@@ -9,7 +9,6 @@ import { toXec } from 'wallet';
 import CreateTokenForm from './CreateTokenForm';
 import { AlertMsg, SidePaddingCtn } from 'components/Common/Atoms';
 import ApiError from 'components/Common/ApiError';
-import { BN } from 'slp-mdm';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
@@ -19,15 +18,13 @@ const CreateToken = () => {
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
-    const { balances } = walletState;
+    const { balanceSats } = walletState;
 
     return (
         <>
             <SidePaddingCtn>
                 {apiError && <ApiError />}
-                {new BN(balances.totalBalanceInSatoshis).lt(
-                    new BN(appConfig.dustSats),
-                ) ? (
+                {balanceSats < appConfig.dustSats ? (
                     <AlertMsg>
                         You need at least {toXec(appConfig.dustSats).toString()}{' '}
                         {appConfig.ticker} (

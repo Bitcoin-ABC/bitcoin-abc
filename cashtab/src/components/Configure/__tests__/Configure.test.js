@@ -105,7 +105,8 @@ describe('<Configure />', () => {
 
         // Add a new saved wallet that can be rendered
         const addedSavedWalletContact = {
-            address: savedWallet.Path1899.cashAddress,
+            address: savedWallet.paths.find(pathInfo => pathInfo.path === 1899)
+                .address,
             name: savedWallet.name,
         };
         await localforage.setItem('wallets', [

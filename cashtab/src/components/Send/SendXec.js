@@ -154,11 +154,6 @@ const OpReturnRawSetByBip21Alert = styled.div`
 `;
 
 const SendXec = () => {
-    // use balance parameters from wallet.state object and not legacy balances parameter from walletState, if user has migrated wallet
-    // this handles edge case of user with old wallet who has not opened latest Cashtab version yet
-
-    // If the wallet object from ContextValue has a `state key`, then check which keys are in the wallet object
-    // Else set it as blank
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
     const { chaintipBlockheight, fiatPrice, apiError, cashtabState, chronik } =
@@ -166,7 +161,7 @@ const SendXec = () => {
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
-    const { balances, nonSlpUtxos, tokens } = walletState;
+    const { balanceSats, nonSlpUtxos, tokens } = walletState;
     // Use spendable utxos instead of all nonSlpUtxos for onMax function
     const spendableUtxos = ignoreUnspendableUtxos(
         nonSlpUtxos,
@@ -391,7 +386,8 @@ const SendXec = () => {
                 });
             }
         }
-    }, [txInfoFromUrl, balances.totalBalance]);
+        // We re-run this when balanceSats changes because validation of send amounts depends on balanceSats
+    }, [txInfoFromUrl, balanceSats]);
 
     function handleSendXecError(errorObj, oneToManyFlag) {
         let message;
@@ -528,7 +524,7 @@ const SendXec = () => {
         const { value, name } = e.target;
         const parsedAddressInput = parseAddressInput(
             value,
-            parseInt(balances.totalBalanceInSatoshis),
+            balanceSats,
             userLocale,
         );
 
@@ -612,7 +608,7 @@ const SendXec = () => {
         const { value, name } = e.target;
         let errorOrIsValid = isValidMultiSendUserInput(
             value,
-            parseInt(balances.totalBalanceInSatoshis),
+            balanceSats,
             userLocale,
         );
 
@@ -643,7 +639,7 @@ const SendXec = () => {
         // Validate user input send amount
         const isValidAmountOrErrorMsg = isValidXecSendAmount(
             value,
-            parseInt(balances.totalBalanceInSatoshis),
+            balanceSats,
             userLocale,
             selectedCurrency,
             fiatPrice,
@@ -765,7 +761,7 @@ const SendXec = () => {
 
     const disableSendButton = shouldSendXecBeDisabled(
         formData,
-        balances,
+        balanceSats,
         apiError,
         sendAmountError,
         sendAddressError,

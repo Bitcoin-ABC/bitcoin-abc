@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-export const walletWithXecAndTokens = {
+export const walletWithXecAndTokens_pre_2_1_0 = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
@@ -798,35 +798,68 @@ export const walletWithXecAndTokens = {
     },
 };
 
+export const walletWithXecAndTokens = {
+    mnemonic:
+        'beauty shoe decline spend still weird slot snack coach flee between paper',
+    name: 'Transaction Fixtures',
+    // New paths key instead of hardcoded Path145, Path245, Path1899 keys
+    paths: [
+        {
+            // New shape of path info
+            path: 1899,
+            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+        },
+        {
+            path: 145,
+            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+        },
+        {
+            path: 245,
+            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+        },
+    ],
+    state: {
+        // State the same except balances key is gone, balanceSats key is here
+        balanceSats: 951312,
+        slpUtxos: walletWithXecAndTokens_pre_2_1_0.state.slpUtxos,
+        nonSlpUtxos: walletWithXecAndTokens_pre_2_1_0.state.nonSlpUtxos,
+        tokens: walletWithXecAndTokens_pre_2_1_0.state.tokens,
+        parsedTxHistory: walletWithXecAndTokens_pre_2_1_0.state.parsedTxHistory,
+    },
+};
+
 export const freshWalletWithOneIncomingCashtabMsg = {
     mnemonic: 'some words that would give it all away',
     name: '[Burned] useWallet Mock',
-    Path245: {
-        publicKey:
-            '03d7473a39f6b36d04ea32970196adf09e847a446d2393ca0aa5dc51acddbfe228',
-        hash160: '00b0430026d550c2af6526a77ce79945f4723701',
-        cashAddress: 'ecash:qqqtqscqym24ps40v5n2wl88n9zlgu3hqyjzt84eay',
-        fundingWif: 'nope',
-    },
-    Path145: {
-        publicKey:
-            '0384aa033a5949b0e86722094d09e1e084388e127c2a6868fe44979ab1a5a1bd88',
-        hash160: '1bcb3531c35137cf303c4d5fccfebb5fb08197f7',
-        cashAddress: 'ecash:qqdukdf3cdgn0nes83x4ln87hd0mpqvh7uky87rj0a',
-        fundingWif: 'nope',
-    },
-    Path1899: {
-        publicKey:
-            '02ff11d33268d5a4e65d1e308e2980795c1f15004615773d54a8383bea3e97894a',
-        hash160: 'd32616c8f849d159b0225f36966ccb85d425e683',
-        cashAddress: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
-        fundingWif: 'nope',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '1000000',
-            totalBalance: '10000',
+    paths: [
+        {
+            // New shape of path info
+            path: 1899,
+            address: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
+            hash: 'd32616c8f849d159b0225f36966ccb85d425e683',
+            wif: 'nope',
         },
+        {
+            path: 145,
+            address: 'ecash:qqdukdf3cdgn0nes83x4ln87hd0mpqvh7uky87rj0a',
+            hash: '1bcb3531c35137cf303c4d5fccfebb5fb08197f7',
+            wif: 'nope',
+        },
+        {
+            path: 245,
+            address: 'ecash:qqqtqscqym24ps40v5n2wl88n9zlgu3hqyjzt84eay',
+            hash: '00b0430026d550c2af6526a77ce79945f4723701',
+            wif: 'nope',
+        },
+    ],
+    state: {
+        balanceSats: 1000000,
         slpUtxos: [],
         nonSlpUtxos: [
             {
@@ -1740,7 +1773,7 @@ export const easterEggTokenChronikTokenDetails = {
     network: 'XEC',
 };
 
-export const validSavedWallets = [
+export const validSavedWallets_pre_2_1_0 = [
     {
         mnemonic:
             'giggle release model music congress choice library bottom story hole tiger document',
@@ -1907,3 +1940,48 @@ export const validSavedWallets = [
         },
     },
 ];
+
+const validSavedWalletsBuilder = [];
+for (const unmigratedWallet of validSavedWallets_pre_2_1_0) {
+    // Clone legacy wallet
+    const migratedWallet = JSON.parse(JSON.stringify(unmigratedWallet));
+    // Build new paths array
+    migratedWallet.paths = [
+        {
+            path: 1899,
+            hash: unmigratedWallet.Path1899.hash160,
+            address: unmigratedWallet.Path1899.cashAddress,
+            wif: unmigratedWallet.Path1899.fundingWif,
+        },
+        {
+            path: 145,
+            hash: unmigratedWallet.Path145.hash160,
+            address: unmigratedWallet.Path145.cashAddress,
+            wif: unmigratedWallet.Path145.fundingWif,
+        },
+        {
+            path: 245,
+            hash: unmigratedWallet.Path245.hash160,
+            address: unmigratedWallet.Path245.cashAddress,
+            wif: unmigratedWallet.Path245.fundingWif,
+        },
+    ];
+
+    // Remove hardcoded paths
+    delete migratedWallet['Path1899'];
+    delete migratedWallet['Path145'];
+    delete migratedWallet['Path245'];
+
+    // Remove legacy state.balances
+    delete migratedWallet['state']['balances'];
+
+    // Replace state.balances with state.balanceSats
+    migratedWallet.state.balanceSats =
+        'totalBalanceInSatoshis' in unmigratedWallet.state.balances
+            ? parseInt(unmigratedWallet.state.balances.totalBalanceInSatoshis)
+            : 0;
+
+    validSavedWalletsBuilder.push(migratedWallet);
+}
+
+export const validSavedWallets = validSavedWalletsBuilder;

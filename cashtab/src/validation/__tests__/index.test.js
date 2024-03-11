@@ -518,7 +518,7 @@ describe('Cashtab validation functions', () => {
             const {
                 description,
                 formData,
-                balances,
+                balanceSats,
                 apiError,
                 sendBchAmountError,
                 sendBchAddressError,
@@ -531,7 +531,7 @@ describe('Cashtab validation functions', () => {
                 expect(
                     shouldSendXecBeDisabled(
                         formData,
-                        balances,
+                        balanceSats,
                         apiError,
                         sendBchAmountError,
                         sendBchAddressError,

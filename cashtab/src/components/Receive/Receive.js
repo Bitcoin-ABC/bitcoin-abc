@@ -47,11 +47,15 @@ export const ReceiveWithWalletPresent = ({ wallet }) => {
     };
     return (
         <ReceiveCtn data-testid="receive-ctn">
-            {wallet && wallet.Path1899 && (
+            {wallet !== false && (
                 <QrCodeCtn data-testid="qr-code-ctn">
                     <QRCode
                         id="borderedQRCode"
-                        address={wallet.Path1899.cashAddress}
+                        address={
+                            wallet.paths.find(
+                                pathInfo => pathInfo.path === 1899,
+                            ).address
+                        }
                         size={getQrCodeWidth(width)}
                         logoSizePx={width > 500 ? 48 : 24}
                     />
@@ -63,7 +67,7 @@ export const ReceiveWithWalletPresent = ({ wallet }) => {
 
 const Receive = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { previousWallet, loading, cashtabState } = ContextValue;
+    const { loading, cashtabState } = ContextValue;
     const { wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     return (
@@ -72,8 +76,7 @@ const Receive = () => {
                 <LoadingCtn data-testid="rcv-loading" />
             ) : (
                 <>
-                    {(wallet && wallet.Path1899) ||
-                    (previousWallet && previousWallet.path1899) ? (
+                    {wallet !== false ? (
                         <ReceiveWithWalletPresent wallet={wallet} />
                     ) : (
                         <OnBoarding />

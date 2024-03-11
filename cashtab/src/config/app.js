@@ -9,6 +9,7 @@ import tokenLogo from 'assets/logo_secondary.png';
 const appConfig = {
     name: 'eCash',
     ticker: 'XEC',
+    derivationPath: 1899,
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
     coingeckoId: 'ecash',

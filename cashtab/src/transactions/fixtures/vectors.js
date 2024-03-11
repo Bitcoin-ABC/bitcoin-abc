@@ -253,9 +253,7 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value:
-                        parseInt(wallet.state.balances.totalBalanceInSatoshis) +
-                        1,
+                    value: wallet.state.balanceSats + 1,
                     address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 },
             ],
@@ -270,9 +268,7 @@ export const sendXecVectors = {
             wallet,
             targetOutputs: [
                 {
-                    value:
-                        parseInt(wallet.state.balances.totalBalanceInSatoshis) -
-                        50,
+                    value: wallet.state.balanceSats - 50,
                     address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
                 },
             ],

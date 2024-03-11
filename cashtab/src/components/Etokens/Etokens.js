@@ -51,7 +51,7 @@ const Etokens = () => {
                 <LoadingCtn />
             ) : (
                 <>
-                    {wallet && wallet.Path1899 ? (
+                    {wallet !== false ? (
                         <EtokensCtn data-testid="etokens-ctn">
                             <br />
                             <SidePaddingCtn>

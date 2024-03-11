@@ -97,7 +97,7 @@ export const initializeCashtabStateAtLegacyWalletKeysForTests = async (
  * @param {boolean} apiError true if we want to set api errors in mocked chronik
  * @returns modifies chronikClient in place to have expected API calls for wallet loading available
  */
-export const prepareMockedChronikCallsForWallet = (
+export const prepareMockedChronikCallsForLegacyWallet = (
     chronikClient,
     wallet,
     apiError = false,
@@ -161,6 +161,87 @@ export const prepareMockedChronikCallsForWallet = (
         wallet.Path245.hash160,
         apiError ? new Error('Error fetching history') : [],
     );
+
+    // Mock chronik.tx(tokenId) calls for tokens in tx history
+    for (const tx of wallet.state.parsedTxHistory) {
+        const mockedTokenResponse = {
+            slpTxData: { genesisInfo: tx.parsed.genesisInfo },
+        };
+        if (tx.parsed.isEtokenTx) {
+            chronikClient.setMock('token', {
+                input: tx.parsed.slpMeta.tokenId,
+                output: mockedTokenResponse,
+            });
+        }
+    }
+};
+
+/**
+ *
+ * @param {object} chronikClient a mockedChronikClient object
+ * @param {object} wallet a valid cashtab wallet object
+ * @param {boolean} apiError true if we want to set api errors in mocked chronik
+ * @returns modifies chronikClient in place to have expected API calls for wallet loading available
+ */
+export const prepareMockedChronikCallsForWallet = (
+    chronikClient,
+    wallet,
+    apiError = false,
+) => {
+    // mock chronik endpoint returns
+    const CASHTAB_TESTS_TIPHEIGHT = 800000;
+    chronikClient.setMock('blockchainInfo', {
+        output: apiError
+            ? new Error('Error fetching blockchainInfo')
+            : { tipHeight: CASHTAB_TESTS_TIPHEIGHT },
+    });
+
+    // Cashtab only supports p2pkh addresses
+    const CASHTAB_ADDRESS_TYPE = 'p2pkh';
+
+    // If you are mocking a legacy wallet to test a migration, return prepareMockedChronikCallsForLegacyWallet
+    if (!('paths' in wallet)) {
+        return prepareMockedChronikCallsForLegacyWallet(
+            chronikClient,
+            wallet,
+            apiError,
+        );
+    }
+
+    // Iterate over paths to create chronik mocks
+    for (const path of wallet.paths) {
+        // Mock scriptutxos to match context
+        chronikClient.setScript(CASHTAB_ADDRESS_TYPE, path.hash);
+        chronikClient.setUtxos(
+            CASHTAB_ADDRESS_TYPE,
+            path.hash,
+            apiError
+                ? new Error('Error fetching utxos')
+                : path.path === 1899
+                ? [
+                      {
+                          outputScript: `76a914${path.hash}88ac`,
+                          utxos: wallet.state.nonSlpUtxos.concat(
+                              wallet.state.slpUtxos,
+                          ),
+                      },
+                      // We mock no utxos at non-standard 1899 path
+                  ]
+                : [],
+        );
+
+        // Mock tx history
+        chronikClient.setTxHistory(
+            CASHTAB_ADDRESS_TYPE,
+            path.hash,
+            apiError
+                ? new Error('Error fetching history')
+                : path.path === 1899
+                ? wallet.state.parsedTxHistory
+                : // No tx history at legacy paths
+                  [],
+        );
+    }
 
     // Mock chronik.tx(tokenId) calls for tokens in tx history
     for (const tx of wallet.state.parsedTxHistory) {

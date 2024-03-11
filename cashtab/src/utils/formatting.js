@@ -38,26 +38,6 @@ export const formatFiatBalance = (fiatBalance, optionalLocale) => {
     }
 };
 
-export const formatSavedBalance = (swBalance, optionalLocale) => {
-    try {
-        if (swBalance === undefined) {
-            return 'N/A';
-        } else {
-            if (optionalLocale === undefined) {
-                return new Number(swBalance).toLocaleString({
-                    maximumFractionDigits: appConfig.cashDecimals,
-                });
-            } else {
-                return new Number(swBalance).toLocaleString(optionalLocale, {
-                    maximumFractionDigits: appConfig.cashDecimals,
-                });
-            }
-        }
-    } catch (err) {
-        return 'N/A';
-    }
-};
-
 export const formatBalance = (unformattedBalance, optionalLocale) => {
     try {
         if (optionalLocale === undefined) {

@@ -3,17 +3,21 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+
+const defaultAddress = walletWithXecAndTokens.paths.find(
+    pathInfo => pathInfo.path === 1899,
+).address;
 export const aliasAddressTwoRegisteredOnePending = {
     registered: [
         {
             alias: 'chicken555',
-            address: `${walletWithXecAndTokens.Path1899.cashAddress}`,
+            address: defaultAddress,
             txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
             blockheight: 792417,
         },
         {
             alias: 'chicken666',
-            address: `${walletWithXecAndTokens.Path1899.cashAddress}`,
+            address: defaultAddress,
             txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
             blockheight: 792416,
         },
@@ -21,7 +25,7 @@ export const aliasAddressTwoRegisteredOnePending = {
     pending: [
         {
             alias: 'chicken444',
-            address: `${walletWithXecAndTokens.Path1899.cashAddress}`,
+            address: defaultAddress,
             txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
             blockheight: 792418,
         },
@@ -31,7 +35,7 @@ export const aliasAddressOneRegisteredNoPending = {
     registered: [
         {
             alias: 'chicken555',
-            address: `${walletWithXecAndTokens.Path1899.cashAddress}`,
+            address: defaultAddress,
             txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
             blockheight: 792417,
         },
@@ -43,7 +47,7 @@ export const aliasAddressNoRegisteredOnePending = {
     pending: [
         {
             alias: 'chicken444',
-            address: `${walletWithXecAndTokens.Path1899.cashAddress}`,
+            address: defaultAddress,
             txid: 'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d',
             blockheight: 792418,
         },

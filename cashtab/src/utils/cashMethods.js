@@ -2,9 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN } from 'slp-mdm';
 import cashaddr from 'ecashaddrjs';
-import { toXec } from 'wallet';
 
 /**
  * Get the total XEC amount sent in a one-to-many XEC tx
@@ -22,27 +20,14 @@ export const sumOneToManyXec = destinationAddressAndValueArray => {
     }, 0);
 };
 
-export const getWalletBalanceFromUtxos = nonSlpUtxos => {
-    const totalBalanceInSatoshis = nonSlpUtxos.reduce(
-        (previousBalance, utxo) => previousBalance.plus(new BN(utxo.value)),
-        new BN(0),
-    );
-    return {
-        totalBalanceInSatoshis: totalBalanceInSatoshis.toString(),
-        totalBalance: toXec(totalBalanceInSatoshis.toNumber()).toString(),
-    };
-};
-
 export const getWalletState = wallet => {
     if (!wallet || !wallet.state) {
         return {
-            balances: { totalBalance: 0, totalBalanceInSatoshis: 0 },
-            hydratedUtxoDetails: {},
-            tokens: [],
+            balanceSats: 0,
             slpUtxos: [],
             nonSlpUtxos: [],
+            tokens: [],
             parsedTxHistory: [],
-            utxos: [],
         };
     }
 
@@ -134,16 +119,15 @@ export function convertEcashtoEtokenAddr(eCashAddress) {
     return eTokenAddress;
 }
 
+/**
+ * Get hash values to use for chronik calls
+ * @param {object} wallet valid cashtab wallet
+ * @returns {string[]} array of hashes of all addresses in wallet
+ */
 export const getHashArrayFromWallet = wallet => {
-    // If the wallet has wallet.Path1899.hash160, it's migrated and will have all of them
-    // Return false for an umigrated wallet
-    const hash160Array =
-        wallet && wallet.Path1899 && 'hash160' in wallet.Path1899
-            ? [
-                  wallet.Path245.hash160,
-                  wallet.Path145.hash160,
-                  wallet.Path1899.hash160,
-              ]
-            : false;
-    return hash160Array;
+    const hashArray = [];
+    for (const path of wallet.paths) {
+        hashArray.push(path.hash);
+    }
+    return hashArray;
 };

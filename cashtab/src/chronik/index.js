@@ -140,7 +140,7 @@ export const returnGetUtxosChronikPromise = (chronik, hash160AndAddressObj) => {
         Add the address to each utxo
     */
     return new Promise((resolve, reject) => {
-        getUtxosSingleHashChronik(chronik, hash160AndAddressObj.hash160).then(
+        getUtxosSingleHashChronik(chronik, hash160AndAddressObj.hash).then(
             result => {
                 for (let i = 0; i < result.length; i += 1) {
                     const thisUtxo = result[i];
@@ -489,7 +489,7 @@ export const returnGetTxHistoryChronikPromise = (
     */
     return new Promise((resolve, reject) => {
         chronik
-            .script('p2pkh', hash160AndAddressObj.hash160)
+            .script('p2pkh', hash160AndAddressObj.hash)
             .history(/*page=*/ 0, /*page_size=*/ chronikConfig.txHistoryCount)
             .then(
                 result => {
@@ -874,26 +874,11 @@ export const getTxHistoryChronik = async (chronik, wallet, cachedTokens) => {
     // Combine them all and sort by blockheight and firstSeen
     // Add all the info cashtab needs to make them useful
 
-    const hash160AndAddressObjArray = [
-        {
-            address: wallet.Path145.cashAddress,
-            hash160: wallet.Path145.hash160,
-        },
-        {
-            address: wallet.Path245.cashAddress,
-            hash160: wallet.Path245.hash160,
-        },
-        {
-            address: wallet.Path1899.cashAddress,
-            hash160: wallet.Path1899.hash160,
-        },
-    ];
-
     let txHistoryPromises = [];
-    for (let i = 0; i < hash160AndAddressObjArray.length; i += 1) {
+    for (let i = 0; i < wallet.paths.length; i += 1) {
         const txHistoryPromise = returnGetTxHistoryChronikPromise(
             chronik,
-            hash160AndAddressObjArray[i],
+            wallet.paths[i],
         );
         txHistoryPromises.push(txHistoryPromise);
     }

@@ -177,7 +177,7 @@ const WalletInfo = () => {
 
 const Home = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { previousWallet, loading, cashtabState } = ContextValue;
+    const { loading, cashtabState } = ContextValue;
     const { wallets } = cashtabState;
 
     const wallet = wallets.length > 0 ? wallets[0] : false;
@@ -187,15 +187,7 @@ const Home = () => {
             {loading ? (
                 <LoadingCtn data-testid="loading-ctn" />
             ) : (
-                <>
-                    {(wallet !== false &&
-                        typeof wallet.Path1899 !== 'undefined') ||
-                    (previousWallet && previousWallet.path1899) ? (
-                        <WalletInfo />
-                    ) : (
-                        <OnBoarding />
-                    )}
-                </>
+                <>{wallet !== false ? <WalletInfo /> : <OnBoarding />}</>
             )}
         </>
     );

@@ -4,10 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BN } from 'slp-mdm';
-import {
-    getHashArrayFromWallet,
-    getWalletBalanceFromUtxos,
-} from 'utils/cashMethods';
+import { getHashArrayFromWallet } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
     isValidCashtabCache,
@@ -36,7 +33,7 @@ import {
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import { notification } from 'antd';
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
-import { createCashtabWallet } from 'wallet';
+import { createCashtabWallet, getLegacyPaths, getBalanceSats } from 'wallet';
 import CashtabState from 'config/CashtabState';
 
 const useWallet = chronik => {
@@ -64,30 +61,7 @@ const useWallet = chronik => {
         }
 
         try {
-            /*
-               This strange data structure is necessary because chronik requires the hash160
-               of an address to tell you what utxos are at that address
-            */
-            const hash160AndAddressObjArray = [
-                {
-                    address: wallet.Path145.cashAddress,
-                    hash160: wallet.Path145.hash160,
-                },
-                {
-                    address: wallet.Path245.cashAddress,
-                    hash160: wallet.Path245.hash160,
-                },
-                {
-                    address: wallet.Path1899.cashAddress,
-                    hash160: wallet.Path1899.hash160,
-                },
-            ];
-
-            const chronikUtxos = await getUtxosChronik(
-                chronik,
-                hash160AndAddressObjArray,
-            );
-
+            const chronikUtxos = await getUtxosChronik(chronik, wallet.paths);
             const { preliminarySlpUtxos, nonSlpUtxos } =
                 organizeUtxosByType(chronikUtxos);
 
@@ -122,7 +96,7 @@ const useWallet = chronik => {
             }
 
             const newState = {
-                balances: getWalletBalanceFromUtxos(nonSlpUtxos),
+                balanceSats: getBalanceSats(nonSlpUtxos),
                 slpUtxos,
                 nonSlpUtxos,
                 tokens,
@@ -309,8 +283,18 @@ const useWallet = chronik => {
 
             // Migrate this Cashtab user from keys "wallet" and "savedWallets" to key "wallets"
             if (!isValidCashtabWallet(wallet)) {
+                // Determine if this wallet has legacy paths
+                // Cashtab wallets used to be created with Path145, Path245, and Path1899 keys
+                const extraPathsToMigrate = getLegacyPaths(wallet);
+
                 // If wallet is invalid, rebuild to latest Cashtab schema
-                wallet = await createCashtabWallet(wallet.mnemonic);
+                const newWallet = await createCashtabWallet(
+                    wallet.mnemonic,
+                    extraPathsToMigrate,
+                );
+
+                // Keep original name
+                wallet = { ...newWallet, name: wallet.name };
             }
 
             // wallets[0] is the active wallet in upgraded Cashtab localforage model
@@ -328,9 +312,12 @@ const useWallet = chronik => {
                 savedWallets = await Promise.all(
                     savedWallets.map(async savedWallet => {
                         if (!isValidCashtabWallet(savedWallet)) {
+                            // We may also have to migrate legacy paths for a saved wallet
+                            const extraPathsToMigrate = getLegacyPaths(wallet);
                             // Recreate this wallet at latest format from mnemonic
                             const newSavedWallet = await createCashtabWallet(
                                 savedWallet.mnemonic,
+                                extraPathsToMigrate,
                             );
 
                             return {
@@ -376,9 +363,13 @@ const useWallet = chronik => {
                 wallets = await Promise.all(
                     wallets.map(async wallet => {
                         if (!isValidCashtabWallet(wallet)) {
+                            // We may also have to migrate legacy paths for a saved wallet
+                            const extraPathsToMigrate = getLegacyPaths(wallet);
+
                             // Recreate this wallet at latest format from mnemonic
                             const migratedWallet = await createCashtabWallet(
                                 wallet.mnemonic,
+                                extraPathsToMigrate,
                             );
 
                             // Keep the same name as existing wallet
@@ -799,15 +790,20 @@ const useWallet = chronik => {
         // The interval is also only initialized if there are no other intervals present.
         if (aliasSettings.aliasEnabled) {
             if (wallets.length > 0 && aliasIntervalId === null) {
+                // Get Path1899 address from wallet
+                const path1899Info = wallets[0].paths.find(
+                    pathInfo => pathInfo.path === 1899,
+                );
+                const defaultAddress = path1899Info.address;
                 // Initial refresh to ensure `aliases` state var is up to date
-                await refreshAliases(wallets[0].Path1899.cashAddress);
+                await refreshAliases(defaultAddress);
                 const aliasRefreshInterval = 30000;
                 const intervalId = setInterval(async function () {
                     if (aliases?.pending?.length > 0) {
                         console.log(
                             'useEffect(): Refreshing registered and pending aliases',
                         );
-                        await refreshAliases(wallets[0].Path1899.cashAddress);
+                        await refreshAliases(defaultAddress);
                     }
                 }, aliasRefreshInterval);
                 setAliasIntervalId(intervalId);

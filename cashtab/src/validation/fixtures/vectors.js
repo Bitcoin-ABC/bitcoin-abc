@@ -25,7 +25,7 @@ export default {
                     address: '',
                     value: '',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -41,7 +41,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     value: '',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -56,7 +56,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     value: '50',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -71,7 +71,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     value: '50',
                 },
-                balances: { totalBalance: '0' },
+                balanceSats: 0,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -86,7 +86,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg',
                     value: '50',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError:
@@ -102,7 +102,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     value: '5',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError:
                     'a string indicating a validation error msg',
@@ -118,7 +118,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     value: '5',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -133,7 +133,7 @@ export default {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     value: '5',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -150,7 +150,7 @@ export default {
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6, 22\necash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6, 22',
                     value: '',
                 },
-                balances: { totalBalance: '10000' },
+                balanceSats: 10000,
                 apiError: false,
                 sendBchAmountError: false,
                 sendBchAddressError: false,
@@ -900,126 +900,67 @@ export default {
                 returned: false,
             },
             {
-                description: 'Returns false if wallet is missing Path145',
-                wallet: cloneObjectWithDeletedKey(validWallet, 'Path145'),
+                description: 'Returns false if wallet is missing paths',
+                wallet: cloneObjectWithDeletedKey(validWallet, 'paths'),
                 returned: false,
             },
             {
                 description:
-                    'Returns false if wallet is missing Path145.hash160',
+                    'Returns false if wallet is missing hash in path1899 path object',
                 wallet: {
                     ...validWallet,
-                    Path145: cloneObjectWithDeletedKey(
-                        validWallet.Path145,
-                        'hash160',
-                    ),
+                    paths: [
+                        cloneObjectWithDeletedKey(validWallet.paths[0], 'hash'),
+                    ],
                 },
                 returned: false,
             },
             {
                 description:
-                    'Returns false if wallet is missing Path145.cashAddress',
+                    'Returns false if wallet is missing address in path1899 path object',
                 wallet: {
                     ...validWallet,
-                    Path145: cloneObjectWithDeletedKey(
-                        validWallet.Path145,
-                        'cashAddress',
-                    ),
+                    paths: [
+                        cloneObjectWithDeletedKey(
+                            validWallet.paths[0],
+                            'address',
+                        ),
+                    ],
                 },
                 returned: false,
             },
             {
                 description:
-                    'Returns false if wallet is missing Path145.publicKey',
+                    'Returns false if wallet is missing wif in path1899 path object',
                 wallet: {
                     ...validWallet,
-                    Path145: cloneObjectWithDeletedKey(
-                        validWallet.Path145,
-                        'publicKey',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if wallet is missing Path245',
-                wallet: cloneObjectWithDeletedKey(validWallet, 'Path245'),
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false if wallet is missing Path245.hash160',
-                wallet: {
-                    ...validWallet,
-                    Path245: cloneObjectWithDeletedKey(
-                        validWallet.Path245,
-                        'hash160',
-                    ),
+                    paths: [
+                        cloneObjectWithDeletedKey(validWallet.paths[0], 'wif'),
+                    ],
                 },
                 returned: false,
             },
             {
                 description:
-                    'Returns false if wallet is missing Path245.cashAddress',
+                    'Returns false if wallet is missing wif in a secondary path object',
                 wallet: {
                     ...validWallet,
-                    Path245: cloneObjectWithDeletedKey(
-                        validWallet.Path245,
-                        'cashAddress',
-                    ),
+                    paths: [
+                        { ...validWallet.paths[0] },
+                        {
+                            ...cloneObjectWithDeletedKey(
+                                validWallet.paths[0],
+                                'wif',
+                            ),
+                            path: 145,
+                        },
+                    ],
                 },
                 returned: false,
             },
             {
-                description:
-                    'Returns false if wallet is missing Path245.publicKey',
-                wallet: {
-                    ...validWallet,
-                    Path245: cloneObjectWithDeletedKey(
-                        validWallet.Path245,
-                        'publicKey',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description: 'Returns false if wallet is missing Path1899',
-                wallet: cloneObjectWithDeletedKey(validWallet, 'Path1899'),
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false if wallet is missing Path1899.hash160',
-                wallet: {
-                    ...validWallet,
-                    Path1899: cloneObjectWithDeletedKey(
-                        validWallet.Path1899,
-                        'hash160',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false if wallet is missing Path1899.cashAddress',
-                wallet: {
-                    ...validWallet,
-                    Path1899: cloneObjectWithDeletedKey(
-                        validWallet.Path1899,
-                        'cashAddress',
-                    ),
-                },
-                returned: false,
-            },
-            {
-                description:
-                    'Returns false if wallet is missing Path1899.publicKey',
-                wallet: {
-                    ...validWallet,
-                    Path1899: cloneObjectWithDeletedKey(
-                        validWallet.Path1899,
-                        'publicKey',
-                    ),
-                },
+                description: 'Returns false if wallet has no path info objects',
+                wallet: { ...validWallet, paths: [] },
                 returned: false,
             },
             {
@@ -1031,13 +972,29 @@ export default {
                 returned: false,
             },
             {
-                description: 'Returns false if no balances in wallet.state',
+                description: 'Returns false if no balanceSats in wallet.state',
                 wallet: {
                     ...validWallet,
                     state: cloneObjectWithDeletedKey(
                         validWallet.state,
-                        'balances',
+                        'balanceSats',
                     ),
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if balances in wallet.state',
+                wallet: {
+                    ...validWallet,
+                    state: { ...validWallet.state, balances: {} },
+                },
+                returned: false,
+            },
+            {
+                description: 'Returns false if balanceSats is not a number',
+                wallet: {
+                    ...validWallet,
+                    state: { ...validWallet.state, balanceSats: '100' },
                 },
                 returned: false,
             },

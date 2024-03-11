@@ -28,10 +28,7 @@ export const walletWithZeroBalanceAndTxHistory = {
         fundingWif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
     },
     state: {
-        balances: {
-            totalBalanceInSatoshis: '0',
-            totalBalance: '0',
-        },
+        balanceSats: 0,
         slpUtxos: [],
         nonSlpUtxos: [],
         tokens: [],

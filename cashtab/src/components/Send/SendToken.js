@@ -109,7 +109,7 @@ const SendToken = () => {
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
-    const { tokens, balances } = walletState;
+    const { tokens, balanceSats } = walletState;
 
     const params = useParams();
     const tokenId = params.tokenId;
@@ -284,7 +284,7 @@ const SendToken = () => {
 
         const parsedAddressInput = parseAddressInput(
             value,
-            parseInt(balances.totalBalanceInSatoshis),
+            balanceSats,
             userLocale,
         );
         const address = parsedAddressInput.address.value;

@@ -9,6 +9,7 @@ import {
     hasEnoughToken,
     createCashtabWallet,
     fiatToSatoshis,
+    getLegacyPaths,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import vectors from '../fixtures/vectors';
@@ -99,6 +100,15 @@ describe('Cashtab wallet methods', () => {
                 expect(fiatToSatoshis(sendAmountFiat, fiatPrice)).toBe(
                     returned,
                 );
+            });
+        });
+    });
+    describe('Gets legacy paths from a legacy wallet requiring migration', () => {
+        const { expectedReturns } = vectors.getLegacyPaths;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, wallet, returned } = expectedReturn;
+            it(`getLegacyPaths: ${description}`, () => {
+                expect(getLegacyPaths(wallet)).toEqual(returned);
             });
         });
     });

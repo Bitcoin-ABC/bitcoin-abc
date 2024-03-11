@@ -7,6 +7,7 @@ import * as bip39 from 'bip39';
 import * as randomBytes from 'randombytes';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
+import appConfig from 'config/app';
 
 const SATOSHIS_PER_XEC = 100;
 
@@ -73,18 +74,23 @@ export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
 /**
  * Create a Cashtab wallet object from a valid bip39 mnemonic
  * @param {string} mnemonic a valid bip39 mnemonic
+ * @param {number[]} additionalPaths array of paths in addition to 1899 to add to this wallet
+ * Default to 1899-only for all new wallets
+ * Accept an array, in case we are migrating a wallet with legacy paths 145, 245, or both 145 and 245
  */
-export const createCashtabWallet = async mnemonic => {
+export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
     // Initialize wallet with empty state
     const wallet = {
         state: {
-            balances: {},
+            balanceSats: 0,
             slpUtxos: [],
             nonSlpUtxos: [],
             tokens: [],
             parsedTxHistory: [],
         },
     };
+
+    // Set wallet mnemonic
     wallet.mnemonic = mnemonic;
 
     const rootSeedBuffer = await bip39.mnemonicToSeed(mnemonic, '');
@@ -94,36 +100,45 @@ export const createCashtabWallet = async mnemonic => {
         utxolib.networks.ecash,
     );
 
-    // TODO if we have multiple paths, should be in an array at key paths, or a map
-    wallet.Path145 = deriveAccount(masterHDNode, "m/44'/145'/0'/0/0");
-    wallet.Path245 = deriveAccount(masterHDNode, "m/44'/245'/0'/0/0");
-    wallet.Path1899 = deriveAccount(masterHDNode, "m/44'/1899'/0'/0/0");
+    // wallet.paths is an array
+    // For all newly-created wallets, we only support Path 1899
+    // We would support only Path 1899, but Cashtab must continue to support legacy paths 145 and 245
+    // Maybe someday we will support multi-path, so the array could help
 
-    // Initialize name with first 5 chars of Path1899 address
-    wallet.name = wallet.Path1899.cashAddress.slice(6, 11);
+    // We always derive path 1899
+    const pathsToDerive = [appConfig.derivationPath, ...additionalPaths];
+
+    wallet.paths = [];
+    for (const path of pathsToDerive) {
+        const pathInfo = getPathInfo(masterHDNode, path);
+        if (path === appConfig.derivationPath) {
+            // Initialize wallet name with first 5 chars of Path1899 address
+            wallet.name = pathInfo.address.slice(6, 11);
+        }
+        wallet.paths.push(pathInfo);
+    }
+
     return wallet;
 };
 
 /**
- * Get PathXXX key for a Cashtab Wallet
- *
- * TODO cashtab wallets should use one path or store paths at an array, not separate keys
+ * Get address, hash, and wif for a given derivation path
  *
  * @param {utxolib.bip32Interface} masterHDNode calculated from utxolib
- * @param {string} path
- * @returns {object} {publicKey, hash160, cashAddress, fundingWif}
+ * @param {number} abbreviatedDerivationPath in practice: 145, 245, or 1899
+ * @returns {object} {path, hash, address, wif}
  */
-const deriveAccount = (masterHDNode, path) => {
-    const node = masterHDNode.derivePath(path);
-    const publicKey = node.publicKey.toString('hex');
-    const cashAddress = cashaddr.encode('ecash', 'P2PKH', node.identifier);
-    const { hash } = cashaddr.decode(cashAddress, true);
+const getPathInfo = (masterHDNode, abbreviatedDerivationPath) => {
+    const fullDerivationPath = `m/44'/${abbreviatedDerivationPath}'/0'/0/0`;
+    const node = masterHDNode.derivePath(fullDerivationPath);
+    const address = cashaddr.encode('ecash', 'P2PKH', node.identifier);
+    const { hash } = cashaddr.decode(address, true);
 
     return {
-        publicKey,
-        hash160: hash,
-        cashAddress,
-        fundingWif: node.toWIF(),
+        path: abbreviatedDerivationPath,
+        hash,
+        address,
+        wif: node.toWIF(),
     };
 };
 
@@ -150,4 +165,31 @@ export const generateMnemonic = () => {
  */
 export const fiatToSatoshis = (sendAmountFiat, fiatPrice) => {
     return Math.floor((Number(sendAmountFiat) / fiatPrice) * SATOSHIS_PER_XEC);
+};
+
+/**
+ * Determine if a legacy wallet includes legacy paths that must be migrated
+ * @param {object} wallet a cashtab wallet
+ * @returns {number[]} array of legacy paths
+ */
+export const getLegacyPaths = wallet => {
+    const legacyPaths = [];
+    if ('paths' in wallet) {
+        // If we are migrating a wallet created after version 2.2.0 that includes more paths than 1899
+        for (const path of wallet.paths) {
+            if (path.path !== 1899) {
+                // Path 1899 will be added by default, it is not an 'extra' path
+                legacyPaths.push(path.path);
+            }
+        }
+    }
+    if ('Path145' in wallet) {
+        // Wallet created before version 2.2.0 that includes Path145
+        legacyPaths.push(145);
+    }
+    if ('Path245' in wallet) {
+        // Wallet created before version 2.2.0 that includes Path145
+        legacyPaths.push(245);
+    }
+    return legacyPaths;
 };

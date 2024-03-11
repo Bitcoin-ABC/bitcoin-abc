@@ -10244,38 +10244,28 @@ export const mockSortedFlatTxHistoryWithAllUnconfirmed = [
 export const mockParseAliasTxWallet = {
     mnemonic: 'string',
     name: 'string',
-    Path245: {
-        publicKey: 'string',
-        hash160: '6f4f6d5b569b7696bc18593b8593f05bf3edd3d9',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path145: {
-        publicKey: 'string',
-        hash160: 'fcf21a34c255c067e24dfc183f294b50694600a6',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path1899: {
-        publicKey: 'string',
-        hash160: 'dc1147663948f0dcfb00cc407eda41b121713ad3',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '55421422',
-            totalBalance: '554214.22',
+    paths: [
+        {
+            path: 1899,
+            hash: 'dc1147663948f0dcfb00cc407eda41b121713ad3',
+            address: 'string',
+            wif: 'string',
         },
+        {
+            path: 145,
+            hash: 'fcf21a34c255c067e24dfc183f294b50694600a6',
+            address: 'string',
+            wif: 'string',
+        },
+        {
+            path: 245,
+            hash: '6f4f6d5b569b7696bc18593b8593f05bf3edd3d9',
+            address: 'string',
+            wif: 'string',
+        },
+    ],
+    state: {
+        balanceSats: 55421422,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [],
@@ -10286,41 +10276,28 @@ export const mockParseAliasTxWallet = {
 export const anotherMockParseTxWallet = {
     mnemonic: 'string',
     name: 'string',
-    Path245: {
-        publicKey:
-            '02c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-        hash160: 'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path145: {
-        publicKey:
-            '03c477d7c44c1aff1549cdb74a32daea2ab4db9c664662a14aedfcb719cec96f29',
-        hash160: '1fb76a7db96fc774cbad00e8a72890602b4be304',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path1899: {
-        publicKey:
-            '03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-        hash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '55421422',
-            totalBalance: '554214.22',
+    paths: [
+        {
+            path: 1899,
+            hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+            address: 'string',
+            wif: 'string',
         },
+        {
+            path: 145,
+            hash: '1fb76a7db96fc774cbad00e8a72890602b4be304',
+            address: 'string',
+            wif: 'string',
+        },
+        {
+            path: 245,
+            hash: 'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
+            address: 'string',
+            wif: 'string',
+        },
+    ],
+    state: {
+        balanceSats: 55421422,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [],
@@ -10331,38 +10308,28 @@ export const anotherMockParseTxWallet = {
 export const mockParseTxWallet = {
     mnemonic: 'string',
     name: 'string',
-    Path245: {
-        publicKey: 'string',
-        hash160: '58549b5b93428fac88e36617456cd99a411bd0eb',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path145: {
-        publicKey: 'string',
-        hash160: '438a162355ef683062a7fde9d08dd720397aaee8',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path1899: {
-        publicKey: 'string',
-        hash160: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '55421422',
-            totalBalance: '554214.22',
+    paths: [
+        {
+            path: 1899,
+            hash: '76458db0ed96fe9863fc1ccec9fa2cfab884b0f6',
+            address: 'string',
+            wif: 'string',
         },
+        {
+            path: 145,
+            hash: '438a162355ef683062a7fde9d08dd720397aaee8',
+            address: 'string',
+            wif: 'string',
+        },
+        {
+            path: 245,
+            hash: '58549b5b93428fac88e36617456cd99a411bd0eb',
+            address: 'string',
+            wif: 'string',
+        },
+    ],
+    state: {
+        balanceSats: 55421422,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [],
@@ -10372,38 +10339,28 @@ export const mockParseTxWallet = {
 export const mockAliasWallet = {
     mnemonic: 'string',
     name: 'string',
-    Path245: {
-        publicKey: 'string',
-        hash160: '6f4f6d5b569b7696bc18593b8593f05bf3edd3d9',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path145: {
-        publicKey: 'string',
-        hash160: 'fcf21a34c255c067e24dfc183f294b50694600a6',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path1899: {
-        publicKey: 'string',
-        hash160: 'dc1147663948f0dcfb00cc407eda41b121713ad3',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '55421422',
-            totalBalance: '554214.22',
+    paths: [
+        {
+            path: 1899,
+            hash: 'dc1147663948f0dcfb00cc407eda41b121713ad3',
+            address: 'string',
+            wif: 'string',
         },
+        {
+            path: 145,
+            hash: 'fcf21a34c255c067e24dfc183f294b50694600a6',
+            address: 'string',
+            wif: 'string',
+        },
+        {
+            path: 245,
+            hash: '6f4f6d5b569b7696bc18593b8593f05bf3edd3d9',
+            address: 'string',
+            wif: 'string',
+        },
+    ],
+    state: {
+        balanceSats: 55421422,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [],
@@ -10413,41 +10370,28 @@ export const mockAliasWallet = {
 export const mockParseTxWalletAirdrop = {
     mnemonic: 'string',
     name: 'string',
-    Path245: {
-        publicKey:
-            '02c0850ac54a3915aa762c1ada2f50076b2aa4bc7d188eee9b5af6ddfa412a363f',
-        hash160: 'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path145: {
-        publicKey:
-            '03c477d7c44c1aff1549cdb74a32daea2ab4db9c664662a14aedfcb719cec96f29',
-        hash160: '1fb76a7db96fc774cbad00e8a72890602b4be304',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    Path1899: {
-        publicKey:
-            '03771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-        hash160: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
-        cashAddress: 'string',
-        slpAddress: 'string',
-        fundingWif: 'string',
-        fundingAddress: 'string',
-        legacyAddress: 'string',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '55421422',
-            totalBalance: '554214.22',
+    paths: [
+        {
+            path: 1899,
+            hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+            address: 'string',
+            wif: 'string',
         },
+        {
+            path: 145,
+            hash: '1fb76a7db96fc774cbad00e8a72890602b4be304',
+            address: 'string',
+            wif: 'string',
+        },
+        {
+            path: 245,
+            hash: 'a9f494266e4b3c823712f27dedcb83e30b2fe59f',
+            address: 'string',
+            wif: 'string',
+        },
+    ],
+    state: {
+        balanceSats: 55421422,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [],
@@ -10458,44 +10402,28 @@ export const mockParseTxWalletEncryptedMsg = {
     mnemonic:
         'because achieve voyage useful ticket stem armed air pretty stand leaf bicycle',
     name: 'Test Encrypt Burnt Wif',
-    Path245: {
-        publicKey:
-            '0375182c1737822265efaed62e91f84d34739cdc783ff8072165242fac4c8e32ab',
-        hash160: '278ac23f8ef6c40b98c23972cc60effdfe477326',
-        cashAddress: 'bitcoincash:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnycmmlefsfr',
-        slpAddress: 'simpleledger:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnychq5zusha',
-        fundingWif: 'L3HmNCzg2fVd8q8JP8fU4mkKhFXo74Gskfp9UatMh7WJ9FTwQQix',
-        fundingAddress:
-            'simpleledger:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnychq5zusha',
-        legacyAddress: '14c5acR4uXmwH1dvWWmqnabD4H2mWhAuYW',
-    },
-    Path145: {
-        publicKey:
-            '03cfb60b9f457ce676ec01b4e92f05a08214989116650830e45b60e2c8cc144a77',
-        hash160: 'dbff532189502b22ecf88e10bc78d42c3785240b',
-        cashAddress: 'bitcoincash:qrdl75ep39gzkghvlz8pp0rc6skr0pfypv7htttdhx',
-        slpAddress: 'simpleledger:qrdl75ep39gzkghvlz8pp0rc6skr0pfypvjvqs7dfc',
-        fundingWif: 'L4TaWveyX8xEY7jLnS86JotV3tQkb1GqCaGxymES1i6Mkj5M77Cm',
-        fundingAddress:
-            'simpleledger:qrdl75ep39gzkghvlz8pp0rc6skr0pfypvjvqs7dfc',
-        legacyAddress: '1M4ErHUrjrv5zBv3YfGSkAkHdKYUnx4V2D',
-    },
-    Path1899: {
-        publicKey:
-            '038c4c26730d97cdeb18e69dff6c47cebb23e6f305c950923cd6110f35ab9006d0',
-        hash160: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
-        cashAddress: 'bitcoincash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfc4l80hyqu',
-        slpAddress: 'simpleledger:qrhxmjw5p72a3cgx5cect3h63q5erw0gfceyv5zy7z',
-        fundingWif: 'Kwt39o7LZJ54nKyYU2Sz6dAZToXtFvYHtn6xKf2Nbi5E9kZfpHSH',
-        fundingAddress:
-            'simpleledger:qrhxmjw5p72a3cgx5cect3h63q5erw0gfceyv5zy7z',
-        legacyAddress: '1NjhLtSNF32Nay82jV1b7yv6s7mxaeFeYP',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '49545',
-            totalBalance: '495.45',
+    paths: [
+        {
+            path: 1899,
+            hash: 'ee6dc9d40f95d8e106a63385c6fa882991b9e84e',
+            address: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
+            wif: 'Kwt39o7LZJ54nKyYU2Sz6dAZToXtFvYHtn6xKf2Nbi5E9kZfpHSH',
         },
+        {
+            path: 145,
+            hash: 'dbff532189502b22ecf88e10bc78d42c3785240b',
+            address: 'ecash:qrdl75ep39gzkghvlz8pp0rc6skr0pfypv86lqsh33',
+            wif: 'L4TaWveyX8xEY7jLnS86JotV3tQkb1GqCaGxymES1i6Mkj5M77Cm',
+        },
+        {
+            path: 245,
+            hash: '278ac23f8ef6c40b98c23972cc60effdfe477326',
+            address: 'ecash:qqnc4s3l3mmvgzuccguh9nrqal7lu3mnyczktjj205',
+            wif: 'L3HmNCzg2fVd8q8JP8fU4mkKhFXo74Gskfp9UatMh7WJ9FTwQQix',
+        },
+    ],
+    state: {
+        balanceSats: 49545,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [
@@ -10702,44 +10630,28 @@ export const mockParseTxWalletEncryptedMsg = {
 export const mockSwapWallet = {
     mnemonic: '',
     name: 'tx-history-tests',
-    Path245: {
-        publicKey:
-            '03b07958256f978e90669c4382b0be09caa05f847716746b3052cd6145df6062c1',
-        hash160: '056d6d7e88f008de89ee53fa8b6fe10ffe10271f',
-        cashAddress: 'bitcoincash:qqzk6mt73rcq3h5faefl4zm0uy8luyp8run6d3js23',
-        slpAddress: 'simpleledger:qqzk6mt73rcq3h5faefl4zm0uy8luyp8rulpx28s50',
-        fundingWif: '',
-        fundingAddress:
-            'simpleledger:qqzk6mt73rcq3h5faefl4zm0uy8luyp8rulpx28s50',
-        legacyAddress: '1VhU8XuKS7ihzt8WZW41FzwM4aqVTKMqH',
-    },
-    Path145: {
-        publicKey:
-            '0378e3a893ea4f69fe710baf0623562078cfe84f7650c8379cd32d6a76e3cb5d82',
-        hash160: '46d48362f35519ff656a3a5ca8cd43755efa74d1',
-        cashAddress: 'bitcoincash:qprdfqmz7d23nlm9dga9e2xdgd64a7n56y3zmmxyjp',
-        slpAddress: 'simpleledger:qprdfqmz7d23nlm9dga9e2xdgd64a7n56yaesqnyvl',
-        fundingWif: '',
-        fundingAddress:
-            'simpleledger:qprdfqmz7d23nlm9dga9e2xdgd64a7n56yaesqnyvl',
-        legacyAddress: '17TWt79xyS72UBHoxgb6xfnCaHQXd4zHyh',
-    },
-    Path1899: {
-        publicKey:
-            '0358a2f0ed38317f63de8400515ec376517d4020ca121a5b71e56d19028d6fee27',
-        hash160: 'a7d744e1246a20f26238e0510fb82d8df84cc82d',
-        cashAddress: 'bitcoincash:qznaw38py34zpunz8rs9zrac9kxlsnxg95m2sf5czz',
-        slpAddress: 'simpleledger:qznaw38py34zpunz8rs9zrac9kxlsnxg95h3mjpcuu',
-        fundingWif: '',
-        fundingAddress:
-            'simpleledger:qznaw38py34zpunz8rs9zrac9kxlsnxg95h3mjpcuu',
-        legacyAddress: '1GJTjC9c5o3G7LJEGfgqzghGY6ecrwLAG9',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '1997',
-            totalBalance: '19.97',
+    paths: [
+        {
+            path: 1899,
+            hash: 'a7d744e1246a20f26238e0510fb82d8df84cc82d',
+            address: 'ecash:qznaw38py34zpunz8rs9zrac9kxlsnxg95z8yz0zy4',
+            wif: '',
         },
+        {
+            path: 145,
+            hash: '46d48362f35519ff656a3a5ca8cd43755efa74d1',
+            address: 'ecash:qprdfqmz7d23nlm9dga9e2xdgd64a7n56yg00sa75k',
+            wif: '',
+        },
+        {
+            path: 245,
+            hash: '056d6d7e88f008de89ee53fa8b6fe10ffe10271f',
+            address: 'ecash:qqzk6mt73rcq3h5faefl4zm0uy8luyp8ru2he6f2vx',
+            wif: '',
+        },
+    ],
+    state: {
+        balanceSats: 1997,
         tokens: [],
         slpUtxos: [],
         nonSlpUtxos: [

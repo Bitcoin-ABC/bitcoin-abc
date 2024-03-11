@@ -6,32 +6,28 @@ const wallet = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
-    Path245: {
-        publicKey:
-            '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
-        hash160: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-        cashAddress: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-        fundingWif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-    },
-    Path145: {
-        publicKey:
-            '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
-        hash160: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-        cashAddress: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-        fundingWif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-    },
-    Path1899: {
-        publicKey:
-            '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-        hash160: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-        cashAddress: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-        fundingWif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '135000',
-            totalBalance: '1350',
+    paths: [
+        {
+            path: 1899,
+            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
         },
+        {
+            path: 145,
+            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+        },
+        {
+            path: 245,
+            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+        },
+    ],
+    state: {
+        balanceSats: 135000,
         slpUtxos: [],
         nonSlpUtxos: [
             {
@@ -309,32 +305,28 @@ const walletWithCoinbaseUtxos = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
-    Path245: {
-        publicKey:
-            '03f73fe2631da9732f2480debbc7ff8d99c5c06764e0f5095b789ff190788bee72',
-        hash160: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-        cashAddress: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-        fundingWif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-    },
-    Path145: {
-        publicKey:
-            '03939a29fd67fa602926637a82f53e1826696353613cac03e34160f040ae2dfcb5',
-        hash160: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-        cashAddress: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-        fundingWif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-    },
-    Path1899: {
-        publicKey:
-            '031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
-        hash160: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-        cashAddress: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-        fundingWif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '135000',
-            totalBalance: '1350',
+    paths: [
+        {
+            path: 1899,
+            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
         },
+        {
+            path: 145,
+            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+        },
+        {
+            path: 245,
+            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+        },
+    ],
+    state: {
+        balanceSats: 135000,
         slpUtxos: [],
         nonSlpUtxos: [
             {
@@ -620,7 +612,7 @@ const multiAddressUtxos = [
         isCoinbase: false,
         value: '25000',
         network: 'XEC',
-        address: wallet.Path145.cashAddress,
+        address: wallet.paths.find(pathInfo => pathInfo.path === 145).address,
     },
     {
         outpoint: {
@@ -631,7 +623,7 @@ const multiAddressUtxos = [
         isCoinbase: false,
         value: '100000',
         network: 'XEC',
-        address: wallet.Path245.cashAddress,
+        address: wallet.paths.find(pathInfo => pathInfo.path === 245).address,
     },
     {
         outpoint: {
@@ -642,7 +634,7 @@ const multiAddressUtxos = [
         isCoinbase: false,
         value: '10000',
         network: 'XEC',
-        address: wallet.Path1899.cashAddress,
+        address: wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
     },
 ];
 utxosAtManyAddressesWallet.state.nonSlpUtxos = multiAddressUtxos;
@@ -650,9 +642,11 @@ utxosAtManyAddressesWallet.state.nonSlpUtxos = multiAddressUtxos;
 // Create a wallet that has a corrupted private key
 // Not expected to ever happen in Cashtab
 const walletWithInvalidPrivateKey = JSON.parse(JSON.stringify(wallet));
-// Take a portion of a valid fundingWif to keep base58 chars
-walletWithInvalidPrivateKey.Path1899.fundingWif =
-    wallet.Path145.fundingWif.slice(0, 20);
+// Take a portion of a valid wif to keep base58 chars
+const badWifPath1899Info = walletWithInvalidPrivateKey.paths.find(
+    pathInfo => pathInfo.path === 1899,
+);
+badWifPath1899Info.wif = badWifPath1899Info.wif.slice(0, 20);
 
 // Create a wallet with very large utxos
 const TOTAL_ECASH_SUPPLY_SATS = 2100000000000000;
@@ -670,42 +664,34 @@ const largeUtxo = {
 };
 
 allTheXecWallet.state.nonSlpUtxos = [largeUtxo];
-allTheXecWallet.state.balances.totalBalanceInSatoshis =
-    largeUtxo.value.toString();
-allTheXecWallet.state.balances.totalBalance = (
-    largeUtxo.value / 100
-).toString();
+allTheXecWallet.state.balanceSats = largeUtxo.value;
 
 const walletWithTokensNNG = {
     mnemonic:
         'industry limit sense cruel neglect loud chase usual advance method talk come',
     name: 'SLP V1 Send',
-    Path245: {
-        publicKey:
-            '02d4b1b5ee228995225af776e6f2425a2980b8718c23c560fe792c6403044f8454',
-        hash160: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
-        cashAddress: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
-        fundingWif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
-    },
-    Path145: {
-        publicKey:
-            '02ac09ff67b81aa631ff3e110f167af90f528d8c51b53feeb84eeb59c676da54d3',
-        hash160: '33a070d3931a4993207771ae1aa92aa05491e8b2',
-        cashAddress: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
-        fundingWif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
-    },
-    Path1899: {
-        publicKey:
-            '03b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921',
-        hash160: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
-        cashAddress: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
-        fundingWif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '1000000',
-            totalBalance: '10000',
+    paths: [
+        {
+            path: 245,
+            hash: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
+            address: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
+            wif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
         },
+        {
+            path: 145,
+            hash: '33a070d3931a4993207771ae1aa92aa05491e8b2',
+            address: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
+            wif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
+        },
+        {
+            path: 1899,
+            hash: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
+            address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+            wif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
+        },
+    ],
+    state: {
+        balanceSats: 1000000,
         slpUtxos: [
             {
                 outpoint: {
@@ -1444,32 +1430,28 @@ const walletWithTokensInNode = {
     mnemonic:
         'industry limit sense cruel neglect loud chase usual advance method talk come',
     name: 'SLP V1 Send',
-    Path245: {
-        publicKey:
-            '02d4b1b5ee228995225af776e6f2425a2980b8718c23c560fe792c6403044f8454',
-        hash160: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
-        cashAddress: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
-        fundingWif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
-    },
-    Path145: {
-        publicKey:
-            '02ac09ff67b81aa631ff3e110f167af90f528d8c51b53feeb84eeb59c676da54d3',
-        hash160: '33a070d3931a4993207771ae1aa92aa05491e8b2',
-        cashAddress: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
-        fundingWif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
-    },
-    Path1899: {
-        publicKey:
-            '03b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921',
-        hash160: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
-        cashAddress: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
-        fundingWif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
-    },
-    state: {
-        balances: {
-            totalBalanceInSatoshis: '1000000',
-            totalBalance: '10000',
+    paths: [
+        {
+            path: 1899,
+            hash: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
+            address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+            wif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
         },
+        {
+            path: 245,
+            hash: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
+            address: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
+            wif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
+        },
+        {
+            path: 145,
+            hash: '33a070d3931a4993207771ae1aa92aa05491e8b2',
+            address: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
+            wif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
+        },
+    ],
+    state: {
+        balanceSats: 1000000,
         slpUtxos: [
             {
                 outpoint: {

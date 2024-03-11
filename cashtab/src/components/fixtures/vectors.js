@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import {
+    walletWithXecAndTokens_pre_2_1_0,
     walletWithXecAndTokens,
     validSavedWallets,
 } from 'components/fixtures/mocks';
@@ -12,7 +13,7 @@ export default {
         expectedReturns: [
             {
                 description: 'Wallet with xec and tokens',
-                wallet: walletWithXecAndTokens,
+                wallet: walletWithXecAndTokens_pre_2_1_0,
             },
         ],
     },
