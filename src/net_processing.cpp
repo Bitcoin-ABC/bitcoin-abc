@@ -1355,7 +1355,8 @@ private:
      */
     std::chrono::microseconds
     NextInvToInbounds(std::chrono::microseconds now,
-                      std::chrono::seconds average_interval);
+                      std::chrono::seconds average_interval)
+        EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex);
 
     // All of the following cache a recent block, and are protected by
     // m_most_recent_block_mutex
@@ -1770,7 +1771,8 @@ PeerManagerImpl::NextInvToInbounds(std::chrono::microseconds now,
         // it would possible that both update the next send variable, and return
         // a different result to their caller. This is not possible in practice
         // as only the net processing thread invokes this function.
-        m_next_inv_to_inbounds = GetExponentialRand(now, average_interval);
+        m_next_inv_to_inbounds =
+            now + m_rng.rand_exp_duration(average_interval);
     }
     return m_next_inv_to_inbounds;
 }
@@ -8489,8 +8491,9 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
                                 Now<NodeSeconds>()};
             PushAddress(peer, local_addr);
         }
-        peer.m_next_local_addr_send = GetExponentialRand(
-            current_time, AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
+        peer.m_next_local_addr_send =
+            current_time +
+            m_rng.rand_exp_duration(AVG_LOCAL_ADDRESS_BROADCAST_INTERVAL);
     }
 
     // We sent an `addr` message to this peer recently. Nothing more to do.
@@ -8499,7 +8502,7 @@ void PeerManagerImpl::MaybeSendAddr(CNode &node, Peer &peer,
     }
 
     peer.m_next_addr_send =
-        GetExponentialRand(current_time, AVG_ADDRESS_BROADCAST_INTERVAL);
+        current_time + m_rng.rand_exp_duration(AVG_ADDRESS_BROADCAST_INTERVAL);
 
     const size_t max_addr_to_send = m_opts.max_addr_to_send;
     if (!Assume(peer.m_addrs_to_send.size() <= max_addr_to_send)) {
@@ -8617,7 +8620,8 @@ void PeerManagerImpl::MaybeSendFeefilter(
             peer.m_fee_filter_sent = filterToSend;
         }
         peer.m_next_send_feefilter =
-            GetExponentialRand(current_time, AVG_FEEFILTER_BROADCAST_INTERVAL);
+            current_time +
+            m_rng.rand_exp_duration(AVG_FEEFILTER_BROADCAST_INTERVAL);
     }
     // If the fee filter has changed substantially and it's still more than
     // MAX_FEEFILTER_CHANGE_DELAY until scheduled broadcast, then move the
@@ -9003,7 +9007,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         }
 
         auto computeNextInvSendTime =
-            [&](std::chrono::microseconds &next) -> bool {
+            [&](std::chrono::microseconds &next)
+                EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex) -> bool {
             bool fSendTrickle = pto->HasPermission(NetPermissionFlags::NoBan);
 
             if (next < current_time) {

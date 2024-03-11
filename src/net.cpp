@@ -1664,10 +1664,10 @@ void CConnman::ThreadOpenConnections(
     // Initiate network connections
     auto start = GetTime<std::chrono::microseconds>();
 
-    // Minimum time before next feeler connection (in microseconds).
-    auto next_feeler = GetExponentialRand(start, FEELER_INTERVAL);
+    // Minimum time before next feeler connection (in microseconds
+    auto next_feeler = start + rng.rand_exp_duration(FEELER_INTERVAL);
     auto next_extra_block_relay =
-        GetExponentialRand(start, EXTRA_BLOCK_RELAY_ONLY_PEER_INTERVAL);
+        start + rng.rand_exp_duration(EXTRA_BLOCK_RELAY_ONLY_PEER_INTERVAL);
     const bool dnsseed = gArgs.GetBoolArg("-dnsseed", DEFAULT_DNSSEED);
     bool add_fixed_seeds = gArgs.GetBoolArg("-fixedseeds", DEFAULT_FIXEDSEEDS);
     const bool use_seednodes{gArgs.IsArgSet("-seednode")};
@@ -1823,10 +1823,11 @@ void CConnman::ThreadOpenConnections(
             // connections, they do not get their own ConnectionType enum
             // (similar to how we deal with extra outbound peers).
             next_extra_block_relay =
-                GetExponentialRand(now, EXTRA_BLOCK_RELAY_ONLY_PEER_INTERVAL);
+                now +
+                rng.rand_exp_duration(EXTRA_BLOCK_RELAY_ONLY_PEER_INTERVAL);
             conn_type = ConnectionType::BLOCK_RELAY;
         } else if (now > next_feeler) {
-            next_feeler = GetExponentialRand(now, FEELER_INTERVAL);
+            next_feeler = now + rng.rand_exp_duration(FEELER_INTERVAL);
             conn_type = ConnectionType::FEELER;
             fFeeler = true;
         } else {
