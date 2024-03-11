@@ -27,6 +27,7 @@ FALSE_POSITIVES = [
         "src/util/system.cpp",
         "strprintf(_(COPYRIGHT_HOLDERS).translated, COPYRIGHT_HOLDERS_SUBSTITUTION)",
     ),
+    ("src/test/translation_tests.cpp", "strprintf(format, arg)"),
     (
         "src/validationinterface.cpp",
         'LogPrint(BCLog::VALIDATION, fmt "\\n", __VA_ARGS__)',

@@ -228,6 +228,7 @@ add_boost_unit_tests_to_suite(bitcoin test_bitcoin
 		timedata_tests.cpp
 		torcontrol_tests.cpp
 		transaction_tests.cpp
+		translation_tests.cpp
 		txindex_tests.cpp
 		txpackage_tests.cpp
 		txrequest_tests.cpp
