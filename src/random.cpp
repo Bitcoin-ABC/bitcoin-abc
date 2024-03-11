@@ -48,12 +48,22 @@
 #include <sys/sysctl.h>
 #endif
 
-[[noreturn]] static void RandFailure() {
-    LogPrintf("Failed to read randomness, aborting\n");
+namespace {
+
+/**
+ * Number of random bytes returned by GetOSRand.
+ * When changing this constant make sure to change all call sites, and make
+ * sure that the underlying OS APIs for all platforms support the number.
+ * (many cap out at 256 bytes).
+ */
+const int NUM_OS_RANDOM_BYTES = 32;
+
+[[noreturn]] void RandFailure() {
+    LogError("Failed to read randomness, aborting\n");
     std::abort();
 }
 
-static inline int64_t GetPerformanceCounter() noexcept {
+inline int64_t GetPerformanceCounter() noexcept {
 // Read the hardware time stamp counter when available.
 // See https://en.wikipedia.org/wiki/Time_Stamp_Counter for more information.
 #if defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
@@ -76,10 +86,10 @@ static inline int64_t GetPerformanceCounter() noexcept {
 }
 
 #ifdef HAVE_GETCPUID
-static bool g_rdrand_supported = false;
-static bool g_rdseed_supported = false;
-static constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
-static constexpr uint32_t CPUID_F7_EBX_RDSEED = 0x00040000;
+bool g_rdrand_supported = false;
+bool g_rdseed_supported = false;
+constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
+constexpr uint32_t CPUID_F7_EBX_RDSEED = 0x00040000;
 #ifdef bit_RDRND
 static_assert(CPUID_F1_ECX_RDRAND == bit_RDRND,
               "Unexpected value for bit_RDRND");
@@ -89,7 +99,7 @@ static_assert(CPUID_F7_EBX_RDSEED == bit_RDSEED,
               "Unexpected value for bit_RDSEED");
 #endif
 
-static void InitHardwareRand() {
+void InitHardwareRand() {
     uint32_t eax, ebx, ecx, edx;
     GetCPUID(1, 0, eax, ebx, ecx, edx);
     if (ecx & CPUID_F1_ECX_RDRAND) {
@@ -101,7 +111,7 @@ static void InitHardwareRand() {
     }
 }
 
-static void ReportHardwareRand() {
+void ReportHardwareRand() {
     // This must be done in a separate function, as InitHardwareRand() may be
     // indirectly called from global constructors, before logging is
     // initialized.
@@ -118,7 +128,7 @@ static void ReportHardwareRand() {
  *
  * Must only be called when RdRand is supported.
  */
-static uint64_t GetRdRand() noexcept {
+uint64_t GetRdRand() noexcept {
     // RdRand may very rarely fail. Invoke it up to 10 times in a loop to reduce
     // this risk.
 #ifdef __i386__
@@ -166,7 +176,7 @@ static uint64_t GetRdRand() noexcept {
  *
  * Must only be called when RdSeed is supported.
  */
-static uint64_t GetRdSeed() noexcept {
+uint64_t GetRdSeed() noexcept {
     // RdSeed may fail when the HW RNG is overloaded. Loop indefinitely until
     // enough entropy is gathered, but pause after every failure.
 #ifdef __i386__
@@ -216,15 +226,15 @@ static uint64_t GetRdSeed() noexcept {
  * Slower sources should probably be invoked separately, and/or only from
  * RandAddPeriodic (which is called once a minute).
  */
-static void InitHardwareRand() {}
-static void ReportHardwareRand() {}
+void InitHardwareRand() {}
+void ReportHardwareRand() {}
 #endif
 
 /**
  * Add 64 bits of entropy gathered from hardware to hasher. Do nothing if not
  * supported.
  */
-static void SeedHardwareFast(CSHA512 &hasher) noexcept {
+void SeedHardwareFast(CSHA512 &hasher) noexcept {
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
     if (g_rdrand_supported) {
         uint64_t out = GetRdRand();
@@ -238,7 +248,7 @@ static void SeedHardwareFast(CSHA512 &hasher) noexcept {
  * Add 256 bits of entropy gathered from hardware to hasher. Do nothing if not
  * supported.
  */
-static void SeedHardwareSlow(CSHA512 &hasher) noexcept {
+void SeedHardwareSlow(CSHA512 &hasher) noexcept {
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
     // When we want 256 bits of entropy, prefer RdSeed over RdRand, as it's
     // guaranteed to produce independent randomness on every call.
@@ -268,8 +278,8 @@ static void SeedHardwareSlow(CSHA512 &hasher) noexcept {
  * Use repeated SHA512 to strengthen the randomness in seed32, and feed into
  * hasher.
  */
-static void Strengthen(const uint8_t (&seed)[32], SteadyClock::duration dur,
-                       CSHA512 &hasher) noexcept {
+void Strengthen(const uint8_t (&seed)[32], SteadyClock::duration dur,
+                CSHA512 &hasher) noexcept {
     CSHA512 inner_hasher;
     inner_hasher.Write(seed, sizeof(seed));
 
@@ -301,7 +311,7 @@ static void Strengthen(const uint8_t (&seed)[32], SteadyClock::duration dur,
  * Fallback: get 32 bytes of system entropy from /dev/urandom. The most
  * compatible way to get cryptographic randomness on UNIX-ish platforms.
  */
-static void GetDevURandom(uint8_t *ent32) {
+void GetDevURandom(uint8_t *ent32) {
     int f = open("/dev/urandom", O_RDONLY);
     if (f == -1) {
         RandFailure();
@@ -399,8 +409,6 @@ void GetOSRand(uint8_t *ent32) {
     GetDevURandom(ent32);
 #endif
 }
-
-namespace {
 
 class RNGState {
     Mutex m_mutex;
@@ -532,7 +540,6 @@ RNGState &GetRNGState() noexcept {
     static std::vector<RNGState, secure_allocator<RNGState>> g_rng(1);
     return g_rng[0];
 }
-} // namespace
 
 /**
  * A note on the use of noexcept in the seeding functions below:
@@ -540,12 +547,12 @@ RNGState &GetRNGState() noexcept {
  * None of the RNG code should ever throw any exception.
  */
 
-static void SeedTimestamp(CSHA512 &hasher) noexcept {
+void SeedTimestamp(CSHA512 &hasher) noexcept {
     int64_t perfcounter = GetPerformanceCounter();
     hasher.Write((const uint8_t *)&perfcounter, sizeof(perfcounter));
 }
 
-static void SeedFast(CSHA512 &hasher) noexcept {
+void SeedFast(CSHA512 &hasher) noexcept {
     uint8_t buffer[32];
 
     // Stack pointer to indirectly commit to thread/callstack
@@ -559,7 +566,7 @@ static void SeedFast(CSHA512 &hasher) noexcept {
     SeedTimestamp(hasher);
 }
 
-static void SeedSlow(CSHA512 &hasher, RNGState &rng) noexcept {
+void SeedSlow(CSHA512 &hasher, RNGState &rng) noexcept {
     uint8_t buffer[32];
 
     // Everything that the 'fast' seeder includes
@@ -581,8 +588,8 @@ static void SeedSlow(CSHA512 &hasher, RNGState &rng) noexcept {
 }
 
 /** Extract entropy from rng, strengthen it, and feed it into hasher. */
-static void SeedStrengthen(CSHA512 &hasher, RNGState &rng,
-                           SteadyClock::duration dur) noexcept {
+void SeedStrengthen(CSHA512 &hasher, RNGState &rng,
+                    SteadyClock::duration dur) noexcept {
     // Generate 32 bytes of entropy from the RNG, and a copy of the entropy
     // already in hasher.
     // Never use the deterministic PRNG for this, as the result is only used
@@ -594,7 +601,7 @@ static void SeedStrengthen(CSHA512 &hasher, RNGState &rng,
     Strengthen(strengthen_seed, dur, hasher);
 }
 
-static void SeedPeriodic(CSHA512 &hasher, RNGState &rng) noexcept {
+void SeedPeriodic(CSHA512 &hasher, RNGState &rng) noexcept {
     // Everything that the 'fast' seeder includes
     SeedFast(hasher);
 
@@ -615,7 +622,7 @@ static void SeedPeriodic(CSHA512 &hasher, RNGState &rng) noexcept {
     SeedStrengthen(hasher, rng, 10ms);
 }
 
-static void SeedStartup(CSHA512 &hasher, RNGState &rng) noexcept {
+void SeedStartup(CSHA512 &hasher, RNGState &rng) noexcept {
     // Gather 256 bits of hardware randomness, if available
     SeedHardwareSlow(hasher);
 
@@ -641,8 +648,8 @@ enum class RNGLevel {
     PERIODIC, //!< Called by RandAddPeriodic()
 };
 
-static void ProcRand(uint8_t *out, int num, RNGLevel level,
-                     bool always_use_real_rng) noexcept {
+void ProcRand(uint8_t *out, int num, RNGLevel level,
+              bool always_use_real_rng) noexcept {
     // Make sure the RNG is initialized first (as all Seed* function possibly
     // need hwrand to be available).
     RNGState &rng = GetRNGState();
@@ -673,6 +680,8 @@ static void ProcRand(uint8_t *out, int num, RNGLevel level,
     }
 }
 
+} // namespace
+
 /** Internal function to set g_determinstic_rng. Only accessed from tests. */
 void MakeRandDeterministicDANGEROUS(const uint256 &seed) noexcept {
     GetRNGState().MakeDeterministic(seed);
@@ -694,12 +703,6 @@ void RandAddPeriodic() noexcept {
 
 void RandAddEvent(const uint32_t event_info) noexcept {
     GetRNGState().AddEvent(event_info);
-}
-
-uint256 GetRandHash() noexcept {
-    uint256 hash;
-    GetRandBytes(hash);
-    return hash;
 }
 
 void FastRandomContext::RandomSeed() noexcept {
