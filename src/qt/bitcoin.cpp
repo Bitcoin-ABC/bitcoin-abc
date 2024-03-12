@@ -41,7 +41,6 @@
 #include <QLocale>
 #include <QMessageBox>
 #include <QSettings>
-#include <QStringList>
 #include <QThread>
 #include <QTimer>
 #include <QTranslator>
@@ -525,43 +524,6 @@ static void SetupUIArgs(ArgsManager &argsman) {
                    OptionsCategory::GUI);
 }
 
-static void MigrateSettings() {
-    assert(!QApplication::applicationName().isEmpty());
-
-    static const QString legacyAppName("Bitcoin-Qt"),
-#ifdef Q_OS_DARWIN
-        // Macs and/or iOS et al use a domain-style name for Settings
-        // files. All other platforms use a simple orgname. This
-        // difference is documented in the QSettings class documentation.
-        legacyOrg("bitcoin.org");
-#else
-        legacyOrg("Bitcoin");
-#endif
-    QSettings
-        // below picks up settings file location based on orgname,appname
-        legacy(legacyOrg, legacyAppName),
-        // default c'tor below picks up settings file location based on
-        // QApplication::applicationName(), et al -- which was already set
-        // in main()
-        abc;
-#ifdef Q_OS_DARWIN
-    // Disable bogus OSX keys from MacOS system-wide prefs that may cloud our
-    // judgement ;) (this behavior is also documented in QSettings docs)
-    legacy.setFallbacksEnabled(false);
-    abc.setFallbacksEnabled(false);
-#endif
-    const QStringList legacyKeys(legacy.allKeys());
-
-    // We only migrate settings if we have Core settings but no Bitcoin-ABC
-    // settings
-    if (!legacyKeys.isEmpty() && abc.allKeys().isEmpty()) {
-        for (const QString &key : legacyKeys) {
-            // now, copy settings over
-            abc.setValue(key, legacy.value(key));
-        }
-    }
-}
-
 int GuiMain(int argc, char *argv[]) {
 #ifdef WIN32
     util::WinCmdLineArgs winArgs;
@@ -623,17 +585,9 @@ int GuiMain(int argc, char *argv[]) {
     /// 3. Application identification
     // must be set before OptionsModel is initialized or translations are
     // loaded, as it is used to locate QSettings.
-    // Note: If you move these calls somewhere else, be sure to bring
-    // MigrateSettings() below along for the ride.
     QApplication::setOrganizationName(QAPP_ORG_NAME);
     QApplication::setOrganizationDomain(QAPP_ORG_DOMAIN);
     QApplication::setApplicationName(QAPP_APP_NAME_DEFAULT);
-    // Migrate settings from core's/our old GUI settings to Bitcoin ABC
-    // only if core's exist but Bitcoin ABC's doesn't.
-    // NOTE -- this function needs to be called *after* the above 3 lines
-    // that set the app orgname and app name! If you move the above 3 lines
-    // to elsewhere, take this call with you!
-    MigrateSettings();
 
     /// 4. Initialization of translations, so that intro dialog is in user's
     /// language. Now that QSettings are accessible, initialize translations.
