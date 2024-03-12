@@ -2,22 +2,17 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import React from 'react';
 import { useState, useEffect } from 'react';
-import { notification } from 'antd';
+import UpgradeModal from 'components/Common/UpgradeModal';
 import * as serviceWorkerRegistration from 'serviceWorkerRegistration';
 
 const ServiceWorkerWrapper = () => {
     const [waitingWorker, setWaitingWorker] = useState(null);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     const onSWUpdate = registration => {
-        notification.info({
-            message: 'New Version Available',
-            description:
-                'Close this notification to update to the latest version of Cashtab',
-            duration: 0,
-            placement: 'topRight',
-            onClose: reloadPage,
-        });
+        setShowUpgradeModal(true);
         setWaitingWorker(registration.waiting);
     };
 
@@ -27,8 +22,18 @@ const ServiceWorkerWrapper = () => {
 
     const reloadPage = () => {
         waitingWorker?.postMessage({ type: 'SKIP_WAITING' });
+        setShowUpgradeModal(false);
         window.location.reload(true);
     };
+
+    return (
+        showUpgradeModal && (
+            <UpgradeModal
+                handleOk={reloadPage}
+                handleCancel={() => setShowUpgradeModal(false)}
+            />
+        )
+    );
 };
 
 export default ServiceWorkerWrapper;

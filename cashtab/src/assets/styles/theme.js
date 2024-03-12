@@ -59,6 +59,10 @@ export const theme = {
                 'linear-gradient(270deg, #ff21d0 0%, #273498 100%)',
             color: '#fff',
         },
+        modal: {
+            // Some transparency added to ecashPurple for modal 'later'
+            background: '#ff21d080',
+        },
         disabled: {
             background: '#4b67e1',
             color: 'rgba(255,255,255,0.4)',
