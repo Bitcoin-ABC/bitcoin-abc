@@ -1032,7 +1032,6 @@ const SendXec = () => {
                                     paddingTop: '1rem',
                                 }}
                             >
-                                (
                                 <PrimaryButton
                                     data-testid="send-it"
                                     disabled={disableSendButton}
@@ -1042,7 +1041,6 @@ const SendXec = () => {
                                 >
                                     Send
                                 </PrimaryButton>
-                                )
                             </div>
                             {!('op_return_raw' in parsedAddressInput) && (
                                 <CustomCollapseCtn

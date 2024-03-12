@@ -663,7 +663,6 @@ const SendToken = () => {
                                         paddingTop: '12px',
                                     }}
                                 >
-                                    (
                                     <SecondaryButton
                                         disabled={
                                             apiError ||
@@ -676,7 +675,6 @@ const SendToken = () => {
                                     >
                                         Send {token.info.tokenName}
                                     </SecondaryButton>
-                                    )
                                 </div>
 
                                 {apiError && <ApiError />}
