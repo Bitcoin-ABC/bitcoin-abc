@@ -160,13 +160,15 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
         assert_equal(
             node.getstakingreward(tiphash),
-            {
-                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
-                "hex": "76a914000000000000000000000000000000000000000088ac",
-                "reqSigs": 1,
-                "type": "pubkeyhash",
-                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
-            },
+            [
+                {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000088ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+                },
+            ],
         )
 
         self.log.info(
@@ -192,15 +194,50 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         )
         assert_equal(
             node.getstakingreward(tiphash),
-            {
-                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
-                "hex": "76a914000000000000000000000000000000000000000188ac",
-                "reqSigs": 1,
-                "type": "pubkeyhash",
-                "addresses": ["ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqyx0q3yvg0"],
-            },
+            [
+                {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000188ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [
+                        "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqyx0q3yvg0"
+                    ],
+                },
+            ],
         )
 
+        # Append another acceptable winner
+        assert node.setstakingreward(
+            tiphash,
+            "76a914000000000000000000000000000000000000000288ac",
+            True,
+        )
+        assert_equal(
+            node.getstakingreward(tiphash),
+            [
+                {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000188ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [
+                        "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqyx0q3yvg0"
+                    ],
+                },
+                {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000002 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000288ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [
+                        "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqgdmg7vcrr"
+                    ],
+                },
+            ],
+        )
+
+        # We always pick the first one
         gbt = node.getblocktemplate()
         assert_equal(gbt["previousblockhash"], tiphash)
         assert_equal(
@@ -224,7 +261,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         for i in range(2, 10):
             script_hex = f"76a914{i:0{40}x}88ac"
             assert node.setstakingreward(tiphash, script_hex)
-            assert_equal(node.getstakingreward(tiphash)["hex"], script_hex)
+            assert_equal(node.getstakingreward(tiphash)[0]["hex"], script_hex)
             gbt = node.getblocktemplate()
             assert_equal(
                 gbt["coinbasetxn"]["stakingrewards"]["payoutscript"]["hex"], script_hex
@@ -233,13 +270,15 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         self.log.info("Recompute the staking reward")
         assert_equal(
             node.getstakingreward(blockhash=tiphash, recompute=True),
-            {
-                "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
-                "hex": "76a914000000000000000000000000000000000000000088ac",
-                "reqSigs": 1,
-                "type": "pubkeyhash",
-                "addresses": [ADDRESS_ECREG_UNSPENDABLE],
-            },
+            [
+                {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000088ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+                },
+            ],
         )
 
         gbt = node.getblocktemplate()

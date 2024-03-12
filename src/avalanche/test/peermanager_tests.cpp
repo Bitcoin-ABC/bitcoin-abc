@@ -111,6 +111,10 @@ namespace {
         static void setLocalProof(PeerManager &pm, const ProofRef &proof) {
             pm.localProof = proof;
         }
+
+        static bool isFlaky(const PeerManager &pm, const ProofId &proofid) {
+            return pm.isFlaky(proofid);
+        }
     };
 
     static void addCoin(Chainstate &chainstate, const COutPoint &outpoint,
@@ -2328,7 +2332,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
 
     // Let's build a list of payout addresses, and register a proofs for each
     // address
-    size_t numProofs = 10;
+    size_t numProofs = 8;
     std::vector<ProofRef> proofs;
     proofs.reserve(numProofs);
     for (size_t i = 0; i < numProofs; i++) {
@@ -2352,6 +2356,29 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     SetMockTime(now);
     prevBlock.nTime = now.count();
 
+    // At this stage we have a set of peers out of which none has any node
+    // attached, so they're all considered flaky. Note that we have no remote
+    // proofs status yet.
+    BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+    BOOST_CHECK_LE(winners.size(), numProofs);
+
+    // Let's add a node for each peer
+    for (size_t i = 0; i < numProofs; i++) {
+        BOOST_CHECK(TestPeerManager::isFlaky(pm, proofs[i]->getId()));
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_LE(winners.size(), numProofs);
+
+        BOOST_CHECK(pm.addNode(NodeId(i), proofs[i]->getId()));
+
+        BOOST_CHECK(!TestPeerManager::isFlaky(pm, proofs[i]->getId()));
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_LE(winners.size(), numProofs - i);
+    }
+
+    // Now we have a single winner
+    BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+    BOOST_CHECK_LE(winners.size(), 1);
+
     // All proofs have the same amount, so the same probability to get picked.
     // Let's compute how many loop iterations we need to have a low false
     // negative rate when checking for this. Target false positive rate is
@@ -2369,6 +2396,94 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         winningCounts[FormatScript(winners[0])]++;
     }
     BOOST_CHECK_EQUAL(winningCounts.size(), numProofs);
+
+    prevBlock.phashBlock = &prevHash;
+
+    // Ensure all nodes have all the proofs
+    for (size_t i = 0; i < numProofs; i++) {
+        for (size_t j = 0; j < numProofs; j++) {
+            BOOST_CHECK(
+                pm.saveRemoteProof(proofs[j]->getId(), NodeId(i), true));
+        }
+    }
+
+    // Make all the proofs flaky. This loop needs to be updated if the threshold
+    // or the number of proofs change, so assert the test precondition.
+    BOOST_CHECK_GT(3. / numProofs, 0.3);
+    for (size_t i = 0; i < numProofs; i++) {
+        const NodeId nodeid = NodeId(i);
+
+        BOOST_CHECK(pm.saveRemoteProof(
+            proofs[(i - 1 + numProofs) % numProofs]->getId(), nodeid, false));
+        BOOST_CHECK(pm.saveRemoteProof(
+            proofs[(i + numProofs) % numProofs]->getId(), nodeid, false));
+        BOOST_CHECK(pm.saveRemoteProof(
+            proofs[(i + 1 + numProofs) % numProofs]->getId(), nodeid, false));
+    }
+
+    // Now all the proofs are flaky
+    BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+    for (const auto &proof : proofs) {
+        BOOST_CHECK(TestPeerManager::isFlaky(pm, proof->getId()));
+    }
+    BOOST_CHECK_EQUAL(winners.size(), numProofs);
+
+    // Revert flakyness for all proofs
+    for (const auto &proof : proofs) {
+        for (NodeId nodeid = 0; nodeid < NodeId(numProofs); nodeid++) {
+            BOOST_CHECK(pm.saveRemoteProof(proof->getId(), nodeid, true));
+        }
+    }
+
+    BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+    BOOST_CHECK_EQUAL(winners.size(), 1);
+
+    // Increase the list from 1 to 4 winners by making them flaky
+    for (size_t numWinner = 1; numWinner < 4; numWinner++) {
+        // Who is the last possible winner ?
+        CScript lastWinner = winners[numWinner - 1];
+
+        // Make the last winner flaky, the other proofs untouched
+        ProofId winnerProofId = ProofId(uint256::ZERO);
+        for (const auto &proof : proofs) {
+            if (proof->getPayoutScript() == lastWinner) {
+                winnerProofId = proof->getId();
+                break;
+            }
+        }
+        BOOST_CHECK_NE(winnerProofId, ProofId(uint256::ZERO));
+
+        for (NodeId nodeid = 0; nodeid < NodeId(numProofs); nodeid++) {
+            BOOST_CHECK(pm.saveRemoteProof(winnerProofId, nodeid, false));
+        }
+        BOOST_CHECK(TestPeerManager::isFlaky(pm, winnerProofId));
+
+        // There should be now exactly numWinner + 1 winners
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_EQUAL(winners.size(), numWinner + 1);
+    }
+
+    // One more time and the nodes will be missing too many proofs, so they are
+    // no longer considered for flakyness evaluation and we're back to a single
+    // winner.
+    CScript lastWinner = winners[3];
+
+    ProofId winnerProofId = ProofId(uint256::ZERO);
+    for (const auto &proof : proofs) {
+        if (proof->getPayoutScript() == lastWinner) {
+            winnerProofId = proof->getId();
+            break;
+        }
+    }
+    BOOST_CHECK_NE(winnerProofId, ProofId(uint256::ZERO));
+
+    for (NodeId nodeid = 0; nodeid < NodeId(numProofs); nodeid++) {
+        BOOST_CHECK(pm.saveRemoteProof(winnerProofId, nodeid, false));
+    }
+
+    // We're back to exactly 1 winner
+    BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+    BOOST_CHECK_EQUAL(winners.size(), 1);
 
     // Remove all proofs
     for (auto &proof : proofs) {

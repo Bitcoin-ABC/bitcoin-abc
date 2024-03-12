@@ -1026,7 +1026,10 @@ static RPCHelpMan getavalancheproofs() {
 static RPCHelpMan getstakingreward() {
     return RPCHelpMan{
         "getstakingreward",
-        "Return the staking reward winner based on the previous block hash.\n",
+        "Return a list of possible staking reward winners based on the previous "
+        "block hash.\n"
+        "If -deprecatedrpc=getstakingreward is set it returns a single payout "
+        "script instead of an array.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The previous block hash, hex encoded."},
@@ -1034,22 +1037,51 @@ static RPCHelpMan getstakingreward() {
              "Whether to recompute the staking reward winner if there is a "
              "cached value."},
         },
+        // Deprecated in 0.28.11
+        IsDeprecatedRPCEnabled(gArgs, "getstakingreward")?
         RPCResult{
             RPCResult::Type::OBJ,
-            "payoutscript",
-            "The winning proof payout script",
+                "payoutscript",
+                "The winning proof payout script",
+                {
+                    {RPCResult::Type::STR, "asm", "Decoded payout script"},
+                    {RPCResult::Type::STR_HEX, "hex",
+                    "Raw payout script in hex format"},
+                    {RPCResult::Type::STR, "type",
+                    "The output type (e.g. " + GetAllOutputTypes() + ")"},
+                    {RPCResult::Type::NUM, "reqSigs",
+                    "The required signatures"},
+                    {RPCResult::Type::ARR,
+                    "addresses",
+                    "",
+                    {
+                        {RPCResult::Type::STR, "address", "eCash address"},
+                    }},
+                },
+            }
+        :
+        RPCResult{
+            RPCResult::Type::ARR,
+            "",
+            "",
             {
-                {RPCResult::Type::STR, "asm", "Decoded payout script"},
-                {RPCResult::Type::STR_HEX, "hex",
-                 "Raw payout script in hex format"},
-                {RPCResult::Type::STR, "type",
-                 "The output type (e.g. " + GetAllOutputTypes() + ")"},
-                {RPCResult::Type::NUM, "reqSigs", "The required signatures"},
-                {RPCResult::Type::ARR,
-                 "addresses",
-                 "",
+                {RPCResult::Type::OBJ,
+                 "payoutscript",
+                 "The winning proof payout script",
                  {
-                     {RPCResult::Type::STR, "address", "eCash address"},
+                     {RPCResult::Type::STR, "asm", "Decoded payout script"},
+                     {RPCResult::Type::STR_HEX, "hex",
+                      "Raw payout script in hex format"},
+                     {RPCResult::Type::STR, "type",
+                      "The output type (e.g. " + GetAllOutputTypes() + ")"},
+                     {RPCResult::Type::NUM, "reqSigs",
+                      "The required signatures"},
+                     {RPCResult::Type::ARR,
+                      "addresses",
+                      "",
+                      {
+                          {RPCResult::Type::STR, "address", "eCash address"},
+                      }},
                  }},
             }},
         RPCExamples{HelpExampleRpc("getstakingreward", "<blockhash>")},
@@ -1057,6 +1089,7 @@ static RPCHelpMan getstakingreward() {
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
+            const ArgsManager &args{EnsureAnyArgsman(request.context)};
 
             const BlockHash blockhash(
                 ParseHashV(request.params[0], "blockhash"));
@@ -1106,11 +1139,19 @@ static RPCHelpMan getstakingreward() {
                               blockhash.ToString()));
             }
 
-            UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
-            ScriptPubKeyToUniv(winnerPayoutScripts[0],
-                               stakingRewardsPayoutScriptObj,
-                               /*fIncludeHex=*/true);
-            return stakingRewardsPayoutScriptObj;
+            UniValue winners(UniValue::VARR);
+            for (auto &winnerPayoutScript : winnerPayoutScripts) {
+                UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
+                ScriptPubKeyToUniv(winnerPayoutScript,
+                                   stakingRewardsPayoutScriptObj,
+                                   /*fIncludeHex=*/true);
+                if (IsDeprecatedRPCEnabled(args, "getstakingreward")) {
+                    return stakingRewardsPayoutScriptObj;
+                }
+                winners.push_back(stakingRewardsPayoutScriptObj);
+            }
+
+            return winners;
         },
     };
 }
@@ -1124,6 +1165,8 @@ static RPCHelpMan setstakingreward() {
              "The previous block hash, hex encoded."},
             {"payoutscript", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The payout script for the staking reward, hex encoded."},
+            {"append", RPCArg::Type::BOOL, RPCArg::Default{false},
+             "Append to the list of possible winners instead of replacing."},
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the payout script was set or not"},
@@ -1162,10 +1205,21 @@ static RPCHelpMan setstakingreward() {
                 ParseHex(request.params[1].get_str());
             const CScript payoutScript(data.begin(), data.end());
 
+            std::vector<CScript> payoutScripts;
+
+            if (!request.params[2].isNull() && request.params[2].get_bool()) {
+                // Append mode, initialize our list with the current winners
+                // and the new one will be added to the back of that list. If
+                // there is no winner the list will remain empty.
+                g_avalanche->getStakingRewardWinners(blockhash, payoutScripts);
+            }
+
+            payoutScripts.push_back(std::move(payoutScript));
+
             // This will return true upon insertion or false upon replacement.
             // We want to convey the success of the RPC, so we always return
             // true.
-            g_avalanche->setStakingRewardWinners(pprev, {{payoutScript}});
+            g_avalanche->setStakingRewardWinners(pprev, payoutScripts);
             return true;
         },
     };

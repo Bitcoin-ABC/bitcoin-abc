@@ -1063,10 +1063,71 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
 
         winners.push_back(selectedProof->getPayoutScript());
 
-        break;
+        if (!isFlaky(selectedProof->getId())) {
+            break;
+        }
     }
 
     return winners.size() > 0;
+}
+
+bool PeerManager::isFlaky(const ProofId &proofid) const {
+    if (localProof && proofid == localProof->getId()) {
+        return false;
+    }
+
+    // If we are missing connection to this proof, consider flaky
+    if (forPeer(proofid,
+                [](const Peer &peer) { return peer.node_count == 0; })) {
+        return true;
+    }
+
+    auto &remoteProofsByNodeId = remoteProofs.get<by_nodeid>();
+    auto &nview = nodes.get<next_request_time>();
+
+    std::unordered_map<PeerId, std::unordered_set<ProofId, SaltedProofIdHasher>>
+        missing_per_peer;
+
+    // Construct a set of missing proof ids per peer
+    double total_score{0};
+    for (const Peer &peer : peers) {
+        const PeerId peerid = peer.peerid;
+
+        total_score += peer.getScore();
+
+        auto nodes_range = nview.equal_range(peerid);
+        for (auto &nit = nodes_range.first; nit != nodes_range.second; ++nit) {
+            auto proofs_range = remoteProofsByNodeId.equal_range(nit->nodeid);
+            for (auto &proofit = proofs_range.first;
+                 proofit != proofs_range.second; ++proofit) {
+                if (!proofit->present) {
+                    missing_per_peer[peerid].insert(proofit->proofid);
+                }
+            }
+        };
+    }
+
+    double missing_score{0};
+
+    // Now compute a score for the missing proof
+    for (const auto &[peerid, missingProofs] : missing_per_peer) {
+        if (missingProofs.size() > 3) {
+            // Ignore peers with too many missing proofs
+            continue;
+        }
+
+        auto pit = peers.find(peerid);
+        if (pit == peers.end()) {
+            // Peer not found
+            continue;
+        }
+
+        if (missingProofs.count(proofid) > 0) {
+            missing_score += pit->getScore();
+        }
+    }
+
+    return (missing_score / total_score) > 0.3;
 }
 
 std::optional<bool>

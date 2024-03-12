@@ -178,6 +178,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"buildavalancheproof", 3, "stakes"},
     {"getremoteproofs", 0, "nodeid"},
     {"getstakingreward", 1, "recompute"},
+    {"setstakingreward", 2, "append"},
 };
 
 class CRPCConvertTable {

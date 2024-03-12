@@ -270,6 +270,7 @@ class Processor final : public NetEventsInterface {
 
     struct StakingReward {
         int blockheight;
+        // Ordered list of acceptable winners, only the first is used for mining
         std::vector<CScript> winners;
     };
 

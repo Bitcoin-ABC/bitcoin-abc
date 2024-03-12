@@ -512,7 +512,7 @@ public:
     }
 
     /**
-     * Deterministically select a unique payout script based on the proof set
+     * Deterministically select a list of payout scripts based on the proof set
      * and the previous block hash.
      */
     bool selectStakingRewardWinner(const CBlockIndex *pprev,
@@ -539,6 +539,8 @@ private:
      *         uncertain.
      */
     std::optional<bool> getRemotePresenceStatus(const ProofId &proofid) const;
+
+    bool isFlaky(const ProofId &proofid) const;
 
     friend struct ::avalanche::TestPeerManager;
 };
