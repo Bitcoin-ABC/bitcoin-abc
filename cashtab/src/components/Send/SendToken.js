@@ -15,9 +15,7 @@ import {
     Button,
     Input,
 } from 'antd';
-import PrimaryButton, {
-    SecondaryButton,
-} from 'components/Common/PrimaryButton';
+import { SecondaryButton } from 'components/Common/PrimaryButton';
 import { FireTwoTone } from '@ant-design/icons';
 import {
     DestinationAmount,
@@ -659,23 +657,20 @@ const SendToken = () => {
                                         paddingTop: '12px',
                                     }}
                                 >
-                                    {apiError ||
-                                    sendTokenAmountError ||
-                                    sendTokenAddressError ? (
-                                        <>
-                                            <SecondaryButton>
-                                                Send {token.info.tokenName}
-                                            </SecondaryButton>
-                                        </>
-                                    ) : (
-                                        <PrimaryButton
-                                            onClick={() =>
-                                                checkForConfirmationBeforeSendEtoken()
-                                            }
-                                        >
-                                            Send {token.info.tokenName}
-                                        </PrimaryButton>
-                                    )}
+                                    (
+                                    <SecondaryButton
+                                        disabled={
+                                            apiError ||
+                                            sendTokenAmountError ||
+                                            sendTokenAddressError
+                                        }
+                                        onClick={() =>
+                                            checkForConfirmationBeforeSendEtoken()
+                                        }
+                                    >
+                                        Send {token.info.tokenName}
+                                    </SecondaryButton>
+                                    )
                                 </div>
 
                                 {apiError && <ApiError />}

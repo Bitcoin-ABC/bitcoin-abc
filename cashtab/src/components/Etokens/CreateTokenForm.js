@@ -24,7 +24,7 @@ import {
     UploadOutlined,
     PaperClipOutlined,
 } from '@ant-design/icons';
-import { SmartButton } from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/PrimaryButton';
 import {
     Form,
     Input,
@@ -809,14 +809,14 @@ const CreateTokenForm = () => {
                     </Form>
                 </AntdFormWrapper>
 
-                <SmartButton
+                <PrimaryButton
                     onClick={() => setShowConfirmCreateToken(true)}
                     disabled={!tokenGenesisDataIsValid}
                     style={{ marginTop: '30px' }}
                 >
                     <PlusSquareOutlined />
                     &nbsp;Create eToken
-                </SmartButton>
+                </PrimaryButton>
             </CreateTokenCtn>
         </>
     );

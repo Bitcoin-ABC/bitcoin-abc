@@ -16,7 +16,7 @@ import {
 } from 'components/Common/EnhancedInputs';
 import { AliasRegisterIcon } from 'components/Common/CustomIcons';
 import { Form, Modal } from 'antd';
-import { SmartButton } from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/PrimaryButton';
 import { Row, Col } from 'antd';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
@@ -603,7 +603,7 @@ const Alias = ({ passLoadingStatus }) => {
                                                 }}
                                             />
                                         )}
-                                        <SmartButton
+                                        <PrimaryButton
                                             disabled={
                                                 !isValidAliasInput ||
                                                 !isValidAliasAddressInput ||
@@ -616,7 +616,7 @@ const Alias = ({ passLoadingStatus }) => {
                                             }
                                         >
                                             <AliasRegisterIcon /> Register Alias
-                                        </SmartButton>
+                                        </PrimaryButton>
                                     </Form.Item>
                                 </Form>
                             </AntdFormWrapper>

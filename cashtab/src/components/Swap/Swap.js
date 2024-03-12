@@ -4,7 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { SmartButton } from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/PrimaryButton';
 import { SidePaddingCtn } from 'components/Common/Atoms';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { isValidSideshiftObj } from 'validation';
@@ -30,9 +30,9 @@ const Swap = () => {
                     {isValidSideshiftObj(sideshift) ? (
                         <>
                             <br />
-                            <SmartButton onClick={() => sideshift.show()}>
+                            <PrimaryButton onClick={() => sideshift.show()}>
                                 Open SideShift
-                            </SmartButton>
+                            </PrimaryButton>
                         </>
                     ) : (
                         <AlertMsg>`Error: Unable to load SideShift`</AlertMsg>

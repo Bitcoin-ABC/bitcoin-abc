@@ -4,28 +4,19 @@
 
 import styled from 'styled-components';
 
-const PrimaryButton = styled.button`
-    border: 2px solid ${props => props.theme.eCashBlue};
-    color: ${props => props.theme.buttons.primary.color};
-    background: none;
-    font-weight: bold;
-    background-color: ${props => props.theme.eCashBlue};
-    transition: all 0.5s ease;
-    background-size: 200% auto;
-    font-size: 18px;
-    width: 100%;
+const CashtabBaseButton = styled.button`
+    font-size: 24px;
     padding: 20px 0;
-    border-radius: 0px;
+    border-radius: 9px;
+    transition: all 0.5s ease;
+    width: 100%;
     margin-bottom: 20px;
-    cursor: pointer;
+    cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     :hover {
         background-position: right center;
         -webkit-box-shadow: ${props => props.theme.buttons.primary.hoverShadow};
         -moz-box-shadow: ${props => props.theme.buttons.primary.hoverShadow};
         box-shadow: ${props => props.theme.buttons.primary.hoverShadow};
-    }
-    svg {
-        fill: ${props => props.theme.buttons.primary.color};
     }
     @media (max-width: 768px) {
         font-size: 16px;
@@ -33,97 +24,39 @@ const PrimaryButton = styled.button`
     }
 `;
 
-const SecondaryButton = styled.button`
-    border: none;
-    color: ${props => props.theme.buttons.secondary.color};
-    background: ${props => props.theme.buttons.secondary.background};
-    transition: all 0.5s ease;
-    font-size: 18px;
-    width: 100%;
-    padding: 15px 0;
-    border-radius: 4px;
-    cursor: pointer;
-    outline: none;
-    margin-bottom: 20px;
-    :hover {
-        -webkit-box-shadow: ${props =>
-            props.theme.buttons.secondary.hoverShadow};
-        -moz-box-shadow: ${props => props.theme.buttons.secondary.hoverShadow};
-        box-shadow: ${props => props.theme.buttons.secondary.hoverShadow};
-    }
+const PrimaryButton = styled(CashtabBaseButton)`
+    color: ${props =>
+        props.disabled
+            ? props.theme.buttons.disabled.color
+            : props.theme.buttons.primary.color};
+    border: 1px solid
+        ${props => (props.disabled ? 'none' : props.theme.eCashBlue)};
+    ${props =>
+        props.disabled
+            ? `background: ${props.theme.buttons.disabled.background};`
+            : `background-image: ${props.theme.buttons.primary.backgroundImage}; `};
+    background-size: 200% auto;
     svg {
-        fill: ${props => props.theme.buttons.secondary.color};
-    }
-    @media (max-width: 768px) {
-        font-size: 16px;
-        padding: 12px 0;
+        fill: ${props => props.theme.buttons.primary.color};
     }
 `;
 
-const DisabledButton = styled.button`
-    border: 2px solid ${props => props.theme.buttons.secondary.background};
-    color: ${props => props.theme.buttons.secondary.color};
-    background: ${props => props.theme.buttons.secondary.background};
-    transition: all 0.5s ease;
-    font-size: 18px;
-    width: 100%;
-    padding: 20px 0;
-    border-radius: 4px;
-    cursor: not-allowed;
-    outline: none;
-    margin-bottom: 20px;
-    :hover {
-        -webkit-box-shadow: ${props =>
-            props.theme.buttons.secondary.hoverShadow};
-        -moz-box-shadow: ${props => props.theme.buttons.secondary.hoverShadow};
-        box-shadow: ${props => props.theme.buttons.secondary.hoverShadow};
-    }
+const SecondaryButton = styled(CashtabBaseButton)`
+    color: ${props =>
+        props.disabled
+            ? props.theme.buttons.disabled.color
+            : props.theme.buttons.primary.color};
+    border: 1px solid
+        ${props => (props.disabled ? 'none' : props.theme.eCashPurple)};
+    ${props =>
+        props.disabled
+            ? `background: ${props.theme.buttons.disabled.background};`
+            : `background-image: ${props.theme.buttons.secondary.backgroundImage}; `};
+    background-size: 200% auto;
     svg {
         fill: ${props => props.theme.buttons.secondary.color};
-    }
-    @media (max-width: 768px) {
-        font-size: 16px;
-        padding: 12px 0;
-    }
-`;
-
-const SmartButton = styled.button`
-    ${({ disabled = false, ...props }) =>
-        disabled === true
-            ? `
-                background-image: 'none';
-                color: ${props.theme.buttons.secondary.color};
-                background: ${props.theme.buttons.secondary.background};
-                opacity: 0.3;
-                svg {
-                    fill: ${props.theme.buttons.secondary.color};
-                }
-            `
-            : `
-                opacity: 1;
-                background-image: 'none';
-                color: ${props.theme.buttons.secondary.color};
-                background: ${props.theme.buttons.secondary.background};
-                svg {
-                    fill: ${props.theme.buttons.secondary.color};
-                }
-            `}
-
-    border: none;
-    transition: all 0.5s ease;
-    font-size: 18px;
-    width: 100%;
-    padding: 15px 0;
-    border-radius: 4px;
-    cursor: pointer;
-    outline: none;
-    margin-bottom: 20px;
-
-    @media (max-width: 768px) {
-        font-size: 16px;
-        padding: 12px 0;
     }
 `;
 
 export default PrimaryButton;
-export { SecondaryButton, SmartButton, DisabledButton };
+export { SecondaryButton };

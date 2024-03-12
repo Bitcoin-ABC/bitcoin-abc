@@ -487,7 +487,7 @@ describe('<Configure />', () => {
         // We can add a wallet without specifying any mnemonic
         await user.click(
             screen.getByRole('button', {
-                name: 'plus-square New Wallet',
+                name: /New Wallet/,
             }),
         );
 
@@ -630,7 +630,7 @@ describe('<Configure />', () => {
         // Confirm this edge case is not allowed
         await user.click(
             screen.getByRole('button', {
-                name: 'plus-square New Wallet',
+                name: /New Wallet/,
             }),
         );
 

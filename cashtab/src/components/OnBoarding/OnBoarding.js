@@ -7,14 +7,9 @@ import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import { Input, Form } from 'antd';
 import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
-import {
-    PlusSquareOutlined,
-    ImportOutlined,
-    LockOutlined,
-} from '@ant-design/icons';
+import { LockOutlined } from '@ant-design/icons';
 import PrimaryButton, {
     SecondaryButton,
-    SmartButton,
 } from 'components/Common/PrimaryButton';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
@@ -102,11 +97,11 @@ const OnBoarding = () => {
             </WelcomeText>
 
             <PrimaryButton onClick={() => createNewWallet()}>
-                <PlusSquareOutlined /> New Wallet
+                New Wallet
             </PrimaryButton>
 
             <SecondaryButton onClick={() => openSeedInput(!seedInput)}>
-                <ImportOutlined /> Import Wallet
+                Import Wallet
             </SecondaryButton>
             {seedInput && (
                 <AntdFormWrapper>
@@ -135,12 +130,12 @@ const OnBoarding = () => {
                             />
                         </Form.Item>
 
-                        <SmartButton
+                        <SecondaryButton
                             disabled={!isValidMnemonic}
                             onClick={() => importWallet()}
                         >
                             Import
-                        </SmartButton>
+                        </SecondaryButton>
                     </Form>
                 </AntdFormWrapper>
             )}

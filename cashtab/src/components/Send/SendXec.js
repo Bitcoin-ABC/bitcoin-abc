@@ -18,7 +18,7 @@ import {
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, Modal, Alert, Input } from 'antd';
 import { Row, Col, Switch } from 'antd';
-import PrimaryButton, { DisabledButton } from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
 import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
 import { sumOneToManyXec } from 'utils/cashMethods';
@@ -1024,20 +1024,17 @@ const SendXec = () => {
                                     paddingTop: '1rem',
                                 }}
                             >
-                                {disableSendButton ? (
-                                    <DisabledButton data-testid="disabled-send">
-                                        Send
-                                    </DisabledButton>
-                                ) : (
-                                    <PrimaryButton
-                                        data-testid="send-it"
-                                        onClick={() => {
-                                            checkForConfirmationBeforeSendXec();
-                                        }}
-                                    >
-                                        Send
-                                    </PrimaryButton>
-                                )}
+                                (
+                                <PrimaryButton
+                                    data-testid="send-it"
+                                    disabled={disableSendButton}
+                                    onClick={() => {
+                                        checkForConfirmationBeforeSendXec();
+                                    }}
+                                >
+                                    Send
+                                </PrimaryButton>
+                                )
                             </div>
                             {!('op_return_raw' in parsedAddressInput) && (
                                 <CustomCollapseCtn

@@ -17,7 +17,7 @@ import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import { Form, Alert, Input, Modal, Spin, Progress } from 'antd';
 const { TextArea } = Input;
 import { Row, Col, Switch, notification } from 'antd';
-import { SmartButton } from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/PrimaryButton';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     convertEtokenToEcashAddr,
@@ -717,7 +717,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                         </AirdropOptions>
                                     </Form.Item>
                                     <Form.Item>
-                                        <SmartButton
+                                        <PrimaryButton
                                             onClick={() =>
                                                 calculateXecAirdrop()
                                             }
@@ -727,7 +727,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                             }
                                         >
                                             Calculate Airdrop
-                                        </SmartButton>
+                                        </PrimaryButton>
                                     </Form.Item>
                                     {showAirdropOutputs && (
                                         <>

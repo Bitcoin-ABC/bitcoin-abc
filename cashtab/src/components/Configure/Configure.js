@@ -17,9 +17,7 @@ import {
 } from 'antd';
 import { Row, Col, notification } from 'antd';
 import {
-    PlusSquareOutlined,
     WalletFilled,
-    ImportOutlined,
     LockOutlined,
     CheckOutlined,
     CloseOutlined,
@@ -34,7 +32,6 @@ import {
 } from 'components/Common/EnhancedInputs';
 import PrimaryButton, {
     SecondaryButton,
-    SmartButton,
 } from 'components/Common/PrimaryButton';
 import {
     ThemedCopyOutlined,
@@ -1471,13 +1468,12 @@ const Configure = () => {
                 ) : (
                     <>
                         <PrimaryButton onClick={() => addNewWallet()}>
-                            <PlusSquareOutlined />
                             New Wallet
                         </PrimaryButton>
                         <SecondaryButton
                             onClick={() => openSeedInput(!seedInput)}
                         >
-                            <ImportOutlined /> Import Wallet
+                            Import Wallet
                         </SecondaryButton>
                         {seedInput && (
                             <>
@@ -1515,7 +1511,7 @@ const Configure = () => {
                                                 title=""
                                             />
                                         </Form.Item>
-                                        <SmartButton
+                                        <SecondaryButton
                                             disabled={isValidMnemonic !== true}
                                             onClick={() =>
                                                 importNewWallet(
@@ -1524,7 +1520,7 @@ const Configure = () => {
                                             }
                                         >
                                             Import
-                                        </SmartButton>
+                                        </SecondaryButton>
                                     </Form>
                                 </AntdFormWrapper>
                             </>

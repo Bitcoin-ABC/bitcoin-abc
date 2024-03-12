@@ -55,14 +55,13 @@ export const theme = {
             hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
         },
         secondary: {
-            background: '#4b67e1',
+            backgroundImage:
+                'linear-gradient(270deg, #ff21d0 0%, #273498 100%)',
             color: '#fff',
-            hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
         },
-        alternateSecondary: {
-            background: '#255173',
-            color: '#fff',
-            hoverShadow: '0px 3px 10px -5px rgba(0, 0, 0, 0.75)',
+        disabled: {
+            background: '#4b67e1',
+            color: 'rgba(255,255,255,0.4)',
         },
         styledLink: '#ffffff',
     },

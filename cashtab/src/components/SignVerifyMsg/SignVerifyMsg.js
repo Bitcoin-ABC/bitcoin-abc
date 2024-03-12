@@ -21,7 +21,9 @@ const { TextArea } = Input;
 import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
-import { SmartButton } from 'components/Common/PrimaryButton';
+import PrimaryButton, {
+    SecondaryButton,
+} from 'components/Common/PrimaryButton';
 import { PlusSquareOutlined } from '@ant-design/icons';
 import { isValidAliasSendInput } from 'validation';
 import xecMessage from 'bitcoinjs-message';
@@ -301,13 +303,13 @@ const SignVerifyMsg = () => {
                                         </AddressCopyCtn>
                                     )}
                             </Form.Item>
-                            <SmartButton
+                            <PrimaryButton
                                 onClick={() => setShowConfirmMsgToSign(true)}
                                 disabled={!signMessageIsValid}
                             >
                                 <PlusSquareOutlined />
                                 &nbsp;Sign Message
-                            </SmartButton>
+                            </PrimaryButton>
                             <CopyToClipboard
                                 data={messageSignature}
                                 optionalOnCopyNotification={{
@@ -414,7 +416,7 @@ const SignVerifyMsg = () => {
                                     {messageVerificationSigError}
                                 </SignatureValidation>
                             </Form.Item>
-                            <SmartButton
+                            <SecondaryButton
                                 onClick={() => setShowConfirmMsgToVerify(true)}
                                 disabled={
                                     !messageVerificationAddrIsValid ||
@@ -424,7 +426,7 @@ const SignVerifyMsg = () => {
                             >
                                 <PlusSquareOutlined />
                                 &nbsp;Verify Message
-                            </SmartButton>
+                            </SecondaryButton>
                         </Form>
                     </AntdFormWrapper>
                 </CustomCollapseCtn>
