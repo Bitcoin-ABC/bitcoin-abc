@@ -969,7 +969,7 @@ void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
 }
 
 bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
-                                            CScript &winner) {
+                                            std::vector<CScript> &winners) {
     if (!pprev) {
         return false;
     }
@@ -988,72 +988,85 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
 
     const BlockHash prevblockhash = pprev->GetBlockHash();
 
-    double bestRewardRank = std::numeric_limits<double>::max();
-    ProofRef selectedProof = ProofRef();
-    uint256 bestRewardHash;
+    winners.clear();
+    while (winners.size() < peers.size()) {
+        double bestRewardRank = std::numeric_limits<double>::max();
+        ProofRef selectedProof = ProofRef();
+        uint256 bestRewardHash;
 
-    for (const Peer &peer : peers) {
-        if (!peer.proof) {
-            // Should never happen, continue
-            continue;
+        for (const Peer &peer : peers) {
+            if (!peer.proof) {
+                // Should never happen, continue
+                continue;
+            }
+
+            if (!peer.hasFinalized ||
+                peer.registration_time.count() >= maxRegistrationTime) {
+                continue;
+            }
+
+            if (std::find(winners.begin(), winners.end(),
+                          peer.proof->getPayoutScript()) != winners.end()) {
+                continue;
+            }
+
+            uint256 proofRewardHash;
+            CHash256()
+                .Write(prevblockhash)
+                .Write(peer.getProofId())
+                .Finalize(proofRewardHash);
+
+            if (proofRewardHash == uint256::ZERO) {
+                // This either the result of an incredibly unlikely lucky hash,
+                // or a the hash is getting abused. In this case, skip the
+                // proof.
+                LogPrintf(
+                    "Staking reward hash has a suspicious value of zero for "
+                    "proof %s and blockhash %s, skipping\n",
+                    peer.getProofId().ToString(), prevblockhash.ToString());
+                continue;
+            }
+
+            // To make sure the selection is properly weighted according to the
+            // proof score, we normalize the proofRewardHash to a number between
+            // 0 and 1, then take the logarithm and divide by the weight. Since
+            // it is scale-independent, we can simplify by removing constants
+            // and use base 2 logarithm.
+            // Inspired by: https://stackoverflow.com/a/30226926.
+            double proofRewardRank =
+                (256.0 -
+                 std::log2(UintToArith256(proofRewardHash).getdouble())) /
+                peer.getScore();
+
+            // The best ranking is the lowest ranking value
+            if (proofRewardRank < bestRewardRank) {
+                bestRewardRank = proofRewardRank;
+                selectedProof = peer.proof;
+                bestRewardHash = proofRewardHash;
+            }
+
+            // Select the lowest reward hash then proofid in the unlikely case
+            // of a collision.
+            if (proofRewardRank == bestRewardRank &&
+                (proofRewardHash < bestRewardHash ||
+                 (proofRewardHash == bestRewardHash &&
+                  peer.getProofId() < selectedProof->getId()))) {
+                selectedProof = peer.proof;
+                bestRewardHash = proofRewardHash;
+            }
         }
 
-        if (!peer.hasFinalized ||
-            peer.registration_time.count() >= maxRegistrationTime) {
-            continue;
+        if (!selectedProof) {
+            // No winner
+            break;
         }
 
-        uint256 proofRewardHash;
-        CHash256()
-            .Write(prevblockhash)
-            .Write(peer.getProofId())
-            .Finalize(proofRewardHash);
+        winners.push_back(selectedProof->getPayoutScript());
 
-        if (proofRewardHash == uint256::ZERO) {
-            // This either the result of an incredibly unlikely lucky hash, or
-            // a the hash is getting abused. In this case, skip the proof.
-            LogPrintf("Staking reward hash has a suspicious value of zero for "
-                      "proof %s and blockhash %s, skipping\n",
-                      peer.getProofId().ToString(), prevblockhash.ToString());
-            continue;
-        }
-
-        // To make sure the selection is properly weighted according to the
-        // proof score, we normalize the proofRewardHash to a number between 0
-        // and 1, then take the logarithm and divide by the weight.
-        // Since it is scale-independent, we can simplify by removing constants
-        // and use base 2 logarithm.
-        // Inspired by: https://stackoverflow.com/a/30226926.
-        double proofRewardRank =
-            (256.0 - std::log2(UintToArith256(proofRewardHash).getdouble())) /
-            peer.getScore();
-
-        // The best ranking is the lowest ranking value
-        if (proofRewardRank < bestRewardRank) {
-            bestRewardRank = proofRewardRank;
-            selectedProof = peer.proof;
-            bestRewardHash = proofRewardHash;
-        }
-
-        // Select the lowest reward hash then proofid in the unlikely case of a
-        // collision.
-        if (proofRewardRank == bestRewardRank &&
-            (proofRewardHash < bestRewardHash ||
-             (proofRewardHash == bestRewardHash &&
-              peer.getProofId() < selectedProof->getId()))) {
-            selectedProof = peer.proof;
-            bestRewardHash = proofRewardHash;
-        }
-    };
-
-    if (!selectedProof) {
-        // No winner
-        return false;
+        break;
     }
 
-    winner = selectedProof->getPayoutScript();
-
-    return true;
+    return winners.size() > 0;
 }
 
 std::optional<bool>

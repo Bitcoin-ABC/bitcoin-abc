@@ -1096,9 +1096,9 @@ static RPCHelpMan getstakingreward() {
                               blockhash.ToString()));
             }
 
-            CScript winnerPayoutScript;
-            if (!g_avalanche->getStakingRewardWinner(blockhash,
-                                                     winnerPayoutScript)) {
+            std::vector<CScript> winnerPayoutScripts;
+            if (!g_avalanche->getStakingRewardWinners(blockhash,
+                                                      winnerPayoutScripts)) {
                 throw JSONRPCError(
                     RPC_INTERNAL_ERROR,
                     strprintf("Unable to retrieve the staking reward winner "
@@ -1107,7 +1107,7 @@ static RPCHelpMan getstakingreward() {
             }
 
             UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
-            ScriptPubKeyToUniv(winnerPayoutScript,
+            ScriptPubKeyToUniv(winnerPayoutScripts[0],
                                stakingRewardsPayoutScriptObj,
                                /*fIncludeHex=*/true);
             return stakingRewardsPayoutScriptObj;
@@ -1165,7 +1165,7 @@ static RPCHelpMan setstakingreward() {
             // This will return true upon insertion or false upon replacement.
             // We want to convey the success of the RPC, so we always return
             // true.
-            g_avalanche->setStakingRewardWinner(pprev, payoutScript);
+            g_avalanche->setStakingRewardWinners(pprev, {{payoutScript}});
             return true;
         },
     };

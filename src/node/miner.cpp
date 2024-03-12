@@ -199,14 +199,14 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
             fund, GetScriptForDestination(*whitelisted.begin()));
     }
 
-    CScript stakingRewardsPayoutScript;
+    std::vector<CScript> stakingRewardsPayoutScripts;
     if (IsStakingRewardsActivated(consensusParams, pindexPrev) &&
-        g_avalanche->getStakingRewardWinner(pindexPrev->GetBlockHash(),
-                                            stakingRewardsPayoutScript)) {
+        g_avalanche->getStakingRewardWinners(pindexPrev->GetBlockHash(),
+                                             stakingRewardsPayoutScripts)) {
         const Amount stakingRewards = GetStakingRewardsAmount(blockReward);
         coinbaseTx.vout[0].nValue -= stakingRewards;
         coinbaseTx.vout.emplace_back(stakingRewards,
-                                     stakingRewardsPayoutScript);
+                                     stakingRewardsPayoutScripts[0]);
     }
 
     // Make sure the coinbase is big enough.

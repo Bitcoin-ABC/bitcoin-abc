@@ -515,7 +515,8 @@ public:
      * Deterministically select a unique payout script based on the proof set
      * and the previous block hash.
      */
-    bool selectStakingRewardWinner(const CBlockIndex *pprev, CScript &winner);
+    bool selectStakingRewardWinner(const CBlockIndex *pprev,
+                                   std::vector<CScript> &winners);
 
     bool dumpPeersToFile(const fs::path &dumpPath) const;
     bool loadPeersFromFile(

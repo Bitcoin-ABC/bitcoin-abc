@@ -1060,13 +1060,13 @@ static RPCHelpMan getblocktemplate() {
             UniValue coinbasetxn(UniValue::VOBJ);
             coinbasetxn.pushKV("minerfund", minerFund);
 
-            CScript stakingRewardsPayoutScript;
+            std::vector<CScript> stakingRewardsPayoutScripts;
             if (IsStakingRewardsActivated(consensusParams, pindexPrev) &&
-                g_avalanche->getStakingRewardWinner(
-                    pindexPrev->GetBlockHash(), stakingRewardsPayoutScript)) {
+                g_avalanche->getStakingRewardWinners(
+                    pindexPrev->GetBlockHash(), stakingRewardsPayoutScripts)) {
                 UniValue stakingRewards(UniValue::VOBJ);
                 UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
-                ScriptPubKeyToUniv(stakingRewardsPayoutScript,
+                ScriptPubKeyToUniv(stakingRewardsPayoutScripts[0],
                                    stakingRewardsPayoutScriptObj,
                                    /*fIncludeHex=*/true);
                 stakingRewards.pushKV("payoutscript",

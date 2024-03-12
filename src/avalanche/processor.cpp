@@ -895,7 +895,7 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     _stakingRewards.blockheight = pindex->nHeight;
 
     if (WITH_LOCK(cs_peerManager, return peerManager->selectStakingRewardWinner(
-                                      pindex, _stakingRewards.winner))) {
+                                      pindex, _stakingRewards.winners))) {
         LOCK(cs_stakingRewards);
         return stakingRewards
             .emplace(pindex->GetBlockHash(), std::move(_stakingRewards))
@@ -922,25 +922,25 @@ void Processor::cleanupStakingRewards(const int minHeight) {
     }
 }
 
-bool Processor::getStakingRewardWinner(const BlockHash &prevBlockHash,
-                                       CScript &winner) const {
+bool Processor::getStakingRewardWinners(const BlockHash &prevBlockHash,
+                                        std::vector<CScript> &winners) const {
     LOCK(cs_stakingRewards);
     auto it = stakingRewards.find(prevBlockHash);
     if (it == stakingRewards.end()) {
         return false;
     }
 
-    winner = it->second.winner;
+    winners = it->second.winners;
     return true;
 }
 
-bool Processor::setStakingRewardWinner(const CBlockIndex *pprev,
-                                       const CScript &winner) {
+bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
+                                        const std::vector<CScript> &winners) {
     assert(pprev);
 
     StakingReward stakingReward;
     stakingReward.blockheight = pprev->nHeight;
-    stakingReward.winner = winner;
+    stakingReward.winners = winners;
 
     LOCK(cs_stakingRewards);
     return stakingRewards.insert_or_assign(pprev->GetBlockHash(), stakingReward)

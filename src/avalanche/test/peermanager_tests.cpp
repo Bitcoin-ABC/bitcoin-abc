@@ -2311,9 +2311,9 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
                           /*expirationTime=*/0, payoutScript);
     };
 
-    CScript winner;
+    std::vector<CScript> winners;
     // Null pprev
-    BOOST_CHECK(!pm.selectStakingRewardWinner(nullptr, winner));
+    BOOST_CHECK(!pm.selectStakingRewardWinner(nullptr, winners));
 
     CBlockIndex prevBlock;
 
@@ -2324,7 +2324,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     BlockHash prevHash{uint256::ONE};
     prevBlock.phashBlock = &prevHash;
     // No peer
-    BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+    BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
     // Let's build a list of payout addresses, and register a proofs for each
     // address
@@ -2365,8 +2365,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     for (size_t i = 0; i < loop_iters; i++) {
         BlockHash randomHash = BlockHash(GetRandHash());
         prevBlock.phashBlock = &randomHash;
-        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winner));
-        winningCounts[FormatScript(winner)]++;
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        winningCounts[FormatScript(winners[0])]++;
     }
     BOOST_CHECK_EQUAL(winningCounts.size(), numProofs);
 
@@ -2377,7 +2377,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     }
     // No more winner
     prevBlock.phashBlock = &prevHash;
-    BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+    BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
     {
         // Add back a single proof
@@ -2392,31 +2392,31 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         // The single proof should always be selected, but:
         // 1. The proof is not finalized, and has been registered after the last
         // block was mined.
-        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
         // 2. The proof has has been registered after the last block was mined.
         BOOST_CHECK(pm.setFinalized(peerid));
-        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
         // 3. The proof has been registered 30min from the previous block time,
         // but the previous block time is in the future.
         now += 20min + 1s;
         SetMockTime(now);
         prevBlock.nTime = (now + 10min).count();
-        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
         // 4. The proof has been registered 30min from now, but only 20min from
         // the previous block time.
         now += 10min;
         SetMockTime(now);
         prevBlock.nTime = (now - 10min).count();
-        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winner));
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
         // 5. Now the proof has it all
         prevBlock.nTime = now.count();
-        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winner));
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
         // With a single proof, it's easy to determine the winner
-        BOOST_CHECK_EQUAL(FormatScript(winner), FormatScript(payoutScript));
+        BOOST_CHECK_EQUAL(FormatScript(winners[0]), FormatScript(payoutScript));
     }
 }
 
