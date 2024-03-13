@@ -115,3 +115,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.4.1
 
 -   Patch repo path in package.json
+
+1.5.0
+
+-   Add support for ws subscribe methods and shape found in in-node chronik-client

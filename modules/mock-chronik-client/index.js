@@ -104,6 +104,26 @@ module.exports = {
                             }
                             // Otherwise do nothing
                         },
+                        subscribeToScript: function (type, hash) {
+                            this.subs.push({
+                                scriptType: type,
+                                payload: hash,
+                            });
+                            self.wsSubscribeCalled = true;
+                        },
+                        unsubscribeFromScript: function (type, hash) {
+                            const thisSubInSubsIndex = this.subs.findIndex(
+                                sub =>
+                                    sub.scriptType === type &&
+                                    sub.payload === hash,
+                            );
+
+                            if (typeof thisSubInSubsIndex !== 'undefined') {
+                                // Remove from subs
+                                this.subs.splice(thisSubInSubsIndex, 1);
+                            }
+                            // Otherwise do nothing
+                        },
                         subscribeToAddress: function (address) {
                             const { type, hash } = cashaddr.decode(
                                 address,
@@ -111,7 +131,7 @@ module.exports = {
                             );
                             this.subs.push({
                                 scriptType: type,
-                                scriptPayload: hash,
+                                payload: hash,
                             });
                         },
                         unsubscribeFromAddress: function (address) {
@@ -123,7 +143,7 @@ module.exports = {
                             const unsubIndex = this.subs.findIndex(
                                 sub =>
                                     sub.scriptType === type &&
-                                    sub.scriptPayload === hash,
+                                    sub.payload === hash,
                             );
                             if (unsubIndex === -1) {
                                 // If we cannot find this subscription in this.subs, throw an error

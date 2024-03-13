@@ -221,10 +221,44 @@ it('We can subscribe to and unsubscribe from addresses with the ws object', asyn
     ws.subscribeToAddress(P2PKH_ADDRESS);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+    assert.deepEqual(ws.subs, [{ scriptType: type, payload: hash }]);
 
     // Unsubscribe from address
     ws.unsubscribeFromAddress(P2PKH_ADDRESS);
+
+    // Verify websocket subscription is as expected
+    assert.deepEqual(ws.subs, []);
+
+    // We expect an error if we unsubscribe from an address and there is no existing subscription
+    assert.throws(
+        () => ws.unsubscribeFromAddress(P2PKH_ADDRESS),
+        new Error(`No existing sub at ${type}, ${hash}`),
+    );
+});
+
+it('We can subscribe to and unsubscribe from scripts with the ws object', async function () {
+    // Initialize chronik mock with script info
+    const mockedChronik = new MockChronikClient();
+    const { type, hash } = cashaddr.decode(P2PKH_ADDRESS, true);
+
+    // Create websocket subscription to listen to confirmations on txid
+    const ws = mockedChronik.ws({
+        onMessage: msg => {
+            console.log(msg);
+        },
+    });
+
+    // Wait for WS to be connected:
+    await ws.waitForOpen();
+
+    // Subscribe to address
+    ws.subscribeToScript(type, hash);
+
+    // Verify websocket subscription is as expected
+    assert.deepEqual(ws.subs, [{ scriptType: type, payload: hash }]);
+
+    // Unsubscribe from address
+    ws.unsubscribeFromScript(type, hash);
 
     // Verify websocket subscription is as expected
     assert.deepEqual(ws.subs, []);
