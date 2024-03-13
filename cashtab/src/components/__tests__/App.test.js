@@ -682,11 +682,10 @@ describe('<App />', () => {
             '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e';
         const requiredEasterEggUtxo = {
             ...requiredUtxoThisToken,
-            slpMeta: {
-                ...requiredUtxoThisToken.slpMeta,
+            token: {
+                ...requiredUtxoThisToken.token,
                 tokenId: EASTER_EGG_TOKENID,
             },
-            tokenId: EASTER_EGG_TOKENID,
         };
         // Modify walletWithXecAndTokens to have the required token for this feature
         let walletWithEasterEggToken = JSON.parse(
@@ -740,10 +739,8 @@ describe('<App />', () => {
             {
                 decimals: 0,
                 success: true,
-                tokenDocumentHash: '',
-                tokenDocumentUrl: 'https://cashtab.com/',
-                tokenId:
-                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                hash: '',
+                url: 'https://cashtab.com/',
                 tokenName: 'BearNip',
                 tokenTicker: 'BEAR',
             },

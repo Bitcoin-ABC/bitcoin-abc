@@ -118,14 +118,10 @@ export const prepareMockedChronikCallsForLegacyWallet = (
         wallet.Path1899.hash160,
         apiError
             ? new Error('Error fetching utxos')
-            : [
-                  {
-                      outputScript: `76a914${wallet.Path1899.hash160}88ac`,
-                      utxos: wallet.state.nonSlpUtxos.concat(
-                          wallet.state.slpUtxos,
-                      ),
-                  },
-              ],
+            : {
+                  outputScript: `76a914${wallet.Path1899.hash160}88ac`,
+                  utxos: wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+              },
     );
 
     // We set legacy paths to contain no utxos
@@ -133,13 +129,23 @@ export const prepareMockedChronikCallsForLegacyWallet = (
     chronikClient.setUtxos(
         CASHTAB_ADDRESS_TYPE,
         wallet.Path145.hash160,
-        apiError ? new Error('Error fetching utxos') : [],
+        apiError
+            ? new Error('Error fetching utxos')
+            : {
+                  outputScript: `76a914${wallet.Path145.hash160}88ac`,
+                  utxos: [],
+              },
     );
     chronikClient.setScript(CASHTAB_ADDRESS_TYPE, wallet.Path245.hash160);
     chronikClient.setUtxos(
         CASHTAB_ADDRESS_TYPE,
         wallet.Path245.hash160,
-        apiError ? new Error('Error fetching utxos') : [],
+        apiError
+            ? new Error('Error fetching utxos')
+            : {
+                  outputScript: `76a914${wallet.Path245.hash160}88ac`,
+                  utxos: [],
+              },
     );
 
     // TX history mocks
@@ -165,11 +171,14 @@ export const prepareMockedChronikCallsForLegacyWallet = (
     // Mock chronik.tx(tokenId) calls for tokens in tx history
     for (const tx of wallet.state.parsedTxHistory) {
         const mockedTokenResponse = {
-            slpTxData: { genesisInfo: tx.parsed.genesisInfo },
+            genesisInfo: tx.parsed.genesisInfo,
         };
         if (tx.parsed.isEtokenTx) {
             chronikClient.setMock('token', {
-                input: tx.parsed.slpMeta.tokenId,
+                input:
+                    'tokenEntries' in tx.parsed
+                        ? tx.parsed.tokenEntries[0].tokenId
+                        : tx.parsed.slpMeta.tokenId,
                 output: mockedTokenResponse,
             });
         }
@@ -217,17 +226,15 @@ export const prepareMockedChronikCallsForWallet = (
             path.hash,
             apiError
                 ? new Error('Error fetching utxos')
-                : path.path === 1899
-                ? [
-                      {
-                          outputScript: `76a914${path.hash}88ac`,
-                          utxos: wallet.state.nonSlpUtxos.concat(
-                              wallet.state.slpUtxos,
-                          ),
-                      },
-                      // We mock no utxos at non-standard 1899 path
-                  ]
-                : [],
+                : {
+                      outputScript: `76a914${path.hash}88ac`,
+                      utxos:
+                          path.path === 1899
+                              ? wallet.state.nonSlpUtxos.concat(
+                                    wallet.state.slpUtxos,
+                                )
+                              : [],
+                  },
         );
 
         // Mock tx history
@@ -246,11 +253,14 @@ export const prepareMockedChronikCallsForWallet = (
     // Mock chronik.tx(tokenId) calls for tokens in tx history
     for (const tx of wallet.state.parsedTxHistory) {
         const mockedTokenResponse = {
-            slpTxData: { genesisInfo: tx.parsed.genesisInfo },
+            genesisInfo: tx.parsed.genesisInfo,
         };
         if (tx.parsed.isEtokenTx) {
             chronikClient.setMock('token', {
-                input: tx.parsed.slpMeta.tokenId,
+                input:
+                    'tokenEntries' in tx.parsed
+                        ? tx.parsed.tokenEntries[0].tokenId
+                        : tx.parsed.slpMeta.tokenId,
                 output: mockedTokenResponse,
             });
         }

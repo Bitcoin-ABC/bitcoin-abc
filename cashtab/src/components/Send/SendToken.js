@@ -205,6 +205,7 @@ const SendToken = () => {
                 wallet.state.slpUtxos,
                 tokenId,
                 value,
+                token.info.decimals,
             );
 
             // Get targetOutputs for an slpv1 send tx
@@ -429,6 +430,7 @@ const SendToken = () => {
                 wallet.state.slpUtxos,
                 tokenId,
                 eTokenBurnAmount,
+                token.info.decimals,
             );
 
             // Get targetOutputs for an slpv1 burn tx
@@ -723,11 +725,7 @@ const SendToken = () => {
                                         {tokenStats && (
                                             <>
                                                 <Descriptions.Item label="Document URI">
-                                                    {
-                                                        tokenStats.slpTxData
-                                                            .genesisInfo
-                                                            .tokenDocumentUrl
-                                                    }
+                                                    {tokenStats.genesisInfo.url}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Genesis Date">
                                                     {tokenStats.block &&
@@ -739,47 +737,6 @@ const SendToken = () => {
                                                               navigator.language,
                                                           )
                                                         : 'Just now (Genesis tx confirming)'}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Fixed Supply?">
-                                                    {tokenStats.containsBaton
-                                                        ? 'No'
-                                                        : 'Yes'}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Initial Quantity">
-                                                    {new BN(
-                                                        tokenStats.initialTokenQuantity,
-                                                    )
-                                                        .toFormat(
-                                                            token.info.decimals,
-                                                        )
-                                                        .toLocaleString()}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Total Burned">
-                                                    {new BN(
-                                                        tokenStats.tokenStats.totalBurned,
-                                                    )
-                                                        .toFormat(
-                                                            token.info.decimals,
-                                                        )
-                                                        .toLocaleString()}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Total Minted">
-                                                    {new BN(
-                                                        tokenStats.tokenStats.totalMinted,
-                                                    )
-                                                        .toFormat(
-                                                            token.info.decimals,
-                                                        )
-                                                        .toLocaleString()}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Circulating Supply">
-                                                    {new BN(
-                                                        tokenStats.circulatingSupply,
-                                                    )
-                                                        .toFormat(
-                                                            token.info.decimals,
-                                                        )
-                                                        .toLocaleString()}
                                                 </Descriptions.Item>
                                                 <Descriptions.Item label="Burn eToken">
                                                     <DestinationAmount

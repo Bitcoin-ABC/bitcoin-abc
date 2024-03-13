@@ -32,7 +32,15 @@ import {
     PayButtonEmpty,
     PayButtonYesDataNoNonce,
     MsgFromElectrum,
+    mockFlatTxHistoryNoUnconfirmed,
+    mockSortedTxHistoryNoUnconfirmed,
+    mockFlatTxHistoryWithUnconfirmed,
+    mockSortedFlatTxHistoryWithUnconfirmed,
+    mockFlatTxHistoryWithAllUnconfirmed,
+    mockSortedFlatTxHistoryWithAllUnconfirmed,
+    AlpTx,
 } from './mocks';
+import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 
 export default {
     parseChronikTx: {
@@ -199,7 +207,76 @@ export default {
                 tokenInfoById: txHistoryTokenInfoById,
                 parsed: MsgFromElectrum.parsed,
             },
+            {
+                description:
+                    'Before adding support for tokens other than SLPV1, an ALP tx is parsed as an eCash tx',
+                tx: AlpTx.tx,
+                wallet: mockParseTxWallet,
+                tokenInfoById: txHistoryTokenInfoById,
+                parsed: AlpTx.parsed,
+            },
         ],
         expectedErrors: [],
+    },
+    sortAndTrimChronikTxHistory: {
+        expectedReturns: [
+            {
+                description:
+                    'successfully orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if all txs are confirmed',
+                flatTxHistoryArray: mockFlatTxHistoryNoUnconfirmed,
+                txHistoryCount: 10,
+                returned: mockSortedTxHistoryNoUnconfirmed,
+            },
+            {
+                description:
+                    'orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if some txs are confirmed and others unconfirmed',
+                flatTxHistoryArray: mockFlatTxHistoryWithUnconfirmed,
+                txHistoryCount: 10,
+                returned: mockSortedFlatTxHistoryWithUnconfirmed,
+            },
+            {
+                description:
+                    'orders the result of flattenChronikTxHistory by blockheight and firstSeenTime if all txs are unconfirmed,',
+                flatTxHistoryArray: mockFlatTxHistoryWithAllUnconfirmed,
+                txHistoryCount: 10,
+                returned: mockSortedFlatTxHistoryWithAllUnconfirmed,
+            },
+        ],
+    },
+    organizeUtxosByType: {
+        expectedReturns: [
+            {
+                description:
+                    'Splits token utxos and non-token utxos using real in-node utxos',
+                chronikUtxos: mockChronikUtxos,
+                returned: mockOrganizedUtxosByType,
+            },
+            {
+                description: 'Splits token utxos and non-token utxos',
+                chronikUtxos: [{ token: 'true' }, { amount: 500 }],
+                returned: {
+                    slpUtxos: [{ token: 'true' }],
+                    nonSlpUtxos: [{ amount: 500 }],
+                },
+            },
+            {
+                description:
+                    'Returns empty array for nonSlpUtxos if all utxos are token utxos',
+                chronikUtxos: [{ token: 'true' }, { token: 'true' }],
+                returned: {
+                    slpUtxos: [{ token: 'true' }, { token: 'true' }],
+                    nonSlpUtxos: [],
+                },
+            },
+            {
+                description:
+                    'Returns empty array for preliminarySlpUtxos if no token utxos found',
+                chronikUtxos: [{ amount: 500 }, { amount: 500 }],
+                returned: {
+                    slpUtxos: [],
+                    nonSlpUtxos: [{ amount: 500 }, { amount: 500 }],
+                },
+            },
+        ],
     },
 };

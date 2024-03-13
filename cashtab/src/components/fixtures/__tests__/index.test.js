@@ -63,27 +63,29 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                 await mockChronikClient
                     .script(CASHTAB_ADDRESS_TYPE, wallet.Path1899.hash160)
                     .utxos(),
-            ).toEqual([
-                {
-                    outputScript: `76a914${wallet.Path1899.hash160}88ac`,
-                    utxos: wallet.state.nonSlpUtxos.concat(
-                        wallet.state.slpUtxos,
-                    ),
-                },
-            ]);
+            ).toEqual({
+                outputScript: `76a914${wallet.Path1899.hash160}88ac`,
+                utxos: wallet.state.nonSlpUtxos.concat(wallet.state.slpUtxos),
+            });
             // Path145 utxos empty
             expect(
                 await mockChronikClient
                     .script(CASHTAB_ADDRESS_TYPE, wallet.Path145.hash160)
                     .utxos(),
-            ).toEqual([]);
+            ).toEqual({
+                outputScript: `76a914${wallet.Path145.hash160}88ac`,
+                utxos: [],
+            });
 
             // Path245 utxos empty
             expect(
                 await mockChronikClient
                     .script(CASHTAB_ADDRESS_TYPE, wallet.Path245.hash160)
                     .utxos(),
-            ).toEqual([]);
+            ).toEqual({
+                outputScript: `76a914${wallet.Path245.hash160}88ac`,
+                utxos: [],
+            });
 
             // Path1899 history
             expect(
@@ -222,14 +224,12 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                             await mockChronikClient
                                 .script(CASHTAB_ADDRESS_TYPE, path.hash)
                                 .utxos(),
-                        ).toEqual([
-                            {
-                                outputScript: `76a914${path.hash}88ac`,
-                                utxos: wallet.state.nonSlpUtxos.concat(
-                                    wallet.state.slpUtxos,
-                                ),
-                            },
-                        ]);
+                        ).toEqual({
+                            outputScript: `76a914${path.hash}88ac`,
+                            utxos: wallet.state.nonSlpUtxos.concat(
+                                wallet.state.slpUtxos,
+                            ),
+                        });
                         // Path1899 history
                         // eslint-disable-next-line jest/no-conditional-expect
                         expect(
@@ -247,7 +247,10 @@ describe('Correctly prepares Cashtab mocked chronik client and localforage envir
                             await mockChronikClient
                                 .script(CASHTAB_ADDRESS_TYPE, path.hash)
                                 .utxos(),
-                        ).toEqual([]);
+                        ).toEqual({
+                            outputScript: `76a914${path.hash}88ac`,
+                            utxos: [],
+                        });
                         // history
                         // eslint-disable-next-line jest/no-conditional-expect
                         expect(

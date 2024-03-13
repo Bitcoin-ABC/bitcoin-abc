@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { walletWithXecAndTokens } from 'components/fixtures/mocks';
-import { walletWithZeroBalanceAndTxHistory } from 'components/Etokens/fixtures/mocks';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
@@ -93,7 +92,10 @@ describe('<CreateToken />', () => {
     });
     it('If wallet has insufficient XEC, renders component but does not render CreateTokenForm', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithZeroBalanceAndTxHistory,
+            {
+                ...walletWithXecAndTokens,
+                state: { ...walletWithXecAndTokens.state, balanceSats: 0 },
+            },
             localforage,
         );
         render(
@@ -107,6 +109,8 @@ describe('<CreateToken />', () => {
         expect(screen.queryByText('Create a Token')).not.toBeInTheDocument();
 
         // Renders expected alert
+        // Note: the component is expected to load before fiatPrice loads
+        // In this case, we do not display the fiat price
         expect(
             await screen.findByText(
                 'You need at least 5.5 XEC to create a token',

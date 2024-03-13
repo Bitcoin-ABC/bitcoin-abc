@@ -124,84 +124,10 @@ describe('Ignore unspendable coinbase utxos', () => {
 
 describe('We can create and broadcast SLP v1 SEND and BURN txs from utxos of nng or in-node chronik shape', () => {
     // Unit test for each vector in fixtures for the sendingXecToSingleAddress case
-    const { expectedReturnsNng, expectedReturnsInNode } = sendSlp;
-
-    // Successfully builds and broadcasts txs for NNG input utxos
-    expectedReturnsNng.forEach(async tx => {
-        const {
-            description,
-            wallet,
-            tokenId,
-            sendQty,
-            sendAmounts,
-            tokenInputs,
-            destinationAddress,
-            feeRate,
-            chaintipBlockheight,
-            txid,
-            hex,
-            burn,
-        } = tx;
-        it(`Build and broadcast an SLP V1 SEND tx and an SLP V1 BURN tx from NNG chronik-client utxos: ${description}`, async () => {
-            const chronik = new MockChronikClient();
-            chronik.setMock('broadcastTx', {
-                input: hex,
-                output: { txid },
-            });
-            chronik.setMock('broadcastTx', {
-                input: burn.hex,
-                output: { txid: burn.txid },
-            });
-
-            // Get tokenInputs and sendAmounts
-            const tokenInputInfo = getSendTokenInputs(
-                wallet.state.slpUtxos,
-                tokenId,
-                sendQty,
-            );
-
-            expect(tokenInputInfo.tokenInputs).toStrictEqual(tokenInputs);
-            expect(tokenInputInfo.sendAmounts).toStrictEqual(sendAmounts);
-
-            // Get the targetOutputs
-            const tokenSendTargetOutputs = getSlpSendTargetOutputs(
-                tokenInputInfo,
-                destinationAddress,
-            );
-
-            // SLP v1 SEND
-            expect(
-                await sendXec(
-                    chronik,
-                    wallet,
-                    tokenSendTargetOutputs,
-                    feeRate,
-                    chaintipBlockheight,
-                    tokenInputInfo.tokenInputs,
-                ),
-            ).toStrictEqual({ hex, response: { txid } });
-
-            // SLP v1 BURN
-
-            // Get the targetOutputs
-            const tokenBurnTargetOutputs =
-                getSlpBurnTargetOutputs(tokenInputInfo);
-
-            expect(
-                await sendXec(
-                    chronik,
-                    wallet,
-                    tokenBurnTargetOutputs, // This is the only difference between SEND and BURN
-                    feeRate,
-                    chaintipBlockheight,
-                    tokenInputInfo.tokenInputs,
-                ),
-            ).toStrictEqual({ hex: burn.hex, response: { txid: burn.txid } });
-        });
-    });
+    const { expectedReturns } = sendSlp;
 
     // Successfully builds and broadcasts txs for in-node chronik-client-shaped input utxos
-    expectedReturnsInNode.forEach(async tx => {
+    expectedReturns.forEach(async tx => {
         const {
             description,
             wallet,

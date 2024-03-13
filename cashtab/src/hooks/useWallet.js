@@ -18,7 +18,6 @@ import {
     organizeUtxosByType,
     getPreliminaryTokensArray,
     finalizeTokensArray,
-    finalizeSlpUtxos,
     getTxHistoryChronik,
     parseChronikTx,
     returnGetTokenInfoChronikPromise,
@@ -62,11 +61,9 @@ const useWallet = chronik => {
 
         try {
             const chronikUtxos = await getUtxosChronik(chronik, wallet.paths);
-            const { preliminarySlpUtxos, nonSlpUtxos } =
-                organizeUtxosByType(chronikUtxos);
+            const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
 
-            const preliminaryTokensArray =
-                getPreliminaryTokensArray(preliminarySlpUtxos);
+            const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
 
             const { tokens, cachedTokens, newTokensToCache } =
                 await finalizeTokensArray(
@@ -74,11 +71,6 @@ const useWallet = chronik => {
                     preliminaryTokensArray,
                     cashtabCache.tokens,
                 );
-
-            const slpUtxos = finalizeSlpUtxos(
-                preliminarySlpUtxos,
-                cachedTokens,
-            );
 
             const {
                 parsedTxHistory,
@@ -404,7 +396,6 @@ const useWallet = chronik => {
             // So, if we do not find wallets from localforage, cashtabState will be initialized with default
             // wallets []
         }
-
         setCashtabState(cashtabState);
         setCashtabLoaded(true);
 
@@ -426,13 +417,16 @@ const useWallet = chronik => {
         // Wait for websocket to be connected:
         await ws.waitForOpen();
 
+        // We always subscribe to blocks
+        ws.subscribeToBlocks();
+
         if (cashtabState.wallets.length > 0) {
             // Subscribe to addresses of current wallet, if you have one
             const hash160Array = getHashArrayFromWallet(
                 cashtabState.wallets[0],
             );
             for (const hash of hash160Array) {
-                ws.subscribe('p2pkh', hash);
+                ws.subscribeToScript('p2pkh', hash);
             }
         }
         // When the user creates or imports a wallet, ws subscriptions will be handled by updateWebsocket
@@ -464,25 +458,28 @@ const useWallet = chronik => {
 
         // Check if current subscriptions match current wallet
         const { subs } = ws;
+        // scripts may be undefined in mocked-chronik-client, as it continues to support nng chronik-client
+        const scripts = 'scripts' in subs ? ws.subs.scripts : [];
+
         // Get the subscribed payloads so we can iterate over these to unsub
         // If we iterate over ws.subs to unsubscribe, we are modifying ws.subs as we iterate
         // Can lead to off-by-one and other errors
         const subscribedPayloads = [];
-        for (const sub of subs) {
-            subscribedPayloads.push(sub.scriptPayload);
+        for (const script of scripts) {
+            subscribedPayloads.push(script.payload);
         }
 
         let subscriptionUpdateRequired = false;
         const hash160Array = getHashArrayFromWallet(wallet);
-        if (subs.length !== hash160Array.length) {
+        if (scripts.length !== hash160Array.length) {
             // If the websocket is not subscribed to the same amount of addresses as the wallet,
             // we need to update subscriptions
             subscriptionUpdateRequired = true;
         }
 
-        for (const sub of subs) {
+        for (const script of scripts) {
             // If any wallet hash is not subscribed to, we need to update subscriptions
-            if (!hash160Array.includes(sub.scriptPayload)) {
+            if (!hash160Array.includes(script.payload)) {
                 subscriptionUpdateRequired = true;
             }
         }
@@ -492,12 +489,12 @@ const useWallet = chronik => {
 
             // Unsubscribe from all existing subscriptions
             for (const payload of subscribedPayloads) {
-                ws.unsubscribe('p2pkh', payload);
+                ws.unsubscribeFromScript('p2pkh', payload);
             }
 
             // Subscribe to all hashes in the active wallet
             for (const hash of hash160Array) {
-                ws.subscribe('p2pkh', hash);
+                ws.subscribeToScript('p2pkh', hash);
             }
         }
 
@@ -508,17 +505,17 @@ const useWallet = chronik => {
     // Parse chronik ws message for incoming tx notifications
     const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
         // get the message type
-        const { type } = msg;
+        const { msgType } = msg;
         // Cashtab only processes "first seen" transactions and new blocks, i.e. where
         // type === 'AddedToMempool' or 'BlockConnected'
         // Dev note: Other chronik msg types
         // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
-        if (type !== 'AddedToMempool' && type !== 'BlockConnected') {
+        if (msgType !== 'TX_ADDED_TO_MEMPOOL' && msgType !== 'BLK_CONNECTED') {
             return;
         }
 
         // when new blocks are found, refresh alias prices
-        if (type === 'BlockConnected') {
+        if (msgType === 'BLK_CONNECTED') {
             try {
                 const aliasPricesResp = await queryAliasServer('prices');
                 if (!aliasPricesResp || !aliasPricesResp.prices) {
@@ -583,7 +580,8 @@ const useWallet = chronik => {
                     // Get genesis info from API and add to cache
                     try {
                         // Get the genesis info and add it to cache
-                        const incomingTokenId = parsedChronikTx.slpMeta.tokenId;
+                        const incomingTokenId =
+                            parsedChronikTx.tokenEntries[0].tokenId;
 
                         const genesisInfoPromise =
                             returnGetTokenInfoChronikPromise(

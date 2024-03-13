@@ -217,7 +217,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { type: 'BlockConnected' };
+        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockAliasServerResponse = {
             note: 'alias-server is in beta and these prices are not finalized.',
@@ -282,7 +282,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { type: 'BlockConnected' };
+        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockExistingAliasPrices = {
             note: 'alias-server is in beta and these prices are not finalized.',
@@ -405,7 +405,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { type: 'BlockConnected' };
+        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockExistingAliasPrices = {
             note: 'alias-server is in beta and these prices are not finalized.',
@@ -561,7 +561,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { type: 'BlockConnected' };
+        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const expectedError = 'Invalid response from alias prices endpoint';
 
@@ -722,7 +722,7 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         // Mock msg for an incoming tx
         const mockWebsocketMsg = {
-            type: 'AddedToMempool',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
             txid: MOCK_TXID,
         };
 

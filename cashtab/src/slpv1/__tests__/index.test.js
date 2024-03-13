@@ -64,13 +64,14 @@ describe('Get all slpv1 SEND utxos from a mixed utxo set from ChronikClientNode'
     });
 });
 
-describe('Get slpv1 send token inputs and outputs from NNG chronik-client', () => {
+describe('Get slpv1 send token inputs and outputs from in-node chronik-client', () => {
     const { expectedReturns, expectedErrors } = vectors.getSendTokenInputs;
     expectedReturns.forEach(expectedReturn => {
         const {
             description,
             allSendUtxos,
             sendQty,
+            decimals,
             tokenId,
             tokenInputs,
             sendAmounts,
@@ -81,11 +82,12 @@ describe('Get slpv1 send token inputs and outputs from NNG chronik-client', () =
                 allSendUtxos,
                 tokenId,
                 sendQty,
+                decimals,
             );
             expect(calcTokenInputs.tokenInputs).toStrictEqual(tokenInputs);
             expect(calcTokenInputs.sendAmounts).toStrictEqual(sendAmounts);
         });
-        it(`getSlpSendTargetOutputs with NNG inputs: ${description}`, () => {
+        it(`getSlpSendTargetOutputs with in-node inputs: ${description}`, () => {
             const calculatedTargetOutputs = getSlpSendTargetOutputs(
                 { tokenInputs, sendAmounts },
                 SEND_DESTINATION_ADDRESS,
@@ -126,19 +128,24 @@ describe('Get slpv1 send token inputs and outputs from NNG chronik-client', () =
         });
     });
     expectedErrors.forEach(expectedError => {
-        const { description, allSendUtxos, tokenId, sendQty, errorMsg } =
-            expectedError;
+        const {
+            description,
+            allSendUtxos,
+            tokenId,
+            sendQty,
+            decimals,
+            errorMsg,
+        } = expectedError;
         it(`getSlpBurnTargetOutput throws error for: ${description}`, () => {
             expect(() =>
-                getSendTokenInputs(allSendUtxos, tokenId, sendQty),
+                getSendTokenInputs(allSendUtxos, tokenId, sendQty, decimals),
             ).toThrow(errorMsg);
         });
     });
 });
 
 describe('Get slpv1 send input utxos from in-node chronik-client', () => {
-    const { expectedReturns, expectedErrors } =
-        vectors.getSendTokenInputsInNode;
+    const { expectedReturns, expectedErrors } = vectors.getSendTokenInputs;
     expectedReturns.forEach(expectedReturn => {
         const {
             description,
@@ -227,6 +234,7 @@ describe('Generating etoken burn tx target outputs', () => {
             tokenUtxos,
             burnQty,
             tokenId,
+            decimals,
             tokenInputInfo,
             outputScriptHex,
         } = expectedReturn;
@@ -237,6 +245,7 @@ describe('Generating etoken burn tx target outputs', () => {
                 tokenUtxos,
                 tokenId,
                 burnQty,
+                decimals,
             );
 
             expect(calculatedTokenInputInfo.sendAmounts).toStrictEqual(
@@ -262,36 +271,8 @@ describe('Generating etoken burn tx target outputs', () => {
     });
 });
 
-describe('Generating explicit etoken burn tx target output from nng utxos', () => {
-    const { expectedReturns, expectedErrors } = vectors.explicitBurnsNng;
-
-    expectedReturns.forEach(expectedReturn => {
-        const { description, burnUtxos, outputScriptHex } = expectedReturn;
-        it(`getExplicitBurnTargetOutputs: ${description}`, () => {
-            const targetOutputs = getExplicitBurnTargetOutputs(burnUtxos);
-            // We get an array of length 1
-            expect(targetOutputs.length).toBe(1);
-            // Output value should be zero for OP_RETURN
-            expect(targetOutputs[0].value).toBe(0);
-            // Test vs hex string as cannot store buffer type in vectors
-            expect(targetOutputs[0].script.toString('hex')).toBe(
-                outputScriptHex,
-            );
-        });
-    });
-
-    expectedErrors.forEach(expectedError => {
-        const { description, burnUtxos, errorMsg } = expectedError;
-        it(`getExplicitBurnTargetOutputs throws error for: ${description}`, () => {
-            expect(() => getExplicitBurnTargetOutputs(burnUtxos)).toThrow(
-                errorMsg,
-            );
-        });
-    });
-});
-
 describe('Generating explicit etoken burn tx target output from in-node utxos', () => {
-    const { expectedReturns } = vectors.explicitBurnsInNode;
+    const { expectedReturns } = vectors.explicitBurns;
 
     expectedReturns.forEach(expectedReturn => {
         const { description, burnUtxos, decimals, outputScriptHex } =

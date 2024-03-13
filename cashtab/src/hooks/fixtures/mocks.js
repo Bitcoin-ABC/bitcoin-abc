@@ -39,23 +39,24 @@ export const walletWithXecAndTokens = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: '546',
-                slpMeta: {
-                    tokenType: 'FUNGIBLE',
-                    txType: 'SEND',
-                    tokenId:
-                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                },
-                slpToken: {
-                    amount: '1',
-                    isMintBaton: false,
-                },
-                network: 'XEC',
+                value: 546,
                 address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
                 tokenQty: '1',
                 tokenId:
                     '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
                 decimals: 0,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                },
             },
         ],
         nonSlpUtxos: [
@@ -66,9 +67,9 @@ export const walletWithXecAndTokens = {
                 },
                 blockHeight: 815549,
                 isCoinbase: false,
-                value: '951312',
-                network: 'XEC',
+                value: 951312,
                 address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                isFinal: true,
             },
         ],
         tokens: [
@@ -98,10 +99,10 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '483045022100b8699595913167f3abd5c6dde588fe9dd89e56e811436d0cc02e81a6623a93c1022043954f663eb37a4e0a7cb28bd8ff857d0913cc771832b0e7ccf2b2fbaa9f3ae0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        value: 1100,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-                        value: '1100',
-                        sequenceNo: 4294967295,
                     },
                     {
                         prevOut: {
@@ -110,10 +111,10 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '47304402205d3d1e7f83609498d7d7c18cfaa8f4c940c3e12608334b946744c423465cc9f002202199ac5b760c4eb27ee1bf28e94d8e42a6932709d73b387a760269ce2d73aa58412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
+                        value: 2200,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-                        value: '2200',
-                        sequenceNo: 4294967295,
                     },
                     {
                         prevOut: {
@@ -122,71 +123,126 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '4730440220649bd38855be5a18bc3b373eec33d9420b9fde009548c79bcccd67a4bef37359022075f64385c0c40670bc03b268554dc7280f0b9dbffbf22c2cb4c76da4898ed1a0412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                        outputScript:
-                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-                        value: '546',
+                        value: 546,
                         sequenceNo: 4294967295,
-                        slpToken: {
+                        token: {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
                             amount: '888',
                             isMintBaton: false,
+                            entryIdx: 0,
                         },
+                        outputScript:
+                            '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a04534c500001010453454e44203fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109080000000000000001080000000000000377',
                     },
                     {
-                        value: '546',
+                        value: 546,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        slpToken: {
+                        token: {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
                             amount: '1',
                             isMintBaton: false,
+                            entryIdx: 0,
                         },
                     },
                     {
-                        value: '546',
+                        value: 546,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-                        slpToken: {
+                        token: {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
                             amount: '887',
                             isMintBaton: false,
+                            entryIdx: 0,
+                        },
+                        spentBy: {
+                            txid: '7004e450f904fc46c75e86deb48c57438e8efd8142e7bac7efe225d775c5f135',
+                            outIdx: 1,
                         },
                     },
                     {
-                        value: '1319',
+                        value: 1319,
                         outputScript:
                             '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
+                        spentBy: {
+                            txid: '8f076ddab7bcbf37ec993e9b39e75ad1878e35654f380ea9f6f1ebd500711b27',
+                            outIdx: 25,
+                        },
                     },
                 ],
                 lockTime: 0,
-                slpTxData: {
-                    slpMeta: {
-                        tokenType: 'FUNGIBLE',
-                        txType: 'SEND',
-                        tokenId:
-                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                    },
-                },
-                timeFirstSeen: '1705488591',
+                timeFirstSeen: 0,
                 size: 627,
                 isCoinbase: false,
-                network: 'XEC',
+                tokenEntries: [
+                    {
+                        tokenId:
+                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                        tokenType: {
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                            number: 1,
+                        },
+                        txType: 'SEND',
+                        isInvalid: false,
+                        burnSummary: '',
+                        failedColorings: [],
+                        actualBurnAmount: '0',
+                        intentionalBurn: '0',
+                        burnsMintBatons: false,
+                    },
+                ],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NORMAL',
                 parsed: {
                     incoming: true,
                     xecAmount: '5.46',
                     isEtokenTx: true,
                     etokenAmount: '1',
                     isTokenBurn: false,
-                    slpMeta: {
-                        tokenType: 'FUNGIBLE',
-                        txType: 'SEND',
-                        tokenId:
-                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                    },
+                    tokenEntries: [
+                        {
+                            tokenId:
+                                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            txType: 'SEND',
+                            isInvalid: false,
+                            burnSummary: '',
+                            failedColorings: [],
+                            actualBurnAmount: '0',
+                            intentionalBurn: '0',
+                            burnsMintBatons: false,
+                        },
+                    ],
                     genesisInfo: {
                         tokenTicker: 'BEAR',
                         tokenName: 'BearNip',
@@ -215,20 +271,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '47304402201cfc6d40bb6a6ee8faae9a3d373742009fa30c6c02a0fcfe055079b62a65d582022013497e2ae6b417262680990ea5d03fe67ac25f7a2a79121fb9b0f633adf458274121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 952320,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '952320',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e78656300066e6577746f6e15003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '553',
+                        value: 553,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -237,21 +293,27 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '951312',
+                        value: 951312,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
+                        spentBy: {
+                            txid: '1898c151a8dc84edfbd8f254458226f13422220b5cd7f0ab4e956929218dd38a',
+                            outIdx: 0,
+                        },
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 268,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 815549,
                     hash: '00000000000000000ea3601057ba423805f91d9d813a41a91ae908b68ff6cbce',
-                    timestamp: '1698187386',
+                    timestamp: 1698187386,
                 },
-                timeFirstSeen: '1698185917',
-                size: 268,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.53',
@@ -277,20 +339,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '473044022040513dc15ce7601f937ea83a94a90fd55da07b6a2a95a344a3df63d34489985e022072bd23d71ab5502ee2f254cc58aa0bc2f499370f693f77b1bbb87fe3aaee66d44121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 953326,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '953326',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e786563000d646f657374686973636c65617215003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '551',
+                        value: 551,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -299,7 +361,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '952320',
+                        value: 952320,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -309,15 +371,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 275,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 814357,
                     hash: '000000000000000009004fa50065ef6deb091f0d075cf1ef01811d0706c9a8c2',
-                    timestamp: '1697463218',
+                    timestamp: 1697463218,
                 },
-                timeFirstSeen: '1697462397',
-                size: 275,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.51',
@@ -343,20 +407,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '47304402206feb284b4583db2ba6bd0a03cda7ac1571faec3f0f6ab996e4c8b2592726e626022066fe0a6d8887ba64ea7ac9a7472bc6e8ede63baeea3f7f7250e4aadfd9dfebf84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 954332,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '954332',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e7865630008776f726b736e6f7715003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '551',
+                        value: 551,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -365,7 +429,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '953326',
+                        value: 953326,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -375,15 +439,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 270,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 813934,
                     hash: '00000000000000001533643253107df49b2291beb9d5cd5c7f4f51bf26572e53',
-                    timestamp: '1697216026',
+                    timestamp: 1697216026,
                 },
-                timeFirstSeen: '1697215818',
-                size: 270,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.51',
@@ -409,20 +475,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '47304402202bfc9d29d53f3e2a721472469d0c16726badb0534044e101b990b2413d6d37c80220321cfe15eeea3014012c082693f3ff49f6892b5fe96bc0b980195c7090af1d9a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 955341,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '955341',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e7865630005746573743415003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '554',
+                        value: 554,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -431,7 +497,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '954332',
+                        value: 954332,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -441,15 +507,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 267,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 813923,
                     hash: '0000000000000000166ee88a29775a1098813f4316a5afbe835d21e0d74fda24',
-                    timestamp: '1697211295',
+                    timestamp: 1697211295,
                 },
-                timeFirstSeen: '1697211232',
-                size: 267,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.54',
@@ -475,20 +543,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '483045022100952173ce8b1a2f5cc30be77cd32c6b285ff3f96d36ba0296082ca551204c578502201afcad7d0b2426e1c168c1a1b4a98c637a4c808a6c8fd35c298e9cb7cf6cdc474121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 956351,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '956351',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e78656300047465737415003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '555',
+                        value: 555,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -497,7 +565,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '955341',
+                        value: 955341,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -507,15 +575,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 267,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 813922,
                     hash: '00000000000000000a1807a17ebcda93947db968e9a112b54ec70237d1a76288',
-                    timestamp: '1697211196',
+                    timestamp: 1697211196,
                 },
-                timeFirstSeen: '1697211182',
-                size: 267,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.55',
@@ -541,20 +611,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '473044022024d33fa299f1ce126fe5271e26c9fc9e60b10924e2f4aa5fda8bbd46547f0503022077bff168765403d1282f73b7cffd9643b9dd6854e7dbb3ba1f5897bd4a9f63304121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 957361,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '957361',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e78656300047465737415003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '555',
+                        value: 555,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -563,7 +633,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '956351',
+                        value: 956351,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -573,15 +643,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 266,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 813922,
                     hash: '00000000000000000a1807a17ebcda93947db968e9a112b54ec70237d1a76288',
-                    timestamp: '1697211196',
+                    timestamp: 1697211196,
                 },
-                timeFirstSeen: '1697211167',
-                size: 266,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.55',
@@ -607,20 +679,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '483045022100e27a4f1c3521ae72c3b1970846616e3ac9f6048066e4566c2d03c1132fb414f50220750243534faa1603bade7c498d8e4390960a59451c858207f80f300f6a57c4534121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 958370,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '958370',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e7865630005616c69617315003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '554',
+                        value: 554,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -629,7 +701,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '957361',
+                        value: 957361,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -639,15 +711,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 268,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 813615,
                     hash: '000000000000000006b8990c77dd7a0d3a850a052b6f0bd60b82d44d1ffa7a55',
-                    timestamp: '1697025138',
+                    timestamp: 1697025138,
                 },
-                timeFirstSeen: '1697024688',
-                size: 268,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.54',
@@ -673,20 +747,20 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '473044022076ae9639a9cfac3a4189c30eb1ac68daa75850407a2303cb297cc4b1a44a17db0220277681c0346c1b11eb312795c911619935aae6d50d4d03ef5e7dcc916fa28a3d4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 959379,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '959379',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript:
                             '6a042e7865630005616c69617315003a5fb236934ec078b4507c303d3afd82067f8fc1',
                     },
                     {
-                        value: '554',
+                        value: 554,
                         outputScript:
                             'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
                         spentBy: {
@@ -695,7 +769,7 @@ export const walletWithXecAndTokens = {
                         },
                     },
                     {
-                        value: '958370',
+                        value: 958370,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -705,15 +779,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 267,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 813615,
                     hash: '000000000000000006b8990c77dd7a0d3a850a052b6f0bd60b82d44d1ffa7a55',
-                    timestamp: '1697025138',
+                    timestamp: 1697025138,
                 },
-                timeFirstSeen: '1697024682',
-                size: 267,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '5.54',
@@ -739,24 +815,28 @@ export const walletWithXecAndTokens = {
                         },
                         inputScript:
                             '473044022037e2b4ac09f71432e97d71938dac7b5f0abcd84a8ea995708b0d58c38fcc743302207570250fe9f8b98b8f7079aafb1c53e796584efd910ed9f7e1f75f491f95e7564121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02d',
+                        value: 962056,
+                        sequenceNo: 4294967295,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
-                        value: '962056',
-                        sequenceNo: 4294967295,
                     },
                 ],
                 outputs: [
                     {
-                        value: '0',
+                        value: 0,
                         outputScript: '6a04007461620b7374696c6c20776f726b73',
                     },
                     {
-                        value: '2200',
+                        value: 2200,
                         outputScript:
                             '76a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac',
+                        spentBy: {
+                            txid: 'ba69815ef87cb48585a40968d6ff7764cbef4f021fdd015c5eb25afe75feb0a1',
+                            outIdx: 0,
+                        },
                     },
                     {
-                        value: '959379',
+                        value: 959379,
                         outputScript:
                             '76a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac',
                         spentBy: {
@@ -766,15 +846,17 @@ export const walletWithXecAndTokens = {
                     },
                 ],
                 lockTime: 0,
+                timeFirstSeen: 0,
+                size: 252,
+                isCoinbase: false,
+                tokenEntries: [],
+                tokenFailedParsings: [],
+                tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
                 block: {
                     height: 812408,
                     hash: '00000000000000000b2dfec91630d335b0233fb323a7acbb297b586d1d0d0678',
-                    timestamp: '1696282475',
+                    timestamp: 1696282475,
                 },
-                timeFirstSeen: '1696281429',
-                size: 252,
-                isCoinbase: false,
-                network: 'XEC',
                 parsed: {
                     incoming: false,
                     xecAmount: '22',
@@ -818,7 +900,7 @@ export const nonDefaultCashtabCache = {
 // Create a CashtabSettings object at default settings except fiat currency is gbp
 export const cashtabSettingsGbp = new CashtabSettings('gbp');
 
-// NNG shape
+// in-node shape
 export const mockIncomingTokenTxDetails = {
     txid: '6ca8ace20c3a54679944f6a0bacf1bfc45d9558040bfa505a17f81aef312b55d',
     version: 2,
@@ -830,13 +912,21 @@ export const mockIncomingTokenTxDetails = {
             },
             inputScript:
                 '483045022100df9dd02d4dc55cb55e57c9dfd4cb36f2ebb6917bd31370e06ac7f3060b8c527802204f7e43934aaadb7799c96a1bad6f42804dcfa5d24422dec3ffacde8d8df2059e412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-            value: '546',
+            value: 546,
             sequenceNo: 4294967295,
-            slpToken: {
+            token: {
+                tokenId:
+                    'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
                 amount: '6',
                 isMintBaton: false,
+                entryIdx: 0,
             },
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
         },
         {
             prevOut: {
@@ -845,49 +935,85 @@ export const mockIncomingTokenTxDetails = {
             },
             inputScript:
                 '473044022076f3399f433167b449c2007a4e838fc457102c2b236b7cd6428481fe7d38ef6d022063d9389f09a8dfd5cfb1f6b607aad3784de601280591c2c88ec5fb75482e9dfc412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
-            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-            value: '3300',
+            value: 3300,
             sequenceNo: 4294967295,
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
         },
     ],
     outputs: [
         {
-            value: '0',
+            value: 0,
             outputScript:
                 '6a04534c500001010453454e4420b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7080000000000000001080000000000000005',
         },
         {
-            value: '546',
+            value: 546,
             outputScript: '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-            slpToken: {
+            token: {
+                tokenId:
+                    'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
                 amount: '1',
                 isMintBaton: false,
+                entryIdx: 0,
             },
         },
         {
-            value: '546',
+            value: 546,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-            slpToken: {
+            token: {
+                tokenId:
+                    'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
                 amount: '5',
                 isMintBaton: false,
+                entryIdx: 0,
             },
         },
         {
-            value: '1787',
+            value: 1787,
             outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            spentBy: {
+                txid: '6f7e5f6035e31e9a17d1e3503f057eb58534d493076ba72a426cc29d020423d1',
+                outIdx: 0,
+            },
         },
     ],
     lockTime: 0,
-    slpTxData: {
-        slpMeta: {
-            tokenType: 'FUNGIBLE',
-            txType: 'SEND',
-            tokenId:
-                'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
-        },
-    },
-    timeFirstSeen: '1709836907',
+    timeFirstSeen: 1709836909,
     size: 480,
     isCoinbase: false,
-    network: 'XEC',
+    tokenEntries: [
+        {
+            tokenId:
+                'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                number: 1,
+            },
+            txType: 'SEND',
+            isInvalid: false,
+            burnSummary: '',
+            failedColorings: [],
+            actualBurnAmount: '0',
+            intentionalBurn: '0',
+            burnsMintBatons: false,
+        },
+    ],
+    tokenFailedParsings: [],
+    tokenStatus: 'TOKEN_STATUS_NORMAL',
+    block: {
+        height: 834919,
+        hash: '00000000000000000ab28ac33e21a717a0deea4101b86360c8f366ba8f4137c9',
+        timestamp: 1709839460,
+    },
 };

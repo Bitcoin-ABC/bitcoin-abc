@@ -488,8 +488,8 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                         {!data.parsed.incoming ? (
                                             <>
                                                 {data.parsed.isEtokenTx &&
-                                                data.slpTxData.slpMeta
-                                                    .txType === 'GENESIS' ? (
+                                                data.tokenEntries[0].txType ===
+                                                    'GENESIS' ? (
                                                     <GenesisTx>
                                                         <GenesisIcon />
                                                     </GenesisTx>
@@ -535,7 +535,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                             {!data.parsed.incoming ? (
                                                 <>
                                                     {data.parsed.isEtokenTx &&
-                                                    data.slpTxData.slpMeta
+                                                    data.tokenEntries[0]
                                                         .txType ===
                                                         'GENESIS' ? (
                                                         <GenesisHeader>
@@ -583,14 +583,14 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                 outgoing={!data.parsed.incoming}
                                             >
                                                 {data.parsed.isEtokenTx &&
-                                                data.parsed.slpMeta ? (
+                                                data.tokenEntries.length > 0 ? (
                                                     <>
                                                         <TxTokenIcon>
                                                             <TokenIcon
                                                                 size={32}
                                                                 tokenId={
-                                                                    data.parsed
-                                                                        .slpMeta
+                                                                    data
+                                                                        .tokenEntries[0]
                                                                         .tokenId
                                                                 }
                                                             />
@@ -598,8 +598,8 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                         {!data.parsed
                                                             .incoming ? (
                                                             <RightTextCtn>
-                                                                {data.slpTxData
-                                                                    .slpMeta
+                                                                {data
+                                                                    .tokenEntries[0]
                                                                     .txType ===
                                                                 'GENESIS' ? (
                                                                     <>

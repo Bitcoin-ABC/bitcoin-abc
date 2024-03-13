@@ -73,17 +73,9 @@ export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
 export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
     const { tokenInputs, sendAmounts } = tokenInputInfo;
 
-    const utxosFromNng = !('token' in tokenInputs[0]);
-
     // Get tokenId from the tokenUtxo
-    let tokenId;
-    if (utxosFromNng) {
-        // ChronikClient NNG
-        tokenId = tokenInputs[0].tokenId;
-    } else {
-        // ChronikClientNode
-        tokenId = tokenInputs[0].token.tokenId;
-    }
+
+    const tokenId = tokenInputs[0].token.tokenId;
 
     const script = TokenType1.send(tokenId, sendAmounts);
 
@@ -113,8 +105,8 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
 };
 
 /**
- * Get all available token utxos for an SLP v1 SEND tx from NNG or in-node formatted chronik utxos
- * @param {array} utxos array of utxos from an in-node instance of chronik
+ * Get all available token utxos for an SLP v1 SEND tx from in-node formatted chronik utxos
+ * @param {Tx_InNode[]} utxos array of utxos from an in-node instance of chronik
  * @param {string} tokenId
  * @returns {array} tokenUtxos, all utxos that can be used for slpv1 send tx
  * mint batons are intentionally excluded
@@ -123,9 +115,8 @@ export const getAllSendUtxos = (utxos, tokenId) => {
     // From an array of chronik utxos, return only token utxos related to a given tokenId
     return utxos.filter(utxo => {
         if (
-            (utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
-                utxo.token?.isMintBaton === false) || // UTXO is not a minting baton.
-            (utxo.tokenId === tokenId && utxo.slpToken.isMintBaton === false)
+            utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
+            utxo.token?.isMintBaton === false // UTXO is not a minting baton.
         ) {
             return true;
         }
@@ -134,8 +125,8 @@ export const getAllSendUtxos = (utxos, tokenId) => {
 };
 
 /**
- * Get send token inputs from NNG input data
- * @param {array} utxos
+ * Get send token inputs from in-node input data
+ * @param {Tx_inNode[]} utxos
  * @param {string} tokenId tokenId of the token you want to send
  * @param {string} sendQty
  * @param {number} decimals 0-9 inclusive, integer. Decimals of this token.
@@ -156,15 +147,8 @@ export const getSendTokenInputs = (utxos, tokenId, sendQty, decimals = -1) => {
         throw new Error(`No token utxos for tokenId "${tokenId}"`);
     }
 
-    const modelUtxo = allSendUtxos[0];
-
-    // If this is NNG chronik you can get decimals from a token utxos
-    const isNng = 'decimals' in modelUtxo;
-
-    decimals = isNng ? allSendUtxos[0].decimals : decimals;
-
     if (!Number.isInteger(decimals) || decimals > 9 || decimals < 0) {
-        // We get there if we have non-nng utxos and we call this function without specifying decimals
+        // We get there if we call this function without specifying decimals
         throw new Error(
             `Invalid decimals ${decimals} for tokenId ${tokenId}. Decimals must be an integer 0-9.`,
         );
@@ -176,9 +160,7 @@ export const getSendTokenInputs = (utxos, tokenId, sendQty, decimals = -1) => {
 
     const tokenInputs = [];
     for (const utxo of allSendUtxos) {
-        totalTokenInputUtxoQty = isNng
-            ? totalTokenInputUtxoQty.plus(utxo.slpToken.amount)
-            : totalTokenInputUtxoQty.plus(utxo.token.amount);
+        totalTokenInputUtxoQty = totalTokenInputUtxoQty.plus(utxo.token.amount);
 
         tokenInputs.push(utxo);
         if (totalTokenInputUtxoQty.gte(sendQty)) {
@@ -266,26 +248,17 @@ export const getExplicitBurnTargetOutputs = (
 
     const modelUtxo = tokenUtxosToBurn[0];
 
-    const isNng =
-        'tokenId' in modelUtxo &&
-        'slpToken' in modelUtxo &&
-        'decimals' in modelUtxo &&
-        'amount' in modelUtxo.slpToken;
-
     const isInNode =
         'token' in modelUtxo &&
         'amount' in modelUtxo.token &&
         'tokenId' in modelUtxo.token;
 
-    if (!isNng && !isInNode) {
+    if (!isInNode) {
         throw new Error('Invalid utxo format, unable to parse for tokenId');
     }
 
-    // Get tokenId from NNG or in-node chronik-client utxo
-    const tokenId = isNng ? modelUtxo.tokenId : modelUtxo.token.tokenId;
-
-    // Get decimals from utxo if available. Otherwise use param
-    decimals = isNng ? modelUtxo.decimals : decimals;
+    // Get tokenId from in-node chronik-client utxo
+    const tokenId = modelUtxo.token.tokenId;
 
     if (!Number.isInteger(decimals) || decimals > 9 || decimals < 0) {
         // We get here if we have non-nng utxos and we call this function without specifying decimals
@@ -298,9 +271,7 @@ export const getExplicitBurnTargetOutputs = (
 
     for (const utxo of tokenUtxosToBurn) {
         // We burn it all
-        burnQty = isNng
-            ? burnQty.plus(utxo.slpToken.amount)
-            : burnQty.plus(utxo.token.amount);
+        burnQty = burnQty.plus(utxo.token.amount);
     }
 
     // Calculate burnQty as 8-digit hex integer, accounting for tokenDecimals

@@ -62,38 +62,12 @@ export const isAliasRegistered = (registeredAliases, alias) => {
 };
 
 // Return false if do not get a valid response
+// TODO deprecate, we should be getting this from cache
+// This info will be cached on app startup
 export const getTokenStats = async (chronik, tokenId) => {
     try {
         // token attributes available via chronik's token() method
         let tokenResponseObj = await chronik.token(tokenId);
-        const tokenDecimals = tokenResponseObj.slpTxData.genesisInfo.decimals;
-
-        // additional arithmetic to account for token decimals
-        // circulating supply not provided by chronik, calculate via totalMinted - totalBurned
-        tokenResponseObj.circulatingSupply = new BN(
-            tokenResponseObj.tokenStats.totalMinted,
-        )
-            .minus(new BN(tokenResponseObj.tokenStats.totalBurned))
-            .shiftedBy(-1 * tokenDecimals)
-            .toString();
-
-        tokenResponseObj.tokenStats.totalMinted = new BN(
-            tokenResponseObj.tokenStats.totalMinted,
-        )
-            .shiftedBy(-1 * tokenDecimals)
-            .toString();
-
-        tokenResponseObj.initialTokenQuantity = new BN(
-            tokenResponseObj.initialTokenQuantity,
-        )
-            .shiftedBy(-1 * tokenDecimals)
-            .toString();
-
-        tokenResponseObj.tokenStats.totalBurned = new BN(
-            tokenResponseObj.tokenStats.totalBurned,
-        )
-            .shiftedBy(-1 * tokenDecimals)
-            .toString();
 
         return tokenResponseObj;
     } catch (err) {
@@ -104,34 +78,16 @@ export const getTokenStats = async (chronik, tokenId) => {
     }
 };
 
-/* 
-Note: chronik.script('p2pkh', hash160).utxos(); is not readily mockable in jest
-Hence it is necessary to keep this out of any functions that require unit testing
-*/
+/**
+ *
+ * @param {ChronikClientNode} chronik
+ * @param {string} hash160
+ * @returns chronik-client response object
+ */
 export const getUtxosSingleHashChronik = async (chronik, hash160) => {
     // Get utxos at a single address, which chronik takes in as a hash160
-    let utxos;
-    try {
-        utxos = await chronik.script('p2pkh', hash160).utxos();
-        if (utxos.length === 0) {
-            // Chronik returns an empty array if there are no utxos at this hash160
-            return [];
-        }
-        /* Chronik returns an array of with a single object if there are utxos at this hash 160
-        [
-            {
-                outputScript: <hash160>,
-                utxos:[{utxo}, {utxo}, ..., {utxo}]
-            }
-        ]
-        */
-
-        // Return only the array of utxos at this address
-        return utxos[0].utxos;
-    } catch (err) {
-        console.log(`Error in chronik.utxos(${hash160})`, err);
-        throw new Error(err);
-    }
+    const utxos = await chronik.script('p2pkh', hash160).utxos();
+    return utxos.utxos;
 };
 
 export const returnGetUtxosChronikPromise = (chronik, hash160AndAddressObj) => {
@@ -176,40 +132,38 @@ export const getUtxosChronik = async (chronik, hash160sMappedToAddresses) => {
     return flatUtxos;
 };
 
+/**
+ * Organize utxos by token and non-token
+ * TODO deprecate this and use better coinselect methods
+ * @param {Tx_InNode[]} chronikUtxos
+ * @returns {object} {slpUtxos: [], nonSlpUtxos: []}
+ */
 export const organizeUtxosByType = chronikUtxos => {
-    /* 
-    
-    Convert chronik utxos (returned by getUtxosChronik function, above) to match 
-    wallet storage pattern
-    
-    This means sequestering eToken utxos from non-eToken utxos
-
-    For legacy reasons, the term "SLP" is still sometimes used to describe an eToken
-
-    So, SLP utxos === eToken utxos, it's just a semantics difference here
-    
-    */
-
     const nonSlpUtxos = [];
-    const preliminarySlpUtxos = [];
-    for (let i = 0; i < chronikUtxos.length; i += 1) {
+    const slpUtxos = [];
+    for (const utxo of chronikUtxos) {
         // Construct nonSlpUtxos and slpUtxos arrays
-        const thisUtxo = chronikUtxos[i];
-        if (typeof thisUtxo.slpToken !== 'undefined') {
-            preliminarySlpUtxos.push(thisUtxo);
+        if (typeof utxo.token !== 'undefined') {
+            slpUtxos.push(utxo);
         } else {
-            nonSlpUtxos.push(thisUtxo);
+            nonSlpUtxos.push(utxo);
         }
     }
 
-    return { preliminarySlpUtxos, nonSlpUtxos };
+    return { slpUtxos, nonSlpUtxos };
 };
 
-export const getPreliminaryTokensArray = preliminarySlpUtxos => {
+/**
+ * Build tokens array without accounting for token genesis info
+ * TODO this should be a map, not an array of objects. Handle after migration
+ * @param {Tx_InNode[]} slpUtxos
+ * @returns
+ */
+export const getPreliminaryTokensArray = slpUtxos => {
     // Iterate over the slpUtxos to create the 'tokens' object
     let tokensById = {};
 
-    preliminarySlpUtxos.forEach(preliminarySlpUtxo => {
+    slpUtxos.forEach(slpUtxos => {
         /* 
         Note that a wallet could have many eToken utxos all belonging to the same eToken
         For example, a user could have 100 of a certain eToken, but this is composed of
@@ -217,24 +171,24 @@ export const getPreliminaryTokensArray = preliminarySlpUtxos => {
         */
 
         // Start with the existing object for this particular token, if it exists
-        let token = tokensById[preliminarySlpUtxo.slpMeta.tokenId];
+        let token = tokensById[slpUtxos.token.tokenId];
 
         if (token) {
-            if (preliminarySlpUtxo.slpToken.amount) {
+            if (slpUtxos.token.amount) {
                 token.balance = token.balance.plus(
-                    new BN(preliminarySlpUtxo.slpToken.amount),
+                    new BN(slpUtxos.token.amount),
                 );
             }
         } else {
             // If it does not exist, create it
             token = {};
-            token.tokenId = preliminarySlpUtxo.slpMeta.tokenId;
-            if (preliminarySlpUtxo.slpToken.amount) {
-                token.balance = new BN(preliminarySlpUtxo.slpToken.amount);
+            token.tokenId = slpUtxos.token.tokenId;
+            if (slpUtxos.token.amount) {
+                token.balance = new BN(slpUtxos.token.amount);
             } else {
                 token.balance = new BN(0);
             }
-            tokensById[preliminarySlpUtxo.slpMeta.tokenId] = token;
+            tokensById[slpUtxos.token.tokenId] = token;
         }
     });
 
@@ -401,33 +355,6 @@ export const finalizeTokensArray = async (
     return { tokens: finalTokenArray, cachedTokens, newTokensToCache };
 };
 
-/**
- * Use now-known tokenDecimals to add decimal-adjusted tokenQty to token utxos
- * @param {array} preliminarySlpUtxos slpUtxos without tokenQty calculated by tokenDecimals
- * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {array} finalizedSlpUtxos slpUtxos with tokenQty calculated by tokenDecimals
- */
-export const finalizeSlpUtxos = (preliminarySlpUtxos, cachedTokens) => {
-    // We need tokenQty in each slpUtxo to support transaction creation
-    // Add this info here
-    const finalizedSlpUtxos = [];
-    for (let i = 0; i < preliminarySlpUtxos.length; i += 1) {
-        const thisUtxo = preliminarySlpUtxos[i];
-        const thisTokenId = thisUtxo.slpMeta.tokenId;
-        const { decimals } = cachedTokens.get(thisTokenId);
-        // Update balance according to decimals
-        thisUtxo.tokenQty = new BN(thisUtxo.slpToken.amount)
-            .shiftedBy(-1 * decimals)
-            .toString();
-        // SLP utxos also require tokenId and decimals directly in the utxo object
-        // TODO refactor after migrating to in-node chronik-client
-        thisUtxo.tokenId = thisTokenId;
-        thisUtxo.decimals = decimals;
-        finalizedSlpUtxos.push(thisUtxo);
-    }
-    return finalizedSlpUtxos;
-};
-
 export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
     // Create an array of all txs
 
@@ -502,20 +429,56 @@ export const returnGetTxHistoryChronikPromise = (
     });
 };
 
+/**
+ *
+ * @param {Tx_InNode} tx
+ * @param {object} wallet cashtab wallet
+ * @param {Map} cachedTokens
+ * @returns
+ */
 export const parseChronikTx = (tx, wallet, cachedTokens) => {
     const walletHash160s = getHashArrayFromWallet(wallet);
-    const { inputs, outputs } = tx;
+    const { inputs, outputs, tokenEntries } = tx;
+
     // Assign defaults
     let incoming = true;
     let xecAmount = new BN(0);
     let etokenAmount = new BN(0);
     let isTokenBurn = false;
-    let isEtokenTx = 'slpTxData' in tx && typeof tx.slpTxData !== 'undefined';
-    const isGenesisTx =
-        isEtokenTx &&
-        tx.slpTxData.slpMeta &&
-        tx.slpTxData.slpMeta.txType &&
-        tx.slpTxData.slpMeta.txType === 'GENESIS';
+
+    let isSlpV1 = false;
+    let isUnsupportedTokenTx = false;
+    let isGenesisTx = false;
+
+    // For now, we only support one token per tx
+    // Get the tokenId if this is an slpv1 tx
+    // TODO support multiple token actions in a tx
+    let tokenId = '';
+
+    // Iterate over tokenEntries to parse for token status
+    for (const entry of tokenEntries) {
+        if (
+            entry.tokenType?.protocol === 'SLP' &&
+            entry.tokenType?.number === 1 &&
+            typeof entry.tokenId !== 'undefined'
+        ) {
+            isSlpV1 = true;
+            tokenId = entry.tokenId;
+            // Check for token burn
+            if (entry.burnSummary !== '' && entry.actualBurnAmount !== '') {
+                isTokenBurn = true;
+                etokenAmount = new BN(entry.actualBurnAmount);
+            }
+        }
+        if (entry.txType === 'GENESIS') {
+            isGenesisTx = true;
+        }
+    }
+
+    // We might lose this variable. Cashtab only supports SLP type 1 txs for now.
+    // Will be easy to tell if it's "any token" by modifying this definition, e.g. isSlpV1 | isAlp
+    let isEtokenTx = isSlpV1;
+    isUnsupportedTokenTx = tokenEntries.length > 0 && !isEtokenTx;
 
     // Initialize required variables
     let airdropFlag = false;
@@ -535,28 +498,6 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
         for (let i = 0; i < inputs.length; i += 1) {
             const thisInput = inputs[i];
 
-            // If this is an etoken tx, check for token burn
-            if (
-                isEtokenTx &&
-                typeof thisInput.slpBurn !== 'undefined' &&
-                thisInput.slpBurn.token &&
-                thisInput.slpBurn.token.amount &&
-                thisInput.slpBurn.token.amount !== '0'
-            ) {
-                // Assume that any eToken tx with a burn is a burn tx
-                isTokenBurn = true;
-                try {
-                    const thisEtokenBurnAmount = new BN(
-                        thisInput.slpBurn.token.amount,
-                    );
-                    // Need to know the total output amount to compare to total input amount and tell if this is a burn transaction
-                    etokenAmount = etokenAmount.plus(thisEtokenBurnAmount);
-                } catch (err) {
-                    // do nothing
-                    // If this happens, the burn amount will render wrong in tx history because we don't have the info in chronik
-                    // This is acceptable
-                }
-            }
             /* 
         
         Assume the first input is the originating address
@@ -611,7 +552,8 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
         if (
             thisOutputReceivedAtHash160.startsWith(
                 opreturnConfig.opReturnPrefixHex,
-            )
+            ) &&
+            !isUnsupportedTokenTx
         ) {
             // If this is an OP_RETURN output, parse it
             const stackArray = getStackArray(thisOutputReceivedAtHash160);
@@ -748,7 +690,7 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
                 if (isEtokenTx && !isTokenBurn) {
                     try {
                         const thisEtokenAmount = new BN(
-                            thisOutput.slpToken.amount,
+                            thisOutput.token.amount,
                         );
 
                         etokenAmount =
@@ -769,7 +711,7 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
             xecAmount = xecAmount.plus(thisOutputAmount);
             if (isEtokenTx && !isGenesisTx && !isTokenBurn) {
                 try {
-                    const thisEtokenAmount = new BN(thisOutput.slpToken.amount);
+                    const thisEtokenAmount = new BN(thisOutput.token.amount);
                     etokenAmount = etokenAmount.plus(thisEtokenAmount);
                 } catch (err) {
                     // NB the edge case described above cannot exist in an outgoing tx
@@ -803,7 +745,7 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
         // Get token genesis info from cache
         let decimals = 0;
         try {
-            genesisInfo = cachedTokens.get(tx.slpTxData.slpMeta.tokenId);
+            genesisInfo = cachedTokens.get(tokenId);
             if (typeof genesisInfo !== 'undefined') {
                 genesisInfo.success = true;
                 decimals = genesisInfo.decimals;
@@ -825,14 +767,13 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
 
     // Return eToken specific fields if eToken tx
     if (isEtokenTx) {
-        const { slpMeta } = tx.slpTxData;
         return {
             incoming,
             xecAmount,
             isEtokenTx,
             etokenAmount,
             isTokenBurn,
-            slpMeta,
+            tokenEntries: tx.tokenEntries,
             genesisInfo,
             airdropFlag,
             airdropTokenId,
@@ -908,7 +849,7 @@ export const getTxHistoryChronik = async (chronik, wallet, cachedTokens) => {
             !sortedTx.parsed.genesisInfo.success
         ) {
             // Only add if the token id is not already in uncachedTokenIds
-            const uncachedTokenId = sortedTx.parsed.slpMeta.tokenId;
+            const uncachedTokenId = sortedTx.parsed.tokenEntries[0].tokenId;
             uncachedTokenIds.add(uncachedTokenId);
         }
         chronikTxHistory.push(sortedTx);
@@ -956,10 +897,10 @@ export const getMintAddress = async (chronik, tokenId) => {
             // Check to see if this output has eTokens
             if (
                 thisOutput &&
-                thisOutput.slpToken &&
-                typeof thisOutput.slpToken !== 'undefined' &&
-                thisOutput.slpToken.amount &&
-                Number(thisOutput.slpToken.amount) > 0
+                thisOutput.token &&
+                typeof thisOutput.token !== 'undefined' &&
+                thisOutput.token.amount &&
+                Number(thisOutput.token.amount) > 0
             ) {
                 // then this is the minting address
                 return cashaddr.encodeOutputScript(

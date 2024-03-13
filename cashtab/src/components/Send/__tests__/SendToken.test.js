@@ -83,20 +83,14 @@ describe('<SendToken />', () => {
         mockedChronik.setMock('token', {
             input: '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
             output: {
-                tokenId:
-                    '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                tokenStats: { totalMinted: '1000', totalBurned: '1' },
-                initialTokenQuantity: '1000',
-                slpTxData: {
-                    genesisInfo: {
-                        tokenTicker: 'BEAR',
-                        tokenName: 'BearNip',
-                        tokenDocumentUrl: 'https://cashtab.com/',
-                        tokenDocumentHash: '',
-                        decimals: 0,
-                        tokenId:
-                            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                    },
+                genesisInfo: {
+                    tokenTicker: 'BEAR',
+                    tokenName: 'BearNip',
+                    tokenDocumentUrl: 'https://cashtab.com/',
+                    tokenDocumentHash: '',
+                    decimals: 0,
+                    tokenId:
+                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
                 },
             },
         });
