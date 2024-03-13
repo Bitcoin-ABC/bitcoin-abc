@@ -8,6 +8,7 @@ interface TokenServerConfig {
     eligibilityResetSeconds: number;
     rewardsTokenId: string;
     serverOutputScript: string;
+    imageDir: string;
 }
 
 const config: TokenServerConfig = {
@@ -25,6 +26,9 @@ const config: TokenServerConfig = {
     // Placeholder - tokenserver does not yet have a wallet
     // TODO add ability to broadcast token reward txs
     serverOutputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
+    // Note: this must be the target= parameter for the --mount instruction of docker run
+    // See Production Step 3 in README.md
+    imageDir: '/token-icons',
 };
 
 export default config;

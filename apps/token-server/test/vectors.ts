@@ -10,6 +10,7 @@ import {
     Tx_InNode,
     BlockMetadata_InNode,
 } from 'chronik-client';
+import { Request } from 'express';
 
 const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
 const IFP_OUTPUTSCRIPT = 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
@@ -145,12 +146,23 @@ interface isAddressEligibleForTokenRewardReturn {
     returned: boolean | number;
 }
 
+interface IsTokenImageRequestReturn {
+    description: string;
+    req: Request;
+    returned: boolean;
+}
+
+interface IsTokenImageRequestVector {
+    returns: IsTokenImageRequestReturn[];
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
     getTxTimestamp: GetTxTimestampReturnVector;
     getHistoryAfterTimestamp: GetHistoryAfterTimestampVector;
     isAddressEligibleForTokenReward: isAddressEligibleForTokenRewardVector;
+    isTokenImageRequest: IsTokenImageRequestVector;
 }
 
 const vectors: TestVectors = {
@@ -565,6 +577,63 @@ const vectors: TestVectors = {
                     },
                 ],
                 returned: 111111,
+            },
+        ],
+    },
+    // validation.ts
+    isTokenImageRequest: {
+        returns: [
+            {
+                description: 'Expected token icon request is identified',
+                req: {
+                    url: '/512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109.png',
+                } as Request,
+                returned: true,
+            },
+            {
+                description:
+                    'Expected token icon request is valid for any size, as long as it contains numbers only',
+                req: {
+                    url: '/123456789/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109.png',
+                } as Request,
+                returned: true,
+            },
+            {
+                description: 'A non-number size is invalid',
+                req: {
+                    url: '/sometext/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109.png',
+                } as Request,
+                returned: false,
+            },
+            {
+                description: 'Additional route prefixes are invalid',
+                req: {
+                    url: '/tokenicons/512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109.png',
+                } as Request,
+                returned: false,
+            },
+            {
+                description:
+                    'Since the server only stores images as png, we do not recognize requests for other asset types',
+                req: {
+                    url: '/512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109.jpg',
+                } as Request,
+                returned: false,
+            },
+            {
+                description:
+                    'If tokenId is not 64 characters, it is not a token icon request',
+                req: {
+                    url: '/512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d10.png',
+                } as Request,
+                returned: false,
+            },
+            {
+                description: 'non-hex string is not a token icon request',
+                req: {
+                    url: '/512/somehexstring.png',
+                } as Request,
+                returned: false,
             },
         ],
     },

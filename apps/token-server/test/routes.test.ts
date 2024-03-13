@@ -102,4 +102,32 @@ describe('routes.js', async function () {
                 error: 'Error fetching /is-eligible/ecash:erroraddress',
             });
     });
+    it('We get a rendered blockie for a valid token image request', function () {
+        return request(app)
+            .get(
+                `/512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae3cf17ce3ef4d109.png`,
+            )
+            .expect(200)
+            .expect('Content-Type', /image\/png/);
+    });
+    it('We get a 404 for an invalid token icon requeset', function () {
+        return request(app)
+            .get(
+                `/512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae3cf17ce3ef4d109.jpg`,
+            )
+            .expect(404)
+            .expect('Content-Type', /json/)
+            .expect({
+                error: 'Could not find /512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae3cf17ce3ef4d109.jpg',
+            });
+    });
+    it('We get a 404 for any request not handled by other endpoints', function () {
+        return request(app)
+            .get(`/some/request/test`)
+            .expect(404)
+            .expect('Content-Type', /json/)
+            .expect({
+                error: 'Could not find /some/request/test',
+            });
+    });
 });

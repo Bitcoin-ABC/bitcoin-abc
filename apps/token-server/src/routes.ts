@@ -10,6 +10,8 @@ import config from '../config';
 import { getHistoryAfterTimestamp } from './chronik/clientHandler';
 import { isAddressEligibleForTokenReward } from './rewards';
 import { ChronikClientNode } from 'chronik-client';
+import { isTokenImageRequest } from './validation';
+import makeBlockie from 'ethereum-blockies-base64';
 
 /**
  * routes.ts
@@ -42,6 +44,11 @@ export const startExpressServer = (
     // Use cors
     // TODO configure so that we only recognize requests from trusted domains, e.g. https://cashtab.com/
     app.use(cors());
+
+    // Serve static files from the imageDir directory
+    // Note this must be a docker volume for prod
+    app.use(express.static(config.imageDir));
+    console.log(`Serving static assets from ${config.imageDir}`);
 
     // API endpoints
     app.get('/status', async function (req: Request, res: Response) {
@@ -114,6 +121,42 @@ export const startExpressServer = (
             return res.status(200).json(response);
         },
     );
+
+    app.use((req, res) => {
+        // Handle 404
+
+        // Test for token icon request
+        if (isTokenImageRequest(req)) {
+            // Get the tokenid
+            // We validate the request, so the tokenId will always be in the same place
+            // e.g. /512/3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae3cf17ce3ef4d109.png
+            const EXTENSION_LENGTH = 4; // '.png'.length
+            const TOKEN_ID_AND_PNG_EXT_LENGTH = 68; // 64 + '.png'.length
+            const tokenId = req.url.slice(
+                req.url.length - TOKEN_ID_AND_PNG_EXT_LENGTH,
+                req.url.length - EXTENSION_LENGTH,
+            );
+
+            // Build the image
+            const data = makeBlockie(tokenId);
+            // Prepare to serve the image as a png
+            var base64Data = data.replace(/^data:image\/png;base64,/, '');
+            var img = Buffer.from(base64Data, 'base64');
+
+            res.writeHead(200, {
+                'Content-Type': 'image/png',
+                'Content-Length': img.length,
+            });
+            // Serve the image
+            // Note that these images can be any size and will fit the container used by the app dev
+            return res.end(img);
+        }
+
+        // Handle 404 that was not a valid token icon (or token image asset) request
+        // Log ip info and requested URL for these 404s
+        logIpInfo(req);
+        return res.status(404).json({ error: `Could not find ${req.url}` });
+    });
 
     return app.listen(port);
 };
