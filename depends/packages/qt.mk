@@ -20,7 +20,6 @@ $(package)_patches += qtbase-moc-ignore-gcc-macro.patch
 $(package)_patches += no_warnings_for_symbols.patch
 $(package)_patches += rcc_hardcode_timestamp.patch
 $(package)_patches += duplicate_lcqpafonts.patch
-$(package)_patches += fast_fixed_dtoa_no_optimize.patch
 $(package)_patches += guix_cross_lib_path.patch
 $(package)_patches += memory_resource.patch
 $(package)_patches += clang_18_libpng.patch
@@ -221,7 +220,6 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/rcc_hardcode_timestamp.patch && \
   patch -p1 -i $($(package)_patch_dir)/duplicate_lcqpafonts.patch && \
   patch -p1 -i $($(package)_patch_dir)/utc_from_string_no_optimize.patch && \
-  patch -p1 -i $($(package)_patch_dir)/fast_fixed_dtoa_no_optimize.patch && \
   patch -p1 -i $($(package)_patch_dir)/guix_cross_lib_path.patch && \
   mkdir -p qtbase/mkspecs/macx-clang-linux &&\
   cp -f qtbase/mkspecs/macx-clang/qplatformdefs.h qtbase/mkspecs/macx-clang-linux/ &&\
