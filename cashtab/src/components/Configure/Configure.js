@@ -418,11 +418,14 @@ const StyledSpacer = styled.div`
     margin: 60px 0 50px;
 `;
 
-const HideableTextContainer = styled.div``;
 const SettingsLabel = styled.div`
+    text-align: left;
     display: flex;
-    white-space: nowrap;
-    gap: 3px;
+    gap: 9px;
+`;
+
+const SwitchContainer = styled.div`
+    min-width: 35px;
 `;
 
 const GeneralSettingsItem = styled.div`
@@ -1818,47 +1821,52 @@ const Configure = () => {
                     <SettingsLabel>
                         <LockFilled /> Send Confirmations
                     </SettingsLabel>
-                    <Switch
-                        data-testid="send-confirmations-switch"
-                        size="small"
-                        checkedChildren={<CheckOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        checked={settings ? settings.sendModal : false}
-                        onChange={handleSendModalToggle}
-                    />
+                    <SwitchContainer>
+                        <Switch
+                            data-testid="send-confirmations-switch"
+                            size="small"
+                            checkedChildren={<CheckOutlined />}
+                            unCheckedChildren={<CloseOutlined />}
+                            checked={settings ? settings.sendModal : false}
+                            onChange={handleSendModalToggle}
+                        />
+                    </SwitchContainer>
                 </GeneralSettingsItem>
                 {isMobile(navigator) && (
                     <GeneralSettingsItem>
                         <SettingsLabel>
-                            <LockFilled /> Auto-open camera{' '}
-                            <HideableTextContainer>
-                                on send
-                            </HideableTextContainer>
+                            <LockFilled /> Auto-open camera on send
                         </SettingsLabel>
-                        <Switch
-                            size="small"
-                            checkedChildren={<CheckOutlined />}
-                            unCheckedChildren={<CloseOutlined />}
-                            checked={settings ? settings.autoCameraOn : false}
-                            onChange={handleCameraOverride}
-                        />
+                        <SwitchContainer>
+                            <Switch
+                                size="small"
+                                checkedChildren={<CheckOutlined />}
+                                unCheckedChildren={<CloseOutlined />}
+                                checked={
+                                    settings ? settings.autoCameraOn : false
+                                }
+                                onChange={handleCameraOverride}
+                            />
+                        </SwitchContainer>
                     </GeneralSettingsItem>
                 )}
                 <GeneralSettingsItem>
                     <SettingsLabel>
                         <LockFilled /> Hide msgs from unknown sender
                     </SettingsLabel>
-                    <Switch
-                        size="small"
-                        checkedChildren={<CheckOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        checked={
-                            settings
-                                ? settings.hideMessagesFromUnknownSenders
-                                : false
-                        }
-                        onChange={handleUnknownSenderMsg}
-                    />
+                    <SwitchContainer>
+                        <Switch
+                            size="small"
+                            checkedChildren={<CheckOutlined />}
+                            unCheckedChildren={<CloseOutlined />}
+                            checked={
+                                settings
+                                    ? settings.hideMessagesFromUnknownSenders
+                                    : false
+                            }
+                            onChange={handleUnknownSenderMsg}
+                        />
+                    </SwitchContainer>
                 </GeneralSettingsItem>
 
                 {hasEnoughToken(
@@ -1881,16 +1889,18 @@ const Configure = () => {
                                 {' '}
                                 <LockFilled /> ABSOLUTE MINIMUM fees
                             </SettingsLabel>
-                            <Switch
-                                data-testid="settings-minFeeSends-switch"
-                                size="small"
-                                checkedChildren={<CheckOutlined />}
-                                unCheckedChildren={<CloseOutlined />}
-                                checked={
-                                    settings ? settings.minFeeSends : false
-                                }
-                                onChange={handleMinFeesToggle}
-                            />
+                            <SwitchContainer>
+                                <Switch
+                                    data-testid="settings-minFeeSends-switch"
+                                    size="small"
+                                    checkedChildren={<CheckOutlined />}
+                                    unCheckedChildren={<CloseOutlined />}
+                                    checked={
+                                        settings ? settings.minFeeSends : false
+                                    }
+                                    onChange={handleMinFeesToggle}
+                                />
+                            </SwitchContainer>
                         </GeneralSettingsItem>
                     </>
                 )}

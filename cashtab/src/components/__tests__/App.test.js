@@ -381,7 +381,9 @@ describe('<App />', () => {
         await screen.findByTestId('configure-ctn');
 
         // We do not see the auto open option
-        expect(screen.queryByText('Auto-open camera')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Auto-open camera on send'),
+        ).not.toBeInTheDocument();
     });
     it('We do see the camera auto-open setting in the config screen on a mobile device', async () => {
         Object.defineProperty(navigator, 'userAgentData', {
@@ -405,7 +407,9 @@ describe('<App />', () => {
         await screen.findByTestId('configure-ctn');
 
         // Now we do see the auto open option
-        expect(await screen.findByText('Auto-open camera')).toBeInTheDocument();
+        expect(
+            await screen.findByText('Auto-open camera on send'),
+        ).toBeInTheDocument();
 
         // Unset mock
         Object.defineProperty(navigator, 'userAgentData', {
