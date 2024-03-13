@@ -11,6 +11,7 @@
 #include <common/args.h>
 #include <kernel/chain.h>
 #include <logging.h>
+#include <netbase.h>
 #include <primitives/block.h>
 
 CZMQNotificationInterface::CZMQNotificationInterface() : pcontext(nullptr) {}
@@ -49,7 +50,14 @@ std::unique_ptr<CZMQNotificationInterface> CZMQNotificationInterface::Create(
     for (const auto &entry : factories) {
         std::string arg("-zmq" + entry.first);
         const auto &factory = entry.second;
-        for (const std::string &address : gArgs.GetArgs(arg)) {
+
+        for (std::string &address : gArgs.GetArgs(arg)) {
+            // libzmq uses prefix "ipc://" for UNIX domain sockets
+            if (address.substr(0, ADDR_PREFIX_UNIX.length()) ==
+                ADDR_PREFIX_UNIX) {
+                address.replace(0, ADDR_PREFIX_UNIX.length(), ADDR_PREFIX_IPC);
+            }
+
             std::unique_ptr<CZMQAbstractNotifier> notifier = factory();
             notifier->SetType(entry.first);
             notifier->SetAddress(address);

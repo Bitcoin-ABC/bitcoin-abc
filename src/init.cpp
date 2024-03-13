@@ -2378,33 +2378,34 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         }
     }
 
-    for (const std::string port_option : {
-             "-i2psam",
-             "-onion",
-             "-proxy",
-             "-rpcbind",
-             "-torcontrol",
-             "-whitebind",
-             "-zmqpubhashblock",
-             "-zmqpubhashtx",
-             "-zmqpubrawblock",
-             "-zmqpubrawtx",
-             "-zmqpubsequence",
+    for ([[maybe_unused]] const auto &[arg, supports_unix_socket] :
+         std::vector<std::pair<std::string, bool>>{
+             // arg name            UNIX socket support
+             {"-i2psam", false},
+             {"-onion", true},
+             {"-proxy", true},
+             {"-rpcbind", false},
+             {"-torcontrol", false},
+             {"-whitebind", false},
+             {"-zmqpubhashblock", true},
+             {"-zmqpubhashtx", true},
+             {"-zmqpubrawblock", true},
+             {"-zmqpubrawtx", true},
+             {"-zmqpubsequence", true},
          }) {
-        for (const std::string &socket_addr : args.GetArgs(port_option)) {
+        for (const std::string &socket_addr : args.GetArgs(arg)) {
             std::string host_out;
             uint16_t port_out{0};
             if (!SplitHostPort(socket_addr, port_out, host_out)) {
 #if HAVE_SOCKADDR_UN
-                // Allow unix domain sockets for -proxy and -onion e.g.
+                // Allow unix domain sockets for some options e.g.
                 // unix:/some/file/path
-                if ((port_option != "-proxy" && port_option != "-onion") ||
+                if (!supports_unix_socket ||
                     socket_addr.find(ADDR_PREFIX_UNIX) != 0) {
-                    return InitError(
-                        InvalidPortErrMsg(port_option, socket_addr));
+                    return InitError(InvalidPortErrMsg(arg, socket_addr));
                 }
 #else
-                return InitError(InvalidPortErrMsg(port_option, socket_addr));
+                return InitError(InvalidPortErrMsg(arg, socket_addr));
 #endif
             }
         }

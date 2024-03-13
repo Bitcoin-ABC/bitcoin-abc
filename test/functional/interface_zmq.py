@@ -3,12 +3,15 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test the ZMQ notification interface."""
 
+import os
 import struct
+import tempfile
 from io import BytesIO
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
 from test_framework.blocktools import create_block, create_coinbase
 from test_framework.messages import CTransaction, FromHex, hash256
+from test_framework.netutil import test_unix_socket
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error, ensure_for
 
@@ -106,6 +109,12 @@ class ZMQTest(BitcoinTestFramework):
             self.import_deterministic_coinbase_privkeys()
         try:
             self.test_basic()
+            if test_unix_socket():
+                self.test_basic(unix=True)
+            else:
+                self.log.info(
+                    "Skipping ipc test, because UNIX sockets are not supported."
+                )
             self.test_sequence()
             self.test_mempool_sync()
             self.test_reorg()
@@ -125,7 +134,10 @@ class ZMQTest(BitcoinTestFramework):
 
         self.restart_node(
             0,
-            [f"-zmqpub{topic}={address}" for topic, address in services],
+            [
+                f"-zmqpub{topic}={address.replace('ipc://', 'unix:')}"
+                for topic, address in services
+            ],
         )
 
         for i, sub in enumerate(subscribers):
@@ -166,11 +178,17 @@ class ZMQTest(BitcoinTestFramework):
 
         return subscribers
 
-    def test_basic(self):
+    def test_basic(self, unix=False):
         # Invalid zmq arguments don't take down the node, see #17185.
         self.restart_node(0, ["-zmqpubrawtx=foo", "-zmqpubhashtx=bar"])
 
         address = "tcp://127.0.0.1:28332"
+
+        if unix:
+            # Use the shortest temp path possible since paths may have as little as 92-char limit
+            socket_path = tempfile.NamedTemporaryFile().name
+            address = f"ipc://{socket_path}"
+
         subs = self.setup_zmq_test(
             [(topic, address) for topic in ["hashblock", "hashtx", "rawblock", "rawtx"]]
         )
@@ -240,6 +258,8 @@ class ZMQTest(BitcoinTestFramework):
         )
 
         assert_equal(self.nodes[1].getzmqnotifications(), [])
+        if unix:
+            os.unlink(socket_path)
 
     def test_reorg(self):
         if not self.is_wallet_compiled():
