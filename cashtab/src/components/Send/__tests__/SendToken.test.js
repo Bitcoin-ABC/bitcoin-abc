@@ -527,7 +527,7 @@ describe('<SendToken />', () => {
         );
 
         // Click the Confirm button
-        await user.click(screen.getByRole('button', { name: /Confirm/ }));
+        await user.click(screen.getByRole('button', { name: /OK/ }));
 
         const burnTokenSuccessNotification = await screen.findByText(
             'eToken burn successful. Click to view in block explorer.',

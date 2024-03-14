@@ -484,7 +484,7 @@ describe('<App />', () => {
         // we see a modal
         expect(
             await screen.findByText(
-                `Are you sure you want to send 55 XEC to ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y?`,
+                `Send 55 XEC to ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y`,
             ),
         ).toBeInTheDocument();
 

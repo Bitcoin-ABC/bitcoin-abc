@@ -5,16 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
-import {
-    Form,
-    message,
-    Row,
-    Col,
-    Descriptions,
-    Modal,
-    Button,
-    Input,
-} from 'antd';
+import { Form, message, Row, Col, Descriptions, Button, Input } from 'antd';
 import { SecondaryButton } from 'components/Common/PrimaryButton';
 import { FireTwoTone } from '@ant-design/icons';
 import {
@@ -52,6 +43,7 @@ import {
 } from 'slpv1';
 import { sendXec } from 'transactions';
 import { hasEnoughToken } from 'wallet';
+import Modal from 'components/Common/Modal';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -503,60 +495,71 @@ const SendToken = () => {
 
     return (
         <>
-            <Modal
-                title="Confirm Send"
-                open={isModalVisible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-            >
-                <p>
-                    {token && token.info && formData
-                        ? `Are you sure you want to send ${formData.value}${' '}
+            {isModalVisible && (
+                <Modal
+                    title="Confirm Send"
+                    description={`Send ${formData.value}${' '}
+                        ${token.info.tokenTicker} to ${formData.address}?`}
+                    handleOk={handleOk}
+                    handleCancel={handleCancel}
+                    showCancelButton
+                >
+                    <p>
+                        {token && token.info && formData
+                            ? `Are you sure you want to send ${
+                                  formData.value
+                              }${' '}
                         ${token.info.tokenTicker} to ${formData.address}?`
-                        : ''}
-                </p>
-            </Modal>
+                            : ''}
+                    </p>
+                </Modal>
+            )}
             {token && (
                 <SidePaddingCtn>
                     {/* eToken burn modal */}
-                    <Modal
-                        title={`Are you sure you want to burn ${eTokenBurnAmount.toString()} x ${
-                            token.info.tokenTicker
-                        } eTokens?`}
-                        open={showConfirmBurnEtoken}
-                        onOk={burn}
-                        okText={'Confirm'}
-                        onCancel={() => setShowConfirmBurnEtoken(false)}
-                    >
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <Form.Item
-                                    validateStatus={
-                                        burnConfirmationValid === null ||
-                                        burnConfirmationValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        burnConfirmationValid === null ||
-                                        burnConfirmationValid
-                                            ? ''
-                                            : 'Your confirmation phrase must match exactly'
-                                    }
-                                >
-                                    <Input
-                                        prefix={<FireTwoTone />}
-                                        placeholder={`Type "burn ${token.info.tokenTicker}" to confirm`}
-                                        name="etokenToBeBurnt"
-                                        value={confirmationOfEtokenToBeBurnt}
-                                        onChange={e =>
-                                            handleBurnConfirmationInput(e)
+                    {showConfirmBurnEtoken && (
+                        <Modal
+                            title={`Confirm ${token.info.tokenTicker} burn`}
+                            description={`Burn ${eTokenBurnAmount.toString()} ${
+                                token.info.tokenTicker
+                            }?`}
+                            handleOk={burn}
+                            handleCancel={() => setShowConfirmBurnEtoken(false)}
+                            showCancelButton
+                            height={230}
+                        >
+                            <AntdFormWrapper>
+                                <Form style={{ width: 'auto' }}>
+                                    <Form.Item
+                                        validateStatus={
+                                            burnConfirmationValid === null ||
+                                            burnConfirmationValid
+                                                ? ''
+                                                : 'error'
                                         }
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
-                    </Modal>
+                                        help={
+                                            burnConfirmationValid === null ||
+                                            burnConfirmationValid
+                                                ? ''
+                                                : 'Your confirmation phrase must match exactly'
+                                        }
+                                    >
+                                        <Input
+                                            prefix={<FireTwoTone />}
+                                            placeholder={`Type "burn ${token.info.tokenTicker}" to confirm`}
+                                            name="etokenToBeBurnt"
+                                            value={
+                                                confirmationOfEtokenToBeBurnt
+                                            }
+                                            onChange={e =>
+                                                handleBurnConfirmationInput(e)
+                                            }
+                                        />
+                                    </Form.Item>
+                                </Form>
+                            </AntdFormWrapper>
+                        </Modal>
+                    )}
                     <BalanceHeaderToken
                         balance={new BN(token.balance)}
                         ticker={token.info.tokenTicker}

@@ -70,6 +70,7 @@ import {
     generateMnemonic,
     toXec,
 } from 'wallet';
+import CustomModal from 'components/Common/Modal';
 const { Panel } = Collapse;
 
 const VersionContainer = styled.div`
@@ -503,7 +504,7 @@ const Configure = () => {
     };
     const cancelRenameWallet = () => {
         // Delete form value
-        setNewWalletName('');
+        setNewWalletName(null);
         setShowRenameWalletModal(false);
     };
     const cancelDeleteWallet = () => {
@@ -520,7 +521,7 @@ const Configure = () => {
     const [
         confirmationOfContactToBeRenamed,
         setConfirmationOfContactToBeRenamed,
-    ] = useState('');
+    ] = useState(null);
 
     const [showDeleteContactModal, setShowDeleteContactModal] = useState(false);
     const [contactAddressToDelete, setContactAddressToDelete] = useState(null);
@@ -528,7 +529,7 @@ const Configure = () => {
     const [
         confirmationOfContactToBeDeleted,
         setConfirmationOfContactToBeDeleted,
-    ] = useState('');
+    ] = useState(null);
 
     const [showManualAddContactModal, setShowManualAddContactModal] =
         useState(false);
@@ -883,6 +884,8 @@ const Configure = () => {
 
     const handleRenameContactCancel = () => {
         setShowRenameContactModal(false);
+        // Reset info
+        setConfirmationOfContactToBeRenamed(null);
     };
 
     const handleRenameContactModalOk = () => {
@@ -895,6 +898,8 @@ const Configure = () => {
         }
         renameContactByName(contactToBeRenamed);
         setShowRenameContactModal(false);
+        // Clear input
+        setConfirmationOfContactToBeRenamed(null);
     };
 
     const renameContactByName = async contact => {
@@ -992,6 +997,8 @@ const Configure = () => {
     };
 
     const handleDeleteContactModalCancel = () => {
+        // Clear user input
+        setConfirmationOfContactToBeDeleted(null);
         setShowDeleteContactModal(false);
     };
 
@@ -1005,6 +1012,8 @@ const Configure = () => {
         }
         setShowDeleteContactModal(false);
         deleteContactByAddress(contactAddressToDelete);
+        // Reset validation input
+        setConfirmationOfContactToBeDeleted(null);
     };
 
     const handleContactToDeleteInput = e => {
@@ -1163,30 +1172,23 @@ const Configure = () => {
         <SidePaddingCtn data-testid="configure-ctn">
             <StyledConfigure>
                 {savedWalletContactModal && (
-                    <Modal
-                        title={`Add the following saved wallet to contact list?`}
-                        open={savedWalletContactModal}
-                        onOk={() => handleAddSavedWalletAsContactOk()}
-                        onCancel={() => handleAddSavedWalletAsContactCancel()}
-                    >
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <FormLabel>Name: {manualContactName}</FormLabel>
-                                <br />
-                                <FormLabel>
-                                    Address: {manualContactAddress}
-                                </FormLabel>
-                            </Form>
-                        </AntdFormWrapper>
-                    </Modal>
+                    <CustomModal
+                        title={`Add ${manualContactName} to contacts?`}
+                        description={manualContactAddress}
+                        handleOk={() => handleAddSavedWalletAsContactOk()}
+                        handleCancel={() =>
+                            handleAddSavedWalletAsContactCancel()
+                        }
+                    />
                 )}
                 {showManualAddContactModal && (
-                    <Modal
+                    <CustomModal
                         data-testid="confirm-add-contact-modal"
-                        title={`Add new contact to contact list`}
-                        open={showManualAddContactModal}
-                        onOk={() => handleManualAddContactModalOk()}
-                        onCancel={() => handleManualAddContactModalCancel()}
+                        height={308}
+                        title={`Add new contact`}
+                        handleOk={() => handleManualAddContactModalOk()}
+                        handleCancel={() => handleManualAddContactModalCancel()}
+                        showCancelButton
                     >
                         <AntdFormWrapper>
                             <Form style={{ width: 'auto' }}>
@@ -1240,67 +1242,63 @@ const Configure = () => {
                                 </Form.Item>
                             </Form>
                         </AntdFormWrapper>
-                    </Modal>
+                    </CustomModal>
                 )}
                 {showDeleteContactModal && (
-                    <>
-                        <Modal
-                            data-testid="confirm-delete-contact-modal"
-                            title="Confirm Delete Contact"
-                            open={showDeleteContactModal}
-                            onOk={() => handleDeleteContactModalOk()}
-                            onCancel={() => handleDeleteContactModalCancel()}
-                        >
-                            <p>
-                                are you sure you want to delete{' '}
-                                {getContactNameByAddress(
+                    <CustomModal
+                        data-testid="confirm-delete-contact-modal"
+                        height={242}
+                        title="Confirm Delete Contact"
+                        description={`Delete
+                                "${getContactNameByAddress(
                                     contactAddressToDelete,
-                                )}{' '}
-                                from contact list?
-                            </p>
-                            <AntdFormWrapper>
-                                <Form style={{ width: 'auto' }}>
-                                    <Form.Item
-                                        validateStatus={
-                                            contactDeleteValid === null ||
-                                            contactDeleteValid
-                                                ? ''
-                                                : 'error'
+                                )}" from contact list?`}
+                        handleOk={() => handleDeleteContactModalOk()}
+                        handleCancel={() => handleDeleteContactModalCancel()}
+                        showCancelButton
+                    >
+                        <p></p>
+                        <AntdFormWrapper>
+                            <Form style={{ width: 'auto' }}>
+                                <Form.Item
+                                    validateStatus={
+                                        contactDeleteValid === null ||
+                                        contactDeleteValid
+                                            ? ''
+                                            : 'error'
+                                    }
+                                    help={
+                                        contactDeleteValid === null ||
+                                        contactDeleteValid
+                                            ? ''
+                                            : 'Your confirmation phrase must match exactly'
+                                    }
+                                >
+                                    <Input
+                                        data-testid="confirm-delete-contact"
+                                        prefix={<ThemedContactsOutlined />}
+                                        placeholder={`Type "delete ${getContactNameByAddress(
+                                            contactAddressToDelete,
+                                        )}" to confirm`}
+                                        name="contactToBeDeletedInput"
+                                        value={confirmationOfContactToBeDeleted}
+                                        onChange={e =>
+                                            handleContactToDeleteInput(e)
                                         }
-                                        help={
-                                            contactDeleteValid === null ||
-                                            contactDeleteValid
-                                                ? ''
-                                                : 'Your confirmation phrase must match exactly'
-                                        }
-                                    >
-                                        <Input
-                                            data-testid="confirm-delete-contact"
-                                            prefix={<ThemedContactsOutlined />}
-                                            placeholder={`Type "delete ${getContactNameByAddress(
-                                                contactAddressToDelete,
-                                            )}" to confirm`}
-                                            name="contactToBeDeletedInput"
-                                            value={
-                                                confirmationOfContactToBeDeleted
-                                            }
-                                            onChange={e =>
-                                                handleContactToDeleteInput(e)
-                                            }
-                                        />
-                                    </Form.Item>
-                                </Form>
-                            </AntdFormWrapper>
-                        </Modal>
-                    </>
+                                    />
+                                </Form.Item>
+                            </Form>
+                        </AntdFormWrapper>
+                    </CustomModal>
                 )}
                 {showRenameContactModal && (
-                    <Modal
-                        data-testid="confirm-rename-contact-modal"
-                        title={`Set contact name for ${contactToBeRenamed.address}`}
-                        open={showRenameContactModal}
-                        onOk={() => handleRenameContactModalOk()}
-                        onCancel={() => handleRenameContactCancel()}
+                    <CustomModal
+                        height={242}
+                        title={`Rename contact?`}
+                        description={`Editing name for contact ${contactToBeRenamed.name}`}
+                        handleOk={() => handleRenameContactModalOk()}
+                        handleCancel={() => handleRenameContactCancel()}
+                        showCancelButton
                     >
                         <AntdFormWrapper>
                             <Form style={{ width: 'auto' }}>
@@ -1330,16 +1328,18 @@ const Configure = () => {
                                 </Form.Item>
                             </Form>
                         </AntdFormWrapper>
-                    </Modal>
+                    </CustomModal>
                 )}
-                {walletToBeRenamed !== null && (
-                    <Modal
-                        title={`Rename Wallet ${walletToBeRenamed.name}`}
-                        open={showRenameWalletModal}
-                        onOk={() =>
+                {walletToBeRenamed !== null && showRenameWalletModal && (
+                    <CustomModal
+                        height={260}
+                        title={`Rename Wallet?`}
+                        description={`Editing name for wallet "${walletToBeRenamed.name}"`}
+                        handleOk={() =>
                             renameWallet(walletToBeRenamed.name, newWalletName)
                         }
-                        onCancel={() => cancelRenameWallet()}
+                        handleCancel={() => cancelRenameWallet()}
+                        showCancelButton
                     >
                         <AntdFormWrapper>
                             <Form style={{ width: 'auto' }}>
@@ -1367,14 +1367,16 @@ const Configure = () => {
                                 </Form.Item>
                             </Form>
                         </AntdFormWrapper>
-                    </Modal>
+                    </CustomModal>
                 )}
-                {walletToBeDeleted !== null && (
-                    <Modal
-                        title={`Are you sure you want to delete wallet "${walletToBeDeleted.name}"?`}
-                        open={showDeleteWalletModal}
-                        onOk={() => deleteWallet(walletToBeDeleted)}
-                        onCancel={() => cancelDeleteWallet()}
+                {walletToBeDeleted !== null && showDeleteWalletModal && (
+                    <CustomModal
+                        height={311}
+                        title={`Delete Wallet?`}
+                        description={`Delete wallet "${walletToBeDeleted.name}"?. This cannot be undone. Make sure you have backed up your wallet.`}
+                        handleOk={() => deleteWallet(walletToBeDeleted)}
+                        handleCancel={() => cancelDeleteWallet()}
+                        showCancelButton
                     >
                         <AntdFormWrapper>
                             <Form style={{ width: 'auto' }}>
@@ -1404,7 +1406,7 @@ const Configure = () => {
                                 </Form.Item>
                             </Form>
                         </AntdFormWrapper>
-                    </Modal>
+                    </CustomModal>
                 )}
                 <h2>
                     <ThemedCopyOutlined /> Backup your wallet

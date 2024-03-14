@@ -356,7 +356,7 @@ describe('<Configure />', () => {
 
         // We see a modal.
         expect(
-            await screen.findByText('Rename Wallet alpha'),
+            await screen.findByText('Editing name for wallet "alpha"'),
         ).toBeInTheDocument();
 
         // Try to rename it to an already existing name
@@ -443,7 +443,7 @@ describe('<Configure />', () => {
         // We see a confirmation modal
         expect(
             await screen.findByText(
-                `Are you sure you want to delete wallet "ALPHA PRIME"?`,
+                `Delete wallet "ALPHA PRIME"?. This cannot be undone. Make sure you have backed up your wallet.`,
             ),
         ).toBeInTheDocument();
 

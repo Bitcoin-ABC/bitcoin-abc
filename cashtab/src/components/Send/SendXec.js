@@ -16,7 +16,8 @@ import {
     CashReceivedNotificationIcon,
 } from 'components/Common/CustomIcons';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import { Form, Modal, Alert, Input } from 'antd';
+import { Form, Alert, Input } from 'antd';
+import Modal from 'components/Common/Modal';
 import { Row, Col, Switch } from 'antd';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
@@ -771,32 +772,26 @@ const SendXec = () => {
     );
     return (
         <>
-            <Modal
-                title="Confirm Send"
-                open={isModalVisible}
-                onOk={handleOk}
-                onCancel={handleCancel}
-            >
-                <p>
-                    {isOneToManyXECSend ? (
-                        <>
-                            Are you sure you want to send{' '}
-                            {sumOneToManyXec(
-                                formData.address.split('\n'),
-                            ).toLocaleString(userLocale, {
-                                maximumFractionDigits: 2,
-                            })}{' '}
-                            XEC in the following transaction?
-                            <br />
-                            <br />
-                            {formData.address}
-                        </>
-                    ) : (
-                        `Are you sure you want to send ${formData.value}${' '}
-                  ${selectedCurrency} to ${parsedAddressInput.address.value}?`
-                    )}
-                </p>
-            </Modal>
+            {isModalVisible && (
+                <Modal
+                    title="Confirm Send"
+                    description={
+                        isOneToManyXECSend
+                            ? `Send
+                                ${sumOneToManyXec(
+                                    formData.address.split('\n'),
+                                ).toLocaleString(userLocale, {
+                                    maximumFractionDigits: 2,
+                                })} 
+                                XEC to multiple recipients?`
+                            : `Send ${formData.value}${' '}
+                  ${selectedCurrency} to ${parsedAddressInput.address.value}`
+                    }
+                    handleOk={handleOk}
+                    handleCancel={handleCancel}
+                    showCancelButton
+                />
+            )}
             <SidePaddingCtn data-testid="send-xec-ctn">
                 <Row type="flex">
                     <Col span={24}>
@@ -876,7 +871,6 @@ const SendXec = () => {
                                                 name: 'address',
                                                 onChange: e =>
                                                     handleAddressChange(e),
-                                                required: true,
                                                 value: formData.address,
                                             }}
                                         ></DestinationAddressSingle>
@@ -934,7 +928,6 @@ const SendXec = () => {
                                                 placeholder: 'Amount',
                                                 onChange: e =>
                                                     handleAmountChange(e),
-                                                required: true,
                                                 value: formData.value,
                                                 disabled:
                                                     priceApiError ||
@@ -989,7 +982,6 @@ const SendXec = () => {
                                                 name: 'address',
                                                 onChange: e =>
                                                     handleMultiAddressChange(e),
-                                                required: true,
                                                 value: formData.address,
                                             }}
                                         ></DestinationAddressMulti>
