@@ -57,6 +57,9 @@ class ChronikWsTest(BitcoinTestFramework):
         tip = node.getbestblockhash()
         self.wait_until(lambda: has_finalized_tip(tip))
 
+        # Make sure chronik has synced
+        node.syncwithvalidationinterfacequeue()
+
         # Now subscribe to blocks, we'll get block updates from now on
         chronik_sub_to_blocks(ws, node)
 
