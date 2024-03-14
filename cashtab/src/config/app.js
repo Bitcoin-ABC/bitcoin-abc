@@ -13,6 +13,7 @@ const appConfig = {
     logo: mainLogo,
     legacyPrefix: 'bitcoincash',
     coingeckoId: 'ecash',
+    fiatUpdateIntervalMs: 90000,
     defaultFee: 2.01,
     minFee: 1,
     dustSats: 550,

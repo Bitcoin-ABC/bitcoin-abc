@@ -651,7 +651,7 @@ const useWallet = chronik => {
 
         const thisFiatInterval = setInterval(function () {
             fetchXecPrice(selectedFiatCurrency);
-        }, 60000);
+        }, appConfig.fiatUpdateIntervalMs);
 
         // set interval in state
         setCheckFiatInterval(thisFiatInterval);
@@ -671,30 +671,26 @@ const useWallet = chronik => {
         const cryptoId = appConfig.coingeckoId;
         // Keep this in the code, because different URLs will have different outputs require different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
-        let xecPrice;
-        let xecPriceJson;
         try {
-            xecPrice = await fetch(priceApiUrl);
-        } catch (err) {
-            console.log(`Error fetching XEC Price`);
-            console.log(err);
-        }
-        try {
-            xecPriceJson = await xecPrice.json();
+            const xecPrice = await fetch(priceApiUrl);
+            const xecPriceJson = await xecPrice.json();
             let xecPriceInFiat = xecPriceJson[cryptoId][fiatCode];
 
-            const validEcashPrice = typeof xecPriceInFiat === 'number';
-
-            if (validEcashPrice) {
-                setFiatPrice(xecPriceInFiat);
-            } else {
-                // If API price looks fishy, do not allow app to send using fiat settings
-                setFiatPrice(null);
+            if (typeof xecPriceInFiat === 'number') {
+                return setFiatPrice(xecPriceInFiat);
             }
         } catch (err) {
-            console.log(`Error parsing price API response to JSON`);
-            console.log(err);
+            if (err.message === 'Failed to fetch') {
+                // The most common error is coingecko 429
+                console.log(
+                    `Failed to fetch XEC Price: Bad response or rate limit from CoinGecko`,
+                );
+            } else {
+                console.log(`Failed to fetch XEC Price`, err);
+            }
         }
+        // If we have an error in the price fetch, or an invalid type without one, do not set the price
+        return setFiatPrice(null);
     };
 
     /**
@@ -757,11 +753,15 @@ const useWallet = chronik => {
 
     // Clear price API and update to new price API when fiat currency changes
     useEffect(() => {
+        if (cashtabLoaded !== true) {
+            // Wait for Cashtab to load the user's fiat currency from saved settings before starting the price API
+            return;
+        }
         // Clear existing fiat price API check
         clearFiatPriceApi(checkFiatInterval);
         // Reset fiat price API when fiatCurrency setting changes
         initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
-    }, [cashtabState.settings.fiatCurrency]);
+    }, [cashtabLoaded, cashtabState.settings.fiatCurrency]);
 
     // Update websocket subscriptions and websocket onMessage handler whenever
     // the active wallet changes (denoted by mnemonic changing, not when name changes)
