@@ -18,7 +18,7 @@ describe('chronik/wsHandler.js', async function () {
         assert.equal(mockedChronik.wsWaitForOpenCalled, true);
 
         // Confirm we have subscribed to blocks
-        assert.equal(result.isSubscribedBlocks, true);
+        assert.equal(result.subs.blocks, true);
 
         // Confirm onMessage has been set
         assert.equal(typeof result.onMessage, 'function');

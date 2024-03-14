@@ -119,3 +119,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.5.0
 
 -   Add support for ws subscribe methods and shape found in in-node chronik-client
+
+1.6.0
+
+-   Match shape of `subs` object in `ChronikClientNode` for `ChronikClientNode` ws methods and support unsubscribe from blocks

@@ -199,7 +199,11 @@ it('We can mock a chronik websocket connection', async function () {
 
     // We can subscribe to blocks (in-node chronik-client)
     ws.subscribeToBlocks();
-    assert.strictEqual(ws.isSubscribedBlocks, true);
+    assert.equal(ws.subs.blocks, true);
+
+    // We can unsubscribe from blocks (in-node chronik-client)
+    ws.unsubscribeFromBlocks();
+    assert.equal(ws.subs.blocks, false);
 });
 
 it('We can subscribe to and unsubscribe from addresses with the ws object', async function () {
@@ -221,13 +225,15 @@ it('We can subscribe to and unsubscribe from addresses with the ws object', asyn
     ws.subscribeToAddress(P2PKH_ADDRESS);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, [{ scriptType: type, payload: hash }]);
+    assert.deepEqual(ws.subs, {
+        scripts: [{ scriptType: type, payload: hash }],
+    });
 
     // Unsubscribe from address
     ws.unsubscribeFromAddress(P2PKH_ADDRESS);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, []);
+    assert.deepEqual(ws.subs, { scripts: [] });
 
     // We expect an error if we unsubscribe from an address and there is no existing subscription
     assert.throws(
@@ -255,13 +261,15 @@ it('We can subscribe to and unsubscribe from scripts with the ws object', async 
     ws.subscribeToScript(type, hash);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, [{ scriptType: type, payload: hash }]);
+    assert.deepEqual(ws.subs, {
+        scripts: [{ scriptType: type, payload: hash }],
+    });
 
     // Unsubscribe from address
     ws.unsubscribeFromScript(type, hash);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, []);
+    assert.deepEqual(ws.subs, { scripts: [] });
 
     // We expect an error if we unsubscribe from an address and there is no existing subscription
     assert.throws(

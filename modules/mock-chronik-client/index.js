@@ -105,31 +105,40 @@ module.exports = {
                             // Otherwise do nothing
                         },
                         subscribeToScript: function (type, hash) {
-                            this.subs.push({
+                            // in-node only
+                            if (Array.isArray(this.subs)) {
+                                this.subs = { scripts: [] };
+                            }
+                            this.subs.scripts.push({
                                 scriptType: type,
                                 payload: hash,
                             });
                             self.wsSubscribeCalled = true;
                         },
                         unsubscribeFromScript: function (type, hash) {
-                            const thisSubInSubsIndex = this.subs.findIndex(
-                                sub =>
-                                    sub.scriptType === type &&
-                                    sub.payload === hash,
-                            );
+                            const thisSubInSubsIndex =
+                                this.subs.scripts.findIndex(
+                                    sub =>
+                                        sub.scriptType === type &&
+                                        sub.payload === hash,
+                                );
 
                             if (typeof thisSubInSubsIndex !== 'undefined') {
                                 // Remove from subs
-                                this.subs.splice(thisSubInSubsIndex, 1);
+                                this.subs.scripts.splice(thisSubInSubsIndex, 1);
                             }
                             // Otherwise do nothing
                         },
                         subscribeToAddress: function (address) {
+                            // in-node only
+                            if (Array.isArray(this.subs)) {
+                                this.subs = { scripts: [] };
+                            }
                             const { type, hash } = cashaddr.decode(
                                 address,
                                 true,
                             );
-                            this.subs.push({
+                            this.subs.scripts.push({
                                 scriptType: type,
                                 payload: hash,
                             });
@@ -140,7 +149,7 @@ module.exports = {
                                 true,
                             );
                             // Find the requested unsub script and remove it
-                            const unsubIndex = this.subs.findIndex(
+                            const unsubIndex = this.subs.scripts.findIndex(
                                 sub =>
                                     sub.scriptType === type &&
                                     sub.payload === hash,
@@ -154,10 +163,13 @@ module.exports = {
                             }
 
                             // Remove the requested subscription from this.subs
-                            this.subs.splice(unsubIndex, 1);
+                            this.subs.scripts.splice(unsubIndex, 1);
                         },
                         subscribeToBlocks: function () {
-                            this.isSubscribedBlocks = true;
+                            this.subs.blocks = true;
+                        },
+                        unsubscribeFromBlocks: function () {
+                            this.subs.blocks = false;
                         },
                     };
                     return returnedWs;
