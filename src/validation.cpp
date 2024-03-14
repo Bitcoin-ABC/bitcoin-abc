@@ -537,8 +537,8 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     // Check for conflicts with in-memory transactions
     for (const CTxIn &txin : tx.vin) {
-        auto itConflicting = m_pool.mapNextTx.find(txin.prevout);
-        if (itConflicting != m_pool.mapNextTx.end()) {
+        const CTransaction *ptxConflicting = m_pool.GetConflictTx(txin.prevout);
+        if (ptxConflicting) {
             // Disable replacement feature for good
             return state.Invalid(TxValidationResult::TX_CONFLICT,
                                  "txn-mempool-conflict");
