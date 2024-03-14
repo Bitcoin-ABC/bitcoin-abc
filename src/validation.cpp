@@ -2800,7 +2800,7 @@ static void UpdateTipLog(const CCoinsViewCache &coins_tip,
     LogPrintLevel_(
         BCLog::LogFlags::ALL, BCLog::Level::Info,
         /*should_ratelimit=*/false,
-        "%s%s: new best=%s height=%d version=0x%08x log2_work=%f tx=%ld "
+        "%s%s: new best=%s height=%d version=0x%08x log2_work=%f tx=%lu "
         "date='%s' progress=%f cache=%.1fMiB(%utxo)\n",
         prefix, func_name, tip->GetBlockHash().ToString(), tip->nHeight,
         tip->nVersion, log(tip->nChainWork.getdouble()) / log(2.0),
@@ -4269,8 +4269,8 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
     if (!Assume(pindexNew->nChainTx == 0 ||
                 pindexNew->nChainTx == prev_tx_sum(*pindexNew) ||
                 pindexNew == GetSnapshotBaseBlock())) {
-        LogPrintf("Internal bug detected: block %d has unexpected nChainTx %i "
-                  "that should be %i. Please report this issue here: %s\n",
+        LogPrintf("Internal bug detected: block %d has unexpected nChainTx %lu "
+                  "that should be %lu. Please report this issue here: %s\n",
                   pindexNew->nHeight, pindexNew->nChainTx,
                   prev_tx_sum(*pindexNew), PACKAGE_BUGREPORT);
         pindexNew->nChainTx = 0;
@@ -4302,7 +4302,8 @@ void ChainstateManager::ReceivedBlockTransactions(const CBlock &block,
                         pindex->nChainTx == prev_tx_sum(*pindex))) {
                 LogPrintf(
                     "Internal bug detected: block %d has unexpected nChainTx "
-                    "%i that should be %i. Please report this issue here: %s\n",
+                    "%lu that should be %lu. Please report this issue here: "
+                    "%s\n",
                     pindex->nHeight, pindex->nChainTx, prev_tx_sum(*pindex),
                     PACKAGE_BUGREPORT);
             }

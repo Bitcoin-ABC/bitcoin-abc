@@ -64,8 +64,7 @@ public:
     //! This value will be non-zero if this block and all previous blocks back
     //! to the genesis block or an assumeutxo snapshot block have reached the
     //! VALID_TRANSACTIONS level.
-    //! Change to 64-bit type when necessary; won't happen before 2030
-    unsigned int nChainTx{0};
+    uint64_t nChainTx{0};
 
     //! Verification status of this block. See enum BlockStatus
     BlockStatus nStatus GUARDED_BY(::cs_main){};
@@ -135,7 +134,7 @@ public:
     /**
      * Get the number of transaction in the chain so far.
      */
-    int64_t GetChainTxCount() const { return nChainTx; }
+    uint64_t GetChainTxCount() const { return nChainTx; }
 
     /**
      * Check whether this block and all previous blocks back to the genesis

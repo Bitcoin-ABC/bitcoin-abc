@@ -57,7 +57,7 @@ struct AssumeutxoData {
     //! We need to hardcode the value here because this is computed cumulatively
     //! using block data, which we do not necessarily have at the time of
     //! snapshot load.
-    unsigned int nChainTx;
+    uint64_t nChainTx;
 
     //! The hash of the base block for this snapshot. Used to refer to
     //! assumeutxo data prior to having a loaded blockindex.
@@ -72,7 +72,7 @@ struct AssumeutxoData {
  */
 struct ChainTxData {
     int64_t nTime;
-    int64_t nTxCount;
+    uint64_t nTxCount;
     double dTxRate;
 };
 

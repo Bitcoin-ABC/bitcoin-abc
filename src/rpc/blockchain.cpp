@@ -1995,7 +1995,7 @@ static RPCHelpMan getchaintxstats() {
             if (blockcount > 0) {
                 ret.pushKV("window_interval", nTimeDiff);
                 if (pindex->nChainTx != 0 && past_block.nChainTx != 0) {
-                    unsigned int window_tx_count =
+                    uint64_t window_tx_count =
                         pindex->nChainTx - past_block.nChainTx;
                     ret.pushKV("window_tx_count", window_tx_count);
                     if (nTimeDiff > 0) {

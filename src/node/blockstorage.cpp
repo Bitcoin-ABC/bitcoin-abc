@@ -275,7 +275,7 @@ bool BlockManager::LoadBlockIndex(
         // to disk, we must bootstrap the value for assumedvalid chainstates
         // from the hardcoded assumeutxo chainparams.
         base->nChainTx = au_data.nChainTx;
-        LogPrintf("[snapshot] set nChainTx=%d for %s\n", au_data.nChainTx,
+        LogPrintf("[snapshot] set nChainTx=%lu for %s\n", au_data.nChainTx,
                   snapshot_blockhash->ToString());
     } else {
         // If this isn't called with a snapshot blockhash, make sure the cached
@@ -316,7 +316,7 @@ bool BlockManager::LoadBlockIndex(
         // basis of snapshot load (see PopulateAndValidateSnapshot()).
         // Pruned nodes may have deleted the block.
         if (pindex->nTx > 0) {
-            const unsigned int prevNChainTx =
+            const uint64_t prevNChainTx =
                 pindex->pprev ? pindex->pprev->nChainTx : 0;
             if (m_snapshot_height && pindex->nHeight == *m_snapshot_height &&
                 pindex->GetBlockHash() == *snapshot_blockhash) {
