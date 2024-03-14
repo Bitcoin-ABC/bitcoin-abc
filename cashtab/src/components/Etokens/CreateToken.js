@@ -15,7 +15,18 @@ import appConfig from 'config/app';
 const CreateToken = () => {
     const { apiError, fiatPrice, cashtabState } =
         React.useContext(WalletContext);
+
     const { settings, wallets } = cashtabState;
+
+    const minTokenCreationFiatPriceString =
+        fiatPrice !== null
+            ? `${supportedFiatCurrencies[settings.fiatCurrency].symbol}${(
+                  toXec(appConfig.dustSats) * fiatPrice
+              ).toFixed(4)} ${supportedFiatCurrencies[
+                  settings.fiatCurrency
+              ].slug.toUpperCase()}`
+            : '';
+
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balanceSats } = walletState;
@@ -27,20 +38,8 @@ const CreateToken = () => {
                 {balanceSats < appConfig.dustSats ? (
                     <AlertMsg>
                         You need at least {toXec(appConfig.dustSats).toString()}{' '}
-                        {appConfig.ticker} (
-                        {settings
-                            ? `${
-                                  supportedFiatCurrencies[settings.fiatCurrency]
-                                      .symbol
-                              }`
-                            : '$'}
-                        {(toXec(appConfig.dustSats) * fiatPrice).toFixed(4)}{' '}
-                        {settings
-                            ? `${supportedFiatCurrencies[
-                                  settings.fiatCurrency
-                              ].slug.toUpperCase()}`
-                            : 'USD'}
-                        ) to create a token
+                        {appConfig.ticker} {minTokenCreationFiatPriceString} to
+                        create a token
                     </AlertMsg>
                 ) : (
                     <CreateTokenForm />

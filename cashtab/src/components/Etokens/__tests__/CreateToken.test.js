@@ -109,7 +109,7 @@ describe('<CreateToken />', () => {
         // Renders expected alert
         expect(
             await screen.findByText(
-                'You need at least 5.5 XEC ($0.0002 USD) to create a token',
+                'You need at least 5.5 XEC to create a token',
             ),
         ).toBeInTheDocument();
     });
