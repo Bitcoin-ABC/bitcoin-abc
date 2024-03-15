@@ -104,6 +104,7 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         # Signals
         self.load_proof_button.clicked.connect(self.on_load_proof_clicked)
         self.dg_edit.textChanged.connect(self.on_delegation_pasted)
+        self.proof_edit.textChanged.connect(self.on_proof_pasted)
         generate_key_button.clicked.connect(self.on_generate_key_clicked)
         self.generate_button.clicked.connect(self.on_generate_clicked)
 
@@ -126,6 +127,17 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         self.set_proof(proof_hex)
         self.tab_widget.setCurrentWidget(self.proof_edit)
 
+    def maybe_prefill_delegator_key(self, pubkey: PublicKey):
+        idx = self.wallet.get_auxiliary_pubkey_index(
+            address.PublicKey.from_pubkey(pubkey.keydata),
+            self.pwd,
+        )
+        if idx is None:
+            return
+        self.delegator_key_edit.setText(
+            self.wallet.export_private_key_for_index((2, idx), self.pwd)
+        )
+
     def on_delegation_pasted(self):
         """Deserialize the delegation to be used as a base delegation to which a level
         is to be added. Find the delegated pubkey and check whether this is an auxiliary
@@ -137,16 +149,18 @@ class AvaDelegationWidget(CachedWalletPasswordWidget):
         except DeserializationError:
             return
         dg_pubkey = dg.get_delegated_public_key()
-        # Mind the type difference between PublicKey returned by
-        # Delegation.get_delegated_public_key and PublicKey used by Wallet.
-        idx = self.wallet.get_auxiliary_pubkey_index(
-            address.PublicKey.from_pubkey(dg_pubkey.keydata),
-            self.pwd,
-        )
-        if idx is not None:
-            self.delegator_key_edit.setText(
-                self.wallet.export_private_key_for_index((2, idx), self.pwd)
-            )
+        self.maybe_prefill_delegator_key(dg_pubkey)
+
+    def on_proof_pasted(self):
+        """Deserialize the proof and if the master key is an auxiliary key belonging to
+        this wallet. If it is, prefill the Delegator key field with the private
+        key.
+        """
+        try:
+            proof = Proof.from_hex(self.proof_edit.toPlainText())
+        except DeserializationError:
+            return
+        self.maybe_prefill_delegator_key(proof.master_pub)
 
     def on_generate_key_clicked(self):
         """Open a dialog to show a private/public key pair to be used as delegated key.
