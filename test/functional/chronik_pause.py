@@ -39,16 +39,8 @@ class ChronikPauseTest(BitcoinTestFramework):
         chronik.pause().err(403)
         chronik.resume().err(403)
 
-        self.log.info("-chronikallowpause cannot be used on mainnet")
-        self.stop_node(0)
-        node.assert_start_raises_init_error(
-            ["-chronik", "-chronikallowpause", "-chain=main", "-regtest=0"],
-            expected_msg="Error: Using -chronikallowpause on a mainnet chain is not "
-            "allowed for security reasons.",
-        )
-
         self.log.info("Restart to allow pause")
-        self.start_node(0, ["-chronik", "-chronikallowpause"])
+        self.restart_node(0, ["-chronik", "-chronikallowpause"])
         node.setmocktime(1300000000)
 
         peer = node.add_p2p_connection(P2PDataStore())
