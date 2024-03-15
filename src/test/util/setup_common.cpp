@@ -113,8 +113,13 @@ BasicTestingSetup::BasicTestingSetup(
         assert(success);
         assert(error.empty());
     }
+
+    // Use randomly chosen seed for deterministic PRNG, so that (by default)
+    // test data directories use a random name that doesn't overlap with other
+    // tests.
+    SeedRandomForTest(SeedRand::SEED);
+
     SelectParams(chainType);
-    SeedRandomForTest();
     InitLogging(*m_node.args);
     AppInitParameterInteraction(config, *m_node.args);
     LogInstance().StartLogging();
