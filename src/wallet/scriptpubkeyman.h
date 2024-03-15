@@ -396,7 +396,7 @@ private:
      *
      * @param[out] nIndex the index of the key in keypool
      * @param[out] keypool the keypool the key was drawn from, which could be
-     * the the pre-split pool if present, or the internal or external pool
+     * the pre-split pool if present, or the internal or external pool
      * @param fRequestedInternal true if the caller would like the key drawn
      *     from the internal keypool, false if external is preferred
      *

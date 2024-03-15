@@ -116,7 +116,7 @@ added to and removed (spent) from the cache when we connect a new block.
 (`chainstate.CoinsTip()`). For example, the RPCs `generateblock` and
 `getblocktemplate` call `TestBlockValidity()`, which applies the UTXO set
 changes to a temporary cache. Similarly, mempool consistency checks, which are
-frequent on regtest, also apply the the UTXO set changes to a temporary cache.
+frequent on regtest, also apply the UTXO set changes to a temporary cache.
 Changes to the _main_ UTXO cache and to temporary caches trigger the tracepoints.
 We can't tell if a temporary cache or the _main_ cache was changed.
 

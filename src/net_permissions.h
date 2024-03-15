@@ -37,7 +37,7 @@ enum class NetPermissionFlags : uint32_t {
     // unlimited amounts of addrs.
     Addr = (1U << 7),
     // Bypass the limit on how many proof INVs are tracked from this peer as
-    // well as the delay penalty when reaching the the in-flight requests limit
+    // well as the delay penalty when reaching the in-flight requests limit
     BypassProofRequestLimits = (1U << 30),
 
     // True if the user did not specifically set fine grained permissions

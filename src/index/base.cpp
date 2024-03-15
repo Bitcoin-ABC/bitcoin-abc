@@ -262,7 +262,7 @@ void BaseIndex::BlockConnected(const std::shared_ptr<const CBlock> &block,
     } else {
         // Ensure block connects to an ancestor of the current best block. This
         // should be the case most of the time, but may not be immediately after
-        // the the sync thread catches up and sets m_synced. Consider the case
+        // the sync thread catches up and sets m_synced. Consider the case
         // where there is a reorg and the blocks on the stale branch are in the
         // ValidationInterface queue backlog even after the sync thread has
         // caught up to the new chain tip. In this unlikely event, log a warning
@@ -312,7 +312,7 @@ void BaseIndex::ChainStateFlushed(const CBlockLocator &locator) {
     }
 
     // This checks that ChainStateFlushed callbacks are received after
-    // BlockConnected. The check may fail immediately after the the sync thread
+    // BlockConnected. The check may fail immediately after the sync thread
     // catches up and sets m_synced. Consider the case where there is a reorg
     // and the blocks on the stale branch are in the ValidationInterface queue
     // backlog even after the sync thread has caught up to the new chain tip. In
