@@ -16,8 +16,6 @@ import {
 import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
-import { Img } from 'react-image';
-import makeBlockie from 'ethereum-blockies-base64';
 import { BN } from 'slp-mdm';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
@@ -633,40 +631,13 @@ const SendToken = () => {
                                         name: 'value',
                                         step: 1 / 10 ** token.info.decimals,
                                         placeholder: 'Amount',
-                                        prefix:
-                                            tokenConfig.tokenIconsUrl !== '' ? (
-                                                <Img
-                                                    src={`${tokenConfig.tokenIconsUrl}/32/${tokenId}.png`}
-                                                    width={16}
-                                                    height={16}
-                                                    unloader={
-                                                        <img
-                                                            alt={`identicon of tokenId ${tokenId} `}
-                                                            height="16"
-                                                            width="16"
-                                                            style={{
-                                                                borderRadius:
-                                                                    '50%',
-                                                            }}
-                                                            key={`identicon-${tokenId}`}
-                                                            src={makeBlockie(
-                                                                tokenId,
-                                                            )}
-                                                        />
-                                                    }
-                                                />
-                                            ) : (
-                                                <img
-                                                    alt={`identicon of tokenId ${tokenId} `}
-                                                    height="16"
-                                                    width="16"
-                                                    style={{
-                                                        borderRadius: '50%',
-                                                    }}
-                                                    key={`identicon-${tokenId}`}
-                                                    src={makeBlockie(tokenId)}
-                                                />
-                                            ),
+                                        prefix: (
+                                            <img
+                                                src={`${tokenConfig.tokenIconsUrl}/32/${tokenId}.png`}
+                                                width={16}
+                                                height={16}
+                                            />
+                                        ),
                                         suffix: token.info.tokenTicker,
                                         onChange: e => handleSlpAmountChange(e),
                                         required: true,

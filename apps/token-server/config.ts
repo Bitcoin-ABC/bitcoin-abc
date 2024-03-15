@@ -9,6 +9,10 @@ interface TokenServerConfig {
     rewardsTokenId: string;
     serverOutputScript: string;
     imageDir: string;
+    rejectedDir: string;
+    maxUploadSize: number;
+    whitelist: string[];
+    iconSizes: number[];
 }
 
 const config: TokenServerConfig = {
@@ -29,6 +33,11 @@ const config: TokenServerConfig = {
     // Note: this must be the target= parameter for the --mount instruction of docker run
     // See Production Step 3 in README.md
     imageDir: '/token-icons',
+    rejectedDir: '/rejected',
+    maxUploadSize: 500000, // max upload size in bytes
+    // We support uploading image files from these origins
+    whitelist: ['https://cashtab.com'],
+    iconSizes: [32, 64, 128, 256, 512],
 };
 
 export default config;

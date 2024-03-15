@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.3.0",
+    "version": "2.4.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -36,7 +36,6 @@
         "ecash-coinselect": "^2.2.0",
         "ecash-script": "^2.1.2",
         "ecashaddrjs": "^1.5.4",
-        "ethereum-blockies-base64": "^1.0.2",
         "etoken-list": "^1.0.4",
         "localforage": "^1.9.0",
         "qrcode.react": "^3.1.0",
@@ -44,7 +43,6 @@
         "react-dom": "^18.2.0",
         "react-easy-crop": "^3.5.3",
         "react-ga": "^3.3.0",
-        "react-image": "^4.0.3",
         "react-router-dom": "^6.22.0",
         "slp-mdm": "^0.0.6"
     },

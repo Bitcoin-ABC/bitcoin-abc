@@ -10,6 +10,10 @@ Note: you will have to adjust the `imageDir` param in `config` to test serving o
 
 ## Production
 
+Before running `token-server` in production, you must first set up the file system on your desired server (see "Setting up the file system", below).
+
+Fill out `secrets.ts` with your Telegram bot information.
+
 `token-server` is deployed with docker.
 
 You can test production deployment with
@@ -31,3 +35,30 @@ docker run -p 3333:3333 --init --rm --name token-server --mount type=bind,source
 ```
 
 4. Test from web browser, e.g. navigate to `localhost:3333/status`
+
+## Setting up the file system
+
+The server file system must be configured for image serving.
+
+1. Create directory for `config.imageDir`
+2. Create subdirectories at `config.imageDir` for all supported `config.iconSizes`
+
+For example,
+
+```
+mkdir token-icons
+mkdir token-icons/32
+mkdir token-icons/64
+mkdir token-icons/128
+```
+
+3. Repeat the above steps for `config.rejectedDir`
+
+e.g.
+
+```
+mkdir rejected
+mkdir rejected/32
+mkdir rejected/64
+mkdir rejected/128
+```

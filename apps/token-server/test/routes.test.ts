@@ -8,6 +8,9 @@ import config from '../config';
 import cashaddr from 'ecashaddrjs';
 import { startExpressServer } from '../src/routes';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
+import TelegramBot from 'node-telegram-bot-api';
+import { createFsFromVolume, vol } from 'memfs';
+import sharp from 'sharp';
 
 describe('routes.js', async function () {
     let app: http.Server;
@@ -59,11 +62,32 @@ describe('routes.js', async function () {
         ERROR_ADDRESS,
         new Error('some chronik error'),
     );
+
+    // Mock a stub telegram bot
+    const mockedTgBot = { sendPhoto: () => {} };
+
+    // Initialize fs, to be memfs in these tests
+    let fs: any;
     beforeEach(async () => {
+        // Mock expected file structure for fs
+        const fileStructureJson: any = {};
+        // Create mock empty directories for all supported sizes
+        for (const size of config.iconSizes) {
+            fileStructureJson[`${size}`] = null;
+        }
+        vol.fromJSON(fileStructureJson, config.imageDir);
+        fs = createFsFromVolume(vol);
         const TEST_PORT = 5000;
-        app = startExpressServer(TEST_PORT, mockedChronikClient);
+        app = startExpressServer(
+            TEST_PORT,
+            mockedChronikClient,
+            mockedTgBot as unknown as TelegramBot,
+            fs,
+        );
     });
     afterEach(async () => {
+        // Reset mocked fs
+        vol.reset();
         // Stop express server
         app.close();
     });
@@ -128,6 +152,219 @@ describe('routes.js', async function () {
             .expect('Content-Type', /json/)
             .expect({
                 error: 'Could not find /some/request/test',
+            });
+    });
+    it('We receive a 500 error if post has no file', function () {
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach(
+                'tokenIcon',
+                Buffer.alloc(config.maxUploadSize - 1, 1),
+                // no file name
+            )
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `No file in "/new" token icon request`,
+            });
+    });
+    it('We receive a 500 error if image upload exceeds server limit', function () {
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach(
+                'tokenIcon',
+                Buffer.alloc(config.maxUploadSize, 1),
+                'mockicon.png',
+            )
+            .expect(500)
+            .expect('Content-Type', 'text/html; charset=utf-8')
+            .expect(/MulterError: File too large/);
+    });
+    it('We can accept a png upload and resize it on the server', async function () {
+        // Create a mock 512x512 png that sharp can process
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'ok',
+            });
+    });
+    it('A png upload request from a non-whitelisted domain is rejected', async function () {
+        // Create a mock 512x512 png that sharp can process
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .set('Origin', 'https://notcashtab.com/')
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(500)
+            .expect('Content-Type', 'text/html; charset=utf-8')
+            .expect(/Not allowed by CORS/);
+    });
+    it('If the token icon already exists on the server, the /new request is rejected', async function () {
+        // Create a mock 512x512 png that sharp can process
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        // First request is ok
+        await request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'ok',
+            });
+
+        // Now an identical request will fail
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: `Token icon already exists for 1111111111111111111111111111111111111111111111111111111111111111`,
+            });
+    });
+    it('We only accept pngs at the /new post endpoint', async function () {
+        const semiTransparentRedJpg = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .jpeg()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach('tokenIcon', semiTransparentRedJpg, 'mockicon.jpg')
+            .expect(403)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Only .png files are allowed.',
+            });
+    });
+    it('Error in sharp resize is handled', async function () {
+        return request(app)
+            .post(`/new`)
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach(
+                'tokenIcon',
+                Buffer.alloc(config.maxUploadSize - 1, 1),
+                'mockicon.png',
+            )
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'error',
+                msg: 'Error resizing uploaded token icon',
             });
     });
 });

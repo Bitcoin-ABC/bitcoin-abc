@@ -263,8 +263,8 @@ const CreateTokenForm = () => {
 
     //end eToken icon adds
 
-    // New Token Name
-    const [newTokenName, setNewTokenName] = useState('');
+    // Token name
+    const [name, setName] = useState('');
     const [newTokenNameIsValid, setNewTokenNameIsValid] = useState(null);
     const [newTokenNameIsProbablyNotAScam, setNewTokenNameIsProbablyNotAScam] =
         useState(null);
@@ -288,11 +288,11 @@ const CreateTokenForm = () => {
             setTokenNameError('');
         }
 
-        setNewTokenName(value);
+        setName(value);
     };
 
     // New Token Ticker
-    const [newTokenTicker, setNewTokenTicker] = useState('');
+    const [ticker, setTicker] = useState('');
     const [newTokenTickerIsValid, setNewTokenTickerIsValid] = useState(null);
     const [
         newTokenTickerIsProbablyNotAScam,
@@ -317,11 +317,11 @@ const CreateTokenForm = () => {
             setTokenTickerError('');
         }
 
-        setNewTokenTicker(value);
+        setTicker(value);
     };
 
     // New Token Decimals
-    const [newTokenDecimals, setNewTokenDecimals] = useState(0);
+    const [decimals, setDecimals] = useState(0);
     const [newTokenDecimalsIsValid, setNewTokenDecimalsIsValid] =
         useState(true);
     const handleNewTokenDecimalsInput = e => {
@@ -331,27 +331,25 @@ const CreateTokenForm = () => {
         // Also validate the supply here if it has not yet been set
         if (newTokenInitialQtyIsValid !== null) {
             setNewTokenInitialQtyIsValid(
-                isValidTokenInitialQty(value, newTokenDecimals),
+                isValidTokenInitialQty(value, decimals),
             );
         }
 
-        setNewTokenDecimals(value);
+        setDecimals(value);
     };
 
     // New Token Initial Quantity
-    const [newTokenInitialQty, setNewTokenInitialQty] = useState('');
+    const [initialQty, setInitialQty] = useState('');
     const [newTokenInitialQtyIsValid, setNewTokenInitialQtyIsValid] =
         useState(null);
     const handleNewTokenInitialQtyInput = e => {
         const { value } = e.target;
         // validation
-        setNewTokenInitialQtyIsValid(
-            isValidTokenInitialQty(value, newTokenDecimals),
-        );
-        setNewTokenInitialQty(value);
+        setNewTokenInitialQtyIsValid(isValidTokenInitialQty(value, decimals));
+        setInitialQty(value);
     };
     // New Token document URL
-    const [newTokenDocumentUrl, setNewTokenDocumentUrl] = useState('');
+    const [url, setUrl] = useState('');
     // Start with this as true, field is not required
     const [newTokenDocumentUrlIsValid, setNewTokenDocumentUrlIsValid] =
         useState(true);
@@ -360,7 +358,7 @@ const CreateTokenForm = () => {
         const { value } = e.target;
         // validation
         setNewTokenDocumentUrlIsValid(isValidTokenDocumentUrl(value));
-        setNewTokenDocumentUrl(value);
+        setUrl(value);
     };
 
     // New Token fixed supply
@@ -386,22 +384,19 @@ const CreateTokenForm = () => {
         let formData = new FormData();
 
         const data = {
-            newTokenName,
-            newTokenTicker,
-            newTokenDecimals,
-            newTokenDocumentUrl,
-            newTokenInitialQty,
+            name,
+            ticker,
+            decimals,
+            url,
+            initialQty,
             tokenIcon,
         };
         for (let key in data) {
             formData.append(key, data[key]);
         }
-        // Would get tokenId here
-        //formData.append('tokenId', link.substr(link.length - 64));
-        // for now, hard code it
-        formData.append('tokenId', tokenId);
 
-        console.log(formData);
+        // This function is called after the genesis tx is broadcast, using tokenId as a calling param
+        formData.append('tokenId', tokenId);
 
         try {
             const tokenIconApprovalResponse = await fetch(
@@ -419,13 +414,17 @@ const CreateTokenForm = () => {
             const tokenIconApprovalResponseJson =
                 await tokenIconApprovalResponse.json();
 
-            if (!tokenIconApprovalResponseJson.approvalRequested) {
-                // If the backend returns a specific error msg along with "approvalRequested = false", throw that error
-                // You may want to customize how the app reacts to different cases
+            if (
+                typeof tokenIconApprovalResponseJson.status === 'undefined' ||
+                tokenIconApprovalResponseJson.status !== 'ok'
+            ) {
+                // Let the user know there was an issue with submitting the token icon
                 if (tokenIconApprovalResponseJson.msg) {
                     throw new Error(tokenIconApprovalResponseJson.msg);
                 } else {
-                    throw new Error('Error in uploading token icon');
+                    throw new Error(
+                        'Error uploading token icon. Please email icons@e.cash for support.',
+                    );
                 }
             }
 
@@ -451,14 +450,11 @@ const CreateTokenForm = () => {
 
         // data must be valid and user reviewed to get here
         const configObj = {
-            name: newTokenName,
-            ticker: newTokenTicker,
-            documentUrl:
-                newTokenDocumentUrl === ''
-                    ? tokenConfig.newTokenDefaultUrl
-                    : newTokenDocumentUrl,
-            decimals: newTokenDecimals,
-            initialQty: newTokenInitialQty,
+            name,
+            ticker,
+            documentUrl: url === '' ? tokenConfig.newTokenDefaultUrl : url,
+            decimals,
+            initialQty,
             documentHash: '',
             mintBatonVout: null,
         };
@@ -521,18 +517,16 @@ const CreateTokenForm = () => {
                 onOk={createPreviewedToken}
                 onCancel={() => setShowConfirmCreateToken(false)}
             >
-                <TokenParamLabel>Name:</TokenParamLabel> {newTokenName}
+                <TokenParamLabel>Name:</TokenParamLabel> {name}
                 <br />
-                <TokenParamLabel>Ticker:</TokenParamLabel> {newTokenTicker}
+                <TokenParamLabel>Ticker:</TokenParamLabel> {ticker}
                 <br />
-                <TokenParamLabel>Decimals:</TokenParamLabel> {newTokenDecimals}
+                <TokenParamLabel>Decimals:</TokenParamLabel> {decimals}
                 <br />
-                <TokenParamLabel>Supply:</TokenParamLabel> {newTokenInitialQty}
+                <TokenParamLabel>Supply:</TokenParamLabel> {initialQty}
                 <br />
                 <TokenParamLabel>Document URL:</TokenParamLabel>{' '}
-                {newTokenDocumentUrl === ''
-                    ? tokenConfig.newTokenDefaultUrl
-                    : newTokenDocumentUrl}
+                {url === '' ? tokenConfig.newTokenDefaultUrl : url}
                 <br />
             </Modal>
             <CreateTokenCtn>
@@ -561,8 +555,8 @@ const CreateTokenForm = () => {
                         >
                             <Input
                                 placeholder="Enter a name for your token"
-                                name="newTokenName"
-                                value={newTokenName}
+                                name="name"
+                                value={name}
                                 onChange={e => handleNewTokenNameInput(e)}
                             />
                         </Form.Item>
@@ -583,8 +577,8 @@ const CreateTokenForm = () => {
                         >
                             <Input
                                 placeholder="Enter a ticker for your token"
-                                name="newTokenTicker"
-                                value={newTokenTicker}
+                                name="ticker"
+                                value={ticker}
                                 onChange={e => handleNewTokenTickerInput(e)}
                             />
                         </Form.Item>
@@ -605,9 +599,9 @@ const CreateTokenForm = () => {
                         >
                             <Input
                                 placeholder="Enter number of decimal places"
-                                name="newTokenDecimals"
+                                name="decimals"
                                 type="number"
-                                value={newTokenDecimals}
+                                value={decimals}
                                 onChange={e => handleNewTokenDecimalsInput(e)}
                             />
                         </Form.Item>
@@ -628,9 +622,9 @@ const CreateTokenForm = () => {
                         >
                             <Input
                                 placeholder="Enter the fixed supply of your token"
-                                name="newTokenInitialQty"
-                                type="number"
-                                value={newTokenInitialQty}
+                                name="initialQty"
+                                type="string"
+                                value={initialQty}
                                 onChange={e => handleNewTokenInitialQtyInput(e)}
                             />
                         </Form.Item>
@@ -651,8 +645,8 @@ const CreateTokenForm = () => {
                         >
                             <Input
                                 placeholder="Enter a website for your token"
-                                name="newTokenDocumentUrl"
-                                value={newTokenDocumentUrl}
+                                name="url"
+                                value={url}
                                 onChange={e =>
                                     handleNewTokenDocumentUrlInput(e)
                                 }

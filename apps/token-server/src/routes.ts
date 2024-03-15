@@ -3,20 +3,42 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import express, { Express, Request, Response } from 'express';
+import sharp from 'sharp';
 import * as http from 'http';
-import cors from 'cors';
+import multer from 'multer';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import config from '../config';
+import secrets from '../secrets';
 import { getHistoryAfterTimestamp } from './chronik/clientHandler';
 import { isAddressEligibleForTokenReward } from './rewards';
 import { ChronikClientNode } from 'chronik-client';
 import { isTokenImageRequest } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
+import TelegramBot from 'node-telegram-bot-api';
+import { alertNewTokenIcon } from '../src/telegram';
 
 /**
  * routes.ts
  * Start Express server and expose API endpoints
  */
+
+// Define upload size limit
+var upload = multer({
+    limits: { fileSize: config.maxUploadSize },
+});
+
+// Only allow images uploads to come from approved domains
+var whitelist = config.whitelist;
+var corsOptions: CorsOptions = {
+    origin: function (origin: string | undefined, callback: Function) {
+        if (typeof origin === 'undefined' || whitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
 
 /**
  * Standard IP logger function to be called by all endpoints
@@ -30,19 +52,20 @@ function logIpInfo(req: Request) {
 export const startExpressServer = (
     port: Number,
     chronik: ChronikClientNode,
+    telegramBot: TelegramBot,
+    fs: any,
 ): http.Server => {
     // Initialize express
     const app: Express = express();
 
     // Enhanced security for express apps
     // https://www.npmjs.com/package/helmet
-    app.use(helmet());
+    app.use(helmet.crossOriginResourcePolicy({ policy: 'cross-origin' }));
 
     // Use JSON for data
     app.use(express.json());
 
     // Use cors
-    // TODO configure so that we only recognize requests from trusted domains, e.g. https://cashtab.com/
     app.use(cors());
 
     // Serve static files from the imageDir directory
@@ -119,6 +142,94 @@ export const startExpressServer = (
             }
 
             return res.status(200).json(response);
+        },
+    );
+
+    // Post endpoint for token ID on token creation
+    // Accept a png (only from cashtab.com or browser extension domain; validation on front end)
+    // TODO let anyone change a tokenIcon if they sign a msg with the mint address
+    app.post(
+        '/new',
+        cors(corsOptions),
+        upload.single(
+            'tokenIcon' /* name attribute of <file> element in your form */,
+        ),
+        async (req: Request, res: Response) => {
+            // Get IP address from before cloudflare proxy
+            logIpInfo(req);
+
+            // For now, we only support automatically creating a tokenId on token creation in Cashtab
+            // So, we get the token id from req.body.tokenId, from Cashtab
+            const tokenId = req.body.tokenId;
+            if (typeof req.file === 'undefined') {
+                // Should never happen
+                console.log(`No file in "/new" token icon request`);
+                return res.status(500).json({
+                    status: 'error',
+                    msg: 'No file in "/new" token icon request',
+                });
+            }
+
+            if (req.file.mimetype === 'image/png') {
+                // If the upload is a png (our only supported file type)
+
+                if (
+                    fs.existsSync(
+                        `${config.imageDir}/${config.iconSizes[0]}/${tokenId}.png`,
+                    )
+                ) {
+                    // If the icon already exists, send an error response
+                    return res.status(500).json({
+                        status: 'error',
+                        msg: `Token icon already exists for ${tokenId}`,
+                    });
+                }
+
+                // Create token icon png files at all supported sizes
+                const resizePromises = [];
+
+                for (const size of config.iconSizes) {
+                    const resizePromise = sharp(req.file.buffer)
+                        .resize(size)
+                        .toBuffer()
+                        .then(img => {
+                            fs.writeFileSync(
+                                `${config.imageDir}/${size}/${tokenId}.png`,
+                                img,
+                            );
+                        });
+                    resizePromises.push(resizePromise);
+                }
+                try {
+                    await Promise.all(resizePromises);
+                } catch (err) {
+                    console.log(`Error resizing image`, err);
+                    return res.status(500).json({
+                        status: 'error',
+                        msg: `Error resizing uploaded token icon`,
+                    });
+                }
+
+                // Send tg msg with approve/deny option
+                alertNewTokenIcon(
+                    telegramBot,
+                    secrets.prod.channelId,
+                    req.body,
+                );
+                return res.status(200).json({
+                    status: 'ok',
+                });
+            } else {
+                // Note: Cashtab front-end already converts to png and restricts accept types
+                // to png or jpg
+                // TODO support SVG and other types, you can convert more readily here than in Cashtab
+
+                // Send an error response
+                return res.status(403).json({
+                    status: 'error',
+                    msg: 'Only .png files are allowed.',
+                });
+            }
         },
     );
 

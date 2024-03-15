@@ -5,8 +5,8 @@
 'use strict';
 
 export const token = {
-    tokenIconSubmitApi: 'https://icons.bytesofman.com/new',
-    tokenIconsUrl: 'https://etoken-icons.s3.us-west-2.amazonaws.com',
+    tokenIconSubmitApi: 'https://api.etokens.cash/new',
+    tokenIconsUrl: 'https://icons.etokens.cash',
     tokenDbUrl: 'https://tokendb.kingbch.com',
     newTokenDefaultUrl: 'https://cashtab.com/',
 };
