@@ -94,23 +94,14 @@ describe('<Receive />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
 
-        // Receive component is not rendered while app is loading
-        expect(screen.queryByTestId('receive-ctn')).not.toBeInTheDocument();
-
-        // Loading ctn is rendered
-        expect(screen.getByTestId('rcv-loading')).toBeInTheDocument();
-
-        // After loading, we do not see loading ctn, and we do see receive
+        // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument(),
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Wait for the balance to render
-        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
-
+        // Receive screen is rendered
         expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
 
-        // We render the rest of the component as expected
         // QR Code is rendered
         expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
 
@@ -155,16 +146,12 @@ describe('<Receive />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
 
-        // Receive component is not rendered while app is loading
-        expect(screen.queryByTestId('receive-ctn')).not.toBeInTheDocument();
-
-        // Loading ctn is rendered
-        expect(screen.getByTestId('rcv-loading')).toBeInTheDocument();
-
-        // After loading, we do not see loading ctn, and we do see receive
+        // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument(),
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
+
+        // Receive screen is rendered
         expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
 
         // We render the rest of the component as expected
@@ -204,16 +191,12 @@ describe('<Receive />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
 
-        // Receive component is not rendered while app is loading
-        expect(screen.queryByTestId('receive-ctn')).not.toBeInTheDocument();
-
-        // Loading ctn is rendered
-        expect(screen.getByTestId('rcv-loading')).toBeInTheDocument();
-
-        // After loading, we do not see loading ctn, and we do see receive
+        // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('rcv-loading')).not.toBeInTheDocument(),
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
+
+        // Receive screen is rendered
         expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
 
         // We render the rest of the component as expected
@@ -232,33 +215,5 @@ describe('<Receive />', () => {
         expect(qrCodeItself).toBeInTheDocument();
         expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
         expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
-    });
-    it('Renders the Onboarding screen if user navigates to this route without a wallet', async () => {
-        // Mock the app with context at the Receive screen
-        const mockedChronik = await initializeCashtabStateForTests(
-            false,
-            localforage,
-        );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
-
-        // Wait for the page to load
-        await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
-        );
-
-        // We see the Onboarding screen
-        expect(
-            await screen.findByText('Welcome to Cashtab!'),
-        ).toBeInTheDocument();
-        expect(
-            await screen.findByRole('button', {
-                name: /New Wallet/,
-            }),
-        ).toBeInTheDocument();
-        expect(
-            await screen.findByRole('button', {
-                name: /Import Wallet/,
-            }),
-        ).toBeInTheDocument();
     });
 });

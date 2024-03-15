@@ -5,13 +5,12 @@
 import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
-import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { Link } from 'react-router-dom';
 import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
-import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
+import { SidePaddingCtn } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
-import { ReceiveWithWalletPresent } from 'components/Receive/Receive';
+import Receive from 'components/Receive/Receive';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -121,7 +120,7 @@ const BackupWalletAlert = styled.div`
     padding: 12px;
 `;
 
-const WalletInfo = () => {
+const Home = () => {
     const ContextValue = React.useContext(WalletContext);
     const { fiatPrice, apiError, cashtabState } = ContextValue;
     const { settings, wallets } = cashtabState;
@@ -164,31 +163,11 @@ const WalletInfo = () => {
                                     </em>
                                 </p>
                             </BackupWalletAlert>
-                            {wallet !== false && (
-                                <ReceiveWithWalletPresent wallet={wallet} />
-                            )}
+                            <Receive />
                         </>
                     )}
                 </TxHistoryCtn>
             </SidePaddingCtn>
-        </>
-    );
-};
-
-const Home = () => {
-    const ContextValue = React.useContext(WalletContext);
-    const { loading, cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
-
-    const wallet = wallets.length > 0 ? wallets[0] : false;
-
-    return (
-        <>
-            {loading ? (
-                <LoadingCtn data-testid="loading-ctn" />
-            ) : (
-                <>{wallet !== false ? <WalletInfo /> : <OnBoarding />}</>
-            )}
         </>
     );
 };

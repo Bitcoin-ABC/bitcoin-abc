@@ -93,7 +93,43 @@ describe('<App />', () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
     });
-    it('Renders 404 on a bad route', async () => {
+    it('Renders onboarding screen at home route if user has no wallet', async () => {
+        // This is the experience of a user visiting cashtab.com for the first time
+        const mockedChronik = await initializeCashtabStateForTests(
+            false,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // We get the Onboarding screen
+        expect(
+            await screen.findByText('Welcome to Cashtab!'),
+        ).toBeInTheDocument();
+    });
+    it('Renders onboarding screen at Receive route if user has no wallet', async () => {
+        // This is the experience of a user visiting cashtab.com for the first time
+        const mockedChronik = await initializeCashtabStateForTests(
+            false,
+            localforage,
+        );
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/receive" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // We get the Onboarding screen
+        expect(
+            await screen.findByText('Welcome to Cashtab!'),
+        ).toBeInTheDocument();
+    });
+    it('Renders onboarding screen even on a bad route if user has no wallet', async () => {
         // This is the experience of a user visiting cashtab.com for the first time
         const mockedChronik = await initializeCashtabStateForTests(
             false,
@@ -103,8 +139,33 @@ describe('<App />', () => {
             <CashtabTestWrapper chronik={mockedChronik} route="/not-a-route" />,
         );
 
-        // We get the 404
-        expect(screen.getByTestId('not-found')).toBeInTheDocument();
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // We get the Onboarding screen
+        expect(
+            await screen.findByText('Welcome to Cashtab!'),
+        ).toBeInTheDocument();
+    });
+    it('Renders 404 at bad route if user has a wallet', async () => {
+        // This is the experience of a user visiting cashtab.com for the first time
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(
+            <CashtabTestWrapper chronik={mockedChronik} route="/not-a-route" />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // We get the Onboarding screen
+        expect(await screen.findByText('Page not found')).toBeInTheDocument();
     });
     it('Navigation menu routes to expected components', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

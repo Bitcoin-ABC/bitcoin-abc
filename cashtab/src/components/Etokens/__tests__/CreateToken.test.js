@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { walletWithXecAndTokens } from 'components/fixtures/mocks';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
     initializeCashtabStateForTests,
@@ -80,6 +80,11 @@ describe('<CreateToken />', () => {
             />,
         );
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Renders CreateTokenForm, as this wallet has sufficient balance to create a token
         expect(await screen.findByText('Create a Token')).toBeInTheDocument();
 
@@ -94,7 +99,11 @@ describe('<CreateToken />', () => {
         const mockedChronik = await initializeCashtabStateForTests(
             {
                 ...walletWithXecAndTokens,
-                state: { ...walletWithXecAndTokens.state, balanceSats: 0 },
+                state: {
+                    ...walletWithXecAndTokens.state,
+                    balanceSats: 0,
+                    nonSlpUtxos: [],
+                },
             },
             localforage,
         );
@@ -105,6 +114,14 @@ describe('<CreateToken />', () => {
             />,
         );
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait for the wallet balance to load
+        expect(await screen.findByText('0.00 XEC')).toBeInTheDocument();
+
         // We do not see the Create a Token form
         expect(screen.queryByText('Create a Token')).not.toBeInTheDocument();
 
@@ -113,7 +130,7 @@ describe('<CreateToken />', () => {
         // In this case, we do not display the fiat price
         expect(
             await screen.findByText(
-                'You need at least 5.5 XEC to create a token',
+                'You need at least 5.5 XEC ($0.0002 USD) to create a token',
             ),
         ).toBeInTheDocument();
     });

@@ -120,6 +120,8 @@ const useWallet = chronik => {
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
+            // Set loading false, as we may not have set it to false by updating the wallet
+            setLoading(false);
         }
 
         // Get chaintip height in separate try...catch
@@ -179,9 +181,6 @@ const useWallet = chronik => {
      * so that these persist if the user navigates away from Cashtab     *
      */
     const loadCashtabState = async () => {
-        // Initialize flag var
-        // We will need to set loading to false if we do not do any write operations to state at bootup
-        let stateUpdatedAtBootup = false;
         // cashtabState is initialized with defaults when this component loads
 
         // contactList
@@ -196,7 +195,6 @@ const useWallet = chronik => {
                 contactList = [];
                 // Update localforage on app load only if existing values are in an obsolete format
                 updateCashtabState('contactList', contactList);
-                stateUpdatedAtBootup = true;
             }
             // Set cashtabState contactList to valid localforage or migrated
             cashtabState.contactList = contactList;
@@ -210,10 +208,7 @@ const useWallet = chronik => {
                 // If a settings object is present but invalid, parse to find and add missing keys
                 settings = migrateLegacyCashtabSettings(settings);
                 // Update localforage on app load only if existing values are in an obsolete format
-                stateUpdatedAtBootup = await updateCashtabState(
-                    'settings',
-                    settings,
-                );
+                updateCashtabState('settings', settings);
             }
 
             // Set cashtabState settings to valid localforage or migrated settings
@@ -233,10 +228,7 @@ const useWallet = chronik => {
                 // If a cashtabCache object is present but invalid, nuke it and start again
                 cashtabCache = cashtabState.cashtabCache;
                 // Update localforage on app load only if existing values are in an obsolete format
-                stateUpdatedAtBootup = await updateCashtabState(
-                    'cashtabCache',
-                    cashtabCache,
-                );
+                updateCashtabState('cashtabCache', cashtabCache);
             }
 
             // Set cashtabState cashtabCache to valid localforage or migrated settings
@@ -439,19 +431,15 @@ const useWallet = chronik => {
             for (const hash of hash160Array) {
                 ws.subscribeToScript('p2pkh', hash);
             }
+        } else {
+            // Set loading to false if we have no wallet
+            // as we will not get to the update() until the user creates a wallet
+            setLoading(false);
         }
         // When the user creates or imports a wallet, ws subscriptions will be handled by updateWebsocket
 
         // Put connected websocket in state
         setWs(ws);
-
-        // TODO I think we can lose this flag and check
-        // It's probably ok to leave loading as true until update syncs the active wallet
-        // Need to test what kind of observed delay this causes
-        if (!stateUpdatedAtBootup) {
-            // If we have not modified state in loadCashtabState, we are no longer loading
-            setLoading(false);
-        }
     };
 
     /**
@@ -832,6 +820,7 @@ const useWallet = chronik => {
         chronik,
         chaintipBlockheight,
         fiatPrice,
+        cashtabLoaded,
         loading,
         apiError,
         refreshAliases,

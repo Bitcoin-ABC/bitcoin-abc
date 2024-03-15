@@ -4,11 +4,8 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 import { WalletContext } from 'wallet/context';
-import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { QRCode } from 'components/Receive/QRCode';
-import { LoadingCtn } from 'components/Common/Atoms';
 import useWindowDimensions from 'hooks/useWindowDimensions';
 
 const QrCodeCtn = styled.div``;
@@ -25,7 +22,11 @@ export const ReceiveCtn = styled.div`
     }
 `;
 
-export const ReceiveWithWalletPresent = ({ wallet }) => {
+export const Receive = () => {
+    const ContextValue = React.useContext(WalletContext);
+    const { cashtabState } = ContextValue;
+    const { wallets } = cashtabState;
+    const wallet = wallets.length > 0 ? wallets[0] : false;
     // Get device window width
     // Size the QR code depending on device width
     const { width, height } = useWindowDimensions();
@@ -63,32 +64,6 @@ export const ReceiveWithWalletPresent = ({ wallet }) => {
             )}
         </ReceiveCtn>
     );
-};
-
-const Receive = () => {
-    const ContextValue = React.useContext(WalletContext);
-    const { loading, cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
-    const wallet = wallets.length > 0 ? wallets[0] : false;
-    return (
-        <>
-            {loading ? (
-                <LoadingCtn data-testid="rcv-loading" />
-            ) : (
-                <>
-                    {wallet !== false ? (
-                        <ReceiveWithWalletPresent wallet={wallet} />
-                    ) : (
-                        <OnBoarding />
-                    )}
-                </>
-            )}
-        </>
-    );
-};
-
-ReceiveWithWalletPresent.propTypes = {
-    wallet: PropTypes.object,
 };
 
 export default Receive;

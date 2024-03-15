@@ -92,6 +92,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -132,6 +137,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -179,6 +189,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -256,6 +271,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -296,6 +316,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -339,6 +364,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -403,6 +433,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -459,6 +494,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -507,6 +547,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -586,6 +631,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -631,6 +681,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -679,6 +734,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -759,6 +819,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -807,6 +872,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -865,6 +935,11 @@ describe('<SendXec />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -921,6 +996,11 @@ describe('<SendXec />', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -988,6 +1068,11 @@ describe('<SendXec />', () => {
         });
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -1103,6 +1188,11 @@ describe('<SendXec />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
@@ -1186,6 +1276,11 @@ describe('<SendXec />', () => {
         });
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Confirm we have minFeeSends true in settings
         expect(await localforage.getItem('settings')).toEqual({
@@ -1306,6 +1401,11 @@ describe('<SendXec />', () => {
         });
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');

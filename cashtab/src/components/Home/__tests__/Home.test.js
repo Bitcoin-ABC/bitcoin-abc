@@ -117,6 +117,11 @@ describe('<Home />', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // API Error is rendered
         expect(
             await screen.findByText('Error in chronik connection'),
@@ -144,36 +149,5 @@ describe('<Home />', () => {
 
         // Receive QR code is rendered
         expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
-    });
-    it('Renders the onboarding screen for a new wallet', async () => {
-        // localforage defaults
-        const mockedChronik = await initializeCashtabStateForTests(
-            false, // no wallet created
-            localforage,
-        );
-
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
-
-        // Initially, Loading ctn is rendered
-        expect(screen.getByTestId('loading-ctn')).toBeInTheDocument();
-
-        // After wallet loads, this is reversed
-        await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
-        );
-
-        expect(
-            await screen.findByText('Welcome to Cashtab!'),
-        ).toBeInTheDocument();
-        expect(
-            await screen.findByRole('button', {
-                name: /New Wallet/,
-            }),
-        ).toBeInTheDocument();
-        expect(
-            await screen.findByRole('button', {
-                name: /Import Wallet/,
-            }),
-        ).toBeInTheDocument();
     });
 });

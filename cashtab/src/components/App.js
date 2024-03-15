@@ -30,6 +30,8 @@ import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Swap from 'components/Swap/Swap';
 import NotFound from 'components/NotFound';
+import OnBoarding from 'components/OnBoarding/OnBoarding';
+import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'wallet/context';
@@ -436,8 +438,13 @@ const NavHeader = styled.div`
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { cashtabState, updateCashtabState, fiatPrice, loading } =
-        ContextValue;
+    const {
+        cashtabState,
+        updateCashtabState,
+        fiatPrice,
+        loading,
+        cashtabLoaded,
+    } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
@@ -478,142 +485,197 @@ const App = () => {
                 </>
             )}
             <Spin
-                spinning={loading || spinner || (wallet && !validWallet)}
+                spinning={
+                    loading || spinner || (wallet !== false && !validWallet)
+                }
                 indicator={CashLoadingIcon}
             >
                 <CustomApp>
                     <WalletBody>
                         <WalletCtn>
-                            <Header>
-                                <HeaderCtn>
-                                    {process.env.REACT_APP_BUILD_ENV ===
-                                    'extension' ? (
-                                        <ExtensionHeader
-                                            selectedKey={selectedKey}
-                                        />
+                            {!cashtabLoaded ? (
+                                <LoadingCtn data-testid="loading-ctn" />
+                            ) : (
+                                <>
+                                    {wallet === false ? (
+                                        <OnBoarding />
                                     ) : (
-                                        <CashtabLogo
-                                            src={Cashtab}
-                                            alt="cashtab"
-                                        />
-                                    )}
-                                    {selectedKey === 'airdrop' && (
-                                        <NavHeader>
-                                            Airdrop
-                                            <AirdropIcon />
-                                        </NavHeader>
-                                    )}
-                                    {selectedKey === 'configure' && (
-                                        <NavHeader>
-                                            Settings
-                                            <SettingsIcon />
-                                        </NavHeader>
-                                    )}
-                                    {selectedKey === 'signverifymsg' && (
-                                        <NavHeader>
-                                            {' '}
-                                            Sign & Verify Msg
-                                            <ThemedSignAndVerifyMsg />
-                                        </NavHeader>
-                                    )}
-                                    {process.env.REACT_APP_BUILD_ENV !==
-                                        'extension' && (
                                         <>
-                                            {selectedKey === 'swap' && (
-                                                <NavHeader>
-                                                    {' '}
-                                                    Swap
-                                                    <SwapIcon />
-                                                </NavHeader>
-                                            )}
-                                        </>
-                                    )}
-                                    {process.env.REACT_APP_BUILD_ENV !==
-                                        'extension' && (
-                                        <>
-                                            {hasTab && (
-                                                <EasterEgg
-                                                    src={TabCash}
-                                                    alt="tabcash"
+                                            <Header>
+                                                <HeaderCtn>
+                                                    {process.env
+                                                        .REACT_APP_BUILD_ENV ===
+                                                    'extension' ? (
+                                                        <ExtensionHeader
+                                                            selectedKey={
+                                                                selectedKey
+                                                            }
+                                                        />
+                                                    ) : (
+                                                        <CashtabLogo
+                                                            src={Cashtab}
+                                                            alt="cashtab"
+                                                        />
+                                                    )}
+                                                    {selectedKey ===
+                                                        'airdrop' && (
+                                                        <NavHeader>
+                                                            Airdrop
+                                                            <AirdropIcon />
+                                                        </NavHeader>
+                                                    )}
+                                                    {selectedKey ===
+                                                        'configure' && (
+                                                        <NavHeader>
+                                                            Settings
+                                                            <SettingsIcon />
+                                                        </NavHeader>
+                                                    )}
+                                                    {selectedKey ===
+                                                        'signverifymsg' && (
+                                                        <NavHeader>
+                                                            {' '}
+                                                            Sign & Verify Msg
+                                                            <ThemedSignAndVerifyMsg />
+                                                        </NavHeader>
+                                                    )}
+                                                    {process.env
+                                                        .REACT_APP_BUILD_ENV !==
+                                                        'extension' && (
+                                                        <>
+                                                            {selectedKey ===
+                                                                'swap' && (
+                                                                <NavHeader>
+                                                                    {' '}
+                                                                    Swap
+                                                                    <SwapIcon />
+                                                                </NavHeader>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {process.env
+                                                        .REACT_APP_BUILD_ENV !==
+                                                        'extension' && (
+                                                        <>
+                                                            {hasTab && (
+                                                                <EasterEgg
+                                                                    src={
+                                                                        TabCash
+                                                                    }
+                                                                    alt="tabcash"
+                                                                />
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </HeaderCtn>
+                                                <WalletInfoCtn data-testid="wallet-info-ctn">
+                                                    <WalletLabel
+                                                        name={wallet.name}
+                                                        settings={settings}
+                                                        updateCashtabState={
+                                                            updateCashtabState
+                                                        }
+                                                    ></WalletLabel>
+                                                    <BalanceHeader
+                                                        balanceSats={
+                                                            balanceSats
+                                                        }
+                                                        settings={settings}
+                                                        fiatPrice={fiatPrice}
+                                                        locale={
+                                                            navigator.language
+                                                        }
+                                                    />
+                                                </WalletInfoCtn>
+                                            </Header>
+                                            <Routes>
+                                                <Route
+                                                    path="/wallet"
+                                                    element={<Home />}
                                                 />
-                                            )}
+                                                <Route
+                                                    path="/receive"
+                                                    element={<Receive />}
+                                                />
+
+                                                <Route
+                                                    path="/create-token"
+                                                    element={<CreateToken />}
+                                                />
+
+                                                <Route
+                                                    path="/send"
+                                                    element={<SendXec />}
+                                                />
+                                                <Route path="send-token">
+                                                    <Route
+                                                        path=":tokenId"
+                                                        element={<SendToken />}
+                                                    />
+                                                </Route>
+                                                <Route
+                                                    path="/airdrop"
+                                                    element={
+                                                        <Airdrop
+                                                            passLoadingStatus={
+                                                                setSpinner
+                                                            }
+                                                        />
+                                                    }
+                                                />
+
+                                                <Route
+                                                    path="/etokens"
+                                                    element={<Etokens />}
+                                                />
+                                                <Route
+                                                    path="/signverifymsg"
+                                                    element={<SignVerifyMsg />}
+                                                />
+                                                {aliasSettings.aliasEnabled && (
+                                                    <Route
+                                                        path="/alias"
+                                                        element={
+                                                            <Alias
+                                                                passLoadingStatus={
+                                                                    setSpinner
+                                                                }
+                                                            />
+                                                        }
+                                                    />
+                                                )}
+                                                <Route
+                                                    path="/configure"
+                                                    element={<Configure />}
+                                                />
+                                                {process.env
+                                                    .REACT_APP_BUILD_ENV !==
+                                                    'extension' && (
+                                                    <Route
+                                                        path="/swap"
+                                                        element={<Swap />}
+                                                    />
+                                                )}
+                                                <Route
+                                                    path="/"
+                                                    element={
+                                                        <Navigate
+                                                            to="/wallet"
+                                                            replace
+                                                        />
+                                                    }
+                                                />
+                                                <Route
+                                                    path="*"
+                                                    element={<NotFound />}
+                                                />
+                                            </Routes>
                                         </>
                                     )}
-                                </HeaderCtn>
-                                {wallet !== false && (
-                                    <WalletInfoCtn data-testid="wallet-info-ctn">
-                                        <WalletLabel
-                                            name={wallet.name}
-                                            settings={settings}
-                                            updateCashtabState={
-                                                updateCashtabState
-                                            }
-                                        ></WalletLabel>
-                                        <BalanceHeader
-                                            balanceSats={balanceSats}
-                                            settings={settings}
-                                            fiatPrice={fiatPrice}
-                                            locale={navigator.language}
-                                        />
-                                    </WalletInfoCtn>
-                                )}
-                            </Header>
-                            <Routes>
-                                <Route path="/wallet" element={<Home />} />
-                                <Route path="/receive" element={<Receive />} />
-
-                                <Route
-                                    path="/create-token"
-                                    element={<CreateToken />}
-                                />
-
-                                <Route path="/send" element={<SendXec />} />
-                                <Route path="send-token">
-                                    <Route
-                                        path=":tokenId"
-                                        element={<SendToken />}
-                                    />
-                                </Route>
-                                <Route
-                                    path="/airdrop"
-                                    element={
-                                        <Airdrop
-                                            passLoadingStatus={setSpinner}
-                                        />
-                                    }
-                                />
-
-                                <Route path="/etokens" element={<Etokens />} />
-                                <Route
-                                    path="/signverifymsg"
-                                    element={<SignVerifyMsg />}
-                                />
-                                {aliasSettings.aliasEnabled && (
-                                    <Route
-                                        path="/alias"
-                                        element={
-                                            <Alias
-                                                passLoadingStatus={setSpinner}
-                                            />
-                                        }
-                                    />
-                                )}
-                                <Route
-                                    path="/configure"
-                                    element={<Configure />}
-                                />
-                                {process.env.REACT_APP_BUILD_ENV !==
-                                    'extension' && (
-                                    <Route path="/swap" element={<Swap />} />
-                                )}
-                                <Route
-                                    path="/"
-                                    element={<Navigate to="/wallet" replace />}
-                                />
-                                <Route path="*" element={<NotFound />} />
-                            </Routes>
+                                </>
+                            )}
                         </WalletCtn>
-                        {wallet ? (
+                        {wallet !== false && (
                             <Footer>
                                 <NavButton
                                     active={selectedKey === 'wallet'}
@@ -720,7 +782,7 @@ const App = () => {
                                     </NavMenu>
                                 </NavWrapper>
                             </Footer>
-                        ) : null}
+                        )}
                     </WalletBody>
                 </CustomApp>
             </Spin>

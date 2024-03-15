@@ -109,6 +109,11 @@ describe('<Alias />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/alias" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Registered and Pending Alias dropdowns are rendered
         expect(
             screen.getByTestId('registered-aliases-list'),
@@ -156,6 +161,11 @@ describe('<Alias />', () => {
             });
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/alias" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Registered and Pending Alias dropdowns are rendered
         expect(
@@ -205,6 +215,11 @@ describe('<Alias />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/alias" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Registered and Pending Alias dropdowns are rendered
         expect(
             screen.getByTestId('registered-aliases-list'),
@@ -247,6 +262,11 @@ describe('<Alias />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/alias" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Registered and Pending Alias dropdowns are rendered
         expect(
             screen.getByTestId('registered-aliases-list'),
@@ -284,6 +304,11 @@ describe('<Alias />', () => {
         // here in order to simulate aliasServerError
 
         render(<CashtabTestWrapper chronik={mockedChronik} route="/alias" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Validate the aliases within the dropdowns
         await waitFor(() => {

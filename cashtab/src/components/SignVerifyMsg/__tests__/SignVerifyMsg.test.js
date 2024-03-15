@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent, {
     PointerEventsCheckLevel,
@@ -90,6 +90,11 @@ describe('<SignVerifyMsg />', () => {
             />,
         );
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Open the Sign Message dropdown
         await user.click(screen.getByText('Sign'));
 
@@ -109,7 +114,6 @@ describe('<SignVerifyMsg />', () => {
             await screen.findByText('Message Signature Generated'),
         ).toBeInTheDocument();
     });
-
     it('Notification is rendered upon successfully verifying a message', async () => {
         // Mock the app with context at the SignVerifyMsg screen
         const mockedChronik = await initializeCashtabStateForTests(
@@ -123,12 +127,17 @@ describe('<SignVerifyMsg />', () => {
             />,
         );
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Open the Verify Message dropdown
         await user.click(screen.getByText('Verify'));
 
         // Insert message to be signed
         await user.type(
-            screen.getByPlaceholderText('Enter message to verify'),
+            await screen.findByPlaceholderText('Enter message to verify'),
             'test message',
         );
 
@@ -156,7 +165,6 @@ describe('<SignVerifyMsg />', () => {
             screen.getByText('Signature successfully verified'),
         ).toBeInTheDocument();
     });
-
     it('Notification is rendered upon signature verification error', async () => {
         // Mock the app with context at the SignVerifyMsg screen
         const mockedChronik = await initializeCashtabStateForTests(
@@ -168,6 +176,11 @@ describe('<SignVerifyMsg />', () => {
                 chronik={mockedChronik}
                 route="/signverifymsg"
             />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
         // Open the Verify Message dropdown

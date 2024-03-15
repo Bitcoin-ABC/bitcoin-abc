@@ -118,6 +118,11 @@ describe('<Configure />', () => {
             <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
         );
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Configure component is rendered
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
 
@@ -340,6 +345,11 @@ describe('<Configure />', () => {
 
         render(
             <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
         // Note, the savedWallets collapse loads open by default

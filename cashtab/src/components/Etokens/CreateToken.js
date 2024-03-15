@@ -20,11 +20,11 @@ const CreateToken = () => {
 
     const minTokenCreationFiatPriceString =
         fiatPrice !== null
-            ? `${supportedFiatCurrencies[settings.fiatCurrency].symbol}${(
+            ? `(${supportedFiatCurrencies[settings.fiatCurrency].symbol}${(
                   toXec(appConfig.dustSats) * fiatPrice
               ).toFixed(4)} ${supportedFiatCurrencies[
                   settings.fiatCurrency
-              ].slug.toUpperCase()}`
+              ].slug.toUpperCase()})`
             : '';
 
     const wallet = wallets.length > 0 ? wallets[0] : false;

@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 import {
@@ -97,6 +97,15 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded, as input fields are not populated until balance loads
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -160,6 +169,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Wait for balance to be loaded
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
@@ -220,6 +234,15 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded, as input fields are not populated until balance loads
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -277,6 +300,15 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded, as input fields are not populated until balance loads
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -332,6 +364,12 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -387,6 +425,12 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -443,6 +487,11 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Wait for balance to be loaded
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
@@ -508,6 +557,11 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Wait for balance to be loaded
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
@@ -597,6 +651,15 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait for balance to be loaded, as input fields are not populated until balance loads
+        expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
@@ -670,6 +733,12 @@ describe('<SendXec /> rendered with params in URL', () => {
             localforage,
         );
         render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
