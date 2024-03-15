@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
@@ -38,7 +37,6 @@ const CreateToken = styled(Link)`
 `;
 
 const Etokens = () => {
-    let navigate = useNavigate();
     const ContextValue = React.useContext(WalletContext);
     const { loading, cashtabState } = ContextValue;
     const { wallets } = cashtabState;
@@ -50,37 +48,26 @@ const Etokens = () => {
             {loading ? (
                 <LoadingCtn />
             ) : (
-                <>
-                    {wallet !== false ? (
-                        <EtokensCtn data-testid="etokens-ctn">
-                            <br />
-                            <SidePaddingCtn>
-                                <CreateToken
-                                    to={{
-                                        pathname: `/create-token`,
-                                    }}
-                                >
-                                    Create eToken
-                                </CreateToken>
-                                {tokens && tokens.length > 0 ? (
-                                    <TokenList
-                                        wallet={wallet}
-                                        tokens={tokens}
-                                    />
-                                ) : (
-                                    <p>
-                                        Tokens sent to your{' '}
-                                        {appConfig.tokenTicker} address will
-                                        appear here
-                                    </p>
-                                )}
-                            </SidePaddingCtn>
-                        </EtokensCtn>
-                    ) : (
-                        // If no existing wallet detected, take user to the wallet creation screen
-                        navigate('/wallet')
-                    )}
-                </>
+                <EtokensCtn data-testid="etokens-ctn">
+                    <br />
+                    <SidePaddingCtn>
+                        <CreateToken
+                            to={{
+                                pathname: `/create-token`,
+                            }}
+                        >
+                            Create eToken
+                        </CreateToken>
+                        {tokens && tokens.length > 0 ? (
+                            <TokenList wallet={wallet} tokens={tokens} />
+                        ) : (
+                            <p>
+                                Tokens sent to your {appConfig.tokenTicker}{' '}
+                                address will appear here
+                            </p>
+                        )}
+                    </SidePaddingCtn>
+                </EtokensCtn>
             )}
         </>
     );

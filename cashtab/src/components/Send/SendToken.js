@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
 import {
@@ -104,7 +104,7 @@ const AirdropButton = styled.div`
 
 const SendToken = () => {
     let navigate = useNavigate();
-    const { apiError, cashtabState, chronik, chaintipBlockheight } =
+    const { apiError, cashtabState, loading, chronik, chaintipBlockheight } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
@@ -138,6 +138,17 @@ const SendToken = () => {
     });
 
     const userLocale = getUserLocale(navigator);
+
+    useEffect(() => {
+        if (typeof token === 'undefined' && loading === false) {
+            // token can be undefined when the app is loading
+            // in practice, this only happens in integration tests or when the user navigates directly
+            // to send/tokenId screen, as cashtab locks UI while it loads
+            // token becomes undefined when a user sends or burns all of their balance for this token
+            // In this case -- loading === true and token === undefined -- navigate to the home page
+            navigate('/');
+        }
+    }, [loading, token]);
 
     // Fetch token stats if you do not have them and API did not return an error
     if (tokenStats === null) {
@@ -503,7 +514,6 @@ const SendToken = () => {
                         : ''}
                 </p>
             </Modal>
-            {!token && navigate('/')}
             {token && (
                 <SidePaddingCtn>
                     {/* eToken burn modal */}
