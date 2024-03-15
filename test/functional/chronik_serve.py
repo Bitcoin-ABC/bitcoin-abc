@@ -42,11 +42,11 @@ class ChronikServeTest(BitcoinTestFramework):
                 [
                     "-chronik",
                     "-chronikbind=127.0.0.1:12345",
-                    "-chronikbind=[::1]:23456",
+                    "-chronikbind=[::1]:43456",
                 ],
             )
             test_host("127.0.0.1", 12345)
-            test_host("::1", 23456)
+            test_host("::1", 43456)
 
 
 if __name__ == "__main__":
