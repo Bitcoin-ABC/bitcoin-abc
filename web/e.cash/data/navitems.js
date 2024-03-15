@@ -70,11 +70,6 @@ export const navitems = [
                 icon: '/images/wallet-icon.svg',
             },
             {
-                title: 'Services',
-                link: '/get-ecash#services',
-                icon: '/images/services-icon.svg',
-            },
-            {
                 title: 'Mining',
                 link: '/mining',
                 icon: '/images/mining-icon.svg',
@@ -85,6 +80,10 @@ export const navitems = [
                 icon: '/images/hand-logo-icon.svg',
             },
         ],
+    },
+    {
+        nav_item: 'Use eCash',
+        link: '/use-ecash',
     },
     {
         nav_item: 'Blog',
