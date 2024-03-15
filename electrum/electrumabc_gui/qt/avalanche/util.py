@@ -47,8 +47,13 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
         parent: Optional[QtWidgets.QWidget] = None,
     ):
         super().__init__(parent)
-        # store the password as a mutable type so the memory can be zeroed after it is no longer needed
+        # store the password as a mutable type so the memory can be zeroed after it is
+        # no longer needed.
         self._pwd: Optional[bytearray] = pwd
+        # Use a flag to remember whether this password was provided by a parent widget,
+        # so we don't clear the memory for a password that might still be needed after
+        # this widget dies.
+        self._owns_pwd_memory = self._pwd is None
         self.wallet = wallet
 
     @property
@@ -76,7 +81,7 @@ class CachedWalletPasswordWidget(QtWidgets.QWidget, PrintError):
                 QtWidgets.QMessageBox.critical(self, "Invalid password", str(e))
 
     def __del__(self):
-        if self._pwd is not None:
+        if self._pwd is not None and self._owns_pwd_memory:
             self.print_error("Zeroing cached password in memory")
             self._pwd[:] = b"\0" * len(self._pwd)
 
