@@ -2702,7 +2702,19 @@ public:
 static RPCHelpMan dumptxoutset() {
     return RPCHelpMan{
         "dumptxoutset",
-        "Write the serialized UTXO set to a file.\n",
+        "Write the serialized UTXO set to a file. This can be used in "
+        "loadtxoutset afterwards if this snapshot height is supported in the "
+        "chainparams as well.\n\n"
+        "Unless the the \"latest\" type is requested, the node will roll back "
+        "to the requested height and network activity will be suspended during "
+        "this process. "
+        "Because of this it is discouraged to interact with the node in any "
+        "other way during the execution of this call to avoid inconsistent "
+        "results and race conditions, particularly RPCs that interact with "
+        "blockstorage.\n\n"
+        "This call may take several minutes. Make sure to use no RPC timeout "
+        "(bitcoin-cli -rpcclienttimeout=0)",
+
         {
             {"path", RPCArg::Type::STR, RPCArg::Optional::NO,
              "path to the output file. If relative, will be prefixed by "
@@ -2716,7 +2728,7 @@ static RPCHelpMan dumptxoutset() {
              "specified indicating the height or hash of a specific historical "
              "block. If \"rollback\" is specified and separate \"rollback\" "
              "named parameter is not specified, this will roll back to the "
-             "latest valid snapshot block that currently can be loaded with "
+             "latest valid snapshot block that can currently be loaded with "
              "loadtxoutset."},
             {
                 "options",
@@ -3075,7 +3087,8 @@ static RPCHelpMan loadtxoutset() {
                       {RPCResult::Type::STR, "path",
                        "the absolute path that the snapshot was loaded from"},
                   }},
-        RPCExamples{HelpExampleCli("loadtxoutset", "utxo.dat")},
+        RPCExamples{
+            HelpExampleCli("loadtxoutset -rpcclienttimeout=0", "utxo.dat")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             NodeContext &node = EnsureAnyNodeContext(request.context);

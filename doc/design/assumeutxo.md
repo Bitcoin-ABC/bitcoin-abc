@@ -1,10 +1,6 @@
-# assumeutxo
+# Assumeutxo Design
 
-Assumeutxo is a feature that allows fast bootstrapping of a validating bitcoind
-instance with a very similar security model to assumevalid.
-
-The RPC commands `dumptxoutset` and `loadtxoutset` are used to
-respectively generate and load UTXO snapshots.
+For notes on the usage of Assumeutxo, please refer to [the usage doc](/doc/assumeutxo.md).
 
 ## General background
 
@@ -42,7 +38,7 @@ data.
 ### "Normal" operation via initial block download
 
 `ChainstateManager` manages a single CChainState object, for which
-`m_snapshot_blockhash` is null. This chainstate is (maybe obviously)
+`m_from_snapshot_blockhash` is `std::nullopt`. This chainstate is (maybe obviously)
 considered active. This is the "traditional" mode of operation for bitcoind.
 
 |    |    |
