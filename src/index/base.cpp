@@ -183,6 +183,18 @@ void BaseIndex::ThreadSync() {
                 pindex = pindex_next;
             }
 
+            CBlock block;
+            if (!m_chainstate->m_blockman.ReadBlockFromDisk(block, *pindex)) {
+                FatalError("%s: Failed to read block %s from disk", __func__,
+                           pindex->GetBlockHash().ToString());
+                return;
+            }
+            if (!WriteBlock(block, pindex)) {
+                FatalError("%s: Failed to write block %s to index database",
+                           __func__, pindex->GetBlockHash().ToString());
+                return;
+            }
+
             int64_t current_time = GetTime();
             if (last_log_time + SYNC_LOG_INTERVAL < current_time) {
                 LogPrintf("Syncing %s with block chain from height %d\n",
@@ -196,18 +208,6 @@ void BaseIndex::ThreadSync() {
                 last_locator_write_time = current_time;
                 // No need to handle errors in Commit. See rationale above.
                 Commit();
-            }
-
-            CBlock block;
-            if (!m_chainstate->m_blockman.ReadBlockFromDisk(block, *pindex)) {
-                FatalError("%s: Failed to read block %s from disk", __func__,
-                           pindex->GetBlockHash().ToString());
-                return;
-            }
-            if (!WriteBlock(block, pindex)) {
-                FatalError("%s: Failed to write block %s to index database",
-                           __func__, pindex->GetBlockHash().ToString());
-                return;
             }
         }
     }
