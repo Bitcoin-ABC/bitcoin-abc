@@ -734,7 +734,7 @@ describe('useWallet hook rendering in different localforage states', () => {
             expect(
                 await result.current.processChronikWsMsg(
                     mockWebsocketMsg,
-                    result.current.cashtabState.wallets[0],
+                    result.current.cashtabState,
                     result.current.fiatPrice,
                 ),
             ).toBe(true);

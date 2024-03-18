@@ -53,14 +53,20 @@ const useWallet = chronik => {
     const [cashtabState, setCashtabState] = useState(new CashtabState());
     const { settings, cashtabCache, wallets } = cashtabState;
 
-    const update = async wallet => {
+    const update = async cashtabState => {
         if (!cashtabLoaded) {
             // Wait for cashtab to get state from localforage before updating
             return;
         }
 
+        // Get the active wallet
+        const activeWallet = cashtabState.wallets[0];
+
         try {
-            const chronikUtxos = await getUtxosChronik(chronik, wallet.paths);
+            const chronikUtxos = await getUtxosChronik(
+                chronik,
+                activeWallet.paths,
+            );
             const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
 
             const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
@@ -69,20 +75,20 @@ const useWallet = chronik => {
                 await finalizeTokensArray(
                     chronik,
                     preliminaryTokensArray,
-                    cashtabCache.tokens,
+                    cashtabState.cashtabCache.tokens,
                 );
 
             const {
                 parsedTxHistory,
                 cachedTokensAfterHistory,
                 txHistoryNewTokensToCache,
-            } = await getTxHistoryChronik(chronik, wallet, cachedTokens);
+            } = await getTxHistoryChronik(chronik, activeWallet, cachedTokens);
 
             // If you have updated cachedTokens from finalizeTokensArray or getTxHistoryChronik
             // Update in state and localforage
             if (newTokensToCache || txHistoryNewTokensToCache) {
                 updateCashtabState('cashtabCache', {
-                    ...cashtabCache,
+                    ...cashtabState.cashtabCache,
                     tokens: cachedTokensAfterHistory,
                 });
             }
@@ -96,16 +102,21 @@ const useWallet = chronik => {
             };
 
             // Set wallet with new state field
-            wallet.state = newState;
-            setCashtabState({ ...cashtabState, wallet });
+            activeWallet.state = newState;
 
             // Update only the active wallet, wallets[0], in state
-            updateCashtabState('wallets', [wallet, ...wallets.slice(1)]);
+            updateCashtabState('wallets', [
+                activeWallet,
+                ...cashtabState.wallets.slice(1),
+            ]);
 
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
-            console.log(`Error in update(wallet) from wallet`, wallet);
+            console.log(
+                `Error in update(cashtabState) from cashtabState`,
+                cashtabState,
+            );
             console.log(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
@@ -446,14 +457,14 @@ const useWallet = chronik => {
     /**
      * Update websocket subscriptions when active wallet changes
      * Update websocket onMessage handler when fiatPrice changes
-     * @param {object} wallet
+     * @param {object} cashtabState
      * @param {number} fiatPrice
      */
-    const updateWebsocket = (wallet, fiatPrice) => {
+    const updateWebsocket = (cashtabState, fiatPrice) => {
         // Set or update the onMessage handler
         // We can only set this when wallet is defined, so we do not set it in loadCashtabState
         ws.onMessage = msg => {
-            processChronikWsMsg(msg, wallet, fiatPrice);
+            processChronikWsMsg(msg, cashtabState, fiatPrice);
         };
 
         // Check if current subscriptions match current wallet
@@ -470,7 +481,7 @@ const useWallet = chronik => {
         }
 
         let subscriptionUpdateRequired = false;
-        const hash160Array = getHashArrayFromWallet(wallet);
+        const hash160Array = getHashArrayFromWallet(cashtabState.wallets[0]);
         if (scripts.length !== hash160Array.length) {
             // If the websocket is not subscribed to the same amount of addresses as the wallet,
             // we need to update subscriptions
@@ -503,7 +514,7 @@ const useWallet = chronik => {
     };
 
     // Parse chronik ws message for incoming tx notifications
-    const processChronikWsMsg = async (msg, wallet, fiatPrice) => {
+    const processChronikWsMsg = async (msg, cashtabState, fiatPrice) => {
         // get the message type
         const { msgType } = msg;
         // Cashtab only processes "first seen" transactions and new blocks, i.e. where
@@ -540,8 +551,8 @@ const useWallet = chronik => {
             return;
         }
 
-        // For all other messages, update the active wallet
-        update(wallet);
+        // For all other messages, update cashtabState
+        update(cashtabState);
 
         // get txid info
         const txid = msg.txid;
@@ -560,7 +571,7 @@ const useWallet = chronik => {
         // parse tx for notification
         const parsedChronikTx = parseChronikTx(
             incomingTxDetails,
-            wallet,
+            cashtabState.wallets[0],
             cashtabCache.tokens,
         );
         /* If this is an incoming eToken tx and parseChronikTx was not able to get genesis info
@@ -746,7 +757,7 @@ const useWallet = chronik => {
             // 2. You have a valid active wallet in cashtabState
             return;
         }
-        update(cashtabState.wallets[0]);
+        update(cashtabState);
     }, [cashtabLoaded, cashtabState.wallets[0]?.name]);
 
     // Clear price API and update to new price API when fiat currency changes
@@ -762,9 +773,11 @@ const useWallet = chronik => {
     }, [cashtabLoaded, cashtabState.settings.fiatCurrency]);
 
     // Update websocket subscriptions and websocket onMessage handler whenever
-    // the active wallet changes (denoted by mnemonic changing, not when name changes)
-    // or the fiat price updates (the onMessage handler needs to have the most up-to-date
+    // 1. cashtabState changes
+    // 2. or the fiat price updates (the onMessage handler needs to have the most up-to-date
     // fiat price)
+    // This is because the onMessage routine only has access to the state variables when onMessage was set
+    // and the update() function needs the most recent cashtabState to update cashtabState
     useEffect(() => {
         if (
             cashtabLoaded !== true ||
@@ -779,8 +792,8 @@ const useWallet = chronik => {
             // We can call with fiatPrice of null, we will not always have fiatPrice
             return;
         }
-        updateWebsocket(cashtabState.wallets[0], fiatPrice);
-    }, [cashtabState.wallets[0]?.mnemonic, fiatPrice, ws, cashtabLoaded]);
+        updateWebsocket(cashtabState, fiatPrice);
+    }, [cashtabState, fiatPrice, ws, cashtabLoaded]);
 
     const refreshAliasesOnStartup = async () => {
         // Initialize a new periodic refresh of aliases which ONLY calls the API if
