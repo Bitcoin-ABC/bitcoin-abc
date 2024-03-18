@@ -316,11 +316,26 @@ export const finalizeTokensArray = async (
     // Each promise is a chronik API call to obtain token metadata for this token ID
     const getTokenInfoPromises = [];
 
+    const UNKNOWN_TOKEN_ID =
+        '0000000000000000000000000000000000000000000000000000000000000000';
+
     for (let i = 0; i < preliminaryTokensArray.length; i += 1) {
         const thisTokenId = preliminaryTokensArray[i].tokenId;
         // See if you already have this info in cachedTokenInfo
         if (cachedTokens.has(thisTokenId)) {
-            // If you already have this info in cache, do not create an API request for it
+            // If you already have this info in cache,
+            // do not create an API request for it
+            continue;
+        }
+        if (thisTokenId === UNKNOWN_TOKEN_ID) {
+            // If we have unknown token utxos, hardcode cache info
+            // Calling chronik.token(UNKNOWN_TOKEN_ID) will always throw an error
+            cachedTokens.set(UNKNOWN_TOKEN_ID, {
+                decimals: 0,
+                tokenTicker: 'UNKNOWN',
+                tokenName: 'Unknown Token',
+                url: 'N/A',
+            });
             continue;
         }
         const thisTokenInfoPromise = returnGetTokenInfoChronikPromise(

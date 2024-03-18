@@ -67,6 +67,182 @@ describe('Cashtab chronik.js functions', () => {
             getPreliminaryTokensArray(mockOrganizedUtxosByType.slpUtxos),
         ).toStrictEqual(mockPreliminaryTokensArray);
     });
+    it(`We will automatically cache the unknown tokenId 0000000000000000000000000000000000000000000000000000000000000000 without attempting to get its info from chronik`, async () => {
+        // Initialize chronik
+        const chronik = new ChronikClient(
+            'https://FakeChronikUrlToEnsureMocksOnly.com',
+        );
+
+        const MOCK_SLP_UTXOS_WITH_UNKNOWN = [
+            {
+                outpoint: {
+                    txid: '250c93fd6bc2f1853a41d2fd1f5754a92f79f952f10ab038401be1600d5cbb88',
+                    outIdx: 1,
+                },
+                blockHeight: 836452,
+                isCoinbase: false,
+                value: 546,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    amount: '1000000',
+                    isMintBaton: false,
+                },
+                address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
+            },
+            {
+                outpoint: {
+                    txid: '74a8598eed00672e211553a69e22334128199883fe79eb4ad64f9c0b7909735c',
+                    outIdx: 1,
+                },
+                blockHeight: 836457,
+                isCoinbase: false,
+                value: 1000,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '0000000000000000000000000000000000000000000000000000000000000000',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_UNKNOWN',
+                        number: 255,
+                    },
+                    amount: '0',
+                    isMintBaton: false,
+                },
+                address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
+            },
+        ];
+
+        // Get preliminary token utxos
+        const preliminaryTokensArray = getPreliminaryTokensArray(
+            MOCK_SLP_UTXOS_WITH_UNKNOWN,
+        );
+
+        // Expected mock token cache after calling finalizeTokensArray
+        const UNKNOWN_TOKEN_ID =
+            '0000000000000000000000000000000000000000000000000000000000000000';
+        const KNOWN_TOKEN_ID =
+            '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849';
+        const mockTokens = new Map();
+        mockTokens.set(KNOWN_TOKEN_ID, {
+            tokenTicker: 'tCRD',
+            tokenName: 'Test CRD',
+            url: 'https://crd.network/tcrd',
+            decimals: 4,
+            data: {
+                0: 0,
+                1: 0,
+                2: 0,
+                3: 0,
+                4: 0,
+                5: 0,
+                6: 0,
+                7: 0,
+                8: 0,
+            },
+            authPubkey:
+                '03d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420',
+        });
+        mockTokens.set(UNKNOWN_TOKEN_ID, {
+            decimals: 0,
+            tokenName: 'Unknown Token',
+            tokenTicker: 'UNKNOWN',
+            url: 'N/A',
+        });
+
+        // Get finalized tokens array
+
+        // Only mock the known tokenId api call
+        chronik.token = jest.fn();
+
+        when(chronik.token)
+            .calledWith(KNOWN_TOKEN_ID)
+            .mockResolvedValue({
+                tokenId:
+                    '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
+                tokenType: {
+                    protocol: 'ALP',
+                    type: 'ALP_TOKEN_TYPE_STANDARD',
+                    number: 0,
+                },
+                timeFirstSeen: '0',
+                genesisInfo: {
+                    tokenTicker: 'tCRD',
+                    tokenName: 'Test CRD',
+                    url: 'https://crd.network/tcrd',
+                    decimals: 4,
+                    data: {
+                        0: 0,
+                        1: 0,
+                        2: 0,
+                        3: 0,
+                        4: 0,
+                        5: 0,
+                        6: 0,
+                        7: 0,
+                        8: 0,
+                    },
+                    authPubkey:
+                        '03d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420',
+                },
+                block: {
+                    height: 821187,
+                    hash: '00000000000000002998aedef7c4fc2c52281e318461d66c3c9fe10151449448',
+                    timestamp: 1701716369,
+                },
+            });
+
+        expect(
+            await finalizeTokensArray(chronik, preliminaryTokensArray),
+        ).toStrictEqual({
+            tokens: [
+                {
+                    tokenId:
+                        '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
+                    balance: '100',
+                    info: {
+                        tokenTicker: 'tCRD',
+                        tokenName: 'Test CRD',
+                        url: 'https://crd.network/tcrd',
+                        decimals: 4,
+                        data: {
+                            0: 0,
+                            1: 0,
+                            2: 0,
+                            3: 0,
+                            4: 0,
+                            5: 0,
+                            6: 0,
+                            7: 0,
+                            8: 0,
+                        },
+                        authPubkey:
+                            '03d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420',
+                    },
+                },
+                {
+                    tokenId:
+                        '0000000000000000000000000000000000000000000000000000000000000000',
+                    balance: '0',
+                    info: {
+                        decimals: 0,
+                        tokenTicker: 'UNKNOWN',
+                        tokenName: 'Unknown Token',
+                        url: 'N/A',
+                    },
+                },
+            ],
+            cachedTokens: mockTokens,
+            newTokensToCache: true,
+        });
+    });
     it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfoById even if no cachedTokenInfoById is provided`, async () => {
         // Initialize chronik
         const chronik = new ChronikClient(
