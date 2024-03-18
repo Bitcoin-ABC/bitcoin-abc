@@ -596,9 +596,8 @@ inspecting signatures in Mach-O binaries.")
                  (make-bitcoin-cross-toolchain target)
                  clang-10))
           ((string-contains target "darwin")
-          (list ;; Native GCC 10 toolchain
-                 gcc-toolchain-10
-                 (list gcc-toolchain-10 "static")
+           (list ;; Native GCC 11 toolchain
+                 gcc-toolchain-11
                  binutils
                  clang-toolchain-15
                  python-signapple
