@@ -121,6 +121,21 @@ function Developers(props) {
                         </Link>
                     </li>
                 </ul>
+                <H3 text="DevHub" id="devhub" />
+                <ul>
+                    <li>
+                        Join the{' '}
+                        <Link
+                            href="https://t.me/eCashBuilders"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            eCash Devs and Builders
+                        </Link>{' '}
+                        Telegram group for more info, and to connect with other
+                        developers.
+                    </li>
+                </ul>
             </Container>
         </Layout>
     );
