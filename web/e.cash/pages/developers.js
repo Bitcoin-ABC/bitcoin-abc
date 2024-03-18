@@ -17,9 +17,28 @@ function Developers(props) {
                 h2text="Build on eCash"
             >
                 <p>
-                    Anyone can contribute to the eCash codebase. Start today
-                    with open source tools, libraries, and examples listed
-                    below.
+                    &ldquo;Building&rdquo; is one of the great filters in
+                    cryptocurrency. In eCash, it&apos;s also uniquely
+                    accessible. You can start right away, and make meaningful
+                    contributions in days.
+                </p>
+                <p>
+                    There are many good reasons to start creating software.
+                    Leverage is one of the best. A single app written by a
+                    single dev can reach millions of customers overnight.
+                </p>
+                <p>
+                    A good strategy to make an app successful is to go though a
+                    process of trial, error, feedback, and iteration. Reducing
+                    the cycle time of this process is critical. This is called
+                    rapid prototyping.
+                </p>
+                <p>
+                    eCash has some of the most impressive rapid prototyping on
+                    the market. Today, interested developers can build powerful
+                    apps that send and receive money instantly. It can take less
+                    than a few hours to get an MVP online and available to
+                    users.
                 </p>
             </SubPageHero>
             <GradientSpacer />
