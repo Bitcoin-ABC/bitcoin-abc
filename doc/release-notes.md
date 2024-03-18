@@ -1,7 +1,7 @@
-# Bitcoin ABC 0.28.11 Release Notes
+# Bitcoin ABC 0.28.12 Release Notes
 
-Bitcoin ABC version 0.28.11 is now available from:
+Bitcoin ABC version 0.28.12 is now available from:
 
-  <https://download.bitcoinabc.org/0.28.11/>
+  <https://download.bitcoinabc.org/0.28.12/>
 
-The sync time with chronik enabled (experimental) has been dramatically reduced.
+This is a maintenance release with no user-visible change.
