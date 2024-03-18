@@ -378,7 +378,7 @@ private:
 
     void trackPackageRemoved(const CFeeRate &rate) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
-    bool m_is_loaded GUARDED_BY(cs){false};
+    bool m_load_tried GUARDED_BY(cs){false};
 
     //! Used by addUnchecked to generate ever-increasing
     //! CTxMemPoolEntry::entryId's
@@ -604,11 +604,17 @@ public:
     void LimitSize(CCoinsViewCache &coins_cache)
         EXCLUSIVE_LOCKS_REQUIRED(cs, ::cs_main);
 
-    /** @returns true if the mempool is fully loaded */
-    bool IsLoaded() const;
+    /**
+     * @returns true if we've made an attempt to load the mempool regardless of
+     *          whether the attempt was successful or not
+     */
+    bool GetLoadTried() const;
 
-    /** Sets the current loaded state */
-    void SetIsLoaded(bool loaded);
+    /**
+     * Set whether or not we've made an attempt to load the mempool (regardless
+     * of whether the attempt was successful or not)
+     */
+    void SetLoadTried(bool load_tried);
 
     unsigned long size() const {
         LOCK(cs);

@@ -272,7 +272,7 @@ void Shutdown(NodeContext &node) {
     node.banman.reset();
     node.addrman.reset();
 
-    if (node.mempool && node.mempool->IsLoaded() &&
+    if (node.mempool && node.mempool->GetLoadTried() &&
         ShouldPersistMempool(*node.args)) {
         DumpMempool(*node.mempool, MempoolPath(*node.args));
     }

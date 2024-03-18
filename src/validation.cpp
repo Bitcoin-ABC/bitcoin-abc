@@ -4633,7 +4633,7 @@ void Chainstate::LoadMempool(const Config &config, const ArgsManager &args) {
     if (args.GetBoolArg("-persistmempool", DEFAULT_PERSIST_MEMPOOL)) {
         ::LoadMempool(config, *m_mempool, *this);
     }
-    m_mempool->SetIsLoaded(!ShutdownRequested());
+    m_mempool->SetLoadTried(!ShutdownRequested());
 }
 
 bool Chainstate::LoadChainTip() {

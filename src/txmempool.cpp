@@ -854,14 +854,14 @@ void CTxMemPool::TrimToSize(size_t sizelimit,
     }
 }
 
-bool CTxMemPool::IsLoaded() const {
+bool CTxMemPool::GetLoadTried() const {
     LOCK(cs);
-    return m_is_loaded;
+    return m_load_tried;
 }
 
-void CTxMemPool::SetIsLoaded(bool loaded) {
+void CTxMemPool::SetLoadTried(bool load_tried) {
     LOCK(cs);
-    m_is_loaded = loaded;
+    m_load_tried = load_tried;
 }
 
 /** Maximum bytes for transactions to store for processing during reorg */
