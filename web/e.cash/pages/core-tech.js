@@ -9,7 +9,8 @@ import { Container, GradientSpacer } from '/components/atoms';
 import fist from '/public/animations/fist.json';
 import avalanche from '/public/animations/avalanche.json';
 import staking from '/public/animations/staking.json';
-import etoken from '/public/animations/etoken.json';
+import spiningcoin from '/public/animations/spiningcoin.json';
+import subnets from '/public/animations/subnets.json';
 import calculate from '/public/animations/calculate.json';
 import cashfusion from '/public/animations/cashfusion.json';
 import AnimateImage from '/components/animate-image';
@@ -147,7 +148,7 @@ export default function CoreTech() {
                     <TextImageBlock
                         id="etokens"
                         title="eTokens"
-                        image={etoken}
+                        image={spiningcoin}
                         speed={0.8}
                     >
                         <p>
@@ -156,6 +157,36 @@ export default function CoreTech() {
                             name, supply, decimal places, and icon -- all for
                             the low cost and high speed of a single eCash
                             transaction (much less than $0.01).
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock
+                        id="subnets"
+                        title="Subnets"
+                        image={subnets}
+                        speed={0.8}
+                    >
+                        <p>
+                            Subnets are customized networks linked to the main
+                            eCash network. They will allow developers to build
+                            networks with unique or experimental properties
+                            &mdash; while tethering value to the main eCash
+                            network.
+                        </p>
+                        <p>
+                            The technology is powered by subsets of Avalanche
+                            validators, who monitor the subnets to validate
+                            token tranfers to and from the subnet. This enables
+                            decentralized and trustless setup.
+                        </p>
+                        <p>
+                            Subnets enable eCash to natively connect with the
+                            wider DeFi ecosystem. Services can run their subnets
+                            with customized rules and properties according to
+                            their business requirements, including privately
+                            owned ones. Two subnets planned by the eCash team
+                            are an Ethereum Virtual Machine (EVM) and a
+                            Zero-Knowledge (ZK) privacy subnet.
                         </p>
                     </TextImageBlock>
 

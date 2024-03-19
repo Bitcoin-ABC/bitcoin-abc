@@ -26,9 +26,9 @@ const tiles = [
         image: '/images/tile3.png',
     },
     {
-        title: 'Small, convenient denomination',
-        text: 'Because money shouldn’t have 8 decimal places.',
-        link: '/core-tech#denomination',
+        title: 'Subnets',
+        text: 'Enable customized networks such as EVM or Zero-Knowledge privacy. Powered by eCash Avalanche technology.',
+        link: '/core-tech#subnets',
         image: '/images/tile4.png',
     },
     {
