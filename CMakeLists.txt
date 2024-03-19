@@ -80,6 +80,9 @@ exclude_from_source_package(
 	"var/"
 	"output/"
 	"distsrc-.*/"
+
+	# CI
+	"abc-ci-builds/"
 )
 
 option(ENABLE_COVERAGE "Enable coverage" OFF)
