@@ -625,8 +625,6 @@ BOOST_AUTO_TEST_CASE(scriptcache_values) {
         BOOST_CHECK(!IsKeyInScriptCache(key, false, dummy));                   \
     }
 
-    InitScriptExecutionCache();
-
     // construct four distinct keys from very slightly different data
     CMutableTransaction tx1;
     tx1.nVersion = 1;
