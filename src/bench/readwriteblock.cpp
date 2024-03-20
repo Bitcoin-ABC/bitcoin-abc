@@ -24,7 +24,7 @@ static FlatFilePos WriteBlockToDisk(ChainstateManager &chainman) {
     CBlock block;
     stream >> block;
 
-    return chainman.m_blockman.SaveBlockToDisk(block, 0, nullptr);
+    return chainman.m_blockman.SaveBlockToDisk(block, 0);
 }
 
 static void ReadBlockFromDiskBench(benchmark::Bench &bench) {

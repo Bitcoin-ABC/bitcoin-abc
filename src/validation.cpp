@@ -5050,13 +5050,18 @@ bool ChainstateManager::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
         *fNewBlock = true;
     }
     try {
-        FlatFilePos blockPos{
-            m_blockman.SaveBlockToDisk(block, pindex->nHeight, dbp)};
-        if (blockPos.IsNull()) {
-            state.Error(strprintf(
-                "%s: Failed to find position to write new block to disk",
-                __func__));
-            return false;
+        FlatFilePos blockPos{};
+        if (dbp) {
+            blockPos = *dbp;
+            m_blockman.UpdateBlockInfo(block, pindex->nHeight, blockPos);
+        } else {
+            blockPos = m_blockman.SaveBlockToDisk(block, pindex->nHeight);
+            if (blockPos.IsNull()) {
+                state.Error(strprintf(
+                    "%s: Failed to find position to write new block to disk",
+                    __func__));
+                return false;
+            }
         }
         ReceivedBlockTransactions(block, pindex, blockPos);
     } catch (const std::runtime_error &e) {
@@ -5794,7 +5799,7 @@ bool Chainstate::LoadGenesisBlock() {
 
     try {
         const CBlock &block = params.GenesisBlock();
-        FlatFilePos blockPos{m_blockman.SaveBlockToDisk(block, 0, nullptr)};
+        FlatFilePos blockPos{m_blockman.SaveBlockToDisk(block, 0)};
         if (blockPos.IsNull()) {
             return error("%s: writing genesis block to disk failed", __func__);
         }
