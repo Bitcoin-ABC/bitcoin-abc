@@ -198,7 +198,7 @@ def verify(pubkey, signature, message_hash):
 
     May raise a ValueError or return False on failure.
 
-    `pubkey` should be the the raw public key bytes (as you would get from
+    `pubkey` should be the raw public key bytes (as you would get from
     bitcoin.pubic_key_from_private_key, after hex decoding, etc).
 
     `signature` should be the 64 byte schnorr signature as would be returned

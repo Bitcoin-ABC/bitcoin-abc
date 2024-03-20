@@ -130,7 +130,7 @@ static RPCHelpMan addavalanchenode() {
             {"proof", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "Proof that the node is not a sybil."},
             {"delegation", RPCArg::Type::STR_HEX, RPCArg::Optional::OMITTED,
-             "The proof delegation the the node public key"},
+             "The proof delegation the node public key"},
         },
         RPCResult{RPCResult::Type::BOOL, "success",
                   "Whether the addition succeeded or not."},
