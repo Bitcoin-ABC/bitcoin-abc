@@ -6132,8 +6132,8 @@ void PeerManagerImpl::ProcessMessage(
 
         bool shouldActivateBestChain = false;
 
-        const bool fPreConsensus =
-            gArgs.GetBoolArg("-avalanchepreconsensus", false);
+        const bool fPreConsensus = gArgs.GetBoolArg(
+            "-avalanchepreconsensus", DEFAULT_AVALANCHE_PRECONSENSUS);
 
         for (const auto &u : updates) {
             const avalanche::AnyVoteItem &item = u.getVoteItem();
