@@ -36,6 +36,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
     "node/coinstats -> validation -> node/coinstats"
     "kernel/mempool_persist -> validation -> kernel/mempool_persist"
+    "policy/block/preconsensus -> txmempool -> validation -> policy/block/preconsensus"
 )
 
 EXIT_CODE=0

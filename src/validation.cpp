@@ -34,6 +34,7 @@
 #include <node/ui_interface.h>
 #include <node/utxo_snapshot.h>
 #include <policy/block/minerfund.h>
+#include <policy/block/preconsensus.h>
 #include <policy/block/stakingrewards.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -2652,6 +2653,12 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
                     std::make_unique<StakingRewardsPolicy>(
                         consensusParams, *pindexNew, blockConnecting,
                         blockReward));
+
+                if (m_mempool) {
+                    parkingPolicies.emplace_back(
+                        std::make_unique<PreConsensusPolicy>(
+                            *pindexNew, blockConnecting, m_mempool));
+                }
             }
 
             // If any block policy is violated, bail on the first one found
