@@ -13,4 +13,4 @@ git clean -xdff \
  --exclude=depends/sources \
  --exclude=depends/built \
  --exclude=depends/SDKs \
- "${GUIX_CLEAN_EXTRA_EXCLUDES}"
+ ${GUIX_CLEAN_EXTRA_EXCLUDES}
