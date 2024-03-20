@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { navitems } from '../../data/navitems';
-import { NavbarOuter, NavbarCtn, EnvVarMessage } from './styles';
+import { socials } from '../../data/socials';
+import { NavbarOuter, NavbarCtn, EnvVarMessage, SocialCtn } from './styles';
 import AnnouncementBar from '/components/announcement-bar';
 
 export default function Navbar({ announcementbar }) {
@@ -15,6 +16,7 @@ export default function Navbar({ announcementbar }) {
     const [windowWidth, setWindowWidth] = useState('');
     const [windowHeight, setWindowHeight] = useState(0);
     const [navBackground, setNavBackground] = useState(false);
+    const mobileBreakPoint = 920;
 
     const handleResize = () => {
         setWindowWidth(window.innerWidth);
@@ -108,9 +110,9 @@ export default function Navbar({ announcementbar }) {
                                 ) : (
                                     <>
                                         <div
-                                            className="nav_item"
+                                            className="nav_item dropdown_indicator"
                                             onClick={
-                                                windowWidth < 920
+                                                windowWidth < mobileBreakPoint
                                                     ? () =>
                                                           setSelectedDropDownMenu(
                                                               selectedDropDownMenu ===
@@ -127,7 +129,8 @@ export default function Navbar({ announcementbar }) {
                                             className="nav_dropdown_ctn"
                                             style={
                                                 selectedDropDownMenu ===
-                                                    index && windowWidth < 920
+                                                    index &&
+                                                windowWidth < mobileBreakPoint
                                                     ? { display: 'flex' }
                                                     : null
                                             }
@@ -180,6 +183,24 @@ export default function Navbar({ announcementbar }) {
                                 )}
                             </div>
                         ))}
+                        {windowWidth < mobileBreakPoint && (
+                            <SocialCtn>
+                                {socials.map(social => (
+                                    <Link
+                                        href={social.link}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        key={social.name}
+                                    >
+                                        <Image
+                                            src={`/images/${social.name}.svg`}
+                                            alt={social.name}
+                                            fill
+                                        />
+                                    </Link>
+                                ))}
+                            </SocialCtn>
+                        )}
                     </nav>
                     <Link href="/get-ecash" className="pricelink_ctn">
                         <div className="righttop"></div>

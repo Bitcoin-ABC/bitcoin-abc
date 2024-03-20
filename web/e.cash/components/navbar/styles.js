@@ -226,6 +226,9 @@ export const NavbarCtn = styled.div`
             min-height: 100vh;
             align-items: flex-start;
             transition: all ease-in-out 200ms;
+            overflow-y: scroll;
+            height: 100%;
+            padding-bottom: 100px;
         }
 
         .nav_outer {
@@ -236,11 +239,22 @@ export const NavbarCtn = styled.div`
 
         .nav_outer .nav_item {
             font-size: 15px;
-            padding: 18px 0 18px 40px;
+            padding: 16px 0 16px 40px;
             text-align: left;
             transition: all 200ms ease-in-out;
             width: 100%;
             border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+        }
+
+        .dropdown_indicator::after {
+            content: '';
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid ${props => props.theme.colors.contrast};
+            position: absolute;
+            right: 20px;
+            top: 25px;
+            opacity: 0.5;
         }
 
         .nav_dropdown_ctn {
@@ -348,5 +362,32 @@ export const EnvVarMessage = styled.div`
     top: 4px;
     :nth-child(2) {
         top: 14px;
+    }
+`;
+
+export const SocialCtn = styled.div`
+    display: flex;
+    width: 100%;
+    margin-top: 10px;
+    padding-left: 40px;
+    flex-wrap: wrap;
+    max-width: 200px;
+
+    a {
+        width: 22px;
+        height: 22px;
+        position: relative;
+        margin-right: 20px;
+        transition: all ease-in-out 200ms;
+        margin-top: 20px;
+
+        :hover {
+            transform: scale(1.4);
+        }
+
+        :hover img {
+            filter: invert(32%) sepia(76%) saturate(5535%) hue-rotate(189deg)
+                brightness(93%) contrast(101%);
+        }
     }
 `;
