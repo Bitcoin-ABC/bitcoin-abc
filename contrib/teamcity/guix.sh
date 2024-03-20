@@ -10,7 +10,7 @@ set -euxo pipefail
 cd "${TOPLEVEL}"
 
 # Cleanup but exclude our own build dir
-GUIX_CLEAN_EXTRA_EXCLUDES=("--exclude=${BUILD_DIR}") ./contrib/guix/guix-clean
+GUIX_CLEAN_EXTRA_EXCLUDES="--exclude=$(realpath --relative-to=${TOPLEVEL} ${BUILD_DIR})" ./contrib/guix/guix-clean
 
 if [[ "${HOSTS[*]}" =~ .*darwin.* ]]; then
   OSX_SDK_DIR=~/.abc-build-cache/osx-sdk
