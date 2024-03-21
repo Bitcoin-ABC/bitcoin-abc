@@ -36,7 +36,12 @@ const config: TokenServerConfig = {
     rejectedDir: '/token-server/rejected',
     maxUploadSize: 500000, // max upload size in bytes
     // We support uploading image files from these origins
-    whitelist: ['https://cashtab.com'],
+    whitelist: [
+        'https://cashtab.com',
+        'https://cashtab-local-dev.netlify.app',
+        'chrome-extension://aleabaopoakgpbijdnicepefdiglggfl', // dev extension
+        'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag', // prod extension
+    ],
     iconSizes: [32, 64, 128, 256, 512],
 };
 

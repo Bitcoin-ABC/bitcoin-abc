@@ -230,6 +230,41 @@ describe('routes.js', async function () {
                 status: 'ok',
             });
     });
+    it('We can accept a png upload from Cashtab extension and resize it on the server', async function () {
+        // Create a mock 512x512 png that sharp can process
+        const semiTransparentRedPng = await sharp({
+            create: {
+                width: 512,
+                height: 512,
+                channels: 4,
+                background: { r: 255, g: 0, b: 0, alpha: 0.5 },
+            },
+        })
+            .png()
+            .toBuffer();
+
+        return request(app)
+            .post(`/new`)
+            .set(
+                'Origin',
+                'chrome-extension://obldfcmebhllhjlhjbnghaipekcppeag',
+            )
+            .field('newTokenName', 'Test Token')
+            .field('newTokenTicker', 'TST')
+            .field('newTokenDecimals', 3)
+            .field('newTokenDocumentUrl', 'https://cashtab.com/')
+            .field('newTokenInitialQty', '10000')
+            .field(
+                'tokenId',
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            )
+            .attach('tokenIcon', semiTransparentRedPng, 'mockicon.png')
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                status: 'ok',
+            });
+    });
     it('A png upload request from a non-whitelisted domain is rejected', async function () {
         // Create a mock 512x512 png that sharp can process
         const semiTransparentRedPng = await sharp({
