@@ -15,7 +15,7 @@ const VersionModalContainer = styled.div`
     max-height: 100%;
     min-width: 200px;
     border-radius: 9px;
-    background: rgba(0, 0, 0, 0.42);\
+    background: rgba(0, 0, 0, 0.42);
     backdrop-filter: blur(5px);
     padding: 12px;
     z-index: 1000;
