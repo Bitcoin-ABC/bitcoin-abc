@@ -37,6 +37,4 @@ export const initializeWebsocket = async (
  * Handle msgs received from the websocket
  * @param {object} msg type WsMsgClient from ChronikClientNode
  */
-export const handleWsMsg = (msg: WsMsgClient) => {
-    console.log(msg);
-};
+export const handleWsMsg = (msg: WsMsgClient) => {};
