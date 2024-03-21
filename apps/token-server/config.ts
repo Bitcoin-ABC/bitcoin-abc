@@ -32,8 +32,8 @@ const config: TokenServerConfig = {
     serverOutputScript: 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087',
     // Note: this must be the target= parameter for the --mount instruction of docker run
     // See Production Step 3 in README.md
-    imageDir: '/token-icons',
-    rejectedDir: '/rejected',
+    imageDir: '/token-server/token-icons',
+    rejectedDir: '/token-server/rejected',
     maxUploadSize: 500000, // max upload size in bytes
     // We support uploading image files from these origins
     whitelist: ['https://cashtab.com'],
