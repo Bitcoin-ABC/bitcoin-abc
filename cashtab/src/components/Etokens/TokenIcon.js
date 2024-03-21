@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 import { token as tokenConfig } from 'config/token';
 
 const TokenIcon = ({ size, tokenId }) => {
-    console.log(`${tokenConfig.tokenIconsUrl}/${size}/${tokenId}.png`);
     return (
         <img
             src={`${tokenConfig.tokenIconsUrl}/${size}/${tokenId}.png`}
