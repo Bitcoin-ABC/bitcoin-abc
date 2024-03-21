@@ -570,7 +570,7 @@ const App = () => {
                                                 </HeaderCtn>
                                                 <WalletInfoCtn data-testid="wallet-info-ctn">
                                                     <WalletLabel
-                                                        name={wallet.name}
+                                                        wallets={wallets}
                                                         settings={settings}
                                                         updateCashtabState={
                                                             updateCashtabState

@@ -193,3 +193,35 @@ export const getLegacyPaths = wallet => {
     }
     return legacyPaths;
 };
+
+/**
+ * Re-organize the user's wallets array so that wallets[0] is a new active wallet
+ * @param {object} walletToActivate Cashtab wallet object of wallet the user wishes to activate
+ * @param {array} wallets Array of all cashtab wallets
+ * @returns {array} wallets with walletToActivate at wallets[0] and
+ * the rest of the wallets sorted alphabetically by name
+ */
+export const getWalletsForNewActiveWallet = (walletToActivate, wallets) => {
+    // Clone wallets so we do not mutate the app's wallets array
+    const currentWallets = [...wallets];
+    // Find this wallet in wallets
+    const indexOfWalletToActivate = currentWallets.findIndex(
+        wallet => wallet.mnemonic === walletToActivate.mnemonic,
+    );
+
+    if (indexOfWalletToActivate === -1) {
+        // should never happen
+        throw new Error(
+            `Error activating "${walletToActivate.name}": Could not find wallet in wallets`,
+        );
+    }
+
+    // Remove walletToActivate from currentWallets
+    currentWallets.splice(indexOfWalletToActivate, 1);
+
+    // Sort inactive wallets alphabetically by name
+    currentWallets.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Put walletToActivate at 0-index
+    return [walletToActivate, ...currentWallets];
+};

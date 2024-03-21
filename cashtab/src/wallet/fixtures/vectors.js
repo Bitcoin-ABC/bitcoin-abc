@@ -247,4 +247,50 @@ export default {
             },
         ],
     },
+    getWalletsForNewActiveWallet: {
+        expectedReturns: [
+            {
+                description: 'Return expected wallets array',
+                walletToActivate: { name: 'alpha', mnemonic: 'one' },
+                wallets: [
+                    { name: 'beta', mnemonic: 'two' },
+                    { name: 'gamma', mnemonic: 'three' },
+                    { name: 'alpha', mnemonic: 'one' },
+                ],
+                returned: [
+                    { name: 'alpha', mnemonic: 'one' },
+                    { name: 'beta', mnemonic: 'two' },
+                    { name: 'gamma', mnemonic: 'three' },
+                ],
+            },
+            {
+                description:
+                    'Returns wallets array unchanged if walletToActivate is already wallets[0]',
+                walletToActivate: { name: 'alpha', mnemonic: 'one' },
+                wallets: [
+                    { name: 'alpha', mnemonic: 'one' },
+                    { name: 'beta', mnemonic: 'two' },
+                    { name: 'gamma', mnemonic: 'three' },
+                ],
+                returned: [
+                    { name: 'alpha', mnemonic: 'one' },
+                    { name: 'beta', mnemonic: 'two' },
+                    { name: 'gamma', mnemonic: 'three' },
+                ],
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'Throws error if called with a wallet that is not in wallets',
+                walletToActivate: { name: 'alphaprime', mnemonic: 'oneprime' },
+                wallets: [
+                    { name: 'beta', mnemonic: 'two' },
+                    { name: 'gamma', mnemonic: 'three' },
+                    { name: 'alpha', mnemonic: 'one' },
+                ],
+                errorMsg: `Error activating "alphaprime": Could not find wallet in wallets`,
+            },
+        ],
+    },
 };

@@ -97,6 +97,7 @@ export const ThemedCopySolid = styled(CopySolid)`
     padding: 0rem 0rem 0.27rem 0rem;
     height: 1.3em;
     width: 1.3em;
+    cursor: pointer;
 `;
 
 export const ThemedLinkSolid = styled(LinkSolid)`

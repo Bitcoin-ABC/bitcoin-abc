@@ -289,7 +289,7 @@ describe('<Configure />', () => {
         // Note the savedWallets collapse loads expanded
 
         // We see expected saved wallets
-        expect(await screen.findByText('alpha')).toBeInTheDocument();
+        expect((await screen.findAllByText('alpha'))[1]).toBeInTheDocument();
 
         // Click button to add this saved wallet to contacts
         await user.click(
@@ -355,11 +355,12 @@ describe('<Configure />', () => {
         // Note, the savedWallets collapse loads open by default
 
         // We see expected saved wallets
-        expect(await screen.findByText('alpha')).toBeInTheDocument();
-        expect(await screen.findByText('bravo')).toBeInTheDocument();
-        expect(await screen.findByText('charlie')).toBeInTheDocument();
-        expect(await screen.findByText('delta')).toBeInTheDocument();
-        expect(await screen.findByText('echo')).toBeInTheDocument();
+        // Note, we see these in the wallet header dropdown and in the savedWallets list
+        expect((await screen.findAllByText('alpha'))[1]).toBeInTheDocument();
+        expect((await screen.findAllByText('bravo'))[1]).toBeInTheDocument();
+        expect((await screen.findAllByText('charlie'))[1]).toBeInTheDocument();
+        expect((await screen.findAllByText('delta'))[1]).toBeInTheDocument();
+        expect((await screen.findAllByText('echo'))[1]).toBeInTheDocument();
 
         // Let's rename alpha. Its button will be the first in the list.
         await user.click(screen.getAllByTestId('rename-saved-wallet')[0]);
@@ -389,7 +390,7 @@ describe('<Configure />', () => {
         await user.click(screen.getByRole('button', { name: 'OK' }));
 
         // alpha is still named alpha
-        expect(await screen.findByText('alpha')).toBeInTheDocument();
+        expect((await screen.findAllByText('alpha'))[1]).toBeInTheDocument();
 
         // We give it an available name
         await user.click(screen.getAllByTestId('rename-saved-wallet')[0]);
@@ -416,7 +417,9 @@ describe('<Configure />', () => {
         await user.click(screen.getByRole('button', { name: 'OK' }));
 
         // The wallet has been renamed
-        expect(await screen.findByText('ALPHA PRIME')).toBeInTheDocument();
+        expect(
+            (await screen.findAllByText('ALPHA PRIME'))[1],
+        ).toBeInTheDocument();
 
         // Now let's rename the active wallet
         await user.click(screen.getByTestId('rename-active-wallet'));
@@ -513,7 +516,7 @@ describe('<Configure />', () => {
         await user.click(screen.getByRole('button', { name: 'OK' }));
 
         // We see the new wallet
-        expect(await screen.findByText('qrj4p')).toBeInTheDocument();
+        expect((await screen.findAllByText('qrj4p'))[1]).toBeInTheDocument();
 
         // It is added to the end of the wallets array
         // It will be organized alphabetically when the user refreshes and loadCashtabState runs
@@ -579,7 +582,7 @@ describe('<Configure />', () => {
         await user.click(screen.getByRole('button', { name: 'OK' }));
 
         // We see the new wallet
-        expect(await screen.findByText('qzxep')).toBeInTheDocument();
+        expect((await screen.findAllByText('qzxep'))[1]).toBeInTheDocument();
 
         // It is added to the end of the wallets array
         // It will be organized alphabetically when the user refreshes and loadCashtabState runs

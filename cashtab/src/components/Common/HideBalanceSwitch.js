@@ -16,18 +16,15 @@ const HideBalanceSwitch = ({ settings, updateCashtabState }) => {
         });
     };
     return (
-        <div>
-            {' '}
-            <Tooltip title={'Toggle hide balance'}>
-                <Switch
-                    size="small"
-                    checkedChildren={<ThemedEyeSVG />}
-                    unCheckedChildren={<ThemedInvisibleEyeSVG />}
-                    checked={settings ? settings.balanceVisible : false}
-                    onChange={handleShowHideBalance}
-                />
-            </Tooltip>
-        </div>
+        <Tooltip title={'Toggle hide balance'}>
+            <Switch
+                size="small"
+                checkedChildren={<ThemedEyeSVG />}
+                unCheckedChildren={<ThemedInvisibleEyeSVG />}
+                checked={settings ? settings.balanceVisible : false}
+                onChange={handleShowHideBalance}
+            />
+        </Tooltip>
     );
 };
 

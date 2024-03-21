@@ -10,6 +10,7 @@ import {
     createCashtabWallet,
     fiatToSatoshis,
     getLegacyPaths,
+    getWalletsForNewActiveWallet,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import vectors from '../fixtures/vectors';
@@ -109,6 +110,28 @@ describe('Cashtab wallet methods', () => {
             const { description, wallet, returned } = expectedReturn;
             it(`getLegacyPaths: ${description}`, () => {
                 expect(getLegacyPaths(wallet)).toEqual(returned);
+            });
+        });
+    });
+    describe('Gets expected array when activating a new wallet', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getWalletsForNewActiveWallet;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, walletToActivate, wallets, returned } =
+                expectedReturn;
+            it(`getWalletsForNewActiveWallet: ${description}`, () => {
+                expect(
+                    getWalletsForNewActiveWallet(walletToActivate, wallets),
+                ).toEqual(returned);
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, walletToActivate, wallets, errorMsg } =
+                expectedError;
+            it(`getWalletsForNewActiveWallet throws error for: ${description}`, () => {
+                expect(() =>
+                    getWalletsForNewActiveWallet(walletToActivate, wallets),
+                ).toThrow(errorMsg);
             });
         });
     });

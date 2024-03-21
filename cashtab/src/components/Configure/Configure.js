@@ -69,6 +69,7 @@ import {
     createCashtabWallet,
     generateMnemonic,
     toXec,
+    getWalletsForNewActiveWallet,
 } from 'wallet';
 import CustomModal from 'components/Common/Modal';
 const { Panel } = Collapse;
@@ -621,33 +622,18 @@ const Configure = () => {
     };
 
     const activateWallet = (walletToActivate, wallets) => {
-        // Initialize our new wallets array (copy so we do not mutate)
-        const otherWallets = [...wallets];
-
-        // Find this wallet in wallets
-        const indexOfWalletToActivate = otherWallets.findIndex(
-            wallet => wallet.mnemonic === walletToActivate.mnemonic,
+        // Get desired wallets array after activating walletToActivate
+        const walletsAfterActivation = getWalletsForNewActiveWallet(
+            walletToActivate,
+            wallets,
         );
-
-        if (typeof indexOfWalletToActivate === 'undefined') {
-            // should never happen
-            return console.log(
-                `Error activating ${walletToActivate.name}: Could not find wallet in wallets`,
-            );
-        }
-
-        // Remove walletToActivate from otherWallets
-        otherWallets.splice(indexOfWalletToActivate, 1);
-
-        // Sort inactive wallets alphabetically by name
-        otherWallets.sort((a, b) => a.name.localeCompare(b.name));
 
         // Event("Category", "Action", "Label")
         // Track number of times a different wallet is activated
         Event('Configure.js', 'Activate', '');
 
         // Update wallets to activate this wallet
-        updateCashtabState('wallets', [walletToActivate, ...otherWallets]);
+        updateCashtabState('wallets', walletsAfterActivation);
     };
 
     /**
