@@ -13,6 +13,7 @@ const VersionModalContainer = styled.div`
     transform: translate(-50%, -50%);
     max-width: 100%;
     max-height: 100%;
+    min-width: 200px;
     border-radius: 9px;
     background: rgba(0, 0, 0, 0.42);\
     backdrop-filter: blur(5px);
