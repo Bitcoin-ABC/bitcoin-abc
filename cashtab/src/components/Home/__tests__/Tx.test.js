@@ -62,14 +62,10 @@ describe('<Tx />', () => {
         );
     });
     it('Renders the timestamp as block timestamp timeFirstSeen === 0', async () => {
-        const noTimeFirstSeenMock = JSON.parse(
-            JSON.stringify(mockReceivedTxData),
-        );
-        noTimeFirstSeenMock.timeFirstSeen = '0';
         render(
             <ThemeProvider theme={theme}>
                 <Tx
-                    data={noTimeFirstSeenMock}
+                    data={{ ...mockReceivedTxData, timeFirstSeen: 0 }}
                     fiatPrice={0.00003}
                     fiatCurrency="usd"
                     cashtabState={new CashtabState()}

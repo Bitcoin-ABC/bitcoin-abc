@@ -429,7 +429,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
         setDisplayedMessage(!displayedMessage);
     };
     let txDate, txTime;
-    if (data.timeFirstSeen === '0') {
+    if (data.timeFirstSeen === 0) {
         // If chronik does not have a timeFirstSeen for this tx
         if (!('block' in data)) {
             // If it is also unconfirmed, we have nothing to go on here

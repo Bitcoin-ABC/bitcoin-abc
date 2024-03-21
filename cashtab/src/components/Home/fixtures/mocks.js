@@ -77,9 +77,9 @@ export const mockReceivedTxData = {
     block: {
         height: 827065,
         hash: '00000000000000001073027625a3ada23fab0e79be89b9ce517b3d2e1303b69e',
-        timestamp: '1705207595',
+        timestamp: 1705207595,
     },
-    timeFirstSeen: '1705207211',
+    timeFirstSeen: 1705207211,
     size: 374,
     isCoinbase: false,
     network: 'XEC',
