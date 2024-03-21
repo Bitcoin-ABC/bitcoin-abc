@@ -385,6 +385,7 @@ EOF
         time-machine shell --manifest="${PWD}/contrib/guix/manifest.scm" \
                                  --container \
                                  ${EMULATE_FHS} \
+                                 --user=bitcoinabc \
                                  --pure \
                                  --network \
                                  --no-cwd \
