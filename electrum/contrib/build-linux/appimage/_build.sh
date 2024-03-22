@@ -88,18 +88,24 @@ info "Preparing electrum-locale"
     popd_pkg
 )
 
+function filter_deps {
+  awk "$1"' {exclude=1; next} exclude && /^[[:space:]]/ {next} {exclude=0} !exclude {print}'
+}
 
 info "Installing the application and its dependencies"
 mkdir -p "$CACHEDIR/pip_cache"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-pip.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-build-appimage.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements.txt"
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary PyQt5,PyQt5-Qt5 --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-binaries.txt"
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-pip.txt"
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-build-appimage.txt"
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements.txt"
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary PyQt5,PyQt5-Qt5 --cache-dir "$CACHEDIR/pip_cache" -r <(filter_deps /cryptography/ < "$CONTRIB/deterministic-build/requirements-binaries.txt")
+
+# cryptography 42.0.5 with patch for reproducible build, see https://github.com/pyca/cryptography/pull/10627
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary cmake --cache-dir "$CACHEDIR/pip_cache" git+https://github.com/pyca/cryptography.git@857d6b1d2fb1b93251a89ca3534e2a28b32c4950
 
 # Install hidapi from binary wheels until there is a release fixing https://github.com/trezor/cython-hidapi/issues/155
-"$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary hidapi --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --no-binary :all: --only-binary hidapi --cache-dir "$CACHEDIR/pip_cache" -r "$CONTRIB/deterministic-build/requirements-hw.txt"
 
-"$python" -m pip install --no-deps --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "${ELECTRUM_ROOT}"
+CFLAGS="-g0" "$python" -m pip install --no-deps --no-warn-script-location --cache-dir "$CACHEDIR/pip_cache" "${ELECTRUM_ROOT}"
 
 # setup.py depends on the build tools (setuptools), so get the version before uninstalling them
 ELECTRUM_VERSION=$($python ${ELECTRUM_ROOT}/setup.py --version)

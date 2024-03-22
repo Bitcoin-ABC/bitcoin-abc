@@ -62,3 +62,10 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTU_DIST} main restricted universe multiverse
     rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
     apt-get clean
+
+# This is to enable nightly features in the release configuration
+ENV RUSTC_BOOTSTRAP=1
+# Enable trim-paths feature in cargo 1.75+ to make sure pip paths
+# do not end up in binaries making them not reproducible
+ENV CARGO_TRIM_PATHS=all
+ENV CARGO_UNSTABLE_TRIM_PATHS=true
