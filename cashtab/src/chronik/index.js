@@ -918,10 +918,7 @@ export const getMintAddress = async (chronik, tokenId) => {
                 Number(thisOutput.token.amount) > 0
             ) {
                 // then this is the minting address
-                return cashaddr.encodeOutputScript(
-                    thisOutput.outputScript,
-                    'etoken',
-                );
+                return cashaddr.encodeOutputScript(thisOutput.outputScript);
             }
         }
     } catch (err) {

@@ -398,31 +398,11 @@ export const isValidXecAirdrop = xecAirdrop => {
     );
 };
 
-export const isValidAirdropOutputsArray = airdropOutputsArray => {
-    if (!airdropOutputsArray) {
-        return false;
-    }
-
-    let isValid = true;
-
-    // split by individual rows
-    const addressStringArray = airdropOutputsArray.split('\n');
-
-    for (let i = 0; i < addressStringArray.length; i++) {
-        const substring = addressStringArray[i].split(',');
-        let valueString = substring[1];
-        // if the XEC being sent is less than dust sats or contains extra values per line
-        if (
-            new BN(valueString).lt(toXec(appConfig.dustSats)) ||
-            substring.length !== 2
-        ) {
-            isValid = false;
-        }
-    }
-
-    return isValid;
-};
-
+/**
+ * Parse user input of addresses to exclude in an airdrop tx
+ * @param {array} airdropExclusionArray
+ * @returns {boolean}
+ */
 export const isValidAirdropExclusionArray = airdropExclusionArray => {
     if (!airdropExclusionArray || airdropExclusionArray.length === 0) {
         return false;
@@ -434,8 +414,11 @@ export const isValidAirdropExclusionArray = airdropExclusionArray => {
     const addressStringArray = airdropExclusionArray.split(',');
 
     // parse and validate each address in array
-    for (let i = 0; i < addressStringArray.length; i++) {
-        if (!cashaddr.isValidCashAddress(addressStringArray[i], 'ecash')) {
+    for (const address of addressStringArray) {
+        if (
+            !address.startsWith('ecash') ||
+            !cashaddr.isValidCashAddress(address, 'ecash')
+        ) {
             return false;
         }
     }

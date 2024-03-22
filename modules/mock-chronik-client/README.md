@@ -123,3 +123,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.6.0
 
 -   Match shape of `subs` object in `ChronikClientNode` for `ChronikClientNode` ws methods and support unsubscribe from blocks
+
+1.7.0
+
+-   Allow getting and setting utxos() and history() by tokenId

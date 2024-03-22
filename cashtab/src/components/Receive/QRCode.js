@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import QRCodeSVG from 'qrcode.react';
-import { convertToEcashPrefix } from 'utils/cashMethods';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import appConfig from 'config/app';
 
@@ -113,7 +112,7 @@ export const QRCode = ({
     logoSizePx = 36,
     onClick = () => null,
 }) => {
-    address = address ? convertToEcashPrefix(address) : '';
+    address = address ? address : '';
 
     const [visible, setVisible] = useState(false);
     const trimAmount = 3;

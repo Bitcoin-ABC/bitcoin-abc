@@ -307,7 +307,7 @@ export const InputAmountSingle = ({ inputProps, ...otherProps }) => {
     return (
         <AntdFormWrapper>
             <Form.Item {...otherProps}>
-                <Input type="number" {...inputProps} />
+                <Input type="string" {...inputProps} />
             </Form.Item>
         </AntdFormWrapper>
     );

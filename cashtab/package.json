@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.5.0",
+    "version": "2.6.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -36,7 +36,6 @@
         "ecash-coinselect": "^2.2.0",
         "ecash-script": "^2.1.2",
         "ecashaddrjs": "^1.5.4",
-        "etoken-list": "^1.0.4",
         "localforage": "^1.9.0",
         "qrcode.react": "^3.1.0",
         "react": "^18.2.0",

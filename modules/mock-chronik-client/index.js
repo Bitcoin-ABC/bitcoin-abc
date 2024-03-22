@@ -46,6 +46,7 @@ module.exports = {
             self.blockchainInfo = async function () {
                 return throwOrReturnValue(self.mockedResponses.blockchainInfo);
             };
+
             // Return assigned script mocks
             self.script = function (type, hash) {
                 return self.mockedMethods[type][hash];
@@ -54,6 +55,11 @@ module.exports = {
             // Return assigned address mocks
             self.address = function (address) {
                 return self.mockedMethods[address];
+            };
+
+            // Return assigned tokenId mocks
+            self.tokenId = function (tokenId) {
+                return self.mockedMethods[tokenId];
             };
 
             // Checks whether the user set this mock response to be an error.
@@ -199,6 +205,10 @@ module.exports = {
                 self.mockedResponses[address].txHistory = txHistory;
             };
 
+            self.setTxHistoryByTokenId = function (tokenId, txHistory) {
+                self.mockedResponses[tokenId].txHistory = txHistory;
+            };
+
             /**
              * Set utxos to custom response; must be called after setScript
              * @param {string} type 'p2sh' or 'p2pkh'
@@ -216,6 +226,15 @@ module.exports = {
              */
             self.setUtxosByAddress = function (address, utxos) {
                 self.mockedResponses[address].utxos = utxos;
+            };
+
+            /**
+             * Set utxos to custom response; must be called after setTokenId
+             * @param {string} tokenId a tokenId
+             * @param {array} utxos mocked response of chronik.tokenId(tokenId).utxos()
+             */
+            self.setUtxosByTokenId = function (tokenId, utxos) {
+                self.mockedResponses[tokenId].utxos = utxos;
             };
 
             // Allow users to set expected chronik script call responses
@@ -267,6 +286,33 @@ module.exports = {
                     utxos: async function () {
                         return throwOrReturnValue(
                             self.mockedResponses[address].utxos,
+                        );
+                    },
+                };
+            };
+
+            // Allow users to set expected chronik tokenId call responses
+            self.setTokenId = function (tokenId) {
+                // Initialize object that will hold utxos if set
+                self.mockedResponses[tokenId] = {};
+
+                self.mockedMethods[tokenId] = {
+                    history: async function (pageNumber = 0, pageSize) {
+                        if (
+                            self.mockedResponses[tokenId].txHistory instanceof
+                            Error
+                        ) {
+                            throw self.mockedResponses[tokenId].txHistory;
+                        }
+                        return self.getTxHistory(
+                            pageNumber,
+                            pageSize,
+                            self.mockedResponses[tokenId].txHistory,
+                        );
+                    },
+                    utxos: async function () {
+                        return throwOrReturnValue(
+                            self.mockedResponses[tokenId].utxos,
                         );
                     },
                 };

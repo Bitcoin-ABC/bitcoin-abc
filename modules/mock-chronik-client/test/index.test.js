@@ -109,6 +109,20 @@ it('We get the same script().utxos() API response using address().utxos()', asyn
     assert.deepEqual(result, mockP2pkhUtxos);
 });
 
+it('We can get a tokenId().utxos() API response using tokenId().utxos()', async function () {
+    // Initialize chronik mock with a utxo set
+    const mockedChronik = new MockChronikClient();
+
+    const tokenId =
+        '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e';
+    mockedChronik.setTokenId(tokenId);
+    mockedChronik.setUtxosByTokenId(tokenId, mockP2pkhUtxos);
+
+    // Execute the API call
+    const result = await mockedChronik.tokenId(tokenId).utxos();
+    assert.deepEqual(result, mockP2pkhUtxos);
+});
+
 it('Mock the script().history() API response', async function () {
     // Initialize chronik mock with history info
     const mockedChronik = new MockChronikClient();
@@ -129,6 +143,19 @@ it('We get the same script().history() API response using address().history()', 
 
     // Execute the API call
     const result = await mockedChronik.address(P2PKH_ADDRESS).history(0, 2);
+    assert.deepEqual(result, mockTxHistory);
+});
+
+it('We can also set and get tx history by tokenId', async function () {
+    // Initialize chronik mock with history info
+    const mockedChronik = new MockChronikClient();
+    const tokenId =
+        '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e';
+    mockedChronik.setTokenId(tokenId);
+    mockedChronik.setTxHistoryByTokenId(tokenId, mockTxHistory.txs);
+
+    // Execute the API call
+    const result = await mockedChronik.tokenId(tokenId).history(0, 2);
     assert.deepEqual(result, mockTxHistory);
 });
 

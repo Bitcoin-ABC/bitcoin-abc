@@ -14,7 +14,6 @@ import {
     isValidEtokenBurnAmount,
     isValidTokenId,
     isValidXecAirdrop,
-    isValidAirdropOutputsArray,
     isValidAirdropExclusionArray,
     isValidContactList,
     migrateLegacyCashtabSettings,
@@ -32,12 +31,9 @@ import {
     isValidCashtabWallet,
 } from 'validation';
 import {
-    validXecAirdropList,
-    invalidXecAirdropList,
-    invalidXecAirdropListMultipleInvalidValues,
-    invalidXecAirdropListMultipleValidValues,
     validXecAirdropExclusionList,
     invalidXecAirdropExclusionList,
+    invalidXecAirdropExclusionListPrefixless,
 } from 'validation/fixtures/mocks';
 import vectors from 'validation/fixtures/vectors';
 import { when } from 'jest-when';
@@ -340,54 +336,6 @@ describe('Cashtab validation functions', () => {
         const testAirdropTotal = '0';
         expect(isValidXecAirdrop(testAirdropTotal)).toBe(false);
     });
-    it(`isValidAirdropOutputsArray accepts an airdrop list with valid XEC values`, () => {
-        // Tools.js logic removes the EOF newline before validation
-        const outputArray = validXecAirdropList.substring(
-            0,
-            validXecAirdropList.length - 1,
-        );
-        expect(isValidAirdropOutputsArray(outputArray)).toBe(true);
-    });
-    it(`isValidAirdropOutputsArray rejects an airdrop list with invalid XEC values`, () => {
-        // Tools.js logic removes the EOF newline before validation
-        const outputArray = invalidXecAirdropList.substring(
-            0,
-            invalidXecAirdropList.length - 1,
-        );
-        expect(isValidAirdropOutputsArray(outputArray)).toBe(false);
-    });
-    it(`isValidAirdropOutputsArray rejects null`, () => {
-        const testAirdropListValues = null;
-        expect(isValidAirdropOutputsArray(testAirdropListValues)).toBe(false);
-    });
-    it(`isValidAirdropOutputsArray rejects undefined`, () => {
-        const testAirdropListValues = undefined;
-        expect(isValidAirdropOutputsArray(testAirdropListValues)).toBe(false);
-    });
-    it(`isValidAirdropOutputsArray rejects empty string`, () => {
-        const testAirdropListValues = '';
-        expect(isValidAirdropOutputsArray(testAirdropListValues)).toBe(false);
-    });
-    it(`isValidAirdropOutputsArray rejects an airdrop list with multiple invalid XEC values per row`, () => {
-        // Tools.js logic removes the EOF newline before validation
-        const addressStringArray =
-            invalidXecAirdropListMultipleInvalidValues.substring(
-                0,
-                invalidXecAirdropListMultipleInvalidValues.length - 1,
-            );
-
-        expect(isValidAirdropOutputsArray(addressStringArray)).toBe(false);
-    });
-    it(`isValidAirdropOutputsArray rejects an airdrop list with multiple valid XEC values per row`, () => {
-        // Tools.js logic removes the EOF newline before validation
-        const addressStringArray =
-            invalidXecAirdropListMultipleValidValues.substring(
-                0,
-                invalidXecAirdropListMultipleValidValues.length - 1,
-            );
-
-        expect(isValidAirdropOutputsArray(addressStringArray)).toBe(false);
-    });
     it(`isValidAirdropExclusionArray accepts a valid airdrop exclusion list`, () => {
         expect(isValidAirdropExclusionArray(validXecAirdropExclusionList)).toBe(
             true,
@@ -396,6 +344,13 @@ describe('Cashtab validation functions', () => {
     it(`isValidAirdropExclusionArray rejects an invalid airdrop exclusion list`, () => {
         expect(
             isValidAirdropExclusionArray(invalidXecAirdropExclusionList),
+        ).toBe(false);
+    });
+    it(`isValidAirdropExclusionArray rejects a list of addresses if any are not prefixed`, () => {
+        expect(
+            isValidAirdropExclusionArray(
+                invalidXecAirdropExclusionListPrefixless,
+            ),
         ).toBe(false);
     });
     it(`isValidAirdropExclusionArray rejects an empty airdrop exclusion list`, () => {

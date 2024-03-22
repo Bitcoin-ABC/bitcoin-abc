@@ -61,7 +61,7 @@ import {
     validateMnemonic,
     isValidRecipient,
 } from 'validation';
-import { convertToEcashPrefix, getWalletState } from 'utils/cashMethods';
+import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { isMobile, getUserLocale } from 'helpers';
 import {
@@ -1088,9 +1088,7 @@ const Configure = () => {
         // initialise saved wallet name and address to state for confirmation modal
         setManualContactName(wallet.name);
         setManualContactAddress(
-            convertToEcashPrefix(
-                wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
-            ),
+            wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
         );
         setSavedWalletContactModal(true);
     };

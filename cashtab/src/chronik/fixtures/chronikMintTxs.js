@@ -103,7 +103,7 @@ export const mintingHash160TabCash = 'b8d9512d2adf8b4e70c45c26b6b00d75c28eaa96';
 export const mintingAddressBchFormatTabCash =
     'bitcoincash:qzudj5fd9t0cknnsc3wzdd4sp46u9r42jcnqnwfss0';
 export const mintingAddressTabCash =
-    'etoken:qzudj5fd9t0cknnsc3wzdd4sp46u9r42jcynw8ydj0';
+    'ecash:qzudj5fd9t0cknnsc3wzdd4sp46u9r42jc2d89j2kc';
 
 export const mintingTxPoW = {
     txid: 'f36e1b3d9a2aaf74f132fef3834e9743b945a667a4204e761b85f2e7b65fd41a',
@@ -191,7 +191,7 @@ export const mintingHash160PoW = '85bab3680833cd9b3cc60953344fa740a2235bbd';
 export const mintingAddressBchFormatPoW =
     'bitcoincash:qzzm4vmgpqeumxeuccy4xdz05aq2yg6mh52phz3zy5';
 export const mintingAddressPoW =
-    'etoken:qzzm4vmgpqeumxeuccy4xdz05aq2yg6mh5aj2tulx5';
+    'ecash:qzzm4vmgpqeumxeuccy4xdz05aq2yg6mh5nvrf2czr';
 
 export const mintingTxAlita = {
     txid: '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
@@ -290,12 +290,12 @@ export const mintingHash160Alita = 'f5f740bc76e56b77bcab8b4d7f888167f416fc68';
 export const mintingAddressBchFormatAlita =
     'bitcoincash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqf8w5lusm';
 export const mintingAddressAlita =
-    'etoken:qr6lws9uwmjkkaau4w956lugs9nlg9hudq75najpjm';
+    'ecash:qr6lws9uwmjkkaau4w956lugs9nlg9hudqs26lyxkv';
 
 export const mintingAddressBchFormatBuxSelfMint =
     'bitcoincash:qzzjdnmph2s8z5vf0vqpvr24tfue5krkdsnh48utfn';
 export const mintingAddressBuxSelfMint =
-    'etoken:qzzjdnmph2s8z5vf0vqpvr24tfue5krkdsyygw3ktn';
+    'ecash:qzzjdnmph2s8z5vf0vqpvr24tfue5krkds26pv830y';
 export const mintingHash160BuxSelfMint =
     '8526cf61baa07151897b00160d555a799a58766c';
 export const mintingTxBuxSelfMint = {
