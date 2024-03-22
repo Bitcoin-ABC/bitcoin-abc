@@ -1,0 +1,49 @@
+---
+sidebar_position: 4
+---
+
+# Blocks
+Access blocks using Chronik
+
+## `blocks(hashOrHeight)`
+
+Fetch the block given hash or height.
+
+See [blocks](api/classes/ChronikClientNode#blocks) API docs.
+
+```jsx live
+function DemoBlock() {
+  return <Json fn={async () => {
+    return await chronik.block(
+      "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
+  }} />;
+}
+```
+
+## `blockTxs(hashOrHeight, page, pageSize)`
+
+Fetch the tx history of a block given hash or height. `page` and `pageSize` is optional.
+
+See [blockTxs](api/classes/ChronikClientNode#blocktxs) API docs.
+
+```jsx live
+function DemoBlockTxs() {
+  return <Json fn={async () => {
+    return await chronik.blockTxs(0);
+  }} />;
+}
+```
+
+## `blocks(startHeight, endHeight)`
+
+Fetch block info of a range of blocks. `startHeight` and `endHeight` are inclusive ranges.
+
+See [blocks](api/classes/ChronikClientNode#blocks) API docs.
+
+```jsx live
+function DemoBlocks() {
+  return <Json fn={async () => {
+    return await chronik.blocks(50, 52);
+  }} />;
+}
+```

@@ -1,0 +1,35 @@
+/* Copyright (c) 2024 The Bitcoin developers
+ * Distributed under the MIT software license, see the accompanying
+ * file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ */
+
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+    --ifm-color-primary: #273498;
+    --ifm-color-primary-dark: #232f89;
+    --ifm-color-primary-darker: #212c81;
+    --ifm-color-primary-darkest: #1b246a;
+    --ifm-color-primary-light: #2b39a7;
+    --ifm-color-primary-lighter: #2d3caf;
+    --ifm-color-primary-lightest: #3344c6;
+    --ifm-code-font-size: 95%;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+/* For readability concerns, you should choose a lighter palette in dark mode. */
+[data-theme='dark'] {
+    --ifm-color-primary: #00abe7;
+    --ifm-color-primary-dark: #009ad0;
+    --ifm-color-primary-darker: #0091c4;
+    --ifm-color-primary-darkest: #0078a2;
+    --ifm-color-primary-light: #00bcfe;
+    --ifm-color-primary-lighter: #0bc0ff;
+    --ifm-color-primary-lightest: #2dc9ff;
+    --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}

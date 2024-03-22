@@ -1,0 +1,8 @@
+{
+    "label": "Chronik - Setup Instance",
+    "position": 2,
+    "link": {
+        "type": "generated-index",
+        "description": "How to setup a Chronik instance. Note: This requires a decent server and may take days to sync. Recommended for advanced users."
+    }
+}

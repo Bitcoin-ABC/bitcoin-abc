@@ -1,0 +1,39 @@
+---
+sidebar_position: 9
+---
+
+# WebSocket
+Subscribe to updates coming from the blockchain.
+
+## `ws(wsConfig)`
+
+See [ws](api/classes/ChronikClientNode#ws) API docs.
+
+See [WsEndpoint_InNode](api/classes/WsEndpoint_InNode#methods) for a reference of all the subscription methods.
+
+```jsx live
+function DemoWebSocket() {
+  const [logs, setLogs] = useState([]);
+  useEffect(() => {
+    const addToLog = msg => {
+      msg.timestamp = new Date().toISOString();
+      console.log(msg);
+      setLogs([...logs, JSON.stringify(msg)])
+    };
+    const ws = chronik.ws({
+      onMessage: addToLog,
+      onConnect: addToLog,
+      onReconnect: addToLog,
+      onError: addToLog,
+      onEnd: addToLog,
+    });
+    // Send block updates
+    ws.subscribeToBlocks();
+    // Random address that seems to have a lot of traffic
+    ws.subscribeToAddress("ecash:qryzw7gteszy8jgsejjchlwjg7lctxpwjgllx92x9j");
+    // This can be awaited
+    ws.waitForOpen();
+  }, []);
+  return logs.map((log, idx) => <div key={idx}>{log}</div>);
+}
+```

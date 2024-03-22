@@ -1,0 +1,49 @@
+---
+sidebar_position: 3
+---
+
+# Blockchain
+
+Access the blockchain using Chronik
+
+## `blockchainInfo()`
+
+Fetch current info of the blockchain, such as tip hash and height.
+
+See [blockchainInfo](api/classes/ChronikClientNode#blockchaininfo) API docs.
+
+```jsx live
+function DemoBlockchainInfo() {
+    return (
+        <Json
+            fn={async () => {
+                const chronik = new ChronikClientNode(
+                    'https://chronik-native1.fabien.cash',
+                );
+                return await chronik.blockchainInfo();
+            }}
+        />
+    );
+}
+```
+
+## `chronikInfo()`
+
+Fetch info about the current running chronik server.
+
+See [chronikInfo](api/classes/ChronikClientNode#chronikinfo) API docs.
+
+```jsx live
+function DemoChronikInfo() {
+    return (
+        <Json
+            fn={async () => {
+                const chronik = new ChronikClientNode(
+                    'https://chronik-native1.fabien.cash',
+                );
+                return await chronik.chronikInfo();
+            }}
+        />
+    );
+}
+```

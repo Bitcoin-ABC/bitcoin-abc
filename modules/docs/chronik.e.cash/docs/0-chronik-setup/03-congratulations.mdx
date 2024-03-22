@@ -1,0 +1,65 @@
+---
+sidebar_position: 4
+---
+
+# Congratulations!
+
+Congratulations, you've successfully setup your own Chronik instance.
+
+Anything **unclear** or **buggy** in this tutorial? [Please report it in our Telegram Group](https://t.me/+LO-EuBnZiXQ5YTZi)!
+
+## Try it out!
+
+You can try out your Chronik instance by entering its URL here:
+
+import { useState } from 'react';
+import { ChronikClientNode } from 'chronik-client';
+import './03-congratulations.scss';
+
+export const GetBlockchainInfo = () => {
+    const [chronikUrl, setChronikUrl] = useState(
+        'https://chronik-native1.fabien.cash',
+    );
+    const [blockchainInfo, setBlockchainInfo] = useState(undefined);
+    const [error, setError] = useState(undefined);
+    const getBlockchainInfo = async () => {
+        const client = new ChronikClientNode(chronikUrl);
+        try {
+            const info = await client.blockchainInfo();
+            console.log(info);
+            setBlockchainInfo(info);
+            setError(undefined);
+        } catch (ex) {
+            setError(ex);
+        }
+    };
+    return (
+        <div className="blockchain-info">
+            <input
+                className="url"
+                value={chronikUrl}
+                onChange={e => setChronikUrl(e.target.value)}
+            />
+            <div>
+                <button className="query" onClick={getBlockchainInfo}>
+                    Try it out!
+                </button>
+            </div>
+            <div className="result">
+                <div>{error && `${error}`}</div>
+                <div>
+                    Tip block hash: <span>{blockchainInfo?.tipHash}</span>
+                </div>
+                <div>
+                    Tip block height: <span>{blockchainInfo?.tipHeight}</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+<GetBlockchainInfo />
+
+## What's next?
+
+Now you can use Chronik in your JS/TS app, [you can follow our instructions there](../chronik-js/install).

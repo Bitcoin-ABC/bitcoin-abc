@@ -1,0 +1,45 @@
+---
+sidebar_position: 8
+---
+
+# Broadcast Transactions
+Broadcast transactions onto the blockchain
+
+## `broadcastTx(rawTx, skipTokenChecks?)`
+
+Broadcast the given raw tx onto the network; by default will verify that no tokens are unintentionally burned.
+Can be disabled with `skipTokenChecks` set to `true`, but this is not recommended.
+
+See [broadcastTx](api/classes/ChronikClientNode#broadcasttx) API docs.
+
+```jsx live
+function DemoBroadcastTx() {
+  return <Json fn={async () => {
+    // Tx tries to burn the first CRD mint baton
+    return await chronik.broadcastTx(
+      "000000000145e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9" +
+      "cdcdcdcdcd0100000000000000000000000000");
+  }} />;
+}
+```
+
+## `broadcastTxs(rawTxs, skipTokenChecks?)`
+
+Broadcast the given raw txs onto the network, by defailt only if all of them pass the token checks
+that verify that no tokens are unintentionally burned.
+Can be disabled with `skipTokenChecks` set to `true`, but this is not recommended.
+
+See [broadcastTxs](api/classes/ChronikClientNode#broadcasttxs) API docs.
+
+```jsx live
+function DemoBroadcastTxs() {
+  return <Json fn={async () => {
+    // Txs try to burn the first CRD mint baton
+    return await chronik.broadcastTxs(
+      ["000000000145e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9" +
+       "cdcdcdcdcd0100000000000000000000000000",
+       "010000000145e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9" +
+       "cdcdcdcdcd0100000000000000000000000000"]);
+  }} />;
+}
+```

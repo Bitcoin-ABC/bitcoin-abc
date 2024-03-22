@@ -939,6 +939,13 @@ builds:
       build_args:
         - "PREVIEW_BUILD=next.preview.js"
 
+  preview-chronik.e.cash:
+    docker:
+      context: modules/
+      port: 3000
+      build_args:
+        - "NGINX_CONF=nginx-preview.conf"
+
   preview-explorer:
     docker:
       context: web/explorer

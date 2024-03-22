@@ -1,0 +1,96 @@
+---
+sidebar_position: 1
+---
+
+# Download & Install Chronik
+
+Download Chronik for the right platform.
+
+:::warning
+This tutorial is about how to run a bitcoind instance with Chronik enabled.
+This requires a decent server and may take days to sync. Recommended for advanced users.
+You can already get started by using one of our pre-synced instances:
+
+-   **If you want to know how to use `chronik-client` in your eCash apps**, go to [Chronik - JS/TS Client](../chronik-js/install).
+
+:::
+
+import CodeBlock from '@theme/CodeBlock';
+import version from '!!raw-loader!../../.abclatestversion';
+export const downloadUrl = 'https://download.bitcoinabc.org';
+export const files = {
+    linux: {
+        x86_64: `bitcoin-abc-${version}-x86_64-linux-gnu-chronik-experimental.tar.gz`,
+        arm: `bitcoin-abc-${version}-arm-linux-gnueabihf-chronik-experimental.tar.gz`,
+        aarch64: `bitcoin-abc-${version}-aarch64-linux-gnu-chronik-experimental.tar.gz`,
+    },
+    windows: {
+        win64: `bitcoin-abc-${version}-win64-setup-unsigned.exe`,
+    },
+};
+export const downloadUrls = {
+    linux: {
+        x86_64: `${downloadUrl}/${version}/linux/${files.linux.x86_64}`,
+        arm: `${downloadUrl}/${version}/linux/${files.linux.arm}`,
+        aarch64: `${downloadUrl}/${version}/linux/${files.linux.aarch64}`,
+    },
+    windows: {
+        win64: `${downloadUrl}/${version}/win/${files.windows.win64}`,
+    },
+};
+
+Download the right Bitcoin ABC Chronik build for your operating system:
+
+## Linux
+
+### Linux x86_64
+
+<a href={downloadUrls.linux.x86_64}>
+    Click here to download Bitcoin ABC Chronik for Linux x86_64
+</a>
+
+<CodeBlock language="bash">
+    {`curl -O ${downloadUrls.linux.x86_64}
+tar xf ${files.linux.x86_64}
+rm ${files.linux.x86_64}`}
+</CodeBlock>
+
+### Linux ARM
+
+<a href={downloadUrls.linux.x86_64}>
+    Click here to download Bitcoin ABC Chronik for Linux ARM
+</a>
+
+<CodeBlock language="bash">
+    {`curl -O ${downloadUrls.linux.arm}
+tar xf ${files.linux.arm}
+rm ${files.linux.arm}`}
+</CodeBlock>
+
+### Linux Aarch64
+
+<a href={downloadUrls.linux.aarch64}>
+    Click here to download Bitcoin ABC Chronik for Linux aarch64
+</a>
+
+<CodeBlock language="bash">
+    {`curl -O ${downloadUrls.linux.aarch64}
+tar xf ${files.linux.aarch64}
+rm ${files.linux.aarch64}`}
+</CodeBlock>
+
+## Windows
+
+<a href={downloadUrls.windows.win64}>
+    Click here to download Bitcoin ABC Chronik for Windows
+</a>
+
+<CodeBlock language="bash">
+    {`curl -O ${downloadUrls.windows.win64}
+tar xf ${files.windows.win64}
+rm ${files.windows.win64}`}
+</CodeBlock>
+
+## MacOS
+
+Chronik is currently not built by default for MacOS, but you can [build it from source yourself](build-chronik#macos).
