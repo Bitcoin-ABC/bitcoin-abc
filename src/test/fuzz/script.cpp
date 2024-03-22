@@ -72,7 +72,9 @@ FUZZ_TARGET_INIT(script, initialize_script) {
     (void)IsSolvable(signing_provider, script);
 
     TxoutType which_type;
-    (void)IsStandard(script, which_type);
+    (void)IsStandard(script, std::nullopt, which_type);
+    (void)IsStandard(script, fuzzed_data_provider.ConsumeIntegral<unsigned>(),
+                     which_type);
 
     (void)RecursiveDynamicUsage(script);
 

@@ -7,6 +7,7 @@
 
 #include <chainparamsbase.h>
 #include <fs.h>
+#include <script/standard.h>
 #include <sync.h>
 #include <util/getuniquepath.h>
 #include <util/strencodings.h>

@@ -21,7 +21,7 @@
 
 // Helpers:
 static bool IsStandardTx(const CTransaction &tx, std::string &reason) {
-    return IsStandardTx(tx, DEFAULT_PERMIT_BAREMULTISIG,
+    return IsStandardTx(tx, std::nullopt, DEFAULT_PERMIT_BAREMULTISIG,
                         CFeeRate{DUST_RELAY_TX_FEE}, reason);
 }
 

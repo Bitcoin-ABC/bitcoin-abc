@@ -11,8 +11,6 @@
 
 typedef std::vector<uint8_t> valtype;
 
-bool fAcceptDatacarrier = DEFAULT_ACCEPT_DATACARRIER;
-
 CScriptID::CScriptID(const CScript &in) : BaseHash(Hash160(in)) {}
 CScriptID::CScriptID(const ScriptHash &in)
     : BaseHash(static_cast<uint160>(in)) {}

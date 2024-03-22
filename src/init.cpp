@@ -1970,9 +1970,6 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
         return false;
     }
 
-    fAcceptDatacarrier =
-        args.GetBoolArg("-datacarrier", DEFAULT_ACCEPT_DATACARRIER);
-
     // Option to startup with mocktime set (used for regression testing):
     SetMockTime(args.GetIntArg("-mocktime", 0)); // SetMockTime(0) is a no-op
 

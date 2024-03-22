@@ -162,6 +162,7 @@ CTxMemPool::CTxMemPool(const Options &opts)
     : m_check_ratio(opts.check_ratio), m_max_size_bytes{opts.max_size_bytes},
       m_expiry{opts.expiry}, m_min_relay_feerate{opts.min_relay_feerate},
       m_permit_bare_multisig{opts.permit_bare_multisig},
+      m_max_datacarrier_bytes{opts.max_datacarrier_bytes},
       m_require_standard{opts.require_standard} {
     // lock free clear
     _clear();

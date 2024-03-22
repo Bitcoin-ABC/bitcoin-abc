@@ -108,6 +108,14 @@ Amount Proof::getStakedAmount() const {
                            });
 }
 
+static bool IsStandardPayoutScript(const CScript &scriptPubKey) {
+    // Check the script's standardness against the default max OP_RETURN size,
+    // so that a proof's validity is not affected by a local relay policy
+    // parameter (see -datacarriersize config option)
+    TxoutType scriptType;
+    return IsStandard(scriptPubKey, MAX_OP_RETURN_RELAY, scriptType);
+}
+
 bool Proof::verify(const Amount &stakeUtxoDustThreshold,
                    ProofValidationState &state) const {
     if (stakes.empty()) {
@@ -120,8 +128,7 @@ bool Proof::verify(const Amount &stakeUtxoDustThreshold,
             strprintf("%u > %u", stakes.size(), AVALANCHE_MAX_PROOF_STAKES));
     }
 
-    TxoutType scriptType;
-    if (!IsStandard(payoutScriptPubKey, scriptType)) {
+    if (!IsStandardPayoutScript(payoutScriptPubKey)) {
         return state.Invalid(ProofValidationResult::INVALID_PAYOUT_SCRIPT,
                              "payout-script-non-standard");
     }

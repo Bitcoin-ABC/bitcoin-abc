@@ -605,7 +605,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     t.vout[0].scriptPubKey = GetScriptForDestination(PKHash(key.GetPubKey()));
 
     std::string reason;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     // Check dust with default relay fee:
     Amount nDustThreshold = 3 * 182 * g_dust.GetFeePerK() / 1000;
@@ -613,34 +614,41 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // dust:
     t.vout[0].nValue = nDustThreshold - SATOSHI;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "dust");
     // not dust:
     t.vout[0].nValue = nDustThreshold;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     // Disallowed nVersion
     t.nVersion = -1;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "version");
 
     t.nVersion = 0;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "version");
 
     t.nVersion = 3;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "version");
 
     // Allowed nVersion
     t.nVersion = 1;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     t.nVersion = 2;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     // Check dust with odd relay fee to verify rounding:
     // nDustThreshold = 182 * 1234 / 1000 * 3
@@ -648,16 +656,19 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // dust:
     t.vout[0].nValue = (672 - 1) * SATOSHI;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "dust");
     // not dust:
     t.vout[0].nValue = 672 * SATOSHI;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
     g_dust = CFeeRate{DUST_RELAY_TX_FEE};
 
     t.vout[0].scriptPubKey = CScript() << OP_1;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "scriptpubkey");
 
     // MAX_OP_RETURN_RELAY-byte TxoutType::NULL_DATA (standard)
@@ -674,7 +685,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "f5d00d4adf73f2dd112ca75cf19754651909becfbe65aed1"
                               "3afb2ab8");
     BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY, t.vout[0].scriptPubKey.size());
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     // MAX_OP_RETURN_RELAY+1-byte TxoutType::NULL_DATA (non-standard)
     t.vout[0].scriptPubKey =
@@ -691,14 +703,14 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "3afb2ab800");
     BOOST_CHECK_EQUAL(MAX_OP_RETURN_RELAY + 1, t.vout[0].scriptPubKey.size());
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "scriptpubkey");
 
     /**
-     * Check when a custom value is used for -datacarriersize .
+     * Check when a custom value is used for max_datacarrier_bytes.
      */
     unsigned newMaxSize = 90;
-    gArgs.ForceSetArg("-datacarriersize", ToString(newMaxSize));
 
     // Max user provided payload size is standard
     t.vout[0].scriptPubKey =
@@ -708,7 +720,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "271967f1a67130b7105cd6a828e03909a67962e0ea1f61de"
                               "b649f6bc3f4cef3877696e64657878");
     BOOST_CHECK_EQUAL(t.vout[0].scriptPubKey.size(), newMaxSize);
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, newMaxSize, g_bare_multi, g_dust,
+                             reason));
 
     // Max user provided payload size + 1 is non-standard
     t.vout[0].scriptPubKey =
@@ -718,39 +731,43 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "271967f1a67130b7105cd6a828e03909a67962e0ea1f61de"
                               "b649f6bc3f4cef3877696e6465787800");
     BOOST_CHECK_EQUAL(t.vout[0].scriptPubKey.size(), newMaxSize + 1);
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
-
-    // Clear custom confirguration.
-    gArgs.ClearForcedArg("-datacarriersize");
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, newMaxSize, g_bare_multi, g_dust,
+                              reason));
 
     // Data payload can be encoded in any way...
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << ParseHex("");
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
     t.vout[0].scriptPubKey = CScript()
                              << OP_RETURN << ParseHex("00") << ParseHex("01");
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
     // OP_RESERVED *is* considered to be a PUSHDATA type opcode by IsPushOnly()!
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << OP_RESERVED << -1 << 0
                                        << ParseHex("01") << 2 << 3 << 4 << 5
                                        << 6 << 7 << 8 << 9 << 10 << 11 << 12
                                        << 13 << 14 << 15 << 16;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
     t.vout[0].scriptPubKey = CScript()
                              << OP_RETURN << 0 << ParseHex("01") << 2
                              << ParseHex("fffffffffffffffffffffffffffffffffffff"
                                          "fffffffffffffffffffffffffffffffffff");
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     // ...so long as it only contains PUSHDATA's
     t.vout[0].scriptPubKey = CScript() << OP_RETURN << OP_RETURN;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "scriptpubkey");
 
     // TxoutType::NULL_DATA w/o PUSHDATA
     t.vout.resize(1);
     t.vout[0].scriptPubKey = CScript() << OP_RETURN;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     // Only one TxoutType::NULL_DATA permitted in all cases
     t.vout.resize(2);
@@ -763,7 +780,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                   << ParseHex("04678afdb0fe5548271967f1a67130b7105cd6a828e03909"
                               "a67962e0ea1f61deb649f6bc3f4cef38");
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "multi-op-return");
 
     t.vout[0].scriptPubKey =
@@ -772,13 +790,15 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                               "a67962e0ea1f61deb649f6bc3f4cef38");
     t.vout[1].scriptPubKey = CScript() << OP_RETURN;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "multi-op-return");
 
     t.vout[0].scriptPubKey = CScript() << OP_RETURN;
     t.vout[1].scriptPubKey = CScript() << OP_RETURN;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "multi-op-return");
 
     // Check large scriptSig (non-standard if size is >1650 bytes)
@@ -787,11 +807,13 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     t.vout[0].scriptPubKey = GetScriptForDestination(PKHash(key.GetPubKey()));
     // OP_PUSHDATA2 with len (3 bytes) + data (1647 bytes) = 1650 bytes
     t.vin[0].scriptSig = CScript() << std::vector<uint8_t>(1647, 0); // 1650
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     t.vin[0].scriptSig = CScript() << std::vector<uint8_t>(1648, 0); // 1651
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "scriptsig-size");
 
     // Check scriptSig format (non-standard if there are any other ops than just
@@ -806,7 +828,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
                          << std::vector<uint8_t>(235, 0)
                          // OP_PUSHDATA2 x [...x bytes...]
                          << std::vector<uint8_t>(1234, 0) << OP_9;
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     const std::vector<uint8_t> non_push_ops = {
         // arbitrary set of non-push operations
@@ -842,14 +865,14 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
         // replace current push-op with each non-push-op
         for (auto op : non_push_ops) {
             t.vin[0].scriptSig[index] = op;
-            BOOST_CHECK(
-                !IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+            BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                                      g_bare_multi, g_dust, reason));
             BOOST_CHECK_EQUAL(reason, "scriptsig-not-pushonly");
         }
         // restore op
         t.vin[0].scriptSig[index] = orig_op;
-        BOOST_CHECK(
-            IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+        BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                                 g_bare_multi, g_dust, reason));
     }
 
     // Check bare multisig (standard if policy flag g_bare_multi is set)
@@ -857,11 +880,13 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     // simple 1-of-1
     t.vout[0].scriptPubKey = GetScriptForMultisig(1, {key.GetPubKey()});
     t.vin[0].scriptSig = CScript() << std::vector<uint8_t>(65, 0);
-    BOOST_CHECK(IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY, g_bare_multi,
+                             g_dust, reason));
 
     g_bare_multi = false;
     reason.clear();
-    BOOST_CHECK(!IsStandardTx(CTransaction{t}, g_bare_multi, g_dust, reason));
+    BOOST_CHECK(!IsStandardTx(CTransaction{t}, MAX_OP_RETURN_RELAY,
+                              g_bare_multi, g_dust, reason));
     BOOST_CHECK_EQUAL(reason, "bare-multisig");
     g_bare_multi = DEFAULT_PERMIT_BAREMULTISIG;
 }

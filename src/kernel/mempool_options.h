@@ -5,6 +5,7 @@
 #define BITCOIN_KERNEL_MEMPOOL_OPTIONS_H
 
 #include <policy/policy.h>
+#include <script/standard.h>
 
 #include <chrono>
 #include <cstdint>
@@ -35,6 +36,17 @@ struct MemPoolOptions {
      * mining and transaction creation)
      */
     CFeeRate min_relay_feerate{DEFAULT_MIN_RELAY_TX_FEE_PER_KB};
+    /**
+     * A data carrying output is an unspendable output containing data. The
+     * script type is designated as TxoutType::NULL_DATA.
+     *
+     * Maximum size of TxoutType::NULL_DATA scripts that this node considers
+     * standard.
+     * If nullopt, any size is nonstandard.
+     */
+    std::optional<unsigned> max_datacarrier_bytes{
+        DEFAULT_ACCEPT_DATACARRIER ? std::optional{MAX_OP_RETURN_RELAY}
+                                   : std::nullopt};
     bool permit_bare_multisig{DEFAULT_PERMIT_BAREMULTISIG};
     bool require_standard{true};
 };

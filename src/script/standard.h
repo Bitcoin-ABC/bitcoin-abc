@@ -35,12 +35,6 @@ public:
  */
 static const unsigned int MAX_OP_RETURN_RELAY = 223;
 
-/**
- * A data carrying output is an unspendable output containing data. The script
- * type is designated as TxoutType::NULL_DATA.
- */
-extern bool fAcceptDatacarrier;
-
 enum class TxoutType {
     NONSTANDARD,
     // 'standard' transaction types:

@@ -479,6 +479,7 @@ public:
     const std::chrono::seconds m_expiry;
     const CFeeRate m_min_relay_feerate;
     const bool m_permit_bare_multisig;
+    const std::optional<unsigned> m_max_datacarrier_bytes;
     const bool m_require_standard;
 
     /**

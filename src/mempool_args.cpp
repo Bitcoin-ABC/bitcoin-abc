@@ -48,6 +48,12 @@ ApplyArgsManOptions(const ArgsManager &argsman, const CChainParams &chainparams,
     mempool_opts.permit_bare_multisig =
         argsman.GetBoolArg("-permitbaremultisig", DEFAULT_PERMIT_BAREMULTISIG);
 
+    mempool_opts.max_datacarrier_bytes =
+        argsman.GetBoolArg("-datacarrier", DEFAULT_ACCEPT_DATACARRIER)
+            ? std::optional<unsigned>{argsman.GetIntArg("-datacarriersize",
+                                                        MAX_OP_RETURN_RELAY)}
+            : std::nullopt;
+
     mempool_opts.require_standard =
         !argsman.GetBoolArg("-acceptnonstdtxn", !chainparams.RequireStandard());
     if (!chainparams.IsTestChain() && !mempool_opts.require_standard) {

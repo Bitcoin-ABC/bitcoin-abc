@@ -10,6 +10,7 @@
 #include <feerate.h>
 #include <script/standard.h>
 
+#include <optional>
 #include <string>
 
 class CCoinsViewCache;
@@ -111,15 +112,19 @@ Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
 bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFee);
 
-bool IsStandard(const CScript &scriptPubKey, TxoutType &whichType);
+bool IsStandard(const CScript &scriptPubKey,
+                const std::optional<unsigned> &max_datacarrier_bytes,
+                TxoutType &whichType);
 
 /**
  * Check for standard transaction types
  * @return True if all outputs (scriptPubKeys) use only standard transaction
  * forms
  */
-bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
-                  const CFeeRate &dust_relay_fee, std::string &reason);
+bool IsStandardTx(const CTransaction &tx,
+                  const std::optional<unsigned> &max_datacarrier_bytes,
+                  bool permit_bare_multisig, const CFeeRate &dust_relay_fee,
+                  std::string &reason);
 
 /**
  * Check for standard transaction types

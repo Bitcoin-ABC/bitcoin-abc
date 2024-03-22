@@ -35,7 +35,9 @@ bool IsDust(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
     return (txout.nValue < GetDustThreshold(txout, dustRelayFeeIn));
 }
 
-bool IsStandard(const CScript &scriptPubKey, TxoutType &whichType) {
+bool IsStandard(const CScript &scriptPubKey,
+                const std::optional<unsigned> &max_datacarrier_bytes,
+                TxoutType &whichType) {
     std::vector<std::vector<uint8_t>> vSolutions;
     whichType = Solver(scriptPubKey, vSolutions);
 
@@ -52,13 +54,8 @@ bool IsStandard(const CScript &scriptPubKey, TxoutType &whichType) {
             return false;
         }
     } else if (whichType == TxoutType::NULL_DATA) {
-        if (!fAcceptDatacarrier) {
-            return false;
-        }
-
-        unsigned nMaxDatacarrierBytes =
-            gArgs.GetIntArg("-datacarriersize", MAX_OP_RETURN_RELAY);
-        if (scriptPubKey.size() > nMaxDatacarrierBytes) {
+        if (!max_datacarrier_bytes ||
+            scriptPubKey.size() > *max_datacarrier_bytes) {
             return false;
         }
     }
@@ -66,8 +63,10 @@ bool IsStandard(const CScript &scriptPubKey, TxoutType &whichType) {
     return true;
 }
 
-bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
-                  const CFeeRate &dust_relay_fee, std::string &reason) {
+bool IsStandardTx(const CTransaction &tx,
+                  const std::optional<unsigned> &max_datacarrier_bytes,
+                  bool permit_bare_multisig, const CFeeRate &dust_relay_fee,
+                  std::string &reason) {
     // Only allow these tx versions, there is no point accepting a tx that
     // violates the consensus rules
     if (tx.nVersion > CTransaction::MAX_VERSION ||
@@ -100,7 +99,8 @@ bool IsStandardTx(const CTransaction &tx, bool permit_bare_multisig,
     unsigned int nDataOut = 0;
     TxoutType whichType;
     for (const CTxOut &txout : tx.vout) {
-        if (!::IsStandard(txout.scriptPubKey, whichType)) {
+        if (!::IsStandard(txout.scriptPubKey, max_datacarrier_bytes,
+                          whichType)) {
             reason = "scriptpubkey";
             return false;
         }
