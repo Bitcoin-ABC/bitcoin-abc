@@ -19,6 +19,8 @@ interface Endpoint {
     wsUrl: string;
 }
 
+const WEBSOCKET_TIMEOUT_MS = 5000;
+
 /**
  * Handles the networking to Chronik `Endpoint`s, including cycling
  * through both types of endpoints.
@@ -207,14 +209,22 @@ export class FailoverProxy {
      */
     private async _websocketUrlConnects(wsUrl: string) {
         return new Promise(resolve => {
+            // If we do not connect in appropriate timeframe,
+            // call it a failure and try the next websocket
+            const timeoutFailure = setTimeout(
+                () => resolve(false),
+                WEBSOCKET_TIMEOUT_MS,
+            );
             const testWs = new WebSocket(wsUrl);
             testWs.onerror = function () {
                 testWs.close();
-                resolve(false);
+                clearTimeout(timeoutFailure);
+                return resolve(false);
             };
             testWs.onopen = function () {
                 testWs.close();
-                resolve(true);
+                clearTimeout(timeoutFailure);
+                return resolve(true);
             };
         }).catch(() => {
             return false;
