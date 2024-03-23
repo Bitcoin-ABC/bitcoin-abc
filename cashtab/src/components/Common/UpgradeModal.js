@@ -75,14 +75,6 @@ const ModalExit = styled.button`
 `;
 
 export const UpgradeModal = ({ handleOk, handleCancel }) => {
-    // Needs a title
-    // Needs a description
-    // Needs an OK button that closes and does something
-    // Needs a a cancel button that closes and does nothing
-    // Should appear at bottom of app
-    // Should be transparent-ish
-    // Should slide up from the bottom, slide down if dismissed
-
     return (
         <VersionModalContainer>
             <ModalExit onClick={handleCancel}>X</ModalExit>
@@ -96,7 +88,6 @@ export const UpgradeModal = ({ handleOk, handleCancel }) => {
 };
 
 UpgradeModal.propTypes = {
-    showModal: PropTypes.bool,
     handleOk: PropTypes.func.isRequired,
     handleCancel: PropTypes.func.isRequired,
 };
