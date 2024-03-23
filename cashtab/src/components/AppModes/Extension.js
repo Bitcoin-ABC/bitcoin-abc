@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import { Modal } from 'antd';
+import Modal from 'components/Common/Modal';
 import extension from 'extensionizer';
 import PropTypes from 'prop-types';
 
@@ -135,15 +135,12 @@ const Extension = ({ wallet }) => {
             {showApproveAddressShareModal && (
                 <Modal
                     title={`Share your address?`}
-                    open={showApproveAddressShareModal}
-                    onOk={() => handleApprovedAddressShare()}
-                    onCancel={() => handleRejectedAddressShare()}
-                >
-                    <p>
-                        The web page {addressRequestTabUrl} is requesting your
-                        eCash address.
-                    </p>
-                </Modal>
+                    description={`The web page ${addressRequestTabUrl} is requesting your
+                        eCash address.`}
+                    handleOk={() => handleApprovedAddressShare()}
+                    handleCancel={() => handleRejectedAddressShare()}
+                    showCancelButton
+                />
             )}
         </>
     );

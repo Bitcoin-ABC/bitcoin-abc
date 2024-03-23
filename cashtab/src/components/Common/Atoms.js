@@ -53,10 +53,6 @@ export const TokenParamLabel = styled.span`
     font-weight: bold;
 `;
 
-export const MessageVerificationParamLabel = styled.span`
-    font-weight: bold;
-`;
-
 export const AlertMsg = styled.p`
     color: ${props => props.theme.forms.error} !important;
 `;

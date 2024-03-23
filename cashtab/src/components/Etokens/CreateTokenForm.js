@@ -45,13 +45,18 @@ import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
 import { getSlpGenesisTargetOutput } from 'slpv1';
 import { sendXec } from 'transactions';
-import { notification } from 'antd';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
 import { getWalletState } from 'utils/cashMethods';
 import { hasEnoughToken } from 'wallet';
+import { toast } from 'react-toastify';
 
 const { Dragger } = Upload;
+
+const TokenCreatedLink = styled.a`
+    color: ${props => props.theme.walletBackground};
+    text-decoration: none;
+`;
 
 export const CreateTokenCtn = styled.div`
     margin-top: 20px;
@@ -428,18 +433,12 @@ const CreateTokenForm = () => {
                 }
             }
 
-            notification.success({
-                message: 'Success',
-                description: `Your eToken icon was successfully submitted.`,
-                icon: <TokenNotificationIcon />,
-            });
+            toast.success(`Successfully uploaded token icon`);
         } catch (err) {
             console.error(err.message);
-            notification.error({
-                message: 'Submitting icon for approval',
-                description: err.message,
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error(
+                `Error submitting token icon for approval, please contact icons@e.cash for support`,
+            );
         }
     };
     const createPreviewedToken = async () => {
@@ -481,30 +480,25 @@ const CreateTokenForm = () => {
                 chaintipBlockheight,
             );
 
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a
-                        href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Token created! Click to view in block explorer.
-                    </a>
-                ),
-                icon: <TokenNotificationIcon />,
-            });
+            toast(
+                <TokenCreatedLink
+                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Token created!
+                </TokenCreatedLink>,
+                {
+                    icon: TokenNotificationIcon,
+                },
+            );
 
             // If this eToken has an icon, upload to server
             if (tokenIcon !== '') {
                 submitTokenIcon(response.txid);
             }
         } catch (e) {
-            notification.error({
-                message: 'Creating eToken',
-                description: JSON.stringify(e),
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error(`${e}`);
         }
         // Hide the modal
         setShowConfirmCreateToken(false);

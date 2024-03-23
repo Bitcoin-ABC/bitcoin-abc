@@ -55,6 +55,17 @@ import { WalletInfoCtn } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BalanceHeader from 'components/Common/BalanceHeader';
 import { isValidCashtabWallet } from 'validation';
+import { ToastContainer, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css';
+
+const CashtabNotification = styled(ToastContainer)`
+    .Toastify__progress-bar-theme--dark {
+        background: #00abe7;
+    }
+    .Toastify__progress-bar-theme--light {
+        background: #00abe7;
+    }
+`;
 
 const ExtensionFrame = createGlobalStyle`
     html, body {
@@ -491,6 +502,19 @@ const App = () => {
                 indicator={CashLoadingIcon}
             >
                 <CustomApp>
+                    <CashtabNotification
+                        position="top-right"
+                        autoClose={5000}
+                        hideProgressBar={false}
+                        newestOnTop
+                        closeOnClick
+                        rtl={false}
+                        pauseOnFocusLoss
+                        draggable
+                        pauseOnHover
+                        theme="light"
+                        transition={Bounce}
+                    />
                     <WalletBody>
                         <WalletCtn>
                             {!cashtabLoaded ? (

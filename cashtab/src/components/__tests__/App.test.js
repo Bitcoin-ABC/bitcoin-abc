@@ -553,9 +553,7 @@ describe('<App />', () => {
         await user.click(screen.getByText('OK'));
 
         // Notification is rendered with expected txid?;
-        const txSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
-        );
+        const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',
@@ -687,9 +685,7 @@ describe('<App />', () => {
         await user.click(screen.getByRole('button', { name: /Send/ }));
 
         // Notification is rendered with expected txid
-        const txSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
-        );
+        const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',
@@ -722,7 +718,7 @@ describe('<App />', () => {
         await user.click(screen.getByRole('button', { name: /Send/ }));
 
         const sendTokenSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
+            'eToken sent',
         );
         await waitFor(() =>
             expect(sendTokenSuccessNotification).toHaveAttribute(

@@ -24,8 +24,6 @@ const appConfig = {
     tokenName: 'eToken',
     tokenTicker: 'eToken',
     tokenLogo: tokenLogo,
-    notificationDurationShort: 3,
-    notificationDurationLong: 5,
     localStorageMaxCharacters: 24,
     monitorExtension: false,
     vipSettingsTokenId:

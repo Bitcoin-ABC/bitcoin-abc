@@ -482,7 +482,7 @@ describe('<SendToken />', () => {
         await user.click(screen.getByRole('button', { name: /Send/ }));
 
         const sendTokenSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
+            'eToken sent',
         );
         await waitFor(() =>
             expect(sendTokenSuccessNotification).toHaveAttribute(
@@ -530,7 +530,7 @@ describe('<SendToken />', () => {
         await user.click(screen.getByRole('button', { name: /OK/ }));
 
         const burnTokenSuccessNotification = await screen.findByText(
-            'eToken burn successful. Click to view in block explorer.',
+            '🔥 Burn successful',
         );
         await waitFor(() =>
             expect(burnTokenSuccessNotification).toHaveAttribute(

@@ -25,15 +25,14 @@ import {
 import { queryAliasServer } from 'alias';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
-import {
-    CashReceivedNotificationIcon,
-    TokenNotificationIcon,
-} from 'components/Common/CustomIcons';
+import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
-import { notification } from 'antd';
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 import { createCashtabWallet, getLegacyPaths, getBalanceSats } from 'wallet';
+import { toast } from 'react-toastify';
 import CashtabState from 'config/CashtabState';
+import TokenIcon from 'components/Etokens/TokenIcon';
+import { getUserLocale } from 'helpers';
 
 const useWallet = chronik => {
     const [cashtabLoaded, setCashtabLoaded] = useState(false);
@@ -52,6 +51,7 @@ const useWallet = chronik => {
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState(new CashtabState());
     const { settings, cashtabCache, wallets } = cashtabState;
+    const locale = getUserLocale();
 
     const update = async cashtabState => {
         if (!cashtabLoaded) {
@@ -568,12 +568,16 @@ const useWallet = chronik => {
             if (parsedChronikTx.isEtokenTx) {
                 let eTokenAmountReceived = parsedChronikTx.etokenAmount;
                 if (parsedChronikTx.genesisInfo.success) {
-                    notification.success({
-                        message: `${appConfig.tokenTicker} transaction received: ${parsedChronikTx.genesisInfo.tokenTicker}`,
-                        description: `You received ${eTokenAmountReceived.toString()} ${
-                            parsedChronikTx.genesisInfo.tokenName
-                        }`,
-                        icon: <TokenNotificationIcon />,
+                    const eTokenReceivedString = `Received ${eTokenAmountReceived} ${parsedChronikTx.genesisInfo.tokenTicker} (${parsedChronikTx.genesisInfo.tokenName})`;
+                    toast(eTokenReceivedString, {
+                        icon: (
+                            <TokenIcon
+                                size={32}
+                                tokenId={
+                                    parsedChronikTx.tokenEntries[0].tokenId
+                                }
+                            />
+                        ),
                     });
                 } else {
                     // Get genesis info from API and add to cache
@@ -598,12 +602,18 @@ const useWallet = chronik => {
                             parsedChronikTx.etokenAmount,
                         ).shiftedBy(-1 * genesisInfo.decimals);
 
-                        notification.success({
-                            message: `${appConfig.tokenTicker} ${genesisInfo.tokenTicker} received for the first time.`,
-                            description: `You received ${eTokenAmountReceived.toString()} ${
-                                genesisInfo.tokenName
-                            }`,
-                            icon: <TokenNotificationIcon />,
+                        const eTokenFirstReceivedString = `Received ${eTokenAmountReceived.toString()} ${
+                            genesisInfo.tokenTicker
+                        } (${
+                            genesisInfo.tokenName
+                        }) (new token in this wallet)`;
+                        toast(eTokenFirstReceivedString, {
+                            icon: (
+                                <TokenIcon
+                                    size={32}
+                                    tokenId={incomingTokenId}
+                                />
+                            ),
                         });
                     } catch (err) {
                         console.log(
@@ -614,23 +624,21 @@ const useWallet = chronik => {
                 }
             } else {
                 const xecAmount = parsedChronikTx.xecAmount;
-                notification.success({
-                    message: 'eCash received',
-                    description: `
-                            ${xecAmount.toLocaleString()} ${appConfig.ticker}
-                            ${
-                                settings &&
-                                settings.fiatCurrency &&
-                                `(${
-                                    supportedFiatCurrencies[
-                                        settings.fiatCurrency
-                                    ].symbol
-                                }${(xecAmount * fiatPrice).toFixed(
-                                    appConfig.cashDecimals,
-                                )} ${settings.fiatCurrency.toUpperCase()})`
-                            }
-                        `,
-                    icon: <CashReceivedNotificationIcon />,
+                // CashReceivedNotificationIcon
+                const xecReceivedString = `Received ${xecAmount.toLocaleString(
+                    locale,
+                )} ${appConfig.ticker}${
+                    settings && typeof settings.fiatCurrency !== 'undefined'
+                        ? ` (${
+                              supportedFiatCurrencies[settings.fiatCurrency]
+                                  .symbol
+                          }${(xecAmount * fiatPrice).toFixed(
+                              appConfig.cashDecimals,
+                          )} ${settings.fiatCurrency.toUpperCase()})`
+                        : ''
+                }`;
+                toast(xecReceivedString, {
+                    icon: CashReceivedNotificationIcon,
                 });
             }
         }

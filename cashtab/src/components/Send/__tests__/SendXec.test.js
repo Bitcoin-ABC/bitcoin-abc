@@ -1134,9 +1134,7 @@ describe('<SendXec />', () => {
         );
 
         // Notification is rendered with expected txid?;
-        const txSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
-        );
+        const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',
@@ -1241,9 +1239,7 @@ describe('<SendXec />', () => {
         );
 
         // Notification is rendered with expected txid?;
-        const txSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
-        );
+        const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',
@@ -1348,9 +1344,7 @@ describe('<SendXec />', () => {
         );
 
         // Notification is rendered with expected txid?;
-        const txSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
-        );
+        const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',
@@ -1430,9 +1424,7 @@ describe('<SendXec />', () => {
         );
 
         // Notification is rendered with expected txid?;
-        const txSuccessNotification = await screen.findByText(
-            'Transaction successful. Click to view in block explorer.',
-        );
+        const txSuccessNotification = await screen.findByText('eCash sent');
         await waitFor(() =>
             expect(txSuccessNotification).toHaveAttribute(
                 'href',

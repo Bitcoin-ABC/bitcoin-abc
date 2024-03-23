@@ -59,9 +59,9 @@ import { queryAliasServer } from 'alias';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
-import { notification } from 'antd';
 import { isMobile, getUserLocale } from 'helpers';
 import { hasEnoughToken, fiatToSatoshis } from 'wallet';
+import { toast } from 'react-toastify';
 const { TextArea } = Input;
 
 const TextAreaLabel = styled.div`
@@ -69,6 +69,11 @@ const TextAreaLabel = styled.div`
     color: ${props => props.theme.forms.text};
     padding-left: 1px;
     white-space: nowrap;
+`;
+
+const SentLink = styled.a`
+    color: ${props => props.theme.walletBackground};
+    text-decoration: none;
 `;
 
 const AppCreatedTxSummary = styled.div`
@@ -390,7 +395,7 @@ const SendXec = () => {
         // We re-run this when balanceSats changes because validation of send amounts depends on balanceSats
     }, [txInfoFromUrl, balanceSats]);
 
-    function handleSendXecError(errorObj, oneToManyFlag) {
+    function handleSendXecError(errorObj) {
         let message;
         if (
             errorObj.error &&
@@ -404,14 +409,7 @@ const SendXec = () => {
                 errorObj.message || errorObj.error || JSON.stringify(errorObj);
         }
 
-        const title = `Error sending XEC${
-            oneToManyFlag ? ' to multiple recipients' : ''
-        }`;
-        notification.error({
-            message: title,
-            description: message,
-            duration: appConfig.notificationDurationLong,
-        });
+        toast.error(`${message}`);
     }
 
     async function send() {
@@ -494,20 +492,19 @@ const SendXec = () => {
                 chaintipBlockheight,
             );
 
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a
-                        href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Transaction successful. Click to view in block explorer.
-                    </a>
-                ),
-                duration: appConfig.notificationDurationShort,
-                icon: <CashReceivedNotificationIcon />,
-            });
+            toast(
+                <SentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    eCash sent
+                </SentLink>,
+                {
+                    icon: CashReceivedNotificationIcon,
+                    autoClose: false,
+                },
+            );
 
             clearInputForms();
             setAirdropFlag(false);
@@ -516,7 +513,7 @@ const SendXec = () => {
                 window.close();
             }
         } catch (err) {
-            handleSendXecError(err, isOneToManyXECSend);
+            handleSendXecError(err);
         }
     }
 

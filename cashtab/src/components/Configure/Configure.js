@@ -5,17 +5,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
-import {
-    Collapse,
-    Form,
-    Input,
-    Modal,
-    Alert,
-    Switch,
-    Tooltip,
-    Checkbox,
-} from 'antd';
-import { Row, Col, notification } from 'antd';
+import { Collapse, Form, Input, Alert, Switch, Tooltip, Checkbox } from 'antd';
+import { Row, Col } from 'antd';
 import {
     WalletFilled,
     LockOutlined,
@@ -72,6 +63,8 @@ import {
     getWalletsForNewActiveWallet,
 } from 'wallet';
 import CustomModal from 'components/Common/Modal';
+import { toast } from 'react-toastify';
+
 const { Panel } = Collapse;
 
 const VersionContainer = styled.div`
@@ -557,22 +550,17 @@ const Configure = () => {
 
             if (typeof contactExists !== 'undefined') {
                 // Contact already exists
-                notification.error({
-                    message: 'Error',
-                    description:
-                        location.state.contactToAdd +
-                        ' already exists in the Contact List',
-                });
+                toast.error(
+                    `${location.state.contactToAdd} already exists in Contacts`,
+                );
             } else {
                 contactList.push(newContactObj);
 
                 // Update localforage and state
                 await updateCashtabState('contactList', contactList);
-                notification.success({
-                    message: 'Success',
-                    description:
-                        location.state.contactToAdd + ' added to Contact List',
-                });
+                toast.success(
+                    `${location.state.contactToAdd} added to Contacts`,
+                );
             }
         }
     };
@@ -603,9 +591,9 @@ const Configure = () => {
                 wallet.mnemonic === newAddedWallet.mnemonic,
         );
         if (typeof walletAlreadyInWalletsSomehow !== 'undefined') {
-            Modal.error({
-                content: `By a vanishingly small chance, "${newAddedWallet.name}" already existed in saved wallets. Please try again.`,
-            });
+            toast.error(
+                `By a vanishingly small chance, "${newAddedWallet.name}" already existed in saved wallets. Please try again.`,
+            );
             // Do not add this wallet
             return;
         }
@@ -616,9 +604,9 @@ const Configure = () => {
         // Add it to the end of the wallets object
         updateCashtabState('wallets', [...wallets, newAddedWallet]);
 
-        Modal.success({
-            content: `New wallet "${newAddedWallet.name}" added to your saved wallets`,
-        });
+        toast.success(
+            `New wallet "${newAddedWallet.name}" added to your saved wallets`,
+        );
     };
 
     const activateWallet = (walletToActivate, wallets) => {
@@ -651,9 +639,9 @@ const Configure = () => {
             console.log(
                 `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
             );
-            Modal.error({
-                content: `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
-            });
+            toast.error(
+                `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
+            );
             // Do not clear form data in this case
             return;
         }
@@ -670,9 +658,9 @@ const Configure = () => {
             console.log(
                 `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
             );
-            Modal.error({
-                content: `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
-            });
+            toast.error(
+                `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
+            );
             // Do not clear form data in this case
             return;
         }
@@ -685,9 +673,9 @@ const Configure = () => {
         updateCashtabState('wallets', [...wallets, newImportedWallet]);
 
         // Import success modal
-        Modal.success({
-            content: `New imported wallet "${newImportedWallet.name}" added to your saved wallets`,
-        });
+        toast.success(
+            `New imported wallet "${newImportedWallet.name}" added to your saved wallets`,
+        );
 
         // Clear formdata
         setFormData({ ...formData, mnemonic: '' });
@@ -728,9 +716,7 @@ const Configure = () => {
 
         if (typeof walletOfWalletsWithThisNameAlready !== 'undefined') {
             // If there is already a wallet with this name, show an error modal
-            Modal.error({
-                content: `Rename failed. All wallets must have a unique name.`,
-            });
+            toast.error(`Rename failed. All wallets must have a unique name.`);
 
             // Clear the input
             setNewWalletName(null);
@@ -747,9 +733,9 @@ const Configure = () => {
         if (typeof indexOfWalletToBeRenamed === 'undefined') {
             // If we can't find this, we are also in trouble
             // Should never happen
-            Modal.error({
-                content: `Rename failed. Cashtab could not find existing wallet "${oldName}".`,
-            });
+            toast.error(
+                `Rename failed. Cashtab could not find existing wallet "${oldName}".`,
+            );
 
             // Clear new wallet name input
             setNewWalletName(null);
@@ -762,9 +748,7 @@ const Configure = () => {
         // Update cashtabState and localforage
         updateCashtabState('wallets', wallets);
 
-        Modal.success({
-            content: `Wallet "${oldName}" renamed to "${newName}"`,
-        });
+        toast.success(`Wallet "${oldName}" renamed to "${newName}"`);
 
         // Clear wallet name for form
         setNewWalletName(null);
@@ -798,9 +782,7 @@ const Configure = () => {
         if (typeof indexOfWalletToDelete === 'undefined') {
             // If we can't find it, there is some kind of problem
             // Should never happen
-            Modal.error({
-                content: `Error deleting ${walletToBeDeleted.name}.`,
-            });
+            toast.error(`Error deleting ${walletToBeDeleted.name}.`);
             return;
         }
 
@@ -812,9 +794,9 @@ const Configure = () => {
             ),
         );
 
-        Modal.success({
-            content: `Wallet "${walletToBeDeleted.name}" successfully deleted`,
-        });
+        toast.success(
+            `Wallet "${walletToBeDeleted.name}" successfully deleted`,
+        );
 
         setConfirmationOfWalletToBeDeleted('');
     };
@@ -902,10 +884,7 @@ const Configure = () => {
             // Update localforage and state
             await updateCashtabState('contactList', contactList);
         } else {
-            notification.error({
-                message: 'Error',
-                description: 'Unable to find contact in array',
-            });
+            toast.error(`Unable to find contact`);
         }
     };
 
@@ -965,10 +944,7 @@ const Configure = () => {
 
         // Update localforage and state
         await updateCashtabState('contactList', updatedContactList);
-        notification.success({
-            message: 'Success',
-            description: `${contactAddressToDelete} removed from Contact List`,
-        });
+        toast.success(`${contactAddressToDelete} removed from Contact List`);
     };
 
     const handleDeleteContact = contactAddress => {
@@ -1015,10 +991,7 @@ const Configure = () => {
 
     const exportContactList = contactListArray => {
         if (!contactListArray) {
-            notification.error({
-                message: 'Error',
-                description: 'Unable to export contact list',
-            });
+            toast.error('Unable to export contact list');
             return;
         }
 
@@ -1050,12 +1023,9 @@ const Configure = () => {
         );
         if (typeof contactExists !== 'undefined') {
             // it exists
-            notification.error({
-                message: 'Error',
-                description:
-                    manualContactAddress +
-                    ' already exists in the Contact List',
-            });
+            toast.error(
+                `${manualContactAddress} already exists in the Contact List`,
+            );
         } else {
             contactList.push({
                 name: manualContactName,
@@ -1063,10 +1033,7 @@ const Configure = () => {
             });
             // update localforage and state
             await updateCashtabState('contactList', contactList);
-            notification.success({
-                message: 'Success',
-                description: `${manualContactAddress} added to Contact List`,
-            });
+            toast.success(`${manualContactAddress} added to Contact List`);
         }
 
         // Reset relevant state fields
@@ -1106,10 +1073,9 @@ const Configure = () => {
 
         if (typeof contactExists !== 'undefined') {
             // Contact exists
-            notification.error({
-                message: 'Error',
-                description: `${manualContactAddress} already exists in the Contact List`,
-            });
+            toast.error(
+                `${manualContactAddress} already exists in the Contact List`,
+            );
         } else {
             contactList.push({
                 name: manualContactName,
@@ -1117,10 +1083,7 @@ const Configure = () => {
             });
             // update localforage and state
             await updateCashtabState('contactList', contactList);
-            notification.success({
-                message: 'Success',
-                description: `${manualContactAddress} added to Contact List`,
-            });
+            toast.success(`${manualContactAddress} added to Contact List`);
         }
 
         // Reset relevant state fields
@@ -1689,10 +1652,7 @@ const Configure = () => {
                                                                 data={
                                                                     element.address
                                                                 }
-                                                                optionalOnCopyNotification={{
-                                                                    title: 'Copied',
-                                                                    msg: `${element.address} copied to clipboard`,
-                                                                }}
+                                                                showToast
                                                             >
                                                                 <ThemedCopySolid />
                                                             </CopyToClipboard>

@@ -134,10 +134,9 @@ describe('<CreateTokenForm />', () => {
         await user.click(screen.getByText('OK'));
 
         // Verify notification triggered
-        expect(
-            await screen.findByText(
-                'Token created! Click to view in block explorer.',
-            ),
-        ).toHaveAttribute('href', `${explorer.blockExplorerUrl}/tx/${txid}`);
+        expect(await screen.findByText('Token created!')).toHaveAttribute(
+            'href',
+            `${explorer.blockExplorerUrl}/tx/${txid}`,
+        );
     });
 });

@@ -14,7 +14,7 @@ import {
     InputAmountSingle,
 } from 'components/Common/EnhancedInputs';
 import { Form, Input } from 'antd';
-import { Switch, notification } from 'antd';
+import { Switch } from 'antd';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { getMintAddress } from 'chronik';
@@ -27,6 +27,7 @@ import { SidePaddingCtn } from 'components/Common/Atoms';
 import { Link } from 'react-router-dom';
 import { getAirdropTx, getEqualAirdropTx } from 'airdrop';
 import Communist from 'assets/communist.png';
+import { toast } from 'react-toastify';
 
 const { TextArea } = Input;
 const Gulag = styled.img`
@@ -176,10 +177,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             tokenUtxos = await chronik.tokenId(formData.tokenId).utxos();
         } catch (err) {
             console.log(`Error getting token utxos from chronik`, err);
-            notification.error({
-                message: 'Error',
-                description: 'Error retrieving airdrop recipients',
-            });
+            toast.error('Error retrieving airdrop recipients');
             return passLoadingStatus(false);
         }
 
@@ -196,10 +194,9 @@ const Airdrop = ({ passLoadingStatus }) => {
                 excludedAddresses.push(mintAddress);
             } catch (err) {
                 console.log(`Error getting mint address from chronik`, err);
-                notification.error({
-                    message: 'Error',
-                    description: `Error determining mint address for ${formData.tokenId}`,
-                });
+                toast.error(
+                    `Error determining mint address for ${formData.tokenId}`,
+                );
                 return passLoadingStatus(false);
             }
         }
@@ -227,10 +224,9 @@ const Airdrop = ({ passLoadingStatus }) => {
                     .toString();
             } catch (err) {
                 console.log(`Error getting token utxos from chronik`, err);
-                notification.error({
-                    message: 'Error',
-                    description: `Error determining mint address for ${formData.tokenId}`,
-                });
+                toast.error(
+                    `Error determining mint address for ${formData.tokenId}`,
+                );
                 return passLoadingStatus(false);
             }
         } else {
@@ -261,10 +257,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             // display the airdrop outputs TextArea
             setShowAirdropOutputs(true);
         } catch (err) {
-            notification.error({
-                message: 'Error',
-                description: `${err}`,
-            });
+            toast.error(`${err}`);
         }
         return passLoadingStatus(false);
     };
@@ -566,10 +559,10 @@ const Airdrop = ({ passLoadingStatus }) => {
                                         &nbsp;&nbsp;
                                         <CopyToClipboard
                                             data={airdropRecipients}
-                                            optionalOnCopyNotification={{
-                                                title: 'Copied',
-                                                msg: 'Airdrop recipients copied to clipboard',
-                                            }}
+                                            showToast
+                                            customMsg={
+                                                'Airdrop recipients copied to clipboard'
+                                            }
                                         >
                                             <Link
                                                 type="text"

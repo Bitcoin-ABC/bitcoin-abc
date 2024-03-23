@@ -7823,7 +7823,7 @@ export const stakingRwd = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '625008.97',
+        xecAmount: 625008.97,
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -7888,7 +7888,7 @@ export const incomingXec = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '42',
+        xecAmount: 42,
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -7953,7 +7953,7 @@ export const outgoingXec = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '222',
+        xecAmount: 222,
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -8022,7 +8022,7 @@ export const aliasRegistration = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '5.55',
+        xecAmount: 5.55,
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -8166,7 +8166,7 @@ export const incomingEtoken = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '5.46',
+        xecAmount: 5.46,
         isEtokenTx: true,
         isTokenBurn: false,
         tokenEntries: [
@@ -8338,7 +8338,7 @@ export const outgoingEtoken = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '5.46',
+        xecAmount: 5.46,
         isEtokenTx: true,
         isTokenBurn: false,
         tokenEntries: [
@@ -8452,7 +8452,7 @@ export const genesisTx = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '0',
+        xecAmount: 0,
         isEtokenTx: true,
         isTokenBurn: false,
         etokenAmount: '777.7777777',
@@ -8615,7 +8615,7 @@ export const incomingEtokenNineDecimals = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '5.46',
+        xecAmount: 5.46,
         isEtokenTx: true,
         isTokenBurn: false,
         etokenAmount: '0.123456789',
@@ -9173,7 +9173,7 @@ export const legacyAirdropTx = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '5.69',
+        xecAmount: 5.69,
         isEtokenTx: false,
         aliasFlag: false,
         airdropFlag: true,
@@ -9244,7 +9244,7 @@ export const outgoingEncryptedMsg = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '12',
+        xecAmount: 12,
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -9314,7 +9314,7 @@ export const incomingEncryptedMsg = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '11',
+        xecAmount: 11,
         isEtokenTx: false,
         airdropFlag: false,
         airdropTokenId: '',
@@ -9452,7 +9452,7 @@ export const tokenBurn = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '0',
+        xecAmount: 0,
         isEtokenTx: true,
         isTokenBurn: true,
         etokenAmount: '12',
@@ -9593,7 +9593,7 @@ export const tokenBurnDecimals = {
     },
     parsed: {
         incoming: false,
-        xecAmount: '0',
+        xecAmount: 0,
         isEtokenTx: true,
         etokenAmount: '0.1234567',
         isTokenBurn: true,
@@ -9759,7 +9759,7 @@ export const incomingEtokenTwo = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '5.46',
+        xecAmount: 5.46,
         isEtokenTx: true,
         etokenAmount: '0.123456789',
         isTokenBurn: false,
@@ -9930,7 +9930,7 @@ export const swapTx = {
     },
     parsed: {
         incoming: true,
-        xecAmount: '10',
+        xecAmount: 10,
         isEtokenTx: false,
         aliasFlag: false,
         airdropFlag: false,
@@ -10007,7 +10007,7 @@ export const aliasOffSpec = {
         isEtokenTx: false,
         opReturnMessage: 'off-spec alias registration',
         replyAddress: 'ecash:qz7yjv3h90en64an5gdjkf3kjxdusw585u9j5rqxcg',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10072,7 +10072,7 @@ export const PayButtonNoDataYesNonce = {
         isEtokenTx: false,
         opReturnMessage: 'PayButton (d980190d13019567)',
         replyAddress: 'ecash:qqpuv0f62tx7zdk63pvwn58l42qsednrjgnt0czndd',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10142,7 +10142,7 @@ export const PayButtonYesDataYesNonce = {
         isEtokenTx: false,
         opReturnMessage: 'PayButton (69860643e4dc4c88): 😂👍',
         replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10164,7 +10164,7 @@ export const PayButtonEmpty = {
         isEtokenTx: false,
         opReturnMessage: 'PayButton',
         replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 // data and no payment id
@@ -10186,7 +10186,7 @@ export const PayButtonYesDataNoNonce = {
         isEtokenTx: false,
         opReturnMessage: 'PayButton: only data here',
         replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10208,7 +10208,7 @@ export const PayButtonOffSpec = {
         isEtokenTx: false,
         opReturnMessage: 'off-spec PayButton tx',
         replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10231,7 +10231,7 @@ export const PayButtonBadVersion = {
         isEtokenTx: false,
         opReturnMessage: 'Unsupported version PayButton tx: 01',
         replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10301,7 +10301,7 @@ export const MsgFromElectrum = {
         isEtokenTx: false,
         opReturnMessage: 'testing a msg for error',
         replyAddress: 'ecash:qrhlng96s3awja5h48uhcpvg02azksgxpce6nvshln',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };
 
@@ -10480,6 +10480,6 @@ export const AlpTx = {
         isEtokenTx: false,
         opReturnMessage: '',
         replyAddress: 'ecash:qpt4z9kg4h6czlyel3da4jxmrrgscfts859gzp2zuu',
-        xecAmount: '0',
+        xecAmount: 0,
     },
 };

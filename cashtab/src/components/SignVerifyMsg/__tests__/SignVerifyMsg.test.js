@@ -107,9 +107,6 @@ describe('<SignVerifyMsg />', () => {
         // Click the Sign button
         await user.click(screen.getByRole('button', { name: /Sign Message/ }));
 
-        // Click OK on the confirmation modal
-        await user.click(screen.getByText('OK'));
-
         expect(
             await screen.findByText('Message Signature Generated'),
         ).toBeInTheDocument();
@@ -158,12 +155,7 @@ describe('<SignVerifyMsg />', () => {
             screen.getByRole('button', { name: /Verify Message/ }),
         );
 
-        // Click OK on the confirmation modal and verify the correct notification is fired
-        await userEvent.click(screen.getByText('OK'));
-
-        expect(
-            screen.getByText('Signature successfully verified'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Signature verified')).toBeInTheDocument();
     });
     it('Notification is rendered upon signature verification error', async () => {
         // Mock the app with context at the SignVerifyMsg screen
@@ -209,8 +201,6 @@ describe('<SignVerifyMsg />', () => {
             screen.getByRole('button', { name: /Verify Message/ }),
         );
 
-        // Click OK on the confirmation modal and verify the correct notification is fired
-        await userEvent.click(screen.getByText('OK'));
         expect(
             screen.getByText('Signature does not match address and message'),
         ).toBeInTheDocument();

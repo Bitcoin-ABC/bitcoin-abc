@@ -6,10 +6,10 @@ import { BN } from 'slp-mdm';
 import { getHashArrayFromWallet } from 'utils/cashMethods';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
-import appConfig from 'config/app';
 import { getStackArray } from 'ecash-script';
 import cashaddr from 'ecashaddrjs';
 import CashtabCache from 'config/CashtabCache';
+import { toXec } from 'wallet';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -457,7 +457,7 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
 
     // Assign defaults
     let incoming = true;
-    let xecAmount = new BN(0);
+    let satoshis = 0;
     let etokenAmount = new BN(0);
     let isTokenBurn = false;
 
@@ -695,10 +695,10 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
             if (thisOutputReceivedAtHash160.includes(thisWalletHash160)) {
                 // If incoming tx, this is amount received by the user's wallet
                 // if outgoing tx (incoming === false), then this is a change amount
-                const thisOutputAmount = new BN(thisOutput.value);
-                xecAmount = incoming
-                    ? xecAmount.plus(thisOutputAmount)
-                    : xecAmount.minus(thisOutputAmount);
+                const thisOutputAmount = thisOutput.value;
+                satoshis = incoming
+                    ? satoshis + thisOutputAmount
+                    : satoshis - thisOutputAmount;
 
                 // Parse token qty if token tx
                 // Note: edge case this is a token tx that sends XEC to Cashtab recipient but token somewhere else
@@ -722,8 +722,8 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
         // Output amounts not at your wallet are sent amounts if !incoming
         // Exception for eToken genesis transactions
         if (!incoming) {
-            const thisOutputAmount = new BN(thisOutput.value);
-            xecAmount = xecAmount.plus(thisOutputAmount);
+            const thisOutputAmount = thisOutput.value;
+            satoshis = satoshis + thisOutputAmount;
             if (isEtokenTx && !isGenesisTx && !isTokenBurn) {
                 try {
                     const thisEtokenAmount = new BN(thisOutput.token.amount);
@@ -748,10 +748,7 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
         opReturnMessage = '';
     }
     // Convert from sats to XEC
-    xecAmount = xecAmount.shiftedBy(-1 * appConfig.cashDecimals);
-
-    // Convert from BigNumber to string
-    xecAmount = xecAmount.toString();
+    const xecAmount = toXec(satoshis);
 
     // Get decimal info for correct etokenAmount
     let genesisInfo = {};

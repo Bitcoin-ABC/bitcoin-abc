@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { useEffect } from 'react';
-import { Modal } from 'antd';
 import appConfig from 'config/app';
+import { toast } from 'react-toastify';
 
 /**
  * Functional logic specific to the webapp at cashtab.com
@@ -31,27 +31,16 @@ const WebApp = () => {
             console.log(`permissionResult`, permissionResult);
             if (permissionResult !== 'granted') {
                 // Warning modal if user does not accept notifications
-                Modal.warn({
-                    title: 'Notification permission refused',
-                    content:
-                        'Please enable notifications from Cashtab.com to help prevent your browser from deleting Cashtab wallet info.',
-                });
+                toast.warn(
+                    `Enabling notifications ensures that your browser will not delete your Cashtab wallet. Please manually enable notifications to continue using Cashtab.`,
+                );
             } else {
                 console.log(`Notification permission granted`);
                 // If it is granted, ask again for persistent storage
                 // Best way to do this is to show a modal that refreshes the page
 
                 // Success modal when user accepts notifications, prompting a refresh
-                Modal.success({
-                    title: 'Notification permission granted',
-                    content: 'Please refresh the page',
-                    onOk: () => {
-                        console.log(
-                            `Reloading page to retry for persistent storage permission`,
-                        );
-                        window.location.reload(true);
-                    },
-                });
+                toast.success(`Notification permission granted`);
             }
         });
     };

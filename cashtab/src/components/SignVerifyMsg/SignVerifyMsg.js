@@ -4,20 +4,14 @@
 
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Form, Modal, Input } from 'antd';
+import { Form, Input } from 'antd';
 import { WalletContext } from 'wallet/context';
-import {
-    TokenParamLabel,
-    MessageVerificationParamLabel,
-    SidePaddingCtn,
-} from 'components/Common/Atoms';
-import { notification } from 'antd';
+import { SidePaddingCtn } from 'components/Common/Atoms';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
     DestinationAddressSingleWithoutQRScan,
 } from 'components/Common/EnhancedInputs';
-const { TextArea } = Input;
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import PrimaryButton, {
@@ -29,6 +23,8 @@ import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
+import { toast } from 'react-toastify';
+const { TextArea } = Input;
 
 const Wrapper = styled.div`
     .ant-collapse {
@@ -72,11 +68,9 @@ const SignVerifyMsg = () => {
     const { wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const [messageSignature, setMessageSignature] = useState('');
-    const [showConfirmMsgToSign, setShowConfirmMsgToSign] = useState(false);
     const [msgToSign, setMsgToSign] = useState('');
     const [sigCopySuccess, setSigCopySuccess] = useState('');
     const [signMessageIsValid, setSignMessageIsValid] = useState(null);
-    const [showConfirmMsgToVerify, setShowConfirmMsgToVerify] = useState(false);
     const [messageVerificationAddr, setMessageVerificationAddr] = useState('');
     const [messageVerificationSig, setMessageVerificationSig] = useState('');
     const [messageVerificationMsg, setMessageVerificationMsg] = useState('');
@@ -111,24 +105,11 @@ const SignVerifyMsg = () => {
                 .toString('base64');
 
             setMessageSignature(messageSignature);
-            notification.success({
-                message: 'Message Signature Generated',
-                description: messageSignature,
-            });
+            toast.success('Message Signature Generated');
         } catch (err) {
-            let message;
-            if (!err.error && !err.message) {
-                message = err.message || err.error || JSON.stringify(err);
-            }
-            notification.error({
-                message: 'Message Signing Error',
-                description: message,
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error(`${err}`);
             throw err;
         }
-        // Hide the modal
-        setShowConfirmMsgToSign(false);
         setSigCopySuccess('');
     };
 
@@ -153,27 +134,14 @@ const SignVerifyMsg = () => {
                 utxolib.networks.ecash.messagePrefix,
             );
         } catch (err) {
-            notification.error({
-                message: 'Error',
-                description: 'Unable to execute signature verification',
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error(`${err}`);
         }
 
         if (verification) {
-            notification.success({
-                message: 'Verified',
-                description: 'Signature successfully verified',
-            });
+            toast.success('Signature verified');
         } else {
-            notification.error({
-                message: 'Error',
-                description: 'Signature does not match address and message',
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error('Signature does not match address and message');
         }
-
-        setShowConfirmMsgToVerify(false);
     };
 
     const handleOnSigCopy = () => {
@@ -238,15 +206,6 @@ const SignVerifyMsg = () => {
     return (
         <Wrapper>
             <SidePaddingCtn data-testid="signverifymsg-ctn">
-                <Modal
-                    title={`Please review and confirm your message to be signed using this wallet.`}
-                    open={showConfirmMsgToSign}
-                    onOk={signMessageByPk}
-                    onCancel={() => setShowConfirmMsgToSign(false)}
-                >
-                    <TokenParamLabel>Message:</TokenParamLabel> {msgToSign}
-                    <br />
-                </Modal>
                 <CustomCollapseCtn panelHeader="Sign">
                     <AntdFormWrapper>
                         <Form
@@ -286,16 +245,7 @@ const SignVerifyMsg = () => {
                                                         pathInfo.path === 1899,
                                                 ).address
                                             }
-                                            optionalOnCopyNotification={{
-                                                title: 'Copied',
-                                                msg: `${
-                                                    wallet.paths.find(
-                                                        pathInfo =>
-                                                            pathInfo.path ===
-                                                            1899,
-                                                    ).address
-                                                } copied to clipboard`,
-                                            }}
+                                            showToast
                                         >
                                             <ThemedCopySolid />
                                         </CopyToClipboard>
@@ -303,7 +253,7 @@ const SignVerifyMsg = () => {
                                 )}
                             </Form.Item>
                             <PrimaryButton
-                                onClick={() => setShowConfirmMsgToSign(true)}
+                                onClick={signMessageByPk}
                                 disabled={!signMessageIsValid}
                             >
                                 <PlusSquareOutlined />
@@ -311,10 +261,8 @@ const SignVerifyMsg = () => {
                             </PrimaryButton>
                             <CopyToClipboard
                                 data={messageSignature}
-                                optionalOnCopyNotification={{
-                                    title: 'Message signature copied to clipboard',
-                                    msg: `${messageSignature}`,
-                                }}
+                                showToast
+                                customMsg={`Signature copied to clipboard`}
                             >
                                 <Form.Item>
                                     <SignMessageLabel>
@@ -333,28 +281,6 @@ const SignVerifyMsg = () => {
                         </Form>
                     </AntdFormWrapper>
                 </CustomCollapseCtn>
-                <Modal
-                    title={`Please review and confirm your message, signature and address to be verified.`}
-                    open={showConfirmMsgToVerify}
-                    onOk={verifyMessageBySig}
-                    onCancel={() => setShowConfirmMsgToVerify(false)}
-                >
-                    <MessageVerificationParamLabel>
-                        Message:
-                    </MessageVerificationParamLabel>{' '}
-                    {messageVerificationMsg}
-                    <br />
-                    <MessageVerificationParamLabel>
-                        Address:
-                    </MessageVerificationParamLabel>{' '}
-                    {messageVerificationAddr}
-                    <br />
-                    <MessageVerificationParamLabel>
-                        Signature:
-                    </MessageVerificationParamLabel>{' '}
-                    {messageVerificationSig}
-                    <br />
-                </Modal>
                 <CustomCollapseCtn panelHeader="Verify">
                     <AntdFormWrapper>
                         <Form
@@ -416,7 +342,7 @@ const SignVerifyMsg = () => {
                                 </SignatureValidation>
                             </Form.Item>
                             <SecondaryButton
-                                onClick={() => setShowConfirmMsgToVerify(true)}
+                                onClick={verifyMessageBySig}
                                 disabled={
                                     !messageVerificationAddrIsValid ||
                                     !messageVerificationSigIsValid ||

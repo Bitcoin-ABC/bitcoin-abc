@@ -3,32 +3,26 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { generalNotification } from './Notifications';
 import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 
-const CopyToClipboard = ({ data, optionalOnCopyNotification, children }) => {
+const CopyToClipboard = ({
+    data,
+    showToast = false,
+    customMsg = false,
+    children,
+}) => {
     return (
         <div
             onClick={() => {
-                let result = { title: '', msg: '' };
-
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(data);
                 }
-                if (optionalOnCopyNotification) {
-                    if (
-                        optionalOnCopyNotification.msg &&
-                        optionalOnCopyNotification.msg.length > 0
-                    ) {
-                        result.msg = optionalOnCopyNotification.msg;
-                    }
-                    if (
-                        optionalOnCopyNotification.title &&
-                        optionalOnCopyNotification.title.length > 0
-                    ) {
-                        result.title = optionalOnCopyNotification.title;
-                    }
-                    generalNotification(result.msg, result.title);
+                if (showToast) {
+                    const toastMsg = customMsg
+                        ? customMsg
+                        : `"${data}" copied to clipboard`;
+                    toast.success(toastMsg);
                 }
             }}
         >
@@ -39,10 +33,8 @@ const CopyToClipboard = ({ data, optionalOnCopyNotification, children }) => {
 
 CopyToClipboard.propTypes = {
     data: PropTypes.string,
-    optionalOnCopyNotification: PropTypes.shape({
-        title: PropTypes.string,
-        msg: PropTypes.string,
-    }),
+    showToast: PropTypes.bool,
+    customMsg: PropTypes.oneOf(PropTypes.false, PropTypes.string),
     children: PropTypes.node,
 };
 

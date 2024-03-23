@@ -30,8 +30,6 @@ import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'alias';
 import aliasSettings from 'config/alias';
 import cashaddr from 'ecashaddrjs';
-import { notification } from 'antd';
-import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import appConfig from 'config/app';
 import { isMobile, getUserLocale } from 'helpers';
 import {
@@ -42,6 +40,7 @@ import {
 import { sendXec } from 'transactions';
 import { hasEnoughToken } from 'wallet';
 import Modal from 'components/Common/Modal';
+import { toast } from 'react-toastify';
 
 const AntdDescriptionsCss = css`
     .ant-descriptions-item-label,
@@ -54,6 +53,12 @@ const AntdDescriptionsCss = css`
         color: ${props => props.theme.lightWhite};
     }
 `;
+
+const TokenSentLink = styled.a`
+    color: ${props => props.theme.walletBackground};
+    text-decoration: none;
+`;
+
 const AliasAddressPreviewLabel = styled.div`
     text-align: center;
     color: ${props => props.theme.forms.text};
@@ -221,28 +226,22 @@ const SendToken = () => {
                 tokenInputInfo.tokenInputs,
             );
 
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a
-                        href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Transaction successful. Click to view in block explorer.
-                    </a>
-                ),
-                duration: appConfig.notificationDurationShort,
-                icon: <TokenNotificationIcon />,
-            });
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    eToken sent
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
             clearInputForms();
         } catch (e) {
             console.log(`Error sending token`, e);
-            notification.error({
-                message: 'Sending eToken',
-                description: `${e}`,
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error(`${e}`);
         }
     }
 
@@ -445,32 +444,25 @@ const SendToken = () => {
                 tokenInputInfo.tokenInputs,
                 true, // skip SLP burn checks
             );
-
-            notification.success({
-                message: 'Success',
-                description: (
-                    <a
-                        href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        eToken burn successful. Click to view in block explorer.
-                    </a>
-                ),
-                duration: appConfig.notificationDurationLong,
-                icon: <TokenNotificationIcon />,
-            });
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    🔥 Burn successful
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
             clearInputForms();
             setShowConfirmBurnEtoken(false);
             setConfirmationOfEtokenToBeBurnt('');
         } catch (e) {
             setShowConfirmBurnEtoken(false);
             setConfirmationOfEtokenToBeBurnt('');
-            notification.error({
-                message: 'Burning eToken',
-                description: `${e}`,
-                duration: appConfig.notificationDurationLong,
-            });
+            toast.error(`${e}`);
         }
     }
 

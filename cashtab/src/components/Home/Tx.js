@@ -970,13 +970,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                             }
                         >
                             <PanelCtn>
-                                <CopyToClipboard
-                                    data={data.txid}
-                                    optionalOnCopyNotification={{
-                                        title: 'Txid copied to clipboard',
-                                        msg: `${data.txid}`,
-                                    }}
-                                >
+                                <CopyToClipboard data={data.txid} showToast>
                                     <DropdownButton>
                                         <DropdownIconWrapper>
                                             <TextLayer>Txid</TextLayer>
@@ -988,10 +982,7 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                 {data.parsed.opReturnMessage && (
                                     <CopyToClipboard
                                         data={data.parsed.opReturnMessage}
-                                        optionalOnCopyNotification={{
-                                            title: 'Cashtab message copied to clipboard',
-                                            msg: `${data.parsed.opReturnMessage}`,
-                                        }}
+                                        showToast
                                     >
                                         <DropdownButton>
                                             <DropdownIconWrapper>

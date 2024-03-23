@@ -20,10 +20,6 @@ import PrimaryButton from 'components/Common/PrimaryButton';
 import { Row, Col } from 'antd';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
-import {
-    errorNotification,
-    registerAliasNotification,
-} from 'components/Common/Notifications';
 import { meetsAliasSpec } from 'validation';
 import { queryAliasServer } from 'alias';
 import cashaddr from 'ecashaddrjs';
@@ -36,6 +32,7 @@ import { explorer } from 'config/explorer';
 import { getAliasTargetOutput, getAliasByteCount } from 'opreturn';
 import { sendXec } from 'transactions';
 import { hasEnoughToken } from 'wallet';
+import { toast } from 'react-toastify';
 
 export const CheckboxContainer = styled.div`
     text-align: left;
@@ -45,6 +42,11 @@ export const CheckboxContainer = styled.div`
 // Change mouse cursor to pointer upon hovering over an Alias tag
 export const AliasLabel = styled.div`
     cursor: pointer;
+`;
+
+const AliasRegisteredLink = styled.a`
+    color: ${props => props.theme.walletBackground};
+    text-decoration: none;
 `;
 
 export const AliasAvailable = styled.span`
@@ -228,7 +230,7 @@ const Alias = ({ passLoadingStatus }) => {
                 'Error retrieving alias details. Refresh page to try again.';
             console.log(`preparePreviewModal(): ${errorMsg}`, err);
             // Using a pop up notification since this is a modal block
-            errorNotification(null, errorMsg);
+            toast.error(`${errorMsg}`);
             passLoadingStatus(false);
             return;
         }
@@ -244,12 +246,8 @@ const Alias = ({ passLoadingStatus }) => {
             setIsModalVisible(true);
         } else if (aliasDetailsResp && aliasDetailsResp.address) {
             // If alias is registered
-            errorNotification(
-                null,
-                'This alias [' +
-                    formData.aliasName +
-                    `] is already owned by ${aliasDetailsResp.address}, please try another alias`,
-                'Alias availability check',
+            toast.error(
+                `The alias "${formData.aliasName}" is already owned by ${aliasDetailsResp.address}. Please try another alias.`,
             );
             setAliasDetails(false);
         } else {
@@ -315,9 +313,12 @@ const Alias = ({ passLoadingStatus }) => {
                         : appConfig.defaultFee,
                 );
                 clearInputForms();
-                registerAliasNotification(
-                    `${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`,
-                    aliasInput,
+                toast.success(
+                    <AliasRegisteredLink
+                        href={`${explorer.blockExplorerUrl}/tx/${txObj.response.txid}`}
+                    >
+                        {aliasInput}
+                    </AliasRegisteredLink>,
                 );
                 // Append the newly broadcasted alias registration to pending list to
                 // ensure the alias refresh interval is running in useWallet.js
@@ -332,17 +333,13 @@ const Alias = ({ passLoadingStatus }) => {
                     ],
                 }));
             } catch (err) {
-                errorNotification(err, err.message, 'Registering Alias');
+                toast.error(`${err}`);
             }
             setIsValidAliasInput(true);
         } else {
             // error notification on alias being unavailable
-            errorNotification(
-                null,
-                'This alias [' +
-                    aliasInput +
-                    '] has already been taken, please try another alias',
-                'Alias availability check',
+            toast.error(
+                `Alias "${aliasInput}" has already been taken, please try another alias.`,
             );
         }
         passLoadingStatus(false);
@@ -646,10 +643,7 @@ const Alias = ({ passLoadingStatus }) => {
                                                               alias.alias +
                                                               '.xec'
                                                           }
-                                                          optionalOnCopyNotification={{
-                                                              title: 'Copied',
-                                                              msg: `${alias.alias}.xec copied to clipboard`,
-                                                          }}
+                                                          showToast
                                                           key={index}
                                                       >
                                                           <Tag
@@ -696,10 +690,7 @@ const Alias = ({ passLoadingStatus }) => {
                                                               pendingAlias.alias +
                                                               '.xec'
                                                           }
-                                                          optionalOnCopyNotification={{
-                                                              title: 'Copied',
-                                                              msg: `${pendingAlias.alias}.xec copied to clipboard`,
-                                                          }}
+                                                          showToast
                                                           key={index}
                                                       >
                                                           <Tag

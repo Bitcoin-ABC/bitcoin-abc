@@ -386,9 +386,6 @@ describe('<Configure />', () => {
             ),
         ).toBeInTheDocument();
 
-        // Click out of the modal
-        await user.click(screen.getByRole('button', { name: 'OK' }));
-
         // alpha is still named alpha
         expect((await screen.findAllByText('alpha'))[1]).toBeInTheDocument();
 
@@ -413,9 +410,6 @@ describe('<Configure />', () => {
             await screen.findByText('Wallet "alpha" renamed to "ALPHA PRIME"'),
         ).toBeInTheDocument();
 
-        // Click ok to close the modal
-        await user.click(screen.getByRole('button', { name: 'OK' }));
-
         // The wallet has been renamed
         expect(
             (await screen.findAllByText('ALPHA PRIME'))[1],
@@ -438,9 +432,6 @@ describe('<Configure />', () => {
                 'Wallet "Transaction Fixtures" renamed to "ACTIVE WALLET"',
             ),
         ).toBeInTheDocument();
-
-        // Click ok to close the modal
-        await user.click(screen.getByRole('button', { name: 'OK' }));
 
         // The wallet has been renamed. The new name is updated in all locations.
         const activeWalletLabels = await screen.findAllByText('ACTIVE WALLET');
@@ -476,9 +467,6 @@ describe('<Configure />', () => {
             ),
         ).toBeInTheDocument();
 
-        // Click OK to close the confirmation modal
-        await user.click(screen.getByRole('button', { name: 'OK' }));
-
         // wallet ALPHA PRIME is no longer in savedWallets list
         await waitFor(() =>
             expect(screen.queryByText('ALPHA PRIME')).not.toBeInTheDocument(),
@@ -511,9 +499,6 @@ describe('<Configure />', () => {
                 `New wallet "qrj4p" added to your saved wallets`,
             ),
         ).toBeInTheDocument();
-
-        // Click OK to close the wallet import success
-        await user.click(screen.getByRole('button', { name: 'OK' }));
 
         // We see the new wallet
         expect((await screen.findAllByText('qrj4p'))[1]).toBeInTheDocument();
@@ -578,9 +563,6 @@ describe('<Configure />', () => {
             ),
         ).toBeInTheDocument();
 
-        // Click OK to close the wallet import success
-        await user.click(screen.getByRole('button', { name: 'OK' }));
-
         // We see the new wallet
         expect((await screen.findAllByText('qzxep'))[1]).toBeInTheDocument();
 
@@ -618,9 +600,6 @@ describe('<Configure />', () => {
             ),
         ).toBeInTheDocument();
 
-        // Click OK to close the imported failure modal
-        await user.click(screen.getByRole('button', { name: 'OK' }));
-
         // We can change the active wallet
 
         // Activate the first wallet in the list
@@ -654,8 +633,5 @@ describe('<Configure />', () => {
                 `By a vanishingly small chance, "qrj4p" already existed in saved wallets. Please try again.`,
             ),
         ).toBeInTheDocument();
-
-        // Click OK to close the error modal
-        await user.click(screen.getByRole('button', { name: 'OK' }));
     });
 });

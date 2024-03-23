@@ -91,13 +91,7 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
                     </WalletOption>
                 ))}
             </WalletDropdown>
-            <CopyToClipboard
-                data={address}
-                optionalOnCopyNotification={{
-                    title: 'Address copied to clipboard',
-                    msg: address,
-                }}
-            >
+            <CopyToClipboard data={address} showToast>
                 <ThemedCopySolid style={{ marginTop: `8px` }} />
             </CopyToClipboard>
             <HideBalanceSwitch
