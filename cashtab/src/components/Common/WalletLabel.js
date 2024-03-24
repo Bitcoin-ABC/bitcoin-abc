@@ -10,6 +10,7 @@ import HideBalanceSwitch from './HideBalanceSwitch';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { getWalletsForNewActiveWallet } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
+import { getTextWidth } from 'helpers';
 
 const LabelCtn = styled.div`
     display: flex;
@@ -21,13 +22,14 @@ const LabelCtn = styled.div`
     }
 `;
 
-const SELECT_NAME_LENGTH_TO_PX_FACTOR = 15;
-
+const EXTRA_WIDTH_FOR_SELECT = 32;
 const WalletDropdown = styled.select`
+    font-family: 'Poppins', 'Ubuntu', -apple-system, BlinkMacSystemFont,
+        'Segoe UI', 'Roboto', 'Oxygen', 'Cantarell', 'Fira Sans', 'Droid Sans',
+        'Helvetica Neue', sans-serif;
     width: ${props =>
-        props.value.length * SELECT_NAME_LENGTH_TO_PX_FACTOR > 100
-            ? props.value.length * SELECT_NAME_LENGTH_TO_PX_FACTOR
-            : 100}px;
+        getTextWidth(document, props.value, '18px Poppins') +
+        EXTRA_WIDTH_FOR_SELECT}px;
     max-width: 90%;
     cursor: pointer;
     font-size: 18px;

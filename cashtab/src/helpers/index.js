@@ -53,3 +53,27 @@ export const storedCashtabCacheToMap = storedCashtabCache => {
         tokens: new Map(storedCashtabCache.tokens),
     };
 };
+
+/**
+ * Get the width of a given string of text
+ * Useful to customize the width of a component according to the size of displayed text
+ *
+ * Note
+ * It is not practical to unit test this function as document is an html document
+ * @param {html} document document global of a rendered web page
+ * @param {string} text text to get width of
+ * @param {string} font e.g. '16px Poppins'
+ * @returns {number} pixel width of text
+ */
+export const getTextWidth = (document, text, font) => {
+    try {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        context.font = font || getComputedStyle(document.body).font;
+        return context.measureText(text).width;
+    } catch (err) {
+        // If we do not have access to HTML methods, e.g. if we are in the test environment
+        // Return a hard-coded width
+        return 200;
+    }
+};
