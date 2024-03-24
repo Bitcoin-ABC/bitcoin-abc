@@ -583,6 +583,9 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                 outgoing={!data.parsed.incoming}
                                             >
                                                 {data.parsed.isEtokenTx &&
+                                                Array.isArray(
+                                                    data.tokenEntries,
+                                                ) &&
                                                 data.tokenEntries.length > 0 ? (
                                                     <>
                                                         <TxTokenIcon>
