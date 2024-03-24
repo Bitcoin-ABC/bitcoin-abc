@@ -5,6 +5,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { toast } from 'react-toastify';
+import styled from 'styled-components';
+
+const CopyWrapper = styled.div`
+    cursor: pointer;
+`;
 
 const CopyToClipboard = ({
     data,
@@ -13,7 +18,7 @@ const CopyToClipboard = ({
     children,
 }) => {
     return (
-        <div
+        <CopyWrapper
             onClick={() => {
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(data);
@@ -27,14 +32,14 @@ const CopyToClipboard = ({
             }}
         >
             {children}
-        </div>
+        </CopyWrapper>
     );
 };
 
 CopyToClipboard.propTypes = {
     data: PropTypes.string,
     showToast: PropTypes.bool,
-    customMsg: PropTypes.oneOf(PropTypes.false, PropTypes.string),
+    customMsg: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     children: PropTypes.node,
 };
 

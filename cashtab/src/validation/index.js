@@ -170,9 +170,9 @@ export const isValidXecSendAmount = (
         return 'Amount must be greater than 0';
     }
     if (sendAmountSatoshis < appConfig.dustSats) {
-        return `Send amount must be at least ${toXec(
-            appConfig.dustSats,
-        ).toString()} ${appConfig.ticker}`;
+        return `Send amount must be at least ${toXec(appConfig.dustSats)} ${
+            appConfig.ticker
+        }`;
     }
     if (sendAmountSatoshis > balanceSats) {
         return `Amount ${toXec(sendAmountSatoshis).toLocaleString(userLocale, {
@@ -550,7 +550,7 @@ export const shouldSendXecBeDisabled = (
     isOneToManyXECSend,
 ) => {
     return (
-        (formData.value === '' && formData.address === '') || // No user inputs
+        (formData.amount === '' && formData.address === '') || // No user inputs
         balanceSats === 0 || // user has no funds
         apiError || // API error
         typeof sendAmountError === 'string' || // validation error for send amount
@@ -558,7 +558,7 @@ export const shouldSendXecBeDisabled = (
         typeof isMsgError === 'string' || // validation error in Cashtab Msg
         priceApiError || // we don't have a good price AND fiat currency is selected
         (!isOneToManyXECSend &&
-            (isNaN(formData.value) || formData.value === ''))
+            (isNaN(formData.amount) || formData.amount === ''))
     ); // Value is blank or NaN and is expected to not be so
 };
 

@@ -9,7 +9,6 @@ import {
     DollarOutlined,
     LoadingOutlined,
     WalletOutlined,
-    QrcodeOutlined,
     SettingOutlined,
     LockOutlined,
     ContactsOutlined,
@@ -21,6 +20,7 @@ import {
     GithubOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
+import { ReactComponent as QRCode } from 'assets/qrcode.svg';
 import { ReactComponent as Send } from 'assets/send.svg';
 import { ReactComponent as Receive } from 'assets/receive.svg';
 import { ReactComponent as Genesis } from 'assets/flask.svg';
@@ -72,9 +72,6 @@ export const ThemedDollarOutlined = styled(DollarOutlined)`
 `;
 export const ThemedWalletOutlined = styled(WalletOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedQrcodeOutlined = styled(QrcodeOutlined)`
-    color: ${props => props.theme.walletBackground} !important;
 `;
 export const ThemedSettingOutlined = styled(SettingOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
@@ -245,6 +242,7 @@ export const CashLoader = () => (
 );
 
 export const ReceiveIcon = () => <Receive />;
+export const QRCodeIcon = () => <QRCode />;
 export const GenesisIcon = () => <Genesis />;
 export const UnparsedIcon = () => <Unparsed />;
 export const HomeIcon = () => <Home />;

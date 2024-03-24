@@ -17,13 +17,13 @@ const cloneObjectWithDeletedKey = (object, key) => {
 };
 
 export default {
-    shouldDisableXecSend: {
+    shouldSendXecBeDisabled: {
         expectedReturns: [
             {
                 description: 'Disabled on startup',
                 formData: {
                     address: '',
-                    value: '',
+                    amount: '',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -39,7 +39,7 @@ export default {
                     'Disabled if address has been entered but no value',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                    value: '',
+                    amount: '',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -54,7 +54,7 @@ export default {
                 description: 'Enabled for valid address and value',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                    value: '50',
+                    amount: '50',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -69,7 +69,7 @@ export default {
                 description: 'Disabled on zero balance',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                    value: '50',
+                    amount: '50',
                 },
                 balanceSats: 0,
                 apiError: false,
@@ -84,7 +84,7 @@ export default {
                 description: 'Disabled for invalid address',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg',
-                    value: '50',
+                    amount: '50',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -100,7 +100,7 @@ export default {
                 description: 'Disabled for invalid value',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                    value: '5',
+                    amount: '5',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -116,7 +116,7 @@ export default {
                 description: 'Disabled for invalid opreturn msg',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                    value: '5',
+                    amount: '5',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -131,7 +131,7 @@ export default {
                 description: 'Disabled on priceApi error',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-                    value: '5',
+                    amount: '5',
                 },
                 balanceSats: 10000,
                 apiError: false,
@@ -148,7 +148,7 @@ export default {
                 formData: {
                     address:
                         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6, 22\necash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6, 22',
-                    value: '',
+                    amount: '',
                 },
                 balanceSats: 10000,
                 apiError: false,

@@ -133,9 +133,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
@@ -166,9 +164,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -197,9 +193,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -229,9 +223,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -289,9 +281,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -314,9 +304,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -341,9 +329,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -388,9 +374,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -428,9 +412,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         const addressInputEl = screen.getByPlaceholderText('Address');
 
@@ -466,9 +448,7 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // The user enters a valid address and send amount
         const addressInputEl = screen.getByPlaceholderText('Address');
@@ -510,15 +490,13 @@ describe('<SendToken />', () => {
         );
 
         // Wait for element to get token info and load
-        await waitFor(() =>
-            expect(screen.getAllByText('BEAR')[0]).toBeInTheDocument(),
-        );
-
-        // By default, a burn amount of '1' is already entered into the form
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Click the Burn button
         // Note we button title is the token ticker
         await user.click(await screen.findByRole('button', { name: /Burn/ }));
+
+        await user.type(screen.getByPlaceholderText('Burn Amount'), '1');
 
         // We see a modal and enter the correct confirmation msg
         await user.type(

@@ -408,25 +408,17 @@ describe('<App />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        await waitFor(async () => {
-            // Get the "Reply to" button of Cashtab Msg
-            const cashtabMsgReplyBtn = screen.getByTestId('cashtab-msg-reply');
-            // Click reply to cashtab msg button
-            // ref https://github.com/testing-library/user-event/issues/922
-            // ref https://github.com/testing-library/user-event/issues/662
-            // issue with using userEvents.click() here likely related to antd
-            cashtabMsgReplyBtn.click();
-        });
+        await user.click(screen.getByTestId('cashtab-msg-reply'));
 
         // Now we see the Send screen
         expect(await screen.findByTestId('send-xec-ctn')).toBeInTheDocument();
 
         // The SendXec send address input is rendered and has expected value
-        expect(
-            await screen.findByTestId('destination-address-single'),
-        ).toHaveValue('ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y');
+        expect(screen.getByPlaceholderText('Address')).toHaveValue(
+            'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
+        );
         // The value field is populated with dust
-        expect(await screen.findByTestId('send-xec-input')).toHaveValue(5.5);
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.5);
     });
     it('We do not see the camera auto-open setting in the config screen on a desktop device', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -705,7 +697,7 @@ describe('<App />', () => {
         await user.click(screen.getByText('GRP'));
 
         // Wait for element to get token info and load
-        await screen.findByText('Token info for "GRUMPY"');
+        expect((await screen.findAllByText(/GRP/))[0]).toBeInTheDocument();
 
         // We send enough GRP to be under the min
         await user.type(

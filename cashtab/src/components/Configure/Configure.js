@@ -5,17 +5,11 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
-import { Collapse, Form, Input, Alert, Switch, Tooltip, Checkbox } from 'antd';
+import { Collapse, Form, Alert, Switch, Tooltip, Checkbox } from 'antd';
 import { Row, Col } from 'antd';
-import {
-    WalletFilled,
-    LockOutlined,
-    CheckOutlined,
-    CloseOutlined,
-    LockFilled,
-} from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined, LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
-import { SidePaddingCtn, FormLabel } from 'components/Common/Atoms';
+import { SidePaddingCtn } from 'components/Common/Atoms';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -64,6 +58,7 @@ import {
 } from 'wallet';
 import CustomModal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
+import { Input, ModalInput, InputFlex } from 'components/Common/Inputs';
 
 const { Panel } = Collapse;
 
@@ -480,7 +475,8 @@ const Configure = () => {
         setConfirmationOfWalletToBeDeleted,
     ] = useState('');
     const [newWalletNameIsValid, setNewWalletNameIsValid] = useState(null);
-    const [walletDeleteValid, setWalletDeleteValid] = useState(null);
+    const [walletDeleteConfirmationError, setWalletDeleteConfirmationError] =
+        useState(false);
     const [seedInput, openSeedInput] = useState(false);
     const [revealSeed, setRevealSeed] = useState(false);
     const [showTranslationWarning, setShowTranslationWarning] = useState(false);
@@ -519,7 +515,8 @@ const Configure = () => {
 
     const [showDeleteContactModal, setShowDeleteContactModal] = useState(false);
     const [contactAddressToDelete, setContactAddressToDelete] = useState(null);
-    const [contactDeleteValid, setContactDeleteValid] = useState(null);
+    const [contactDeleteConfirmationError, setContactDeleteConfirmationError] =
+        useState(false);
     const [
         confirmationOfContactToBeDeleted,
         setConfirmationOfContactToBeDeleted,
@@ -529,10 +526,9 @@ const Configure = () => {
         useState(false);
     const [manualContactName, setManualContactName] = useState('');
     const [manualContactAddress, setManualContactAddress] = useState('');
-    const [manualContactNameIsValid, setManualContactNameIsValid] =
-        useState(null);
-    const [manualContactAddressIsValid, setManualContactAddressIsValid] =
-        useState(null);
+    const [manualContactNameError, setManualContactNameError] = useState(false);
+    const [manualContactAddressError, setManualContactAddressError] =
+        useState(false);
 
     const handleContactListRouting = async () => {
         // if this was routed from Home screen's Add to Contact link
@@ -759,7 +755,7 @@ const Configure = () => {
      * @param {object} walletToBeDeleted
      */
     const deleteWallet = async walletToBeDeleted => {
-        if (!walletDeleteValid && walletDeleteValid !== null) {
+        if (walletDeleteConfirmationError) {
             return;
         }
 
@@ -767,7 +763,9 @@ const Configure = () => {
             confirmationOfWalletToBeDeleted !==
             `delete ${walletToBeDeleted.name}`
         ) {
-            setWalletDeleteValid(false);
+            setWalletDeleteConfirmationError(
+                'Your confirmation phrase must match exactly',
+            );
             return;
         }
 
@@ -817,9 +815,11 @@ const Configure = () => {
         const { value } = e.target;
 
         if (value && value === `delete ${walletToBeDeleted.name}`) {
-            setWalletDeleteValid(true);
+            setWalletDeleteConfirmationError(false);
         } else {
-            setWalletDeleteValid(false);
+            setWalletDeleteConfirmationError(
+                'Your confirmation phrase must match exactly',
+            );
         }
         setConfirmationOfWalletToBeDeleted(value);
     };
@@ -965,26 +965,24 @@ const Configure = () => {
     };
 
     const handleDeleteContactModalOk = () => {
-        if (
-            !contactDeleteValid ||
-            contactDeleteValid === null ||
-            !contactAddressToDelete
-        ) {
+        if (contactDeleteConfirmationError || !contactAddressToDelete) {
             return;
         }
         setShowDeleteContactModal(false);
         deleteContactByAddress(contactAddressToDelete);
         // Reset validation input
-        setConfirmationOfContactToBeDeleted(null);
+        setConfirmationOfContactToBeDeleted(false);
     };
 
     const handleContactToDeleteInput = e => {
         const { value } = e.target;
         const contactName = getContactNameByAddress(contactAddressToDelete);
         if (value && value === 'delete ' + contactName) {
-            setContactDeleteValid(true);
+            setContactDeleteConfirmationError(false);
         } else {
-            setContactDeleteValid(false);
+            setContactDeleteConfirmationError(
+                `Input must exactly match "delete ${contactName}"`,
+            );
         }
         setConfirmationOfContactToBeDeleted(value);
     };
@@ -1062,7 +1060,7 @@ const Configure = () => {
 
     const handleManualAddContactModalOk = async () => {
         // if either inputs are invalid then go no further
-        if (!manualContactNameIsValid || !manualContactAddressIsValid) {
+        if (manualContactNameError || manualContactAddressError) {
             return;
         }
 
@@ -1102,9 +1100,11 @@ const Configure = () => {
         const { value } = e.target;
 
         if (value && value.length && value.length < 24) {
-            setManualContactNameIsValid(true);
+            setManualContactNameError(false);
         } else {
-            setManualContactNameIsValid(false);
+            setManualContactNameError(
+                'Contact name must be a string between 1 and 24 characters long',
+            );
         }
         setManualContactName(value);
     };
@@ -1112,7 +1112,13 @@ const Configure = () => {
     const handleManualContactAddressInput = async e => {
         const { value } = e.target;
         setManualContactAddress(value);
-        setManualContactAddressIsValid(await isValidRecipient(value));
+        const validContactAddress = await isValidRecipient(value);
+
+        setManualContactAddressError(
+            validContactAddress === true
+                ? false
+                : 'Invalid eCash address or alias',
+        );
     };
 
     return (
@@ -1126,75 +1132,39 @@ const Configure = () => {
                         handleCancel={() =>
                             handleAddSavedWalletAsContactCancel()
                         }
+                        showCancelButton
                     />
                 )}
                 {showManualAddContactModal && (
                     <CustomModal
                         data-testid="confirm-add-contact-modal"
-                        height={308}
+                        height={305}
                         title={`Add new contact`}
                         handleOk={() => handleManualAddContactModalOk()}
                         handleCancel={() => handleManualAddContactModalCancel()}
                         showCancelButton
                     >
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <FormLabel>Name:</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        manualContactNameIsValid === null ||
-                                        manualContactNameIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        manualContactNameIsValid === null ||
-                                        manualContactNameIsValid
-                                            ? ''
-                                            : 'Contact name must be a string between 1 and 24 characters long'
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter new contact name"
-                                        name="manualContactName"
-                                        value={manualContactName}
-                                        onChange={e =>
-                                            handleManualContactNameInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                                <FormLabel>eCash Address:</FormLabel>
-                                <Form.Item
-                                    validateStatus={
-                                        manualContactAddressIsValid === null ||
-                                        manualContactAddressIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        manualContactAddressIsValid === null ||
-                                        manualContactAddressIsValid
-                                            ? ''
-                                            : 'Invalid eCash address or alias'
-                                    }
-                                >
-                                    <Input
-                                        placeholder="Enter new eCash address or alias"
-                                        name="manualContactAddress"
-                                        value={manualContactAddress}
-                                        onChange={e =>
-                                            handleManualContactAddressInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
+                        <InputFlex>
+                            <ModalInput
+                                placeholder="Enter new contact name"
+                                name="manualContactName"
+                                error={manualContactNameError}
+                                value={manualContactName}
+                                handleInput={handleManualContactNameInput}
+                            />
+                            <ModalInput
+                                placeholder="Enter new eCash address or alias"
+                                name="manualContactAddress"
+                                value={manualContactAddress}
+                                error={manualContactAddressError}
+                                handleInput={handleManualContactAddressInput}
+                            />
+                        </InputFlex>
                     </CustomModal>
                 )}
                 {showDeleteContactModal && (
                     <CustomModal
-                        data-testid="confirm-delete-contact-modal"
-                        height={242}
+                        height={290}
                         title="Confirm Delete Contact"
                         description={`Delete
                                 "${getContactNameByAddress(
@@ -1204,82 +1174,42 @@ const Configure = () => {
                         handleCancel={() => handleDeleteContactModalCancel()}
                         showCancelButton
                     >
-                        <p></p>
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <Form.Item
-                                    validateStatus={
-                                        contactDeleteValid === null ||
-                                        contactDeleteValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        contactDeleteValid === null ||
-                                        contactDeleteValid
-                                            ? ''
-                                            : 'Your confirmation phrase must match exactly'
-                                    }
-                                >
-                                    <Input
-                                        data-testid="confirm-delete-contact"
-                                        prefix={<ThemedContactsOutlined />}
-                                        placeholder={`Type "delete ${getContactNameByAddress(
-                                            contactAddressToDelete,
-                                        )}" to confirm`}
-                                        name="contactToBeDeletedInput"
-                                        value={confirmationOfContactToBeDeleted}
-                                        onChange={e =>
-                                            handleContactToDeleteInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
+                        <ModalInput
+                            placeholder={`Type "delete ${getContactNameByAddress(
+                                contactAddressToDelete,
+                            )}" to confirm`}
+                            name="contactToBeDeletedInput"
+                            value={confirmationOfContactToBeDeleted}
+                            handleInput={handleContactToDeleteInput}
+                            error={contactDeleteConfirmationError}
+                        />
                     </CustomModal>
                 )}
                 {showRenameContactModal && (
                     <CustomModal
-                        height={242}
+                        height={290}
                         title={`Rename contact?`}
                         description={`Editing name for contact ${contactToBeRenamed.name}`}
                         handleOk={() => handleRenameContactModalOk()}
                         handleCancel={() => handleRenameContactCancel()}
                         showCancelButton
                     >
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <Form.Item
-                                    validateStatus={
-                                        newContactNameIsValid === null ||
-                                        newContactNameIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        newContactNameIsValid === null ||
-                                        newContactNameIsValid
-                                            ? ''
-                                            : 'Contact name must be a string between 1 and 24 characters long'
-                                    }
-                                >
-                                    <Input
-                                        prefix={<WalletFilled />}
-                                        placeholder="Enter new contact name"
-                                        name="newContactName"
-                                        value={confirmationOfContactToBeRenamed}
-                                        onChange={e =>
-                                            handleContactNameInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
+                        <ModalInput
+                            placeholder="Enter new contact name"
+                            name="newContactName"
+                            value={confirmationOfContactToBeRenamed}
+                            error={
+                                newContactNameIsValid
+                                    ? false
+                                    : 'Contact name must be a string between 1 and 24 characters long'
+                            }
+                            handleInput={handleContactNameInput}
+                        />
                     </CustomModal>
                 )}
                 {walletToBeRenamed !== null && showRenameWalletModal && (
                     <CustomModal
-                        height={260}
+                        height={290}
                         title={`Rename Wallet?`}
                         description={`Editing name for wallet "${walletToBeRenamed.name}"`}
                         handleOk={() =>
@@ -1288,71 +1218,35 @@ const Configure = () => {
                         handleCancel={() => cancelRenameWallet()}
                         showCancelButton
                     >
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <Form.Item
-                                    validateStatus={
-                                        newWalletNameIsValid === null ||
-                                        newWalletNameIsValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        newWalletNameIsValid === null ||
-                                        newWalletNameIsValid
-                                            ? ''
-                                            : 'Wallet name must be a string between 1 and 24 characters long'
-                                    }
-                                >
-                                    <Input
-                                        prefix={<WalletFilled />}
-                                        placeholder="Enter new wallet name"
-                                        name="newName"
-                                        value={newWalletName}
-                                        onChange={e => handleWalletNameInput(e)}
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
+                        <ModalInput
+                            placeholder="Enter new wallet name"
+                            name="newName"
+                            value={newWalletName}
+                            error={
+                                newWalletNameIsValid
+                                    ? false
+                                    : 'Wallet name must be a string between 1 and 24 characters long'
+                            }
+                            handleInput={handleWalletNameInput}
+                        />
                     </CustomModal>
                 )}
                 {walletToBeDeleted !== null && showDeleteWalletModal && (
                     <CustomModal
-                        height={311}
+                        height={340}
                         title={`Delete Wallet?`}
                         description={`Delete wallet "${walletToBeDeleted.name}"?. This cannot be undone. Make sure you have backed up your wallet.`}
                         handleOk={() => deleteWallet(walletToBeDeleted)}
                         handleCancel={() => cancelDeleteWallet()}
                         showCancelButton
                     >
-                        <AntdFormWrapper>
-                            <Form style={{ width: 'auto' }}>
-                                <Form.Item
-                                    validateStatus={
-                                        walletDeleteValid === null ||
-                                        walletDeleteValid
-                                            ? ''
-                                            : 'error'
-                                    }
-                                    help={
-                                        walletDeleteValid === null ||
-                                        walletDeleteValid
-                                            ? ''
-                                            : 'Your confirmation phrase must match exactly'
-                                    }
-                                >
-                                    <Input
-                                        prefix={<WalletFilled />}
-                                        placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
-                                        name="walletToBeDeletedInput"
-                                        value={confirmationOfWalletToBeDeleted}
-                                        onChange={e =>
-                                            handleWalletToDeleteInput(e)
-                                        }
-                                    />
-                                </Form.Item>
-                            </Form>
-                        </AntdFormWrapper>
+                        <ModalInput
+                            placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
+                            name="walletToBeDeletedInput"
+                            value={confirmationOfWalletToBeDeleted}
+                            handleInput={handleWalletToDeleteInput}
+                            error={walletDeleteConfirmationError}
+                        />
                     </CustomModal>
                 )}
                 <h2>
@@ -1435,54 +1329,34 @@ const Configure = () => {
                             Import Wallet
                         </SecondaryButton>
                         {seedInput && (
-                            <>
+                            <InputFlex>
                                 <p style={{ color: '#fff' }}>
                                     Copy and paste your mnemonic seed phrase
                                     below to import an existing wallet
                                 </p>
-                                <AntdFormWrapper>
-                                    <Form style={{ width: 'auto' }}>
-                                        <Form.Item
-                                            validateStatus={
-                                                isValidMnemonic === null ||
-                                                isValidMnemonic
-                                                    ? ''
-                                                    : 'error'
-                                            }
-                                            help={
-                                                isValidMnemonic === null ||
-                                                isValidMnemonic
-                                                    ? ''
-                                                    : 'Valid mnemonic seed phrase required'
-                                            }
-                                        >
-                                            <Input
-                                                prefix={<LockOutlined />}
-                                                type="email"
-                                                placeholder="mnemonic (seed phrase)"
-                                                name="mnemonic"
-                                                value={formData.mnemonic}
-                                                autoComplete="off"
-                                                onChange={e =>
-                                                    handleImportMnemonicInput(e)
-                                                }
-                                                required
-                                                title=""
-                                            />
-                                        </Form.Item>
-                                        <SecondaryButton
-                                            disabled={isValidMnemonic !== true}
-                                            onClick={() =>
-                                                importNewWallet(
-                                                    formData.mnemonic,
-                                                )
-                                            }
-                                        >
-                                            Import
-                                        </SecondaryButton>
-                                    </Form>
-                                </AntdFormWrapper>
-                            </>
+
+                                <Input
+                                    type="email"
+                                    placeholder="mnemonic (seed phrase)"
+                                    name="mnemonic"
+                                    error={
+                                        isValidMnemonic
+                                            ? false
+                                            : 'Valid mnemonic seed phrase required'
+                                    }
+                                    value={formData.mnemonic}
+                                    autoComplete="off"
+                                    handleInput={handleImportMnemonicInput}
+                                />
+                                <SecondaryButton
+                                    disabled={isValidMnemonic !== true}
+                                    onClick={() =>
+                                        importNewWallet(formData.mnemonic)
+                                    }
+                                >
+                                    Import
+                                </SecondaryButton>
+                            </InputFlex>
                         )}
                     </>
                 )}

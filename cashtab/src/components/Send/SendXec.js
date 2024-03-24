@@ -6,19 +6,12 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
 import {
-    AntdFormWrapper,
-    SendXecInput,
-    DestinationAddressSingle,
-    DestinationAddressMulti,
-} from 'components/Common/EnhancedInputs';
-import {
     ThemedMailOutlined,
     CashReceivedNotificationIcon,
 } from 'components/Common/CustomIcons';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import { Form, Alert, Input } from 'antd';
+import { Alert, Switch } from 'antd';
 import Modal from 'components/Common/Modal';
-import { Row, Col, Switch } from 'antd';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
 import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
@@ -62,13 +55,19 @@ import aliasSettings from 'config/alias';
 import { isMobile, getUserLocale } from 'helpers';
 import { hasEnoughToken, fiatToSatoshis } from 'wallet';
 import { toast } from 'react-toastify';
-const { TextArea } = Input;
+import {
+    InputWithScanner,
+    SendXecInput,
+    TextArea,
+} from 'components/Common/Inputs';
 
-const TextAreaLabel = styled.div`
-    text-align: left;
+const SwitchContainer = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     color: ${props => props.theme.forms.text};
-    padding-left: 1px;
     white-space: nowrap;
+    margin: 12px;
 `;
 
 const SentLink = styled.a`
@@ -91,10 +90,10 @@ const AliasAddressPreviewLabel = styled.div`
 `;
 
 const AmountPreviewCtn = styled.div`
+    margin: 12px;
     display: flex;
     flex-direction: column;
-    justify-content: top;
-    max-height: 1rem;
+    justify-content: center;
 `;
 
 const SendInputCtn = styled.div`
@@ -112,10 +111,6 @@ const LocaleFormattedValue = styled.div`
     margin-bottom: 0;
 `;
 
-const SendAddressHeader = styled.div`
-    display: flex;
-    align-items: center;
-`;
 const DestinationAddressSingleCtn = styled.div``;
 const DestinationAddressMultiCtn = styled.div``;
 
@@ -181,11 +176,13 @@ const SendXec = () => {
         settings && settings.autoCameraOn === true && isMobile(navigator);
 
     const [formData, setFormData] = useState({
-        value: '',
+        amount: '',
         address: '',
+        multiAddressInput: '',
         airdropTokenId: '',
     });
     const [sendAddressError, setSendAddressError] = useState(false);
+    const [multiSendAddressError, setMultiSendAddressError] = useState(false);
     const [sendAmountError, setSendAmountError] = useState(false);
     const [isMsgError, setIsMsgError] = useState(false);
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
@@ -216,12 +213,17 @@ const SendXec = () => {
     const userLocale = getUserLocale(navigator);
     const clearInputForms = () => {
         setFormData({
-            value: '',
+            amount: '',
             address: '',
+            multiAddressInput: '',
+            airdropTokenId: '',
         });
         setOpReturnMsg(''); // OP_RETURN message has its own state field
         setAliasInputAddress(false); // clear alias address preview
         setParsedAddressInput(parseAddressInput(''));
+        // Reset to XEC
+        // Note, this ensures we never are in fiat send mode for multi-send
+        setSelectedCurrency(appConfig.ticker);
     };
 
     const checkForConfirmationBeforeSendXec = () => {
@@ -249,7 +251,7 @@ const SendXec = () => {
         if (location && location.state && location.state.replyAddress) {
             setFormData({
                 address: location.state.replyAddress,
-                value: `${toXec(appConfig.dustSats).toString()}`,
+                amount: `${toXec(appConfig.dustSats)}`,
             });
         }
 
@@ -278,7 +280,7 @@ const SendXec = () => {
         ) {
             setIsOneToManyXECSend(true);
             setFormData({
-                address: location.state.airdropRecipients,
+                multiAddressInput: location.state.airdropRecipients,
                 airdropTokenId: location.state.airdropTokenId,
             });
 
@@ -386,7 +388,7 @@ const SendXec = () => {
                 // TODO deprecate this support once PayButton and cashtab-components do not require it
                 handleAmountChange({
                     target: {
-                        name: 'value',
+                        name: 'amount',
                         value: txInfoFromUrl.value,
                     },
                 });
@@ -448,7 +450,7 @@ const SendXec = () => {
         if (isOneToManyXECSend) {
             // Handle XEC send to multiple addresses
             targetOutputs = targetOutputs.concat(
-                getMultisendTargetOutputs(formData.address),
+                getMultisendTargetOutputs(formData.multiAddressInput),
             );
 
             Event('Send.js', 'SendToMany', selectedCurrency);
@@ -464,8 +466,8 @@ const SendXec = () => {
             }
             const satoshisToSend =
                 selectedCurrency === 'XEC'
-                    ? toSatoshis(formData.value)
-                    : fiatToSatoshis(formData.value, fiatPrice);
+                    ? toSatoshis(formData.amount)
+                    : fiatToSatoshis(formData.amount, fiatPrice);
 
             targetOutputs.push({
                 address: cleanAddress,
@@ -502,7 +504,6 @@ const SendXec = () => {
                 </SentLink>,
                 {
                     icon: CashReceivedNotificationIcon,
-                    autoClose: false,
                 },
             );
 
@@ -584,15 +585,11 @@ const SendXec = () => {
             // Use this object to mimic user input and get validation for the value
             let amountObj = {
                 target: {
-                    name: 'value',
+                    name: 'amount',
                     value: parsedAddressInput.amount.value,
                 },
             };
             handleAmountChange(amountObj);
-            setFormData({
-                ...formData,
-                value: parsedAddressInput.amount.value,
-            });
         }
 
         // Set address field to user input
@@ -611,7 +608,7 @@ const SendXec = () => {
         );
 
         // If you get an error msg, set it. If validation is good, clear error msg.
-        setSendAddressError(
+        setMultiSendAddressError(
             typeof errorOrIsValid === 'string' ? errorOrIsValid : false,
         );
 
@@ -623,11 +620,11 @@ const SendXec = () => {
     };
 
     const handleSelectedCurrencyChange = e => {
-        setSelectedCurrency(e);
+        setSelectedCurrency(e.target.value);
         // Clear input field to prevent accidentally sending 1 XEC instead of 1 USD
         setFormData(p => ({
             ...p,
-            value: '',
+            amount: '',
         }));
     };
 
@@ -669,7 +666,7 @@ const SendXec = () => {
         setOpReturnMsg(e.target.value);
     };
 
-    const onMax = async () => {
+    const onMax = () => {
         // Clear amt error
         setSendAmountError(false);
 
@@ -711,43 +708,59 @@ const SendXec = () => {
         // Note, if we are updating it to 0, we will get a 'dust' error
         handleAmountChange({
             target: {
-                name: 'value',
+                name: 'amount',
                 value: maxSendXec,
             },
         });
     };
     // Display price in USD below input field for send amount, if it can be calculated
     let fiatPriceString = '';
-    if (fiatPrice !== null && !isNaN(formData.value)) {
+    let multiSendTotal =
+        typeof formData.multiAddressInput === 'string'
+            ? sumOneToManyXec(formData.multiAddressInput.split('\n'))
+            : 0;
+    if (isNaN(multiSendTotal)) {
+        multiSendTotal = 0;
+    }
+    if (fiatPrice !== null && !isNaN(formData.amount)) {
         if (selectedCurrency === appConfig.ticker) {
-            // calculate conversion to fiatPrice
-            fiatPriceString = `${(fiatPrice * Number(formData.value)).toFixed(
-                2,
-            )}`;
-
-            // formats to fiat locale style
-            fiatPriceString = formatFiatBalance(
-                Number(fiatPriceString),
-                userLocale,
-            );
-
             // insert symbol and currency before/after the locale formatted fiat balance
-            fiatPriceString = `${
-                settings
-                    ? `${
-                          supportedFiatCurrencies[settings.fiatCurrency].symbol
-                      } `
-                    : '$ '
-            } ${fiatPriceString} ${
-                settings && settings.fiatCurrency
-                    ? settings.fiatCurrency.toUpperCase()
-                    : 'USD'
-            }`;
+            fiatPriceString = isOneToManyXECSend
+                ? `${
+                      settings
+                          ? `${
+                                supportedFiatCurrencies[settings.fiatCurrency]
+                                    .symbol
+                            } `
+                          : '$ '
+                  } ${(fiatPrice * multiSendTotal).toLocaleString(userLocale, {
+                      minimumFractionDigits: appConfig.cashDecimals,
+                      maximumFractionDigits: appConfig.cashDecimals,
+                  })} ${
+                      settings && settings.fiatCurrency
+                          ? settings.fiatCurrency.toUpperCase()
+                          : 'USD'
+                  }`
+                : `${
+                      settings
+                          ? `${
+                                supportedFiatCurrencies[settings.fiatCurrency]
+                                    .symbol
+                            } `
+                          : '$ '
+                  } ${(fiatPrice * formData.amount).toLocaleString(userLocale, {
+                      minimumFractionDigits: appConfig.cashDecimals,
+                      maximumFractionDigits: appConfig.cashDecimals,
+                  })} ${
+                      settings && settings.fiatCurrency
+                          ? settings.fiatCurrency.toUpperCase()
+                          : 'USD'
+                  }`;
         } else {
             fiatPriceString = `${
-                formData.value
+                formData.amount !== 0
                     ? formatFiatBalance(
-                          toXec(fiatToSatoshis(formData.value, fiatPrice)),
+                          toXec(fiatToSatoshis(formData.amount, fiatPrice)),
                           userLocale,
                       )
                     : formatFiatBalance(0, userLocale)
@@ -775,13 +788,11 @@ const SendXec = () => {
                     description={
                         isOneToManyXECSend
                             ? `Send
-                                ${sumOneToManyXec(
-                                    formData.address.split('\n'),
-                                ).toLocaleString(userLocale, {
+                                ${multiSendTotal.toLocaleString(userLocale, {
                                     maximumFractionDigits: 2,
                                 })} 
                                 XEC to multiple recipients?`
-                            : `Send ${formData.value}${' '}
+                            : `Send ${formData.amount}${' '}
                   ${selectedCurrency} to ${parsedAddressInput.address.value}`
                     }
                     handleOk={handleOk}
@@ -790,305 +801,211 @@ const SendXec = () => {
                 />
             )}
             <SidePaddingCtn data-testid="send-xec-ctn">
-                <Row type="flex">
-                    <Col span={24}>
-                        <Form
-                            style={{
-                                width: 'auto',
-                                marginTop: '40px',
+                {txInfoFromUrl && (
+                    <AppCreatedTxSummary data-testid="app-created-tx">
+                        Webapp Tx Request
+                    </AppCreatedTxSummary>
+                )}
+
+                {!txInfoFromUrl && !('queryString' in parsedAddressInput) && (
+                    <SwitchContainer>
+                        Multiple Recipients:&nbsp;&nbsp;
+                        <Switch
+                            data-testid="multiple-recipients-switch"
+                            defaultunchecked="true"
+                            checked={isOneToManyXECSend}
+                            onChange={() => {
+                                setIsOneToManyXECSend(!isOneToManyXECSend);
+                                // Do not persist multisend input to single send and vice versa
+                                clearInputForms();
                             }}
-                        >
-                            {txInfoFromUrl && (
-                                <AppCreatedTxSummary data-testid="app-created-tx">
-                                    Webapp Tx Request
-                                </AppCreatedTxSummary>
-                            )}
-
-                            <SendAddressHeader>
-                                {' '}
-                                <FormLabel>Send to</FormLabel>
-                                {!txInfoFromUrl &&
-                                    !('queryString' in parsedAddressInput) && (
-                                        <TextAreaLabel>
-                                            Multiple Recipients:&nbsp;&nbsp;
-                                            <Switch
-                                                data-testid="multiple-recipients-switch"
-                                                defaultunchecked="true"
-                                                checked={isOneToManyXECSend}
-                                                onChange={() => {
-                                                    setIsOneToManyXECSend(
-                                                        !isOneToManyXECSend,
-                                                    );
-                                                    // Do not persist multisend input to single send and vice versa
-                                                    clearInputForms();
-                                                }}
-                                                style={{
-                                                    marginBottom: '7px',
-                                                }}
-                                            />
-                                        </TextAreaLabel>
-                                    )}
-                            </SendAddressHeader>
-                            <ExpandingAddressInputCtn open={isOneToManyXECSend}>
-                                <SendInputCtn>
-                                    <DestinationAddressSingleCtn>
-                                        <DestinationAddressSingle
-                                            style={{
-                                                marginBottom: '0px',
-                                            }}
-                                            loadWithCameraOpen={
-                                                location &&
-                                                location.state &&
-                                                location.state.replyAddress
-                                                    ? false
-                                                    : openWithScanner
-                                            }
-                                            validateStatus={
-                                                sendAddressError ? 'error' : ''
-                                            }
-                                            help={
-                                                sendAddressError
-                                                    ? sendAddressError
-                                                    : ''
-                                            }
-                                            onScan={result =>
-                                                handleAddressChange({
-                                                    target: {
-                                                        name: 'address',
-                                                        value: result,
-                                                    },
-                                                })
-                                            }
-                                            inputProps={{
-                                                disabled: txInfoFromUrl,
-                                                placeholder:
-                                                    aliasSettings.aliasEnabled
-                                                        ? `Address or Alias`
-                                                        : `Address`,
-                                                name: 'address',
-                                                onChange: e =>
-                                                    handleAddressChange(e),
-                                                value: formData.address,
-                                            }}
-                                        ></DestinationAddressSingle>
-                                        <AliasAddressPreviewLabel>
-                                            <TxLink
-                                                key={aliasInputAddress}
-                                                data-testid="alias-address-preview"
-                                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                {aliasInputAddress &&
-                                                    `${aliasInputAddress.slice(
-                                                        0,
-                                                        10,
-                                                    )}...${aliasInputAddress.slice(
-                                                        -5,
-                                                    )}`}
-                                            </TxLink>
-                                        </AliasAddressPreviewLabel>
-                                        <FormLabel>
-                                            Amount{' '}
-                                            {'amount' in parsedAddressInput &&
-                                                parsedAddressInput.amount
-                                                    .value !== null && (
-                                                    <AmountSetByBip21Alert data-testid="bip-alert">
-                                                        {' '}
-                                                        (set by BIP21 query
-                                                        string)
-                                                    </AmountSetByBip21Alert>
-                                                )}
-                                        </FormLabel>
-                                        <SendXecInput
-                                            activeFiatCode={
-                                                settings &&
-                                                settings.fiatCurrency
-                                                    ? settings.fiatCurrency.toUpperCase()
-                                                    : 'USD'
-                                            }
-                                            validateStatus={
-                                                sendAmountError ? 'error' : ''
-                                            }
-                                            help={
-                                                sendAmountError
-                                                    ? sendAmountError
-                                                    : ''
-                                            }
-                                            onMax={onMax}
-                                            inputProps={{
-                                                name: 'value',
-                                                dollar:
-                                                    selectedCurrency === 'USD'
-                                                        ? 1
-                                                        : 0,
-                                                placeholder: 'Amount',
-                                                onChange: e =>
-                                                    handleAmountChange(e),
-                                                value: formData.value,
-                                                disabled:
-                                                    priceApiError ||
-                                                    (txInfoFromUrl !== false &&
-                                                        'value' in
-                                                            txInfoFromUrl &&
-                                                        txInfoFromUrl.value !==
-                                                            'null' &&
-                                                        txInfoFromUrl.value !==
-                                                            'undefined') ||
-                                                    'amount' in
-                                                        parsedAddressInput,
-                                            }}
-                                            selectProps={{
-                                                value: selectedCurrency,
-                                                disabled:
-                                                    'amount' in
-                                                        parsedAddressInput ||
-                                                    txInfoFromUrl,
-                                                onChange: e =>
-                                                    handleSelectedCurrencyChange(
-                                                        e,
-                                                    ),
-                                            }}
-                                        ></SendXecInput>
-                                    </DestinationAddressSingleCtn>
-                                    {priceApiError && (
-                                        <AlertMsg>
-                                            Error fetching fiat price. Setting
-                                            send by{' '}
-                                            {supportedFiatCurrencies[
-                                                settings.fiatCurrency
-                                            ].slug.toUpperCase()}{' '}
-                                            disabled
-                                        </AlertMsg>
-                                    )}
-                                </SendInputCtn>
-
-                                <>
-                                    <DestinationAddressMultiCtn>
-                                        <DestinationAddressMulti
-                                            validateStatus={
-                                                sendAddressError ? 'error' : ''
-                                            }
-                                            help={
-                                                sendAddressError
-                                                    ? sendAddressError
-                                                    : ''
-                                            }
-                                            inputProps={{
-                                                placeholder: `One address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`,
-                                                name: 'address',
-                                                onChange: e =>
-                                                    handleMultiAddressChange(e),
-                                                value: formData.address,
-                                            }}
-                                        ></DestinationAddressMulti>
-                                    </DestinationAddressMultiCtn>
-                                </>
-                                <AmountPreviewCtn>
-                                    {!priceApiError && !isOneToManyXECSend && (
-                                        <>
-                                            <LocaleFormattedValue>
-                                                {!isNaN(formData.value)
-                                                    ? formatBalance(
-                                                          formData.value,
-                                                          userLocale,
-                                                      ) +
-                                                      ' ' +
-                                                      selectedCurrency
-                                                    : ''}
-                                            </LocaleFormattedValue>
-                                            <ConvertAmount>
-                                                {fiatPriceString !== '' && '='}{' '}
-                                                {fiatPriceString}
-                                            </ConvertAmount>
-                                        </>
-                                    )}
-                                </AmountPreviewCtn>
-                            </ExpandingAddressInputCtn>
-                            {'op_return_raw' in parsedAddressInput && (
-                                <OpReturnRawSetByBip21Alert data-testid="op-return-raw-set-alert">
-                                    Hex OP_RETURN &quot;
-                                    {parsedAddressInput.op_return_raw.value}
-                                    &quot; set by BIP21
-                                </OpReturnRawSetByBip21Alert>
-                            )}
-                            <div
-                                style={{
-                                    paddingTop: '1rem',
-                                }}
-                            >
-                                <PrimaryButton
-                                    data-testid="send-it"
-                                    disabled={disableSendButton}
-                                    onClick={() => {
-                                        checkForConfirmationBeforeSendXec();
-                                    }}
+                        />
+                    </SwitchContainer>
+                )}
+                <ExpandingAddressInputCtn open={isOneToManyXECSend}>
+                    <SendInputCtn>
+                        <DestinationAddressSingleCtn>
+                            <InputWithScanner
+                                placeholder={
+                                    aliasSettings.aliasEnabled
+                                        ? `Address or Alias`
+                                        : `Address`
+                                }
+                                name="address"
+                                value={formData.address}
+                                disabled={txInfoFromUrl !== false}
+                                handleInput={handleAddressChange}
+                                error={sendAddressError}
+                                loadWithScannerOpen={openWithScanner}
+                            />
+                            <AliasAddressPreviewLabel>
+                                <TxLink
+                                    key={aliasInputAddress}
+                                    data-testid="alias-address-preview"
+                                    href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                    target="_blank"
+                                    rel="noreferrer"
                                 >
-                                    Send
-                                </PrimaryButton>
-                            </div>
-                            {!('op_return_raw' in parsedAddressInput) && (
-                                <CustomCollapseCtn
-                                    data-testid="cashtab-msg-collapse"
-                                    panelHeader={
-                                        <PanelHeaderCtn>
-                                            <ThemedMailOutlined /> Message
-                                        </PanelHeaderCtn>
-                                    }
-                                    optionalDefaultActiveKey={
-                                        location &&
-                                        location.state &&
-                                        location.state.replyAddress
-                                            ? ['1']
-                                            : ['0']
-                                    }
-                                    optionalKey="1"
-                                >
-                                    <AntdFormWrapper
-                                        style={{
-                                            marginBottom: '20px',
-                                        }}
-                                    >
-                                        <Alert
-                                            style={{
-                                                marginBottom: '10px',
-                                            }}
-                                            description="Please note this message will be public."
-                                            type="warning"
-                                            showIcon
-                                        />
-                                        <TextArea
-                                            name="opReturnMsg"
-                                            placeholder={
-                                                location &&
-                                                location.state &&
-                                                location.state.airdropTokenId
-                                                    ? `(max ${
-                                                          opreturnConfig.cashtabMsgByteLimit -
-                                                          localAirdropTxAddedBytes
-                                                      } bytes)`
-                                                    : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
-                                            }
-                                            value={
-                                                opReturnMsg ? opReturnMsg : ''
-                                            }
-                                            onChange={e => handleMsgChange(e)}
-                                            onKeyDown={e =>
-                                                e.keyCode == 13
-                                                    ? e.preventDefault()
-                                                    : ''
-                                            }
-                                        />
-                                        <MsgBytesizeError>
-                                            {isMsgError ? isMsgError : ''}
-                                        </MsgBytesizeError>
-                                    </AntdFormWrapper>
-                                </CustomCollapseCtn>
-                            )}
-                            {apiError && <ApiError />}
-                        </Form>
-                    </Col>
-                </Row>
+                                    {aliasInputAddress &&
+                                        `${aliasInputAddress.slice(
+                                            0,
+                                            10,
+                                        )}...${aliasInputAddress.slice(-5)}`}
+                                </TxLink>
+                            </AliasAddressPreviewLabel>
+                            <FormLabel>
+                                {'amount' in parsedAddressInput &&
+                                    parsedAddressInput.amount.value !==
+                                        null && (
+                                        <AmountSetByBip21Alert data-testid="bip-alert">
+                                            {' '}
+                                            (set by BIP21 query string)
+                                        </AmountSetByBip21Alert>
+                                    )}
+                            </FormLabel>
+                            <SendXecInput
+                                name="amount"
+                                value={formData.amount}
+                                selectValue={selectedCurrency}
+                                selectDisabled={
+                                    'amount' in parsedAddressInput ||
+                                    txInfoFromUrl
+                                }
+                                inputDisabled={
+                                    priceApiError ||
+                                    (txInfoFromUrl !== false &&
+                                        'value' in txInfoFromUrl &&
+                                        txInfoFromUrl.value !== 'null' &&
+                                        txInfoFromUrl.value !== 'undefined') ||
+                                    'amount' in parsedAddressInput
+                                }
+                                fiatCode={settings.fiatCurrency.toUpperCase()}
+                                error={sendAmountError}
+                                handleInput={handleAmountChange}
+                                handleSelect={handleSelectedCurrencyChange}
+                                handleOnMax={onMax}
+                            />
+                        </DestinationAddressSingleCtn>
+                        {priceApiError && (
+                            <AlertMsg>
+                                Error fetching fiat price. Setting send by{' '}
+                                {supportedFiatCurrencies[
+                                    settings.fiatCurrency
+                                ].slug.toUpperCase()}{' '}
+                                disabled
+                            </AlertMsg>
+                        )}
+                    </SendInputCtn>
+
+                    <>
+                        <DestinationAddressMultiCtn>
+                            <TextArea
+                                placeholder={`One address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`}
+                                name="multiAddressInput"
+                                handleInput={e => handleMultiAddressChange(e)}
+                                value={formData.multiAddressInput}
+                                error={multiSendAddressError}
+                            />
+                        </DestinationAddressMultiCtn>
+                    </>
+                    <AmountPreviewCtn>
+                        {!priceApiError && (
+                            <>
+                                {isOneToManyXECSend ? (
+                                    <LocaleFormattedValue>
+                                        {formatBalance(
+                                            multiSendTotal,
+                                            userLocale,
+                                        ) +
+                                            ' ' +
+                                            selectedCurrency}
+                                    </LocaleFormattedValue>
+                                ) : (
+                                    <LocaleFormattedValue>
+                                        {!isNaN(formData.amount)
+                                            ? formatBalance(
+                                                  formData.amount,
+                                                  userLocale,
+                                              ) +
+                                              ' ' +
+                                              selectedCurrency
+                                            : ''}
+                                    </LocaleFormattedValue>
+                                )}
+                                <ConvertAmount>
+                                    {fiatPriceString !== '' && '='}{' '}
+                                    {fiatPriceString}
+                                </ConvertAmount>
+                            </>
+                        )}
+                    </AmountPreviewCtn>
+                </ExpandingAddressInputCtn>
+                {'op_return_raw' in parsedAddressInput && (
+                    <OpReturnRawSetByBip21Alert data-testid="op-return-raw-set-alert">
+                        Hex OP_RETURN &quot;
+                        {parsedAddressInput.op_return_raw.value}
+                        &quot; set by BIP21
+                    </OpReturnRawSetByBip21Alert>
+                )}
+                <PrimaryButton
+                    style={{ marginTop: '12px' }}
+                    data-testid="send-it"
+                    disabled={disableSendButton}
+                    onClick={() => {
+                        checkForConfirmationBeforeSendXec();
+                    }}
+                >
+                    Send
+                </PrimaryButton>
+                {!('op_return_raw' in parsedAddressInput) && (
+                    <CustomCollapseCtn
+                        data-testid="cashtab-msg-collapse"
+                        panelHeader={
+                            <PanelHeaderCtn>
+                                <ThemedMailOutlined /> Message
+                            </PanelHeaderCtn>
+                        }
+                        optionalDefaultActiveKey={
+                            location &&
+                            location.state &&
+                            location.state.replyAddress
+                                ? ['1']
+                                : ['0']
+                        }
+                        optionalKey="1"
+                    >
+                        <Alert
+                            style={{
+                                marginBottom: '10px',
+                            }}
+                            description="Please note this message will be public."
+                            type="warning"
+                            showIcon
+                        />
+                        <TextArea
+                            name="opReturnMsg"
+                            placeholder={
+                                location &&
+                                location.state &&
+                                location.state.airdropTokenId
+                                    ? `(max ${
+                                          opreturnConfig.cashtabMsgByteLimit -
+                                          localAirdropTxAddedBytes
+                                      } bytes)`
+                                    : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
+                            }
+                            value={opReturnMsg ? opReturnMsg : ''}
+                            handleInput={e => handleMsgChange(e)}
+                            onKeyDown={e =>
+                                e.keyCode == 13 ? e.preventDefault() : ''
+                            }
+                        />
+                        <MsgBytesizeError>
+                            {isMsgError ? isMsgError : ''}
+                        </MsgBytesizeError>
+                    </CustomCollapseCtn>
+                )}
+                {apiError && <ApiError />}
             </SidePaddingCtn>
         </>
     );

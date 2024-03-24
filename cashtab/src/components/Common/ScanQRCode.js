@@ -4,8 +4,8 @@
 
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Modal } from 'antd';
-import { ThemedQrcodeOutlined } from 'components/Common/CustomIcons';
+import Modal from 'components/Common/Modal';
+import { QRCodeIcon } from 'components/Common/CustomIcons';
 import styled from 'styled-components';
 import { BrowserQRCodeReader } from '@zxing/browser';
 import {
@@ -14,31 +14,32 @@ import {
     ChecksumException,
 } from '@zxing/library';
 
-const StyledScanQRCode = styled.span`
-    display: block;
-`;
-
-const StyledModal = styled(Modal)`
-    width: 400px !important;
-    height: 400px !important;
-
-    .ant-modal-close {
-        top: 0 !important;
-        right: 0 !important;
-    }
+const StyledScanQRCode = styled.button`
+  cursor: pointer;
+  border-radius 0 9px 9px 0;
+  background-color: ${props => props.theme.forms.selectionBackground};  
+  border-left: none !important;
+  padding: 0 12px;
 `;
 
 const QRPreview = styled.video`
     width: 100%;
 `;
 
+const Alert = styled.div`
+    background-color: #fff2f0;
+    border-radius: 12px;
+    color: red;
+    padding: 12px;
+`;
+
 const ScanQRCode = ({
-    loadWithCameraOpen,
+    loadWithScannerOpen,
     onScan = () => null,
     ...otherProps
 }) => {
     const [codeReaderControls, setCodeReaderControls] = useState(null);
-    const [visible, setVisible] = useState(loadWithCameraOpen);
+    const [visible, setVisible] = useState(loadWithScannerOpen);
     const [error, setError] = useState(false);
 
     const codeReader = new BrowserQRCodeReader();
@@ -127,39 +128,38 @@ const ScanQRCode = ({
                 {...otherProps}
                 onClick={() => setVisible(!visible)}
             >
-                <ThemedQrcodeOutlined />
+                <QRCodeIcon />
             </StyledScanQRCode>
-            <StyledModal
-                data-testid="scan-qr-code-modal"
-                title="Scan QR code"
-                open={visible === true}
-                onCancel={() => setVisible(false)}
-                footer={null}
-            >
-                {visible ? (
-                    <div>
-                        {error ? (
-                            <>
-                                <Alert
-                                    message="Error"
-                                    description={`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}
-                                    type="error"
-                                    showIcon
-                                    style={{ textAlign: 'left' }}
-                                />
-                            </>
-                        ) : (
-                            <QRPreview id="test-area-qr-code-webcam"></QRPreview>
-                        )}
-                    </div>
-                ) : null}
-            </StyledModal>
+            {visible === true && (
+                <Modal
+                    handleCancel={() => setVisible(false)}
+                    showButtons={false}
+                    height={250}
+                >
+                    {error ? (
+                        <>
+                            <Alert
+                                message="Error"
+                                description={`Error in QR scanner: ${error}.\n\nPlease ensure your camera is not in use.`}
+                                type="error"
+                                showIcon
+                                style={{ textAlign: 'left' }}
+                            />
+                        </>
+                    ) : (
+                        <QRPreview
+                            data-testid="video"
+                            id="test-area-qr-code-webcam"
+                        ></QRPreview>
+                    )}
+                </Modal>
+            )}
         </>
     );
 };
 
 ScanQRCode.propTypes = {
-    loadWithCameraOpen: PropTypes.bool,
+    loadWithScannerOpen: PropTypes.bool,
     onScan: PropTypes.func,
 };
 

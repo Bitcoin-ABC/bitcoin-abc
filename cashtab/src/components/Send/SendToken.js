@@ -5,14 +5,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
-import { Form, message, Row, Col, Descriptions, Button, Input } from 'antd';
-import { SecondaryButton } from 'components/Common/PrimaryButton';
-import { FireTwoTone } from '@ant-design/icons';
-import {
-    DestinationAmount,
-    DestinationAddressSingle,
-    AntdFormWrapper,
-} from 'components/Common/EnhancedInputs';
+import { message, Button } from 'antd';
+import PrimaryButton, {
+    SecondaryButton,
+} from 'components/Common/PrimaryButton';
 import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
@@ -23,9 +19,8 @@ import ApiError from 'components/Common/ApiError';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
 import { getTokenStats } from 'chronik';
 import { formatDate } from 'utils/formatting';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';
-import { token as tokenConfig } from 'config/token';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'alias';
 import aliasSettings from 'config/alias';
@@ -41,18 +36,31 @@ import { sendXec } from 'transactions';
 import { hasEnoughToken } from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
+import {
+    InputWithScanner,
+    SendTokenInput,
+    ModalInput,
+    InputFlex,
+} from 'components/Common/Inputs';
+import CopyToClipboard from 'components/Common/CopyToClipboard';
+import { ThemedCopySolid } from 'components/Common/CustomIcons';
 
-const AntdDescriptionsCss = css`
-    .ant-descriptions-item-label,
-    .ant-input-number,
-    .ant-descriptions-item-content {
-        background-color: ${props => props.theme.contrast} !important;
-        color: ${props => props.theme.dropdownText};
-    }
-    .ant-descriptions-title {
-        color: ${props => props.theme.lightWhite};
-    }
+const TokenStatsTable = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    color: ${props => props.theme.contrast};
 `;
+const TokenStatsRow = styled.div`
+    width: 100%;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    gap: 3px;
+`;
+const TokenStatsCol = styled.div``;
 
 const TokenSentLink = styled.a`
     color: ${props => props.theme.walletBackground};
@@ -64,37 +72,6 @@ const AliasAddressPreviewLabel = styled.div`
     color: ${props => props.theme.forms.text};
     padding-left: 1px;
     white-space: nowrap;
-`;
-const AntdDescriptionsWrapper = styled.div`
-    ${AntdDescriptionsCss}
-`;
-const AirdropButton = styled.div`
-    text-align: center;
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    background: ${props => props.theme.sentMessage};
-    a {
-        color: ${props => props.theme.darkBlue};
-        margin: 0;
-        font-size: 11px;
-        border: 1px solid ${props => props.theme.darkBlue};
-        border-radius: 5px;
-        padding: 2px 10px;
-        opacity: 0.6;
-    }
-    a:hover {
-        opacity: 1;
-        border-color: ${props => props.theme.eCashBlue};
-        color: ${props => props.theme.contrast};
-        background: ${props => props.theme.eCashBlue};
-    }
-    ${({ received, ...props }) =>
-        received &&
-        `
-        text-align: left;    
-        background: ${props.theme.receivedMessage};
-    `}
 `;
 
 const SendToken = () => {
@@ -114,10 +91,9 @@ const SendToken = () => {
     const [tokenStats, setTokenStats] = useState(null);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
-    const [eTokenBurnAmount, setETokenBurnAmount] = useState(new BN(1));
     const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
     const [burnTokenAmountError, setBurnTokenAmountError] = useState(false);
-    const [burnConfirmationValid, setBurnConfirmationValid] = useState(null);
+    const [burnConfirmationError, setBurnConfirmationError] = useState(false);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
@@ -128,8 +104,9 @@ const SendToken = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({
-        value: '',
+        amount: '',
         address: '',
+        burnAmount: '',
     });
 
     const userLocale = getUserLocale(navigator);
@@ -159,21 +136,22 @@ const SendToken = () => {
     // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
         setFormData({
-            value: '',
+            amount: '',
             address: '',
+            burnAmount: '',
         });
         setAliasInputAddress(false); // clear alias address preview
     };
 
-    async function submit() {
+    async function sendToken() {
         setFormData({
             ...formData,
         });
 
         if (
             !formData.address ||
-            !formData.value ||
-            Number(formData.value <= 0) ||
+            !formData.amount ||
+            Number(formData.amount <= 0) ||
             sendTokenAmountError
         ) {
             return;
@@ -183,7 +161,7 @@ const SendToken = () => {
         // SLPA token IDs
         Event('SendToken.js', 'Send', tokenId);
 
-        const { address, value } = formData;
+        const { address, amount } = formData;
 
         let cleanAddress;
         // check state on whether this is an alias or ecash address
@@ -199,7 +177,7 @@ const SendToken = () => {
             const tokenInputInfo = getSendTokenInputs(
                 wallet.state.slpUtxos,
                 tokenId,
-                value,
+                amount,
                 token.info.decimals,
             );
 
@@ -344,11 +322,11 @@ const SendToken = () => {
         // Clear this error before updating field
         setSendTokenAmountError(false);
         try {
-            let value = token.balance;
+            let amount = token.balance;
 
             setFormData({
                 ...formData,
-                value,
+                amount,
             });
         } catch (err) {
             console.log(`Error in onMax:`);
@@ -364,13 +342,13 @@ const SendToken = () => {
             setIsModalVisible(settings.sendModal);
         } else {
             // if the user does not have the send confirmation enabled in settings then send directly
-            submit();
+            sendToken();
         }
     };
 
     const handleOk = () => {
         setIsModalVisible(false);
-        submit();
+        sendToken();
     };
 
     const handleCancel = () => {
@@ -378,35 +356,36 @@ const SendToken = () => {
     };
 
     const handleEtokenBurnAmountChange = e => {
-        const { value } = e.target;
-        const burnAmount = new BN(value);
-        setETokenBurnAmount(burnAmount);
+        console.log(`handleEtokenBurnAmountChange`);
+        const { name, value } = e.target;
+        console.log(`name`, name);
+        console.log(`value`, value);
 
         let error = false;
-        if (!isValidEtokenBurnAmount(burnAmount, token.balance)) {
+        if (!isValidEtokenBurnAmount(new BN(value), token.balance)) {
             error = 'Burn amount must be between 1 and ' + token.balance;
         }
 
         setBurnTokenAmountError(error);
+
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
     };
 
     const onMaxBurn = () => {
-        setETokenBurnAmount(token.balance);
-
         // trigger validation on the inserted max value
         handleEtokenBurnAmountChange({
             target: {
+                name: 'burnAmount',
                 value: token.balance,
             },
         });
     };
 
     async function burn() {
-        if (
-            !burnConfirmationValid ||
-            burnConfirmationValid === null ||
-            !eTokenBurnAmount
-        ) {
+        if (burnConfirmationError || formData.burnAmount === '') {
             return;
         }
 
@@ -418,7 +397,7 @@ const SendToken = () => {
             const tokenInputInfo = getSendTokenInputs(
                 wallet.state.slpUtxos,
                 tokenId,
-                eTokenBurnAmount,
+                formData.burnAmount,
                 token.info.decimals,
             );
 
@@ -470,9 +449,11 @@ const SendToken = () => {
         const { value } = e.target;
 
         if (value && value === `burn ${token.info.tokenTicker}`) {
-            setBurnConfirmationValid(true);
+            setBurnConfirmationError(false);
         } else {
-            setBurnConfirmationValid(false);
+            setBurnConfirmationError(
+                `Input must exactly match "burn ${token.info.tokenTicker}"`,
+            );
         }
         setConfirmationOfEtokenToBeBurnt(value);
     };
@@ -488,7 +469,7 @@ const SendToken = () => {
             {isModalVisible && (
                 <Modal
                     title="Confirm Send"
-                    description={`Send ${formData.value}${' '}
+                    description={`Send ${formData.amount}${' '}
                         ${token.info.tokenTicker} to ${formData.address}?`}
                     handleOk={handleOk}
                     handleCancel={handleCancel}
@@ -497,7 +478,7 @@ const SendToken = () => {
                     <p>
                         {token && token.info && formData
                             ? `Are you sure you want to send ${
-                                  formData.value
+                                  formData.amount
                               }${' '}
                         ${token.info.tokenTicker} to ${formData.address}?`
                             : ''}
@@ -510,44 +491,19 @@ const SendToken = () => {
                     {showConfirmBurnEtoken && (
                         <Modal
                             title={`Confirm ${token.info.tokenTicker} burn`}
-                            description={`Burn ${eTokenBurnAmount.toString()} ${
-                                token.info.tokenTicker
-                            }?`}
+                            description={`Burn ${formData.burnAmount} ${token.info.tokenTicker}?`}
                             handleOk={burn}
                             handleCancel={() => setShowConfirmBurnEtoken(false)}
                             showCancelButton
-                            height={230}
+                            height={250}
                         >
-                            <AntdFormWrapper>
-                                <Form style={{ width: 'auto' }}>
-                                    <Form.Item
-                                        validateStatus={
-                                            burnConfirmationValid === null ||
-                                            burnConfirmationValid
-                                                ? ''
-                                                : 'error'
-                                        }
-                                        help={
-                                            burnConfirmationValid === null ||
-                                            burnConfirmationValid
-                                                ? ''
-                                                : 'Your confirmation phrase must match exactly'
-                                        }
-                                    >
-                                        <Input
-                                            prefix={<FireTwoTone />}
-                                            placeholder={`Type "burn ${token.info.tokenTicker}" to confirm`}
-                                            name="etokenToBeBurnt"
-                                            value={
-                                                confirmationOfEtokenToBeBurnt
-                                            }
-                                            onChange={e =>
-                                                handleBurnConfirmationInput(e)
-                                            }
-                                        />
-                                    </Form.Item>
-                                </Form>
-                            </AntdFormWrapper>
+                            <ModalInput
+                                placeholder={`Type "burn ${token.info.tokenTicker}" to confirm`}
+                                name="etokenToBeBurnt"
+                                value={confirmationOfEtokenToBeBurnt}
+                                error={burnConfirmationError}
+                                handleInput={handleBurnConfirmationInput}
+                            />
                         </Modal>
                     )}
                     <BalanceHeaderToken
@@ -555,207 +511,141 @@ const SendToken = () => {
                         ticker={token.info.tokenTicker}
                         tokenDecimals={token.info.decimals}
                     />
-                    <Row type="flex">
-                        <Col span={24}>
-                            <Form
-                                style={{
-                                    width: 'auto',
+                    <TokenStatsTable
+                        title={`Token info for "${token.info.tokenName}"`}
+                    >
+                        <TokenStatsRow>
+                            <TokenStatsCol colSpan={2}>
+                                <CopyToClipboard data={token.tokenId} showToast>
+                                    <TokenIcon size={128} tokenId={tokenId} />
+                                </CopyToClipboard>
+                            </TokenStatsCol>
+                        </TokenStatsRow>
+                        <TokenStatsRow>
+                            <TokenStatsCol>
+                                Token Id: {token.tokenId.slice(0, 3)}...
+                                {token.tokenId.slice(-3)}
+                            </TokenStatsCol>
+                            <TokenStatsCol>
+                                <CopyToClipboard data={token.tokenId} showToast>
+                                    <ThemedCopySolid />
+                                </CopyToClipboard>
+                            </TokenStatsCol>
+                        </TokenStatsRow>
+                        <TokenStatsRow>
+                            <TokenStatsCol>
+                                {token.info.decimals} decimal places
+                            </TokenStatsCol>
+                        </TokenStatsRow>
+
+                        {tokenStats && (
+                            <>
+                                <TokenStatsRow>
+                                    {tokenStats.genesisInfo.url}
+                                </TokenStatsRow>
+                                <TokenStatsRow>
+                                    Minted{' '}
+                                    {tokenStats.block &&
+                                    tokenStats.block.timestamp !== null
+                                        ? formatDate(
+                                              tokenStats.block.timestamp,
+                                              navigator.language,
+                                          )
+                                        : 'Just now (Genesis tx confirming)'}
+                                </TokenStatsRow>
+                            </>
+                        )}
+                    </TokenStatsTable>
+                    <InputWithScanner
+                        placeholder={
+                            aliasSettings.aliasEnabled
+                                ? `Address or Alias`
+                                : `Address`
+                        }
+                        name="address"
+                        value={formData.address}
+                        handleInput={handleTokenAddressChange}
+                        error={sendTokenAddressError}
+                        loadWithScannerOpen={openWithScanner}
+                    />
+                    <AliasAddressPreviewLabel>
+                        <TxLink
+                            key={aliasInputAddress}
+                            href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            {aliasInputAddress &&
+                                `${aliasInputAddress.slice(
+                                    0,
+                                    10,
+                                )}...${aliasInputAddress.slice(-5)}`}
+                        </TxLink>
+                    </AliasAddressPreviewLabel>
+                    <br />
+                    <SendTokenInput
+                        name="amount"
+                        value={formData.amount}
+                        error={sendTokenAmountError}
+                        placeholder="Amount"
+                        decimals={token.info.decimals}
+                        handleInput={handleSlpAmountChange}
+                        handleOnMax={onMax}
+                    />
+
+                    <SecondaryButton
+                        style={{ marginTop: '24px' }}
+                        disabled={
+                            apiError ||
+                            sendTokenAmountError ||
+                            sendTokenAddressError
+                        }
+                        onClick={() => checkForConfirmationBeforeSendEtoken()}
+                    >
+                        Send {token.info.tokenName}
+                    </SecondaryButton>
+
+                    {apiError && <ApiError />}
+
+                    <TokenStatsTable
+                        title={`Token info for "${token.info.tokenName}"`}
+                    >
+                        <TokenStatsRow>
+                            <Link
+                                style={{ width: '100%' }}
+                                to="/airdrop"
+                                state={{
+                                    airdropEtokenId: token.tokenId,
                                 }}
                             >
-                                <DestinationAddressSingle
-                                    loadWithCameraOpen={openWithScanner}
-                                    validateStatus={
-                                        sendTokenAddressError ? 'error' : ''
-                                    }
-                                    help={
-                                        sendTokenAddressError
-                                            ? sendTokenAddressError
-                                            : ''
-                                    }
-                                    onScan={result =>
-                                        handleTokenAddressChange({
-                                            target: {
-                                                name: 'address',
-                                                value: result,
-                                            },
-                                        })
-                                    }
-                                    inputProps={{
-                                        placeholder: aliasSettings.aliasEnabled
-                                            ? `Address or Alias`
-                                            : `Address`,
-                                        name: 'address',
-                                        onChange: e =>
-                                            handleTokenAddressChange(e),
-                                        required: true,
-                                        value: formData.address,
-                                    }}
-                                    style={{ marginBottom: '0px' }}
+                                <PrimaryButton style={{ marginTop: '12px' }}>
+                                    Airdrop
+                                </PrimaryButton>
+                            </Link>
+                        </TokenStatsRow>
+                        <TokenStatsRow>
+                            <InputFlex>
+                                <SendTokenInput
+                                    name="burnAmount"
+                                    value={formData.burnAmount}
+                                    error={burnTokenAmountError}
+                                    placeholder="Burn Amount"
+                                    decimals={token.info.decimals}
+                                    handleInput={handleEtokenBurnAmountChange}
+                                    handleOnMax={onMaxBurn}
                                 />
-                                <AliasAddressPreviewLabel>
-                                    <TxLink
-                                        key={aliasInputAddress}
-                                        href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        {aliasInputAddress &&
-                                            `${aliasInputAddress.slice(
-                                                0,
-                                                10,
-                                            )}...${aliasInputAddress.slice(
-                                                -5,
-                                            )}`}
-                                    </TxLink>
-                                </AliasAddressPreviewLabel>
-                                <br />
-                                <DestinationAmount
-                                    validateStatus={
-                                        sendTokenAmountError ? 'error' : ''
-                                    }
-                                    help={
-                                        sendTokenAmountError
-                                            ? sendTokenAmountError
-                                            : ''
-                                    }
-                                    onMax={onMax}
-                                    inputProps={{
-                                        name: 'value',
-                                        step: 1 / 10 ** token.info.decimals,
-                                        placeholder: 'Amount',
-                                        prefix: (
-                                            <img
-                                                src={`${tokenConfig.tokenIconsUrl}/32/${tokenId}.png`}
-                                                width={16}
-                                                height={16}
-                                            />
-                                        ),
-                                        suffix: token.info.tokenTicker,
-                                        onChange: e => handleSlpAmountChange(e),
-                                        required: true,
-                                        value: formData.value,
-                                    }}
-                                />
-                                <div
-                                    style={{
-                                        paddingTop: '12px',
-                                    }}
-                                >
-                                    <SecondaryButton
-                                        disabled={
-                                            apiError ||
-                                            sendTokenAmountError ||
-                                            sendTokenAddressError
-                                        }
-                                        onClick={() =>
-                                            checkForConfirmationBeforeSendEtoken()
-                                        }
-                                    >
-                                        Send {token.info.tokenName}
-                                    </SecondaryButton>
-                                </div>
 
-                                {apiError && <ApiError />}
-                            </Form>
-                            {tokenStats !== null && (
-                                <AntdDescriptionsWrapper>
-                                    <Descriptions
-                                        column={1}
-                                        bordered
-                                        title={`Token info for "${token.info.tokenName}"`}
-                                    >
-                                        <Descriptions.Item label="Icon">
-                                            <TokenIcon
-                                                size={64}
-                                                tokenId={tokenId}
-                                            />
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Decimals">
-                                            {token.info.decimals}
-                                        </Descriptions.Item>
-                                        <Descriptions.Item label="Token ID">
-                                            {token.tokenId}
-                                            <br />
-                                            <AirdropButton>
-                                                <Link
-                                                    to="/airdrop"
-                                                    state={{
-                                                        airdropEtokenId:
-                                                            token.tokenId,
-                                                    }}
-                                                >
-                                                    Airdrop XEC to holders
-                                                </Link>
-                                            </AirdropButton>
-                                        </Descriptions.Item>
-                                        {tokenStats && (
-                                            <>
-                                                <Descriptions.Item label="Document URI">
-                                                    {tokenStats.genesisInfo.url}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Genesis Date">
-                                                    {tokenStats.block &&
-                                                    tokenStats.block
-                                                        .timestamp !== null
-                                                        ? formatDate(
-                                                              tokenStats.block
-                                                                  .timestamp,
-                                                              navigator.language,
-                                                          )
-                                                        : 'Just now (Genesis tx confirming)'}
-                                                </Descriptions.Item>
-                                                <Descriptions.Item label="Burn eToken">
-                                                    <DestinationAmount
-                                                        validateStatus={
-                                                            burnTokenAmountError
-                                                                ? 'error'
-                                                                : ''
-                                                        }
-                                                        help={
-                                                            burnTokenAmountError
-                                                                ? burnTokenAmountError
-                                                                : ''
-                                                        }
-                                                        onMax={onMaxBurn}
-                                                        inputProps={{
-                                                            placeholder:
-                                                                'Burn Amount',
-                                                            suffix: token.info
-                                                                .tokenTicker,
-                                                            onChange: e =>
-                                                                handleEtokenBurnAmountChange(
-                                                                    e,
-                                                                ),
-                                                            initialvalue: 1,
-                                                            value: eTokenBurnAmount,
-                                                            prefix: (
-                                                                <TokenIcon
-                                                                    size={32}
-                                                                    tokenId={
-                                                                        tokenId
-                                                                    }
-                                                                />
-                                                            ),
-                                                        }}
-                                                    />
-                                                    <Button
-                                                        type="primary"
-                                                        onClick={
-                                                            handleBurnAmountInput
-                                                        }
-                                                        danger
-                                                    >
-                                                        Burn&nbsp;
-                                                        {token.info.tokenTicker}
-                                                    </Button>
-                                                </Descriptions.Item>
-                                            </>
-                                        )}
-                                    </Descriptions>
-                                </AntdDescriptionsWrapper>
-                            )}
-                        </Col>
-                    </Row>
+                                <Button
+                                    type="primary"
+                                    onClick={handleBurnAmountInput}
+                                    danger
+                                >
+                                    Burn&nbsp;
+                                    {token.info.tokenTicker}
+                                </Button>
+                            </InputFlex>
+                        </TokenStatsRow>
+                    </TokenStatsTable>
                 </SidePaddingCtn>
             )}
         </>

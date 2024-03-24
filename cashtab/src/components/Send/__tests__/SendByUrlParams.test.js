@@ -115,7 +115,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(destinationAddress);
+        await waitFor(() =>
+            expect(addressInputEl).toHaveValue(destinationAddress),
+        );
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
@@ -186,7 +188,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(destinationAddress);
+        await waitFor(() =>
+            expect(addressInputEl).toHaveValue(destinationAddress),
+        );
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
@@ -252,7 +256,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(destinationAddress);
+        await waitFor(() =>
+            expect(addressInputEl).toHaveValue(destinationAddress),
+        );
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
@@ -318,7 +324,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(destinationAddress);
+        await waitFor(() =>
+            expect(addressInputEl).toHaveValue(destinationAddress),
+        );
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
@@ -505,7 +513,9 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(destinationAddress);
+        await waitFor(() =>
+            expect(addressInputEl).toHaveValue(destinationAddress),
+        );
         // The address input is disabled
         expect(addressInputEl).toHaveProperty('disabled', true);
 
@@ -575,7 +585,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
+        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
 
         // The address input is disabled for app txs with bip21 strings
         // Note it is NOT disabled for txs where the user inputs the bip21 string
@@ -669,7 +679,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).not.toBeInTheDocument();
 
         // The 'Send To' input field has this address as a value
-        expect(addressInputEl).toHaveValue(bip21Str);
+        await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
 
         // The address input is disabled for app txs with bip21 strings
         // Note it is NOT disabled for txs where the user inputs the bip21 string

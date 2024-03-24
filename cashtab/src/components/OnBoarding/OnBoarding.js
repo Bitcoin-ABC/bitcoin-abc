@@ -5,9 +5,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
-import { Input, Form } from 'antd';
-import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
-import { LockOutlined } from '@ant-design/icons';
+import { Input, InputFlex } from 'components/Common/Inputs';
 import PrimaryButton, {
     SecondaryButton,
 } from 'components/Common/PrimaryButton';
@@ -104,40 +102,26 @@ const OnBoarding = () => {
                 Import Wallet
             </SecondaryButton>
             {seedInput && (
-                <AntdFormWrapper>
-                    <Form style={{ width: 'auto' }}>
-                        <Form.Item
-                            validateStatus={
-                                !isValidMnemonic && formData.mnemonic.length > 0
-                                    ? 'error'
-                                    : ''
-                            }
-                            help={
-                                !isValidMnemonic && formData.mnemonic.length > 0
-                                    ? 'invalid 12-word mnemonic'
-                                    : ''
-                            }
-                        >
-                            <Input
-                                prefix={<LockOutlined />}
-                                type="email"
-                                placeholder="mnemonic (seed phrase)"
-                                name="mnemonic"
-                                autoComplete="off"
-                                onChange={e => handleChange(e)}
-                                required
-                                title=""
-                            />
-                        </Form.Item>
+                <InputFlex>
+                    <Input
+                        type="email"
+                        placeholder="mnemonic (seed phrase)"
+                        name="mnemonic"
+                        value={formData.mnemonic}
+                        error={
+                            isValidMnemonic ? false : 'invalid 12-word mnemonic'
+                        }
+                        autoComplete="off"
+                        handleInput={handleChange}
+                    />
 
-                        <SecondaryButton
-                            disabled={!isValidMnemonic}
-                            onClick={() => importWallet()}
-                        >
-                            Import
-                        </SecondaryButton>
-                    </Form>
-                </AntdFormWrapper>
+                    <SecondaryButton
+                        disabled={!isValidMnemonic}
+                        onClick={() => importWallet()}
+                    >
+                        Import
+                    </SecondaryButton>
+                </InputFlex>
             )}
         </WelcomeCtn>
     );

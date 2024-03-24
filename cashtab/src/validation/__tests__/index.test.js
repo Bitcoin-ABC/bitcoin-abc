@@ -466,7 +466,7 @@ describe('Cashtab validation functions', () => {
         expect(isValidOpreturnParam('042e7')).toBe(false);
     });
     describe('Determining whether Send button should be disabled on SendXec screen', () => {
-        const { expectedReturns } = vectors.shouldDisableXecSend;
+        const { expectedReturns } = vectors.shouldSendXecBeDisabled;
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {

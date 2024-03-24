@@ -108,7 +108,7 @@ const ModalExit = styled.button`
     right: 5px;
     top: 5px;
     background: none;
-    border: none;
+    border: none !important;
     color: ${props => props.theme.contrast};
     font-weight: bold;
     cursor: pointer;
@@ -126,6 +126,7 @@ export const Modal = ({
     children,
     width = 320,
     height = 210,
+    showButtons = true,
 }) => {
     return (
         <ModalContainer width={width} height={height}>
@@ -139,12 +140,16 @@ export const Modal = ({
                     <ModalDescription>{description}</ModalDescription>
                 )}
                 {children}
-                <ButtonHolder>
-                    <ModalConfirm onClick={handleOk}>OK</ModalConfirm>
-                    {showCancelButton && (
-                        <ModalCancel onClick={handleCancel}>Cancel</ModalCancel>
-                    )}
-                </ButtonHolder>
+                {showButtons && (
+                    <ButtonHolder>
+                        <ModalConfirm onClick={handleOk}>OK</ModalConfirm>
+                        {showCancelButton && (
+                            <ModalCancel onClick={handleCancel}>
+                                Cancel
+                            </ModalCancel>
+                        )}
+                    </ButtonHolder>
+                )}
             </ModalBody>
         </ModalContainer>
     );
@@ -153,11 +158,12 @@ export const Modal = ({
 Modal.propTypes = {
     title: PropTypes.string,
     description: PropTypes.string,
-    handleOk: PropTypes.func.isRequired,
+    handleOk: PropTypes.func,
     handleCancel: PropTypes.func.isRequired,
     showCancelButton: PropTypes.bool,
     width: PropTypes.number,
     height: PropTypes.number,
+    showButtons: PropTypes.bool,
     children: PropTypes.node,
 };
 

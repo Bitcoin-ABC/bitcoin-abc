@@ -1408,11 +1408,14 @@ describe('<SendXec />', () => {
         await user.type(addressInputEl, addressInput);
 
         // Select USD from currency select
-        await user.click(
-            screen.getByTestId('currency-select-dropdown').firstElementChild,
+        const currencyDropdownMenu = screen.getByTestId(
+            'currency-select-dropdown',
         );
-        await user.click(screen.getAllByTestId('currency-select-option')[1]);
-
+        await user.selectOptions(
+            screen.getByTestId('currency-select-dropdown'),
+            screen.getByTestId('fiat-option'),
+        );
+        await waitFor(() => expect(currencyDropdownMenu).toHaveValue('USD'));
         // Send $0.21
         // 7000 satoshis at 0.00003 USD / XEC
         await user.type(amountInputEl, '0.21');
