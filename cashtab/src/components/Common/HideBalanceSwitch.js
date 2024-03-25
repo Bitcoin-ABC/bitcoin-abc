@@ -3,28 +3,30 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { Switch, Tooltip } from 'antd';
-import { ThemedEyeSVG, ThemedInvisibleEyeSVG } from './CustomIcons';
+import Eye from 'assets/eye.png';
+import EyeInvisible from 'assets/eye-invisible.png';
 import PropTypes from 'prop-types';
+import CashtabSwitch from 'components/Common/Switch';
 
 const HideBalanceSwitch = ({ settings, updateCashtabState }) => {
-    const handleShowHideBalance = checkedState => {
+    const handleShowHideBalance = e => {
         // Update settings in state and localforage
         updateCashtabState('settings', {
             ...settings,
-            balanceVisible: checkedState,
+            balanceVisible: e.target.checked,
         });
     };
     return (
-        <Tooltip title={'Toggle hide balance'}>
-            <Switch
-                size="small"
-                checkedChildren={<ThemedEyeSVG />}
-                unCheckedChildren={<ThemedInvisibleEyeSVG />}
-                checked={settings ? settings.balanceVisible : false}
-                onChange={handleShowHideBalance}
-            />
-        </Tooltip>
+        <CashtabSwitch
+            name="show-hide-balance"
+            bgImageOn={Eye}
+            bgImageOff={EyeInvisible}
+            width={50}
+            small
+            right={30}
+            checked={settings.balanceVisible}
+            handleToggle={handleShowHideBalance}
+        />
     );
 };
 

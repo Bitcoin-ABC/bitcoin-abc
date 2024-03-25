@@ -15,8 +15,6 @@ import ScanQRCode from './ScanQRCode';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 
-const { TextArea } = Input;
-
 export const AntdFormCss = css`
     input[type='number'] {
         -moz-appearance: textfield;
@@ -303,20 +301,6 @@ DestinationAmount.propTypes = {
     inputProps: PropTypes.object,
 };
 
-export const InputAmountSingle = ({ inputProps, ...otherProps }) => {
-    return (
-        <AntdFormWrapper>
-            <Form.Item {...otherProps}>
-                <Input type="string" {...inputProps} />
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-};
-
-InputAmountSingle.propTypes = {
-    inputProps: PropTypes.object,
-};
-
 // loadWithCameraOpen prop: if true, load page with camera scanning open
 export const DestinationAddressSingle = ({
     onScan,
@@ -405,25 +389,6 @@ export const AliasAddressInput = ({ inputProps, ...otherProps }) => {
 };
 
 AliasAddressInput.propTypes = {
-    inputProps: PropTypes.object,
-};
-
-export const DestinationAddressMulti = ({ inputProps, ...otherProps }) => {
-    return (
-        <AntdFormWrapper>
-            <Form.Item {...otherProps}>
-                <TextArea
-                    style={{ height: '189px' }}
-                    prefix={<ThemedWalletOutlined />}
-                    autoComplete="off"
-                    {...inputProps}
-                />
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-};
-
-DestinationAddressMulti.propTypes = {
     inputProps: PropTypes.object,
 };
 

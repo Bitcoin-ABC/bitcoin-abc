@@ -5,9 +5,9 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
-import { Collapse, Form, Alert, Switch, Tooltip, Checkbox } from 'antd';
+import { Collapse, Form, Alert, Tooltip, Checkbox } from 'antd';
 import { Row, Col } from 'antd';
-import { CheckOutlined, CloseOutlined, LockFilled } from '@ant-design/icons';
+import { LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
 import { SidePaddingCtn } from 'components/Common/Atoms';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
@@ -59,6 +59,7 @@ import {
 import CustomModal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
 import { Input, ModalInput, InputFlex } from 'components/Common/Inputs';
+import CashtabSwitch from 'components/Common/Switch';
 
 const { Panel } = Collapse;
 
@@ -888,30 +889,30 @@ const Configure = () => {
         }
     };
 
-    const handleSendModalToggle = checkedState => {
+    const handleSendModalToggle = e => {
         updateCashtabState('settings', {
             ...settings,
-            sendModal: checkedState,
+            sendModal: e.target.checked,
         });
     };
 
-    const handleMinFeesToggle = checkedState => {
+    const handleMinFeesToggle = e => {
         updateCashtabState('settings', {
             ...settings,
-            minFeeSends: checkedState,
+            minFeeSends: e.target.checked,
         });
     };
 
-    const handleCameraOverride = checkedState => {
+    const handleCameraOverride = e => {
         updateCashtabState('settings', {
             ...settings,
-            autoCameraOn: checkedState,
+            autoCameraOn: e.target.checked,
         });
     };
-    const handleUnknownSenderMsg = checkedState => {
+    const handleUnknownSenderMsg = e => {
         updateCashtabState('settings', {
             ...settings,
-            hideMessagesFromUnknownSenders: checkedState,
+            hideMessagesFromUnknownSenders: e.target.checked,
         });
     };
 
@@ -1640,13 +1641,11 @@ const Configure = () => {
                         <LockFilled /> Send Confirmations
                     </SettingsLabel>
                     <SwitchContainer>
-                        <Switch
-                            data-testid="send-confirmations-switch"
-                            size="small"
-                            checkedChildren={<CheckOutlined />}
-                            unCheckedChildren={<CloseOutlined />}
-                            checked={settings ? settings.sendModal : false}
-                            onChange={handleSendModalToggle}
+                        <CashtabSwitch
+                            name="send-confirmations-switch"
+                            small
+                            checked={settings.sendModal}
+                            handleToggle={handleSendModalToggle}
                         />
                     </SwitchContainer>
                 </GeneralSettingsItem>
@@ -1656,14 +1655,11 @@ const Configure = () => {
                             <LockFilled /> Auto-open camera on send
                         </SettingsLabel>
                         <SwitchContainer>
-                            <Switch
-                                size="small"
-                                checkedChildren={<CheckOutlined />}
-                                unCheckedChildren={<CloseOutlined />}
-                                checked={
-                                    settings ? settings.autoCameraOn : false
-                                }
-                                onChange={handleCameraOverride}
+                            <CashtabSwitch
+                                name="settings-camera-auto-open"
+                                small
+                                checked={settings.autoCameraOn}
+                                handleToggle={handleCameraOverride}
                             />
                         </SwitchContainer>
                     </GeneralSettingsItem>
@@ -1673,16 +1669,11 @@ const Configure = () => {
                         <LockFilled /> Hide msgs from unknown sender
                     </SettingsLabel>
                     <SwitchContainer>
-                        <Switch
-                            size="small"
-                            checkedChildren={<CheckOutlined />}
-                            unCheckedChildren={<CloseOutlined />}
-                            checked={
-                                settings
-                                    ? settings.hideMessagesFromUnknownSenders
-                                    : false
-                            }
-                            onChange={handleUnknownSenderMsg}
+                        <CashtabSwitch
+                            name="hideMessagesFromUnknownSenders"
+                            small
+                            checked={settings.hideMessagesFromUnknownSenders}
+                            handleToggle={handleUnknownSenderMsg}
                         />
                     </SwitchContainer>
                 </GeneralSettingsItem>
@@ -1708,15 +1699,11 @@ const Configure = () => {
                                 <LockFilled /> ABSOLUTE MINIMUM fees
                             </SettingsLabel>
                             <SwitchContainer>
-                                <Switch
-                                    data-testid="settings-minFeeSends-switch"
-                                    size="small"
-                                    checkedChildren={<CheckOutlined />}
-                                    unCheckedChildren={<CloseOutlined />}
-                                    checked={
-                                        settings ? settings.minFeeSends : false
-                                    }
-                                    onChange={handleMinFeesToggle}
+                                <CashtabSwitch
+                                    name="settings-minFeeSends-switch"
+                                    small
+                                    checked={settings.minFeeSends}
+                                    handleToggle={handleMinFeesToggle}
                                 />
                             </SwitchContainer>
                         </GeneralSettingsItem>

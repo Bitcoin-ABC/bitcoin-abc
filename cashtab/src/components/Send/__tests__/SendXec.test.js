@@ -108,8 +108,11 @@ describe('<SendXec />', () => {
         expect(addressInputEl).toHaveProperty('disabled', false);
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -154,8 +157,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -225,8 +231,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -286,8 +295,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -332,8 +344,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -398,8 +413,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -459,8 +477,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The Bip21Alert span is not rendered
         expect(
@@ -510,10 +531,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(500);
@@ -583,10 +605,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(500);
@@ -669,10 +692,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
     });
     it('Valid address with valid bip21 query string with valid amount param rejected if amount exceeds wallet balance', async () => {
         // Mock the app with context at the Send screen
@@ -722,10 +746,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
     });
     it('Pass a valid alias and bip21 query string with invalid amount param (too many decimals) to Send To field', async () => {
         // Mock the app with context at the Send screen
@@ -796,10 +821,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The alias address preview renders the expected address preview
         expect(
@@ -835,10 +861,11 @@ describe('<SendXec />', () => {
         // The Send To input value matches user input
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input unchanged
         expect(amountInputEl).toHaveValue(null);
@@ -889,10 +916,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
@@ -951,10 +979,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(500);
@@ -1013,10 +1042,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue(addressInput);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(500);
@@ -1087,10 +1117,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field is not disabled
         expect(addressInputEl).toHaveProperty('disabled', false);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(17);
@@ -1158,8 +1189,11 @@ describe('<SendXec />', () => {
             expect(amountInputEl).toHaveValue(null),
         );
 
-        // The multiple recipients switch is now rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The 'Send To' input field has been cleared
         expect(addressInputEl).toHaveValue('');
@@ -1297,10 +1331,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field is not disabled
         expect(addressInputEl).toHaveProperty('disabled', false);
 
-        // The multiple recipients switch is NOT rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(17);
@@ -1368,8 +1403,11 @@ describe('<SendXec />', () => {
             expect(amountInputEl).toHaveValue(null),
         );
 
-        // The multiple recipients switch is now rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The 'Send To' input field has been cleared
         expect(addressInputEl).toHaveValue('');

@@ -144,15 +144,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore the mint address
-        const ignoreMintAddressSwitch = screen.getByTestId(
-            'ignore-mint-address',
-        );
-        expect(ignoreMintAddressSwitch).toHaveAttribute(
-            'aria-checked',
-            'false',
-        );
-        await user.click(ignoreMintAddressSwitch);
-        expect(ignoreMintAddressSwitch).toHaveAttribute('aria-checked', 'true');
+        await user.click(screen.getByTestId('ignore-mint-address'));
         await user.click(
             screen.getByRole('button', { name: /Calculate Airdrop/ }),
         );
@@ -165,21 +157,10 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore other addresses
-        const ignoreCustomAddressesSwitch = screen.getByTestId(
-            'ignore-custom-addresses',
-        );
-        expect(ignoreCustomAddressesSwitch).toHaveAttribute(
-            'aria-checked',
-            'false',
-        );
-        await user.click(ignoreCustomAddressesSwitch);
-        expect(ignoreCustomAddressesSwitch).toHaveAttribute(
-            'aria-checked',
-            'true',
-        );
+        await user.click(screen.getByTestId('ignore-custom-addresses'));
         await user.type(
             await screen.findByPlaceholderText(/If more than one XEC address/),
-            'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr, ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+            'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
         );
 
         await user.click(
@@ -195,10 +176,7 @@ describe('<Airdrop />', () => {
 
         // We can airdrop people with less of a token the same amount of XEC as other users in case we happen to think in this way
         // We can ignore other addresses
-        const communistSwitch = screen.getByTestId('communist-airdrop');
-        expect(communistSwitch).toHaveAttribute('aria-checked', 'false');
-        await user.click(communistSwitch);
-        expect(communistSwitch).toHaveAttribute('aria-checked', 'true');
+        await user.click(screen.getByTestId('communist-airdrop'));
 
         await user.click(
             screen.getByRole('button', { name: /Calculate Airdrop/ }),
@@ -268,15 +246,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore the mint address
-        const ignoreMintAddressSwitch = screen.getByTestId(
-            'ignore-mint-address',
-        );
-        expect(ignoreMintAddressSwitch).toHaveAttribute(
-            'aria-checked',
-            'false',
-        );
-        await user.click(ignoreMintAddressSwitch);
-        expect(ignoreMintAddressSwitch).toHaveAttribute('aria-checked', 'true');
+        await user.click(screen.getByTestId('ignore-mint-address'));
         await user.click(
             screen.getByRole('button', { name: /Calculate Airdrop/ }),
         );
@@ -289,13 +259,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore addresses based on having too little of the token
-        // We can ignore another address
-        const ignoreByBalanceSwitch = screen.getByTestId(
-            'minimum-etoken-holder-balance',
-        );
-        expect(ignoreByBalanceSwitch).toHaveAttribute('aria-checked', 'false');
-        await user.click(ignoreByBalanceSwitch);
-        expect(ignoreByBalanceSwitch).toHaveAttribute('aria-checked', 'true');
+        await user.click(screen.getByTestId('minimum-etoken-holder-balance'));
         await user.type(
             await screen.findByPlaceholderText(/Minimum eToken balance/),
             '0.25',
@@ -313,18 +277,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore another address
-        const ignoreCustomAddressesSwitch = screen.getByTestId(
-            'ignore-custom-addresses',
-        );
-        expect(ignoreCustomAddressesSwitch).toHaveAttribute(
-            'aria-checked',
-            'false',
-        );
-        await user.click(ignoreCustomAddressesSwitch);
-        expect(ignoreCustomAddressesSwitch).toHaveAttribute(
-            'aria-checked',
-            'true',
-        );
+        await user.click(screen.getByTestId('ignore-custom-addresses'));
         await user.type(
             await screen.findByPlaceholderText(/If more than one XEC address/),
             'ecash:qp6qkpeg5xmpcqtu6uc5qkhzexg4sq009sfeekcfk2',

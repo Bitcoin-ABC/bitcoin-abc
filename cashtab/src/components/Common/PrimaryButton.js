@@ -2,9 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import { Link } from 'react-router-dom';
 
-const CashtabBaseButton = styled.button`
+const BaseButtonOrLinkCss = css`
     font-size: 24px;
     padding: 20px 0;
     border-radius: 9px;
@@ -22,6 +23,13 @@ const CashtabBaseButton = styled.button`
         font-size: 16px;
         padding: 15px 0;
     }
+`;
+const CashtabBaseButton = styled.button`
+    ${BaseButtonOrLinkCss}
+`;
+
+const CashtabBaseLink = styled(Link)`
+    ${BaseButtonOrLinkCss}
 `;
 
 const PrimaryButton = styled(CashtabBaseButton)`
@@ -41,7 +49,7 @@ const PrimaryButton = styled(CashtabBaseButton)`
     }
 `;
 
-const SecondaryButton = styled(CashtabBaseButton)`
+const SecondaryButtonOrLinkCss = css`
     color: ${props =>
         props.disabled
             ? props.theme.buttons.disabled.color
@@ -57,6 +65,12 @@ const SecondaryButton = styled(CashtabBaseButton)`
         fill: ${props => props.theme.buttons.secondary.color};
     }
 `;
+const SecondaryButton = styled(CashtabBaseButton)`
+    ${SecondaryButtonOrLinkCss}
+`;
+const SecondaryLink = styled(CashtabBaseLink)`
+    ${SecondaryButtonOrLinkCss}
+`;
 
 export default PrimaryButton;
-export { SecondaryButton };
+export { SecondaryButton, SecondaryLink };

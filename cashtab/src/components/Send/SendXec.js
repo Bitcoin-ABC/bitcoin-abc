@@ -10,7 +10,7 @@ import {
     CashReceivedNotificationIcon,
 } from 'components/Common/CustomIcons';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import { Alert, Switch } from 'antd';
+import { Alert } from 'antd';
 import Modal from 'components/Common/Modal';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
@@ -60,6 +60,7 @@ import {
     SendXecInput,
     TextArea,
 } from 'components/Common/Inputs';
+import CashtabSwitch from 'components/Common/Switch';
 
 const SwitchContainer = styled.div`
     display: flex;
@@ -67,7 +68,7 @@ const SwitchContainer = styled.div`
     justify-content: flex-end;
     color: ${props => props.theme.forms.text};
     white-space: nowrap;
-    margin: 12px;
+    margin: 12px 0;
 `;
 
 const SentLink = styled.a`
@@ -807,21 +808,22 @@ const SendXec = () => {
                     </AppCreatedTxSummary>
                 )}
 
-                {!txInfoFromUrl && !('queryString' in parsedAddressInput) && (
-                    <SwitchContainer>
-                        Multiple Recipients:&nbsp;&nbsp;
-                        <Switch
-                            data-testid="multiple-recipients-switch"
-                            defaultunchecked="true"
-                            checked={isOneToManyXECSend}
-                            onChange={() => {
-                                setIsOneToManyXECSend(!isOneToManyXECSend);
-                                // Do not persist multisend input to single send and vice versa
-                                clearInputForms();
-                            }}
-                        />
-                    </SwitchContainer>
-                )}
+                <SwitchContainer>
+                    <CashtabSwitch
+                        name="Send to many"
+                        on="Send to many"
+                        off="Send to one"
+                        width={150}
+                        right={115}
+                        checked={isOneToManyXECSend}
+                        disabled={
+                            txInfoFromUrl || 'queryString' in parsedAddressInput
+                        }
+                        handleToggle={() =>
+                            setIsOneToManyXECSend(!isOneToManyXECSend)
+                        }
+                    />
+                </SwitchContainer>
                 <ExpandingAddressInputCtn open={isOneToManyXECSend}>
                     <SendInputCtn>
                         <DestinationAddressSingleCtn>

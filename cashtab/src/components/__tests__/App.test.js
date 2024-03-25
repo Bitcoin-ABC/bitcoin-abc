@@ -262,6 +262,11 @@ describe('<App />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '10,000.00 XEC',
+        );
+
         // We see the home container
         await screen.findByTestId('home-ctn');
 
@@ -323,6 +328,11 @@ describe('<App />', () => {
         // Wait for the page to load
         await waitFor(() =>
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '10,000.00 XEC',
         );
 
         // We see the home container
@@ -511,23 +521,9 @@ describe('<App />', () => {
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
 
         // Send confirmations are disabled by default
-        // Note, another antd issue. We can't get the switch by role bc antd switches are buttons with no name
-        // and no label
-        // So, use data-testid
-        const sendConfirmationsSwitch = screen.getByTestId(
-            'send-confirmations-switch',
-        );
-        // We cannot get switch checked status from the antd switch. So, disabled has a grey background.
-        expect(sendConfirmationsSwitch).toHaveStyle(
-            'background-color: #bdbdbd;',
-        );
 
         // Enable send confirmations
-        await user.click(sendConfirmationsSwitch);
-        // Now the switch does not have a grey background
-        expect(sendConfirmationsSwitch).not.toHaveStyle(
-            'background-color: #bdbdbd;',
-        );
+        await user.click(screen.getByTestId('send-confirmations-switch'));
 
         // Navigate to the Send screen
         await user.click(screen.queryByTestId('nav-btn-send'));
@@ -658,20 +654,9 @@ describe('<App />', () => {
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
 
         // Send confirmations are disabled by default
-        // Note, another antd issue. We can't get the switch by role bc antd switches are buttons with no name
-        // and no label
-        // So, use data-testid
-        const minFeeSendsSwitch = screen.getByTestId(
-            'settings-minFeeSends-switch',
-        );
-        // We cannot get switch checked status from the antd switch. So, disabled has a grey background.
-        expect(minFeeSendsSwitch).toHaveStyle('background-color: #bdbdbd;');
 
         // Enable min fee sends
-        await user.click(minFeeSendsSwitch);
-
-        // Now the switch does not have a grey background
-        expect(minFeeSendsSwitch).not.toHaveStyle('background-color: #bdbdbd;');
+        await user.click(screen.getByTestId('settings-minFeeSends-switch'));
 
         // Navigate to the Send screen
         await user.click(screen.queryByTestId('nav-btn-send'));
@@ -907,6 +892,11 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
             '9,513.12 XEC',
@@ -937,6 +927,11 @@ describe('<App />', () => {
         ]);
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
@@ -970,6 +965,11 @@ describe('<App />', () => {
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
@@ -1008,6 +1008,11 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
             '9,513.12 XEC',
@@ -1033,6 +1038,11 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
             '9,513.12 XEC',
@@ -1052,6 +1062,11 @@ describe('<App />', () => {
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
@@ -1088,6 +1103,11 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
             '9,513.12 XEC',
@@ -1112,6 +1132,11 @@ describe('<App />', () => {
         );
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the page to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
         expect(await screen.findByTestId('balance-xec')).toHaveTextContent(

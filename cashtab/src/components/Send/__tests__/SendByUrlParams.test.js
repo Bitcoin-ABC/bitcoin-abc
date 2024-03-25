@@ -109,10 +109,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -182,10 +183,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -250,10 +252,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -318,10 +321,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -381,8 +385,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The 'Send To' input field is untouched
         expect(addressInputEl).toHaveValue('');
@@ -442,8 +449,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The 'Send To' input field is untouched
         expect(addressInputEl).toHaveValue('');
@@ -507,10 +517,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() =>
@@ -579,10 +590,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -592,10 +604,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         // This is covered in SendXec.test.js
         expect(addressInputEl).toHaveProperty('disabled', true);
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is the valid amount param value
         expect(amountInputEl).toHaveValue(amount);
@@ -673,10 +686,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The 'Send To' input field has this address as a value
         await waitFor(() => expect(addressInputEl).toHaveValue(bip21Str));
@@ -686,10 +700,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         // This is covered in SendXec.test.js
         expect(addressInputEl).toHaveProperty('disabled', true);
 
-        // The multiple recipients switch is not rendered
-        expect(
-            screen.queryByText('Multiple Recipients:'),
-        ).not.toBeInTheDocument();
+        // The "Send to Many" switch is disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // Amount input is not updated as the bip21 query is invalid
         expect(amountInputEl).toHaveValue(null);
@@ -752,8 +767,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The multiple recipients switch is rendered
-        expect(screen.getByText('Multiple Recipients:')).toBeInTheDocument();
+        // The "Send to Many" switch is not disabled
+        expect(screen.getByTestId('Send to many')).toHaveProperty(
+            'disabled',
+            false,
+        );
 
         // The 'Send To' input field has this address as a value
         expect(addressInputEl).toHaveValue('');
