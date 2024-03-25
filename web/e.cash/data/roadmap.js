@@ -73,7 +73,7 @@ export const roadmap = [
             {
                 title: 'CashFusion',
                 description: 'opt-in privacy',
-                status: 'underway',
+                status: 'complete',
             },
             {
                 title: 'Regular Heartbeat',
