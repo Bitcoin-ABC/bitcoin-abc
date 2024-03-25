@@ -5,7 +5,6 @@
 
 #include <script/standard.h>
 
-#include <crypto/sha256.h>
 #include <script/script.h>
 
 #include <string>
