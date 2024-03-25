@@ -50,7 +50,7 @@ uint64_t CBlockHeaderAndShortTxIDs::GetShortID(const TxHash &txhash) const {
 
 ReadStatus PartiallyDownloadedBlock::InitData(
     const CBlockHeaderAndShortTxIDs &cmpctblock,
-    const std::vector<std::pair<TxHash, CTransactionRef>> &extra_txns) {
+    const std::vector<CTransactionRef> &extra_txns) {
     if (cmpctblock.header.IsNull() ||
         (cmpctblock.shorttxids.empty() && cmpctblock.prefilledtxn.empty())) {
         return READ_STATUS_INVALID;
@@ -115,9 +115,12 @@ ReadStatus PartiallyDownloadedBlock::InitData(
     }
 
     for (auto &extra_txn : extra_txns) {
-        uint64_t shortid = cmpctblock.GetShortID(extra_txn.first);
+        if (extra_txn == nullptr) {
+            continue;
+        }
+        uint64_t shortid = cmpctblock.GetShortID(extra_txn->GetHash());
 
-        int count = shortidProcessor->matchKnownItem(shortid, extra_txn.second);
+        int count = shortidProcessor->matchKnownItem(shortid, extra_txn);
         mempool_count += count;
         extra_count += count;
 

@@ -17,7 +17,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-static std::vector<std::pair<TxHash, CTransactionRef>> extra_txn;
+static const std::vector<CTransactionRef> empty_extra_txn;
 
 BOOST_FIXTURE_TEST_SUITE(blockencodings_tests, RegTestingSetup)
 
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
 
         PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
                                               &pool);
-        BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
+        BOOST_CHECK(partialBlock.InitData(shortIDs2, empty_extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
         BOOST_CHECK(!partialBlock.IsTxAvailable(1));
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
 
         PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
                                               &pool);
-        BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
+        BOOST_CHECK(partialBlock.InitData(shortIDs2, empty_extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(!partialBlock.IsTxAvailable(0));
         BOOST_CHECK(partialBlock.IsTxAvailable(1));
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
 
         PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
                                               &pool);
-        BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
+        BOOST_CHECK(partialBlock.InitData(shortIDs2, empty_extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
         BOOST_CHECK(partialBlock.IsTxAvailable(1));
@@ -355,7 +355,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
 
         PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
                                               &pool);
-        BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
+        BOOST_CHECK(partialBlock.InitData(shortIDs2, empty_extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
 

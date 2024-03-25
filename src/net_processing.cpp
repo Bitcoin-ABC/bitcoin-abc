@@ -1551,7 +1551,7 @@ private:
      * -blockreconstructionextratxn/DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN of
      * these are kept in a ring buffer
      */
-    std::vector<std::pair<TxHash, CTransactionRef>>
+    std::vector<CTransactionRef>
         vExtraTxnForCompact GUARDED_BY(g_msgproc_mutex);
     /** Offset into vExtraTxnForCompact to insert the next tx */
     size_t vExtraTxnForCompactIt GUARDED_BY(g_msgproc_mutex) = 0;
@@ -2686,8 +2686,7 @@ void PeerManagerImpl::AddToCompactExtraTransactions(const CTransactionRef &tx) {
         vExtraTxnForCompact.resize(m_opts.max_extra_txs);
     }
 
-    vExtraTxnForCompact[vExtraTxnForCompactIt] =
-        std::make_pair(tx->GetHash(), tx);
+    vExtraTxnForCompact[vExtraTxnForCompactIt] = tx;
     vExtraTxnForCompactIt = (vExtraTxnForCompactIt + 1) % m_opts.max_extra_txs;
 }
 
