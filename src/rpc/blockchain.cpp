@@ -1863,33 +1863,37 @@ static RPCHelpMan getchaintxstats() {
              RPCArg::DefaultHint{"chain tip"},
              "The hash of the block that ends the window."},
         },
-        RPCResult{RPCResult::Type::OBJ,
-                  "",
-                  "",
-                  {
-                      {RPCResult::Type::NUM_TIME, "time",
-                       "The timestamp for the final block in the window, "
-                       "expressed in " +
-                           UNIX_EPOCH_TIME},
-                      {RPCResult::Type::NUM, "txcount",
-                       "The total number of transactions in the chain up to "
-                       "that point"},
-                      {RPCResult::Type::STR_HEX, "window_final_block_hash",
-                       "The hash of the final block in the window"},
-                      {RPCResult::Type::NUM, "window_final_block_height",
-                       "The height of the final block in the window."},
-                      {RPCResult::Type::NUM, "window_block_count",
-                       "Size of the window in number of blocks"},
-                      {RPCResult::Type::NUM, "window_tx_count",
-                       "The number of transactions in the window. Only "
-                       "returned if \"window_block_count\" is > 0"},
-                      {RPCResult::Type::NUM, "window_interval",
-                       "The elapsed time in the window in seconds. Only "
-                       "returned if \"window_block_count\" is > 0"},
-                      {RPCResult::Type::NUM, "txrate",
-                       "The average rate of transactions per second in the "
-                       "window. Only returned if \"window_interval\" is > 0"},
-                  }},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::NUM_TIME, "time",
+                 "The timestamp for the final block in the window, "
+                 "expressed in " +
+                     UNIX_EPOCH_TIME},
+                {RPCResult::Type::NUM, "txcount", /*optional=*/true,
+                 "The total number of transactions in the chain up to "
+                 "that point, if known. It may be unknown when using "
+                 "assumeutxo."},
+                {RPCResult::Type::STR_HEX, "window_final_block_hash",
+                 "The hash of the final block in the window"},
+                {RPCResult::Type::NUM, "window_final_block_height",
+                 "The height of the final block in the window."},
+                {RPCResult::Type::NUM, "window_block_count",
+                 "Size of the window in number of blocks"},
+                {RPCResult::Type::NUM, "window_interval",
+                 "The elapsed time in the window in seconds. Only "
+                 "returned if \"window_block_count\" is > 0"},
+                {RPCResult::Type::NUM, "window_tx_count", /*optional=*/true,
+                 "The number of transactions in the window. Only "
+                 "returned if \"window_block_count\" is > 0 and if "
+                 "txcount exists for the start and end of the window."},
+                {RPCResult::Type::NUM, "txrate", /*optional=*/true,
+                 "The average rate of transactions per second in the "
+                 "window. Only returned if \"window_interval\" is > 0 "
+                 "and if window_tx_count exists."},
+            }},
         RPCExamples{HelpExampleCli("getchaintxstats", "") +
                     HelpExampleRpc("getchaintxstats", "2016")},
         [&](const RPCHelpMan &self, const Config &config,
@@ -1940,21 +1944,26 @@ static RPCHelpMan getchaintxstats() {
                 pindex->GetAncestor(pindex->nHeight - blockcount))};
             const int64_t nTimeDiff{pindex->GetMedianTimePast() -
                                     past_block.GetMedianTimePast()};
-            const int nTxDiff =
-                pindex->GetChainTxCount() - past_block.GetChainTxCount();
 
             UniValue ret(UniValue::VOBJ);
             ret.pushKV("time", pindex->GetBlockTime());
-            ret.pushKV("txcount", pindex->GetChainTxCount());
+            if (pindex->nChainTx) {
+                ret.pushKV("txcount", pindex->nChainTx);
+            }
             ret.pushKV("window_final_block_hash",
                        pindex->GetBlockHash().GetHex());
             ret.pushKV("window_final_block_height", pindex->nHeight);
             ret.pushKV("window_block_count", blockcount);
             if (blockcount > 0) {
-                ret.pushKV("window_tx_count", nTxDiff);
                 ret.pushKV("window_interval", nTimeDiff);
-                if (nTimeDiff > 0) {
-                    ret.pushKV("txrate", double(nTxDiff) / nTimeDiff);
+                if (pindex->nChainTx != 0 && past_block.nChainTx != 0) {
+                    unsigned int window_tx_count =
+                        pindex->nChainTx - past_block.nChainTx;
+                    ret.pushKV("window_tx_count", window_tx_count);
+                    if (nTimeDiff > 0) {
+                        ret.pushKV("txrate",
+                                   double(window_tx_count) / nTimeDiff);
+                    }
                 }
             }
 
