@@ -180,11 +180,18 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             )
             return txid not in node.getrawmempool()
 
+        self.log.info("Check the node can mine a finalized tx")
+
         txid = wallet.send_self_transfer(from_node=node)["txid"]
         assert txid in node.getrawmempool()
         assert not node.isfinaltransaction(txid)
         self.wait_until(lambda: has_finalized_tx(txid))
         assert txid in node.getrawmempool()
+
+        tip = self.generate(node, 1)[0]
+        self.wait_until(lambda: has_finalized_block(tip))
+        assert node.isfinaltransaction(txid, tip)
+        assert txid not in node.getrawmempool()
 
         self.log.info("Check the node drops transactions invalidated by avalanche")
 
