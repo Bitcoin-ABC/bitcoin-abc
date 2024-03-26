@@ -52,7 +52,8 @@ const SEND_TOKEN_TOKENID =
     '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109';
 const SEND_TOKEN_DECIMALS = 0;
 const SEND_TOKEN_TICKER = 'BEAR';
-const SEND_TOKEN_BALANCE = walletWithXecAndTokens.state.tokens[0].balance;
+const SEND_TOKEN_BALANCE =
+    walletWithXecAndTokens.state.tokens.get(SEND_TOKEN_TOKENID);
 
 // See src/validation, ref parseAddressInput
 // See SendToken for some modified errors (SendToken does not support bip21)

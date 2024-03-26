@@ -8,7 +8,9 @@ import {
     formatFiatBalance,
     formatBalance,
     formatTokenBalance,
+    decimalizedTokenQtyToLocaleFormat,
 } from 'utils/formatting';
+import vectors from 'utils/fixtures/vectors';
 
 describe('Correctly executes formatting functions', () => {
     it(`test formatBalance with an input of 0`, () => {
@@ -125,5 +127,20 @@ describe('Correctly executes formatting functions', () => {
     it(`maintains trailing zeros in balance per tokenDecimal parameter`, () => {
         const testBalance = new BN(10000);
         expect(formatTokenBalance(testBalance, 8)).toBe('10,000.00000000');
+    });
+    describe('We can format decimalized token strings for userLocale', () => {
+        const { expectedReturns } = vectors.decimalizedTokenQtyToLocaleFormat;
+        expectedReturns.forEach(vector => {
+            const { description, decimalizedTokenQty, userLocale, returned } =
+                vector;
+            it(`decimalizedTokenQtyToLocaleFormat: ${description}`, () => {
+                expect(
+                    decimalizedTokenQtyToLocaleFormat(
+                        decimalizedTokenQty,
+                        userLocale,
+                    ),
+                ).toBe(returned);
+            });
+        });
     });
 });

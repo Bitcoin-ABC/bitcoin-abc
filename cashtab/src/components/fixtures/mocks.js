@@ -874,7 +874,7 @@ export const walletWithXecAndTokens_pre_2_1_0 = {
     },
 };
 
-export const walletWithXecAndTokens = {
+export const walletWithXecAndTokens_pre_2_9_0 = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
@@ -911,30 +911,74 @@ export const walletWithXecAndTokens = {
     },
 };
 
+export const walletWithXecAndTokens = {
+    ...walletWithXecAndTokens_pre_2_9_0,
+    paths: new Map([
+        [
+            1899,
+            {
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+            },
+        ],
+        [
+            145,
+            {
+                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+            },
+        ],
+        [
+            245,
+            {
+                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+            },
+        ],
+    ]),
+    state: {
+        ...walletWithXecAndTokens_pre_2_9_0.state,
+        tokens: new Map([
+            [
+                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                '1',
+            ],
+        ]),
+    },
+};
+
 export const freshWalletWithOneIncomingCashtabMsg = {
     mnemonic: 'some words that would give it all away',
     name: '[Burned] useWallet Mock',
-    paths: [
-        {
-            // New shape of path info
-            path: 1899,
-            address: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
-            hash: 'd32616c8f849d159b0225f36966ccb85d425e683',
-            wif: 'nope',
-        },
-        {
-            path: 145,
-            address: 'ecash:qqdukdf3cdgn0nes83x4ln87hd0mpqvh7uky87rj0a',
-            hash: '1bcb3531c35137cf303c4d5fccfebb5fb08197f7',
-            wif: 'nope',
-        },
-        {
-            path: 245,
-            address: 'ecash:qqqtqscqym24ps40v5n2wl88n9zlgu3hqyjzt84eay',
-            hash: '00b0430026d550c2af6526a77ce79945f4723701',
-            wif: 'nope',
-        },
-    ],
+    paths: new Map([
+        [
+            1899,
+            {
+                address: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
+                hash: 'd32616c8f849d159b0225f36966ccb85d425e683',
+                wif: 'nope',
+            },
+        ],
+        [
+            145,
+            {
+                address: 'ecash:qqdukdf3cdgn0nes83x4ln87hd0mpqvh7uky87rj0a',
+                hash: '1bcb3531c35137cf303c4d5fccfebb5fb08197f7',
+                wif: 'nope',
+            },
+        ],
+        [
+            245,
+            {
+                address: 'ecash:qqqtqscqym24ps40v5n2wl88n9zlgu3hqyjzt84eay',
+                hash: '00b0430026d550c2af6526a77ce79945f4723701',
+                wif: 'nope',
+            },
+        ],
+    ]),
     state: {
         balanceSats: 1000000,
         slpUtxos: [],
@@ -951,7 +995,7 @@ export const freshWalletWithOneIncomingCashtabMsg = {
                 address: 'ecash:qrfjv9kglpyazkdsyf0nd9nvewzagf0xsvv84u226e',
             },
         ],
-        tokens: [],
+        tokens: new Map(),
         parsedTxHistory: [
             {
                 txid: 'f11648484c5ac6bf65c04632208d60e809014ed288171cb96e059d0ed7678fde',
@@ -1786,25 +1830,112 @@ export const requiredUtxoThisToken = {
     },
 };
 
-export const vipTokenChronikTokenDetails = {
-    tokenId: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
-    tokenType: {
-        protocol: 'SLP',
-        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-        number: 1,
+export const vipTokenChronikTokenMocks = {
+    token: {
+        tokenId:
+            'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+            number: 1,
+        },
+        timeFirstSeen: '0',
+        genesisInfo: {
+            tokenTicker: 'GRP',
+            tokenName: 'GRUMPY',
+            url: 'https://bit.ly/GrumpyDoc',
+            decimals: 2,
+            hash: '',
+        },
+        block: {
+            height: 713853,
+            hash: '0000000000000000006a051e51b50e44d3394ab49c9db896c2484770ed613fb2',
+            timestamp: 1637109257,
+        },
     },
-    timeFirstSeen: '0',
-    genesisInfo: {
-        tokenTicker: 'GRP',
-        tokenName: 'GRUMPY',
-        url: 'https://bit.ly/GrumpyDoc',
-        decimals: 2,
-        hash: '',
-    },
-    block: {
-        height: 713853,
-        hash: '0000000000000000006a051e51b50e44d3394ab49c9db896c2484770ed613fb2',
-        timestamp: 1637109257,
+    tx: {
+        txid: 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'b8af3a4ad68cc300e1f9d331762a1a62c0c344c3b3fb554af6a35e634907feab',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '47304402204db8555a3141e86b979257feadc41e903a779a61971e2e63a386f1084c52ff2a022010d7f7f9d41b474ff5c4bd979916e2cd29627a2d6194fcc6af6485a979091cbe412103632f603f43ae61afece65288d7d92e55188783edb74e205be974b8cd1cd36a1e',
+                value: 50000,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001010747454e4553495303475250064752554d50591868747470733a2f2f6269742e6c792f4772756d7079446f634c0001024c0008000000e8d4a51000',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                token: {
+                    tokenId:
+                        'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '1000000000000',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 48931,
+                outputScript:
+                    '76a9141c13ddb8dd422bbe02dc2ae8798b4549a67a3c1d88ac',
+                spentBy: {
+                    txid: '94cc23c0a01ee35b8b9380b739f1f8d8f6d0e2c09a7785f3d63b928afd23357f',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 0,
+        size: 301,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 713853,
+            hash: '0000000000000000006a051e51b50e44d3394ab49c9db896c2484770ed613fb2',
+            timestamp: 1637109257,
+        },
     },
 };
 
@@ -2096,7 +2227,7 @@ export const validSavedWallets_pre_2_1_0 = [
     },
 ];
 
-const validSavedWalletsBuilder = [];
+const validSavedWalletsBuilder_pre_2_9_0 = [];
 for (const unmigratedWallet of validSavedWallets_pre_2_1_0) {
     // Clone legacy wallet
     const migratedWallet = JSON.parse(JSON.stringify(unmigratedWallet));
@@ -2136,7 +2267,118 @@ for (const unmigratedWallet of validSavedWallets_pre_2_1_0) {
             ? parseInt(unmigratedWallet.state.balances.totalBalanceInSatoshis)
             : 0;
 
+    validSavedWalletsBuilder_pre_2_9_0.push(migratedWallet);
+}
+
+export const validSavedWallets_pre_2_9_0 = validSavedWalletsBuilder_pre_2_9_0;
+
+const validSavedWalletsBuilder = [];
+for (const unmigratedWallet of validSavedWalletsBuilder_pre_2_9_0) {
+    // Clone legacy wallet
+    const migratedWallet = { ...unmigratedWallet };
+    // Build new paths array
+    migratedWallet.paths = new Map([
+        [
+            1899,
+            {
+                hash: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 1899,
+                ).hash,
+                address: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 1899,
+                ).address,
+                wif: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 1899,
+                ).wif,
+            },
+        ],
+        [
+            145,
+            {
+                hash: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 145,
+                ).hash,
+                address: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 145,
+                ).address,
+                wif: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 145,
+                ).wif,
+            },
+        ],
+        [
+            245,
+            {
+                hash: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 245,
+                ).hash,
+                address: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 245,
+                ).address,
+                wif: unmigratedWallet.paths.find(
+                    pathInfo => pathInfo.path === 245,
+                ).wif,
+            },
+        ],
+    ]);
+    // Build new state.tokens map
+    // These are empty wallets so it's empty
+    migratedWallet.state.tokens = new Map();
+
     validSavedWalletsBuilder.push(migratedWallet);
 }
 
 export const validSavedWallets = validSavedWalletsBuilder;
+
+export const mockCacheWalletWithXecAndTokens = {
+    tokenType: {
+        protocol: 'SLP',
+        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        number: 1,
+    },
+    genesisInfo: {
+        tokenTicker: 'BEAR',
+        tokenName: 'BearNip',
+        url: 'https://cashtab.com/',
+        decimals: 0,
+        hash: '',
+    },
+    timeFirstSeen: 0,
+    genesisSupply: '4444',
+    genesisOutputScripts: [
+        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+    ],
+    genesisMintBatons: 0,
+    block: {
+        height: 782665,
+        hash: '00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb',
+        timestamp: 1678408305,
+    },
+};
+
+// tokenId b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc
+export const mockCachedInfoCashtabDark = {
+    tokenType: {
+        protocol: 'SLP',
+        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        number: 1,
+    },
+    timeFirstSeen: 0,
+    genesisInfo: {
+        tokenTicker: 'CTD',
+        tokenName: 'Cashtab Dark',
+        url: 'https://cashtab.com/',
+        decimals: 0,
+        hash: '',
+    },
+    block: {
+        height: 726043,
+        hash: '00000000000000000182db32e000171006b7b7820181676b5fd8f29cc90d2b9c',
+        timestamp: 1644455332,
+    },
+    genesisSupply: '10000',
+    genesisMintBatons: 0,
+    genesisOutputScripts: [
+        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+    ],
+};

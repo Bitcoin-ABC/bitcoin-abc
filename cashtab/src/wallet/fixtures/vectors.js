@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+export const UNSAFE_INTEGER_STRING = '10000000000000000';
 export default {
     getBalanceSatsVectors: {
         expectedReturns: [
@@ -97,13 +98,12 @@ export default {
             {
                 description:
                     'Returns true if wallet has token in exactly required amount',
-                tokens: [
-                    {
-                        tokenId:
-                            '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
-                        balance: '100',
-                    },
-                ],
+                tokens: new Map([
+                    [
+                        '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
+                        '100',
+                    ],
+                ]),
                 tokenId:
                     '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
                 tokenQty: '100',
@@ -112,13 +112,12 @@ export default {
             {
                 description:
                     'Returns false if wallet has token but less than required amount',
-                tokens: [
-                    {
-                        tokenId:
-                            '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
-                        balance: '99',
-                    },
-                ],
+                tokens: new Map([
+                    [
+                        '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
+                        '99',
+                    ],
+                ]),
                 tokenId:
                     '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
                 tokenQty: '100',
@@ -126,13 +125,12 @@ export default {
             },
             {
                 description: 'Returns false if wallet does not have this token',
-                tokens: [
-                    {
-                        tokenId:
-                            '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
-                        balance: '99',
-                    },
-                ],
+                tokens: new Map([
+                    [
+                        '28eb601e438b1df2f49b3d783f7b236496ad9c07e4af35e8d6c5050732ef030a',
+                        '99',
+                    ],
+                ]),
                 tokenId:
                     '50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
                 tokenQty: '100',
@@ -152,20 +150,22 @@ export default {
                         balanceSats: 0,
                         slpUtxos: [],
                         nonSlpUtxos: [],
-                        tokens: [],
+                        tokens: new Map(),
                         parsedTxHistory: [],
                     },
                     mnemonic:
                         'beauty shoe decline spend still weird slot snack coach flee between paper',
-                    paths: [
-                        {
-                            path: 1899,
-                            address:
-                                'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-                            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-                            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-                        },
-                    ],
+                    paths: new Map([
+                        [
+                            1899,
+                            {
+                                address:
+                                    'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+                            },
+                        ],
+                    ]),
                     name: 'qqa9l',
                 },
             },
@@ -224,6 +224,18 @@ export default {
                     'Determines legacy paths for a post-2.2.0 wallet with legacy paths',
                 wallet: {
                     paths: [{ path: 1899 }, { path: 145 }, { path: 245 }],
+                },
+                returned: [145, 245],
+            },
+            {
+                description:
+                    'Determines legacy paths for a post-2.9.0 wallet with legacy paths',
+                wallet: {
+                    paths: new Map([
+                        [1899, { address: 'string' }],
+                        [145, { address: 'string' }],
+                        [245, { address: 'string' }],
+                    ]),
                 },
                 returned: [145, 245],
             },
@@ -290,6 +302,185 @@ export default {
                     { name: 'alpha', mnemonic: 'one' },
                 ],
                 errorMsg: `Error activating "alphaprime": Could not find wallet in wallets`,
+            },
+        ],
+    },
+    decimalizeTokenAmount: {
+        expectedReturns: [
+            {
+                description:
+                    'Decimalizes amount for 0-decimal token amount larger than JS max safe integer',
+                amount: UNSAFE_INTEGER_STRING,
+                decimals: 0,
+                returned: UNSAFE_INTEGER_STRING,
+            },
+            {
+                description:
+                    'Decimalizes amount for 9-decimal token amount larger than JS max safe integer',
+                amount: UNSAFE_INTEGER_STRING,
+                decimals: 9,
+                returned: '10000000.000000000',
+            },
+            {
+                description:
+                    'Decimalizes amount for 9-decimal token amount larger than JS max safe integer with non-zero decimal places',
+                amount: '11111111123456789',
+                decimals: 9,
+                returned: '11111111.123456789',
+            },
+            {
+                description: 'Decimalizes 0 by adding expected decimal places',
+                amount: '0',
+                decimals: 5,
+                returned: '0.00000',
+            },
+            {
+                description:
+                    'Decimalizes a number less than 1 by adding expected decimal places',
+                amount: '123',
+                decimals: 9,
+                returned: '0.000000123',
+            },
+            {
+                description: 'Decimalizes smallest amount of slpv1 spec',
+                amount: '1',
+                decimals: 9,
+                returned: '0.000000001',
+            },
+            {
+                description:
+                    'Can decimalize for arbitrary decimals, as long as decimals is an integer',
+                amount: '11111111123456789123456789',
+                decimals: 18,
+                returned: '11111111.123456789123456789',
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Throws error if input is not a string',
+                amount: 50,
+                decimals: 0,
+                error: 'amount must be a string',
+            },
+            {
+                description:
+                    'Throws error if input is not a stringified integer',
+                amount: '123.45',
+                decimals: 0,
+                error: 'amount must be a stringified integer',
+            },
+            {
+                description: 'Throws error if decimals is not an integer',
+                amount: '123',
+                decimals: 1.1234,
+                error: 'decimals must be an integer',
+            },
+        ],
+    },
+    undecimalizeTokenAmount: {
+        expectedReturns: [
+            {
+                description:
+                    'Returns expected amount for a 0-decimal token that has a decimal point at the end',
+                decimalizedAmount: '100.',
+                decimals: 0,
+                returned: '100',
+            },
+            {
+                description:
+                    'Handles a decimalized amount with no decimal place',
+                decimalizedAmount: '100',
+                decimals: 9,
+                returned: '100000000000',
+            },
+            {
+                description:
+                    'Handles a decimalized amount with under-specified decimal places',
+                decimalizedAmount: '100.123',
+                decimals: 9,
+                returned: '100123000000',
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'Throws error if decimalizedAmount is not a string',
+                decimalizedAmount: 100,
+                decimals: 1,
+                error: 'decimalizedAmount must be a string',
+            },
+            {
+                description:
+                    'Throws error if decimalizedAmount is an empty string',
+                decimalizedAmount: '',
+                decimals: 1,
+                error: `decimalizedAmount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`,
+            },
+            {
+                description:
+                    'Throws error if decimalizedAmount includes more than one decimal',
+                decimalizedAmount: '100..2',
+                decimals: 1,
+                error: `decimalizedAmount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`,
+            },
+            {
+                description:
+                    'Throws error if decimalizedAmount includes a decimal point that is not a period',
+                decimalizedAmount: '100,25',
+                decimals: 1,
+                error: `decimalizedAmount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`,
+            },
+            {
+                description:
+                    'Throws error if decimalizedAmount includes alphabet characters',
+                decimalizedAmount: 'not a valid decimalizedAmount',
+                decimals: 1,
+                error: `decimalizedAmount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`,
+            },
+            {
+                description: 'Throws error if decimals is invalid',
+                decimalizedAmount: '100.123',
+                decimals: 1.23,
+                error: 'decimals must be an integer',
+            },
+            {
+                description:
+                    'Throws precision error if decimals are over-specified for a 0-decimal token',
+                decimalizedAmount: '100.0',
+                decimals: 0,
+                error: 'decimalizedAmount specified at greater precision than supported token decimals',
+            },
+            {
+                description:
+                    'Throws precision error if decimals are over-specified for a 9-decimal token',
+                decimalizedAmount: '100.1234567891',
+                decimals: 9,
+                error: 'decimalizedAmount specified at greater precision than supported token decimals',
+            },
+        ],
+    },
+    removeLeadingZeros: {
+        expectedReturns: [
+            {
+                description: 'Removes leading zeros from a number string',
+                givenString: '00000123',
+                returned: '123',
+            },
+            {
+                description: 'Removes leading zeros from a string of all zeros',
+                givenString: '0000000',
+                returned: '0',
+            },
+            {
+                description: 'Preserves trailing zeros',
+                givenString: '0000123000',
+                returned: '123000',
+            },
+            {
+                description:
+                    'Removes leading zeros and preserves trailing zeros from an arbitrary string',
+                givenString: '00000howaboutthisstring000',
+                returned: 'howaboutthisstring000',
             },
         ],
     },

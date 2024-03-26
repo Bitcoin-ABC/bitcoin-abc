@@ -10,6 +10,8 @@ import cashaddr from 'ecashaddrjs';
 import appConfig from 'config/app';
 
 const SATOSHIS_PER_XEC = 100;
+const STRINGIFIED_INTEGER_REGEX = /^[0-9]+$/;
+const STRINGIFIED_DECIMALIZED_REGEX = /^\d*\.?\d*$/;
 
 /**
  * Get total value of satoshis associated with an array of chronik utxos
@@ -57,18 +59,18 @@ export const toXec = satoshis => {
 
 /**
  * Determine if a given wallet has enough of a certain token to unlock a feature
- * @param {object} tokens decimalized balance summary tokens reference from wallet.state
+ * @param {Map} tokens decimalized balance summary tokens reference from wallet.state
  * @param {string} tokenId tokenId of the token we are checking
  * @param {string} tokenQty quantity of the token required for unlock, decimalized string
  */
 export const hasEnoughToken = (tokens, tokenId, tokenQty) => {
     // Filter for tokenId
-    const thisToken = tokens.filter(token => token.tokenId === tokenId);
+    const thisTokenBalance = tokens.get(tokenId);
     // Confirm we have this token at all
-    if (thisToken.length === 0) {
+    if (typeof thisTokenBalance === 'undefined') {
         return false;
     }
-    return new BN(thisToken[0].balance).gte(tokenQty);
+    return new BN(thisTokenBalance).gte(tokenQty);
 };
 
 /**
@@ -85,7 +87,7 @@ export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
             balanceSats: 0,
             slpUtxos: [],
             nonSlpUtxos: [],
-            tokens: [],
+            tokens: new Map(),
             parsedTxHistory: [],
         },
     };
@@ -108,14 +110,14 @@ export const createCashtabWallet = async (mnemonic, additionalPaths = []) => {
     // We always derive path 1899
     const pathsToDerive = [appConfig.derivationPath, ...additionalPaths];
 
-    wallet.paths = [];
+    wallet.paths = new Map();
     for (const path of pathsToDerive) {
         const pathInfo = getPathInfo(masterHDNode, path);
         if (path === appConfig.derivationPath) {
             // Initialize wallet name with first 5 chars of Path1899 address
             wallet.name = pathInfo.address.slice(6, 11);
         }
-        wallet.paths.push(pathInfo);
+        wallet.paths.set(path, pathInfo);
     }
 
     return wallet;
@@ -135,7 +137,6 @@ const getPathInfo = (masterHDNode, abbreviatedDerivationPath) => {
     const { hash } = cashaddr.decode(address, true);
 
     return {
-        path: abbreviatedDerivationPath,
         hash,
         address,
         wif: node.toWIF(),
@@ -175,12 +176,21 @@ export const fiatToSatoshis = (sendAmountFiat, fiatPrice) => {
 export const getLegacyPaths = wallet => {
     const legacyPaths = [];
     if ('paths' in wallet) {
-        // If we are migrating a wallet created after version 2.2.0 that includes more paths than 1899
-        for (const path of wallet.paths) {
-            if (path.path !== 1899) {
-                // Path 1899 will be added by default, it is not an 'extra' path
-                legacyPaths.push(path.path);
+        if (Array.isArray(wallet.paths)) {
+            // If we are migrating a wallet pre 2.9.0 and post 2.2.0
+            for (const path of wallet.paths) {
+                if (path.path !== 1899) {
+                    // Path 1899 will be added by default, it is not an 'extra' path
+                    legacyPaths.push(path.path);
+                }
             }
+        } else {
+            // Cashtab wallet post 2.9.0
+            wallet.paths.forEach((pathInfo, path) => {
+                if (path !== 1899) {
+                    legacyPaths.push(path);
+                }
+            });
         }
     }
     if ('Path145' in wallet) {
@@ -224,4 +234,141 @@ export const getWalletsForNewActiveWallet = (walletToActivate, wallets) => {
 
     // Put walletToActivate at 0-index
     return [walletToActivate, ...currentWallets];
+};
+
+/**
+ * Convert a token amount like one from an in-node chronik utxo to a decimalized string
+ * @param {string} amount undecimalized token amount as a string, e.g. 10012345 at 5 decimals
+ * @param {Integer} decimals
+ * @returns {string} decimalized token amount as a string, e.g. 100.12345
+ */
+export const decimalizeTokenAmount = (amount, decimals) => {
+    if (typeof amount !== 'string') {
+        throw new Error('amount must be a string');
+    }
+    if (!STRINGIFIED_INTEGER_REGEX.test(amount)) {
+        throw new Error('amount must be a stringified integer');
+    }
+    if (!Number.isInteger(decimals)) {
+        throw new Error('decimals must be an integer');
+    }
+    if (decimals === 0) {
+        // If we have 0 decimal places, and amount is a stringified integer
+        // amount is already correct
+        return amount;
+    }
+
+    // Do you need to pad with leading 0's?
+    // For example, you have have "1" with 9 decimal places
+    // This should be 0.000000001 strlength 1, decimals 9
+    // So, you must add 9 zeros before the 1 before proceeding
+    // You may have "123" with 9 decimal places strlength 3, decimals 9
+    // This should be 0.000000123
+    // So, you must add 7 zeros before the 123 before proceeding
+    if (decimals > amount.length) {
+        // We pad with decimals - amount.length 0s, plus an extra zero so we return "0.000" instead of ".000"
+        amount = `${new Array(decimals - amount.length + 1)
+            .fill(0)
+            .join('')}${amount}`;
+    }
+
+    // Insert decimal point in proper place
+    const stringAfterDecimalPoint = amount.slice(-1 * decimals);
+    const stringBeforeDecimalPoint = amount.slice(
+        0,
+        amount.length - stringAfterDecimalPoint.length,
+    );
+    return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
+};
+
+/**
+ * Convert a decimalized token amount to an undecimalized amount
+ * Useful to perform integer math as you can use BigInt for amounts greater than Number.MAX_SAFE_INTEGER in js
+ * @param {string} decimalizedAmount decimalized token amount as a string, e.g. 100.12345 for a 5-decimals token
+ * @param {Integer} decimals
+ * @returns {string} undecimalized token amount as a string, e.g. 10012345 for a 5-decimals token
+ */
+export const undecimalizeTokenAmount = (decimalizedAmount, decimals) => {
+    if (typeof decimalizedAmount !== 'string') {
+        throw new Error('decimalizedAmount must be a string');
+    }
+    if (
+        !STRINGIFIED_DECIMALIZED_REGEX.test(decimalizedAmount) ||
+        decimalizedAmount.length === 0
+    ) {
+        throw new Error(
+            `decimalizedAmount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`,
+        );
+    }
+    if (!Number.isInteger(decimals)) {
+        throw new Error('decimals must be an integer');
+    }
+
+    // If decimals is 0, we should not have a decimal point, or it should be at the very end
+    if (decimals === 0) {
+        if (!decimalizedAmount.includes('.')) {
+            // If 0 decimals and no '.' in decimalizedAmount, it's the same
+            return decimalizedAmount;
+        }
+        if (decimalizedAmount.slice(-1) !== '.') {
+            // If we have a decimal anywhere but at the very end, throw precision error
+            throw new Error(
+                'decimalizedAmount specified at greater precision than supported token decimals',
+            );
+        }
+        // Everything before the decimal point is what we want
+        return decimalizedAmount.split('.')[0];
+    }
+
+    // How many decimal places does decimalizedAmount account for
+    const accountedDecimals = decimalizedAmount.includes('.')
+        ? decimalizedAmount.split('.')[1].length
+        : 0;
+
+    // Remove decimal point from the string
+    let undecimalizedAmountString = decimalizedAmount.split('.').join('');
+    // Remove leading zeros, if any
+    undecimalizedAmountString = removeLeadingZeros(undecimalizedAmountString);
+
+    if (accountedDecimals === decimals) {
+        // If decimalized amount is accounting for all decimals, we simply remove the decimal point
+        return undecimalizedAmountString;
+    }
+
+    const unAccountedDecimals = decimals - accountedDecimals;
+    if (unAccountedDecimals > 0) {
+        // Handle too little precision
+        // say, a token amount for a 9-decimal token is only specified at 3 decimals
+        // e.g. 100.123
+        const zerosToAdd = new Array(unAccountedDecimals).fill(0).join('');
+        return `${undecimalizedAmountString}${zerosToAdd}`;
+    }
+
+    // Do not accept too much precision
+    // say, a token amount for a 3-decimal token is specified at 5 decimals
+    // e.g. 100.12300 or 100.12345
+    // Note if it is specied at 100.12345, we have an error, really too much precision
+    throw new Error(
+        'decimalizedAmount specified at greater precision than supported token decimals',
+    );
+};
+
+/**
+ * Remove leading '0' characters from any string
+ * @param {string} string
+ */
+export const removeLeadingZeros = givenString => {
+    let leadingZeroCount = 0;
+    // We only iterate up to the 2nd-to-last character
+    // i.e. we only iterate over "leading" characters
+    for (let i = 0; i < givenString.length - 1; i += 1) {
+        const thisChar = givenString[i];
+        if (thisChar === '0') {
+            leadingZeroCount += 1;
+        } else {
+            // Once you hit something other than '0', there are no more "leading" zeros
+            break;
+        }
+    }
+    return givenString.slice(leadingZeroCount, givenString.length);
 };

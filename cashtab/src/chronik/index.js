@@ -8,8 +8,7 @@ import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import { getStackArray } from 'ecash-script';
 import cashaddr from 'ecashaddrjs';
-import CashtabCache from 'config/CashtabCache';
-import { toXec } from 'wallet';
+import { toXec, decimalizeTokenAmount, undecimalizeTokenAmount } from 'wallet';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -61,74 +60,52 @@ export const isAliasRegistered = (registeredAliases, alias) => {
     return false;
 };
 
-// Return false if do not get a valid response
-// TODO deprecate, we should be getting this from cache
-// This info will be cached on app startup
-export const getTokenStats = async (chronik, tokenId) => {
-    try {
-        // token attributes available via chronik's token() method
-        let tokenResponseObj = await chronik.token(tokenId);
-
-        return tokenResponseObj;
-    } catch (err) {
-        console.log(
-            `Error fetching token stats for tokenId ${tokenId}: ` + err,
-        );
-        return false;
-    }
-};
-
 /**
- *
+ * Return a promise to fetch all utxos at an address (and add a 'path' key to them)
+ * We need the path key so that we know which wif to sign this utxo with
+ * If we add HD wallet support, we will need to add an address key, and change the structure of wallet.paths
  * @param {ChronikClientNode} chronik
- * @param {string} hash160
- * @returns chronik-client response object
+ * @param {string} address
+ * @param {number} path
+ * @returns {Promise}
  */
-export const getUtxosSingleHashChronik = async (chronik, hash160) => {
-    // Get utxos at a single address, which chronik takes in as a hash160
-    const utxos = await chronik.script('p2pkh', hash160).utxos();
-    return utxos.utxos;
-};
-
-export const returnGetUtxosChronikPromise = (chronik, hash160AndAddressObj) => {
-    /*
-        Chronik thinks in hash160s, but people and wallets think in addresses
-        Add the address to each utxo
-    */
+export const returnGetPathedUtxosPromise = (chronik, address, path) => {
     return new Promise((resolve, reject) => {
-        getUtxosSingleHashChronik(chronik, hash160AndAddressObj.hash).then(
-            result => {
-                for (let i = 0; i < result.length; i += 1) {
-                    const thisUtxo = result[i];
-                    thisUtxo.address = hash160AndAddressObj.address;
-                }
-                resolve(result);
-            },
-            err => {
-                reject(err);
-            },
-        );
+        chronik
+            .address(address)
+            .utxos()
+            .then(
+                result => {
+                    for (const utxo of result.utxos) {
+                        utxo.path = path;
+                    }
+                    resolve(result.utxos);
+                },
+                err => {
+                    reject(err);
+                },
+            );
     });
 };
 
-export const getUtxosChronik = async (chronik, hash160sMappedToAddresses) => {
-    /* 
-        Chronik only accepts utxo requests for one address at a time
-        Construct an array of promises for each address
-        Note: Chronik requires the hash160 of an address for this request
-    */
+/**
+ * Get all utxos for a given wallet
+ * @param {ChronikClientNode} chronik
+ * @param {object} wallet a cashtab wallet
+ * @returns
+ */
+export const getUtxos = async (chronik, wallet) => {
     const chronikUtxoPromises = [];
-    for (let i = 0; i < hash160sMappedToAddresses.length; i += 1) {
-        const thisPromise = returnGetUtxosChronikPromise(
+    wallet.paths.forEach((pathInfo, path) => {
+        const thisPromise = returnGetPathedUtxosPromise(
             chronik,
-            hash160sMappedToAddresses[i],
+            pathInfo.address,
+            path,
         );
         chronikUtxoPromises.push(thisPromise);
-    }
-    const allUtxos = await Promise.all(chronikUtxoPromises);
-    // Since each individual utxo has address information, no need to keep them in distinct arrays
-    // Combine into one array of all utxos
-    const flatUtxos = allUtxos.flat();
+    });
+    const utxoResponsesByPath = await Promise.all(chronikUtxoPromises);
+    const flatUtxos = utxoResponsesByPath.flat();
     return flatUtxos;
 };
 
@@ -154,250 +131,37 @@ export const organizeUtxosByType = chronikUtxos => {
 };
 
 /**
- * Build tokens array without accounting for token genesis info
- * TODO this should be a map, not an array of objects. Handle after migration
- * @param {Tx_InNode[]} slpUtxos
- * @returns
+ * Get just the tx objects from chronik history() responses
+ * @param {TxHistoryPage_InNode[]} txHistoryOfAllAddresses
+ * @returns {Tx_InNode[]}
  */
-export const getPreliminaryTokensArray = slpUtxos => {
-    // Iterate over the slpUtxos to create the 'tokens' object
-    let tokensById = {};
-
-    slpUtxos.forEach(slpUtxos => {
-        /* 
-        Note that a wallet could have many eToken utxos all belonging to the same eToken
-        For example, a user could have 100 of a certain eToken, but this is composed of
-        four utxos, one for 17, one for 50, one for 30, one for 3        
-        */
-
-        // Start with the existing object for this particular token, if it exists
-        let token = tokensById[slpUtxos.token.tokenId];
-
-        if (token) {
-            if (slpUtxos.token.amount) {
-                token.balance = token.balance.plus(
-                    new BN(slpUtxos.token.amount),
-                );
-            }
-        } else {
-            // If it does not exist, create it
-            token = {};
-            token.tokenId = slpUtxos.token.tokenId;
-            if (slpUtxos.token.amount) {
-                token.balance = new BN(slpUtxos.token.amount);
-            } else {
-                token.balance = new BN(0);
-            }
-            tokensById[slpUtxos.token.tokenId] = token;
-        }
-    });
-
-    const preliminaryTokensArray = Object.values(tokensById);
-    return preliminaryTokensArray;
-};
-
-/**
- * Get and cache genesisInfo for a token
- * @param {object} chronik chronik-client instance
- * @param {string} tokenId tokenId you want genesisInfo for
- * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {promise} promise resolving to chronik's genesisInfo key from chronik.token(tokenId)
- */
-export const returnGetTokenInfoChronikPromise = (
-    chronik,
-    tokenId,
-    cachedTokens,
-) => {
-    /*
-    The chronik.tx(txid) API call returns extensive transaction information
-    For the purposes of finalizing token information, we only need the token metadata
-
-    This function returns a promise that extracts only this needed information from
-    the chronik.tx(txid) API call
-
-    In this way, calling Promise.all() on an array of tokenIds that lack metadata
-    will return an array with all required metadata
-    */
-    return new Promise((resolve, reject) => {
-        chronik.token(tokenId).then(
-            result => {
-                if (typeof result !== 'undefined') {
-                    if ('slpTxData' in result) {
-                        // NNG chronik
-                        cachedTokens.set(tokenId, result.slpTxData.genesisInfo);
-                        resolve(result.slpTxData.genesisInfo);
-                    }
-                    if ('genesisInfo' in result) {
-                        // in-node chronik
-                        cachedTokens.set(tokenId, result.genesisInfo);
-                        resolve(result.genesisInfo);
-                    }
-                }
-
-                reject(
-                    new Error(
-                        `Invalid token info format from chronik.token(${tokenId})`,
-                    ),
-                );
-            },
-            err => {
-                reject(err);
-            },
-        );
-    });
-};
-
-/**
- * Add genesisInfo and calculate balance using now-known token decimals
- * @param {array} preliminaryTokensArray array of token objects formatted to be read by Cashtab
- * returned by getPreliminaryTokensArray
- * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {array} finalTokensArray = preliminaryTokensArray updated for decimals for
- * tokens where we did not yet have this info from cache or chronik
- */
-export const processPreliminaryTokensArray = (
-    preliminaryTokensArray,
-    cachedTokens,
-) => {
-    /* Iterate over preliminaryTokensArray to
-
-    1 - Add slp metadata (token ticker, name, other metadata)
-    2 - Calculate the token balance. Token balance in 
-        preliminaryTokensArray does not take into account the
-        decimal places of the token...so it is incorrect.
-
-    */
-    const finalTokenArray = [];
-    for (let i = 0; i < preliminaryTokensArray.length; i += 1) {
-        const thisToken = preliminaryTokensArray[i];
-        const thisTokenId = thisToken.tokenId;
-
-        // Because tokenInfoByTokenId is indexed by tokenId, it's easy to reference
-        const thisTokenInfo = cachedTokens.get(thisTokenId);
-
-        // The decimals are specifically needed to calculate the correct balance
-        const thisTokenDecimals = thisTokenInfo.decimals;
-
-        // Add info object to token
-        thisToken.info = thisTokenInfo;
-
-        // Update balance according to decimals and store it as a string
-        thisToken.balance = thisToken.balance
-            .shiftedBy(-1 * thisTokenDecimals)
-            .toString();
-
-        // Now that you have the metadata and the correct balance,
-        // preliminaryTokenInfo is finalTokenInfo
-        finalTokenArray.push(thisToken);
-    }
-    return finalTokenArray;
-};
-
-/**
- * Add tokenDecimals info to walletState.tokens and update cachedTokens if you have uncached tokens
- * @param {object} chronik chronik-client instance
- * @param {array} preliminaryTokensArray return value from getPreliminaryTokensArray
- * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {object}
- * {
- *   tokens {array} output of processPreliminaryTokensArray
- *   cachedTokens {Map} the map stored at cashtabCache.tokens, either same as input or updated with new tokens
- *   newTokensToCache {boolean} true if we have added more tokens to cache
- * }
- */
-export const finalizeTokensArray = async (
-    chronik,
-    preliminaryTokensArray,
-    cachedTokens = new CashtabCache().tokens,
-) => {
-    // Iterate over preliminaryTokensArray to determine what tokens you need to make API calls for
-
-    // Create an array of promises
-    // Each promise is a chronik API call to obtain token metadata for this token ID
-    const getTokenInfoPromises = [];
-
-    const UNKNOWN_TOKEN_ID =
-        '0000000000000000000000000000000000000000000000000000000000000000';
-
-    for (let i = 0; i < preliminaryTokensArray.length; i += 1) {
-        const thisTokenId = preliminaryTokensArray[i].tokenId;
-        // See if you already have this info in cachedTokenInfo
-        if (cachedTokens.has(thisTokenId)) {
-            // If you already have this info in cache,
-            // do not create an API request for it
-            continue;
-        }
-        if (thisTokenId === UNKNOWN_TOKEN_ID) {
-            // If we have unknown token utxos, hardcode cache info
-            // Calling chronik.token(UNKNOWN_TOKEN_ID) will always throw an error
-            cachedTokens.set(UNKNOWN_TOKEN_ID, {
-                decimals: 0,
-                tokenTicker: 'UNKNOWN',
-                tokenName: 'Unknown Token',
-                url: 'N/A',
-            });
-            continue;
-        }
-        const thisTokenInfoPromise = returnGetTokenInfoChronikPromise(
-            chronik,
-            thisTokenId,
-            cachedTokens,
-        );
-        getTokenInfoPromises.push(thisTokenInfoPromise);
-    }
-
-    const newTokensToCache = getTokenInfoPromises.length > 0;
-
-    // Fetch uncached token genesisInfo and add to cache
-    try {
-        await Promise.all(getTokenInfoPromises);
-    } catch (err) {
-        console.log(`Error in Promise.all(getTokenInfoPromises)`, err);
-    }
-
-    // Now use cachedTokenInfoByTokenId object to finalize token info
-    // Split this out into a separate function so you can unit test
-    const finalTokenArray = processPreliminaryTokensArray(
-        preliminaryTokensArray,
-        cachedTokens,
-    );
-
-    // Sort tokens alphabetically by ticker
-    finalTokenArray.sort((a, b) =>
-        a.info.tokenTicker.localeCompare(b.info.tokenTicker),
-    );
-
-    return { tokens: finalTokenArray, cachedTokens, newTokensToCache };
-};
-
 export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
-    // Create an array of all txs
-
     let flatTxHistoryArray = [];
-    for (let i = 0; i < txHistoryOfAllAddresses.length; i += 1) {
-        const txHistoryResponseOfThisAddress = txHistoryOfAllAddresses[i];
-        const txHistoryOfThisAddress = txHistoryResponseOfThisAddress.txs;
-        flatTxHistoryArray = flatTxHistoryArray.concat(txHistoryOfThisAddress);
+    for (const txHistoryThisAddress of txHistoryOfAllAddresses) {
+        flatTxHistoryArray = flatTxHistoryArray.concat(
+            txHistoryThisAddress.txs,
+        );
     }
     return flatTxHistoryArray;
 };
 
-export const sortAndTrimChronikTxHistory = (
-    flatTxHistoryArray,
-    txHistoryCount,
-) => {
-    // Isolate unconfirmed txs
-    // In chronik, unconfirmed txs have an `undefined` block key
+/**
+ * Sort an array of chronik txs chronologically and return the first renderedCount of them
+ * @param {Tx_InNode[]} txs
+ * @param {number} renderedCount how many txs to return
+ * @returns
+ */
+export const sortAndTrimChronikTxHistory = (txs, renderedCount) => {
     const unconfirmedTxs = [];
     const confirmedTxs = [];
-    for (let i = 0; i < flatTxHistoryArray.length; i += 1) {
-        const thisTx = flatTxHistoryArray[i];
-        if (typeof thisTx.block === 'undefined') {
-            unconfirmedTxs.push(thisTx);
+    for (const tx of txs) {
+        if (typeof tx.block === 'undefined') {
+            unconfirmedTxs.push(tx);
         } else {
-            confirmedTxs.push(thisTx);
+            confirmedTxs.push(tx);
         }
     }
+
     // Sort confirmed txs by blockheight, and then timeFirstSeen
     const sortedConfirmedTxHistoryArray = confirmedTxs.sort(
         (a, b) =>
@@ -406,52 +170,32 @@ export const sortAndTrimChronikTxHistory = (
             // For blocks with the same height, we want more recent timeFirstSeen i.e. higher timeFirstSeen to have earlier array indices
             b.timeFirstSeen - a.timeFirstSeen,
     );
+
     // Sort unconfirmed txs by timeFirstSeen
     const sortedUnconfirmedTxHistoryArray = unconfirmedTxs.sort(
         (a, b) => b.timeFirstSeen - a.timeFirstSeen,
     );
+
     // The unconfirmed txs are more recent, so they should be inserted into an array before the confirmed txs
     const sortedChronikTxHistoryArray = sortedUnconfirmedTxHistoryArray.concat(
         sortedConfirmedTxHistoryArray,
     );
 
     const trimmedAndSortedChronikTxHistoryArray =
-        sortedChronikTxHistoryArray.splice(0, txHistoryCount);
+        sortedChronikTxHistoryArray.splice(0, renderedCount);
 
     return trimmedAndSortedChronikTxHistoryArray;
 };
 
-export const returnGetTxHistoryChronikPromise = (
-    chronik,
-    hash160AndAddressObj,
-) => {
-    /*
-        Chronik thinks in hash160s, but people and wallets think in addresses
-        Add the address to each utxo
-    */
-    return new Promise((resolve, reject) => {
-        chronik
-            .script('p2pkh', hash160AndAddressObj.hash)
-            .history(/*page=*/ 0, /*page_size=*/ chronikConfig.txHistoryCount)
-            .then(
-                result => {
-                    resolve(result);
-                },
-                err => {
-                    reject(err);
-                },
-            );
-    });
-};
-
 /**
- *
+ * Parse a Tx_InNode object for rendering in Cashtab
+ * TODO Potentially more efficient to do this calculation in the Tx.js component
  * @param {Tx_InNode} tx
  * @param {object} wallet cashtab wallet
  * @param {Map} cachedTokens
  * @returns
  */
-export const parseChronikTx = (tx, wallet, cachedTokens) => {
+export const parseTx = (tx, wallet, cachedTokens) => {
     const walletHash160s = getHashArrayFromWallet(wallet);
     const { inputs, outputs, tokenEntries } = tx;
 
@@ -751,29 +495,18 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
     const xecAmount = toXec(satoshis);
 
     // Get decimal info for correct etokenAmount
-    let genesisInfo = {};
-
+    let assumedTokenDecimals = false;
     if (isEtokenTx) {
-        // Get token genesis info from cache
+        // Parse with decimals = 0 if you do not have this token cached for some reason
+        // Acceptable error rendering in tx history
         let decimals = 0;
-        try {
-            genesisInfo = cachedTokens.get(tokenId);
-            if (typeof genesisInfo !== 'undefined') {
-                genesisInfo.success = true;
-                decimals = genesisInfo.decimals;
-                etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
-            } else {
-                genesisInfo = { success: false };
-            }
-        } catch (err) {
-            console.log(
-                `Error getting token info from cache in parseChronikTx for ${tx.txid}`,
-                err,
-            );
-            // To keep this function synchronous, do not get this info from the API if it is not in cache
-            // Instead, return a flag so that useWallet.js knows and can fetch this info + add it to cache
-            genesisInfo = { success: false };
+        const cachedTokenInfo = cachedTokens.get(tokenId);
+        if (typeof cachedTokenInfo !== 'undefined') {
+            decimals = cachedTokenInfo.genesisInfo.decimals;
+        } else {
+            assumedTokenDecimals = true;
         }
+        etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
     }
     etokenAmount = etokenAmount.toString();
 
@@ -786,13 +519,13 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
             etokenAmount,
             isTokenBurn,
             tokenEntries: tx.tokenEntries,
-            genesisInfo,
             airdropFlag,
             airdropTokenId,
             opReturnMessage: '',
             isCashtabMessage,
             isEncryptedMessage,
             replyAddress,
+            assumedTokenDecimals,
         };
     }
     // Otherwise do not include these fields
@@ -812,89 +545,72 @@ export const parseChronikTx = (tx, wallet, cachedTokens) => {
 
 /**
  * Get tx history of cashtab wallet
- * @param {object} chronik chronik-client instance
+ * - Get tx history of each path in wallet
+ * - sort by timeFirstSeen + block
+ * - Trim to number of txs Cashtab renders
+ * - Parse txs for rendering in Cashtab
+ * - Update cachedTokens with any new tokenIds
+ * @param {ChronikClientNode} chronik chronik-client instance
  * @param {object} wallet cashtab wallet
  * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {object}
- * {
- *   parsedTxHistory {array} tx history output parsed for rendering txs in Cashtab
- *   cachedTokensAfterHistory {Map} cachedTokens the map stored at cashtabCache.tokens updated for any tokens found in tx history
- *   txHistoryNewTokensToCache {boolean} true if we have added tokens
- * }
+ * @returns {array} Tx_InNode[], each tx also has a 'parsed' key with other rendering info
  */
-export const getTxHistoryChronik = async (chronik, wallet, cachedTokens) => {
-    // Create array of promises to get chronik history for each address
-    // Combine them all and sort by blockheight and firstSeen
-    // Add all the info cashtab needs to make them useful
+export const getHistory = async (chronik, wallet, cachedTokens) => {
+    const txHistoryPromises = [];
+    wallet.paths.forEach(pathInfo => {
+        txHistoryPromises.push(chronik.address(pathInfo.address).history());
+    });
 
-    let txHistoryPromises = [];
-    for (let i = 0; i < wallet.paths.length; i += 1) {
-        const txHistoryPromise = returnGetTxHistoryChronikPromise(
-            chronik,
-            wallet.paths[i],
-        );
-        txHistoryPromises.push(txHistoryPromise);
-    }
-    let txHistoryOfAllAddresses;
-    try {
-        txHistoryOfAllAddresses = await Promise.all(txHistoryPromises);
-    } catch (err) {
-        console.log(`Error in Promise.all(txHistoryPromises)`, err);
-    }
+    // Just throw an error if you get a chronik error
+    // This will be handled in the update loop
+    const txHistoryOfAllAddresses = await Promise.all(txHistoryPromises);
+
     const flatTxHistoryArray = flattenChronikTxHistory(txHistoryOfAllAddresses);
-    const sortedTxHistoryArray = sortAndTrimChronikTxHistory(
+    const renderedTxs = sortAndTrimChronikTxHistory(
         flatTxHistoryArray,
         chronikConfig.txHistoryCount,
     );
 
     // Parse txs
-    const chronikTxHistory = [];
-    const uncachedTokenIds = new Set();
-    for (let i = 0; i < sortedTxHistoryArray.length; i += 1) {
-        const sortedTx = sortedTxHistoryArray[i];
-        // Add token genesis info so parsing function can calculate amount by decimals
-        sortedTx.parsed = parseChronikTx(sortedTx, wallet, cachedTokens);
-        // Check to see if this tx was from a token without genesisInfo in cachedTokens
-        if (
-            sortedTx.parsed.isEtokenTx &&
-            sortedTx.parsed.genesisInfo &&
-            !sortedTx.parsed.genesisInfo.success
-        ) {
-            // Only add if the token id is not already in uncachedTokenIds
-            const uncachedTokenId = sortedTx.parsed.tokenEntries[0].tokenId;
-            uncachedTokenIds.add(uncachedTokenId);
+    const history = [];
+    for (const tx of renderedTxs) {
+        const { tokenEntries } = tx;
+
+        // Get all tokenIds associated with this tx
+        const tokenIds = new Set();
+        for (const tokenEntry of tokenEntries) {
+            tokenIds.add(tokenEntry.tokenId);
         }
-        chronikTxHistory.push(sortedTx);
+
+        // Cache any tokenIds you do not have cached
+        for (const tokenId of [...tokenIds]) {
+            if (typeof cachedTokens.get(tokenId) === 'undefined') {
+                // Add it to cache right here
+                try {
+                    const newTokenCacheInfo = await getTokenGenesisInfo(
+                        chronik,
+                        tokenId,
+                    );
+                    cachedTokens.set(tokenId, newTokenCacheInfo);
+                } catch (err) {
+                    // If you have an error getting the calculated token cache info, do not throw
+                    // Could be some token out there that we do not parse properly with getTokenGenesisInfo
+                    // Log it
+                    // parseTx is tolerant to not having the info in cache
+                    console.error(
+                        `Error in getTokenGenesisInfo for tokenId ${tokenId}`,
+                        err,
+                    );
+                }
+            }
+        }
+
+        tx.parsed = parseTx(tx, wallet, cachedTokens);
+
+        history.push(tx);
     }
 
-    const txHistoryNewTokensToCache = uncachedTokenIds.size > 0;
-
-    // Iterate over uncachedTokenIds to get genesis info and add to cache
-    const getTokenInfoPromises = [];
-    for (const uncachedTokenId of uncachedTokenIds) {
-        const thisTokenInfoPromise = returnGetTokenInfoChronikPromise(
-            chronik,
-            uncachedTokenId,
-            cachedTokens,
-        );
-        getTokenInfoPromises.push(thisTokenInfoPromise);
-    }
-
-    // Get all the token info you need
-    try {
-        await Promise.all(getTokenInfoPromises);
-    } catch (err) {
-        console.log(
-            `Error in Promise.all(getTokenInfoPromises) in getTxHistoryChronik`,
-            err,
-        );
-    }
-
-    return {
-        parsedTxHistory: chronikTxHistory,
-        cachedTokensAfterHistory: cachedTokens,
-        txHistoryNewTokensToCache,
-    };
+    return history;
 };
 
 export const getMintAddress = async (chronik, tokenId) => {
@@ -922,4 +638,143 @@ export const getMintAddress = async (chronik, tokenId) => {
         console.log(`Error in getMintAddress`, err);
         return err;
     }
+};
+
+/**
+ * Get all info about a token used in Cashtab's token cache
+ * @param {ChronikClientNode} chronik
+ * @param {string} tokenId
+ * @returns {object}
+ */
+export const getTokenGenesisInfo = async (chronik, tokenId) => {
+    // We can get timeFirstSeen, block, tokenType, and genesisInfo from the token() endpoint
+    // If we call this endpoint before the genesis tx is confirmed, we will not get block
+    // So, block does not need to be included
+
+    const tokenInfo = await chronik.token(tokenId);
+    const genesisTxInfo = await chronik.tx(tokenId);
+
+    const { timeFirstSeen, genesisInfo, tokenType } = tokenInfo;
+    const decimals = genesisInfo.decimals;
+
+    // Initialize variables for determined quantities we want to cache
+
+    /**
+     * genesisSupply {string}
+     * Quantity of token created at mint
+     * Note: we may have genesisSupply at different genesisAddresses
+     * We do not track this information, only total genesisSupply
+     * Cached as a decimalized string, e.g. 0.000 if 0 with 3 decimal places
+     * 1000.000000000 if one thousand with 9 decimal places
+     */
+    let genesisSupply = decimalizeTokenAmount('0', decimals);
+
+    /**
+     * genesisMintBatons {number}
+     * Number of mint batons created in the genesis tx for this token
+     */
+    let genesisMintBatons = 0;
+
+    /**
+     * genesisOutputScripts {Set(<outputScript>)}
+     * Address(es) where initial token supply was minted
+     */
+    let genesisOutputScripts = new Set();
+
+    // Iterate over outputs
+    for (const output of genesisTxInfo.outputs) {
+        if ('token' in output && output.token.tokenId === tokenId) {
+            // If this output of this genesis tx is associated with this tokenId
+
+            const { token, outputScript } = output;
+
+            // Add its outputScript to genesisOutputScripts
+            genesisOutputScripts.add(outputScript);
+
+            const { isMintBaton, amount } = token;
+            if (isMintBaton) {
+                // If it is a mintBaton, increment genesisMintBatons
+                genesisMintBatons += 1;
+            }
+
+            // Increment genesisSupply
+            // decimalizeTokenAmount, undecimalizeTokenAmount
+            //genesisSupply = genesisSupply.plus(new BN(amount));
+
+            genesisSupply = decimalizeTokenAmount(
+                (
+                    BigInt(undecimalizeTokenAmount(genesisSupply, decimals)) +
+                    BigInt(amount)
+                ).toString(),
+                decimals,
+            );
+        }
+    }
+
+    const tokenCache = {
+        tokenType,
+        genesisInfo,
+        timeFirstSeen,
+        genesisSupply,
+        // Return genesisOutputScripts as an array as we no longer require Set features
+        genesisOutputScripts: [...genesisOutputScripts],
+        genesisMintBatons,
+    };
+    if ('block' in tokenInfo) {
+        // If the genesis tx is confirmed at the time we check
+        tokenCache.block = tokenInfo.block;
+    }
+
+    // Note: if it is not confirmed, we can update the cache later when we try to use this value
+
+    return tokenCache;
+};
+
+/**
+ * Get decimalized balance of every token held by a wallet
+ * Update Cashtab's tokenCache if any tokens are uncached
+ * @param {ChronikClientNode} chronik
+ * @param {array} slpUtxos array of token utxos from chronik
+ * @param {Map} tokenCache Cashtab's token cache
+ * @returns {Map} Map of tokenId => token balance as decimalized string
+ * Also updates tokenCache
+ */
+export const getTokenBalances = async (chronik, slpUtxos, tokenCache) => {
+    const walletStateTokens = new Map();
+    for (const utxo of slpUtxos) {
+        // Every utxo in slpUtxos will have a tokenId
+        const { token } = utxo;
+        const { tokenId, amount } = token;
+        // Is this token cached?
+        let cachedTokenInfo = tokenCache.get(tokenId);
+        if (typeof cachedTokenInfo === 'undefined') {
+            // If we have not cached this token before, cache it
+            cachedTokenInfo = await getTokenGenesisInfo(chronik, tokenId);
+            tokenCache.set(tokenId, cachedTokenInfo);
+        }
+        // Now decimals is available
+        const decimals = cachedTokenInfo.genesisInfo.decimals;
+
+        const tokenBalanceInMap = walletStateTokens.get(tokenId);
+
+        // Update or initialize token balance as a decimalized string in walletStateTokens Map
+        walletStateTokens.set(
+            tokenId,
+            typeof tokenBalanceInMap === 'undefined'
+                ? decimalizeTokenAmount(amount, decimals)
+                : decimalizeTokenAmount(
+                      (
+                          BigInt(
+                              undecimalizeTokenAmount(
+                                  tokenBalanceInMap,
+                                  decimals,
+                              ),
+                          ) + BigInt(amount)
+                      ).toString(),
+                      decimals,
+                  ),
+        );
+    }
+
+    return walletStateTokens;
 };

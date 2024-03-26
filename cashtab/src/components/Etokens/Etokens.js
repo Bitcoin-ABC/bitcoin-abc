@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
+import { getUserLocale } from 'helpers';
 
 const EtokensCtn = styled.div`
     color: ${props => props.theme.contrast};
@@ -39,10 +40,11 @@ const CreateToken = styled(Link)`
 const Etokens = () => {
     const ContextValue = React.useContext(WalletContext);
     const { loading, cashtabState } = ContextValue;
-    const { wallets } = cashtabState;
+    const { wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { tokens } = walletState;
+    const userLocale = getUserLocale(navigator);
     return (
         <>
             {loading ? (
@@ -58,8 +60,12 @@ const Etokens = () => {
                         >
                             Create eToken
                         </CreateToken>
-                        {tokens && tokens.length > 0 ? (
-                            <TokenList wallet={wallet} tokens={tokens} />
+                        {tokens && tokens.size > 0 ? (
+                            <TokenList
+                                tokens={tokens}
+                                tokenCache={cashtabCache.tokens}
+                                userLocale={userLocale}
+                            />
                         ) : (
                             <p>
                                 Tokens sent to your {appConfig.tokenTicker}{' '}

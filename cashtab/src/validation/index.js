@@ -18,6 +18,7 @@ import { getStackArray } from 'ecash-script';
 import aliasSettings from 'config/alias';
 import { getAliasByteCount } from 'opreturn';
 import { fiatToSatoshis } from 'wallet';
+import { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -348,9 +349,31 @@ export const isValidCashtabCache = cashtabCache => {
     if (!(cashtabCache.tokens instanceof Map)) {
         return false;
     }
-    // We do not validate all contents of the stored map, as these are from chronik
-    // We assume chronik unit tests handle this
-    return true;
+
+    if (typeof cashtabCache.tokens.get(UNKNOWN_TOKEN_ID) === 'undefined') {
+        // Cashtab Cache is invalid if it does not include UNKNOWN_TOKEN_ID
+        return false;
+    }
+
+    // Validate contents of map as shape may change
+
+    // Initialize flag because returning from a forEach does not do what you think it does
+    let isValidCachedInfo = true;
+
+    cashtabCache.tokens.forEach(cachedInfo => {
+        if (
+            !('tokenType' in cachedInfo) ||
+            !('genesisInfo' in cachedInfo) ||
+            !('timeFirstSeen' in cachedInfo) ||
+            !('genesisSupply' in cachedInfo) ||
+            !('genesisOutputScripts' in cachedInfo) ||
+            !('genesisMintBatons' in cachedInfo)
+        ) {
+            isValidCachedInfo = false;
+        }
+    });
+
+    return isValidCachedInfo;
 };
 
 export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
@@ -704,21 +727,36 @@ export const isValidCashtabWallet = wallet => {
     if (!('paths' in wallet)) {
         return false;
     }
-    if (wallet.paths.length < 1) {
+    if (Array.isArray(wallet.paths)) {
+        // wallet.paths should be a map
+        return false;
+    }
+    if (wallet.paths.size < 1) {
         // Wallet must have at least one path info object
         return false;
     }
     // Validate each path
-    for (const path of wallet.paths) {
-        if (
-            !('path' in path) ||
-            !('hash' in path) ||
-            !('address' in path) ||
-            !('wif' in path)
-        ) {
-            // If any given path does not have all of these keys, the wallet is invalid
-            return false;
+    // We use pathsValid as a flag as `return false` from a forEach does not do what you think it does
+    let pathsValid = true;
+    // Return false if we do not have Path1899
+    // This also handles the case of a JSON-activated pre-2.9.0 wallet
+
+    if (typeof wallet.paths.get(1899) === 'undefined') {
+        return false;
+    }
+    wallet.paths.forEach((value, key) => {
+        if (typeof key !== 'number') {
+            // Wallet is invalid if key is not a number
+            pathsValid = false;
         }
+        if (!('hash' in value) || !('address' in value) || !('wif' in value)) {
+            // If any given path does not have all of these keys, the wallet is invalid
+            pathsValid = false;
+        }
+    });
+    if (!pathsValid) {
+        // Invalid path
+        return false;
     }
     return (
         typeof wallet === 'object' &&

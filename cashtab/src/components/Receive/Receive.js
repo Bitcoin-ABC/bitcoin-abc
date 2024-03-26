@@ -52,11 +52,7 @@ export const Receive = () => {
                 <QrCodeCtn data-testid="qr-code-ctn">
                     <QRCode
                         id="borderedQRCode"
-                        address={
-                            wallet.paths.find(
-                                pathInfo => pathInfo.path === 1899,
-                            ).address
-                        }
+                        address={wallet.paths.get(1899).address}
                         size={getQrCodeWidth(width)}
                         logoSizePx={width > 500 ? 48 : 24}
                     />

@@ -20,7 +20,7 @@ import {
     sendSlp,
 } from '../fixtures/vectors';
 
-describe('Improved Cashtab transaction broadcasting function', () => {
+describe('We can broadcast XEC transactions', () => {
     // Unit test for each vector in fixtures for the sendingXecToSingleAddress case
     const { txs, errors } = sendXecVectors;
 

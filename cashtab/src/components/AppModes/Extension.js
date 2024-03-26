@@ -30,9 +30,7 @@ const Extension = ({ wallet }) => {
         // Get address from active wallet
         let address;
         try {
-            address = wallet.paths.find(
-                pathInfo => pathInfo.path === 1899,
-            ).address;
+            address = wallet.paths.get(1899).address;
             console.log(`Address fetched from extension`, address);
         } catch (err) {
             // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.

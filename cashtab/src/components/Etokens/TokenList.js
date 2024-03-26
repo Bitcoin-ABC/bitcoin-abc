@@ -6,30 +6,27 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
-import { formatTokenBalance } from 'utils/formatting';
-import { BN } from 'slp-mdm';
+import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 
-const TokenList = ({ tokens }) => {
-    return (
-        <div>
-            {tokens.map(token => (
-                <Link key={token.tokenId} to={`/send-token/${token.tokenId}`}>
-                    <TokenListItem
-                        ticker={token.info.tokenTicker}
-                        tokenId={token.tokenId}
-                        balance={formatTokenBalance(
-                            new BN(token.balance),
-                            token.info.decimals,
-                        )}
-                    />
-                </Link>
-            ))}
-        </div>
-    );
+const TokenList = ({ tokens, tokenCache, userLocale }) => {
+    return Array.from(tokens).map(keyValueArray => (
+        <Link key={keyValueArray[0]} to={`/send-token/${keyValueArray[0]}`}>
+            <TokenListItem
+                tokenId={keyValueArray[0]}
+                balance={decimalizedTokenQtyToLocaleFormat(
+                    keyValueArray[1],
+                    userLocale,
+                )}
+                cachedTokenInfo={tokenCache.get(keyValueArray[0])}
+            />
+        </Link>
+    ));
 };
 
 TokenList.propTypes = {
-    tokens: PropTypes.array,
+    tokens: PropTypes.instanceOf(Map),
+    tokenCache: PropTypes.instanceOf(Map),
+    userLocale: PropTypes.string,
 };
 
 export default TokenList;

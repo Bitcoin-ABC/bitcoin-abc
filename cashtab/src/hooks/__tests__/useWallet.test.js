@@ -7,7 +7,6 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import {
-    walletWithXecAndTokens,
     cashtabSettingsGbp,
     nonDefaultContactList,
     nonDefaultCashtabCache,
@@ -22,6 +21,11 @@ import {
 import aliasSettings from 'config/alias';
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 import CashtabCache from 'config/CashtabCache';
+import {
+    walletWithXecAndTokens,
+    mockCacheWalletWithXecAndTokens,
+    mockCachedInfoCashtabDark,
+} from 'components/fixtures/mocks';
 
 describe('useWallet hook rendering in different localforage states', () => {
     const xecPrice = 0.00003;
@@ -54,24 +58,12 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         mockTokenCache.set(
             '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            {
-                tokenTicker: 'BEAR',
-                tokenName: 'BearNip',
-                url: 'https://cashtab.com/',
-                decimals: 0,
-                hash: '',
-            },
+            mockCacheWalletWithXecAndTokens,
         );
 
         mockTokenCache.set(
             'b8f2a9e767a0be7b80c7e414ef2534586d4da72efddb39a4e70e501ab73375cc',
-            {
-                tokenTicker: 'CTD',
-                tokenName: 'Cashtab Dark',
-                url: 'https://cashtab.com/',
-                decimals: 0,
-                hash: '',
-            },
+            mockCachedInfoCashtabDark,
         );
 
         const mockCashtabCache = { tokens: mockTokenCache };
@@ -185,14 +177,7 @@ describe('useWallet hook rendering in different localforage states', () => {
 
         expectedUpdatedCache.tokens.set(
             '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            {
-                decimals: 0,
-                success: true,
-                tokenDocumentHash: '',
-                tokenDocumentUrl: 'https://cashtab.com/',
-                tokenName: 'BearNip',
-                tokenTicker: 'BEAR',
-            },
+            mockCacheWalletWithXecAndTokens,
         );
 
         await waitFor(() =>
@@ -267,7 +252,11 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
 
         await act(async () => {
-            await result.current.processChronikWsMsg(mockWebsocketMsg);
+            await result.current.processChronikWsMsg(
+                mockWebsocketMsg,
+                result.current.cashtabState,
+                result.current.fiatPrice,
+            );
         });
 
         // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
@@ -392,7 +381,11 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
 
         await act(async () => {
-            await result.current.processChronikWsMsg(mockWebsocketMsg);
+            await result.current.processChronikWsMsg(
+                mockWebsocketMsg,
+                result.current.cashtabState,
+                result.current.fiatPrice,
+            );
         });
 
         // Verify upon `BlockConnected` events processChronikWsMsg() updates the aliasPrices state var
@@ -546,7 +539,11 @@ describe('useWallet hook rendering in different localforage states', () => {
             });
 
         await act(async () => {
-            await result.current.processChronikWsMsg(mockWebsocketMsg);
+            await result.current.processChronikWsMsg(
+                mockWebsocketMsg,
+                result.current.cashtabState,
+                result.current.fiatPrice,
+            );
         });
 
         // Verify upon `BlockConnected` events processChronikWsMsg() does not update the aliasPrices state var
@@ -581,7 +578,11 @@ describe('useWallet hook rendering in different localforage states', () => {
         );
 
         await act(async () => {
-            await result.current.processChronikWsMsg(mockWebsocketMsg);
+            await result.current.processChronikWsMsg(
+                mockWebsocketMsg,
+                result.current.cashtabState,
+                result.current.fiatPrice,
+            );
         });
 
         // Verify the `aliasServerError` state var in useWallet is updated
@@ -703,14 +704,7 @@ describe('useWallet hook rendering in different localforage states', () => {
         const expectedCache = new CashtabCache();
         expectedCache.tokens.set(
             '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            {
-                decimals: 0,
-                success: true,
-                tokenDocumentHash: '',
-                tokenDocumentUrl: 'https://cashtab.com/',
-                tokenName: 'BearNip',
-                tokenTicker: 'BEAR',
-            },
+            mockCacheWalletWithXecAndTokens,
         );
 
         // cashtabCache has one token added from tx history

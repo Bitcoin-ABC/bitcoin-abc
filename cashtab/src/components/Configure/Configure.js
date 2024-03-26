@@ -1052,9 +1052,7 @@ const Configure = () => {
         }
         // initialise saved wallet name and address to state for confirmation modal
         setManualContactName(wallet.name);
-        setManualContactAddress(
-            wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
-        );
+        setManualContactAddress(wallet.paths.get(1899).address);
         setSavedWalletContactModal(true);
     };
 

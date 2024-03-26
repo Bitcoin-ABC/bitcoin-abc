@@ -49,9 +49,7 @@ const WalletOption = styled.option`
 `;
 
 const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
-    const address = wallets[0].paths.find(
-        pathInfo => pathInfo.path === 1899,
-    ).address;
+    const address = wallets[0].paths.get(1899).address;
 
     const handleSelectWallet = e => {
         const walletName = e.target.value;
@@ -109,19 +107,12 @@ WalletLabel.propTypes = {
         PropTypes.shape({
             mnemonic: PropTypes.string,
             name: PropTypes.string,
-            paths: PropTypes.arrayOf(
-                PropTypes.shape({
-                    address: PropTypes.string,
-                    hash: PropTypes.string,
-                    path: PropTypes.number,
-                    wif: PropTypes.string,
-                }),
-            ),
+            paths: PropTypes.instanceOf(Map),
             state: PropTypes.shape({
                 balanceSats: PropTypes.number,
                 nonSlpUtxos: PropTypes.array, // Tx_InNode[]
                 slpUtxos: PropTypes.array, // Tx_InNode[]
-                tokens: PropTypes.array,
+                tokens: PropTypes.instanceOf(Map),
                 parsedTxHistory: PropTypes.array,
             }),
         }),

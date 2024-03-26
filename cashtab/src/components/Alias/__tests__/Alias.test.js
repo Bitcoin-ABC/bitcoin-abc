@@ -84,9 +84,7 @@ describe('<Alias />', () => {
             localforage,
         );
 
-        const defaultAddress = walletWithXecAndTokens.paths.find(
-            pathInfo => pathInfo.path === 1899,
-        ).address;
+        const defaultAddress = walletWithXecAndTokens.paths.get(1899).address;
 
         // Mock the fetch call to alias-server's '/prices' endpoint
         const aliasPricesFetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
@@ -147,9 +145,7 @@ describe('<Alias />', () => {
                 json: () => Promise.resolve(aliasPricesResp),
             });
 
-        const defaultAddress = walletWithXecAndTokens.paths.find(
-            pathInfo => pathInfo.path === 1899,
-        ).address;
+        const defaultAddress = walletWithXecAndTokens.paths.get(1899).address;
 
         // Mock the refreshAliases() call to alias-server's '/address' endpoint upon component load
         const addressFetchUrl = `${aliasSettings.aliasServerBaseUrl}/address/${defaultAddress}`;
@@ -200,9 +196,7 @@ describe('<Alias />', () => {
                 json: () => Promise.resolve(aliasPricesResp),
             });
 
-        const defaultAddress = walletWithXecAndTokens.paths.find(
-            pathInfo => pathInfo.path === 1899,
-        ).address;
+        const defaultAddress = walletWithXecAndTokens.paths.get(1899).address;
 
         // Mock the refreshAliases() call to alias-server's '/address' endpoint upon component load
         const addressFetchUrl = `${aliasSettings.aliasServerBaseUrl}/address/${defaultAddress}`;
@@ -244,9 +238,7 @@ describe('<Alias />', () => {
             localforage,
         );
 
-        const defaultAddress = walletWithXecAndTokens.paths.find(
-            pathInfo => pathInfo.path === 1899,
-        ).address;
+        const defaultAddress = walletWithXecAndTokens.paths.get(1899).address;
 
         // Note: Not mocking the '/prices' API call here in order to populate aliasValidationError
 

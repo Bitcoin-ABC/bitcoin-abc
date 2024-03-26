@@ -1,31 +1,39 @@
-// Copyright (c) 2023-2024 The Bitcoin developers
+// Copyright (c) 2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+import { cashtabWalletToJSON, cashtabWalletFromJSON } from 'helpers';
 
 const wallet = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
-    paths: [
-        {
-            path: 1899,
-            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-        },
-        {
-            path: 145,
-            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-        },
-        {
-            path: 245,
-            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-        },
-    ],
+    paths: new Map([
+        [
+            1899,
+            {
+                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+            },
+        ],
+        [
+            145,
+            {
+                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+            },
+        ],
+        [
+            245,
+            {
+                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+            },
+        ],
+    ]),
     state: {
         balanceSats: 135000,
         slpUtxos: [],
@@ -39,7 +47,7 @@ const wallet = {
                 isCoinbase: false,
                 value: '25000',
                 network: 'XEC',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                path: 1899,
             },
             {
                 outpoint: {
@@ -50,7 +58,7 @@ const wallet = {
                 isCoinbase: false,
                 value: '100000',
                 network: 'XEC',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                path: 1899,
             },
             {
                 outpoint: {
@@ -61,10 +69,10 @@ const wallet = {
                 isCoinbase: false,
                 value: '10000',
                 network: 'XEC',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                path: 1899,
             },
         ],
-        tokens: [],
+        tokens: new Map(),
         parsedTxHistory: [
             {
                 txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
@@ -305,26 +313,32 @@ const walletWithCoinbaseUtxos = {
     mnemonic:
         'beauty shoe decline spend still weird slot snack coach flee between paper',
     name: 'Transaction Fixtures',
-    paths: [
-        {
-            path: 1899,
-            hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-            address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
-            wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
-        },
-        {
-            path: 145,
-            hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
-            address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
-            wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
-        },
-        {
-            path: 245,
-            hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
-            address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
-            wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
-        },
-    ],
+    paths: new Map([
+        [
+            1899,
+            {
+                hash: '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
+            },
+        ],
+        [
+            145,
+            {
+                hash: 'a28f8852f868f88e71ec666c632d6f86e978f046',
+                address: 'ecash:qz3glzzjlp503rn3a3nxccedd7rwj78sgczljhvzv3',
+                wif: 'L2HnC8ZT5JuwVFjrAjJUBs2tmmBoxdVa1MVCJccqV8S9YPoR1NuZ',
+            },
+        ],
+        [
+            245,
+            {
+                hash: '600efb12a6f813eccf13171a8bc62055212d8d6c',
+                address: 'ecash:qpsqa7cj5mup8mx0zvt34z7xyp2jztvdds67wajntk',
+                wif: 'L3ndnMkn4574McqhPujguusu48NrmeLUgWYMkRpYQGLXDGAwGmPq',
+            },
+        ],
+    ]),
     state: {
         balanceSats: 135000,
         slpUtxos: [],
@@ -338,7 +352,7 @@ const walletWithCoinbaseUtxos = {
                 isCoinbase: true,
                 value: '25000',
                 network: 'XEC',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                path: 1899,
             },
             {
                 outpoint: {
@@ -349,7 +363,7 @@ const walletWithCoinbaseUtxos = {
                 isCoinbase: true,
                 value: '100000',
                 network: 'XEC',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                path: 1899,
             },
             {
                 outpoint: {
@@ -360,10 +374,10 @@ const walletWithCoinbaseUtxos = {
                 isCoinbase: true,
                 value: '10000',
                 network: 'XEC',
-                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                path: 1899,
             },
         ],
-        tokens: [],
+        tokens: new Map([]),
         parsedTxHistory: [
             {
                 txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
@@ -601,7 +615,9 @@ const walletWithCoinbaseUtxos = {
 };
 
 // Create a wallet with utxos at multiple addresses
-const utxosAtManyAddressesWallet = JSON.parse(JSON.stringify(wallet));
+const utxosAtManyAddressesWallet = cashtabWalletFromJSON(
+    JSON.parse(JSON.stringify(cashtabWalletToJSON(wallet))),
+);
 const multiAddressUtxos = [
     {
         outpoint: {
@@ -612,7 +628,7 @@ const multiAddressUtxos = [
         isCoinbase: false,
         value: '25000',
         network: 'XEC',
-        address: wallet.paths.find(pathInfo => pathInfo.path === 145).address,
+        path: 145,
     },
     {
         outpoint: {
@@ -623,7 +639,7 @@ const multiAddressUtxos = [
         isCoinbase: false,
         value: '100000',
         network: 'XEC',
-        address: wallet.paths.find(pathInfo => pathInfo.path === 245).address,
+        path: 245,
     },
     {
         outpoint: {
@@ -634,23 +650,26 @@ const multiAddressUtxos = [
         isCoinbase: false,
         value: '10000',
         network: 'XEC',
-        address: wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
+        path: 1899,
     },
 ];
 utxosAtManyAddressesWallet.state.nonSlpUtxos = multiAddressUtxos;
 
 // Create a wallet that has a corrupted private key
 // Not expected to ever happen in Cashtab
-const walletWithInvalidPrivateKey = JSON.parse(JSON.stringify(wallet));
-// Take a portion of a valid wif to keep base58 chars
-const badWifPath1899Info = walletWithInvalidPrivateKey.paths.find(
-    pathInfo => pathInfo.path === 1899,
+// cashtabWalletToJSON
+const walletWithInvalidPrivateKey = cashtabWalletFromJSON(
+    JSON.parse(JSON.stringify(cashtabWalletToJSON(wallet))),
 );
+// Take a portion of a valid wif to keep base58 chars
+const badWifPath1899Info = walletWithInvalidPrivateKey.paths.get(1899);
 badWifPath1899Info.wif = badWifPath1899Info.wif.slice(0, 20);
 
 // Create a wallet with very large utxos
 const TOTAL_ECASH_SUPPLY_SATS = 2100000000000000;
-const allTheXecWallet = JSON.parse(JSON.stringify(wallet));
+const allTheXecWallet = cashtabWalletFromJSON(
+    JSON.parse(JSON.stringify(cashtabWalletToJSON(wallet))),
+);
 const largeUtxo = {
     outpoint: {
         txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
@@ -660,7 +679,7 @@ const largeUtxo = {
     isCoinbase: false,
     value: TOTAL_ECASH_SUPPLY_SATS,
     network: 'XEC',
-    address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+    path: 1899,
 };
 
 allTheXecWallet.state.nonSlpUtxos = [largeUtxo];
@@ -670,26 +689,32 @@ const walletWithTokensInNode = {
     mnemonic:
         'industry limit sense cruel neglect loud chase usual advance method talk come',
     name: 'SLP V1 Send',
-    paths: [
-        {
-            path: 1899,
-            hash: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
-            address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
-            wif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
-        },
-        {
-            path: 245,
-            hash: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
-            address: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
-            wif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
-        },
-        {
-            path: 145,
-            hash: '33a070d3931a4993207771ae1aa92aa05491e8b2',
-            address: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
-            wif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
-        },
-    ],
+    paths: new Map([
+        [
+            1899,
+            {
+                hash: 'c38232a045a85c84e5733d60e867dcee9ad4b18d',
+                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                wif: 'KyEQdr8GzqtwzHHB8kiaWLiUCWYGgz76t7gF2z9aSjWnsVikJZUX',
+            },
+        ],
+        [
+            245,
+            {
+                hash: '3d97ee01c3d021c3efcf529c3136f7b8b86c1ed0',
+                address: 'ecash:qq7e0mspc0gzrsl0eaffcvfk77utsmq76qnat0vlkj',
+                wif: 'L4GFvCRSz8fbS64W7teTjnGbV5A8iPdz1GyPqHvAj8vxzqZjwZbw',
+            },
+        ],
+        [
+            145,
+            {
+                hash: '33a070d3931a4993207771ae1aa92aa05491e8b2',
+                address: 'ecash:qqe6quxnjvdynyeqwac6ux4f92s9fy0gkg6ek2jtfh',
+                wif: 'L5GHzdq3qfTmUKLxZ3fuvfu9yvgsQH3wWcXU2BfD3qp88RTXF88M',
+            },
+        ],
+    ]),
     state: {
         balanceSats: 1000000,
         slpUtxos: [
@@ -698,71 +723,70 @@ const walletWithTokensInNode = {
                     txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
                     outIdx: 1,
                 },
-                value: '546',
+                value: 546,
                 token: {
                     tokenId:
                         'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                     amount: '1000000000',
                     isMintBaton: false,
                 },
-                // Note: the address is not provided by NNG or in-node, and is added by Cashtab
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                path: 1899,
             },
             {
                 outpoint: {
                     txid: '51bc5da566c85b486b37f1c4d3c0220b7bc11ad992c1b92f99233cf35a8794c1',
                     outIdx: 1,
                 },
-                value: '546',
+                value: 546,
                 token: {
                     tokenId:
                         'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                     amount: '9999996998999999999',
                     isMintBaton: false,
                 },
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                path: 1899,
             },
             {
                 outpoint: {
                     txid: '56cc72b07a374990d767a569120308812d0da4ef0c0d669a1966a648e759669a',
                     outIdx: 1,
                 },
-                value: '546',
+                value: 546,
                 token: {
                     tokenId:
                         'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                     amount: '1000000000000',
                     isMintBaton: false,
                 },
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                path: 1899,
             },
             {
                 outpoint: {
                     txid: 'c294d534331256c1f00016fb487f0079b926ab69bd8339350e4c356a1e17dc0d',
                     outIdx: 1,
                 },
-                value: '546',
+                value: 546,
                 token: {
                     tokenId:
                         'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                     amount: '1',
                     isMintBaton: false,
                 },
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                path: 1899,
             },
             {
                 outpoint: {
                     txid: 'd8c694714c2d39a22b8d867530f37e796937ac4b9bc7c9528926649788d15f43',
                     outIdx: 1,
                 },
-                value: '546',
+                value: 546,
                 token: {
                     tokenId:
                         'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                     amount: '2000000000000',
                     isMintBaton: false,
                 },
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                path: 1899,
             },
         ],
         nonSlpUtxos: [
@@ -775,26 +799,15 @@ const walletWithTokensInNode = {
                 isCoinbase: false,
                 value: '1000000',
                 network: 'XEC',
-                address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                path: 1899,
             },
         ],
-        tokens: [
-            {
-                tokenId:
-                    'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
-                balance: '10000000000',
-                info: {
-                    tokenTicker: 'GYP',
-                    tokenName: 'Gypsum',
-                    tokenDocumentUrl: 'https://cashtab.com/',
-                    tokenDocumentHash: '',
-                    decimals: 9,
-                    tokenId:
-                        'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
-                    success: true,
-                },
-            },
-        ],
+        tokens: new Map([
+            [
+                'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
+                '10000000000',
+            ],
+        ]),
         parsedTxHistory: [],
     },
 };

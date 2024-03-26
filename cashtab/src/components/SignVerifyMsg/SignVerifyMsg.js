@@ -88,7 +88,7 @@ const SignVerifyMsg = () => {
         try {
             // First, get required params
             const keyPair = utxolib.ECPair.fromWIF(
-                wallet.paths.find(pathInfo => pathInfo.path === 1899).wif,
+                wallet.paths.get(1899).wif,
                 utxolib.networks.ecash,
             );
             // Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L161
@@ -232,18 +232,12 @@ const SignVerifyMsg = () => {
                                             name="signMessageAddress"
                                             disabled={true}
                                             value={
-                                                wallet.paths.find(
-                                                    pathInfo =>
-                                                        pathInfo.path === 1899,
-                                                ).address
+                                                wallet.paths.get(1899).address
                                             }
                                         />
                                         <CopyToClipboard
                                             data={
-                                                wallet.paths.find(
-                                                    pathInfo =>
-                                                        pathInfo.path === 1899,
-                                                ).address
+                                                wallet.paths.get(1899).address
                                             }
                                             showToast
                                         >

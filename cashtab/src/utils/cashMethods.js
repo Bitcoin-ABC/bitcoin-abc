@@ -39,8 +39,8 @@ export const getWalletState = wallet => {
  */
 export const getHashArrayFromWallet = wallet => {
     const hashArray = [];
-    for (const path of wallet.paths) {
-        hashArray.push(path.hash);
-    }
+    wallet.paths.forEach(pathInfo => {
+        hashArray.push(pathInfo.hash);
+    });
     return hashArray;
 };

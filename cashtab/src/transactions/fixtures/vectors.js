@@ -517,7 +517,7 @@ export const ignoreUnspendableUtxosVectors = {
 export const sendSlp = {
     expectedReturns: [
         {
-            description: 'SLP send and burn with token change, NNG utxo shape',
+            description: 'SLP send and burn with token change',
             wallet: walletWithTokensInNode,
             tokenId:
                 'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
@@ -533,28 +533,28 @@ export const sendSlp = {
                         txid: '4fa08436ac4611ee2523eede281c4c8d7c1d1a9367661e1754775d8b7ae2b199',
                         outIdx: 1,
                     },
-                    value: '546',
+                    value: 546,
                     token: {
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                         amount: '1000000000',
                         isMintBaton: false,
                     },
-                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                    path: 1899,
                 },
                 {
                     outpoint: {
                         txid: '51bc5da566c85b486b37f1c4d3c0220b7bc11ad992c1b92f99233cf35a8794c1',
                         outIdx: 1,
                     },
-                    value: '546',
+                    value: 546,
                     token: {
                         tokenId:
                             'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
                         amount: '9999996998999999999',
                         isMintBaton: false,
                     },
-                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                    path: 1899,
                 },
             ],
             sendAmounts: [new BN('10000000000'), new BN('9999996989999999999')],
@@ -566,8 +566,7 @@ export const sendSlp = {
             },
         },
         {
-            description:
-                'SLP send and BURN with no token change, NNG utxo shape',
+            description: 'SLP send and BURN with no token change',
             wallet: walletWithTokensInNode,
             tokenId:
                 'b19b4c83056f6e3dace0e786446a8ccd73f22cfc42c3013808c532ab43490a14',
@@ -590,7 +589,7 @@ export const sendSlp = {
                         amount: '1000000000',
                         isMintBaton: false,
                     },
-                    address: 'ecash:qrpcyv4qgk59ep89wv7kp6r8mnhf449335wt7lud8u',
+                    path: 1899,
                 },
             ],
             sendAmounts: [new BN('1000000000')],

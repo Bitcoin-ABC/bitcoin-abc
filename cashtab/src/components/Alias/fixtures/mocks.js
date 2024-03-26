@@ -4,9 +4,7 @@
 
 import { walletWithXecAndTokens } from 'components/fixtures/mocks';
 
-const defaultAddress = walletWithXecAndTokens.paths.find(
-    pathInfo => pathInfo.path === 1899,
-).address;
+const defaultAddress = walletWithXecAndTokens.paths.get(1899).address;
 export const aliasAddressTwoRegisteredOnePending = {
     registered: [
         {

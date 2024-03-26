@@ -424,6 +424,18 @@ const ReceivedFromCtn = styled.div`
 const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
     const { contactList, settings, cashtabCache } = cashtabState;
     const { tokens } = cashtabCache;
+
+    // For now, we only parse tokenEntries[0]
+    let tokenId, cachedTokenInfo;
+    if (
+        data.parsed.isEtokenTx &&
+        Array.isArray(data.tokenEntries) &&
+        data.tokenEntries.length > 0
+    ) {
+        tokenId = data.parsed.tokenEntries[0].tokenId;
+        cachedTokenInfo = tokens.get(tokenId);
+    }
+
     const [displayedMessage, setDisplayedMessage] = useState(false);
     const handleShowMessage = () => {
         setDisplayedMessage(!displayedMessage);
@@ -610,20 +622,18 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                                             +{' '}
                                                                             {data.parsed.etokenAmount.toString()}
                                                                             &nbsp;
-                                                                            {
-                                                                                data
-                                                                                    .parsed
+                                                                            {typeof cachedTokenInfo !==
+                                                                                'undefined' &&
+                                                                                cachedTokenInfo
                                                                                     .genesisInfo
-                                                                                    .tokenTicker
-                                                                            }
+                                                                                    .tokenTicker}
                                                                         </TokenTxAmtGenesis>
                                                                         <TokenName>
-                                                                            {
-                                                                                data
-                                                                                    .parsed
+                                                                            {typeof cachedTokenInfo !==
+                                                                                'undefined' &&
+                                                                                cachedTokenInfo
                                                                                     .genesisInfo
-                                                                                    .tokenName
-                                                                            }
+                                                                                    .tokenName}
                                                                         </TokenName>
                                                                     </>
                                                                 ) : (
@@ -632,20 +642,18 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                                             -{' '}
                                                                             {data.parsed.etokenAmount.toString()}
                                                                             &nbsp;
-                                                                            {
-                                                                                data
-                                                                                    .parsed
+                                                                            {typeof cachedTokenInfo !==
+                                                                                'undefined' &&
+                                                                                cachedTokenInfo
                                                                                     .genesisInfo
-                                                                                    .tokenTicker
-                                                                            }
+                                                                                    .tokenTicker}
                                                                         </TokenTxAmt>
                                                                         <TokenName>
-                                                                            {
-                                                                                data
-                                                                                    .parsed
+                                                                            {typeof cachedTokenInfo !==
+                                                                                'undefined' &&
+                                                                                cachedTokenInfo
                                                                                     .genesisInfo
-                                                                                    .tokenName
-                                                                            }
+                                                                                    .tokenName}
                                                                         </TokenName>
                                                                     </>
                                                                 )}
@@ -656,20 +664,18 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                                     +{' '}
                                                                     {data.parsed.etokenAmount.toString()}
                                                                     &nbsp;
-                                                                    {
-                                                                        data
-                                                                            .parsed
+                                                                    {typeof cachedTokenInfo !==
+                                                                        'undefined' &&
+                                                                        cachedTokenInfo
                                                                             .genesisInfo
-                                                                            .tokenTicker
-                                                                    }
+                                                                            .tokenTicker}
                                                                 </TokenTxAmtReceived>
                                                                 <TokenName>
-                                                                    {
-                                                                        data
-                                                                            .parsed
+                                                                    {typeof cachedTokenInfo !==
+                                                                        'undefined' &&
+                                                                        cachedTokenInfo
                                                                             .genesisInfo
-                                                                            .tokenName
-                                                                    }
+                                                                            .tokenName}
                                                                 </TokenName>
                                                             </RightTextCtn>
                                                         )}

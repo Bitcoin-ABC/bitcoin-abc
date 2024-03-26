@@ -4,30 +4,30 @@
 
 import {
     organizeUtxosByType,
-    getPreliminaryTokensArray,
-    finalizeTokensArray,
-    getTokenStats,
     flattenChronikTxHistory,
     sortAndTrimChronikTxHistory,
-    parseChronikTx,
+    parseTx,
     getMintAddress,
+    getTokenGenesisInfo,
+    getTokenBalances,
+    getHistory,
+    getUtxos,
 } from 'chronik';
 import vectors from '../fixtures/vectors';
 import {
-    mockOrganizedUtxosByType,
-    mockPreliminaryTokensArray,
-    mockPreliminaryTokensArrayClone,
-    mockPreliminaryTokensArrayCloneClone,
-    mockChronikTxDetailsResponses,
-    mockFinalTokenArray,
-    mockFinalCachedTokenInfo,
-    mockPartialCachedTokenInfo,
-    mockPartialChronikTxDetailsResponses,
-} from '../fixtures/chronikUtxos';
-import { mockChronikTokenResponse } from '../fixtures/mockChronikTokenStats';
-import {
     mockTxHistoryOfAllAddresses,
     mockFlatTxHistoryNoUnconfirmed,
+    chronikTokenMocks,
+    mockLargeTokenCache,
+    chronikSlpUtxos,
+    keyValueBalanceArray,
+    mockTxHistoryWalletJson,
+    mockPath1899History,
+    mockPath145History,
+    mockTxHistoryTokenCache,
+    tokensInHistory,
+    expectedParsedTxHistory,
+    noCachedInfoParsedTxHistory,
 } from '../fixtures/mocks';
 import {
     mintingTxTabCash,
@@ -39,285 +39,14 @@ import {
     mintingAddressBuxSelfMint,
     mintingTxBuxSelfMint,
 } from '../fixtures/chronikMintTxs';
+import { cashtabWalletFromJSON } from 'helpers';
 import { ChronikClient } from 'chronik-client';
 import { when } from 'jest-when';
+import { MockChronikClient } from '../../../../modules/mock-chronik-client';
+import CashtabCache from 'config/CashtabCache';
 
 describe('Cashtab chronik.js functions', () => {
-    it(`getTokenStats successfully returns a token stats object`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-        const tokenId =
-            'bb8e9f685a06a2071d82f757ce19201b4c8e5e96fbe186960a3d65aec83eab20';
-        /*
-        Mock the API response from chronik.token('tokenId') called
-        in getTokenStats()
-    */
-        chronik.token = jest.fn();
-        when(chronik.token)
-            .calledWith(tokenId)
-            .mockResolvedValue(mockChronikTokenResponse);
-        expect(await getTokenStats(chronik, tokenId)).toStrictEqual(
-            mockChronikTokenResponse,
-        );
-    });
-    it(`getPreliminaryTokensArray successfully returns an array of all tokenIds and token balances (not yet adjusted for token decimals)`, () => {
-        expect(
-            getPreliminaryTokensArray(mockOrganizedUtxosByType.slpUtxos),
-        ).toStrictEqual(mockPreliminaryTokensArray);
-    });
-    it(`We will automatically cache the unknown tokenId 0000000000000000000000000000000000000000000000000000000000000000 without attempting to get its info from chronik`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-
-        const MOCK_SLP_UTXOS_WITH_UNKNOWN = [
-            {
-                outpoint: {
-                    txid: '250c93fd6bc2f1853a41d2fd1f5754a92f79f952f10ab038401be1600d5cbb88',
-                    outIdx: 1,
-                },
-                blockHeight: 836452,
-                isCoinbase: false,
-                value: 546,
-                isFinal: true,
-                token: {
-                    tokenId:
-                        '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
-                    tokenType: {
-                        protocol: 'ALP',
-                        type: 'ALP_TOKEN_TYPE_STANDARD',
-                        number: 0,
-                    },
-                    amount: '1000000',
-                    isMintBaton: false,
-                },
-                address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
-            },
-            {
-                outpoint: {
-                    txid: '74a8598eed00672e211553a69e22334128199883fe79eb4ad64f9c0b7909735c',
-                    outIdx: 1,
-                },
-                blockHeight: 836457,
-                isCoinbase: false,
-                value: 1000,
-                isFinal: true,
-                token: {
-                    tokenId:
-                        '0000000000000000000000000000000000000000000000000000000000000000',
-                    tokenType: {
-                        protocol: 'ALP',
-                        type: 'ALP_TOKEN_TYPE_UNKNOWN',
-                        number: 255,
-                    },
-                    amount: '0',
-                    isMintBaton: false,
-                },
-                address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
-            },
-        ];
-
-        // Get preliminary token utxos
-        const preliminaryTokensArray = getPreliminaryTokensArray(
-            MOCK_SLP_UTXOS_WITH_UNKNOWN,
-        );
-
-        // Expected mock token cache after calling finalizeTokensArray
-        const UNKNOWN_TOKEN_ID =
-            '0000000000000000000000000000000000000000000000000000000000000000';
-        const KNOWN_TOKEN_ID =
-            '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849';
-        const mockTokens = new Map();
-        mockTokens.set(KNOWN_TOKEN_ID, {
-            tokenTicker: 'tCRD',
-            tokenName: 'Test CRD',
-            url: 'https://crd.network/tcrd',
-            decimals: 4,
-            data: {
-                0: 0,
-                1: 0,
-                2: 0,
-                3: 0,
-                4: 0,
-                5: 0,
-                6: 0,
-                7: 0,
-                8: 0,
-            },
-            authPubkey:
-                '03d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420',
-        });
-        mockTokens.set(UNKNOWN_TOKEN_ID, {
-            decimals: 0,
-            tokenName: 'Unknown Token',
-            tokenTicker: 'UNKNOWN',
-            url: 'N/A',
-        });
-
-        // Get finalized tokens array
-
-        // Only mock the known tokenId api call
-        chronik.token = jest.fn();
-
-        when(chronik.token)
-            .calledWith(KNOWN_TOKEN_ID)
-            .mockResolvedValue({
-                tokenId:
-                    '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
-                tokenType: {
-                    protocol: 'ALP',
-                    type: 'ALP_TOKEN_TYPE_STANDARD',
-                    number: 0,
-                },
-                timeFirstSeen: '0',
-                genesisInfo: {
-                    tokenTicker: 'tCRD',
-                    tokenName: 'Test CRD',
-                    url: 'https://crd.network/tcrd',
-                    decimals: 4,
-                    data: {
-                        0: 0,
-                        1: 0,
-                        2: 0,
-                        3: 0,
-                        4: 0,
-                        5: 0,
-                        6: 0,
-                        7: 0,
-                        8: 0,
-                    },
-                    authPubkey:
-                        '03d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420',
-                },
-                block: {
-                    height: 821187,
-                    hash: '00000000000000002998aedef7c4fc2c52281e318461d66c3c9fe10151449448',
-                    timestamp: 1701716369,
-                },
-            });
-
-        expect(
-            await finalizeTokensArray(chronik, preliminaryTokensArray),
-        ).toStrictEqual({
-            tokens: [
-                {
-                    tokenId:
-                        '7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849',
-                    balance: '100',
-                    info: {
-                        tokenTicker: 'tCRD',
-                        tokenName: 'Test CRD',
-                        url: 'https://crd.network/tcrd',
-                        decimals: 4,
-                        data: {
-                            0: 0,
-                            1: 0,
-                            2: 0,
-                            3: 0,
-                            4: 0,
-                            5: 0,
-                            6: 0,
-                            7: 0,
-                            8: 0,
-                        },
-                        authPubkey:
-                            '03d2dc0cea5c81593f1bfcd42763a21f5c85e7e8d053cdf990f8b383b892b72420',
-                    },
-                },
-                {
-                    tokenId:
-                        '0000000000000000000000000000000000000000000000000000000000000000',
-                    balance: '0',
-                    info: {
-                        decimals: 0,
-                        tokenTicker: 'UNKNOWN',
-                        tokenName: 'Unknown Token',
-                        url: 'N/A',
-                    },
-                },
-            ],
-            cachedTokens: mockTokens,
-            newTokensToCache: true,
-        });
-    });
-    it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfoById even if no cachedTokenInfoById is provided`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-        /* 
-        Mock the API response from chronik.token('tokenId') called 
-        in returnGetTokenInfoChronikPromise -- for each tokenId used
-    */
-        chronik.token = jest.fn();
-        for (let i = 0; i < mockChronikTxDetailsResponses.length; i += 1) {
-            when(chronik.token)
-                .calledWith(mockChronikTxDetailsResponses[i].tokenId)
-                .mockResolvedValue(mockChronikTxDetailsResponses[i]);
-        }
-
-        expect(
-            await finalizeTokensArray(chronik, mockPreliminaryTokensArray),
-        ).toStrictEqual({
-            tokens: mockFinalTokenArray,
-            cachedTokens: mockFinalCachedTokenInfo,
-            newTokensToCache: true,
-        });
-    });
-    it(`finalizeTokensArray successfully returns finalTokenArray and cachedTokenInfoById when called with all token info in cache`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-
-        expect(
-            await finalizeTokensArray(
-                chronik,
-                mockPreliminaryTokensArrayClone,
-                mockFinalCachedTokenInfo,
-            ),
-        ).toStrictEqual({
-            tokens: mockFinalTokenArray,
-            cachedTokens: mockFinalCachedTokenInfo,
-            newTokensToCache: false,
-        });
-    });
-    it(`updateCachedTokenInfoAndFinalizeTokensArray successfully returns finalTokenArray and cachedTokenInfoById when called with some token info in cache`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-        /* 
-        Mock the API response from chronik.token('tokenId') called 
-        in returnGetTokenInfoChronikPromise -- for each tokenId used
-    */
-        chronik.token = jest.fn();
-        for (
-            let i = 0;
-            i < mockPartialChronikTxDetailsResponses.length;
-            i += 1
-        ) {
-            when(chronik.token)
-                .calledWith(mockPartialChronikTxDetailsResponses[i].tokenId)
-                .mockResolvedValue(mockPartialChronikTxDetailsResponses[i]);
-        }
-
-        expect(
-            await finalizeTokensArray(
-                chronik,
-                mockPreliminaryTokensArrayCloneClone,
-                mockPartialCachedTokenInfo,
-            ),
-        ).toStrictEqual({
-            tokens: mockFinalTokenArray,
-            cachedTokens: mockFinalCachedTokenInfo,
-            newTokensToCache: true,
-        });
-    });
-    it(`flattenChronikTxHistory successfully combines the result of getTxHistoryChronik into a single array`, async () => {
+    it(`flattenChronikTxHistory successfully combines the result of getHistory into a single array`, async () => {
         expect(
             await flattenChronikTxHistory(mockTxHistoryOfAllAddresses),
         ).toStrictEqual(mockFlatTxHistoryNoUnconfirmed);
@@ -327,10 +56,7 @@ describe('Cashtab chronik.js functions', () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        /* 
-        Mock the API response from chronik.tx('tokenId') called 
-        in returnGetTokenInfoChronikPromise -- for each tokenId used
-    */
+
         chronik.tx = jest.fn();
 
         when(chronik.tx)
@@ -346,10 +72,7 @@ describe('Cashtab chronik.js functions', () => {
         const chronik = new ChronikClient(
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
-        /* 
-        Mock the API response from chronik.tx('tokenId') called 
-        in returnGetTokenInfoChronikPromise -- for each tokenId used
-    */
+
         chronik.tx = jest.fn();
 
         when(chronik.tx)
@@ -366,10 +89,6 @@ describe('Cashtab chronik.js functions', () => {
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
 
-        /* 
-        Mock the API response from chronik.tx('tokenId') called 
-        in returnGetTokenInfoChronikPromise -- for each tokenId used
-    */
         chronik.tx = jest.fn();
 
         when(chronik.tx)
@@ -386,10 +105,6 @@ describe('Cashtab chronik.js functions', () => {
             'https://FakeChronikUrlToEnsureMocksOnly.com',
         );
 
-        /* 
-        Mock the API response from chronik.tx('tokenId') called 
-        in returnGetTokenInfoChronikPromise -- for each tokenId used
-    */
         chronik.tx = jest.fn();
 
         when(chronik.tx)
@@ -401,23 +116,12 @@ describe('Cashtab chronik.js functions', () => {
         );
     });
     describe('Parses supported tx types', () => {
-        const { expectedReturns, expectedErrors } = vectors.parseChronikTx;
+        const { expectedReturns } = vectors.parseTx;
         expectedReturns.forEach(expectedReturn => {
-            const { description, tx, wallet, tokenInfoById, parsed } =
+            const { description, tx, wallet, cachedTokens, parsed } =
                 expectedReturn;
-            it(`parseChronikTx: ${description}`, () => {
-                expect(parseChronikTx(tx, wallet, tokenInfoById)).toStrictEqual(
-                    parsed,
-                );
-            });
-        });
-        expectedErrors.forEach(expectedError => {
-            const { description, tx, wallet, tokenInfoById, errorMsg } =
-                expectedError;
-            it(`parseChronikTx throws error for: ${description}`, () => {
-                expect(() => parseChronikTx(tx, wallet, tokenInfoById)).toThrow(
-                    errorMsg,
-                );
+            it(`parseTx: ${description}`, () => {
+                expect(parseTx(tx, wallet, cachedTokens)).toStrictEqual(parsed);
             });
         });
     });
@@ -449,6 +153,294 @@ describe('Cashtab chronik.js functions', () => {
                     returned,
                 );
             });
+        });
+    });
+    describe('We get info we want to cache about a token from its genesis tx and chronik token info endpoint', () => {
+        const { expectedReturns, expectedErrors } = vectors.getTokenGenesisInfo;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, tokenId, tokenInfo, genesisTx, returned } =
+                expectedReturn;
+            const mockedChronik = new MockChronikClient();
+
+            // Set mock for chronik.token(tokenId)
+            mockedChronik.setMock('token', {
+                input: tokenId,
+                output: tokenInfo,
+            });
+
+            // Set mock for chronik.tx(tokenId)
+            mockedChronik.setMock('tx', {
+                input: tokenId,
+                output: genesisTx,
+            });
+
+            it(`getTokenGenesisInfo: ${description}`, async () => {
+                expect(
+                    await getTokenGenesisInfo(mockedChronik, tokenId),
+                ).toStrictEqual(returned);
+            });
+        });
+
+        expectedErrors.forEach(expectedReturn => {
+            const { description, tokenId, tokenInfo, genesisTx, msg } =
+                expectedReturn;
+            const mockedChronik = new MockChronikClient();
+
+            // Set mock for chronik.token(tokenId)
+            mockedChronik.setMock('token', {
+                input: tokenId,
+                output: tokenInfo,
+            });
+
+            // Set mock for chronik.tx(tokenId)
+            mockedChronik.setMock('tx', {
+                input: tokenId,
+                output: genesisTx,
+            });
+
+            it(`getTokenGenesisInfo: ${description}`, async () => {
+                await expect(
+                    getTokenGenesisInfo(mockedChronik, tokenId),
+                ).rejects.toEqual(msg);
+            });
+        });
+    });
+    it('We can get token balance from a large token utxo set and update the cache', async () => {
+        // Mock the endpoints that will be called in updating the cache during getTokenBalances
+        const tokenIds = Object.keys(chronikTokenMocks);
+        const mockedChronik = new MockChronikClient();
+        for (const tokenId of tokenIds) {
+            const { token, tx } = chronikTokenMocks[tokenId];
+            // Set mock for chronik.token(tokenId)
+            mockedChronik.setMock('token', {
+                input: tokenId,
+                output: token,
+            });
+
+            // Set mock for chronik.tx(tokenId)
+            mockedChronik.setMock('tx', {
+                input: tokenId,
+                output: tx,
+            });
+        }
+
+        // Initialize an empty token cache
+        const tokenCache = new CashtabCache().tokens;
+
+        // Get token balances
+        const tokenBalances = await getTokenBalances(
+            mockedChronik,
+            chronikSlpUtxos,
+            tokenCache,
+        );
+
+        // Expect cache is updated
+        expect(tokenCache).toStrictEqual(mockLargeTokenCache);
+
+        // Expect correct balances
+        expect(tokenBalances).toStrictEqual(new Map(keyValueBalanceArray));
+    });
+    it('We can get token balance form a large token utxo set that includes a utxo of unknown tokenId and update the cache', async () => {
+        // Mock the endpoints that will be called in updating the cache during getTokenBalances
+        const tokenIds = Object.keys(chronikTokenMocks);
+        const mockedChronik = new MockChronikClient();
+        for (const tokenId of tokenIds) {
+            const { token, tx } = chronikTokenMocks[tokenId];
+            // Set mock for chronik.token(tokenId)
+            mockedChronik.setMock('token', {
+                input: tokenId,
+                output: token,
+            });
+
+            // Set mock for chronik.tx(tokenId)
+            mockedChronik.setMock('tx', {
+                input: tokenId,
+                output: tx,
+            });
+        }
+
+        // Initialize an empty token cache
+        const tokenCache = new CashtabCache().tokens;
+
+        // Get token balances
+        const tokenBalances = await getTokenBalances(
+            mockedChronik,
+            [
+                ...chronikSlpUtxos,
+                {
+                    outpoint: {
+                        txid: '74a8598eed00672e211553a69e22334128199883fe79eb4ad64f9c0b7909735c',
+                        outIdx: 1,
+                    },
+                    blockHeight: 836457,
+                    isCoinbase: false,
+                    value: 1000,
+                    isFinal: true,
+                    token: {
+                        tokenId:
+                            '0000000000000000000000000000000000000000000000000000000000000000',
+                        tokenType: {
+                            protocol: 'ALP',
+                            type: 'ALP_TOKEN_TYPE_UNKNOWN',
+                            number: 255,
+                        },
+                        amount: '0',
+                        isMintBaton: false,
+                    },
+                    path: 1899,
+                },
+            ],
+            tokenCache,
+        );
+
+        // Expect cache is updated
+        expect(tokenCache).toStrictEqual(mockLargeTokenCache);
+
+        // Expect correct balances, including a 0 balance for the unknown token id
+        expect(tokenBalances).toStrictEqual(
+            new Map([
+                ...keyValueBalanceArray,
+                [
+                    '0000000000000000000000000000000000000000000000000000000000000000',
+                    '0',
+                ],
+            ]),
+        );
+    });
+    it('We can get utxos from multiple paths and tag each one with its path', async () => {
+        // Make all of your chronik mocks
+
+        // Revive JSON wallet
+        const mockTxHistoryWallet = cashtabWalletFromJSON(
+            mockTxHistoryWalletJson,
+        );
+
+        const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
+        const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
+
+        // Set tx history for all paths
+        const mockedChronik = new MockChronikClient();
+        mockedChronik.setAddress(defaultAddress);
+        mockedChronik.setUtxosByAddress(defaultAddress, {
+            outputScript: 'string',
+            utxos: [{ value: 546 }],
+        });
+        mockedChronik.setAddress(secondaryAddress);
+        mockedChronik.setUtxosByAddress(secondaryAddress, {
+            outputScript: 'string',
+            utxos: [{ value: 546 }],
+        });
+        expect(
+            await getUtxos(mockedChronik, mockTxHistoryWallet),
+        ).toStrictEqual([
+            { value: 546, path: 1899 },
+            { value: 546, path: 145 },
+        ]);
+    });
+    it('We can get and parse tx history from a multi-path wallet, and update the token cache at the same time', async () => {
+        // Make all of your chronik mocks
+        const tokenIds = Object.keys(tokensInHistory);
+        const mockedChronik = new MockChronikClient();
+        for (const tokenId of tokenIds) {
+            const { token, tx } = tokensInHistory[tokenId];
+            // Set mock for chronik.token(tokenId)
+            mockedChronik.setMock('token', {
+                input: tokenId,
+                output: token,
+            });
+
+            // Set mock for chronik.tx(tokenId)
+            mockedChronik.setMock('tx', {
+                input: tokenId,
+                output: tx,
+            });
+        }
+
+        // Revive JSON wallet
+        const mockTxHistoryWallet = cashtabWalletFromJSON(
+            mockTxHistoryWalletJson,
+        );
+
+        const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
+        const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
+
+        // Set tx history for all paths
+        mockedChronik.setAddress(defaultAddress);
+        mockedChronik.setTxHistoryByAddress(
+            defaultAddress,
+            mockPath1899History,
+        );
+        mockedChronik.setAddress(secondaryAddress);
+        mockedChronik.setTxHistoryByAddress(
+            secondaryAddress,
+            mockPath145History,
+        );
+
+        // Initialize an empty token cache
+        const tokenCache = new CashtabCache().tokens;
+
+        // Get token balances
+        const parsedTxHistory = await getHistory(
+            mockedChronik,
+            mockTxHistoryWallet,
+            tokenCache,
+        );
+
+        // Expect cache is updated
+        expect(tokenCache).toStrictEqual(mockTxHistoryTokenCache);
+
+        // Expect correct tx history
+        expect(parsedTxHistory).toStrictEqual(expectedParsedTxHistory);
+    });
+    describe('We can get and parse tx history from a multi-path wallet. If there is an error in getting cached token data, we still parse tx history.', () => {
+        // Make all of your chronik mocks
+        const tokenIds = Object.keys(tokensInHistory);
+        const mockedChronik = new MockChronikClient();
+        for (const tokenId of tokenIds) {
+            // Mock an error in getting cached token info
+            mockedChronik.setMock('token', {
+                input: tokenId,
+                output: new Error('Some chronik error'),
+            });
+        }
+
+        // Revive JSON wallet
+        const mockTxHistoryWallet = cashtabWalletFromJSON(
+            mockTxHistoryWalletJson,
+        );
+
+        const defaultAddress = mockTxHistoryWallet.paths.get(1899).address;
+        const secondaryAddress = mockTxHistoryWallet.paths.get(145).address;
+
+        // Set tx history for all paths
+        mockedChronik.setAddress(defaultAddress);
+        mockedChronik.setTxHistoryByAddress(
+            defaultAddress,
+            mockPath1899History,
+        );
+        mockedChronik.setAddress(secondaryAddress);
+        mockedChronik.setTxHistoryByAddress(
+            secondaryAddress,
+            mockPath145History,
+        );
+
+        it(`We add to token cache and get parsed tx history`, async () => {
+            // Initialize an empty token cache
+            const tokenCache = new CashtabCache().tokens;
+
+            // Get token balances
+            const parsedTxHistory = await getHistory(
+                mockedChronik,
+                mockTxHistoryWallet,
+                tokenCache,
+            );
+
+            // Expect cache is unchanged
+            expect(tokenCache).toStrictEqual(new CashtabCache().tokens);
+
+            // Expect correct tx history
+            expect(parsedTxHistory).toStrictEqual(noCachedInfoParsedTxHistory);
         });
     });
 });

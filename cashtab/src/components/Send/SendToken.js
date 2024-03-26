@@ -17,7 +17,6 @@ import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
 import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
-import { getTokenStats } from 'chronik';
 import { formatDate } from 'utils/formatting';
 import styled from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -44,6 +43,7 @@ import {
 } from 'components/Common/Inputs';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
+import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 
 const TokenStatsTable = styled.div`
     display: flex;
@@ -52,6 +52,7 @@ const TokenStatsTable = styled.div`
     justify-content: center;
     width: 100%;
     color: ${props => props.theme.contrast};
+    margin-bottom: 12px;
 `;
 const TokenStatsRow = styled.div`
     width: 100%;
@@ -76,9 +77,9 @@ const AliasAddressPreviewLabel = styled.div`
 
 const SendToken = () => {
     let navigate = useNavigate();
-    const { apiError, cashtabState, loading, chronik, chaintipBlockheight } =
+    const { apiError, cashtabState, chronik, chaintipBlockheight, loading } =
         React.useContext(WalletContext);
-    const { settings, wallets } = cashtabState;
+    const { settings, wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { tokens, balanceSats } = walletState;
@@ -86,9 +87,23 @@ const SendToken = () => {
     const params = useParams();
     const tokenId = params.tokenId;
 
-    const token = tokens.find(token => token.tokenId === tokenId);
+    const tokenBalance = tokens.get(tokenId);
+    const cachedInfo =
+        typeof cashtabCache.tokens.get(tokenId) !== 'undefined'
+            ? cashtabCache.tokens.get(tokenId)
+            : {
+                  genesisInfo: {
+                      tokenName: 'UNCACHED',
+                      tokenTicker: 'UNCACHED',
+                      decimals: 0,
+                  },
+                  genesisSupply: 0,
+                  genesisMintBatons: 0,
+              };
 
-    const [tokenStats, setTokenStats] = useState(null);
+    const { genesisInfo, genesisSupply, genesisMintBatons } = cachedInfo;
+    const { tokenName, tokenTicker, url, decimals } = genesisInfo;
+
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
     const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
@@ -112,7 +127,11 @@ const SendToken = () => {
     const userLocale = getUserLocale(navigator);
 
     useEffect(() => {
-        if (typeof token === 'undefined' && loading === false) {
+        if (
+            loading === false &&
+            (typeof tokenBalance === 'undefined' ||
+                typeof cashtabCache.tokens.get(tokenId) === 'undefined')
+        ) {
             // token can be undefined when the app is loading
             // in practice, this only happens in integration tests or when the user navigates directly
             // to send/tokenId screen, as cashtab locks UI while it loads
@@ -120,19 +139,8 @@ const SendToken = () => {
             // In this case -- loading === true and token === undefined -- navigate to the home page
             navigate('/');
         }
-    }, [loading, token]);
+    }, [loading, tokenBalance, cashtabCache]);
 
-    // Fetch token stats if you do not have them and API did not return an error
-    if (tokenStats === null) {
-        getTokenStats(chronik, tokenId).then(
-            result => {
-                setTokenStats(result);
-            },
-            err => {
-                console.log(`Error getting token stats: ${err}`);
-            },
-        );
-    }
     // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
         setFormData({
@@ -178,7 +186,7 @@ const SendToken = () => {
                 wallet.state.slpUtxos,
                 tokenId,
                 amount,
-                token.info.decimals,
+                decimals,
             );
 
             // Get targetOutputs for an slpv1 send tx
@@ -232,7 +240,7 @@ const SendToken = () => {
         if (!isNaN(value)) {
             const bigValue = new BN(value);
             // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
-            isGreaterThanBalance = bigValue.comparedTo(new BN(token.balance));
+            isGreaterThanBalance = bigValue.comparedTo(tokenBalance);
         }
 
         // Validate value for > 0
@@ -240,11 +248,11 @@ const SendToken = () => {
             error = 'Amount must be a number';
         } else if (value <= 0) {
             error = 'Amount must be greater than 0';
-        } else if (token && token.balance && isGreaterThanBalance === 1) {
-            error = `Amount cannot exceed your ${token.info.tokenTicker} balance of ${token.balance}`;
+        } else if (tokenBalance && isGreaterThanBalance === 1) {
+            error = `Amount cannot exceed your ${tokenTicker} balance of ${tokenBalance}`;
         } else if (!isNaN(value) && value.toString().includes('.')) {
-            if (value.toString().split('.')[1].length > token.info.decimals) {
-                error = `This token only supports ${token.info.decimals} decimal places`;
+            if (value.toString().split('.')[1].length > decimals) {
+                error = `This token only supports ${decimals} decimal places`;
             }
         }
         setSendTokenAmountError(error);
@@ -322,7 +330,7 @@ const SendToken = () => {
         // Clear this error before updating field
         setSendTokenAmountError(false);
         try {
-            let amount = token.balance;
+            let amount = tokenBalance;
 
             setFormData({
                 ...formData,
@@ -356,14 +364,11 @@ const SendToken = () => {
     };
 
     const handleEtokenBurnAmountChange = e => {
-        console.log(`handleEtokenBurnAmountChange`);
         const { name, value } = e.target;
-        console.log(`name`, name);
-        console.log(`value`, value);
 
         let error = false;
-        if (!isValidEtokenBurnAmount(new BN(value), token.balance)) {
-            error = 'Burn amount must be between 1 and ' + token.balance;
+        if (!isValidEtokenBurnAmount(new BN(value), tokenBalance)) {
+            error = 'Burn amount must be between 1 and ' + tokenBalance;
         }
 
         setBurnTokenAmountError(error);
@@ -379,7 +384,7 @@ const SendToken = () => {
         handleEtokenBurnAmountChange({
             target: {
                 name: 'burnAmount',
-                value: token.balance,
+                value: tokenBalance,
             },
         });
     };
@@ -398,7 +403,7 @@ const SendToken = () => {
                 wallet.state.slpUtxos,
                 tokenId,
                 formData.burnAmount,
-                token.info.decimals,
+                decimals,
             );
 
             // Get targetOutputs for an slpv1 burn tx
@@ -448,11 +453,11 @@ const SendToken = () => {
     const handleBurnConfirmationInput = e => {
         const { value } = e.target;
 
-        if (value && value === `burn ${token.info.tokenTicker}`) {
+        if (value && value === `burn ${tokenTicker}`) {
             setBurnConfirmationError(false);
         } else {
             setBurnConfirmationError(
-                `Input must exactly match "burn ${token.info.tokenTicker}"`,
+                `Input must exactly match "burn ${tokenTicker}"`,
             );
         }
         setConfirmationOfEtokenToBeBurnt(value);
@@ -466,188 +471,203 @@ const SendToken = () => {
 
     return (
         <>
-            {isModalVisible && (
-                <Modal
-                    title="Confirm Send"
-                    description={`Send ${formData.amount}${' '}
-                        ${token.info.tokenTicker} to ${formData.address}?`}
-                    handleOk={handleOk}
-                    handleCancel={handleCancel}
-                    showCancelButton
-                >
-                    <p>
-                        {token && token.info && formData
-                            ? `Are you sure you want to send ${
-                                  formData.amount
-                              }${' '}
-                        ${token.info.tokenTicker} to ${formData.address}?`
-                            : ''}
-                    </p>
-                </Modal>
-            )}
-            {token && (
-                <SidePaddingCtn>
-                    {/* eToken burn modal */}
-                    {showConfirmBurnEtoken && (
-                        <Modal
-                            title={`Confirm ${token.info.tokenTicker} burn`}
-                            description={`Burn ${formData.burnAmount} ${token.info.tokenTicker}?`}
-                            handleOk={burn}
-                            handleCancel={() => setShowConfirmBurnEtoken(false)}
-                            showCancelButton
-                            height={250}
-                        >
-                            <ModalInput
-                                placeholder={`Type "burn ${token.info.tokenTicker}" to confirm`}
-                                name="etokenToBeBurnt"
-                                value={confirmationOfEtokenToBeBurnt}
-                                error={burnConfirmationError}
-                                handleInput={handleBurnConfirmationInput}
-                            />
-                        </Modal>
-                    )}
-                    <BalanceHeaderToken
-                        balance={new BN(token.balance)}
-                        ticker={token.info.tokenTicker}
-                        tokenDecimals={token.info.decimals}
-                    />
-                    <TokenStatsTable
-                        title={`Token info for "${token.info.tokenName}"`}
-                    >
-                        <TokenStatsRow>
-                            <TokenStatsCol colSpan={2}>
-                                <CopyToClipboard data={token.tokenId} showToast>
-                                    <TokenIcon size={128} tokenId={tokenId} />
-                                </CopyToClipboard>
-                            </TokenStatsCol>
-                        </TokenStatsRow>
-                        <TokenStatsRow>
-                            <TokenStatsCol>
-                                Token Id: {token.tokenId.slice(0, 3)}...
-                                {token.tokenId.slice(-3)}
-                            </TokenStatsCol>
-                            <TokenStatsCol>
-                                <CopyToClipboard data={token.tokenId} showToast>
-                                    <ThemedCopySolid />
-                                </CopyToClipboard>
-                            </TokenStatsCol>
-                        </TokenStatsRow>
-                        <TokenStatsRow>
-                            <TokenStatsCol>
-                                {token.info.decimals} decimal places
-                            </TokenStatsCol>
-                        </TokenStatsRow>
-
-                        {tokenStats && (
-                            <>
-                                <TokenStatsRow>
-                                    {tokenStats.genesisInfo.url}
-                                </TokenStatsRow>
-                                <TokenStatsRow>
-                                    Minted{' '}
-                                    {tokenStats.block &&
-                                    tokenStats.block.timestamp !== null
-                                        ? formatDate(
-                                              tokenStats.block.timestamp,
-                                              navigator.language,
-                                          )
-                                        : 'Just now (Genesis tx confirming)'}
-                                </TokenStatsRow>
-                            </>
-                        )}
-                    </TokenStatsTable>
-                    <InputWithScanner
-                        placeholder={
-                            aliasSettings.aliasEnabled
-                                ? `Address or Alias`
-                                : `Address`
-                        }
-                        name="address"
-                        value={formData.address}
-                        handleInput={handleTokenAddressChange}
-                        error={sendTokenAddressError}
-                        loadWithScannerOpen={openWithScanner}
-                    />
-                    <AliasAddressPreviewLabel>
-                        <TxLink
-                            key={aliasInputAddress}
-                            href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            {aliasInputAddress &&
-                                `${aliasInputAddress.slice(
-                                    0,
-                                    10,
-                                )}...${aliasInputAddress.slice(-5)}`}
-                        </TxLink>
-                    </AliasAddressPreviewLabel>
-                    <br />
-                    <SendTokenInput
-                        name="amount"
-                        value={formData.amount}
-                        error={sendTokenAmountError}
-                        placeholder="Amount"
-                        decimals={token.info.decimals}
-                        handleInput={handleSlpAmountChange}
-                        handleOnMax={onMax}
-                    />
-
-                    <SecondaryButton
-                        style={{ marginTop: '24px' }}
-                        disabled={
-                            apiError ||
-                            sendTokenAmountError ||
-                            sendTokenAddressError
-                        }
-                        onClick={() => checkForConfirmationBeforeSendEtoken()}
-                    >
-                        Send {token.info.tokenName}
-                    </SecondaryButton>
-
-                    {apiError && <ApiError />}
-
-                    <TokenStatsTable
-                        title={`Token info for "${token.info.tokenName}"`}
-                    >
-                        <TokenStatsRow>
-                            <Link
-                                style={{ width: '100%' }}
-                                to="/airdrop"
-                                state={{
-                                    airdropEtokenId: token.tokenId,
-                                }}
+            {tokenBalance &&
+                typeof cashtabCache.tokens.get(tokenId) !== 'undefined' && (
+                    <SidePaddingCtn>
+                        {isModalVisible && (
+                            <Modal
+                                title="Confirm Send"
+                                description={`Send ${formData.amount}${' '}
+                                ${tokenTicker} to ${formData.address}?`}
+                                handleOk={handleOk}
+                                handleCancel={handleCancel}
+                                showCancelButton
                             >
-                                <PrimaryButton style={{ marginTop: '12px' }}>
-                                    Airdrop
-                                </PrimaryButton>
-                            </Link>
-                        </TokenStatsRow>
-                        <TokenStatsRow>
-                            <InputFlex>
-                                <SendTokenInput
-                                    name="burnAmount"
-                                    value={formData.burnAmount}
-                                    error={burnTokenAmountError}
-                                    placeholder="Burn Amount"
-                                    decimals={token.info.decimals}
-                                    handleInput={handleEtokenBurnAmountChange}
-                                    handleOnMax={onMaxBurn}
+                                <p>
+                                    Are you sure you want to send{' '}
+                                    {formData.amount} {tokenTicker} to{' '}
+                                    {formData.address}?
+                                </p>
+                            </Modal>
+                        )}
+                        {showConfirmBurnEtoken && (
+                            <Modal
+                                title={`Confirm ${tokenTicker} burn`}
+                                description={`Burn ${formData.burnAmount} ${tokenTicker}?`}
+                                handleOk={burn}
+                                handleCancel={() =>
+                                    setShowConfirmBurnEtoken(false)
+                                }
+                                showCancelButton
+                                height={250}
+                            >
+                                <ModalInput
+                                    placeholder={`Type "burn ${tokenTicker}" to confirm`}
+                                    name="etokenToBeBurnt"
+                                    value={confirmationOfEtokenToBeBurnt}
+                                    error={burnConfirmationError}
+                                    handleInput={handleBurnConfirmationInput}
                                 />
+                            </Modal>
+                        )}
+                        <BalanceHeaderToken
+                            balance={new BN(tokenBalance)}
+                            ticker={tokenTicker}
+                            tokenDecimals={decimals}
+                        />
+                        <TokenStatsTable
+                            title={`Token info for "${tokenName}"`}
+                        >
+                            <TokenStatsRow>
+                                <TokenStatsCol colSpan={2}>
+                                    <CopyToClipboard data={tokenId} showToast>
+                                        <TokenIcon
+                                            size={128}
+                                            tokenId={tokenId}
+                                        />
+                                    </CopyToClipboard>
+                                </TokenStatsCol>
+                            </TokenStatsRow>
+                            <TokenStatsRow>
+                                <TokenStatsCol>
+                                    Token Id: {tokenId.slice(0, 3)}...
+                                    {tokenId.slice(-3)}
+                                </TokenStatsCol>
+                                <TokenStatsCol>
+                                    <CopyToClipboard data={tokenId} showToast>
+                                        <ThemedCopySolid />
+                                    </CopyToClipboard>
+                                </TokenStatsCol>
+                            </TokenStatsRow>
+                            <TokenStatsRow>
+                                <TokenStatsCol>
+                                    {decimals} decimal places
+                                </TokenStatsCol>
+                            </TokenStatsRow>
+                            <TokenStatsRow>{url}</TokenStatsRow>
+                            <TokenStatsRow>
+                                Minted{' '}
+                                {typeof cachedInfo.block !== 'undefined'
+                                    ? formatDate(
+                                          cachedInfo.block.timestamp,
+                                          navigator.language,
+                                      )
+                                    : formatDate(
+                                          cachedInfo.timeFirstSeen,
+                                          navigator.language,
+                                      )}
+                            </TokenStatsRow>
+                            <TokenStatsRow>
+                                Genesis Supply:{' '}
+                                {decimalizedTokenQtyToLocaleFormat(
+                                    genesisSupply,
+                                    userLocale,
+                                )}
+                            </TokenStatsRow>
+                            <TokenStatsRow>
+                                {genesisMintBatons === 0
+                                    ? 'Fixed Supply'
+                                    : 'Variable Supply'}
+                            </TokenStatsRow>
+                        </TokenStatsTable>
+                        <InputWithScanner
+                            placeholder={
+                                aliasSettings.aliasEnabled
+                                    ? `Address or Alias`
+                                    : `Address`
+                            }
+                            name="address"
+                            value={formData.address}
+                            handleInput={handleTokenAddressChange}
+                            error={sendTokenAddressError}
+                            loadWithScannerOpen={openWithScanner}
+                        />
+                        <AliasAddressPreviewLabel>
+                            <TxLink
+                                key={aliasInputAddress}
+                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {aliasInputAddress &&
+                                    `${aliasInputAddress.slice(
+                                        0,
+                                        10,
+                                    )}...${aliasInputAddress.slice(-5)}`}
+                            </TxLink>
+                        </AliasAddressPreviewLabel>
+                        <br />
+                        <SendTokenInput
+                            name="amount"
+                            value={formData.amount}
+                            error={sendTokenAmountError}
+                            placeholder="Amount"
+                            decimals={decimals}
+                            handleInput={handleSlpAmountChange}
+                            handleOnMax={onMax}
+                        />
 
-                                <Button
-                                    type="primary"
-                                    onClick={handleBurnAmountInput}
-                                    danger
+                        <SecondaryButton
+                            style={{ marginTop: '24px' }}
+                            disabled={
+                                apiError ||
+                                sendTokenAmountError ||
+                                sendTokenAddressError
+                            }
+                            onClick={() =>
+                                checkForConfirmationBeforeSendEtoken()
+                            }
+                        >
+                            Send {tokenName}
+                        </SecondaryButton>
+
+                        {apiError && <ApiError />}
+
+                        <TokenStatsTable
+                            title={`Token info for "${tokenName}"`}
+                        >
+                            <TokenStatsRow>
+                                <Link
+                                    style={{ width: '100%' }}
+                                    to="/airdrop"
+                                    state={{
+                                        airdropEtokenId: tokenId,
+                                    }}
                                 >
-                                    Burn&nbsp;
-                                    {token.info.tokenTicker}
-                                </Button>
-                            </InputFlex>
-                        </TokenStatsRow>
-                    </TokenStatsTable>
-                </SidePaddingCtn>
-            )}
+                                    <PrimaryButton
+                                        style={{ marginTop: '12px' }}
+                                    >
+                                        Airdrop
+                                    </PrimaryButton>
+                                </Link>
+                            </TokenStatsRow>
+                            <TokenStatsRow>
+                                <InputFlex>
+                                    <SendTokenInput
+                                        name="burnAmount"
+                                        value={formData.burnAmount}
+                                        error={burnTokenAmountError}
+                                        placeholder="Burn Amount"
+                                        decimals={decimals}
+                                        handleInput={
+                                            handleEtokenBurnAmountChange
+                                        }
+                                        handleOnMax={onMaxBurn}
+                                    />
+
+                                    <Button
+                                        type="primary"
+                                        onClick={handleBurnAmountInput}
+                                        danger
+                                    >
+                                        Burn&nbsp;
+                                        {tokenTicker}
+                                    </Button>
+                                </InputFlex>
+                            </TokenStatsRow>
+                        </TokenStatsTable>
+                    </SidePaddingCtn>
+                )}
         </>
     );
 };

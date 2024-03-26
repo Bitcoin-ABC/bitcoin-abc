@@ -183,9 +183,7 @@ const Airdrop = ({ passLoadingStatus }) => {
 
         const excludedAddresses = [];
         if (ignoreOwnAddress) {
-            excludedAddresses.push(
-                wallet.paths.find(pathInfo => pathInfo.path === 1899).address,
-            );
+            excludedAddresses.push(wallet.paths.get(1899).address);
         }
         if (ignoreMintAddress) {
             let mintAddress;

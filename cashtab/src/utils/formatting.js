@@ -95,3 +95,45 @@ export const formatTokenBalance = (
         return unformattedBalance;
     }
 };
+
+/**
+ * Add locale number formatting to a decimalized token quantity
+ * @param {string} decimalizedTokenQty e.g. 100.123
+ * @param {string} userLocale e.g. 'en-US'
+ */
+export const decimalizedTokenQtyToLocaleFormat = (
+    decimalizedTokenQty,
+    userLocale,
+) => {
+    // Note that we cannot parseFloat(decimalizedTokenQty) because it will round some numbers at
+    // upper end of possible token quantities
+    // So, use a string method
+
+    // Get the decimal point of this locale
+    const localeDecimalSymbol = Number(1).toLocaleString(userLocale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    })[1];
+
+    // Get the thousands separator of this locale
+    const localeThousandsSymbol = Number(1000).toLocaleString(userLocale, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })[1];
+
+    // While we support output format in other locales, Cashtab only handles decimalized strings with '.'
+    // Split for decimals
+    const beforeAndAfterDecimalStrings = decimalizedTokenQty.split('.');
+    const beforeDecimalString = beforeAndAfterDecimalStrings[0];
+
+    // Add thousands separator to beforeDecimalString
+    let localeTokenString = beforeDecimalString.replace(
+        /\B(?=(\d{3})+(?!\d))/g,
+        localeThousandsSymbol,
+    );
+    if (beforeAndAfterDecimalStrings.length > 1) {
+        localeTokenString = `${localeTokenString}${localeDecimalSymbol}${beforeAndAfterDecimalStrings[1]}`;
+    }
+
+    return localeTokenString;
+};

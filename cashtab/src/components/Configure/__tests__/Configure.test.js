@@ -22,6 +22,7 @@ import {
 import { validSavedWallets } from 'components/fixtures/mocks';
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 import * as bip39 from 'bip39';
+import { cashtabWalletsFromJSON } from 'helpers';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -105,8 +106,7 @@ describe('<Configure />', () => {
 
         // Add a new saved wallet that can be rendered
         const addedSavedWalletContact = {
-            address: savedWallet.paths.find(pathInfo => pathInfo.path === 1899)
-                .address,
+            address: savedWallet.paths.get(1899).address,
             name: savedWallet.name,
         };
         await localforage.setItem('wallets', [
@@ -473,7 +473,10 @@ describe('<Configure />', () => {
         );
 
         // nor is it in localforage
-        const walletsNow = await localforage.getItem('wallets');
+        const walletsNow = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
+
         const expectedWalletsNow = [
             ...[walletWithXecAndTokens].concat(validSavedWallets),
         ];

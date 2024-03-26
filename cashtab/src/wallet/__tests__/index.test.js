@@ -11,6 +11,9 @@ import {
     fiatToSatoshis,
     getLegacyPaths,
     getWalletsForNewActiveWallet,
+    decimalizeTokenAmount,
+    undecimalizeTokenAmount,
+    removeLeadingZeros,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import vectors from '../fixtures/vectors';
@@ -132,6 +135,62 @@ describe('Cashtab wallet methods', () => {
                 expect(() =>
                     getWalletsForNewActiveWallet(walletToActivate, wallets),
                 ).toThrow(errorMsg);
+            });
+        });
+    });
+    describe('We can decimalize a token amount string and undecimalize it back', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.decimalizeTokenAmount;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, amount, decimals, returned } = expectedReturn;
+            it(`decimalizeTokenAmount: ${description}`, () => {
+                expect(decimalizeTokenAmount(amount, decimals)).toBe(returned);
+            });
+            it(`undecimalizeTokenAmount: ${description}`, () => {
+                expect(undecimalizeTokenAmount(returned, decimals)).toBe(
+                    amount,
+                );
+            });
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, amount, decimals, error } = expectedError;
+            it(`decimalizeTokenAmount throws error for: ${description}`, () => {
+                expect(() => decimalizeTokenAmount(amount, decimals)).toThrow(
+                    error,
+                );
+            });
+        });
+    });
+    describe('We can undecimalize a decimalizedTokenAmount string, and we throw expected errors if undecimalizeTokenAmount is invalid', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.undecimalizeTokenAmount;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, decimalizedAmount, decimals, returned } =
+                expectedReturn;
+            it(`undecimalizeTokenAmount: ${description}`, () => {
+                expect(
+                    undecimalizeTokenAmount(decimalizedAmount, decimals),
+                ).toBe(returned);
+            });
+            // Note that we cannot round trip these tests, as decimalizeTokenAmount will
+            // always return exact precision, while undecimalizeTokenAmount tolerates underprecision
+        });
+        expectedErrors.forEach(expectedError => {
+            const { description, decimalizedAmount, decimals, error } =
+                expectedError;
+            it(`undecimalizeTokenAmount throws error for: ${description}`, () => {
+                expect(() =>
+                    undecimalizeTokenAmount(decimalizedAmount, decimals),
+                ).toThrow(error);
+            });
+        });
+    });
+    describe('Removes leading zeros from a string', () => {
+        const { expectedReturns } = vectors.removeLeadingZeros;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, givenString, returned } = expectedReturn;
+            it(`removeLeadingZeros: ${description}`, () => {
+                expect(removeLeadingZeros(givenString)).toBe(returned);
             });
         });
     });

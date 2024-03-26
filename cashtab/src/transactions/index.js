@@ -11,16 +11,14 @@ import { toSatoshis } from 'wallet';
 /**
  * Sign tx inputs
  * @param {object} txBuilder an initialized TransactionBuilder with inputs and outputs added
- * @param {array} accounts [...{address: <cashaddr>, wif: <wif>}]
+ * @param {array} paths paths key of a cashtab wallet
  * @param {array} inputs [...{address: <cashaddr>, value: <number>}]
  * @throws {error} if private key is corrupted or wif is undefined
  */
-export const signInputs = (txBuilder, accounts, inputs) => {
+export const signInputs = (txBuilder, paths, inputs) => {
     inputs.forEach((input, index) => {
         // Select the correct signing key based on the address of the input
-        const wif = accounts
-            .filter(acc => acc.address === input.address)
-            .pop().wif;
+        const wif = paths.get(input.path).wif;
 
         // TODO store this in wallet instead of generating it every time you sign a tx
         const utxoECPair = utxolib.ECPair.fromWIF(wif, utxolib.networks.ecash);
@@ -97,9 +95,7 @@ export const sendXec = async (
 
             // Change address is wallet address
             // Use Path1899 address as change address
-            output.address = wallet.paths.find(
-                pathInfo => pathInfo.path === 1899,
-            ).address;
+            output.address = wallet.paths.get(1899).address;
         }
 
         // TODO add cashaddr support for eCash to txBuilder in utxo-lib

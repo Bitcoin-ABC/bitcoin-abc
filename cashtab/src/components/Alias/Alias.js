@@ -95,9 +95,7 @@ const Alias = ({ passLoadingStatus }) => {
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const defaultAddress =
-        wallet !== false
-            ? wallet.paths.find(pathInfo => pathInfo.path === 1899).address
-            : '';
+        wallet !== false ? wallet.paths.get(1899).address : '';
     const walletState = getWalletState(wallet);
     const { balanceSats, tokens } = walletState;
     const [formData, setFormData] = useState({

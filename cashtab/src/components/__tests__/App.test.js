@@ -11,12 +11,15 @@ import '@testing-library/jest-dom';
 import {
     walletWithXecAndTokens,
     walletWithXecAndTokens_pre_2_1_0,
+    walletWithXecAndTokens_pre_2_9_0,
     freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
     easterEggTokenChronikTokenDetails,
-    vipTokenChronikTokenDetails,
+    vipTokenChronikTokenMocks,
     validSavedWallets_pre_2_1_0,
+    validSavedWallets_pre_2_9_0,
     validSavedWallets,
+    mockCacheWalletWithXecAndTokens,
 } from 'components/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -31,9 +34,15 @@ import {
 import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
 import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
-import { cashtabCacheToJSON } from 'helpers';
+import {
+    cashtabCacheToJSON,
+    storedCashtabCacheToMap,
+    cashtabWalletFromJSON,
+    cashtabWalletsFromJSON,
+} from 'helpers';
 import { createCashtabWallet } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
+import CashtabCache from 'config/CashtabCache';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -606,7 +615,11 @@ describe('<App />', () => {
         // Make sure the app can get this token's genesis info by calling a mock
         mockedChronik.setMock('token', {
             input: appConfig.vipSettingsTokenId,
-            output: vipTokenChronikTokenDetails,
+            output: vipTokenChronikTokenMocks.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: appConfig.vipSettingsTokenId,
+            output: vipTokenChronikTokenMocks.tx,
         });
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
@@ -737,15 +750,13 @@ describe('<App />', () => {
             },
         };
         // Modify walletWithXecAndTokens to have the required token for this feature
-        let walletWithEasterEggToken = JSON.parse(
-            JSON.stringify(walletWithXecAndTokens),
-        );
-        walletWithEasterEggToken = {
-            ...walletWithEasterEggToken,
+
+        const walletWithEasterEggToken = {
+            ...walletWithXecAndTokens,
             state: {
-                ...walletWithEasterEggToken.state,
+                ...walletWithXecAndTokens.state,
                 slpUtxos: [
-                    ...walletWithEasterEggToken.state.slpUtxos,
+                    ...walletWithXecAndTokens.state.slpUtxos,
                     requiredEasterEggUtxo,
                 ],
             },
@@ -767,7 +778,7 @@ describe('<App />', () => {
         // We see the easter egg
         expect(await screen.findByAltText('tabcash')).toBeInTheDocument();
     });
-    it('If Cashtab starts with 1.5.* cashtabCache, it is wiped and migrated to 1.6.* cashtabCache', async () => {
+    it('If Cashtab starts with 1.5.* cashtabCache, it is wiped and migrated to 2.9.0 cashtabCache', async () => {
         // Note: this is what will happen for all Cashtab users when this diff lands
         const mockedChronik =
             await initializeCashtabStateAtLegacyWalletKeysForTests(
@@ -780,31 +791,20 @@ describe('<App />', () => {
 
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
-        const expectedCashtabCacheTokens = new Map();
+        const expectedCashtabCacheTokens = new CashtabCache([
+            [
+                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                mockCacheWalletWithXecAndTokens,
+            ],
+        ]);
 
-        // Tokens from wallet utxos will be added to cache on app load
-        expectedCashtabCacheTokens.set(
-            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            {
-                decimals: 0,
-                success: true,
-                hash: '',
-                url: 'https://cashtab.com/',
-                tokenName: 'BearNip',
-                tokenTicker: 'BEAR',
-            },
-        );
-
-        // Result will be stored as a keyvalue array and must be converted to a map
-        // We do the reverse to get the expected storage value
-        const expectedStoredCashtabCache = cashtabCacheToJSON({
-            tokens: expectedCashtabCacheTokens,
-        });
         // Confirm cashtabCache in localforage matches expected result
         await waitFor(async () =>
-            expect(await localforage.getItem('cashtabCache')).toEqual(
-                expectedStoredCashtabCache,
-            ),
+            expect(
+                storedCashtabCacheToMap(
+                    await localforage.getItem('cashtabCache'),
+                ),
+            ).toEqual(expectedCashtabCacheTokens),
         );
     });
     it('A new user can import a mnemonic', async () => {
@@ -874,18 +874,19 @@ describe('<App />', () => {
 
         // The imported wallet is in localforage
         const wallets = await localforage.getItem('wallets');
-        const importedWallet = wallets[0];
+        const importedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The imported wallet matches our expected mock except for name, which is autoset on import
         // The imported wallet is not imported with legacy paths (145 and 245)
-        const expectedPathInfo = walletWithXecAndTokens.paths.find(
-            pathInfo => pathInfo.path === 1899,
-        );
-        expect(importedWallet).toEqual({
+        const expectedPathInfo = walletWithXecAndTokens.paths.get(1899);
+        // We expect the wallet to be walletWithXecAndTokens, except new name and no legacy paths
+        const expectedWallet = {
             ...walletWithXecAndTokens,
             name: 'qqa9l',
-            paths: [expectedPathInfo],
-        });
+            paths: new Map([[1899, expectedPathInfo]]),
+        };
+
+        expect(importedWallet).toEqual(expectedWallet);
 
         // Apart from state, which is blank from createCashtabWallet,
         // the imported wallet matches what we get from createCashtabWallet
@@ -913,7 +914,7 @@ describe('<App />', () => {
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = wallets[0];
+        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The wallet has been migrated
         expect(migratedWallet).toEqual(walletWithXecAndTokens);
@@ -943,7 +944,9 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = await localforage.getItem('wallets');
+        const walletsAfterLoad = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
 
         const savedWallets = walletsAfterLoad.slice(1);
 
@@ -974,7 +977,9 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = await localforage.getItem('wallets');
+        const walletsAfterLoad = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
 
         const savedWallets = walletsAfterLoad.slice(1);
 
@@ -983,7 +988,7 @@ describe('<App />', () => {
             expect(savedWallets).toEqual(validSavedWallets);
         });
     });
-    it('Migrating (version >= 1.6.0 and < 2.1.0): A user with multiple invalid wallets in savedWallets has them migrated', async () => {
+    it('Migrating (version >= 1.6.0 and < 2.1.0): A user with multiple invalid wallets stored at wallets key has them migrated', async () => {
         // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
         const mixedValidWallets = [
             walletWithXecAndTokens,
@@ -1009,7 +1014,9 @@ describe('<App />', () => {
         );
 
         // Check wallets
-        const walletsAfterLoad = await localforage.getItem('wallets');
+        const walletsAfterLoad = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
 
         const savedWallets = walletsAfterLoad.slice(1);
 
@@ -1033,12 +1040,12 @@ describe('<App />', () => {
 
         // Check wallet in localforage
         const wallets = await localforage.getItem('wallets');
-        const migratedWallet = wallets[0];
+        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
 
         // The wallet has been migrated
         expect(migratedWallet).toEqual(walletWithXecAndTokens);
     });
-    it('A user with all valid wallets in savedWallets does not have any savedWallets migrated', async () => {
+    it('A user with all valid wallets stored at wallets key does not have any wallets migrated', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
             [walletWithXecAndTokens, ...validSavedWallets],
             localforage,
@@ -1051,10 +1058,143 @@ describe('<App />', () => {
             '9,513.12 XEC',
         );
 
+        const walletsAfterLoad = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
+
         // The savedWallets array stored at the savedWallets key is unchanged
-        expect(await localforage.getItem('wallets')).toEqual([
+        expect(walletsAfterLoad).toEqual([
             walletWithXecAndTokens,
             ...validSavedWallets,
         ]);
+    });
+    it('Migrating (version < 2.9.0): A user with multiple invalid wallets stored at wallets key has them migrated', async () => {
+        // Create a savedWallets array with 4 valid wallets and 1 invalid wallet
+        const mixedValidWallets = [
+            walletWithXecAndTokens,
+            ...validSavedWallets_pre_2_9_0.slice(0, 3),
+            ...validSavedWallets.slice(3),
+        ];
+
+        // The wallets at indices 1, 2, and 3 are invalid
+        expect(isValidCashtabWallet(mixedValidWallets[1])).toBe(false);
+        expect(isValidCashtabWallet(mixedValidWallets[2])).toBe(false);
+        expect(isValidCashtabWallet(mixedValidWallets[3])).toBe(false);
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            mixedValidWallets,
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallets
+        const walletsAfterLoad = cashtabWalletsFromJSON(
+            await localforage.getItem('wallets'),
+        );
+
+        const savedWallets = walletsAfterLoad.slice(1);
+
+        // We expect savedWallets in localforage to have been migrated
+        await waitFor(async () => {
+            expect(savedWallets).toEqual(validSavedWallets);
+        });
+    });
+    it('Migrating (version < 2.9.0): A user with an invalid Cashtab wallet as the active wallet is migrated on startup', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens_pre_2_9_0,
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
+        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+            '9,513.12 XEC',
+        );
+
+        // Check wallet in localforage
+        const wallets = await localforage.getItem('wallets');
+        const migratedWallet = cashtabWalletFromJSON(wallets[0]);
+
+        // The wallet has been migrated
+        expect(migratedWallet).toEqual(walletWithXecAndTokens);
+    });
+    it('If Cashtab starts with < 2.9.0 cashtabCache, it is wiped and migrated to 2.9.0 cashtabCache', async () => {
+        // Note: this is what will happen for all Cashtab users when this diff lands
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Mock cashtabCache at > 1.5.0 and < 2.9.0
+        const pre_2_9_0_tokens_cache = new Map();
+
+        // Tokens from wallet utxos will be added to cache on app load
+        pre_2_9_0_tokens_cache.set(
+            '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+            {
+                decimals: 0,
+                success: true,
+                hash: '',
+                url: 'https://cashtab.com/',
+                tokenName: 'BearNip',
+                tokenTicker: 'BEAR',
+            },
+        );
+
+        // Result will be stored as a keyvalue array and must be converted to a map
+        // We do the reverse to get the expected storage value
+        const expectedStoredCashtabCache = cashtabCacheToJSON({
+            tokens: pre_2_9_0_tokens_cache,
+        });
+        await localforage.setItem('cashtabCache', expectedStoredCashtabCache);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Confirm cashtabCache has been migrated to post-2.9.0 format
+        await waitFor(async () =>
+            expect(
+                storedCashtabCacheToMap(
+                    await localforage.getItem('cashtabCache'),
+                ),
+            ).toEqual(
+                new CashtabCache([
+                    [
+                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                        {
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                                number: 1,
+                            },
+                            genesisInfo: {
+                                tokenTicker: 'BEAR',
+                                tokenName: 'BearNip',
+                                url: 'https://cashtab.com/',
+                                decimals: 0,
+                                hash: '',
+                            },
+                            timeFirstSeen: 0,
+                            genesisSupply: '4444',
+                            genesisOutputScripts: [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                            ],
+                            genesisMintBatons: 0,
+                            block: {
+                                height: 782665,
+                                hash: '00000000000000001239831f90580c859ec174316e91961cf0e8cde57c0d3acb',
+                                timestamp: 1678408305,
+                            },
+                        },
+                    ],
+                ]),
+            ),
+        );
     });
 });

@@ -7,6 +7,10 @@ import {
     getUserLocale,
     cashtabCacheToJSON,
     storedCashtabCacheToMap,
+    cashtabWalletFromJSON,
+    cashtabWalletToJSON,
+    cashtabWalletsFromJSON,
+    cashtabWalletsToJSON,
 } from 'helpers';
 import vectors from 'helpers/fixtures/vectors';
 
@@ -38,12 +42,44 @@ describe('Cashtab helper functions', () => {
             const { description, cashtabCache, cashtabCacheJson } =
                 expectedReturn;
             it(`cashtabCacheToJSON and storedCashtabCacheToMap: ${description}`, () => {
-                expect(cashtabCacheToJSON(cashtabCache)).toStrictEqual(
+                expect(cashtabCacheToJSON(cashtabCache)).toEqual(
                     cashtabCacheJson,
                 );
-                expect(storedCashtabCacheToMap(cashtabCacheJson)).toStrictEqual(
+                expect(storedCashtabCacheToMap(cashtabCacheJson)).toEqual(
                     cashtabCache,
                 );
+            });
+        });
+    });
+    describe('Converts cashtabWallet to and from JSON for storage and in-app use', () => {
+        const { expectedReturns } = vectors.cashtabWalletToJSON;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, cashtabWallet, cashtabWalletJSON } =
+                expectedReturn;
+            it(`cashtabWalletToJSON and cashtabWalletFromJSON: ${description}`, () => {
+                expect(cashtabWalletToJSON(cashtabWallet)).toStrictEqual(
+                    cashtabWalletJSON,
+                );
+                expect(cashtabWalletFromJSON(cashtabWalletJSON)).toStrictEqual(
+                    cashtabWallet,
+                );
+            });
+        });
+    });
+    describe('Converts cashtabWallets (array) to and from JSON for storage and in-app use', () => {
+        const { expectedReturns } = vectors.cashtabWalletsToJSON;
+
+        expectedReturns.forEach(expectedReturn => {
+            const { description, cashtabWallets, cashtabWalletsJSON } =
+                expectedReturn;
+            it(`cashtabWalletsToJSON and cashtabWalletsFromJSON: ${description}`, () => {
+                expect(cashtabWalletsToJSON(cashtabWallets)).toStrictEqual(
+                    cashtabWalletsJSON,
+                );
+                expect(
+                    cashtabWalletsFromJSON(cashtabWalletsJSON),
+                ).toStrictEqual(cashtabWallets);
             });
         });
     });

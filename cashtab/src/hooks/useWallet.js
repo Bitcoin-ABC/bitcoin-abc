@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect } from 'react';
-import { BN } from 'slp-mdm';
 import { getHashArrayFromWallet } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
@@ -14,20 +13,23 @@ import {
 } from 'validation';
 import localforage from 'localforage';
 import {
-    getUtxosChronik,
+    getUtxos,
+    getHistory,
     organizeUtxosByType,
-    getPreliminaryTokensArray,
-    finalizeTokensArray,
-    getTxHistoryChronik,
-    parseChronikTx,
-    returnGetTokenInfoChronikPromise,
+    parseTx,
+    getTokenBalances,
 } from 'chronik';
 import { queryAliasServer } from 'alias';
 import appConfig from 'config/app';
 import aliasSettings from 'config/alias';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
-import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
+import {
+    cashtabCacheToJSON,
+    storedCashtabCacheToMap,
+    cashtabWalletsFromJSON,
+    cashtabWalletsToJSON,
+} from 'helpers';
 import { createCashtabWallet, getLegacyPaths, getBalanceSats } from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState from 'config/CashtabState';
@@ -50,7 +52,6 @@ const useWallet = chronik => {
     const [aliasIntervalId, setAliasIntervalId] = useState(null);
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState(new CashtabState());
-    const { settings, cashtabCache, wallets } = cashtabState;
     const locale = getUserLocale();
 
     const update = async cashtabState => {
@@ -63,35 +64,30 @@ const useWallet = chronik => {
         const activeWallet = cashtabState.wallets[0];
 
         try {
-            const chronikUtxos = await getUtxosChronik(
-                chronik,
-                activeWallet.paths,
-            );
+            const chronikUtxos = await getUtxos(chronik, activeWallet);
             const { slpUtxos, nonSlpUtxos } = organizeUtxosByType(chronikUtxos);
 
-            const preliminaryTokensArray = getPreliminaryTokensArray(slpUtxos);
+            // Get map of all tokenIds held by this wallet and their balances
+            // Note: this function will also update cashtabCache.tokens if any tokens in slpUtxos are not in cache
+            const tokens = await getTokenBalances(
+                chronik,
+                slpUtxos,
+                cashtabState.cashtabCache.tokens,
+            );
 
-            const { tokens, cachedTokens, newTokensToCache } =
-                await finalizeTokensArray(
-                    chronik,
-                    preliminaryTokensArray,
-                    cashtabState.cashtabCache.tokens,
-                );
+            // Fetch and parse tx history
+            // Note: this function will also update cashtabCache.tokens if any tokens in tx history are not in cache
+            const parsedTxHistory = await getHistory(
+                chronik,
+                activeWallet,
+                cashtabState.cashtabCache.tokens,
+            );
 
-            const {
-                parsedTxHistory,
-                cachedTokensAfterHistory,
-                txHistoryNewTokensToCache,
-            } = await getTxHistoryChronik(chronik, activeWallet, cachedTokens);
-
-            // If you have updated cachedTokens from finalizeTokensArray or getTxHistoryChronik
-            // Update in state and localforage
-            if (newTokensToCache || txHistoryNewTokensToCache) {
-                updateCashtabState('cashtabCache', {
-                    ...cashtabState.cashtabCache,
-                    tokens: cachedTokensAfterHistory,
-                });
-            }
+            // Update cashtabCache.tokens in state and localforage
+            updateCashtabState('cashtabCache', {
+                ...cashtabState.cashtabCache,
+                tokens: cashtabState.cashtabCache.tokens,
+            });
 
             const newState = {
                 balanceSats: getBalanceSats(nonSlpUtxos),
@@ -157,6 +153,9 @@ const useWallet = chronik => {
         // For now, this is just cashtabCache
         if (key === 'cashtabCache') {
             value = cashtabCacheToJSON(value);
+        }
+        if (key === 'wallets') {
+            value = cashtabWalletsToJSON(value);
         }
 
         // We lock the UI by setting loading to true while we set items in localforage
@@ -353,6 +352,11 @@ const useWallet = chronik => {
 
             if (wallets !== null) {
                 // If we find wallets in localforage
+                // In this case, we do not need to migrate from the wallet and savedWallets keys
+                // We may or may not need to migrate wallets found at the wallets key to a new format
+
+                // Revive from storage
+                wallets = cashtabWalletsFromJSON(wallets);
 
                 // Iterate over all wallets. If valid, do not change. If invalid, migrate and update array.
                 wallets = await Promise.all(
@@ -505,6 +509,8 @@ const useWallet = chronik => {
     const processChronikWsMsg = async (msg, cashtabState, fiatPrice) => {
         // get the message type
         const { msgType } = msg;
+        // get cashtabState params from param, so you know they are the most recent
+        const { settings, cashtabCache } = cashtabState;
         // Cashtab only processes "first seen" transactions and new blocks, i.e. where
         // type === 'AddedToMempool' or 'BlockConnected'
         // Dev note: Other chronik msg types
@@ -556,75 +562,67 @@ const useWallet = chronik => {
             );
         }
 
+        let tokenCacheForParsingThisTx = cashtabCache.tokens;
+        let thisTokenCachedInfo;
+        if (
+            incomingTxDetails.tokenStatus !== 'TOKEN_STATUS_NON_TOKEN' &&
+            incomingTxDetails.tokenEntries.length > 0
+        ) {
+            // If this is a token tx with at least one tokenId that is NOT cached, get token info
+            // TODO we must get token info for multiple token IDs when we start supporting
+            // token types other than slpv1
+            const tokenId = incomingTxDetails.tokenEntries[0].tokenId;
+            thisTokenCachedInfo = cashtabCache.tokens.get(tokenId);
+            if (typeof thisTokenCachedInfo === 'undefined') {
+                // If we do not have this token cached
+                // Note we do not update the cache here because this is handled in update
+                try {
+                    thisTokenCachedInfo = await chronik.token(tokenId);
+                    tokenCacheForParsingThisTx.set(
+                        tokenId,
+                        thisTokenCachedInfo,
+                    );
+                } catch (err) {
+                    console.error(
+                        `Error fetching chronik.token(${tokenId})`,
+                        err,
+                    );
+
+                    // Do not throw, in this case tokenCacheForParsingThisTx will still not
+                    // include this token info, and the tx will be parsed as if it has 0 decimals
+
+                    // We do not show the (wrong) amount in the notification if this is the case
+                }
+            }
+        }
+
         // parse tx for notification
-        const parsedChronikTx = parseChronikTx(
+        const parsedTx = parseTx(
             incomingTxDetails,
             cashtabState.wallets[0],
-            cashtabCache.tokens,
+            tokenCacheForParsingThisTx,
         );
-        /* If this is an incoming eToken tx and parseChronikTx was not able to get genesis info
-           from cache, then get genesis info from API and add to cache */
-        if (parsedChronikTx.incoming) {
-            if (parsedChronikTx.isEtokenTx) {
-                let eTokenAmountReceived = parsedChronikTx.etokenAmount;
-                if (parsedChronikTx.genesisInfo.success) {
-                    const eTokenReceivedString = `Received ${eTokenAmountReceived} ${parsedChronikTx.genesisInfo.tokenTicker} (${parsedChronikTx.genesisInfo.tokenName})`;
-                    toast(eTokenReceivedString, {
-                        icon: (
-                            <TokenIcon
-                                size={32}
-                                tokenId={
-                                    parsedChronikTx.tokenEntries[0].tokenId
-                                }
-                            />
-                        ),
-                    });
-                } else {
-                    // Get genesis info from API and add to cache
-                    try {
-                        // Get the genesis info and add it to cache
-                        const incomingTokenId =
-                            parsedChronikTx.tokenEntries[0].tokenId;
 
-                        const genesisInfoPromise =
-                            returnGetTokenInfoChronikPromise(
-                                chronik,
-                                incomingTokenId,
-                                cashtabCache.tokens,
-                            );
-
-                        const genesisInfo = await genesisInfoPromise;
-
-                        // Do not update in state and localforage, as update loop will do this
-
-                        // Calculate eToken amount with decimals
-                        eTokenAmountReceived = new BN(
-                            parsedChronikTx.etokenAmount,
-                        ).shiftedBy(-1 * genesisInfo.decimals);
-
-                        const eTokenFirstReceivedString = `Received ${eTokenAmountReceived.toString()} ${
-                            genesisInfo.tokenTicker
-                        } (${
-                            genesisInfo.tokenName
-                        }) (new token in this wallet)`;
-                        toast(eTokenFirstReceivedString, {
-                            icon: (
-                                <TokenIcon
-                                    size={32}
-                                    tokenId={incomingTokenId}
-                                />
-                            ),
-                        });
-                    } catch (err) {
-                        console.log(
-                            `Error fetching genesisInfo for incoming token tx ${parsedChronikTx}`,
-                            err,
-                        );
-                    }
-                }
+        if (parsedTx.incoming) {
+            if (parsedTx.isEtokenTx) {
+                let eTokenAmountReceived = parsedTx.etokenAmount;
+                const eTokenReceivedString = `Received ${
+                    parsedTx.assumedTokenDecimals ? '' : eTokenAmountReceived
+                } ${
+                    typeof thisTokenCachedInfo !== 'undefined'
+                        ? `${thisTokenCachedInfo.genesisInfo.tokenTicker} (${thisTokenCachedInfo.genesisInfo.tokenName})`
+                        : ''
+                }`;
+                toast(eTokenReceivedString, {
+                    icon: (
+                        <TokenIcon
+                            size={32}
+                            tokenId={parsedTx.tokenEntries[0].tokenId}
+                        />
+                    ),
+                });
             } else {
-                const xecAmount = parsedChronikTx.xecAmount;
-                // CashReceivedNotificationIcon
+                const xecAmount = parsedTx.xecAmount;
                 const xecReceivedString = `Received ${xecAmount.toLocaleString(
                     locale,
                 )} ${appConfig.ticker}${
@@ -791,38 +789,48 @@ const useWallet = chronik => {
         updateWebsocket(cashtabState, fiatPrice);
     }, [cashtabState, fiatPrice, ws, cashtabLoaded]);
 
-    const refreshAliasesOnStartup = async () => {
-        // Initialize a new periodic refresh of aliases which ONLY calls the API if
-        // there are pending aliases since confirmed aliases would not change over time
-        // The interval is also only initialized if there are no other intervals present.
-        if (aliasSettings.aliasEnabled) {
-            if (wallets.length > 0 && aliasIntervalId === null) {
-                // Get Path1899 address from wallet
-                const path1899Info = wallets[0].paths.find(
-                    pathInfo => pathInfo.path === 1899,
+    /**
+     * Set an interval to monitor pending alias txs
+     * @param {string} address
+     * @returns callback function to cleanup interval
+     */
+    const refreshAliasesOnStartup = async address => {
+        // Initial refresh to ensure `aliases` state var is up to date
+        await refreshAliases(address);
+        const aliasRefreshInterval = 30000;
+        const intervalId = setInterval(async function () {
+            if (aliases?.pending?.length > 0) {
+                console.log(
+                    'useEffect(): Refreshing registered and pending aliases',
                 );
-                const defaultAddress = path1899Info.address;
-                // Initial refresh to ensure `aliases` state var is up to date
-                await refreshAliases(defaultAddress);
-                const aliasRefreshInterval = 30000;
-                const intervalId = setInterval(async function () {
-                    if (aliases?.pending?.length > 0) {
-                        console.log(
-                            'useEffect(): Refreshing registered and pending aliases',
-                        );
-                        await refreshAliases(defaultAddress);
-                    }
-                }, aliasRefreshInterval);
-                setAliasIntervalId(intervalId);
-                // Clear the interval when useWallet unmounts
-                return () => clearInterval(intervalId);
+                await refreshAliases(address);
             }
-        }
+        }, aliasRefreshInterval);
+        setAliasIntervalId(intervalId);
+        // Clear the interval when useWallet unmounts
+        return () => clearInterval(intervalId);
     };
 
     useEffect(() => {
-        refreshAliasesOnStartup();
-    }, [aliases?.pending?.length]);
+        if (
+            aliasSettings.aliasEnabled &&
+            aliases?.pending?.length > 0 &&
+            aliasIntervalId === null &&
+            typeof cashtabState.wallets !== 'undefined' &&
+            cashtabState.wallets.length > 0
+        ) {
+            // If
+            // 1) aliases are enabled in Cashtab
+            // 2) we have pending aliases
+            // 3) No interval is set to watch these pending aliases
+            // 4) We have an active wallet
+            // Set an interval to watch these pending aliases
+            refreshAliasesOnStartup(cashtabState.wallets[0].paths.get(1899));
+        } else if (aliases?.pending?.length === 0 && aliasIntervalId !== null) {
+            // If we have no pending aliases but we still have an interval to check them, clearInterval
+            clearInterval(aliasIntervalId);
+        }
+    }, [cashtabState.wallets[0]?.name, aliases]);
 
     return {
         chronik,

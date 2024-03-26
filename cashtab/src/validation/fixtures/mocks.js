@@ -52,10 +52,25 @@ export const validWalletPre_2_1_0 = {
     },
 };
 
-export const validWallet = {
+export const validWalletJson = {
     mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
     name: 'test',
-    paths: [{ path: 1899, address: 'string', hash: 'string', wif: 'string' }],
+    paths: [[1899, { address: 'string', hash: 'string', wif: 'string' }]],
+    state: {
+        balanceSats: 0,
+        nonSlpUtxos: [],
+        slpUtxos: [],
+        tokens: [],
+    },
+};
+
+export const validWalletJsonMultiPath = {
+    mnemonic: 'one two three four five six seven eight nine ten eleven twelve',
+    name: 'test',
+    paths: [
+        [1899, { address: 'string', hash: 'string', wif: 'string' }],
+        [145, { address: 'string', hash: 'string', wif: 'string' }],
+    ],
     state: {
         balanceSats: 1000,
         nonSlpUtxos: [],
