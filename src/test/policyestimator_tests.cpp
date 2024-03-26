@@ -5,6 +5,7 @@
 #include <policy/fees.h>
 #include <policy/policy.h>
 
+#include <kernel/disconnected_transactions.h>
 #include <txmempool.h>
 #include <uint256.h>
 #include <util/time.h>

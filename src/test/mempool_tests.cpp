@@ -4,6 +4,7 @@
 
 #include <txmempool.h>
 
+#include <kernel/disconnected_transactions.h>
 #include <policy/settings.h>
 #include <reverse_iterator.h>
 #include <util/system.h>

@@ -22,7 +22,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "qt/bitcoingui -> qt/walletframe -> qt/bitcoingui"
     "qt/recentrequeststablemodel -> qt/walletmodel -> qt/recentrequeststablemodel"
     "qt/transactiontablemodel -> qt/walletmodel -> qt/transactiontablemodel"
-    "txmempool -> validation -> txmempool"
     "wallet/fees -> wallet/wallet -> wallet/fees"
     "wallet/rpcwallet -> wallet/wallet -> wallet/rpcwallet"
     "wallet/wallet -> wallet/walletdb -> wallet/wallet"
@@ -36,7 +35,7 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
     "avalanche/peermanager -> avalanche/proofpool -> avalanche/peermanager"
     "node/coinstats -> validation -> node/coinstats"
     "kernel/mempool_persist -> validation -> kernel/mempool_persist"
-    "policy/block/preconsensus -> txmempool -> validation -> policy/block/preconsensus"
+    "kernel/disconnected_transactions -> validation -> kernel/disconnected_transactions"
 )
 
 EXIT_CODE=0
