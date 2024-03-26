@@ -40,8 +40,8 @@ ENV WINEDIST=devel
 ENV WINEVERSION=9.0.0~${UBUNTUDIST}-1
 
 RUN echo "78b185fabdb323971d13bd329fefc8038e08559aa51c4996de18db0639a51df6 /tmp/winehq.key" | sha256sum -c - && \
-    apt-key add /tmp/winehq.key && \
-    echo deb https://dl.winehq.org/wine-builds/ubuntu/ ${UBUNTUDIST} main >> /etc/apt/sources.list && \
+    cat /tmp/winehq.key | gpg --dearmor -o /etc/apt/keyrings/winehq.gpg && \
+    echo deb [signed-by=/etc/apt/keyrings/winehq.gpg] https://dl.winehq.org/wine-builds/ubuntu/ ${UBUNTUDIST} main >> /etc/apt/sources.list.d/winehq.list && \
     apt-get update -q && \
     apt-get install -qy \
         wine-${WINEDIST}-amd64:amd64=${WINEVERSION} \
@@ -53,7 +53,7 @@ RUN echo "78b185fabdb323971d13bd329fefc8038e08559aa51c4996de18db0639a51df6 /tmp/
         # xvfb is needed to launch the Visual Studio installer
         xvfb=2:21.1.4-2ubuntu1.7~22.04.8 \
         # winbind is needed for the Visual Studio installer and cl.exe PDB generation
-        winbind=2:4.15.13+dfsg-0ubuntu1.5
+        winbind=2:4.15.13+dfsg-0ubuntu1.6
 
 RUN rm -rf /var/lib/apt/lists/* && \
     apt-get autoremove -y && \
