@@ -509,8 +509,7 @@ public:
     void removeRecursive(const CTransaction &tx, MemPoolRemovalReason reason)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
-    void removeForBlock(const std::vector<CTransactionRef> &vtx)
-        EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void updateFeeForBlock() EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void clear();
     // lock free
@@ -864,6 +863,9 @@ public:
             }
         }
     }
+
+    void removeForBlock(const std::vector<CTransactionRef> &vtx,
+                        CTxMemPool &pool) EXCLUSIVE_LOCKS_REQUIRED(pool.cs);
 
     // Remove an entry by insertion_order index, and update memory usage.
     void removeEntry(indexed_disconnected_transactions::index<

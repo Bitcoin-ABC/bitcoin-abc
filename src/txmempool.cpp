@@ -346,13 +346,20 @@ void CTxMemPool::removeConflicts(const CTransaction &tx) {
 }
 
 /**
- * Called when a block is connected. Removes from mempool and updates the miner
- * fee estimator.
+ * Called when a block is connected. Updates the miner fee estimator.
  */
-void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx) {
+void CTxMemPool::updateFeeForBlock() {
     AssertLockHeld(cs);
 
-    if (mapTx.empty() && mapDeltas.empty()) {
+    lastRollingFeeUpdate = GetTime();
+    blockSinceLastRollingFeeBump = true;
+}
+
+void DisconnectedBlockTransactions::removeForBlock(
+    const std::vector<CTransactionRef> &vtx, CTxMemPool &pool) {
+    AssertLockHeld(pool.cs);
+
+    if (pool.mapTx.empty() && pool.mapDeltas.empty()) {
         // fast-path for IBD and/or when mempool is empty; there is no need to
         // do any of the set-up work below which eats precious cycles.
         // Note that this also skips updating the rolling fee udpate, which is
@@ -361,27 +368,25 @@ void CTxMemPool::removeForBlock(const std::vector<CTransactionRef> &vtx) {
         return;
     }
 
-    DisconnectedBlockTransactions disconnectpool;
-    disconnectpool.addForBlock(vtx, *this);
+    addForBlock(vtx, pool);
 
     for (const CTransactionRef &tx :
-         reverse_iterate(disconnectpool.GetQueuedTx().get<insertion_order>())) {
-        txiter it = mapTx.find(tx->GetId());
-        if (it != mapTx.end()) {
-            setEntries stage;
+         reverse_iterate(queuedTx.get<insertion_order>())) {
+        CTxMemPool::txiter it = pool.mapTx.find(tx->GetId());
+        if (it != pool.mapTx.end()) {
+            CTxMemPool::setEntries stage;
             stage.insert(it);
-            RemoveStaged(stage, MemPoolRemovalReason::BLOCK);
+            pool.RemoveStaged(stage, MemPoolRemovalReason::BLOCK);
         } else {
             // Conflicting txs can only exist if the tx was not in the mempool
-            removeConflicts(*tx);
+            pool.removeConflicts(*tx);
         }
-        ClearPrioritisation(tx->GetId());
+        pool.ClearPrioritisation(tx->GetId());
     }
 
-    disconnectpool.clear();
+    pool.updateFeeForBlock();
 
-    lastRollingFeeUpdate = GetTime();
-    blockSinceLastRollingFeeBump = true;
+    removeForBlock(vtx);
 }
 
 void CTxMemPool::_clear() {

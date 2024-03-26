@@ -2709,10 +2709,9 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
              (nTime5 - nTime4) * MILLI, nTimeChainState * MICRO,
              nTimeChainState * MILLI / nBlocksTotal);
 
-    // Remove conflicting transactions from the mempool.;
+    // Remove conflicting transactions from the mempool;
     if (m_mempool) {
-        m_mempool->removeForBlock(blockConnecting.vtx);
-        disconnectpool.removeForBlock(blockConnecting.vtx);
+        disconnectpool.removeForBlock(blockConnecting.vtx, *m_mempool);
 
         // If this block is activating a fork, we move all mempool transactions
         // in front of disconnectpool for reprocessing in a future
