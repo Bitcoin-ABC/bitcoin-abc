@@ -494,6 +494,15 @@ class UserBuild:
         for lock_path in self.artifact_dir.glob("**/.walletlock"):
             lock_path.unlink()
 
+        # Set RW permissions to the artifact files/dirs
+        os.chmod(self.artifact_dir, 0o777)
+        for root, dirs, files in os.walk(self.artifact_dir):
+            for dirname in dirs:
+                os.chmod(os.path.join(root, dirname), 0o777)
+            for filename in files:
+                filepath = os.path.join(root, filename)
+                os.chmod(filepath, os.stat(filepath).st_mode | 0o666)
+
     def print_line_to_logs(self, line):
         # Always print to the full log
         with open(self.logs["full_log"], "a", encoding="utf-8") as log:
