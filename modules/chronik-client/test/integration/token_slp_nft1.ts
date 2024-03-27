@@ -224,7 +224,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         // We do not get data or authPubkey keys in GenesisInfo for non-ALP
         expect(slpGenesisMempoolInfo).to.deep.equal({
             tokenId: slpGenesisTxid,
-            timeFirstSeen: '1300000000',
+            timeFirstSeen: 1300000000,
             tokenType: {
                 protocol: 'SLP',
                 type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
@@ -414,7 +414,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         // We do not get mintVaultScripthash, data, or authPubkey keys in GenesisInfo for SLP NFT1
         expect(slpChildGenesisMempoolInfo).to.deep.equal({
             tokenId: slpChildGenesisTxid,
-            timeFirstSeen: '1300000000',
+            timeFirstSeen: 1300000000,
             tokenType: {
                 protocol: 'SLP',
                 type: 'SLP_TOKEN_TYPE_NFT1_CHILD',

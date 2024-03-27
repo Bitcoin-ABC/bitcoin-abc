@@ -270,7 +270,7 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         const slpGenesisMempoolInfo = await chronik.token(slpVaultGenesisTxid);
         expect(slpGenesisMempoolInfo).to.deep.equal({
             tokenId: slpVaultGenesisTxid,
-            timeFirstSeen: '1300000000',
+            timeFirstSeen: 1300000000,
             tokenType: {
                 protocol: 'SLP',
                 type: 'SLP_TOKEN_TYPE_MINT_VAULT',

@@ -955,7 +955,7 @@ function convertToTokenInfo(tokenInfo: proto.TokenInfo): TokenInfo {
     const returnedTokenInfo: TokenInfo = {
         tokenId: tokenInfo.tokenId,
         tokenType,
-        timeFirstSeen: tokenInfo.timeFirstSeen,
+        timeFirstSeen: parseInt(tokenInfo.timeFirstSeen),
         genesisInfo: convertToGenesisInfo(tokenInfo.genesisInfo, tokenType),
     };
 
@@ -1476,7 +1476,7 @@ export interface TokenInfo {
     /** Block of the GENESIS tx, if it's mined already */
     block?: BlockMetadata_InNode;
     /** Time the GENESIS tx has first been seen by the indexer */
-    timeFirstSeen: string;
+    timeFirstSeen: number;
 }
 
 /** Genesis info found in GENESIS txs of tokens */

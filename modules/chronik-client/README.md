@@ -106,3 +106,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   0.25.2 - Fix this package to work in the browser without requiring `Buffer` shim
 -   0.26.0 - Add `confirmedTxs` and `unconfirmedTxs` to `script` endpoint
 -   0.26.1 - If websocket takes longer than 5s to connect, try the next ws
+-   0.26.2 - Return type `number` for `timeFirstSeen` from `chronik.token()` endpoint in `ChronikClientNode`

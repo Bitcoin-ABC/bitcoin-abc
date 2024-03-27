@@ -221,7 +221,7 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         const slpGenesisMempoolInfo = await chronik.token(slpGenesisTxid);
         expect(slpGenesisMempoolInfo).to.deep.equal({
             tokenId: slpGenesisTxid,
-            timeFirstSeen: '1300000000',
+            timeFirstSeen: 1300000000,
             tokenType: {
                 protocol: 'SLP',
                 type: 'SLP_TOKEN_TYPE_FUNGIBLE',

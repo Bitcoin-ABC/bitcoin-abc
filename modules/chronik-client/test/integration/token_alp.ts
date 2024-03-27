@@ -191,7 +191,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     const alpTokenInfo: TokenInfo = {
         tokenId:
             '1111111111111111111111111111111111111111111111111111111111111111',
-        timeFirstSeen: '1300000000',
+        timeFirstSeen: 1300000000,
         tokenType: {
             protocol: 'ALP',
             type: 'ALP_TOKEN_TYPE_STANDARD',
