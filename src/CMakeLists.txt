@@ -946,7 +946,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		cashaddr.cpp         # via cashaddrenc.cpp
 		cashaddrenc.cpp      # via key_io.cpp
 		dnsseeds.cpp         # via net.cpp (GetRandomizedDNSSeeds)
-		i2p.cpp              # via net.cpp
+		i2p.cpp              # via net.cppTx
 		key_io.cpp           # avalanche/processor.cpp uses DecodeSecret
 		minerfund.cpp        # via policy/block/minerfund.cpp
 		net.cpp              # avalanche uses CConnman

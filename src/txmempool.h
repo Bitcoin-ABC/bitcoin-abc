@@ -33,7 +33,6 @@
 #include <utility>
 #include <vector>
 
-class CBlockIndex;
 class CChain;
 class Chainstate;
 class Config;
@@ -52,18 +51,7 @@ struct LockPoints {
     // of this tx given our view of block chain history
     int height{0};
     int64_t time{0};
-    // As long as the current chain descends from the highest height block
-    // containing one of the inputs used in the calculation, then the cached
-    // values are still valid even after a reorg.
-    CBlockIndex *maxInputBlock{nullptr};
 };
-
-/**
- * Test whether the LockPoints height and time are still valid on the current
- * chain.
- */
-bool TestLockPointValidity(const CChain &active_chain, const LockPoints &lp)
-    EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 struct CompareIteratorById {
     // SFINAE for T where T is either a std::reference_wrapper<T> (e.g. a
@@ -178,8 +166,6 @@ public:
 
     // Updates the fee delta used for mining priority score
     void UpdateFeeDelta(Amount feeDelta);
-    // Update the LockPoints after a reorg
-    void UpdateLockPoints(const LockPoints &lp);
 
     bool GetSpendsCoinbase() const { return spendsCoinbase; }
 
