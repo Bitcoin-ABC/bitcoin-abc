@@ -133,6 +133,12 @@ it('Mock the script().history() API response', async function () {
     // Execute the API call
     const result = await mockedChronik.script(type, hash).history(0, 2);
     assert.deepEqual(result, mockTxHistory);
+
+    // We can also call this without page size
+    assert.deepEqual(
+        await mockedChronik.script(type, hash).history(),
+        mockTxHistory,
+    );
 });
 
 it('We get the same script().history() API response using address().history()', async function () {
@@ -144,6 +150,12 @@ it('We get the same script().history() API response using address().history()', 
     // Execute the API call
     const result = await mockedChronik.address(P2PKH_ADDRESS).history(0, 2);
     assert.deepEqual(result, mockTxHistory);
+
+    // We can also call this without page size
+    assert.deepEqual(
+        await mockedChronik.address(P2PKH_ADDRESS).history(),
+        mockTxHistory,
+    );
 });
 
 it('We can also set and get tx history by tokenId', async function () {
@@ -157,6 +169,12 @@ it('We can also set and get tx history by tokenId', async function () {
     // Execute the API call
     const result = await mockedChronik.tokenId(tokenId).history(0, 2);
     assert.deepEqual(result, mockTxHistory);
+
+    // We can also call this without page size
+    assert.deepEqual(
+        await mockedChronik.tokenId(tokenId).history(),
+        mockTxHistory,
+    );
 });
 
 it('We can sub and unsub to scripts with the websocket', async function () {

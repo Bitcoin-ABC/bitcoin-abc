@@ -127,3 +127,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.7.0
 
 -   Allow getting and setting utxos() and history() by tokenId
+
+1.8.0
+
+-   Allow getting history without specifying pageNumber or pageSize

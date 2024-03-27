@@ -4,6 +4,8 @@
 'use strict';
 const cashaddr = require('ecashaddrjs');
 
+const CHRONIK_DEFAULT_PAGESIZE = 25;
+
 module.exports = {
     MockChronikClient: class {
         constructor() {
@@ -243,7 +245,10 @@ module.exports = {
                 self.mockedResponses[type][hash] = {};
 
                 self.mockedMethods[type][hash] = {
-                    history: async function (pageNumber = 0, pageSize) {
+                    history: async function (
+                        pageNumber = 0,
+                        pageSize = CHRONIK_DEFAULT_PAGESIZE,
+                    ) {
                         if (
                             self.mockedResponses[type][hash]
                                 .txHistory instanceof Error
@@ -270,7 +275,10 @@ module.exports = {
                 self.mockedResponses[address] = {};
 
                 self.mockedMethods[address] = {
-                    history: async function (pageNumber = 0, pageSize) {
+                    history: async function (
+                        pageNumber = 0,
+                        pageSize = CHRONIK_DEFAULT_PAGESIZE,
+                    ) {
                         if (
                             self.mockedResponses[address].txHistory instanceof
                             Error
@@ -297,7 +305,10 @@ module.exports = {
                 self.mockedResponses[tokenId] = {};
 
                 self.mockedMethods[tokenId] = {
-                    history: async function (pageNumber = 0, pageSize) {
+                    history: async function (
+                        pageNumber = 0,
+                        pageSize = CHRONIK_DEFAULT_PAGESIZE,
+                    ) {
                         if (
                             self.mockedResponses[tokenId].txHistory instanceof
                             Error
