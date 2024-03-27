@@ -243,12 +243,10 @@ struct TestMemPoolEntryHelper {
     Amount nFee;
     int64_t nTime;
     unsigned int nHeight;
-    bool spendsCoinbase;
     unsigned int nSigChecks;
     uint64_t entryId = 0;
 
-    TestMemPoolEntryHelper()
-        : nFee(), nTime(0), nHeight(1), spendsCoinbase(false), nSigChecks(1) {}
+    TestMemPoolEntryHelper() : nFee(), nTime(0), nHeight(1), nSigChecks(1) {}
 
     CTxMemPoolEntryRef FromTx(const CMutableTransaction &tx) const;
     CTxMemPoolEntryRef FromTx(const CTransactionRef &tx) const;
@@ -264,10 +262,6 @@ struct TestMemPoolEntryHelper {
     }
     TestMemPoolEntryHelper &Height(unsigned int _height) {
         nHeight = _height;
-        return *this;
-    }
-    TestMemPoolEntryHelper &SpendsCoinbase(bool _flag) {
-        spendsCoinbase = _flag;
         return *this;
     }
     TestMemPoolEntryHelper &SigChecks(unsigned int _nSigChecks) {

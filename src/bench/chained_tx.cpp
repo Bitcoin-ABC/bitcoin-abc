@@ -182,13 +182,9 @@ static void benchReorg(const Config &config, node::NodeContext &node,
     entry.nFee = 1337 * SATOSHI;
     for (const auto &chain : chains) {
         {
-            entry.spendsCoinbase = true;
             LOCK2(cs_main, mempool.cs);
             for (const auto &tx : chain) {
                 mempool.addUnchecked(entry.FromTx(tx));
-                // Setting spendCoinbase to false here assumes it's a chain of
-                // 1-in-1-out transaction chain.
-                entry.spendsCoinbase = false;
             }
         }
         assert(mempool.size() == chain.size());
@@ -252,13 +248,9 @@ benchGenerateNewBlock(const Config &config, node::NodeContext &node,
     // Fill mempool
     size_t txCount = 0;
     for (const auto &chain : chains) {
-        entry.spendsCoinbase = true;
         LOCK2(cs_main, mempool.cs);
         for (const auto &tx : chain) {
             mempool.addUnchecked(entry.FromTx(tx));
-            // Setting spendCoinbase to false here assumes it's a chain of
-            // 1-in-1-out transaction chain.
-            entry.spendsCoinbase = false;
             ++txCount;
         }
     }
@@ -302,7 +294,6 @@ benchEviction(const Config &, benchmark::Bench &bench,
         const Amount feeBump =
             revFee ? int64_t(-1) * SATOSHI : int64_t(1) * SATOSHI;
         for (const auto &chain : chains) {
-            entry.spendsCoinbase = true;
             if (revFee) {
                 entry.nFee += int64_t(chain.size()) * SATOSHI;
             }
@@ -312,7 +303,6 @@ benchEviction(const Config &, benchmark::Bench &bench,
                 entry.nFee += feeBump;
                 // Setting spendCoinbase to false here assumes it's a chain of
                 // 1-in-1-out transaction chain.
-                entry.spendsCoinbase = false;
                 ++txCount;
             }
             if (revFee) {

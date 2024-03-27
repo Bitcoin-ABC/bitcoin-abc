@@ -28,12 +28,11 @@
 
 CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee,
                                  int64_t time, unsigned int entry_height,
-                                 bool spends_coinbase, int64_t _sigChecks,
-                                 LockPoints lp)
+                                 int64_t _sigChecks, LockPoints lp)
     : tx{_tx}, nFee{fee},
       nTxSize(tx->GetTotalSize()), nUsageSize{RecursiveDynamicUsage(tx)},
-      nTime(time), entryHeight{entry_height}, spendsCoinbase(spends_coinbase),
-      sigChecks(_sigChecks), lockPoints(lp) {}
+      nTime(time), entryHeight{entry_height}, sigChecks(_sigChecks),
+      lockPoints(lp) {}
 
 size_t CTxMemPoolEntry::GetTxVirtualSize() const {
     return GetVirtualTransactionSize(nTxSize, sigChecks, ::nBytesPerSigCheck);

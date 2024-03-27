@@ -498,8 +498,8 @@ TestChain100Setup::PopulateMempool(FastRandomContext &det_rand,
         if (submit) {
             LOCK2(m_node.mempool->cs, cs_main);
             LockPoints lp;
-            m_node.mempool->addUnchecked(CTxMemPoolEntryRef::make(
-                ptx, 1000 * SATOSHI, 0, 1, false, 4, lp));
+            m_node.mempool->addUnchecked(
+                CTxMemPoolEntryRef::make(ptx, 1000 * SATOSHI, 0, 1, 4, lp));
         }
         --num_transactions;
     }
@@ -513,8 +513,7 @@ TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) const {
 
 CTxMemPoolEntryRef
 TestMemPoolEntryHelper::FromTx(const CTransactionRef &tx) const {
-    CTxMemPoolEntry ret(tx, nFee, nTime, nHeight, spendsCoinbase, nSigChecks,
-                        LockPoints());
+    CTxMemPoolEntry ret(tx, nFee, nTime, nHeight, nSigChecks, LockPoints());
     ret.SetEntryId(entryId);
     return CTxMemPoolEntryRef::make(std::move(ret));
 }

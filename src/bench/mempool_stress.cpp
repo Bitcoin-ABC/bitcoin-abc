@@ -15,11 +15,10 @@ static void AddTx(const CTransactionRef &tx, CTxMemPool &pool)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs) {
     int64_t nTime = 0;
     unsigned int nHeight = 1;
-    bool spendsCoinbase = false;
     unsigned int sigChecks = 1;
     LockPoints lp;
-    pool.addUnchecked(CTxMemPoolEntryRef::make(
-        tx, 1000 * SATOSHI, nTime, nHeight, spendsCoinbase, sigChecks, lp));
+    pool.addUnchecked(CTxMemPoolEntryRef::make(tx, 1000 * SATOSHI, nTime,
+                                               nHeight, sigChecks, lp));
 }
 
 struct Available {

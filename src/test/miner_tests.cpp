@@ -134,29 +134,23 @@ void MinerTestingSetup::TestPackageSelection(
     // This tx has a low fee: 1000 satoshis.
     // Save this txid for later use.
     TxId parentTxId = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(1000 * SATOSHI)
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(true)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(1000 * SATOSHI).Time(GetTime()).FromTx(tx));
 
     // This tx has a medium fee: 10000 satoshis.
     tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
     tx.vout[0].nValue = int64_t(5000000000LL - 10000) * SATOSHI;
     TxId mediumFeeTxId = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(10000 * SATOSHI)
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(true)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(10000 * SATOSHI).Time(GetTime()).FromTx(tx));
 
     // This tx has a high fee, but depends on the first transaction.
     tx.vin[0].prevout = COutPoint(parentTxId, 0);
     // 50k satoshi fee.
     tx.vout[0].nValue = int64_t(5000000000LL - 1000 - 50000) * SATOSHI;
     TxId highFeeTxId = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(50000 * SATOSHI)
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(false)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(50000 * SATOSHI).Time(GetTime()).FromTx(tx));
 
     std::unique_ptr<CBlockTemplate> pblocktemplate =
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);
@@ -267,12 +261,8 @@ void MinerTestingSetup::TestBasicMining(
     for (unsigned int i = 0; i < 128; ++i) {
         tx.vout[0].nValue -= LOWFEE;
         const TxId txid = tx.GetId();
-        // Only first tx spends coinbase.
-        bool spendsCoinbase = i == 0;
-        m_node.mempool->addUnchecked(entry.Fee(LOWFEE)
-                                         .Time(GetTime())
-                                         .SpendsCoinbase(spendsCoinbase)
-                                         .FromTx(tx));
+        m_node.mempool->addUnchecked(
+            entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
         tx.vin[0].prevout = COutPoint(txid, 0);
     }
 
@@ -292,8 +282,7 @@ void MinerTestingSetup::TestBasicMining(
     tx.vin[0].prevout = COutPoint(txFirst[1]->GetId(), 0);
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     TxId txid = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(HIGHFEE).Time(GetTime()).FromTx(tx));
     tx.vin[0].prevout = COutPoint(txid, 0);
     tx.vin.resize(2);
     tx.vin[1].scriptSig = CScript() << OP_1;
@@ -302,7 +291,7 @@ void MinerTestingSetup::TestBasicMining(
     tx.vout[0].nValue = tx.vout[0].nValue + BLOCKSUBSIDY - HIGHERFEE;
     txid = tx.GetId();
     m_node.mempool->addUnchecked(
-        entry.Fee(HIGHERFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+        entry.Fee(HIGHERFEE).Time(GetTime()).FromTx(tx));
     BOOST_CHECK(pblocktemplate =
                     AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
     m_node.mempool->clear();
@@ -314,8 +303,7 @@ void MinerTestingSetup::TestBasicMining(
     tx.vout[0].nValue = Amount::zero();
     txid = tx.GetId();
     // Give it a fee so it'll get mined.
-    m_node.mempool->addUnchecked(
-        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
     // Should throw bad-tx-coinbase
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
@@ -328,12 +316,10 @@ void MinerTestingSetup::TestBasicMining(
     tx.vout[0].nValue = BLOCKSUBSIDY - HIGHFEE;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     txid = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(HIGHFEE).Time(GetTime()).FromTx(tx));
     tx.vout[0].scriptPubKey = CScript() << OP_2;
     txid = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(HIGHFEE).Time(GetTime()).FromTx(tx));
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
         std::runtime_error, HasReason("bad-txns-inputs-missingorspent"));
@@ -378,15 +364,13 @@ void MinerTestingSetup::TestBasicMining(
     CScript script = CScript() << OP_0;
     tx.vout[0].scriptPubKey = GetScriptForDestination(ScriptHash(script));
     txid = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
     tx.vin[0].prevout = COutPoint(txid, 0);
     tx.vin[0].scriptSig = CScript()
                           << std::vector<uint8_t>(script.begin(), script.end());
     tx.vout[0].nValue -= LOWFEE;
     txid = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(LOWFEE).Time(GetTime()).SpendsCoinbase(false).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(LOWFEE).Time(GetTime()).FromTx(tx));
     // Should throw blk-bad-inputs
     BOOST_CHECK_EXCEPTION(
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey),
@@ -424,8 +408,7 @@ void MinerTestingSetup::TestBasicMining(
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     tx.nLockTime = 0;
     txid = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(HIGHFEE).Time(GetTime()).FromTx(tx));
 
     const Consensus::Params &params = chainparams.GetConsensus();
 
@@ -613,10 +596,8 @@ void MinerTestingSetup::TestPrioritisedMining(
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreePrioritisedTx = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(Amount::zero())
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(true)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(Amount::zero()).Time(GetTime()).FromTx(tx));
     m_node.mempool->PrioritiseTransaction(hashFreePrioritisedTx, 5 * COIN);
 
     // This tx has a low fee: 1000 satoshis
@@ -624,19 +605,15 @@ void MinerTestingSetup::TestPrioritisedMining(
     tx.vout[0].nValue = (fiveBillion - 1000) * SATOSHI;
     // save this txid for later use
     const TxId hashParentTx = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(1000 * SATOSHI)
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(true)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(1000 * SATOSHI).Time(GetTime()).FromTx(tx));
 
     // This tx has a medium fee: 10000 satoshis
     tx.vin[0].prevout = COutPoint{txFirst[2]->GetId(), 0};
     tx.vout[0].nValue = (fiveBillion - 10000) * SATOSHI;
     const TxId hashMediumFeeTx = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(10000 * SATOSHI)
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(true)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(10000 * SATOSHI).Time(GetTime()).FromTx(tx));
     m_node.mempool->PrioritiseTransaction(hashMediumFeeTx, -5 * COIN);
 
     // This tx also has a low fee, but is prioritised
@@ -644,10 +621,8 @@ void MinerTestingSetup::TestPrioritisedMining(
     // 1000 satoshi fee
     tx.vout[0].nValue = (fiveBillion - 1000 - 1000) * SATOSHI;
     const TxId hashPrioritisedChild = tx.GetId();
-    m_node.mempool->addUnchecked(entry.Fee(1000 * SATOSHI)
-                                     .Time(GetTime())
-                                     .SpendsCoinbase(false)
-                                     .FromTx(tx));
+    m_node.mempool->addUnchecked(
+        entry.Fee(1000 * SATOSHI).Time(GetTime()).FromTx(tx));
     m_node.mempool->PrioritiseTransaction(hashPrioritisedChild, 2 * COIN);
 
     // Test that transaction selection properly updates ancestor fee
@@ -662,24 +637,21 @@ void MinerTestingSetup::TestPrioritisedMining(
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeParent = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(Amount::zero()).SpendsCoinbase(true).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(Amount::zero()).FromTx(tx));
     m_node.mempool->PrioritiseTransaction(hashFreeParent, 10 * COIN);
 
     tx.vin[0].prevout = COutPoint{hashFreeParent, 0};
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeChild = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(Amount::zero()).SpendsCoinbase(false).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(Amount::zero()).FromTx(tx));
     m_node.mempool->PrioritiseTransaction(hashFreeChild, 1 * COIN);
 
     tx.vin[0].prevout = COutPoint{hashFreeChild, 0};
     // 0 fee
     tx.vout[0].nValue = fiveBillion * SATOSHI;
     const TxId hashFreeGrandchild = tx.GetId();
-    m_node.mempool->addUnchecked(
-        entry.Fee(Amount::zero()).SpendsCoinbase(false).FromTx(tx));
+    m_node.mempool->addUnchecked(entry.Fee(Amount::zero()).FromTx(tx));
 
     auto pblocktemplate =
         AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey);

@@ -16,7 +16,6 @@ static void AddTx(const CTransactionRef &tx, const Amount &fee,
     LockPoints lp;
     pool.addUnchecked(CTxMemPoolEntryRef::make(tx, fee, /*time=*/0,
                                                /*height=*/1,
-                                               /*spendsCoinbase=*/false,
                                                /*_sigChecks=*/1, lp));
 }
 

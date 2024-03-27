@@ -115,8 +115,6 @@ private:
     const int64_t nTime;
     //! Chain height when entering the mempool
     const unsigned int entryHeight;
-    //! keep track of transactions that spend a coinbase
-    const bool spendsCoinbase;
     //! Total sigChecks
     const int64_t sigChecks;
     //! Used for determining the priority of the transaction for mining in a
@@ -129,8 +127,8 @@ private:
 
 public:
     CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee, int64_t time,
-                    unsigned int entry_height, bool spends_coinbase,
-                    int64_t sigchecks, LockPoints lp);
+                    unsigned int entry_height, int64_t sigchecks,
+                    LockPoints lp);
 
     CTxMemPoolEntry(const CTxMemPoolEntry &other) = delete;
     CTxMemPoolEntry(CTxMemPoolEntry &&other)
@@ -139,8 +137,8 @@ public:
           m_children(std::move(other.m_children)), nFee(other.nFee),
           nTxSize(other.nTxSize), nUsageSize(other.nUsageSize),
           nTime(other.nTime), entryHeight(other.entryHeight),
-          spendsCoinbase(other.spendsCoinbase), sigChecks(other.sigChecks),
-          feeDelta(other.feeDelta), lockPoints(std::move(other.lockPoints)),
+          sigChecks(other.sigChecks), feeDelta(other.feeDelta),
+          lockPoints(std::move(other.lockPoints)),
           refcount(other.refcount.load()){};
 
     uint64_t GetEntryId() const { return entryId; }
@@ -166,8 +164,6 @@ public:
 
     // Updates the fee delta used for mining priority score
     void UpdateFeeDelta(Amount feeDelta);
-
-    bool GetSpendsCoinbase() const { return spendsCoinbase; }
 
     const Parents &GetMemPoolParentsConst() const { return m_parents; }
     const Children &GetMemPoolChildrenConst() const { return m_children; }

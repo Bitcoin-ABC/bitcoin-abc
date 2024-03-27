@@ -611,17 +611,6 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     ws.m_modified_fees = ws.m_base_fees;
     m_pool.ApplyDelta(txid, ws.m_modified_fees);
 
-    // Keep track of transactions that spend a coinbase, which we re-scan
-    // during reorgs to ensure COINBASE_MATURITY is still met.
-    bool fSpendsCoinbase = false;
-    for (const CTxIn &txin : tx.vin) {
-        const Coin &coin = m_view.AccessCoin(txin.prevout);
-        if (coin.IsCoinBase()) {
-            fSpendsCoinbase = true;
-            break;
-        }
-    }
-
     unsigned int nSize = tx.GetTotalSize();
 
     // No transactions are allowed below the min relay feerate except from
@@ -649,7 +638,7 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     ws.m_entry = std::make_unique<CTxMemPoolEntry>(
         ptx, ws.m_base_fees, nAcceptTime,
         heightOverride ? heightOverride : m_active_chainstate.m_chain.Height(),
-        fSpendsCoinbase, ws.m_sig_checks_standard, lp);
+        ws.m_sig_checks_standard, lp);
 
     ws.m_vsize = ws.m_entry->GetTxVirtualSize();
 
