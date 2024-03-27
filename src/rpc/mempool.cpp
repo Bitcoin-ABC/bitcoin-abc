@@ -3,6 +3,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <kernel/mempool_entry.h>
 #include <kernel/mempool_persist.h>
 
 #include <core_io.h>

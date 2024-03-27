@@ -13,7 +13,6 @@
 #include <consensus/validation.h>
 #include <policy/fees.h>
 #include <policy/policy.h>
-#include <policy/settings.h>
 #include <reverse_iterator.h>
 #include <undo.h>
 #include <util/moneystr.h>
@@ -25,22 +24,6 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-
-CTxMemPoolEntry::CTxMemPoolEntry(const CTransactionRef &_tx, const Amount fee,
-                                 int64_t time, unsigned int entry_height,
-                                 int64_t _sigChecks, LockPoints lp)
-    : tx{_tx}, nFee{fee},
-      nTxSize(tx->GetTotalSize()), nUsageSize{RecursiveDynamicUsage(tx)},
-      nTime(time), entryHeight{entry_height}, sigChecks(_sigChecks),
-      lockPoints(lp) {}
-
-size_t CTxMemPoolEntry::GetTxVirtualSize() const {
-    return GetVirtualTransactionSize(nTxSize, sigChecks, ::nBytesPerSigCheck);
-}
-
-void CTxMemPoolEntry::UpdateFeeDelta(Amount newFeeDelta) {
-    feeDelta = newFeeDelta;
-}
 
 bool CTxMemPool::CalculateAncestors(
     setEntries &setAncestors,

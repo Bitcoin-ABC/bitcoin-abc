@@ -7,6 +7,7 @@
 #include <validation.h>
 
 #include <kernel/disconnected_transactions.h>
+#include <kernel/mempool_entry.h>
 #include <kernel/mempool_persist.h>
 
 #include <arith_uint256.h>

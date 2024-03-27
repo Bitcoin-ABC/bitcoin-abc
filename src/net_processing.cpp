@@ -26,6 +26,7 @@
 #include <headerssync.h>
 #include <index/blockfilterindex.h>
 #include <invrequest.h>
+#include <kernel/mempool_entry.h>
 #include <merkleblock.h>
 #include <netbase.h>
 #include <netmessagemaker.h>

@@ -4,6 +4,7 @@
 
 #include <bench/bench.h>
 #include <consensus/amount.h>
+#include <kernel/mempool_entry.h>
 #include <policy/policy.h>
 #include <test/util/setup_common.h>
 #include <txmempool.h>

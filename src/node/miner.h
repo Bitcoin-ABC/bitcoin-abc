@@ -7,6 +7,7 @@
 #define BITCOIN_NODE_MINER_H
 
 #include <consensus/amount.h>
+#include <kernel/mempool_entry.h>
 #include <primitives/block.h>
 #include <txmempool.h>
 

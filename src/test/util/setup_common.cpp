@@ -4,6 +4,7 @@
 
 #include <test/util/setup_common.h>
 
+#include <kernel/mempool_entry.h>
 #include <kernel/validation_cache_sizes.h>
 
 #include <addrman.h>
