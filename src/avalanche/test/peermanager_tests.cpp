@@ -2348,8 +2348,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     }
 
     // Make sure the proofs have been registered before the prev block was found
-    // and before 2x the peer replacement cooldown.
-    now += 30min + 1s;
+    // and before 4x the peer replacement cooldown.
+    now += 4 * avalanche::Peer::DANGLING_TIMEOUT + 1s;
     SetMockTime(now);
     prevBlock.nTime = now.count();
 
@@ -2529,6 +2529,46 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
         // With a single proof, it's easy to determine the winner
         BOOST_CHECK_EQUAL(FormatScript(winners[0]), FormatScript(payoutScript));
+
+        // Remove the proof
+        BOOST_CHECK(pm.rejectProof(
+            proof->getId(), avalanche::PeerManager::RejectionMode::INVALIDATE));
+    }
+
+    {
+        for (size_t i = 0; i < 2; i++) {
+            // Add a couple proofs
+            const CKey key = CKey::MakeCompressedKey();
+            CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+            auto proof = buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD,
+                                                       payoutScript);
+            PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+            BOOST_CHECK_NE(peerid, NO_PEER);
+
+            BOOST_CHECK(pm.addNode(NodeId(i), proof->getId()));
+
+            BOOST_CHECK(pm.setFinalized(peerid));
+        }
+
+        // The proofs has been registered > 30min from the previous block time,
+        // but less than 60min
+        now += 30min + 1s;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+
+        // Because they are both recently registered, both proofs are acceptable
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_EQUAL(winners.size(), 2);
+
+        // The proofs has been registered > 60min from the previous block time
+        now += 30min;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+
+        // Now only one is acceptable
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_EQUAL(winners.size(), 1);
     }
 }
 

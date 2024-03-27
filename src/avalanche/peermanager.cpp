@@ -986,12 +986,19 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
                                                          Peer::DANGLING_TIMEOUT)
             .count();
 
+    const int64_t recentRegistrationTime =
+        std::min(pprev->GetBlockTime(), GetTime()) -
+        std::chrono::duration_cast<std::chrono::seconds>(4 *
+                                                         Peer::DANGLING_TIMEOUT)
+            .count();
+
     const BlockHash prevblockhash = pprev->GetBlockHash();
 
     winners.clear();
     while (winners.size() < peers.size()) {
         double bestRewardRank = std::numeric_limits<double>::max();
         ProofRef selectedProof = ProofRef();
+        int64_t selectedProofRegistrationTime{0};
         uint256 bestRewardHash;
 
         for (const Peer &peer : peers) {
@@ -1042,6 +1049,7 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
             if (proofRewardRank < bestRewardRank) {
                 bestRewardRank = proofRewardRank;
                 selectedProof = peer.proof;
+                selectedProofRegistrationTime = peer.registration_time.count();
                 bestRewardHash = proofRewardHash;
             }
 
@@ -1052,6 +1060,7 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
                  (proofRewardHash == bestRewardHash &&
                   peer.getProofId() < selectedProof->getId()))) {
                 selectedProof = peer.proof;
+                selectedProofRegistrationTime = peer.registration_time.count();
                 bestRewardHash = proofRewardHash;
             }
         }
@@ -1063,7 +1072,8 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
 
         winners.push_back(selectedProof->getPayoutScript());
 
-        if (!isFlaky(selectedProof->getId())) {
+        if (selectedProofRegistrationTime < recentRegistrationTime &&
+            !isFlaky(selectedProof->getId())) {
             break;
         }
     }
