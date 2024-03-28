@@ -86,8 +86,7 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
 
     // Invalidate block in the middle of the chain
     BlockValidationState state;
-    chainman.ActiveChainstate().InvalidateBlock(GetConfig(), state,
-                                                tip->GetAncestor(50));
+    chainman.ActiveChainstate().InvalidateBlock(state, tip->GetAncestor(50));
 
     // Mine 100 blocks, up to height 150
     mineBlocks(100);
