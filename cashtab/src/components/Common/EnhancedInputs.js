@@ -6,14 +6,11 @@ import * as React from 'react';
 import PropTypes from 'prop-types';
 import { Form, Input, Select, Checkbox } from 'antd';
 import {
-    ThemedDollarOutlined,
     ThemedWalletOutlined,
     ThemedAliasOutlined,
 } from 'components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
-import ScanQRCode from './ScanQRCode';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
-import appConfig from 'config/app';
 
 export const AntdFormCss = css`
     input[type='number'] {
@@ -125,37 +122,6 @@ export const AntdFormWrapper = styled.div`
     ${AntdFormCss}
 `;
 
-export const InputAddonText = styled.span`
-    width: 100%;
-    height: 100%;
-    display: block;
-
-    ${props =>
-        props.disabled
-            ? `
-      cursor: not-allowed;
-      `
-            : `cursor: pointer;`}
-`;
-
-export const InputNumberAddonText = styled.span`
-    background-color: ${props => props.theme.forms.addonBackground} !important;
-    border: 1px solid ${props => props.theme.forms.border};
-    color: ${props => props.theme.forms.addonForeground} !important;
-    height: 50px;
-    line-height: 47px;
-
-    * {
-        color: ${props => props.theme.forms.addonForeground} !important;
-    }
-    ${props =>
-        props.disabled
-            ? `
-      cursor: not-allowed;
-      `
-            : `cursor: pointer;`}
-`;
-
 export const CashtabCheckbox = styled(Checkbox)`
     .ant-checkbox-checked .ant-checkbox-inner {
         background-color: ${props => props.theme.eCashBlue} !important;
@@ -165,174 +131,6 @@ export const CashtabCheckbox = styled(Checkbox)`
         color: ${props => props.theme.forms.text} !important;
     }
 `;
-
-export const SendXecInput = ({
-    onMax,
-    inputProps,
-    selectProps,
-    activeFiatCode,
-    ...otherProps
-}) => {
-    const { Option } = Select;
-    const currencies = [
-        {
-            value: appConfig.ticker,
-            label: appConfig.ticker,
-        },
-        {
-            value: activeFiatCode ? activeFiatCode : 'USD',
-            label: activeFiatCode ? activeFiatCode : 'USD',
-        },
-    ];
-    const currencyOptions = currencies.map(currency => {
-        return (
-            <Option
-                data-testid={`currency-select-option`}
-                key={currency.value}
-                value={currency.value}
-                className="selectedCurrencyOption"
-            >
-                {currency.label}
-            </Option>
-        );
-    });
-
-    const CurrencySelect = (
-        <Select
-            data-testid="currency-select-dropdown"
-            defaultValue={appConfig.ticker}
-            className="select-after"
-            style={{ width: '30%' }}
-            {...selectProps}
-        >
-            {currencyOptions}
-        </Select>
-    );
-    return (
-        <AntdFormWrapper>
-            <Form.Item {...otherProps}>
-                <Input.Group compact>
-                    <Input
-                        style={{ width: '60%', textAlign: 'left' }}
-                        type="number"
-                        data-testid="send-xec-input"
-                        /*event.target.blur() is used as event.preventDefault() 
-                        will not work on passive targets such as onWheel */
-                        onWheel={event => event.target.blur()}
-                        step={
-                            inputProps.dollar === 1
-                                ? 0.01
-                                : 1 / 10 ** appConfig.cashDecimals
-                        }
-                        prefix={
-                            inputProps.dollar === 1 ? (
-                                <ThemedDollarOutlined />
-                            ) : (
-                                <img
-                                    src={appConfig.logo}
-                                    alt=""
-                                    width={16}
-                                    height={16}
-                                />
-                            )
-                        }
-                        {...inputProps}
-                    />
-                    {CurrencySelect}
-                    <InputNumberAddonText
-                        style={{
-                            width: '10%',
-                            height: '53px',
-                            lineHeight: '53px',
-                        }}
-                        disabled={!!(inputProps || {}).disabled}
-                        onClick={!(inputProps || {}).disabled && onMax}
-                    >
-                        max
-                    </InputNumberAddonText>
-                </Input.Group>
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-};
-
-SendXecInput.propTypes = {
-    onMax: PropTypes.func,
-    inputProps: PropTypes.object,
-    selectProps: PropTypes.object,
-    activeFiatCode: PropTypes.string,
-};
-
-export const DestinationAmount = ({ onMax, inputProps, ...otherProps }) => {
-    return (
-        <AntdFormWrapper>
-            <Form.Item {...otherProps}>
-                <Input
-                    type="number"
-                    /*event.target.blur() is used as event.preventDefault() 
-                        will not work on passive targets such as onWheel */
-                    onWheel={event => event.target.blur()}
-                    data-testid="token-amount-input"
-                    prefix={
-                        <img
-                            src={appConfig.logo}
-                            alt=""
-                            width={16}
-                            height={16}
-                        />
-                    }
-                    addonAfter={
-                        <InputAddonText
-                            disabled={!!(inputProps || {}).disabled}
-                            onClick={!(inputProps || {}).disabled && onMax}
-                        >
-                            max
-                        </InputAddonText>
-                    }
-                    {...inputProps}
-                />
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-};
-
-DestinationAmount.propTypes = {
-    onMax: PropTypes.func,
-    inputProps: PropTypes.object,
-};
-
-// loadWithCameraOpen prop: if true, load page with camera scanning open
-export const DestinationAddressSingle = ({
-    onScan,
-    loadWithCameraOpen,
-    inputProps,
-    ...otherProps
-}) => {
-    return (
-        <AntdFormWrapper>
-            <Form.Item {...otherProps}>
-                <Input
-                    prefix={<ThemedWalletOutlined />}
-                    autoComplete="off"
-                    data-testid="destination-address-single"
-                    addonAfter={
-                        <ScanQRCode
-                            loadWithCameraOpen={loadWithCameraOpen}
-                            onScan={onScan}
-                        />
-                    }
-                    {...inputProps}
-                />
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-};
-
-DestinationAddressSingle.propTypes = {
-    onScan: PropTypes.func,
-    loadWithCameraOpen: PropTypes.bool,
-    inputProps: PropTypes.object,
-};
 
 export const DestinationAddressSingleWithoutQRScan = ({
     inputProps,

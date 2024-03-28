@@ -13,7 +13,6 @@ const createImage = url =>
 
 export default async function getRoundImg(imageSrc, fileName) {
     const image = await createImage(imageSrc);
-    console.log('image :', image);
     const canvas = document.createElement('canvas');
     canvas.width = image.width;
     canvas.height = image.height;

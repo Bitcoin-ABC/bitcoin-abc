@@ -32,7 +32,7 @@ const CashtabBaseLink = styled(Link)`
     ${BaseButtonOrLinkCss}
 `;
 
-const PrimaryButton = styled(CashtabBaseButton)`
+const PrimaryButtonOrLinkCss = css`
     color: ${props =>
         props.disabled
             ? props.theme.buttons.disabled.color
@@ -47,6 +47,13 @@ const PrimaryButton = styled(CashtabBaseButton)`
     svg {
         fill: ${props => props.theme.buttons.primary.color};
     }
+`;
+
+const PrimaryButton = styled(CashtabBaseButton)`
+    ${PrimaryButtonOrLinkCss}
+`;
+export const PrimaryLink = styled(CashtabBaseLink)`
+    ${PrimaryButtonOrLinkCss}
 `;
 
 const SecondaryButtonOrLinkCss = css`

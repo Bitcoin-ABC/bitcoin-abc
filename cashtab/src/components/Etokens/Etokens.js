@@ -6,11 +6,11 @@ import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
-import { Link } from 'react-router-dom';
 import TokenList from './TokenList';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
+import { PrimaryLink } from 'components/Common/PrimaryButton';
 
 const EtokensCtn = styled.div`
     color: ${props => props.theme.contrast};
@@ -21,22 +21,13 @@ const EtokensCtn = styled.div`
     }
 `;
 
-const CreateToken = styled(Link)`
-    color: ${props => props.theme.contrast};
-    border: 1px solid ${props => props.theme.contrast};
-    padding: 8px 15px;
-    border-radius: 5px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    display: inline-block;
-    width: 200px;
-    :hover {
-        background: ${props => props.theme.eCashPurple};
-        border-color: ${props => props.theme.eCashPurple};
-        color: ${props => props.theme.contrast};
-    }
+const ButtonHolder = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
 `;
-
 const Etokens = () => {
     const ContextValue = React.useContext(WalletContext);
     const { loading, cashtabState } = ContextValue;
@@ -53,13 +44,15 @@ const Etokens = () => {
                 <EtokensCtn data-testid="etokens-ctn">
                     <br />
                     <SidePaddingCtn>
-                        <CreateToken
-                            to={{
-                                pathname: `/create-token`,
-                            }}
-                        >
-                            Create eToken
-                        </CreateToken>
+                        <ButtonHolder>
+                            <PrimaryLink
+                                to={{
+                                    pathname: `/create-token`,
+                                }}
+                            >
+                                Create eToken
+                            </PrimaryLink>
+                        </ButtonHolder>
                         {tokens && tokens.size > 0 ? (
                             <TokenList
                                 tokens={tokens}

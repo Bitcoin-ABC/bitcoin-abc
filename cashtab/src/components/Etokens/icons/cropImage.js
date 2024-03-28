@@ -22,7 +22,6 @@ export default async function getCroppedImg(
     fileName,
 ) {
     const image = await createImage(imageSrc);
-    console.log('image :', image);
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 

@@ -33,27 +33,31 @@ const ModalTitle = styled.div`
     width: 100%;
     color: ${props => props.theme.eCashBlue};
 `;
+
+const MODAL_HEIGHT_DELTA = 68;
 const ModalBody = styled.div`
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: ${props => props.height - MODAL_HEIGHT_DELTA}px;
     overflow: auto;
     padding: 6px;
     word-wrap: break-word;
-    ::-webkit-scrollbar {
+    &::-webkit-scrollbar {
         width: 12px;
     }
 
-    ::-webkit-scrollbar-track {
+    &::-webkit-scrollbar-track {
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        background-color: ${props => props.theme.eCashBlue};
         border-radius: 10px;
+        height: 80%;
     }
 
-    ::-webkit-scrollbar-thumb {
+    &::-webkit-scrollbar-thumb {
         border-radius: 10px;
-        color: red;
+        color: ${props => props.theme.eCashBlue};
         -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
     }
 `;
@@ -131,8 +135,7 @@ export const Modal = ({
     return (
         <ModalContainer width={width} height={height}>
             <ModalExit onClick={handleCancel}>X</ModalExit>
-
-            <ModalBody>
+            <ModalBody height={height}>
                 {typeof title !== 'undefined' && (
                     <ModalTitle>{title}</ModalTitle>
                 )}
@@ -140,17 +143,15 @@ export const Modal = ({
                     <ModalDescription>{description}</ModalDescription>
                 )}
                 {children}
-                {showButtons && (
-                    <ButtonHolder>
-                        <ModalConfirm onClick={handleOk}>OK</ModalConfirm>
-                        {showCancelButton && (
-                            <ModalCancel onClick={handleCancel}>
-                                Cancel
-                            </ModalCancel>
-                        )}
-                    </ButtonHolder>
-                )}
             </ModalBody>
+            {showButtons && (
+                <ButtonHolder>
+                    <ModalConfirm onClick={handleOk}>OK</ModalConfirm>
+                    {showCancelButton && (
+                        <ModalCancel onClick={handleCancel}>Cancel</ModalCancel>
+                    )}
+                </ButtonHolder>
+            )}
         </ModalContainer>
     );
 };
