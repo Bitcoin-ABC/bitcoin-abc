@@ -50,9 +50,8 @@ public:
     explicit DummyConfig(std::string net);
     explicit DummyConfig(std::unique_ptr<CChainParams> chainParamsIn);
     bool SetMaxBlockSize(uint64_t maxBlockSize) override { return false; }
-    uint64_t GetMaxBlockSize() const override { return 0; }
+    uint64_t GetMaxBlockSize() const override { return 32'000'000; }
 
-    void SetChainParams(std::string net);
     const CChainParams &GetChainParams() const override { return *chainParams; }
 
     void SetCashAddrEncoding(bool) override {}

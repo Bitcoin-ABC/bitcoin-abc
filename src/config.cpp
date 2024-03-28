@@ -50,7 +50,3 @@ DummyConfig::DummyConfig(std::string net)
 
 DummyConfig::DummyConfig(std::unique_ptr<CChainParams> chainParamsIn)
     : chainParams(std::move(chainParamsIn)) {}
-
-void DummyConfig::SetChainParams(std::string net) {
-    chainParams = CreateChainParams(net);
-}

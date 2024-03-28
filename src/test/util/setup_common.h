@@ -7,6 +7,7 @@
 
 #include <blockindex.h>
 #include <chainparamsbase.h>
+#include <config.h>
 #include <consensus/amount.h>
 #include <fs.h>
 #include <key.h>
@@ -120,7 +121,8 @@ struct ChainTestingSetup : public BasicTestingSetup {
 
     explicit ChainTestingSetup(
         const std::string &chainName = CBaseChainParams::MAIN,
-        const std::vector<const char *> &extra_args = {});
+        const std::vector<const char *> &extra_args = {},
+        const Config &config = ::GetConfig());
     ~ChainTestingSetup();
 };
 
@@ -136,7 +138,8 @@ struct TestingSetup : public ChainTestingSetup {
     explicit TestingSetup(const std::string &chainName = CBaseChainParams::MAIN,
                           const std::vector<const char *> &extra_args = {},
                           const bool coins_db_in_memory = true,
-                          const bool block_tree_db_in_memory = true);
+                          const bool block_tree_db_in_memory = true,
+                          const Config &config = ::GetConfig());
 };
 
 /** Identical to TestingSetup, but chain set to regtest */

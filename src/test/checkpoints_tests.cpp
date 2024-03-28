@@ -24,9 +24,9 @@
 
 #include <memory>
 
-BOOST_FIXTURE_TEST_SUITE(checkpoints_tests, TestingSetup)
+BOOST_AUTO_TEST_SUITE(checkpoints_tests)
 
-BOOST_AUTO_TEST_CASE(sanity) {
+BOOST_FIXTURE_TEST_CASE(sanity, TestingSetup) {
     const auto params = CreateChainParams(CBaseChainParams::MAIN);
     const CCheckpointData &checkpoints = params->Checkpoints();
     BlockHash p11111 = BlockHash::fromHex(
@@ -70,6 +70,15 @@ public:
     }
 };
 
+static const MainnetConfigWithTestCheckpoints g_config{};
+
+struct CheckpointsTestingSetup : public TestingSetup {
+    CheckpointsTestingSetup()
+        : TestingSetup{CBaseChainParams::MAIN, /*extra_args=*/{},
+                       /*coins_db_in_memory=*/true,
+                       /*block_tree_db_in_memory=*/true, g_config} {}
+};
+
 /**
  * This test has 4 precomputed blocks mined ontop of the genesis block:
  *  G ---> A ---> AA (checkpointed)
@@ -79,8 +88,11 @@ public:
  *  * B should be rejected for forking prior to an accepted checkpoint
  *  * AB should be rejected for forking at an accepted checkpoint
  */
-BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
-    MainnetConfigWithTestCheckpoints config;
+BOOST_FIXTURE_TEST_CASE(ban_fork_prior_to_and_at_checkpoints,
+                        CheckpointsTestingSetup) {
+    const Config &config = m_node.chainman->GetConfig();
+    assert(std::addressof(config) == std::addressof(g_config));
+
     const CBlockIndex *pindex = nullptr;
 
     // Start with mainnet genesis block
