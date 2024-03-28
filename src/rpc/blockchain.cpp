@@ -1595,8 +1595,7 @@ static RPCHelpMan invalidateblock() {
                                        "Block not found");
                 }
             }
-            chainman.ActiveChainstate().InvalidateBlock(config, state,
-                                                        pblockindex);
+            chainman.ActiveChainstate().InvalidateBlock(state, pblockindex);
 
             if (state.IsValid()) {
                 chainman.ActiveChainstate().ActivateBestChain(state);
@@ -1649,7 +1648,7 @@ RPCHelpMan parkblock() {
                 }
             }
 
-            active_chainstate.ParkBlock(config, state, pblockindex);
+            active_chainstate.ParkBlock(state, pblockindex);
 
             if (state.IsValid()) {
                 active_chainstate.ActivateBestChain(state);

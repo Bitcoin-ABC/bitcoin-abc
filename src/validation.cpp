@@ -3300,8 +3300,8 @@ template <typename Func> struct Defer {
 };
 } // namespace
 
-bool Chainstate::UnwindBlock(const Config &config, BlockValidationState &state,
-                             CBlockIndex *pindex, bool invalidate) {
+bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
+                             bool invalidate) {
     // Genesis block can't be invalidated or parked
     assert(pindex);
     if (pindex->nHeight == 0) {
@@ -3529,25 +3529,23 @@ bool Chainstate::UnwindBlock(const Config &config, BlockValidationState &state,
     return true;
 }
 
-bool Chainstate::InvalidateBlock(const Config &config,
-                                 BlockValidationState &state,
+bool Chainstate::InvalidateBlock(BlockValidationState &state,
                                  CBlockIndex *pindex) {
     AssertLockNotHeld(m_chainstate_mutex);
     AssertLockNotHeld(::cs_main);
     // See 'Note for backport of Core PR16849' in Chainstate::UnwindBlock
     LOCK(m_chainstate_mutex);
 
-    return UnwindBlock(config, state, pindex, true);
+    return UnwindBlock(state, pindex, true);
 }
 
-bool Chainstate::ParkBlock(const Config &config, BlockValidationState &state,
-                           CBlockIndex *pindex) {
+bool Chainstate::ParkBlock(BlockValidationState &state, CBlockIndex *pindex) {
     AssertLockNotHeld(m_chainstate_mutex);
     AssertLockNotHeld(::cs_main);
     // See 'Note for backport of Core PR16849' in Chainstate::UnwindBlock
     LOCK(m_chainstate_mutex);
 
-    return UnwindBlock(config, state, pindex, false);
+    return UnwindBlock(state, pindex, false);
 }
 
 template <typename F>

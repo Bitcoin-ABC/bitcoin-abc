@@ -203,7 +203,7 @@ static void benchReorg(const Config &config, node::NodeContext &node,
         BlockValidationState state;
 
         // Disconnect blocks with long transaction chains
-        activeChainState.InvalidateBlock(config, state, blockToInvalidate);
+        activeChainState.InvalidateBlock(state, blockToInvalidate);
         assert(state.IsValid());
 
         activeChainState.ActivateBestChain(state);

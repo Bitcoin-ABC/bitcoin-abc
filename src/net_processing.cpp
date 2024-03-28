@@ -6221,8 +6221,7 @@ void PeerManagerImpl::ProcessMessage(
                     case avalanche::VoteStatus::Invalid:
                     case avalanche::VoteStatus::Rejected: {
                         BlockValidationState state;
-                        m_chainman.ActiveChainstate().ParkBlock(config, state,
-                                                                pindex);
+                        m_chainman.ActiveChainstate().ParkBlock(state, pindex);
                         if (!state.IsValid()) {
                             LogPrintf("ERROR: Database error: %s\n",
                                       state.GetRejectReason());

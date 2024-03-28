@@ -680,8 +680,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
     {
         BlockValidationState state;
         chainman.ActiveChainstate().InvalidateBlock(
-            GetConfig(), state,
-            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
+            state, WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
         BOOST_CHECK_EQUAL(
             WITH_LOCK(chainman.GetMutex(), return chainman.ActiveHeight()), 99);
     }
@@ -1134,8 +1133,7 @@ BOOST_AUTO_TEST_CASE(conflicting_immature_proofs) {
     {
         BlockValidationState state;
         active_chainstate.InvalidateBlock(
-            GetConfig(), state,
-            WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
+            state, WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip()));
         BOOST_CHECK_EQUAL(
             WITH_LOCK(chainman.GetMutex(), return chainman.ActiveHeight()), 99);
     }

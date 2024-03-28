@@ -938,15 +938,15 @@ public:
                                  !cs_avalancheFinalizedBlockIndex)
             LOCKS_EXCLUDED(cs_main);
     /** Mark a block as invalid. */
-    bool InvalidateBlock(const Config &config, BlockValidationState &state,
-                         CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
-                                 !cs_avalancheFinalizedBlockIndex);
+    bool InvalidateBlock(BlockValidationState &state, CBlockIndex *pindex)
+        LOCKS_EXCLUDED(cs_main)
+            EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
+                                     !cs_avalancheFinalizedBlockIndex);
     /** Park a block. */
-    bool ParkBlock(const Config &config, BlockValidationState &state,
-                   CBlockIndex *pindex) LOCKS_EXCLUDED(cs_main)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
-                                 !cs_avalancheFinalizedBlockIndex);
+    bool ParkBlock(BlockValidationState &state, CBlockIndex *pindex)
+        LOCKS_EXCLUDED(cs_main)
+            EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
+                                     !cs_avalancheFinalizedBlockIndex);
 
     /**
      * Mark a block as finalized by avalanche.
@@ -1074,8 +1074,8 @@ private:
     void UnparkBlockImpl(CBlockIndex *pindex, bool fClearChildren)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
-    bool UnwindBlock(const Config &config, BlockValidationState &state,
-                     CBlockIndex *pindex, bool invalidate)
+    bool UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
+                     bool invalidate)
         EXCLUSIVE_LOCKS_REQUIRED(m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex);
 

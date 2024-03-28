@@ -1898,10 +1898,9 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     // Create a couple concurrent chain tips
     CBlockIndex *tip = provider.buildVoteItem();
 
-    const auto &config = GetConfig();
     auto &activeChainstate = m_node.chainman->ActiveChainstate();
     BlockValidationState state;
-    activeChainstate.InvalidateBlock(config, state, tip);
+    activeChainstate.InvalidateBlock(state, tip);
 
     // Use another script to make sure we don't generate the same block again
     CBlock altblock = CreateAndProcessBlock({}, CScript() << OP_TRUE);
