@@ -58,7 +58,7 @@ export default function CoreTech() {
     return (
         <Layout
             metaTitle="Core Tech"
-            metaDescription="Welcome to the next generation of crypto investments. eCash opens the door to possibilities previously unattainable by combining the core tech behind Bitcoin’s success - the same fixed supply, halving schedule, and genesis block - with the latest Proof of Stake consensus & protocol governance. eCash is the continuation of the Bitcoin Cash project and continues to be developed by Bitcoin ABC, the team who started it back in 2017."
+            metaDescription="Welcome to the next generation of crypto. eCash combines the core tech behind Bitcoin’s success - the same fixed supply, halving schedule, and genesis block - with state of the art crypto tech (Avalanche). eCash is built by Bitcoin ABC, a team of Bitcoin developers established in 2017."
         >
             <SubPageHero
                 image={fist}
@@ -67,16 +67,11 @@ export default function CoreTech() {
                 imagespeed="0"
             >
                 <p>
-                    Welcome to the next generation of crypto investments. eCash
-                    opens the door to possibilities previously unattainable by
-                    combining the core tech behind Bitcoin’s success - the same
-                    fixed supply, halving schedule, and genesis block - with the
-                    latest Proof of Stake consensus & protocol governance.
-                </p>
-                <p>
-                    eCash is the continuation of the Bitcoin Cash project and
-                    continues to be developed by Bitcoin ABC, the team who
-                    started it back in 2017.
+                    Welcome to the next generation of crypto. eCash combines the
+                    core tech behind Bitcoin’s success - the same fixed supply,
+                    halving schedule, and genesis block - with state of the art
+                    crypto tech (Avalanche). eCash is built by Bitcoin ABC, a
+                    team of Bitcoin developers established in 2017.
                 </p>
             </SubPageHero>
             <GradientSpacer />
