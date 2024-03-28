@@ -253,8 +253,7 @@ ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
 
 ChainstateLoadResult
 VerifyLoadedChainstate(ChainstateManager &chainman,
-                       const ChainstateLoadOptions &options,
-                       const Config &config) {
+                       const ChainstateLoadOptions &options) {
     auto is_coinsview_empty =
         [&](Chainstate *chainstate) EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
             return options.reindex || options.reindex_chainstate ||
@@ -276,9 +275,9 @@ VerifyLoadedChainstate(ChainstateManager &chainman,
                           "that your computer's date and time are correct")};
             }
 
-            VerifyDBResult result =
-                CVerifyDB().VerifyDB(*chainstate, config, chainstate->CoinsDB(),
-                                     options.check_level, options.check_blocks);
+            VerifyDBResult result = CVerifyDB().VerifyDB(
+                *chainstate, chainman.GetConfig(), chainstate->CoinsDB(),
+                options.check_level, options.check_blocks);
             switch (result) {
                 case VerifyDBResult::SUCCESS:
                 case VerifyDBResult::SKIPPED_MISSING_BLOCKS:

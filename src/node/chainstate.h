@@ -72,8 +72,7 @@ ChainstateLoadResult LoadChainstate(ChainstateManager &chainman,
 
 ChainstateLoadResult
 VerifyLoadedChainstate(ChainstateManager &chainman,
-                       const ChainstateLoadOptions &options,
-                       const Config &config);
+                       const ChainstateLoadOptions &options);
 } // namespace node
 
 #endif // BITCOIN_NODE_CHAINSTATE_H

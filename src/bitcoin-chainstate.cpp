@@ -103,8 +103,7 @@ int main(int argc, char *argv[]) {
                   << std::endl;
         goto epilogue;
     }
-    std::tie(status, error) =
-        node::VerifyLoadedChainstate(chainman, options, config);
+    std::tie(status, error) = node::VerifyLoadedChainstate(chainman, options);
     if (status != node::ChainstateLoadStatus::SUCCESS) {
         std::cerr << "Failed to verify loaded Chain state from your datadir."
                   << std::endl;

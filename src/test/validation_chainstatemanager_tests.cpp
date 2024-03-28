@@ -542,7 +542,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_init, SnapshotTestSetup) {
     BOOST_TEST_MESSAGE("Performing Load/Verify/Activate of chainstate");
 
     // This call reinitializes the chainstates.
-    this->LoadVerifyActivateChainstate(::GetConfig());
+    this->LoadVerifyActivateChainstate();
 
     {
         LOCK(chainman_restarted.GetMutex());
@@ -633,7 +633,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion,
 
     // This call reinitializes the chainstates, and should clean up the now
     // unnecessary background-validation leveldb contents.
-    this->LoadVerifyActivateChainstate(::GetConfig());
+    this->LoadVerifyActivateChainstate();
 
     BOOST_CHECK(!fs::exists(snapshot_invalid_dir));
     // chainstate_snapshot should now *not* exist.
@@ -711,7 +711,7 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_snapshot_completion_hash_mismatch,
 
     // This call reinitializes the chainstates, and should clean up the now
     // unnecessary background-validation leveldb contents.
-    this->LoadVerifyActivateChainstate(::GetConfig());
+    this->LoadVerifyActivateChainstate();
 
     BOOST_CHECK(fs::exists(snapshot_invalid_dir));
     BOOST_CHECK(!fs::exists(snapshot_chainstate_dir));

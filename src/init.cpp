@@ -2492,9 +2492,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                           "blocks; only checking available blocks\n",
                           MIN_BLOCKS_TO_KEEP);
             }
-            std::tie(status, error) = catch_exceptions([&] {
-                return VerifyLoadedChainstate(chainman, options, config);
-            });
+            std::tie(status, error) = catch_exceptions(
+                [&] { return VerifyLoadedChainstate(chainman, options); });
             if (status == node::ChainstateLoadStatus::SUCCESS) {
                 fLoaded = true;
                 LogPrintf(" block index %15dms\n",

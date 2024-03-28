@@ -242,7 +242,7 @@ ChainTestingSetup::~ChainTestingSetup() {
     m_node.chainman.reset();
 }
 
-void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
+void TestingSetup::LoadVerifyActivateChainstate() {
     auto &chainman{*Assert(m_node.chainman)};
     node::ChainstateLoadOptions options;
     options.mempool = Assert(m_node.mempool.get());
@@ -260,7 +260,7 @@ void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
     auto [status, error] = LoadChainstate(chainman, m_cache_sizes, options);
     assert(status == node::ChainstateLoadStatus::SUCCESS);
 
-    std::tie(status, error) = VerifyLoadedChainstate(chainman, options, config);
+    std::tie(status, error) = VerifyLoadedChainstate(chainman, options);
     assert(status == node::ChainstateLoadStatus::SUCCESS);
 
     BlockValidationState state;
@@ -294,7 +294,7 @@ TestingSetup::TestingSetup(const std::string &chainName,
         SetRPCWarmupFinished();
     }
 
-    LoadVerifyActivateChainstate(config);
+    LoadVerifyActivateChainstate();
 
     m_node.addrman = std::make_unique<AddrMan>(
         /* asmap= */ std::vector<bool>(), /* consistency_check_ratio= */ 0);
