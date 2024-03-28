@@ -9,7 +9,6 @@ import { Container, GradientSpacer } from '/components/atoms';
 import fist from '/public/animations/fist.json';
 import avalanche from '/public/animations/avalanche.json';
 import staking from '/public/animations/staking.json';
-import govern from '/public/animations/govern.json';
 import etoken from '/public/animations/etoken.json';
 import calculate from '/public/animations/calculate.json';
 import cashfusion from '/public/animations/cashfusion.json';
@@ -143,19 +142,6 @@ export default function CoreTech() {
                                 color="accent"
                             />
                         </ButtonRow>
-                    </TextImageBlock>
-
-                    <TextImageBlock
-                        id="governance"
-                        title="Governance"
-                        image={govern}
-                    >
-                        <p>
-                            Protocol revenue is continually reinvested back into
-                            the eCash ecosystem to fund key infrastructure and
-                            ecosystem growth initiatives, with funding approvals
-                            guided by the Global Network Council (GNC).
-                        </p>
                     </TextImageBlock>
 
                     <TextImageBlock
