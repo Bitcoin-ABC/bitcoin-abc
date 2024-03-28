@@ -21,6 +21,7 @@
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
+#include <deploymentstatus.h>
 #include <disconnectresult.h>
 #include <flatfile.h>
 #include <fs.h>
@@ -1484,6 +1485,19 @@ public:
     //! @sa node/chainstate:LoadChainstate()
     bool ValidatedSnapshotCleanup() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 };
+
+/** Deployment* info via ChainstateManager */
+template <typename DEP>
+bool DeploymentActiveAfter(const CBlockIndex *pindexPrev,
+                           const ChainstateManager &chainman, DEP dep) {
+    return DeploymentActiveAfter(pindexPrev, chainman.GetConsensus(), dep);
+}
+
+template <typename DEP>
+bool DeploymentActiveAt(const CBlockIndex &index,
+                        const ChainstateManager &chainman, DEP dep) {
+    return DeploymentActiveAt(index, chainman.GetConsensus(), dep);
+}
 
 /**
  * Return the expected assumeutxo value for a given height, if one exists.
