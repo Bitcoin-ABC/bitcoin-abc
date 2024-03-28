@@ -968,7 +968,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
         for (Chainstate *chainstate :
              WITH_LOCK(::cs_main, return chainman.GetAll())) {
             BlockValidationState state;
-            if (!chainstate->ActivateBestChain(config, state, nullptr)) {
+            if (!chainstate->ActivateBestChain(state, nullptr)) {
                 LogPrintf("Failed to connect best block (%s)\n",
                           state.ToString());
                 StartShutdown();
@@ -983,6 +983,6 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
             return;
         }
     } // End scope of CImportingNow
-    chainman.ActiveChainstate().LoadMempool(config, mempool_path);
+    chainman.ActiveChainstate().LoadMempool(mempool_path);
 }
 } // namespace node

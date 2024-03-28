@@ -8,7 +8,6 @@
 #include <fs.h>
 
 class Chainstate;
-class Config;
 class CTxMemPool;
 
 namespace kernel {
@@ -19,8 +18,8 @@ bool DumpMempool(const CTxMemPool &pool, const fs::path &dump_path,
                  bool skip_file_commit = false);
 
 /** Load the mempool from disk. */
-bool LoadMempool(const Config &config, CTxMemPool &pool,
-                 const fs::path &load_path, Chainstate &active_chainstate,
+bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
+                 Chainstate &active_chainstate,
                  fsbridge::FopenFn mockable_fopen_function = fsbridge::fopen);
 
 } // namespace kernel

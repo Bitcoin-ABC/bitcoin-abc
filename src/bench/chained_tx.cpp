@@ -128,8 +128,7 @@ static std::vector<CTransactionRef> twoInOneOutTree(const Config &config,
 }
 
 /// Run benchmark on AcceptToMemoryPool
-static void benchATMP(const Config &config, node::NodeContext &node,
-                      benchmark::Bench &bench,
+static void benchATMP(node::NodeContext &node, benchmark::Bench &bench,
                       const std::vector<CTransactionRef> chainedTxs) {
     auto chainman = Assert(node.chainman.get());
     Chainstate &activeChainState = chainman->ActiveChainstate();
@@ -141,7 +140,7 @@ static void benchATMP(const Config &config, node::NodeContext &node,
         LOCK(::cs_main);
         for (const auto &tx : chainedTxs) {
             MempoolAcceptResult result =
-                AcceptToMemoryPool(config, activeChainState, tx, GetTime(),
+                AcceptToMemoryPool(activeChainState, tx, GetTime(),
                                    /*bypass_limits=*/false);
             assert(result.m_result_type ==
                    MempoolAcceptResult::ResultType::VALID);
@@ -207,7 +206,7 @@ static void benchReorg(const Config &config, node::NodeContext &node,
         activeChainState.InvalidateBlock(config, state, blockToInvalidate);
         assert(state.IsValid());
 
-        activeChainState.ActivateBestChain(config, state);
+        activeChainState.ActivateBestChain(state);
         assert(state.IsValid());
         assert(activeChainState.m_chain.Tip() == tipBeforeInvalidate);
 
@@ -227,7 +226,7 @@ static void benchReorg(const Config &config, node::NodeContext &node,
             activeChainState.ResetBlockFailureFlags(blockToInvalidate);
         }
 
-        activeChainState.ActivateBestChain(config, state);
+        activeChainState.ActivateBestChain(state);
         assert(state.IsValid());
         assert(activeChainState.m_chain.Tip() == mostWorkTip);
         assert(mempool.size() == 0);
@@ -331,7 +330,7 @@ static void MempoolAcceptance50ChainedTxs(benchmark::Bench &bench) {
     const Config &config = GetConfig();
     const std::vector<CTransactionRef> chainedTxs = oneInOneOutChain(
         config, createUTXOs(config, 1, test_setup.m_node).back(), 50);
-    benchATMP(config, test_setup.m_node, bench, chainedTxs);
+    benchATMP(test_setup.m_node, bench, chainedTxs);
 }
 
 /// Tests a chain of 500 1-input-1-output transactions.
@@ -340,7 +339,7 @@ static void MempoolAcceptance500ChainedTxs(benchmark::Bench &bench) {
     const Config &config = GetConfig();
     const std::vector<CTransactionRef> chainedTxs = oneInOneOutChain(
         config, createUTXOs(config, 1, test_setup.m_node).back(), 500);
-    benchATMP(config, test_setup.m_node, bench, chainedTxs);
+    benchATMP(test_setup.m_node, bench, chainedTxs);
 }
 
 /// Test a tree of 63 2-inputs-1-output transactions
@@ -350,7 +349,7 @@ static void MempoolAcceptance63TxTree(benchmark::Bench &bench) {
     const std::vector<CTransactionRef> chainedTxs =
         twoInOneOutTree(config, test_setup.m_node, 5);
     assert(chainedTxs.size() == 63);
-    benchATMP(config, test_setup.m_node, bench, chainedTxs);
+    benchATMP(test_setup.m_node, bench, chainedTxs);
 }
 
 /// Test a tree of 511 2-inputs-1-output transactions
@@ -360,7 +359,7 @@ static void MempoolAcceptance511TxTree(benchmark::Bench &bench) {
     const std::vector<CTransactionRef> chainedTxs =
         twoInOneOutTree(config, test_setup.m_node, 8);
     assert(chainedTxs.size() == 511);
-    benchATMP(config, test_setup.m_node, bench, chainedTxs);
+    benchATMP(test_setup.m_node, bench, chainedTxs);
 }
 
 /// Try to reorg a chain of depth 10 where each block has a 50 tx

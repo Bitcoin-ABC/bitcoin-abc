@@ -1917,7 +1917,7 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
         LOCK(cs_main);
         activeChainstate.ResetBlockFailureFlags(tip);
     }
-    activeChainstate.ActivateBestChain(config, state);
+    activeChainstate.ActivateBestChain(state);
 
     BOOST_CHECK(addToReconcile(tip));
     BOOST_CHECK(addToReconcile(alttip));
@@ -2227,7 +2227,7 @@ BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
     BOOST_CHECK(!g_avalanche->isAccepted(blockindex));
 
     // Call ActivateBestChain to connect the new block
-    BOOST_CHECK(chainstate.ActivateBestChain(config, state, block));
+    BOOST_CHECK(chainstate.ActivateBestChain(state, block));
     // It is a valid block so the tip is updated
     BOOST_CHECK_EQUAL(chainstate.m_chain.Tip(), blockindex);
 

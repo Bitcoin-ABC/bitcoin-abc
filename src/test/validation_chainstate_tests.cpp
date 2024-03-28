@@ -150,7 +150,7 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
         BOOST_CHECK(accepted);
     }
     // UpdateTip is called here
-    bool block_added = background_cs.ActivateBestChain(config, state, pblock);
+    bool block_added = background_cs.ActivateBestChain(state, pblock);
 
     // Ensure tip is as expected
     BOOST_CHECK_EQUAL(background_cs.m_chain.Tip()->GetBlockHash(),

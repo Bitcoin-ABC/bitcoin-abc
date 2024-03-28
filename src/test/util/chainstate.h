@@ -100,8 +100,7 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
             node.chainman->MaybeRebalanceCaches();
         }
         BlockValidationState state;
-        if (!node.chainman->ActiveChainstate().ActivateBestChain(::GetConfig(),
-                                                                 state)) {
+        if (!node.chainman->ActiveChainstate().ActivateBestChain(state)) {
             throw std::runtime_error(
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }

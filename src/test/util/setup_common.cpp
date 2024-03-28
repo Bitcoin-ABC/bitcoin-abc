@@ -260,12 +260,11 @@ void TestingSetup::LoadVerifyActivateChainstate(const Config &config) {
     auto [status, error] = LoadChainstate(chainman, m_cache_sizes, options);
     assert(status == node::ChainstateLoadStatus::SUCCESS);
 
-    std::tie(status, error) =
-        VerifyLoadedChainstate(chainman, options, GetConfig());
+    std::tie(status, error) = VerifyLoadedChainstate(chainman, options, config);
     assert(status == node::ChainstateLoadStatus::SUCCESS);
 
     BlockValidationState state;
-    if (!chainman.ActiveChainstate().ActivateBestChain(config, state)) {
+    if (!chainman.ActiveChainstate().ActivateBestChain(state)) {
         throw std::runtime_error(
             strprintf("ActivateBestChain failed. (%s)", state.ToString()));
     }

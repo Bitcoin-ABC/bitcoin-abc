@@ -1035,8 +1035,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
 }
 } // namespace
 
-MempoolAcceptResult AcceptToMemoryPool(const Config &config,
-                                       Chainstate &active_chainstate,
+MempoolAcceptResult AcceptToMemoryPool(Chainstate &active_chainstate,
                                        const CTransactionRef &tx,
                                        int64_t accept_time, bool bypass_limits,
                                        bool test_accept,
@@ -1047,8 +1046,8 @@ MempoolAcceptResult AcceptToMemoryPool(const Config &config,
 
     std::vector<COutPoint> coins_to_uncache;
     auto args = MemPoolAccept::ATMPArgs::SingleAccept(
-        config, accept_time, bypass_limits, coins_to_uncache, test_accept,
-        heightOverride);
+        active_chainstate.m_chainman.GetConfig(), accept_time, bypass_limits,
+        coins_to_uncache, test_accept, heightOverride);
     const MempoolAcceptResult result = MemPoolAccept(pool, active_chainstate)
                                            .AcceptSingleTransaction(tx, args);
     if (result.m_result_type != MempoolAcceptResult::ResultType::VALID) {
@@ -1070,13 +1069,16 @@ MempoolAcceptResult AcceptToMemoryPool(const Config &config,
     return result;
 }
 
-PackageMempoolAcceptResult
-ProcessNewPackage(const Config &config, Chainstate &active_chainstate,
-                  CTxMemPool &pool, const Package &package, bool test_accept) {
+PackageMempoolAcceptResult ProcessNewPackage(Chainstate &active_chainstate,
+                                             CTxMemPool &pool,
+                                             const Package &package,
+                                             bool test_accept) {
     AssertLockHeld(cs_main);
     assert(!package.empty());
     assert(std::all_of(package.cbegin(), package.cend(),
                        [](const auto &tx) { return tx != nullptr; }));
+
+    const Config &config = active_chainstate.m_chainman.GetConfig();
 
     std::vector<COutPoint> coins_to_uncache;
     const auto result = [&]() EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
@@ -2524,7 +2526,7 @@ public:
  *
  * The block is added to connectTrace if connection succeeds.
  */
-bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
+bool Chainstate::ConnectTip(BlockValidationState &state,
                             BlockPolicyValidationState &blockPolicyState,
                             CBlockIndex *pindexNew,
                             const std::shared_ptr<const CBlock> &pblock,
@@ -2563,7 +2565,8 @@ bool Chainstate::ConnectTip(const Config &config, BlockValidationState &state,
         Amount blockFees{Amount::zero()};
         CCoinsViewCache view(&CoinsTip());
         bool rv = ConnectBlock(blockConnecting, state, pindexNew, view,
-                               BlockValidationOptions(config), &blockFees);
+                               BlockValidationOptions(m_chainman.GetConfig()),
+                               &blockFees);
         GetMainSignals().BlockChecked(blockConnecting, state);
         if (!rv) {
             if (state.IsInvalid()) {
@@ -2900,9 +2903,9 @@ void Chainstate::PruneBlockIndexCandidates() {
  * @returns true unless a system error occurred
  */
 bool Chainstate::ActivateBestChainStep(
-    const Config &config, BlockValidationState &state,
-    CBlockIndex *pindexMostWork, const std::shared_ptr<const CBlock> &pblock,
-    bool &fInvalidFound, ConnectTrace &connectTrace) {
+    BlockValidationState &state, CBlockIndex *pindexMostWork,
+    const std::shared_ptr<const CBlock> &pblock, bool &fInvalidFound,
+    ConnectTrace &connectTrace) {
     AssertLockHeld(cs_main);
     if (m_mempool) {
         AssertLockHeld(m_mempool->cs);
@@ -2927,8 +2930,7 @@ bool Chainstate::ActivateBestChainStep(
             // This is likely a fatal error, but keep the mempool consistent,
             // just in case. Only remove from the mempool in this case.
             if (m_mempool) {
-                disconnectpool.updateMempoolForReorg(config, *this, false,
-                                                     *m_mempool);
+                disconnectpool.updateMempoolForReorg(*this, false, *m_mempool);
             }
 
             // If we're unable to disconnect a block during normal operation,
@@ -2963,7 +2965,7 @@ bool Chainstate::ActivateBestChainStep(
         // Connect new blocks.
         for (CBlockIndex *pindexConnect : reverse_iterate(vpindexToConnect)) {
             BlockPolicyValidationState blockPolicyState;
-            if (!ConnectTip(config, state, blockPolicyState, pindexConnect,
+            if (!ConnectTip(state, blockPolicyState, pindexConnect,
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
@@ -2990,7 +2992,7 @@ bool Chainstate::ActivateBestChainStep(
                 // Make the mempool consistent with the current tip, just in
                 // case any observers try to use it before shutdown.
                 if (m_mempool) {
-                    disconnectpool.updateMempoolForReorg(config, *this, false,
+                    disconnectpool.updateMempoolForReorg(*this, false,
                                                          *m_mempool);
                 }
                 return false;
@@ -3016,8 +3018,7 @@ bool Chainstate::ActivateBestChainStep(
             LogPrint(BCLog::MEMPOOL,
                      "Updating mempool due to reorganization or "
                      "rules upgrade/downgrade\n");
-            disconnectpool.updateMempoolForReorg(config, *this, true,
-                                                 *m_mempool);
+            disconnectpool.updateMempoolForReorg(*this, true, *m_mempool);
         }
 
         m_mempool->check(this->CoinsTip(), this->m_chain.Height() + 1);
@@ -3076,8 +3077,7 @@ static void LimitValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main) {
     }
 }
 
-bool Chainstate::ActivateBestChain(const Config &config,
-                                   BlockValidationState &state,
+bool Chainstate::ActivateBestChain(BlockValidationState &state,
                                    std::shared_ptr<const CBlock> pblock) {
     AssertLockNotHeld(m_chainstate_mutex);
 
@@ -3146,7 +3146,7 @@ bool Chainstate::ActivateBestChain(const Config &config,
                 bool fInvalidFound = false;
                 std::shared_ptr<const CBlock> nullBlockPtr;
                 if (!ActivateBestChainStep(
-                        config, state, pindexMostWork,
+                        state, pindexMostWork,
                         pblock && pblock->GetHash() ==
                                       pindexMostWork->GetBlockHash()
                             ? pblock
@@ -3251,8 +3251,7 @@ bool Chainstate::ActivateBestChain(const Config &config,
     return true;
 }
 
-bool Chainstate::PreciousBlock(const Config &config,
-                               BlockValidationState &state,
+bool Chainstate::PreciousBlock(BlockValidationState &state,
                                CBlockIndex *pindex) {
     AssertLockNotHeld(m_chainstate_mutex);
     AssertLockNotHeld(::cs_main);
@@ -3289,7 +3288,7 @@ bool Chainstate::PreciousBlock(const Config &config,
         }
     }
 
-    return ActivateBestChain(config, state);
+    return ActivateBestChain(state);
 }
 
 namespace {
@@ -3371,7 +3370,7 @@ bool Chainstate::UnwindBlock(const Config &config, BlockValidationState &state,
                 // DisconnectTip will add transactions to disconnectpool.
                 // When all unwinding is done and we are on a new tip, we must
                 // add all transactions back to the mempool against the new tip.
-                disconnectpool.updateMempoolForReorg(config, *this,
+                disconnectpool.updateMempoolForReorg(*this,
                                                      /* fAddToMempool = */ ret,
                                                      *m_mempool);
             }
@@ -4509,7 +4508,7 @@ bool ChainstateManager::ProcessNewBlock(
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
-    if (!ActiveChainstate().ActivateBestChain(config, state, block)) {
+    if (!ActiveChainstate().ActivateBestChain(state, block)) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
                      state.ToString());
     }
@@ -4527,13 +4526,8 @@ ChainstateManager::ProcessTransaction(const CTransactionRef &tx,
         state.Invalid(TxValidationResult::TX_NO_MEMPOOL, "no-mempool");
         return MempoolAcceptResult::Failure(state);
     }
-    // Use GetConfig() temporarily. It will be removed in a follow-up by
-    // making AcceptToMemoryPool take a CChainParams instead of a Config.
-    // This avoids passing an extra Config argument to this function that will
-    // be removed soon.
-    auto result =
-        AcceptToMemoryPool(::GetConfig(), active_chainstate, tx, GetTime(),
-                           /*bypass_limits=*/false, test_accept);
+    auto result = AcceptToMemoryPool(active_chainstate, tx, GetTime(),
+                                     /*bypass_limits=*/false, test_accept);
     active_chainstate.GetMempool()->check(
         active_chainstate.CoinsTip(), active_chainstate.m_chain.Height() + 1);
     return result;
@@ -4591,13 +4585,12 @@ void PruneBlockFilesManual(Chainstate &active_chainstate,
     }
 }
 
-void Chainstate::LoadMempool(const Config &config, const fs::path &load_path,
+void Chainstate::LoadMempool(const fs::path &load_path,
                              FopenFn mockable_fopen_function) {
     if (!m_mempool) {
         return;
     }
-    ::LoadMempool(config, *m_mempool, load_path, *this,
-                  mockable_fopen_function);
+    ::LoadMempool(*m_mempool, load_path, *this, mockable_fopen_function);
     m_mempool->SetLoadTried(!ShutdownRequested());
 }
 
@@ -5230,7 +5223,7 @@ void Chainstate::LoadExternalBlockFile(
                 // continue
                 if (hash == params.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
-                    if (!ActivateBestChain(config, state, nullptr)) {
+                    if (!ActivateBestChain(state, nullptr)) {
                         break;
                     }
                 }
@@ -5245,7 +5238,7 @@ void Chainstate::LoadExternalBlockFile(
                     // concurrent network message processing, but that is not
                     // reliable for the purpose of pruning while importing.
                     BlockValidationState state;
-                    if (!ActivateBestChain(config, state, pblock)) {
+                    if (!ActivateBestChain(state, pblock)) {
                         LogPrint(BCLog::REINDEX,
                                  "failed to activate chain (%s)\n",
                                  state.ToString());

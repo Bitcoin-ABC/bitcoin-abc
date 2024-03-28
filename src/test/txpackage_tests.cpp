@@ -95,9 +95,9 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
         /* output_destination */ child_locking_script,
         /* output_amount */ Amount(48 * COIN), /* submit */ false);
     CTransactionRef tx_child = MakeTransactionRef(mtx_child);
-    const auto result_parent_child = ProcessNewPackage(
-        GetConfig(), m_node.chainman->ActiveChainstate(), *m_node.mempool,
-        {tx_parent, tx_child}, /* test_accept */ true);
+    const auto result_parent_child =
+        ProcessNewPackage(m_node.chainman->ActiveChainstate(), *m_node.mempool,
+                          {tx_parent, tx_child}, /* test_accept */ true);
     BOOST_CHECK_MESSAGE(result_parent_child.m_state.IsValid(),
                         "Package validation unexpectedly failed: "
                             << result_parent_child.m_state.GetRejectReason());
@@ -118,8 +118,8 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
     BOOST_CHECK(GetVirtualTransactionSize(*giant_ptx) >
                 MAX_PACKAGE_SIZE * 1000);
     auto result_single_large =
-        ProcessNewPackage(GetConfig(), m_node.chainman->ActiveChainstate(),
-                          *m_node.mempool, {giant_ptx}, /* test_accept */ true);
+        ProcessNewPackage(m_node.chainman->ActiveChainstate(), *m_node.mempool,
+                          {giant_ptx}, /* test_accept */ true);
     BOOST_CHECK(result_single_large.m_state.IsInvalid());
     BOOST_CHECK_EQUAL(result_single_large.m_state.GetResult(),
                       PackageValidationResult::PCKG_TX);
@@ -240,7 +240,6 @@ BOOST_FIXTURE_TEST_CASE(noncontextual_package_tests, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
-    const Config &config{GetConfig()};
     unsigned int expected_pool_size = m_node.mempool->size();
     CKey parent_key;
     parent_key.MakeNewKey(true);
@@ -261,7 +260,7 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     {
         LOCK(cs_main);
         auto result_unrelated_submit = ProcessNewPackage(
-            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            m_node.chainman->ActiveChainstate(), *m_node.mempool,
             package_unrelated, /*test_accept=*/false);
         BOOST_CHECK(result_unrelated_submit.m_state.IsInvalid());
         BOOST_CHECK_EQUAL(result_unrelated_submit.m_state.GetResult(),
@@ -312,8 +311,8 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     {
         LOCK(cs_main);
         auto result_3gen_submit = ProcessNewPackage(
-            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
-            package_3gen, /*test_accept=*/false);
+            m_node.chainman->ActiveChainstate(), *m_node.mempool, package_3gen,
+            /*test_accept=*/false);
         BOOST_CHECK(result_3gen_submit.m_state.IsInvalid());
         BOOST_CHECK_EQUAL(result_3gen_submit.m_state.GetResult(),
                           PackageValidationResult::PCKG_POLICY);
@@ -330,7 +329,7 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     {
         LOCK(cs_main);
         const auto result_missing_parent = ProcessNewPackage(
-            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            m_node.chainman->ActiveChainstate(), *m_node.mempool,
             package_missing_parent, /*test_accept=*/false);
         BOOST_CHECK(result_missing_parent.m_state.IsInvalid());
         BOOST_CHECK_EQUAL(result_missing_parent.m_state.GetResult(),
@@ -344,7 +343,7 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     {
         LOCK(cs_main);
         const auto submit_parent_child = ProcessNewPackage(
-            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            m_node.chainman->ActiveChainstate(), *m_node.mempool,
             package_parent_child, /*test_accept=*/false);
         expected_pool_size += 2;
         BOOST_CHECK_MESSAGE(
@@ -369,7 +368,7 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     {
         LOCK(cs_main);
         const auto submit_deduped = ProcessNewPackage(
-            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            m_node.chainman->ActiveChainstate(), *m_node.mempool,
             package_parent_child, /*test_accept=*/false);
         BOOST_CHECK_MESSAGE(submit_deduped.m_state.IsValid(),
                             "Package validation unexpectedly failed: "
@@ -404,7 +403,7 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     {
         LOCK(cs_main);
         const auto result_confirmed_parent = ProcessNewPackage(
-            config, m_node.chainman->ActiveChainstate(), *m_node.mempool,
+            m_node.chainman->ActiveChainstate(), *m_node.mempool,
             package_with_confirmed, /*test_accept=*/false);
         BOOST_CHECK(result_confirmed_parent.m_state.IsInvalid());
         BOOST_CHECK_EQUAL(result_confirmed_parent.m_state.GetResult(),

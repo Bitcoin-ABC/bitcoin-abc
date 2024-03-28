@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
     for (Chainstate *chainstate :
          WITH_LOCK(::cs_main, return chainman.GetAll())) {
         BlockValidationState state;
-        if (!chainstate->ActivateBestChain(config, state, nullptr)) {
+        if (!chainstate->ActivateBestChain(state, nullptr)) {
             std::cerr << "Failed to connect best block (" << state.ToString()
                       << ")" << std::endl;
             goto epilogue;

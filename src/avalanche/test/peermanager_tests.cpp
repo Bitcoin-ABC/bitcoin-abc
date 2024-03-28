@@ -702,8 +702,7 @@ BOOST_AUTO_TEST_CASE(node_binding_reorg) {
         SetMockTime(GetTime() + 20);
         mineBlocks(1);
         BlockValidationState state;
-        BOOST_CHECK(
-            chainman.ActiveChainstate().ActivateBestChain(GetConfig(), state));
+        BOOST_CHECK(chainman.ActiveChainstate().ActivateBestChain(state));
         LOCK(chainman.GetMutex());
         BOOST_CHECK_EQUAL(chainman.ActiveHeight(), 100);
     }

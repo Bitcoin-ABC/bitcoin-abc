@@ -5,7 +5,6 @@
 #include <kernel/mempool_persist.h>
 
 #include <clientversion.h>
-#include <config.h>
 #include <consensus/amount.h>
 #include <fs.h>
 #include <logging.h>
@@ -37,8 +36,8 @@ using fsbridge::FopenFn;
 namespace kernel {
 static const uint64_t MEMPOOL_DUMP_VERSION = 1;
 
-bool LoadMempool(const Config &config, CTxMemPool &pool,
-                 const fs::path &load_path, Chainstate &active_chainstate,
+bool LoadMempool(CTxMemPool &pool, const fs::path &load_path,
+                 Chainstate &active_chainstate,
                  FopenFn mockable_fopen_function) {
     if (load_path.empty()) {
         return false;
@@ -85,7 +84,7 @@ bool LoadMempool(const Config &config, CTxMemPool &pool,
                 TicksSinceEpoch<std::chrono::seconds>(now - pool.m_expiry)) {
                 LOCK(cs_main);
                 const auto &accepted =
-                    AcceptToMemoryPool(config, active_chainstate, tx, nTime,
+                    AcceptToMemoryPool(active_chainstate, tx, nTime,
                                        /*bypass_limits=*/false,
                                        /*test_accept=*/false);
                 if (accepted.m_result_type ==

@@ -163,8 +163,7 @@ public:
      * Passing fAddToMempool=false will skip trying to add the transactions
      * back, and instead just erase from the mempool as needed.
      */
-    void updateMempoolForReorg(const Config &config,
-                               Chainstate &active_chainstate,
+    void updateMempoolForReorg(Chainstate &active_chainstate,
                                bool fAddToMempool, CTxMemPool &pool)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, pool.cs);
 };

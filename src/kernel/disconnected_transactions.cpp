@@ -6,7 +6,6 @@
 #include <kernel/disconnected_transactions.h>
 
 #include <chain.h>
-#include <config.h>
 #include <consensus/consensus.h>
 #include <primitives/transaction.h>
 #include <reverse_iterator.h>
@@ -173,8 +172,7 @@ void DisconnectedBlockTransactions::removeForBlock(
 }
 
 void DisconnectedBlockTransactions::updateMempoolForReorg(
-    const Config &config, Chainstate &active_chainstate, bool fAddToMempool,
-    CTxMemPool &pool) {
+    Chainstate &active_chainstate, bool fAddToMempool, CTxMemPool &pool) {
     AssertLockHeld(cs_main);
     AssertLockHeld(pool.cs);
 
@@ -201,7 +199,7 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
             }
             // ignore validation errors in resurrected transactions
             auto result = AcceptToMemoryPool(
-                config, active_chainstate, tx,
+                active_chainstate, tx,
                 /*accept_time=*/ptxInfo ? ptxInfo->time.count() : GetTime(),
                 /*bypass_limits=*/true, /*test_accept=*/false,
                 /*heightOverride=*/ptxInfo ? ptxInfo->height : 0);

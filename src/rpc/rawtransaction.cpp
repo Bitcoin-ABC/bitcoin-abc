@@ -994,7 +994,7 @@ static RPCHelpMan testmempoolaccept() {
             const PackageMempoolAcceptResult package_result = [&] {
                 LOCK(::cs_main);
                 if (txns.size() > 1) {
-                    return ProcessNewPackage(config, chainstate, mempool, txns,
+                    return ProcessNewPackage(chainstate, mempool, txns,
                                              /* test_accept */ true);
                 }
                 return PackageMempoolAcceptResult(

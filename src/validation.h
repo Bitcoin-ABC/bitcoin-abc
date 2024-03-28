@@ -291,7 +291,6 @@ struct PackageMempoolAcceptResult {
  * exposed only for testing. Client code should use
  * ChainstateManager::ProcessTransaction()
  *
- * @param[in]  config             The global configuration.
  * @param[in]  active_chainstate  Reference to the active chainstate.
  * @param[in]  tx                 The transaction to submit for mempool
  *                                acceptance.
@@ -310,10 +309,9 @@ struct PackageMempoolAcceptResult {
  *     accepted/rejected with reason.
  */
 MempoolAcceptResult
-AcceptToMemoryPool(const Config &config, Chainstate &active_chainstate,
-                   const CTransactionRef &tx, int64_t accept_time,
-                   bool bypass_limits, bool test_accept = false,
-                   unsigned int heightOverride = 0)
+AcceptToMemoryPool(Chainstate &active_chainstate, const CTransactionRef &tx,
+                   int64_t accept_time, bool bypass_limits,
+                   bool test_accept = false, unsigned int heightOverride = 0)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
@@ -328,8 +326,8 @@ AcceptToMemoryPool(const Config &config, Chainstate &active_chainstate,
  *     be partially submitted.
  */
 PackageMempoolAcceptResult
-ProcessNewPackage(const Config &config, Chainstate &active_chainstate,
-                  CTxMemPool &pool, const Package &txns, bool test_accept)
+ProcessNewPackage(Chainstate &active_chainstate, CTxMemPool &pool,
+                  const Package &txns, bool test_accept)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 
 /**
@@ -901,7 +899,7 @@ public:
      *
      * @returns true unless a system error occurred
      */
-    bool ActivateBestChain(const Config &config, BlockValidationState &state,
+    bool ActivateBestChain(BlockValidationState &state,
                            std::shared_ptr<const CBlock> pblock = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex)
@@ -935,8 +933,7 @@ public:
      *
      * May not be called in a validationinterface callback.
      */
-    bool PreciousBlock(const Config &config, BlockValidationState &state,
-                       CBlockIndex *pindex)
+    bool PreciousBlock(BlockValidationState &state, CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex)
             LOCKS_EXCLUDED(cs_main);
@@ -1020,7 +1017,7 @@ public:
 
     /** Load the persisted mempool from disk */
     void
-    LoadMempool(const Config &config, const fs::path &load_path,
+    LoadMempool(const fs::path &load_path,
                 fsbridge::FopenFn mockable_fopen_function = fsbridge::fopen);
 
     /** Update the chain tip based on database information, i.e. CoinsTip()'s
@@ -1047,14 +1044,13 @@ public:
     }
 
 private:
-    bool ActivateBestChainStep(const Config &config,
-                               BlockValidationState &state,
+    bool ActivateBestChainStep(BlockValidationState &state,
                                CBlockIndex *pindexMostWork,
                                const std::shared_ptr<const CBlock> &pblock,
                                bool &fInvalidFound, ConnectTrace &connectTrace)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs,
                                  !cs_avalancheFinalizedBlockIndex);
-    bool ConnectTip(const Config &config, BlockValidationState &state,
+    bool ConnectTip(BlockValidationState &state,
                     BlockPolicyValidationState &blockPolicyState,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
@@ -1250,6 +1246,8 @@ public:
         : m_options{std::move(options)} {
         Assert(m_options.adjusted_time_callback);
     }
+
+    const Config &GetConfig() const { return m_options.config; }
 
     const CChainParams &GetParams() const {
         return m_options.config.GetChainParams();
