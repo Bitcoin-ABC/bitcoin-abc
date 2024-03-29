@@ -53,7 +53,10 @@ export const isValidRecipient = async value => {
         const aliasDetails = await queryAliasServer('alias', aliasName);
         return aliasDetails && !aliasDetails.error && !!aliasDetails.address;
     } catch (err) {
-        console.log(`isValidRecipient(): Error retrieving alias details`, err);
+        console.error(
+            `isValidRecipient(): Error retrieving alias details`,
+            err,
+        );
     }
     return false;
 };
@@ -117,7 +120,7 @@ export const validateMnemonic = (
         // Check the words are valid
         return bip39.validateMnemonic(mnemonic, wordlist);
     } catch (err) {
-        console.log(err);
+        console.error(err);
         return false;
     }
 };

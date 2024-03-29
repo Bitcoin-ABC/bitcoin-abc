@@ -49,8 +49,8 @@ export const formatBalance = (unformattedBalance, optionalLocale) => {
             maximumFractionDigits: appConfig.cashDecimals,
         });
     } catch (err) {
-        console.log(`Error in formatBalance for ${unformattedBalance}`);
-        console.log(err);
+        console.error(`Error in formatBalance for ${unformattedBalance}`);
+        console.error(err);
         return unformattedBalance;
     }
 };
@@ -90,8 +90,8 @@ export const formatTokenBalance = (
 
         return convertedTokenBalance;
     } catch (err) {
-        console.log(`Error in formatTokenBalance for ${unformattedBalance}`);
-        console.log(err);
+        console.error(`Error in formatTokenBalance for ${unformattedBalance}`);
+        console.error(err);
         return unformattedBalance;
     }
 };

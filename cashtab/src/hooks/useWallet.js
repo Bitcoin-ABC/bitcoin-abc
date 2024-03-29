@@ -109,11 +109,11 @@ const useWallet = chronik => {
             // If everything executed correctly, remove apiError
             setApiError(false);
         } catch (error) {
-            console.log(
+            console.error(
                 `Error in update(cashtabState) from cashtabState`,
                 cashtabState,
             );
-            console.log(error);
+            console.error(error);
             // Set this in state so that transactions are disabled until the issue is resolved
             setApiError(true);
             // Set loading false, as we may not have set it to false by updating the wallet
@@ -128,7 +128,7 @@ const useWallet = chronik => {
             const { tipHeight } = info;
             setChaintipBlockheight(tipHeight);
         } catch (err) {
-            console.log(`Error fetching chaintipBlockheight`, err);
+            console.error(`Error fetching chaintipBlockheight`, err);
         }
     };
 
@@ -414,10 +414,13 @@ const useWallet = chronik => {
             onReconnect: e => {
                 // Fired before a reconnect attempt is made.
                 // Should never happen with chronik ping keepalive websocket
-                console.log('Reconnecting websocket, disconnection cause: ', e);
+                console.info(
+                    'Reconnecting websocket, disconnection cause: ',
+                    e,
+                );
             },
             onConnect: e => {
-                console.log(`Chronik websocket connected`, e);
+                console.info(`Chronik websocket connected`, e);
             },
         });
 
@@ -556,7 +559,7 @@ const useWallet = chronik => {
             incomingTxDetails = await chronik.tx(txid);
         } catch (err) {
             // In this case, no notification
-            return console.log(
+            return console.error(
                 `Error in chronik.tx(${txid} while processing an incoming websocket tx`,
                 err,
             );
@@ -685,11 +688,11 @@ const useWallet = chronik => {
         } catch (err) {
             if (err.message === 'Failed to fetch') {
                 // The most common error is coingecko 429
-                console.log(
+                console.error(
                     `Failed to fetch XEC Price: Bad response or rate limit from CoinGecko`,
                 );
             } else {
-                console.log(`Failed to fetch XEC Price`, err);
+                console.error(`Failed to fetch XEC Price`, err);
             }
         }
         // If we have an error in the price fetch, or an invalid type without one, do not set the price
@@ -722,14 +725,14 @@ const useWallet = chronik => {
             setAliasServerError(false);
             // Clear interval if there are no pending aliases
             if (aliasesForThisAddress.pending.length === 0 && aliasIntervalId) {
-                console.log(
+                console.info(
                     `refreshAliases(): No pending aliases, clearing interval ${aliasIntervalId}`,
                 );
                 clearInterval(aliasIntervalId);
             }
         } catch (err) {
             const errorMsg = 'Error: Unable to retrieve aliases';
-            console.log(`refreshAliases(): ${errorMsg}`, err);
+            console.error(`refreshAliases(): ${errorMsg}`, err);
             setAliasServerError(errorMsg);
         }
     };
@@ -800,9 +803,6 @@ const useWallet = chronik => {
         const aliasRefreshInterval = 30000;
         const intervalId = setInterval(async function () {
             if (aliases?.pending?.length > 0) {
-                console.log(
-                    'useEffect(): Refreshing registered and pending aliases',
-                );
                 await refreshAliases(address);
             }
         }, aliasRefreshInterval);

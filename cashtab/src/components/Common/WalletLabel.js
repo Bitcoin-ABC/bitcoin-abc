@@ -56,11 +56,11 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
 
         // Get the active wallet by name
         const walletToActivate = wallets.find(
-            wallet => wallet.name === e.target.value,
+            wallet => wallet.name === walletName,
         );
 
         if (typeof walletToActivate === 'undefined') {
-            return console.log(`Unable to find wallet ${walletName}`);
+            return;
         }
 
         // Get desired wallets array after activating walletToActivate

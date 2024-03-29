@@ -83,7 +83,7 @@ const ScanQRCode = ({
                     // Other errors come from input device, permissions
                     // These are issues where the user should be notified that the scanning
                     // ain't gonna work
-                    console.log(`Error scanning for QR code`, error);
+                    console.error(`Error scanning for QR code`, error);
                     // The error will be displayed in the modal area
                     setError(error);
 

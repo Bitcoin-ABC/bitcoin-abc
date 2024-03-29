@@ -226,7 +226,7 @@ const Alias = ({ passLoadingStatus }) => {
         } catch (err) {
             const errorMsg =
                 'Error retrieving alias details. Refresh page to try again.';
-            console.log(`preparePreviewModal(): ${errorMsg}`, err);
+            console.error(`preparePreviewModal(): ${errorMsg}`, err);
             // Using a pop up notification since this is a modal block
             toast.error(`${errorMsg}`);
             passLoadingStatus(false);
@@ -278,14 +278,14 @@ const Alias = ({ passLoadingStatus }) => {
             !aliasDetails.error &&
             aliasDetails.registrationFeeSats
         ) {
-            console.log(
+            console.info(
                 'Registration fee for ' +
                     aliasInput +
                     ' is ' +
                     aliasDetails.registrationFeeSats +
                     ' sats.',
             );
-            console.log(
+            console.info(
                 `Alias ${aliasInput} is available. Broadcasting registration transaction.`,
             );
             try {
@@ -418,7 +418,7 @@ const Alias = ({ passLoadingStatus }) => {
         } catch (err) {
             // Invalid cashaddress
             // Log to console for user support
-            console.log(`Invalid address`, err);
+            console.error(`Invalid address`, err);
         }
 
         if (isValidAddress) {
@@ -728,12 +728,12 @@ const Alias = ({ passLoadingStatus }) => {
 passLoadingStatus must receive a default prop that is a function
 in order to pass the rendering unit test in Alias.test.js
 
-status => {console.log(status)} is an arbitrary stub function
+status => {console.info(status)} is an arbitrary stub function
 */
 
 Alias.defaultProps = {
     passLoadingStatus: status => {
-        console.log(status);
+        console.info(status);
     },
 };
 

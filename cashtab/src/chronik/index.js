@@ -19,7 +19,7 @@ export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
             .history(page, chronikConfig.txHistoryPageSize);
         return txHistoryPage;
     } catch (err) {
-        console.log(`Error in getTxHistoryPage(${hash160})`, err);
+        console.error(`Error in getTxHistoryPage(${hash160})`, err);
     }
 };
 
@@ -53,7 +53,7 @@ export const isAliasRegistered = (registeredAliases, alias) => {
             registeredAliases[i].alias.toString().toLowerCase() ===
             alias.toLowerCase()
         ) {
-            console.log(`Alias (${alias}) is registered`);
+            console.error(`Alias (${alias}) is registered`);
             return true;
         }
     }
@@ -279,7 +279,7 @@ export const parseTx = (tx, wallet, cachedTokens) => {
                         thisInput.outputScript,
                     );
                 } catch (err) {
-                    console.log(
+                    console.error(
                         `Error from cashaddr.encodeOutputScript(${thisInput.outputScript})`,
                         err,
                     );
@@ -635,7 +635,7 @@ export const getMintAddress = async (chronik, tokenId) => {
             }
         }
     } catch (err) {
-        console.log(`Error in getMintAddress`, err);
+        console.error(`Error in getMintAddress`, err);
         return err;
     }
 };

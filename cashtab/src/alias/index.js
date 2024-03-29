@@ -49,11 +49,11 @@ export const queryAliasServer = async (endPoint, aliasParam = false) => {
         }
         return await aliasServerResp.json();
     } catch (err) {
-        console.log(
+        console.error(
             `queryAliasServer(): Error retrieving alias data from alias-server`,
             err,
         );
-        console.log(
+        console.error(
             `/${endPoint}/ endpoint output: ${JSON.stringify(aliasServerResp)}`,
         );
         throw err;

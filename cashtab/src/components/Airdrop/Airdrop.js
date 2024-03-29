@@ -155,7 +155,7 @@ const Airdrop = ({ passLoadingStatus }) => {
         try {
             tokenUtxos = await chronik.tokenId(formData.tokenId).utxos();
         } catch (err) {
-            console.log(`Error getting token utxos from chronik`, err);
+            console.error(`Error getting token utxos from chronik`, err);
             toast.error('Error retrieving airdrop recipients');
             // Clear result field from earlier calc, if present, on any error
             setAirdropRecipients('');
@@ -172,7 +172,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                 mintAddress = await getMintAddress(chronik, formData.tokenId);
                 excludedAddresses.push(mintAddress);
             } catch (err) {
-                console.log(`Error getting mint address from chronik`, err);
+                console.error(`Error getting mint address from chronik`, err);
                 toast.error(
                     `Error determining mint address for ${formData.tokenId}`,
                 );
@@ -204,7 +204,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                     .times(10 ** tokenInfo.genesisInfo.decimals)
                     .toString();
             } catch (err) {
-                console.log(`Error getting token utxos from chronik`, err);
+                console.error(`Error getting token utxos from chronik`, err);
                 toast.error(
                     `Error determining mint address for ${formData.tokenId}`,
                 );
@@ -503,12 +503,12 @@ const Airdrop = ({ passLoadingStatus }) => {
 passLoadingStatus must receive a default prop that is a function
 in order to pass the rendering unit test in Airdrop.test.js
 
-status => {console.log(status)} is an arbitrary stub function
+status => {console.info(status)} is an arbitrary stub function
 */
 
 Airdrop.defaultProps = {
     passLoadingStatus: status => {
-        console.log(status);
+        console.info(status);
     },
 };
 

@@ -226,7 +226,7 @@ const SendToken = () => {
             );
             clearInputForms();
         } catch (e) {
-            console.log(`Error sending token`, e);
+            console.error(`Error sending token`, e);
             toast.error(`${e}`);
         }
     }
@@ -309,7 +309,7 @@ const SendToken = () => {
                     setAliasInputAddress(aliasDetails.address);
                 }
             } catch (err) {
-                console.log(
+                console.error(
                     `handleTokenAddressChange(): error retrieving alias`,
                     err,
                 );
@@ -337,8 +337,8 @@ const SendToken = () => {
                 amount,
             });
         } catch (err) {
-            console.log(`Error in onMax:`);
-            console.log(err);
+            console.error(`Error in onMax:`);
+            console.error(err);
             message.error(
                 'Unable to calculate the max value due to network errors',
             );

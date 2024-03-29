@@ -31,27 +31,22 @@ const Extension = ({ wallet }) => {
         let address;
         try {
             address = wallet.paths.get(1899).address;
-            console.log(`Address fetched from extension`, address);
         } catch (err) {
             // The wallet object can be 'false' when Cashtab first loads. In this case, we want this function to do nothing.
-            return console.log(
-                `Wallet not loaded yet, exiting copyAddressToExtension`,
-            );
+            return;
         }
         // Save the address to extension storage API
 
         // Check for stored value
         const storedAddress = await getObjectFromExtensionStorage(['address']);
-        console.log(`storedAddress`, storedAddress);
         if (address === storedAddress) {
             // No need to store it again
-            console.log(`Active wallet address already in extension storage`);
             return;
         }
 
         // If the address has not been set (or if the user has changed wallets since it was last set), set it
         await extension.storage.sync.set({ address: address }, function () {
-            console.log(
+            console.info(
                 `Address ${address} saved to storage under key 'address'`,
             );
         });
@@ -109,9 +104,6 @@ const Extension = ({ wallet }) => {
             let request = queryStringParams.get('request');
             let tabId = parseInt(queryStringParams.get('tabId'));
             let tabUrl = queryStringParams.get('tabUrl');
-            console.log(`request`, request);
-            console.log(`tabId`, tabId);
-            console.log(`tabUrl`, tabUrl);
             if (request !== 'addressRequest') {
                 return;
             }

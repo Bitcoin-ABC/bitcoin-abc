@@ -633,7 +633,7 @@ const Configure = () => {
 
         if (typeof walletInWallets !== 'undefined') {
             // Import error modal
-            console.log(
+            console.error(
                 `Cannot import: wallet already exists (name: "${walletInWallets.name}")`,
             );
             toast.error(
@@ -652,7 +652,7 @@ const Configure = () => {
         );
         if (typeof existingWalletHasSameName !== 'undefined') {
             // Import error modal for wallet existing with the same name
-            console.log(
+            console.error(
                 `Cannot import: wallet with same name already exists (name: "${existingWalletHasSameName.name}")`,
             );
             toast.error(
@@ -842,7 +842,7 @@ const Configure = () => {
 
     const handleRenameContact = contactObj => {
         if (!contactObj) {
-            console.log(
+            console.error(
                 'handleRenameContact() error: Invalid contact object for update',
             );
             return;
@@ -950,7 +950,7 @@ const Configure = () => {
 
     const handleDeleteContact = contactAddress => {
         if (!contactAddress) {
-            console.log(
+            console.error(
                 'handleDeleteContact() error: Invalid contact address for deletion',
             );
             return;
