@@ -568,21 +568,34 @@ export const shouldSendXecBeDisabled = (
     apiError,
     sendAmountError,
     sendAddressError,
+    multiSendAddressError,
     isMsgError,
     priceApiError,
     isOneToManyXECSend,
 ) => {
     return (
-        (formData.amount === '' && formData.address === '') || // No user inputs
-        balanceSats === 0 || // user has no funds
-        apiError || // API error
-        typeof sendAmountError === 'string' || // validation error for send amount
-        typeof sendAddressError === 'string' || // validation error for destinationa ddress
-        typeof isMsgError === 'string' || // validation error in Cashtab Msg
-        priceApiError || // we don't have a good price AND fiat currency is selected
+        // Disabled if no user inputs
+        (formData.multiAddressInput === '' &&
+            formData.amount === '' &&
+            formData.address === '') ||
+        // Disabled if we are on SendToOne mode and address or amount is blank
         (!isOneToManyXECSend &&
-            (isNaN(formData.amount) || formData.amount === ''))
-    ); // Value is blank or NaN and is expected to not be so
+            (formData.amount === '' || formData.address === '')) ||
+        // Disabled if user has no balance
+        balanceSats === 0 ||
+        // Disabled if apiError (wallet unable to sync utxo set with chronik)
+        apiError ||
+        // Disabled if send amount fails validation
+        sendAmountError !== false ||
+        // Disabled if address fails validation
+        sendAddressError !== false ||
+        // Disabled if msg fails validation
+        isMsgError !== false ||
+        // Disabled if we do not have a fiat price AND the user is attempting to send fiat
+        priceApiError ||
+        // Disabled if send to many and we have a send to many validation error
+        (isOneToManyXECSend && multiSendAddressError !== false)
+    );
 };
 
 /**

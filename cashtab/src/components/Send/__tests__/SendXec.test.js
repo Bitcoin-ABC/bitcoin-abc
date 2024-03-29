@@ -1473,4 +1473,59 @@ describe('<SendXec />', () => {
             ),
         );
     });
+    it('We can send an XEC tx to multiple users', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Can check in electrum for opreturn and amount
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b4830450221009ce5b0f6332ed7d1dbfdcf6a0ab870a69d97690b47463c09e403c25255df8d2d02206c553baba4386eb73b7938cb041da23c69072bb1232101fd2f3c8d2b1b6367b34121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03d0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac98080000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac9d710e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'cf665d10e1a0baa8f4c593113678f7859078b1a9a441ac4d6fa40d3636127b99';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Select multi-send mode
+        await user.click(screen.getByTestId('Send to many'));
+
+        const multiSendInputEl = screen.getByPlaceholderText(
+            /One address & amount per line/,
+        );
+        // The user enters a send to many input
+        const multiSendInput =
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035, 20\necash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6, 22';
+        await user.type(multiSendInputEl, multiSendInput);
+
+        // The send to many input field has this value
+        expect(multiSendInputEl).toHaveValue(multiSendInput);
+
+        // The Send button is enabled as we have valid multisend input
+        expect(screen.getByRole('button', { name: /Send/ })).not.toHaveStyle(
+            'cursor: not-allowed',
+        );
+
+        // Click Send
+        await user.click(screen.getByRole('button', { name: /Send/ }));
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
 });

@@ -777,10 +777,12 @@ const SendXec = () => {
         apiError,
         sendAmountError,
         sendAddressError,
+        multiSendAddressError,
         isMsgError,
         priceApiError,
         isOneToManyXECSend,
     );
+
     return (
         <>
             {isModalVisible && (
@@ -902,7 +904,7 @@ const SendXec = () => {
                     <>
                         <DestinationAddressMultiCtn>
                             <TextArea
-                                placeholder={`One address & value per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`}
+                                placeholder={`One address & amount per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`}
                                 name="multiAddressInput"
                                 handleInput={e => handleMultiAddressChange(e)}
                                 value={formData.multiAddressInput}
