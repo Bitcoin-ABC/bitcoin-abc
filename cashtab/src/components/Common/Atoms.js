@@ -79,3 +79,9 @@ export const StyledLink = styled(Link)`
     border: solid 1px silver;
     border-radius: 10px;
 `;
+
+export const SwitchLabel = styled.div`
+    text-align: left;
+    color: ${props => props.theme.contrast};
+    font-size: 18px;
+`;

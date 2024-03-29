@@ -16,7 +16,7 @@ import {
     isValidXecAirdrop,
     isValidAirdropExclusionArray,
 } from 'validation';
-import { SidePaddingCtn } from 'components/Common/Atoms';
+import { SidePaddingCtn, SwitchLabel } from 'components/Common/Atoms';
 import { getAirdropTx, getEqualAirdropTx } from 'airdrop';
 import Communist from 'assets/communist.png';
 import { toast } from 'react-toastify';
@@ -46,10 +46,6 @@ const AirdropTitle = styled.div`
     gap: 12px;
     text-align: center;
     justify-content: center;
-`;
-const SwitchLabel = styled.div`
-    color: ${props => props.theme.contrast};
-    font-size: 18px;
 `;
 
 const Airdrop = ({ passLoadingStatus }) => {

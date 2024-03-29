@@ -4,7 +4,6 @@
 
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { formatTokenBalance } from 'utils/formatting';
 import styled from 'styled-components';
 
 const TokenBalance = styled.div`
@@ -19,19 +18,23 @@ const TokenBalance = styled.div`
     }
 `;
 
-const BalanceHeaderToken = ({ balance, ticker, tokenDecimals }) => {
+const BalanceHeaderToken = ({
+    formattedDecimalizedTokenBalance,
+    name,
+    ticker,
+}) => {
     return (
         <TokenBalance>
-            {formatTokenBalance(balance, tokenDecimals)} {ticker}
+            {formattedDecimalizedTokenBalance} {name} ({ticker})
         </TokenBalance>
     );
 };
 
 // balance may be a string (XEC balance) or a BigNumber object (token balance)
 BalanceHeaderToken.propTypes = {
-    balance: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    formattedDecimalizedTokenBalance: PropTypes.string,
+    name: PropTypes.string,
     ticker: PropTypes.string,
-    tokenDecimals: PropTypes.number,
 };
 
 export default BalanceHeaderToken;

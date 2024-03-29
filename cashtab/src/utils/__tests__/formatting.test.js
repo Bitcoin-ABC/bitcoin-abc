@@ -2,12 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN } from 'slp-mdm';
 import {
     formatDate,
     formatFiatBalance,
     formatBalance,
-    formatTokenBalance,
     decimalizedTokenQtyToLocaleFormat,
 } from 'utils/formatting';
 import vectors from 'utils/fixtures/vectors';
@@ -108,25 +106,6 @@ describe('Correctly executes formatting functions', () => {
     });
     it(`test formatFiatBalance with undefined input`, () => {
         expect(formatFiatBalance(undefined, 'en-US')).toBe(undefined);
-    });
-    it(`returns undefined formatTokenBalance with undefined inputs`, () => {
-        expect(formatTokenBalance(undefined, undefined)).toBe(undefined);
-    });
-    it(`test formatTokenBalance with valid balance & decimal inputs`, () => {
-        const testBalance = new BN(100.00000001);
-        expect(formatTokenBalance(testBalance, 8)).toBe('100.00000001');
-    });
-    it(`returns undefined when passed invalid decimals parameter`, () => {
-        const testBalance = new BN(100.00000001);
-        expect(formatTokenBalance(testBalance, 'cheese')).toBe(undefined);
-    });
-    it(`returns undefined when passed invalid balance parameter`, () => {
-        const testBalance = '100.000010122';
-        expect(formatTokenBalance(testBalance, 9)).toBe(undefined);
-    });
-    it(`maintains trailing zeros in balance per tokenDecimal parameter`, () => {
-        const testBalance = new BN(10000);
-        expect(formatTokenBalance(testBalance, 8)).toBe('10,000.00000000');
     });
     describe('We can format decimalized token strings for userLocale', () => {
         const { expectedReturns } = vectors.decimalizedTokenQtyToLocaleFormat;

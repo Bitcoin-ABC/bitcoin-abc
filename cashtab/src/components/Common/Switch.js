@@ -6,6 +6,9 @@ import React from 'react';
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
+const Container = styled.div`
+    width: ${props => props.switchWidth}px;
+`;
 const ToggleSwitch = styled.div`
     position: relative;
     width: ${props => props.switchWidth}px;
@@ -110,28 +113,30 @@ export const CashtabSwitch = ({
     }
 
     return (
-        <ToggleSwitch switchWidth={width}>
-            <SwitchInput
-                type="checkbox"
-                checked={checked}
-                onChange={handleToggle}
-                disabled={disabled}
-                name={name}
-                id={name}
-                data-testid={name}
-            />
-            <SwitchLabel htmlFor={name} disabled={disabled}>
-                <SwitchInner
-                    data-on={on}
-                    data-off={off}
-                    bgImageOn={bgImageOn}
-                    bgImageOff={bgImageOff}
+        <Container>
+            <ToggleSwitch switchWidth={width}>
+                <SwitchInput
+                    type="checkbox"
+                    checked={checked}
+                    onChange={handleToggle}
                     disabled={disabled}
-                    small={small}
-                ></SwitchInner>
-                <SwitchItself right={right} small={small}></SwitchItself>
-            </SwitchLabel>
-        </ToggleSwitch>
+                    name={name}
+                    id={name}
+                    data-testid={name}
+                />
+                <SwitchLabel htmlFor={name} disabled={disabled}>
+                    <SwitchInner
+                        data-on={on}
+                        data-off={off}
+                        bgImageOn={bgImageOn}
+                        bgImageOff={bgImageOff}
+                        disabled={disabled}
+                        small={small}
+                    ></SwitchInner>
+                    <SwitchItself right={right} small={small}></SwitchItself>
+                </SwitchLabel>
+            </ToggleSwitch>
+        </Container>
     );
 };
 

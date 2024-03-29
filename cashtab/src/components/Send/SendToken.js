@@ -5,11 +5,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
-import { message, Button } from 'antd';
 import PrimaryButton, {
     SecondaryButton,
 } from 'components/Common/PrimaryButton';
-import { SidePaddingCtn, TxLink } from 'components/Common/Atoms';
+import { SidePaddingCtn, TxLink, SwitchLabel } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
 import { BN } from 'slp-mdm';
@@ -44,24 +43,77 @@ import {
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
+import Switch from 'components/Common/Switch';
+
+const TokenIconExpandButton = styled.button`
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+`;
+const SendTokenForm = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 12px;
+`;
+const SendTokenFormRow = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 3px;
+`;
 
 const TokenStatsTable = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     width: 100%;
     color: ${props => props.theme.contrast};
+    gap: 12px;
     margin-bottom: 12px;
 `;
 const TokenStatsRow = styled.div`
     width: 100%;
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     text-align: center;
     justify-content: center;
     gap: 3px;
 `;
-const TokenStatsCol = styled.div``;
+const TokenStatsCol = styled.div`
+    align-items: center;
+    flex-wrap: wrap;
+`;
+const TokenStatsTableRow = styled.div`
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+`;
+
+const TokenStatsLabel = styled.div`
+    font-weight: bold;
+    justify-content: flex-end;
+    text-align: right;
+    display: flex;
+    width: 106px;
+`;
+const SwitchHolder = styled.div`
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    align-content: center;
+    align-items: center;
+    margin: 12px;
+`;
 
 const TokenSentLink = styled.a`
     color: ${props => props.theme.walletBackground};
@@ -112,6 +164,10 @@ const SendToken = () => {
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
+    const [showSend, setShowSend] = useState(true);
+    const [showBurn, setShowBurn] = useState(false);
+    const [showAirdrop, setShowAirdrop] = useState(false);
+    const [showLargeIconModal, setShowLargeIconModal] = useState(false);
 
     // Load with QR code open if device is mobile
     const openWithScanner =
@@ -339,9 +395,6 @@ const SendToken = () => {
         } catch (err) {
             console.error(`Error in onMax:`);
             console.error(err);
-            message.error(
-                'Unable to calculate the max value due to network errors',
-            );
         }
     };
 
@@ -474,6 +527,17 @@ const SendToken = () => {
             {tokenBalance &&
                 typeof cashtabCache.tokens.get(tokenId) !== 'undefined' && (
                     <SidePaddingCtn>
+                        {showLargeIconModal && (
+                            <Modal
+                                height={275}
+                                showButtons={false}
+                                handleCancel={() =>
+                                    setShowLargeIconModal(false)
+                                }
+                            >
+                                <TokenIcon size={256} tokenId={tokenId} />
+                            </Modal>
+                        )}
                         {isModalVisible && (
                             <Modal
                                 title="Confirm Send"
@@ -511,161 +575,271 @@ const SendToken = () => {
                             </Modal>
                         )}
                         <BalanceHeaderToken
-                            balance={new BN(tokenBalance)}
+                            formattedDecimalizedTokenBalance={decimalizedTokenQtyToLocaleFormat(
+                                tokenBalance,
+                                userLocale,
+                            )}
                             ticker={tokenTicker}
-                            tokenDecimals={decimals}
+                            name={tokenName}
                         />
-                        <TokenStatsTable
-                            title={`Token info for "${tokenName}"`}
-                        >
-                            <TokenStatsRow>
-                                <TokenStatsCol colSpan={2}>
-                                    <CopyToClipboard data={tokenId} showToast>
-                                        <TokenIcon
-                                            size={128}
-                                            tokenId={tokenId}
-                                        />
-                                    </CopyToClipboard>
-                                </TokenStatsCol>
-                            </TokenStatsRow>
-                            <TokenStatsRow>
-                                <TokenStatsCol>
-                                    Token Id: {tokenId.slice(0, 3)}...
-                                    {tokenId.slice(-3)}
-                                </TokenStatsCol>
-                                <TokenStatsCol>
-                                    <CopyToClipboard data={tokenId} showToast>
-                                        <ThemedCopySolid />
-                                    </CopyToClipboard>
-                                </TokenStatsCol>
-                            </TokenStatsRow>
-                            <TokenStatsRow>
-                                <TokenStatsCol>
-                                    {decimals} decimal places
-                                </TokenStatsCol>
-                            </TokenStatsRow>
-                            <TokenStatsRow>{url}</TokenStatsRow>
-                            <TokenStatsRow>
-                                Minted{' '}
-                                {typeof cachedInfo.block !== 'undefined'
-                                    ? formatDate(
-                                          cachedInfo.block.timestamp,
-                                          navigator.language,
-                                      )
-                                    : formatDate(
-                                          cachedInfo.timeFirstSeen,
-                                          navigator.language,
-                                      )}
-                            </TokenStatsRow>
-                            <TokenStatsRow>
-                                Genesis Supply:{' '}
-                                {decimalizedTokenQtyToLocaleFormat(
-                                    genesisSupply,
-                                    userLocale,
+                        <TokenStatsTable>
+                            <TokenStatsCol>
+                                <TokenIconExpandButton
+                                    onClick={() => setShowLargeIconModal(true)}
+                                >
+                                    <TokenIcon size={128} tokenId={tokenId} />
+                                </TokenIconExpandButton>
+                            </TokenStatsCol>
+                            <TokenStatsCol>
+                                <TokenStatsTableRow>
+                                    <TokenStatsLabel>Token Id:</TokenStatsLabel>
+                                    <TokenStatsCol>
+                                        <a
+                                            href={`${explorer.blockExplorerUrl}/tx/${tokenId}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {tokenId.slice(0, 3)}...
+                                            {tokenId.slice(-3)}
+                                        </a>
+                                    </TokenStatsCol>
+                                    <TokenStatsCol>
+                                        <CopyToClipboard
+                                            data={tokenId}
+                                            showToast
+                                        >
+                                            <ThemedCopySolid
+                                                style={{
+                                                    marginTop: '8px',
+                                                    fontSize: '12px',
+                                                }}
+                                            />
+                                        </CopyToClipboard>
+                                    </TokenStatsCol>
+                                </TokenStatsTableRow>
+                                <TokenStatsTableRow>
+                                    <TokenStatsLabel>decimals:</TokenStatsLabel>
+                                    <TokenStatsCol>{decimals}</TokenStatsCol>
+                                </TokenStatsTableRow>
+                                {url && url.startsWith('https://') && (
+                                    <TokenStatsTableRow>
+                                        <TokenStatsLabel>url:</TokenStatsLabel>
+                                        <TokenStatsCol>
+                                            <a
+                                                href={url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                {`${url.slice(8, 19)}...`}
+                                            </a>
+                                        </TokenStatsCol>
+                                    </TokenStatsTableRow>
                                 )}
-                            </TokenStatsRow>
-                            <TokenStatsRow>
-                                {genesisMintBatons === 0
-                                    ? 'Fixed Supply'
-                                    : 'Variable Supply'}
-                            </TokenStatsRow>
+                                <TokenStatsTableRow>
+                                    <TokenStatsLabel>created:</TokenStatsLabel>
+                                    <TokenStatsCol>
+                                        {typeof cachedInfo.block !== 'undefined'
+                                            ? formatDate(
+                                                  cachedInfo.block.timestamp,
+                                                  navigator.language,
+                                              )
+                                            : formatDate(
+                                                  cachedInfo.timeFirstSeen,
+                                                  navigator.language,
+                                              )}
+                                    </TokenStatsCol>
+                                </TokenStatsTableRow>
+                                <TokenStatsTableRow>
+                                    <TokenStatsLabel>
+                                        Genesis Qty:
+                                    </TokenStatsLabel>
+                                    <TokenStatsCol>
+                                        {decimalizedTokenQtyToLocaleFormat(
+                                            genesisSupply,
+                                            userLocale,
+                                        )}
+                                    </TokenStatsCol>
+                                </TokenStatsTableRow>
+                                <TokenStatsTableRow>
+                                    <TokenStatsLabel>Supply:</TokenStatsLabel>
+                                    <TokenStatsCol>
+                                        {genesisMintBatons === 0
+                                            ? 'Fixed'
+                                            : 'Variable'}
+                                    </TokenStatsCol>
+                                </TokenStatsTableRow>
+                            </TokenStatsCol>
                         </TokenStatsTable>
-                        <InputWithScanner
-                            placeholder={
-                                aliasSettings.aliasEnabled
-                                    ? `Address or Alias`
-                                    : `Address`
-                            }
-                            name="address"
-                            value={formData.address}
-                            handleInput={handleTokenAddressChange}
-                            error={sendTokenAddressError}
-                            loadWithScannerOpen={openWithScanner}
-                        />
-                        <AliasAddressPreviewLabel>
-                            <TxLink
-                                key={aliasInputAddress}
-                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                {aliasInputAddress &&
-                                    `${aliasInputAddress.slice(
-                                        0,
-                                        10,
-                                    )}...${aliasInputAddress.slice(-5)}`}
-                            </TxLink>
-                        </AliasAddressPreviewLabel>
-                        <br />
-                        <SendTokenInput
-                            name="amount"
-                            value={formData.amount}
-                            error={sendTokenAmountError}
-                            placeholder="Amount"
-                            decimals={decimals}
-                            handleInput={handleSlpAmountChange}
-                            handleOnMax={onMax}
-                        />
-
-                        <SecondaryButton
-                            style={{ marginTop: '24px' }}
-                            disabled={
-                                apiError ||
-                                sendTokenAmountError ||
-                                sendTokenAddressError
-                            }
-                            onClick={() =>
-                                checkForConfirmationBeforeSendEtoken()
-                            }
-                        >
-                            Send {tokenName}
-                        </SecondaryButton>
 
                         {apiError && <ApiError />}
 
-                        <TokenStatsTable
-                            title={`Token info for "${tokenName}"`}
-                        >
-                            <TokenStatsRow>
-                                <Link
-                                    style={{ width: '100%' }}
-                                    to="/airdrop"
-                                    state={{
-                                        airdropEtokenId: tokenId,
-                                    }}
-                                >
-                                    <PrimaryButton
-                                        style={{ marginTop: '12px' }}
-                                    >
-                                        Airdrop
-                                    </PrimaryButton>
-                                </Link>
-                            </TokenStatsRow>
-                            <TokenStatsRow>
-                                <InputFlex>
-                                    <SendTokenInput
-                                        name="burnAmount"
-                                        value={formData.burnAmount}
-                                        error={burnTokenAmountError}
-                                        placeholder="Burn Amount"
-                                        decimals={decimals}
-                                        handleInput={
-                                            handleEtokenBurnAmountChange
+                        <SendTokenForm>
+                            <SwitchHolder>
+                                <Switch
+                                    name="send-switch"
+                                    on="➡️"
+                                    off="➡️"
+                                    checked={showSend}
+                                    handleToggle={() => {
+                                        if (!showSend) {
+                                            // If showSend is being set to true here, make sure burn and airdrop are false
+                                            setShowAirdrop(false);
+                                            setShowBurn(false);
                                         }
-                                        handleOnMax={onMaxBurn}
-                                    />
-
-                                    <Button
-                                        type="primary"
-                                        onClick={handleBurnAmountInput}
-                                        danger
+                                        setShowSend(!showSend);
+                                    }}
+                                />
+                                <SwitchLabel>
+                                    Send {tokenName} ({tokenTicker})
+                                </SwitchLabel>
+                            </SwitchHolder>
+                            {showSend && (
+                                <>
+                                    <SendTokenFormRow>
+                                        <InputWithScanner
+                                            placeholder={
+                                                aliasSettings.aliasEnabled
+                                                    ? `Address or Alias`
+                                                    : `Address`
+                                            }
+                                            name="address"
+                                            value={formData.address}
+                                            handleInput={
+                                                handleTokenAddressChange
+                                            }
+                                            error={sendTokenAddressError}
+                                            loadWithScannerOpen={
+                                                openWithScanner
+                                            }
+                                        />
+                                    </SendTokenFormRow>
+                                    <SendTokenFormRow>
+                                        <AliasAddressPreviewLabel>
+                                            <TxLink
+                                                key={aliasInputAddress}
+                                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                {aliasInputAddress &&
+                                                    `${aliasInputAddress.slice(
+                                                        0,
+                                                        10,
+                                                    )}...${aliasInputAddress.slice(
+                                                        -5,
+                                                    )}`}
+                                            </TxLink>
+                                        </AliasAddressPreviewLabel>
+                                    </SendTokenFormRow>
+                                    <SendTokenFormRow>
+                                        <SendTokenInput
+                                            name="amount"
+                                            value={formData.amount}
+                                            error={sendTokenAmountError}
+                                            placeholder="Amount"
+                                            decimals={decimals}
+                                            handleInput={handleSlpAmountChange}
+                                            handleOnMax={onMax}
+                                        />
+                                    </SendTokenFormRow>
+                                    <SendTokenFormRow>
+                                        <PrimaryButton
+                                            style={{ marginTop: '24px' }}
+                                            disabled={
+                                                apiError ||
+                                                sendTokenAmountError ||
+                                                sendTokenAddressError
+                                            }
+                                            onClick={() =>
+                                                checkForConfirmationBeforeSendEtoken()
+                                            }
+                                        >
+                                            Send {tokenTicker}
+                                        </PrimaryButton>
+                                    </SendTokenFormRow>
+                                </>
+                            )}
+                            <SwitchHolder>
+                                <Switch
+                                    name="airdrop-switch"
+                                    on="🪂"
+                                    off="🪂"
+                                    checked={showAirdrop}
+                                    handleToggle={() => {
+                                        if (!showAirdrop) {
+                                            // If showAirdrop is being set to true here, make sure burn and send are false
+                                            setShowBurn(false);
+                                            setShowSend(false);
+                                        }
+                                        setShowAirdrop(!showAirdrop);
+                                    }}
+                                />
+                                <SwitchLabel>
+                                    Airdrop XEC to {tokenTicker} holders
+                                </SwitchLabel>
+                            </SwitchHolder>
+                            {showAirdrop && (
+                                <TokenStatsRow>
+                                    <Link
+                                        style={{ width: '100%' }}
+                                        to="/airdrop"
+                                        state={{
+                                            airdropEtokenId: tokenId,
+                                        }}
                                     >
-                                        Burn&nbsp;
-                                        {tokenTicker}
-                                    </Button>
-                                </InputFlex>
-                            </TokenStatsRow>
-                        </TokenStatsTable>
+                                        <SecondaryButton
+                                            style={{ marginTop: '12px' }}
+                                        >
+                                            Airdrop Calculator
+                                        </SecondaryButton>
+                                    </Link>
+                                </TokenStatsRow>
+                            )}
+                            <SwitchHolder>
+                                <Switch
+                                    name="burn-switch"
+                                    on="🔥"
+                                    off="🔥"
+                                    checked={showBurn}
+                                    handleToggle={() => {
+                                        if (!showBurn) {
+                                            // If showBurn is being set to true here, make sure airdrop and send are false
+                                            setShowAirdrop(false);
+                                            setShowSend(false);
+                                        }
+                                        setShowBurn(!showBurn);
+                                    }}
+                                />
+                                <SwitchLabel>Burn {tokenTicker}</SwitchLabel>
+                            </SwitchHolder>
+                            {showBurn && (
+                                <TokenStatsRow>
+                                    <InputFlex>
+                                        <SendTokenInput
+                                            name="burnAmount"
+                                            value={formData.burnAmount}
+                                            error={burnTokenAmountError}
+                                            placeholder="Burn Amount"
+                                            decimals={decimals}
+                                            handleInput={
+                                                handleEtokenBurnAmountChange
+                                            }
+                                            handleOnMax={onMaxBurn}
+                                        />
+
+                                        <SecondaryButton
+                                            onClick={handleBurnAmountInput}
+                                            disabled={
+                                                burnTokenAmountError ||
+                                                formData.burnAmount === ''
+                                            }
+                                        >
+                                            Burn {tokenTicker}
+                                        </SecondaryButton>
+                                    </InputFlex>
+                                </TokenStatsRow>
+                            )}
+                        </SendTokenForm>
                     </SidePaddingCtn>
                 )}
         </>

@@ -40,7 +40,8 @@ const ModalBody = styled.div`
     top: 0;
     left: 0;
     width: 100%;
-    height: ${props => props.height - MODAL_HEIGHT_DELTA}px;
+    height: ${props =>
+        props.showButtons ? props.height - MODAL_HEIGHT_DELTA : props.height}px;
     overflow: auto;
     padding: 6px;
     word-wrap: break-word;
@@ -135,7 +136,7 @@ export const Modal = ({
     return (
         <ModalContainer width={width} height={height}>
             <ModalExit onClick={handleCancel}>X</ModalExit>
-            <ModalBody height={height}>
+            <ModalBody height={height} showButtons={showButtons}>
                 {typeof title !== 'undefined' && (
                     <ModalTitle>{title}</ModalTitle>
                 )}

@@ -493,11 +493,16 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // Click the Burn button
-        // Note we button title is the token ticker
-        await user.click(await screen.findByRole('button', { name: /Burn/ }));
+        // Click the burn switch to show the burn interface
+        await user.click(screen.getByTestId('burn-switch'));
 
         await user.type(screen.getByPlaceholderText('Burn Amount'), '1');
+
+        // Click the Burn button
+        // Note we button title is the token ticker
+        await user.click(
+            await screen.findByRole('button', { name: /Burn BEAR/ }),
+        );
 
         // We see a modal and enter the correct confirmation msg
         await user.type(
