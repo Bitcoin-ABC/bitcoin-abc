@@ -108,8 +108,8 @@ BOOST_FIXTURE_TEST_CASE(coinstatsindex_unclean_shutdown, TestChain100Setup) {
             BlockValidationOptions options{config};
             BOOST_CHECK(CheckBlock(
                 block, state, config.GetChainParams().GetConsensus(), options));
-            BOOST_CHECK(chainstate.AcceptBlock(config, new_block, state, true,
-                                               nullptr, nullptr, true));
+            BOOST_CHECK(chainstate.AcceptBlock(new_block, state, true, nullptr,
+                                               nullptr, true));
 
             // Get the block index (not returned by AcceptBlock since D2127)
             auto it{m_node.chainman->m_blockman.m_block_index.find(

@@ -4288,7 +4288,6 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
 /**
  * Store a block on disk.
  *
- * @param[in]     config     The global config.
  * @param[in,out] pblock     The block we want to accept.
  * @param[in]     fRequested A boolean to indicate if this block was requested
  *                           from our peers.
@@ -4298,8 +4297,7 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
  *                                 been done by caller for headers chain
  * @return True if the block is accepted as a valid block and written to disk.
  */
-bool Chainstate::AcceptBlock(const Config &config,
-                             const std::shared_ptr<const CBlock> &pblock,
+bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
                              BlockValidationState &state, bool fRequested,
                              const FlatFilePos *dbp, bool *fNewBlock,
                              bool min_pow_checked) {
@@ -4398,7 +4396,7 @@ bool Chainstate::AcceptBlock(const Config &config,
     const Consensus::Params &consensusParams = params.GetConsensus();
 
     if (!CheckBlock(block, state, consensusParams,
-                    BlockValidationOptions(config)) ||
+                    BlockValidationOptions(m_chainman.GetConfig())) ||
         !ContextualCheckBlock(block, state, consensusParams, pindex->pprev)) {
         if (state.IsInvalid() &&
             state.GetResult() != BlockValidationResult::BLOCK_MUTATED) {
@@ -4488,9 +4486,9 @@ bool ChainstateManager::ProcessNewBlock(
                               BlockValidationOptions(this->GetConfig()));
         if (ret) {
             // Store to disk
-            ret = ActiveChainstate().AcceptBlock(
-                this->GetConfig(), block, state, force_processing, nullptr,
-                new_block, min_pow_checked);
+            ret = ActiveChainstate().AcceptBlock(block, state, force_processing,
+                                                 nullptr, new_block,
+                                                 min_pow_checked);
         }
 
         if (!ret) {
@@ -4627,11 +4625,12 @@ CVerifyDB::~CVerifyDB() {
     uiInterface.ShowProgress("", 100, false);
 }
 
-VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate, const Config &config,
+VerifyDBResult CVerifyDB::VerifyDB(Chainstate &chainstate,
                                    CCoinsView &coinsview, int nCheckLevel,
                                    int nCheckDepth) {
     AssertLockHeld(cs_main);
 
+    const Config &config = chainstate.m_chainman.GetConfig();
     const CChainParams &params = config.GetChainParams();
     const Consensus::Params &consensusParams = params.GetConsensus();
 
@@ -5114,7 +5113,7 @@ bool Chainstate::LoadGenesisBlock() {
 }
 
 void Chainstate::LoadExternalBlockFile(
-    const Config &config, FILE *fileIn, FlatFilePos *dbp,
+    FILE *fileIn, FlatFilePos *dbp,
     std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent) {
     AssertLockNotHeld(m_chainstate_mutex);
 
@@ -5199,8 +5198,8 @@ void Chainstate::LoadExternalBlockFile(
                         m_blockman.LookupBlockIndex(hash);
                     if (!pindex || !pindex->nStatus.hasData()) {
                         BlockValidationState state;
-                        if (AcceptBlock(config, pblock, state, true, dbp,
-                                        nullptr, true)) {
+                        if (AcceptBlock(pblock, state, true, dbp, nullptr,
+                                        true)) {
                             nLoaded++;
                         }
                         if (state.IsError()) {
@@ -5270,8 +5269,8 @@ void Chainstate::LoadExternalBlockFile(
                                 head.ToString());
                             LOCK(cs_main);
                             BlockValidationState dummy;
-                            if (AcceptBlock(config, pblockrecursive, dummy,
-                                            true, &it->second, nullptr, true)) {
+                            if (AcceptBlock(pblockrecursive, dummy, true,
+                                            &it->second, nullptr, true)) {
                                 nLoaded++;
                                 queue.push_back(pblockrecursive->GetHash());
                             }

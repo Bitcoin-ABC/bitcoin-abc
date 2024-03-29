@@ -2683,9 +2683,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         vImportFiles.push_back(fs::PathFromString(strFile));
     }
 
-    chainman.m_load_block = std::thread(
-        &util::TraceThread, "loadblk", [=, &config, &chainman, &args] {
-            ThreadImport(config, chainman, vImportFiles, args,
+    chainman.m_load_block =
+        std::thread(&util::TraceThread, "loadblk", [=, &chainman, &args] {
+            ThreadImport(chainman, vImportFiles, args,
                          ShouldPersistMempool(args) ? MempoolPath(args)
                                                     : fs::path{});
         });

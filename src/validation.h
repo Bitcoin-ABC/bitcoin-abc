@@ -576,9 +576,9 @@ public:
 
     ~CVerifyDB();
 
-    [[nodiscard]] VerifyDBResult
-    VerifyDB(Chainstate &chainstate, const Config &config,
-             CCoinsView &coinsview, int nCheckLevel, int nCheckDepth)
+    [[nodiscard]] VerifyDBResult VerifyDB(Chainstate &chainstate,
+                                          CCoinsView &coinsview,
+                                          int nCheckLevel, int nCheckDepth)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
 };
 
@@ -851,11 +851,11 @@ public:
      *                        unknown parent, key is parent block hash
      *                        (only used for reindex)
      */
-    void LoadExternalBlockFile(
-        const Config &config, FILE *fileIn, FlatFilePos *dbp = nullptr,
-        std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent =
-            nullptr) EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
-                                              !cs_avalancheFinalizedBlockIndex);
+    void LoadExternalBlockFile(FILE *fileIn, FlatFilePos *dbp = nullptr,
+                               std::multimap<BlockHash, FlatFilePos>
+                                   *blocks_with_unknown_parent = nullptr)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
+                                 !cs_avalancheFinalizedBlockIndex);
 
     /**
      * Update the on-disk chain state.
@@ -905,8 +905,7 @@ public:
                                  !cs_avalancheFinalizedBlockIndex)
             LOCKS_EXCLUDED(cs_main);
 
-    bool AcceptBlock(const Config &config,
-                     const std::shared_ptr<const CBlock> &pblock,
+    bool AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
                      BlockValidationState &state, bool fRequested,
                      const FlatFilePos *dbp, bool *fNewBlock,
                      bool min_pow_checked) EXCLUSIVE_LOCKS_REQUIRED(cs_main);

@@ -238,7 +238,7 @@ bool UndoReadFromDisk(CBlockUndo &blockundo, const CBlockIndex *pindex);
 bool ReadTxFromDisk(CMutableTransaction &tx, const FlatFilePos &pos);
 bool ReadTxUndoFromDisk(CTxUndo &tx, const FlatFilePos &pos);
 
-void ThreadImport(const Config &config, ChainstateManager &chainman,
+void ThreadImport(ChainstateManager &chainman,
                   std::vector<fs::path> vImportFiles, const ArgsManager &args,
                   const fs::path &mempool_path);
 } // namespace node

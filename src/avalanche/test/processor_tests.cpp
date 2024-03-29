@@ -2197,7 +2197,6 @@ BOOST_AUTO_TEST_CASE(vote_map_tx_comparator) {
 }
 
 BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
-    const auto &config = GetConfig();
     auto &chainman = Assert(m_node.chainman);
     Chainstate &chainstate = chainman->ActiveChainstate();
 
@@ -2209,7 +2208,7 @@ BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
     CBlockIndex *blockindex;
     {
         LOCK(cs_main);
-        BOOST_CHECK(chainstate.AcceptBlock(config, block, state,
+        BOOST_CHECK(chainstate.AcceptBlock(block, state,
                                            /*fRequested=*/true, /*dbp=*/nullptr,
                                            /*fNewBlock=*/nullptr,
                                            /*min_pow_checked=*/true));

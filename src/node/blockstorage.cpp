@@ -869,14 +869,12 @@ struct CImportingNow {
     }
 };
 
-void ThreadImport(const Config &config, ChainstateManager &chainman,
+void ThreadImport(ChainstateManager &chainman,
                   std::vector<fs::path> vImportFiles, const ArgsManager &args,
                   const fs::path &mempool_path) {
     ScheduleBatchPriority();
 
     {
-        const CChainParams &chainParams = config.GetChainParams();
-
         CImportingNow imp;
 
         // -reindex
@@ -900,7 +898,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
                 chainman.ActiveChainstate().LoadExternalBlockFile(
-                    config, file, &pos, &blocks_with_unknown_parent);
+                    file, &pos, &blocks_with_unknown_parent);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
@@ -923,7 +921,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
             if (file) {
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
-                chainman.ActiveChainstate().LoadExternalBlockFile(config, file);
+                chainman.ActiveChainstate().LoadExternalBlockFile(file);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
@@ -938,7 +936,7 @@ void ThreadImport(const Config &config, ChainstateManager &chainman,
         // invalid by, for instance, running an outdated version of the node
         // software.
         const MapCheckpoints &checkpoints =
-            chainParams.Checkpoints().mapCheckpoints;
+            chainman.GetParams().Checkpoints().mapCheckpoints;
         for (const MapCheckpoints::value_type &i : checkpoints) {
             const BlockHash &hash = i.second;
 
