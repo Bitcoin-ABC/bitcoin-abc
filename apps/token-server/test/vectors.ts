@@ -9,7 +9,9 @@ import {
     Token_InNode,
     Tx_InNode,
     BlockMetadata_InNode,
+    ScriptUtxo_InNode,
 } from 'chronik-client';
+import { ServerWallet } from '../src/wallet';
 import { Request } from 'express';
 
 const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
@@ -54,6 +56,14 @@ const MOCK_TX_INNODE: Tx_InNode = {
     tokenEntries: [],
     tokenFailedParsings: [],
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+};
+
+const MOCK_SCRIPT_UTXO: ScriptUtxo_InNode = {
+    outpoint: MOCK_OUTPOINT,
+    blockHeight: 800000,
+    isCoinbase: false,
+    value: 546,
+    isFinal: true,
 };
 
 const MOCK_BLOCK_METADATA_INNODE: BlockMetadata_InNode = {
@@ -156,6 +166,41 @@ interface IsTokenImageRequestVector {
     returns: IsTokenImageRequestReturn[];
 }
 
+interface GetWalletFromSeedReturn {
+    description: string;
+    mnemonic: string;
+    returned: ServerWallet;
+}
+
+interface GetWalletFromSeedError {
+    description: string;
+    mnemonic: string;
+    error: Error;
+}
+
+interface GetWalletFromSeedVector {
+    returns: GetWalletFromSeedReturn[];
+    errors: GetWalletFromSeedError[];
+}
+
+interface SyncWalletVector {
+    returns: SyncWalletReturn[];
+    errors: SyncWalletError[];
+}
+
+interface SyncWalletReturn {
+    description: string;
+    wallet: ServerWallet;
+    mockUtxos: ScriptUtxo_InNode[];
+    returned: ServerWallet;
+}
+
+interface SyncWalletError {
+    description: string;
+    wallet: ServerWallet;
+    error: Error;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
@@ -163,6 +208,8 @@ interface TestVectors {
     getHistoryAfterTimestamp: GetHistoryAfterTimestampVector;
     isAddressEligibleForTokenReward: isAddressEligibleForTokenRewardVector;
     isTokenImageRequest: IsTokenImageRequestVector;
+    getWalletFromSeed: GetWalletFromSeedVector;
+    syncWallet: SyncWalletVector;
 }
 
 const vectors: TestVectors = {
@@ -634,6 +681,70 @@ const vectors: TestVectors = {
                     url: '/512/somehexstring.png',
                 } as Request,
                 returned: false,
+            },
+        ],
+    },
+    // wallet.ts
+    getWalletFromSeed: {
+        returns: [
+            {
+                description:
+                    'We can get an ecash address and a wif from a valid 12-word bip39 seed',
+                mnemonic:
+                    'prevent history faith square peace prevent year frame curtain excite issue vicious',
+                returned: {
+                    address: 'ecash:qrha2rrjwcqq7q384f5ndq4mnsg28dx23cqs9c397r',
+                    wif: 'L5XjAnqtexF4Waxy4hoGPCXS7BYeVKEteoQxZHEhn7obf8sXjrd3',
+                },
+            },
+        ],
+        errors: [
+            {
+                description:
+                    'We throw expected error if called with an invalid bip39 mnemonic',
+                mnemonic: 'just some string',
+                error: new Error(
+                    'getWalletFromSeed called with invalid mnemonic',
+                ),
+            },
+        ],
+    },
+    // Todo add mock utxos
+    // todo test, confirm the object changes without passing the var
+    syncWallet: {
+        returns: [
+            {
+                description: 'We can update the utxo set of a wallet',
+                wallet: {
+                    address: 'ecash:qzhn4s2hw97n6r8jjr6jq4gy066kuylfjvcvjn87ht',
+                    wif: 'L3EkyrwBCRQxpaHqT5MpVZ1ivY5q5ENWHjBwjkZTMbL8dT1oQgDW',
+                    utxos: [],
+                },
+                mockUtxos: [
+                    MOCK_SCRIPT_UTXO,
+                    MOCK_SCRIPT_UTXO,
+                    MOCK_SCRIPT_UTXO,
+                ],
+                returned: {
+                    address: 'ecash:qzhn4s2hw97n6r8jjr6jq4gy066kuylfjvcvjn87ht',
+                    wif: 'L3EkyrwBCRQxpaHqT5MpVZ1ivY5q5ENWHjBwjkZTMbL8dT1oQgDW',
+                    utxos: [
+                        MOCK_SCRIPT_UTXO,
+                        MOCK_SCRIPT_UTXO,
+                        MOCK_SCRIPT_UTXO,
+                    ],
+                },
+            },
+        ],
+        errors: [
+            {
+                description: 'We throw expected error if chronik call fails',
+                wallet: {
+                    address: 'ecash:qzhn4s2hw97n6r8jjr6jq4gy066kuylfjvcvjn87ht',
+                    wif: 'L3EkyrwBCRQxpaHqT5MpVZ1ivY5q5ENWHjBwjkZTMbL8dT1oQgDW',
+                    utxos: [],
+                },
+                error: new Error('error from chronik'),
             },
         ],
     },
