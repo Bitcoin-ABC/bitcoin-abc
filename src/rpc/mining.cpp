@@ -133,13 +133,12 @@ static RPCHelpMan getnetworkhashps() {
     };
 }
 
-static bool GenerateBlock(const Config &config, ChainstateManager &chainman,
-                          CBlock &block, uint64_t &max_tries,
-                          BlockHash &block_hash) {
+static bool GenerateBlock(ChainstateManager &chainman, CBlock &block,
+                          uint64_t &max_tries, BlockHash &block_hash) {
     block_hash.SetNull();
     block.hashMerkleRoot = BlockMerkleRoot(block);
 
-    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+    const Consensus::Params &params = chainman.GetConsensus();
 
     while (max_tries > 0 &&
            block.nNonce < std::numeric_limits<uint32_t>::max() &&
@@ -157,7 +156,7 @@ static bool GenerateBlock(const Config &config, ChainstateManager &chainman,
 
     std::shared_ptr<const CBlock> shared_pblock =
         std::make_shared<const CBlock>(block);
-    if (!chainman.ProcessNewBlock(config, shared_pblock,
+    if (!chainman.ProcessNewBlock(shared_pblock,
                                   /*force_processing=*/true,
                                   /*min_pow_checked=*/true, nullptr)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR,
@@ -168,15 +167,15 @@ static bool GenerateBlock(const Config &config, ChainstateManager &chainman,
     return true;
 }
 
-static UniValue generateBlocks(const Config &config,
-                               ChainstateManager &chainman,
+static UniValue generateBlocks(ChainstateManager &chainman,
                                const CTxMemPool &mempool,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
     UniValue blockHashes(UniValue::VARR);
     while (nGenerate > 0 && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
-            BlockAssembler{config, chainman.ActiveChainstate(), &mempool}
+            BlockAssembler{chainman.GetConfig(), chainman.ActiveChainstate(),
+                           &mempool}
                 .CreateNewBlock(coinbase_script));
 
         if (!pblocktemplate.get()) {
@@ -186,7 +185,7 @@ static UniValue generateBlocks(const Config &config,
         CBlock *pblock = &pblocktemplate->block;
 
         BlockHash block_hash;
-        if (!GenerateBlock(config, chainman, *pblock, nMaxTries, block_hash)) {
+        if (!GenerateBlock(chainman, *pblock, nMaxTries, block_hash)) {
             break;
         }
 
@@ -278,7 +277,7 @@ static RPCHelpMan generatetodescriptor() {
             const CTxMemPool &mempool = EnsureMemPool(node);
             ChainstateManager &chainman = EnsureChainman(node);
 
-            return generateBlocks(config, chainman, mempool, coinbase_script,
+            return generateBlocks(chainman, mempool, coinbase_script,
                                   num_blocks, max_tries);
         },
     };
@@ -343,7 +342,7 @@ static RPCHelpMan generatetoaddress() {
 
             CScript coinbase_script = GetScriptForDestination(destination);
 
-            return generateBlocks(config, chainman, mempool, coinbase_script,
+            return generateBlocks(chainman, mempool, coinbase_script,
                                   num_blocks, max_tries);
         },
     };
@@ -476,8 +475,7 @@ static RPCHelpMan generateblock() {
             BlockHash block_hash;
             uint64_t max_tries{DEFAULT_MAX_TRIES};
 
-            if (!GenerateBlock(config, chainman, block, max_tries,
-                               block_hash) ||
+            if (!GenerateBlock(chainman, block, max_tries, block_hash) ||
                 block_hash.IsNull()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Failed to make block.");
             }
@@ -1193,7 +1191,7 @@ static RPCHelpMan submitblock() {
             auto sc =
                 std::make_shared<submitblock_StateCatcher>(block.GetHash());
             RegisterSharedValidationInterface(sc);
-            bool accepted = chainman.ProcessNewBlock(config, blockptr,
+            bool accepted = chainman.ProcessNewBlock(blockptr,
                                                      /*force_processing=*/true,
                                                      /*min_pow_checked=*/true,
                                                      /*new_block=*/&new_block);
@@ -1246,7 +1244,7 @@ static RPCHelpMan submitheader() {
             }
 
             BlockValidationState state;
-            chainman.ProcessNewBlockHeaders(config, {h},
+            chainman.ProcessNewBlockHeaders({h},
                                             /*min_pow_checked=*/true, state);
             if (state.IsValid()) {
                 return NullUniValue;

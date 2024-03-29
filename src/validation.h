@@ -1211,7 +1211,7 @@ private:
      * block index (permanent memory storage), indicating that the header is
      * known to be part of a sufficiently high-work chain (anti-dos check).
      */
-    bool AcceptBlockHeader(const Config &config, const CBlockHeader &block,
+    bool AcceptBlockHeader(const CBlockHeader &block,
                            BlockValidationState &state, CBlockIndex **ppindex,
                            bool min_pow_checked)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -1395,7 +1395,6 @@ public:
      *
      * May not be called in a validationinterface callback.
      *
-     * @param[in]   config  The global config.
      * @param[in]   block  The block we want to process.
      * @param[in]   force_processing Process this block even if unrequested;
      *                               used for non-network block sources.
@@ -1408,8 +1407,7 @@ public:
      * was first received via this call.
      * @returns     If the block was processed, independently of block validity
      */
-    bool ProcessNewBlock(const Config &config,
-                         const std::shared_ptr<const CBlock> &block,
+    bool ProcessNewBlock(const std::shared_ptr<const CBlock> &block,
                          bool force_processing, bool min_pow_checked,
                          bool *new_block) LOCKS_EXCLUDED(cs_main);
 
@@ -1418,7 +1416,6 @@ public:
      *
      * May not be called in a validationinterface callback.
      *
-     * @param[in]  config        The config.
      * @param[in]  block         The block headers themselves.
      * @param[in]  min_pow_checked  True if proof-of-work anti-DoS checks have
      *                              been done by caller for headers chain
@@ -1429,8 +1426,7 @@ public:
      * headers.
      * @return True if block headers were accepted as valid.
      */
-    bool ProcessNewBlockHeaders(const Config &config,
-                                const std::vector<CBlockHeader> &block,
+    bool ProcessNewBlockHeaders(const std::vector<CBlockHeader> &block,
                                 bool min_pow_checked,
                                 BlockValidationState &state,
                                 const CBlockIndex **ppindex = nullptr)

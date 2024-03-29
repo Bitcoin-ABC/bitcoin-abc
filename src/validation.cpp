@@ -4080,12 +4080,12 @@ static bool ContextualCheckBlock(const CBlock &block,
  *
  * Returns true if the block is successfully added to the block index.
  */
-bool ChainstateManager::AcceptBlockHeader(const Config &config,
-                                          const CBlockHeader &block,
+bool ChainstateManager::AcceptBlockHeader(const CBlockHeader &block,
                                           BlockValidationState &state,
                                           CBlockIndex **ppindex,
                                           bool min_pow_checked) {
     AssertLockHeld(cs_main);
+    const Config &config = this->GetConfig();
     const CChainParams &chainparams = config.GetChainParams();
 
     // Check for duplicate
@@ -4211,17 +4211,16 @@ bool ChainstateManager::AcceptBlockHeader(const Config &config,
 
 // Exposed wrapper for AcceptBlockHeader
 bool ChainstateManager::ProcessNewBlockHeaders(
-    const Config &config, const std::vector<CBlockHeader> &headers,
-    bool min_pow_checked, BlockValidationState &state,
-    const CBlockIndex **ppindex) {
+    const std::vector<CBlockHeader> &headers, bool min_pow_checked,
+    BlockValidationState &state, const CBlockIndex **ppindex) {
     AssertLockNotHeld(cs_main);
     {
         LOCK(cs_main);
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = nullptr;
-            bool accepted = AcceptBlockHeader(config, header, state, &pindex,
-                                              min_pow_checked);
+            bool accepted =
+                AcceptBlockHeader(header, state, &pindex, min_pow_checked);
             ActiveChainstate().CheckBlockIndex();
 
             if (!accepted) {
@@ -4240,7 +4239,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
             const CBlockIndex &last_accepted{**ppindex};
             const int64_t blocks_left{
                 (GetTime() - last_accepted.GetBlockTime()) /
-                config.GetChainParams().GetConsensus().nPowTargetSpacing};
+                this->GetConsensus().nPowTargetSpacing};
             const double progress{100.0 * last_accepted.nHeight /
                                   (last_accepted.nHeight + blocks_left)};
             LogPrintf("Synchronizing blockheaders, height: %d (~%.2f%%)\n",
@@ -4313,8 +4312,8 @@ bool Chainstate::AcceptBlock(const Config &config,
 
     CBlockIndex *pindex = nullptr;
 
-    bool accepted_header{m_chainman.AcceptBlockHeader(
-        config, block, state, &pindex, min_pow_checked)};
+    bool accepted_header{
+        m_chainman.AcceptBlockHeader(block, state, &pindex, min_pow_checked)};
     CheckBlockIndex();
 
     if (!accepted_header) {
@@ -4460,8 +4459,8 @@ bool Chainstate::AcceptBlock(const Config &config,
 }
 
 bool ChainstateManager::ProcessNewBlock(
-    const Config &config, const std::shared_ptr<const CBlock> &block,
-    bool force_processing, bool min_pow_checked, bool *new_block) {
+    const std::shared_ptr<const CBlock> &block, bool force_processing,
+    bool min_pow_checked, bool *new_block) {
     AssertLockNotHeld(cs_main);
 
     {
@@ -4485,14 +4484,13 @@ bool ChainstateManager::ProcessNewBlock(
         // https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2019-February/016697.html.
         // Because CheckBlock() is not very expensive, the anti-DoS benefits of
         // caching failure (of a definitely-invalid block) are not substantial.
-        bool ret =
-            CheckBlock(*block, state, config.GetChainParams().GetConsensus(),
-                       BlockValidationOptions(config));
+        bool ret = CheckBlock(*block, state, this->GetConsensus(),
+                              BlockValidationOptions(this->GetConfig()));
         if (ret) {
             // Store to disk
-            ret = ActiveChainstate().AcceptBlock(config, block, state,
-                                                 force_processing, nullptr,
-                                                 new_block, min_pow_checked);
+            ret = ActiveChainstate().AcceptBlock(
+                this->GetConfig(), block, state, force_processing, nullptr,
+                new_block, min_pow_checked);
         }
 
         if (!ret) {

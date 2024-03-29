@@ -40,8 +40,8 @@ CTxIn MineBlock(const Config &config, const NodeContext &node,
         assert(block->nNonce);
     }
 
-    bool processed{Assert(node.chainman)
-                       ->ProcessNewBlock(config, block, true, true, nullptr)};
+    bool processed{
+        Assert(node.chainman)->ProcessNewBlock(block, true, true, nullptr)};
     assert(processed);
 
     return CTxIn{block->vtx[0]->GetId(), 0};
