@@ -39,7 +39,7 @@ describe('chronik/clientHandler.js', function () {
             });
         });
 
-        errors!.forEach(vector => {
+        errors.forEach(vector => {
             const { description, mocks, address, timestamp, pageSize, error } =
                 vector;
 
