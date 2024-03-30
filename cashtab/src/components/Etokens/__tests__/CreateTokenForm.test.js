@@ -116,7 +116,7 @@ describe('<CreateTokenForm />', () => {
         );
         await user.type(
             await screen.findByPlaceholderText(
-                'Enter the fixed supply of your token',
+                'Enter the supply of your token',
             ),
             '600000',
         );
@@ -126,6 +126,76 @@ describe('<CreateTokenForm />', () => {
             ),
             'https://www.cashtab.com',
         );
+
+        // Click the Create eToken button
+        await user.click(screen.getByRole('button', { name: /Create eToken/ }));
+
+        // Click OK on confirmation modal
+        await user.click(screen.getByText('OK'));
+
+        // Verify notification triggered
+        expect(await screen.findByText('Token created!')).toHaveAttribute(
+            'href',
+            `${explorer.blockExplorerUrl}/tx/${txid}`,
+        );
+    });
+    it('User can create a token with a mint baton', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        // Add tx mock to mockedChronik
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402205e54e8ef3c0912b2bbeda364c1b15298e235d91eca3f8e02395fe5f07a406ee70220482d820793356ba8c3012ac2bd6630c8daa88c443111d8f9ee93785937d48f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c000102010208000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac227d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'a34382e000eed02f749ab6a9e8de37e25e7565f016707dc81460ce63167ee1c2';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/create-token"
+            />,
+        );
+
+        // Configure userEvent to skip PointerEventsCheck, as this returns false positives with antd
+        const user = userEvent.setup({
+            // https://github.com/testing-library/user-event/issues/922
+            pointerEventsCheck: PointerEventsCheckLevel.Never,
+        });
+
+        // The user enters valid token metadata
+        await user.type(
+            await screen.findByPlaceholderText('Enter a name for your token'),
+            'test token',
+        );
+        await user.type(
+            await screen.findByPlaceholderText('Enter a ticker for your token'),
+            'TKE',
+        );
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter number of decimal places',
+            ),
+            '2',
+        );
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter the supply of your token',
+            ),
+            '600000',
+        );
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter a website for your token',
+            ),
+            'https://www.cashtab.com',
+        );
+
+        // Hit the switch for a variable supply token
+        await user.click(screen.getByTestId('mint-baton-switch'));
 
         // Click the Create eToken button
         await user.click(screen.getByRole('button', { name: /Create eToken/ }));

@@ -26,6 +26,12 @@ export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
         initialQty,
     } = genesisConfig;
 
+    if (mintBatonVout !== null && mintBatonVout !== 2) {
+        throw new Error(
+            'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
+        );
+    }
+
     const targetOutputs = [];
 
     // Note that this function handles validation; will throw an error on invalid inputs
@@ -53,10 +59,15 @@ export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
         address: mintAddress,
     });
 
-    // TODO support mint batons
-    // For now, we only support fixed-supply SLP 1 tokens in Cashtab
+    // If the user specified the creation of a mint baton, add it
+    // Note: Cashtab only supports the creation of one mint baton at index 2
+    if (mintBatonVout !== null) {
+        targetOutputs.push({
+            value: appConfig.etokenSats,
+            address: mintAddress,
+        });
+    }
 
-    // Create output
     return targetOutputs;
 };
 

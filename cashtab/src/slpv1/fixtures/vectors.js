@@ -14,7 +14,7 @@ export const MOCK_TOKEN_ID =
     '1111111111111111111111111111111111111111111111111111111111111111';
 
 export default {
-    genesisTxs: {
+    getSlpGenesisTargetOutput: {
         expectedReturns: [
             {
                 description: 'Fixed supply eToken mint for token with decimals',
@@ -32,6 +32,34 @@ export default {
                     {
                         value: 0,
                         script: '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c0001034c000800000000004c4b40',
+                    },
+                    {
+                        value: appConfig.dustSats,
+                        address: GENESIS_MINT_ADDRESS,
+                    },
+                ],
+            },
+            {
+                description:
+                    'Variable supply eToken mint for token with decimals',
+                genesisConfig: {
+                    name: 'ethantest',
+                    ticker: 'ETN',
+                    documentUrl: 'https://cashtab.com/',
+                    decimals: '3',
+                    initialQty: '5000',
+                    documentHash: '',
+                    mintBatonVout: 2,
+                },
+                mintAddress: GENESIS_MINT_ADDRESS,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c00010301020800000000004c4b40',
+                    },
+                    {
+                        value: appConfig.dustSats,
+                        address: GENESIS_MINT_ADDRESS,
                     },
                     {
                         value: appConfig.dustSats,
@@ -65,6 +93,22 @@ export default {
             },
         ],
         expectedErrors: [
+            {
+                description:
+                    'Variable supply eToken with mint baton at index other than 2',
+                genesisConfig: {
+                    name: 'ethantest',
+                    ticker: 'ETN',
+                    documentUrl: 'https://cashtab.com/',
+                    decimals: '3',
+                    initialQty: '5000',
+                    documentHash: '',
+                    mintBatonVout: 3,
+                },
+                mintAddress: GENESIS_MINT_ADDRESS,
+                errorMsg:
+                    'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
+            },
             {
                 description: 'Invalid document hash',
                 genesisConfig: {

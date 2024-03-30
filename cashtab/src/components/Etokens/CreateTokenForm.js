@@ -32,11 +32,23 @@ import { explorer } from 'config/explorer';
 import { getWalletState } from 'utils/cashMethods';
 import { hasEnoughToken } from 'wallet';
 import { toast } from 'react-toastify';
+import Switch from 'components/Common/Switch';
 
 const Form = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
+`;
+const SwitchRow = styled.div`
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+`;
+const SwitchLabel = styled.div`
+    text-align: left;
+    color: ${props => props.theme.contrast};
+    font-size: 18px;
 `;
 const EditIcon = styled.div`
     cursor: pointer;
@@ -116,6 +128,8 @@ const CreateTokenForm = () => {
     const [imageUrl, setImageUrl] = useState(false);
     const [showCropModal, setShowCropModal] = useState(false);
     const [roundSelection, setRoundSelection] = useState(true);
+    const [createWithMintBatonAtIndexTwo, setCreateWithMintBatonAtIndexTwo] =
+        useState(false);
 
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [rotation, setRotation] = useState(0);
@@ -475,7 +489,7 @@ const CreateTokenForm = () => {
             decimals,
             initialQty,
             documentHash: '',
-            mintBatonVout: null,
+            mintBatonVout: createWithMintBatonAtIndexTwo ? 2 : null,
         };
 
         // create token with data in state fields
@@ -587,7 +601,7 @@ const CreateTokenForm = () => {
                     error={decimalsError}
                 />
                 <Input
-                    placeholder="Enter the fixed supply of your token"
+                    placeholder="Enter the supply of your token"
                     name="initialQty"
                     type="string"
                     value={initialQty}
@@ -601,6 +615,22 @@ const CreateTokenForm = () => {
                     handleInput={handleNewTokenDocumentUrlInput}
                     error={urlError}
                 />
+                <SwitchRow>
+                    <Switch
+                        name="mint-baton-switch"
+                        on="Variable"
+                        off="Fixed"
+                        width={110}
+                        right={74}
+                        checked={createWithMintBatonAtIndexTwo}
+                        handleToggle={() => {
+                            setCreateWithMintBatonAtIndexTwo(
+                                !createWithMintBatonAtIndexTwo,
+                            );
+                        }}
+                    />
+                    <SwitchLabel>Token supply</SwitchLabel>
+                </SwitchRow>
                 <CashtabDragger
                     name="Cashtab Dragger"
                     handleFile={validateTokenIconUpload}

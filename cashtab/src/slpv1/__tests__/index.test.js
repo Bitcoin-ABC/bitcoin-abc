@@ -15,7 +15,8 @@ import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
 import appConfig from 'config/app';
 
 describe('Generating etoken genesis tx target outputs', () => {
-    const { expectedReturns, expectedErrors } = vectors.genesisTxs;
+    const { expectedReturns, expectedErrors } =
+        vectors.getSlpGenesisTargetOutput;
 
     // Successfully created targetOutputs
     expectedReturns.forEach(expectedReturn => {
@@ -27,8 +28,10 @@ describe('Generating etoken genesis tx target outputs', () => {
                 genesisConfig,
                 mintAddress,
             );
-            // We expect 2 outputs
-            expect(calculatedTargetOutputs.length).toBe(2);
+
+            // We expect 2 outputs or 3 outputs
+            expect(calculatedTargetOutputs.length >= 2).toBe(true);
+
             // The output at the 0-index is the OP_RETURN
             expect(calculatedTargetOutputs[0].value).toBe(0);
             expect(calculatedTargetOutputs[0].script.toString('hex')).toBe(
@@ -39,6 +42,20 @@ describe('Generating etoken genesis tx target outputs', () => {
                 address: mintAddress,
                 value: appConfig.etokenSats,
             });
+            if (calculatedTargetOutputs.length > 2) {
+                // If we have a mint baton
+
+                // We will only have 3 outputs in this case
+                // eslint-disable-next-line jest/no-conditional-expect
+                expect(calculatedTargetOutputs.length).toBe(3);
+
+                // The mint baton is at index 2
+                // eslint-disable-next-line jest/no-conditional-expect
+                expect(calculatedTargetOutputs[2]).toStrictEqual({
+                    address: mintAddress,
+                    value: appConfig.etokenSats,
+                });
+            }
         });
     });
 
