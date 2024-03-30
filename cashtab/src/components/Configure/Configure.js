@@ -9,7 +9,6 @@ import { Collapse, Form, Alert, Tooltip, Checkbox } from 'antd';
 import { Row, Col } from 'antd';
 import { LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
-import { SidePaddingCtn } from 'components/Common/Atoms';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -398,8 +397,6 @@ const StyledConfigure = styled.div`
             flex: 2;
         }
     }
-  
-   
 `;
 
 const StyledSpacer = styled.div`
@@ -1121,630 +1118,603 @@ const Configure = () => {
     };
 
     return (
-        <SidePaddingCtn data-testid="configure-ctn">
-            <StyledConfigure>
-                {savedWalletContactModal && (
-                    <CustomModal
-                        title={`Add ${manualContactName} to contacts?`}
-                        description={manualContactAddress}
-                        handleOk={() => handleAddSavedWalletAsContactOk()}
-                        handleCancel={() =>
-                            handleAddSavedWalletAsContactCancel()
-                        }
-                        showCancelButton
-                    />
-                )}
-                {showManualAddContactModal && (
-                    <CustomModal
-                        data-testid="confirm-add-contact-modal"
-                        height={305}
-                        title={`Add new contact`}
-                        handleOk={() => handleManualAddContactModalOk()}
-                        handleCancel={() => handleManualAddContactModalCancel()}
-                        showCancelButton
-                    >
-                        <InputFlex>
-                            <ModalInput
-                                placeholder="Enter new contact name"
-                                name="manualContactName"
-                                error={manualContactNameError}
-                                value={manualContactName}
-                                handleInput={handleManualContactNameInput}
-                            />
-                            <ModalInput
-                                placeholder="Enter new eCash address or alias"
-                                name="manualContactAddress"
-                                value={manualContactAddress}
-                                error={manualContactAddressError}
-                                handleInput={handleManualContactAddressInput}
-                            />
-                        </InputFlex>
-                    </CustomModal>
-                )}
-                {showDeleteContactModal && (
-                    <CustomModal
-                        height={290}
-                        title="Confirm Delete Contact"
-                        description={`Delete
+        <StyledConfigure data-testid="configure-ctn">
+            {savedWalletContactModal && (
+                <CustomModal
+                    title={`Add ${manualContactName} to contacts?`}
+                    description={manualContactAddress}
+                    handleOk={() => handleAddSavedWalletAsContactOk()}
+                    handleCancel={() => handleAddSavedWalletAsContactCancel()}
+                    showCancelButton
+                />
+            )}
+            {showManualAddContactModal && (
+                <CustomModal
+                    data-testid="confirm-add-contact-modal"
+                    height={305}
+                    title={`Add new contact`}
+                    handleOk={() => handleManualAddContactModalOk()}
+                    handleCancel={() => handleManualAddContactModalCancel()}
+                    showCancelButton
+                >
+                    <InputFlex>
+                        <ModalInput
+                            placeholder="Enter new contact name"
+                            name="manualContactName"
+                            error={manualContactNameError}
+                            value={manualContactName}
+                            handleInput={handleManualContactNameInput}
+                        />
+                        <ModalInput
+                            placeholder="Enter new eCash address or alias"
+                            name="manualContactAddress"
+                            value={manualContactAddress}
+                            error={manualContactAddressError}
+                            handleInput={handleManualContactAddressInput}
+                        />
+                    </InputFlex>
+                </CustomModal>
+            )}
+            {showDeleteContactModal && (
+                <CustomModal
+                    height={290}
+                    title="Confirm Delete Contact"
+                    description={`Delete
                                 "${getContactNameByAddress(
                                     contactAddressToDelete,
                                 )}" from contact list?`}
-                        handleOk={() => handleDeleteContactModalOk()}
-                        handleCancel={() => handleDeleteContactModalCancel()}
-                        showCancelButton
-                    >
-                        <ModalInput
-                            placeholder={`Type "delete ${getContactNameByAddress(
-                                contactAddressToDelete,
-                            )}" to confirm`}
-                            name="contactToBeDeletedInput"
-                            value={confirmationOfContactToBeDeleted}
-                            handleInput={handleContactToDeleteInput}
-                            error={contactDeleteConfirmationError}
-                        />
-                    </CustomModal>
-                )}
-                {showRenameContactModal && (
-                    <CustomModal
-                        height={290}
-                        title={`Rename contact?`}
-                        description={`Editing name for contact ${contactToBeRenamed.name}`}
-                        handleOk={() => handleRenameContactModalOk()}
-                        handleCancel={() => handleRenameContactCancel()}
-                        showCancelButton
-                    >
-                        <ModalInput
-                            placeholder="Enter new contact name"
-                            name="newContactName"
-                            value={confirmationOfContactToBeRenamed}
-                            error={
-                                newContactNameIsValid
-                                    ? false
-                                    : 'Contact name must be a string between 1 and 24 characters long'
-                            }
-                            handleInput={handleContactNameInput}
-                        />
-                    </CustomModal>
-                )}
-                {walletToBeRenamed !== null && showRenameWalletModal && (
-                    <CustomModal
-                        height={290}
-                        title={`Rename Wallet?`}
-                        description={`Editing name for wallet "${walletToBeRenamed.name}"`}
-                        handleOk={() =>
-                            renameWallet(walletToBeRenamed.name, newWalletName)
+                    handleOk={() => handleDeleteContactModalOk()}
+                    handleCancel={() => handleDeleteContactModalCancel()}
+                    showCancelButton
+                >
+                    <ModalInput
+                        placeholder={`Type "delete ${getContactNameByAddress(
+                            contactAddressToDelete,
+                        )}" to confirm`}
+                        name="contactToBeDeletedInput"
+                        value={confirmationOfContactToBeDeleted}
+                        handleInput={handleContactToDeleteInput}
+                        error={contactDeleteConfirmationError}
+                    />
+                </CustomModal>
+            )}
+            {showRenameContactModal && (
+                <CustomModal
+                    height={290}
+                    title={`Rename contact?`}
+                    description={`Editing name for contact ${contactToBeRenamed.name}`}
+                    handleOk={() => handleRenameContactModalOk()}
+                    handleCancel={() => handleRenameContactCancel()}
+                    showCancelButton
+                >
+                    <ModalInput
+                        placeholder="Enter new contact name"
+                        name="newContactName"
+                        value={confirmationOfContactToBeRenamed}
+                        error={
+                            newContactNameIsValid
+                                ? false
+                                : 'Contact name must be a string between 1 and 24 characters long'
                         }
-                        handleCancel={() => cancelRenameWallet()}
-                        showCancelButton
-                    >
-                        <ModalInput
-                            placeholder="Enter new wallet name"
-                            name="newName"
-                            value={newWalletName}
-                            error={
-                                newWalletNameIsValid
-                                    ? false
-                                    : 'Wallet name must be a string between 1 and 24 characters long'
-                            }
-                            handleInput={handleWalletNameInput}
-                        />
-                    </CustomModal>
-                )}
-                {walletToBeDeleted !== null && showDeleteWalletModal && (
-                    <CustomModal
-                        height={340}
-                        title={`Delete Wallet?`}
-                        description={`Delete wallet "${walletToBeDeleted.name}"?. This cannot be undone. Make sure you have backed up your wallet.`}
-                        handleOk={() => deleteWallet(walletToBeDeleted)}
-                        handleCancel={() => cancelDeleteWallet()}
-                        showCancelButton
-                    >
-                        <ModalInput
-                            placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
-                            name="walletToBeDeletedInput"
-                            value={confirmationOfWalletToBeDeleted}
-                            handleInput={handleWalletToDeleteInput}
-                            error={walletDeleteConfirmationError}
-                        />
-                    </CustomModal>
-                )}
-                <h2>
-                    <ThemedCopyOutlined /> Backup your wallet
-                </h2>
+                        handleInput={handleContactNameInput}
+                    />
+                </CustomModal>
+            )}
+            {walletToBeRenamed !== null && showRenameWalletModal && (
+                <CustomModal
+                    height={290}
+                    title={`Rename Wallet?`}
+                    description={`Editing name for wallet "${walletToBeRenamed.name}"`}
+                    handleOk={() =>
+                        renameWallet(walletToBeRenamed.name, newWalletName)
+                    }
+                    handleCancel={() => cancelRenameWallet()}
+                    showCancelButton
+                >
+                    <ModalInput
+                        placeholder="Enter new wallet name"
+                        name="newName"
+                        value={newWalletName}
+                        error={
+                            newWalletNameIsValid
+                                ? false
+                                : 'Wallet name must be a string between 1 and 24 characters long'
+                        }
+                        handleInput={handleWalletNameInput}
+                    />
+                </CustomModal>
+            )}
+            {walletToBeDeleted !== null && showDeleteWalletModal && (
+                <CustomModal
+                    height={340}
+                    title={`Delete Wallet?`}
+                    description={`Delete wallet "${walletToBeDeleted.name}"?. This cannot be undone. Make sure you have backed up your wallet.`}
+                    handleOk={() => deleteWallet(walletToBeDeleted)}
+                    handleCancel={() => cancelDeleteWallet()}
+                    showCancelButton
+                >
+                    <ModalInput
+                        placeholder={`Type "delete ${walletToBeDeleted.name}" to confirm`}
+                        name="walletToBeDeletedInput"
+                        value={confirmationOfWalletToBeDeleted}
+                        handleInput={handleWalletToDeleteInput}
+                        error={walletDeleteConfirmationError}
+                    />
+                </CustomModal>
+            )}
+            <h2>
+                <ThemedCopyOutlined /> Backup your wallet
+            </h2>
+            <Alert
+                style={{ marginBottom: '12px' }}
+                description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
+                type="warning"
+                showIcon
+            />
+            {showTranslationWarning && (
                 <Alert
                     style={{ marginBottom: '12px' }}
-                    description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
+                    description="Please do not translate your seed phrase. Store your seed phrase in English. You must re-enter these exact English words to restore your wallet from seed."
                     type="warning"
                     showIcon
                 />
-                {showTranslationWarning && (
-                    <Alert
-                        style={{ marginBottom: '12px' }}
-                        description="Please do not translate your seed phrase. Store your seed phrase in English. You must re-enter these exact English words to restore your wallet from seed."
-                        type="warning"
-                        showIcon
-                    />
-                )}
-                {wallet && wallet.mnemonic && (
-                    <StyledCollapse expandIconPosition="start">
-                        <Panel
-                            header={
-                                <div className="seedPhrase">
-                                    Click to reveal seed phrase
-                                </div>
-                            }
+            )}
+            {wallet && wallet.mnemonic && (
+                <StyledCollapse expandIconPosition="start">
+                    <Panel
+                        header={
+                            <div className="seedPhrase">
+                                Click to reveal seed phrase
+                            </div>
+                        }
+                    >
+                        <p
+                            className="notranslate"
+                            style={{ userSelect: 'text' }}
                         >
-                            <p
-                                className="notranslate"
-                                style={{ userSelect: 'text' }}
-                            >
-                                {
-                                    <>
-                                        <WarningIcon />
-                                        <br />
-                                        <b>NEVER</b> share your seed phrase.
-                                        <br />
-                                        <b>DO NOT</b> enter it into 3rd party
-                                        websites.
-                                        <br />
-                                        <br />
-                                        <Checkbox
-                                            onChange={() => {
-                                                setRevealSeed(!revealSeed);
-                                            }}
-                                        >
-                                            I understand, show me my seed
-                                            phrase.
-                                        </Checkbox>
-                                        <br />
-                                    </>
-                                }
-                                {wallet && wallet.mnemonic && revealSeed ? (
-                                    <>
-                                        <br />
-                                        {wallet.mnemonic}
-                                    </>
-                                ) : (
-                                    ''
-                                )}
-                            </p>
-                        </Panel>
-                    </StyledCollapse>
-                )}
-                <StyledSpacer />
-                <h2>
-                    <ThemedWalletOutlined /> Manage Wallets
-                </h2>
-                {apiError ? (
-                    <ApiError />
-                ) : (
-                    <>
-                        <PrimaryButton onClick={() => addNewWallet()}>
-                            New Wallet
-                        </PrimaryButton>
-                        <SecondaryButton
-                            onClick={() => openSeedInput(!seedInput)}
-                        >
-                            Import Wallet
-                        </SecondaryButton>
-                        {seedInput && (
-                            <InputFlex>
-                                <p style={{ color: '#fff' }}>
-                                    Copy and paste your mnemonic seed phrase
-                                    below to import an existing wallet
-                                </p>
-
-                                <Input
-                                    type="email"
-                                    placeholder="mnemonic (seed phrase)"
-                                    name="mnemonic"
-                                    error={
-                                        isValidMnemonic
-                                            ? false
-                                            : 'Valid mnemonic seed phrase required'
-                                    }
-                                    value={formData.mnemonic}
-                                    autoComplete="off"
-                                    handleInput={handleImportMnemonicInput}
-                                />
-                                <SecondaryButton
-                                    disabled={isValidMnemonic !== true}
-                                    onClick={() =>
-                                        importNewWallet(formData.mnemonic)
-                                    }
-                                >
-                                    Import
-                                </SecondaryButton>
-                            </InputFlex>
-                        )}
-                    </>
-                )}
-                {wallet !== false && wallets.length > 0 && (
-                    <>
-                        <StyledCollapse defaultActiveKey={['1']}>
-                            <Panel header="Saved wallets" key="1">
-                                <div>
-                                    {wallets.map((wallet, index) =>
-                                        index === 0 ? (
-                                            <AWRow
-                                                key={`${wallet.name}_${index}`}
-                                            >
-                                                <Tooltip title={wallet.name}>
-                                                    <h3 className="notranslate">
-                                                        {wallet.name}
-                                                    </h3>
-                                                </Tooltip>
-                                                <h4>Currently active</h4>
-                                                <SWButtonCtn>
-                                                    <ThemedEditOutlined
-                                                        data-testid="rename-active-wallet"
-                                                        onClick={() =>
-                                                            showPopulatedRenameWalletModal(
-                                                                wallet,
-                                                            )
-                                                        }
-                                                    />
-                                                    <ThemedContactsOutlined
-                                                        onClick={() =>
-                                                            addSavedWalletToContact(
-                                                                wallet,
-                                                            )
-                                                        }
-                                                    />
-                                                </SWButtonCtn>
-                                            </AWRow>
-                                        ) : (
-                                            <SWRow
-                                                key={`${wallet.name}_${index}`}
-                                            >
-                                                <Tooltip
-                                                    title={wallet.name}
-                                                    autoAdjustOverflow={true}
-                                                >
-                                                    <SWName>
-                                                        <h3 className="overflow notranslate">
-                                                            {wallet.name}
-                                                        </h3>
-                                                    </SWName>
-                                                </Tooltip>
-                                                <SWBalance>
-                                                    <div className="overflow">
-                                                        [
-                                                        {wallet?.state
-                                                            ?.balanceSats !== 0
-                                                            ? toXec(
-                                                                  wallet.state
-                                                                      .balanceSats,
-                                                              ).toLocaleString(
-                                                                  userLocale,
-                                                                  {
-                                                                      maximumFractionDigits:
-                                                                          appConfig.cashDecimals,
-                                                                  },
-                                                              )
-                                                            : 'N/A'}{' '}
-                                                        XEC]
-                                                    </div>
-                                                </SWBalance>
-                                                <SWButtonCtn>
-                                                    <ThemedEditOutlined
-                                                        data-testid="rename-saved-wallet"
-                                                        onClick={() =>
-                                                            showPopulatedRenameWalletModal(
-                                                                wallet,
-                                                            )
-                                                        }
-                                                    />
-                                                    <ThemedContactsOutlined
-                                                        data-testid="add-saved-wallet-to-contact-btn"
-                                                        onClick={() =>
-                                                            addSavedWalletToContact(
-                                                                wallet,
-                                                            )
-                                                        }
-                                                    />
-                                                    <ThemedTrashcanOutlined
-                                                        data-testid="delete-saved-wallet"
-                                                        onClick={() =>
-                                                            showPopulatedDeleteWalletModal(
-                                                                wallet,
-                                                            )
-                                                        }
-                                                    />
-                                                    <button
-                                                        onClick={() =>
-                                                            activateWallet(
-                                                                wallet,
-                                                                wallets,
-                                                            )
-                                                        }
-                                                    >
-                                                        Activate
-                                                    </button>
-                                                </SWButtonCtn>
-                                            </SWRow>
-                                        ),
-                                    )}
-                                </div>
-                            </Panel>
-                        </StyledCollapse>
-                    </>
-                )}
-                <Row type="flex" data-testid="contact-list-collapse">
-                    <Col span={24}>
-                        <StyledCollapse
-                            style={{
-                                marginBottom: '24px',
-                            }}
-                            defaultActiveKey={
-                                location &&
-                                location.state &&
-                                location.state.contactToAdd
-                                    ? ['1']
-                                    : ['0']
-                            }
-                        >
-                            <Panel header="Contact List" key="1">
-                                <AntdFormWrapper data-testid="contact-list-items">
-                                    <Form
-                                        style={{
-                                            width: 'auto',
+                            {
+                                <>
+                                    <WarningIcon />
+                                    <br />
+                                    <b>NEVER</b> share your seed phrase.
+                                    <br />
+                                    <b>DO NOT</b> enter it into 3rd party
+                                    websites.
+                                    <br />
+                                    <br />
+                                    <Checkbox
+                                        onChange={() => {
+                                            setRevealSeed(!revealSeed);
                                         }}
                                     >
-                                        {contactList &&
-                                        contactList.length > 0 ? (
-                                            contactList.map(
-                                                (element, index) => (
-                                                    <ContactListRow key={index}>
-                                                        <Tooltip
-                                                            title={element.name}
-                                                        >
-                                                            <ContactListName>
-                                                                <div className="overflow">
-                                                                    {
-                                                                        element.name
-                                                                    }
-                                                                </div>
-                                                            </ContactListName>
-                                                        </Tooltip>
-                                                        <Tooltip
-                                                            title={
-                                                                element.address
-                                                            }
-                                                        >
-                                                            <ContactListAddress>
-                                                                <div className="overflow notranslate">
-                                                                    {
-                                                                        element.address
-                                                                    }
-                                                                </div>
-                                                            </ContactListAddress>
-                                                        </Tooltip>
-                                                        <ContactListCtn data-testid="contact-list-options">
-                                                            <CopyToClipboard
-                                                                data={
-                                                                    element.address
-                                                                }
-                                                                showToast
-                                                            >
-                                                                <ThemedCopySolid />
-                                                            </CopyToClipboard>
-                                                            <ThemedEditOutlined
-                                                                data-testid="rename-contact-btn"
-                                                                onClick={() =>
-                                                                    handleRenameContact(
-                                                                        element,
-                                                                    )
-                                                                }
-                                                            />
-                                                            <Link
-                                                                to="/send"
-                                                                state={{
-                                                                    contactSend:
-                                                                        element.address,
-                                                                }}
-                                                            >
-                                                                <ThemedContactSendOutlined />
-                                                            </Link>
-                                                            <ThemedTrashcanOutlined
-                                                                data-testid="delete-contact-btn"
-                                                                onClick={() =>
-                                                                    handleDeleteContact(
-                                                                        element.address,
-                                                                    )
-                                                                }
-                                                            />
-                                                        </ContactListCtn>
-                                                    </ContactListRow>
-                                                ),
-                                            )
-                                        ) : (
-                                            <div>
-                                                <p>
-                                                    {
-                                                        'Your contact list is empty.'
+                                        I understand, show me my seed phrase.
+                                    </Checkbox>
+                                    <br />
+                                </>
+                            }
+                            {wallet && wallet.mnemonic && revealSeed ? (
+                                <>
+                                    <br />
+                                    {wallet.mnemonic}
+                                </>
+                            ) : (
+                                ''
+                            )}
+                        </p>
+                    </Panel>
+                </StyledCollapse>
+            )}
+            <StyledSpacer />
+            <h2>
+                <ThemedWalletOutlined /> Manage Wallets
+            </h2>
+            {apiError ? (
+                <ApiError />
+            ) : (
+                <>
+                    <PrimaryButton onClick={() => addNewWallet()}>
+                        New Wallet
+                    </PrimaryButton>
+                    <SecondaryButton onClick={() => openSeedInput(!seedInput)}>
+                        Import Wallet
+                    </SecondaryButton>
+                    {seedInput && (
+                        <InputFlex>
+                            <p style={{ color: '#fff' }}>
+                                Copy and paste your mnemonic seed phrase below
+                                to import an existing wallet
+                            </p>
+
+                            <Input
+                                type="email"
+                                placeholder="mnemonic (seed phrase)"
+                                name="mnemonic"
+                                error={
+                                    isValidMnemonic
+                                        ? false
+                                        : 'Valid mnemonic seed phrase required'
+                                }
+                                value={formData.mnemonic}
+                                autoComplete="off"
+                                handleInput={handleImportMnemonicInput}
+                            />
+                            <SecondaryButton
+                                disabled={isValidMnemonic !== true}
+                                onClick={() =>
+                                    importNewWallet(formData.mnemonic)
+                                }
+                            >
+                                Import
+                            </SecondaryButton>
+                        </InputFlex>
+                    )}
+                </>
+            )}
+            {wallet !== false && wallets.length > 0 && (
+                <>
+                    <StyledCollapse defaultActiveKey={['1']}>
+                        <Panel header="Saved wallets" key="1">
+                            <div>
+                                {wallets.map((wallet, index) =>
+                                    index === 0 ? (
+                                        <AWRow key={`${wallet.name}_${index}`}>
+                                            <Tooltip title={wallet.name}>
+                                                <h3 className="notranslate">
+                                                    {wallet.name}
+                                                </h3>
+                                            </Tooltip>
+                                            <h4>Currently active</h4>
+                                            <SWButtonCtn>
+                                                <ThemedEditOutlined
+                                                    data-testid="rename-active-wallet"
+                                                    onClick={() =>
+                                                        showPopulatedRenameWalletModal(
+                                                            wallet,
+                                                        )
                                                     }
-                                                </p>
-                                                <p>
-                                                    {
-                                                        'Contacts can be added by clicking on a received transaction and looking for the "Add to contacts" icon or via the "New Contact" button below.'
+                                                />
+                                                <ThemedContactsOutlined
+                                                    onClick={() =>
+                                                        addSavedWalletToContact(
+                                                            wallet,
+                                                        )
                                                     }
-                                                </p>
-                                            </div>
-                                        )}
-                                        {/* Export button will only show when there are contacts */}
-                                        <ContactListBtnCtn>
-                                            {contactList &&
-                                                contactList.length > 0 && (
-                                                    <ContactListBtn
+                                                />
+                                            </SWButtonCtn>
+                                        </AWRow>
+                                    ) : (
+                                        <SWRow key={`${wallet.name}_${index}`}>
+                                            <Tooltip
+                                                title={wallet.name}
+                                                autoAdjustOverflow={true}
+                                            >
+                                                <SWName>
+                                                    <h3 className="overflow notranslate">
+                                                        {wallet.name}
+                                                    </h3>
+                                                </SWName>
+                                            </Tooltip>
+                                            <SWBalance>
+                                                <div className="overflow">
+                                                    [
+                                                    {wallet?.state
+                                                        ?.balanceSats !== 0
+                                                        ? toXec(
+                                                              wallet.state
+                                                                  .balanceSats,
+                                                          ).toLocaleString(
+                                                              userLocale,
+                                                              {
+                                                                  maximumFractionDigits:
+                                                                      appConfig.cashDecimals,
+                                                              },
+                                                          )
+                                                        : 'N/A'}{' '}
+                                                    XEC]
+                                                </div>
+                                            </SWBalance>
+                                            <SWButtonCtn>
+                                                <ThemedEditOutlined
+                                                    data-testid="rename-saved-wallet"
+                                                    onClick={() =>
+                                                        showPopulatedRenameWalletModal(
+                                                            wallet,
+                                                        )
+                                                    }
+                                                />
+                                                <ThemedContactsOutlined
+                                                    data-testid="add-saved-wallet-to-contact-btn"
+                                                    onClick={() =>
+                                                        addSavedWalletToContact(
+                                                            wallet,
+                                                        )
+                                                    }
+                                                />
+                                                <ThemedTrashcanOutlined
+                                                    data-testid="delete-saved-wallet"
+                                                    onClick={() =>
+                                                        showPopulatedDeleteWalletModal(
+                                                            wallet,
+                                                        )
+                                                    }
+                                                />
+                                                <button
+                                                    onClick={() =>
+                                                        activateWallet(
+                                                            wallet,
+                                                            wallets,
+                                                        )
+                                                    }
+                                                >
+                                                    Activate
+                                                </button>
+                                            </SWButtonCtn>
+                                        </SWRow>
+                                    ),
+                                )}
+                            </div>
+                        </Panel>
+                    </StyledCollapse>
+                </>
+            )}
+            <Row type="flex" data-testid="contact-list-collapse">
+                <Col span={24}>
+                    <StyledCollapse
+                        style={{
+                            marginBottom: '24px',
+                        }}
+                        defaultActiveKey={
+                            location &&
+                            location.state &&
+                            location.state.contactToAdd
+                                ? ['1']
+                                : ['0']
+                        }
+                    >
+                        <Panel header="Contact List" key="1">
+                            <AntdFormWrapper data-testid="contact-list-items">
+                                <Form
+                                    style={{
+                                        width: 'auto',
+                                    }}
+                                >
+                                    {contactList && contactList.length > 0 ? (
+                                        contactList.map((element, index) => (
+                                            <ContactListRow key={index}>
+                                                <Tooltip title={element.name}>
+                                                    <ContactListName>
+                                                        <div className="overflow">
+                                                            {element.name}
+                                                        </div>
+                                                    </ContactListName>
+                                                </Tooltip>
+                                                <Tooltip
+                                                    title={element.address}
+                                                >
+                                                    <ContactListAddress>
+                                                        <div className="overflow notranslate">
+                                                            {element.address}
+                                                        </div>
+                                                    </ContactListAddress>
+                                                </Tooltip>
+                                                <ContactListCtn data-testid="contact-list-options">
+                                                    <CopyToClipboard
+                                                        data={element.address}
+                                                        showToast
+                                                    >
+                                                        <ThemedCopySolid />
+                                                    </CopyToClipboard>
+                                                    <ThemedEditOutlined
+                                                        data-testid="rename-contact-btn"
                                                         onClick={() =>
-                                                            exportContactList(
-                                                                contactList,
+                                                            handleRenameContact(
+                                                                element,
                                                             )
                                                         }
+                                                    />
+                                                    <Link
+                                                        to="/send"
+                                                        state={{
+                                                            contactSend:
+                                                                element.address,
+                                                        }}
                                                     >
-                                                        <ThemedDownloadOutlined />
-                                                        <ExpandedBtnText>
-                                                            Download
-                                                        </ExpandedBtnText>
-                                                        CSV
-                                                    </ContactListBtn>
-                                                )}
-                                            <br />
-                                            <br />
+                                                        <ThemedContactSendOutlined />
+                                                    </Link>
+                                                    <ThemedTrashcanOutlined
+                                                        data-testid="delete-contact-btn"
+                                                        onClick={() =>
+                                                            handleDeleteContact(
+                                                                element.address,
+                                                            )
+                                                        }
+                                                    />
+                                                </ContactListCtn>
+                                            </ContactListRow>
+                                        ))
+                                    ) : (
+                                        <div>
+                                            <p>
+                                                {'Your contact list is empty.'}
+                                            </p>
+                                            <p>
+                                                {
+                                                    'Contacts can be added by clicking on a received transaction and looking for the "Add to contacts" icon or via the "New Contact" button below.'
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+                                    {/* Export button will only show when there are contacts */}
+                                    <ContactListBtnCtn>
+                                        {contactList && contactList.length > 0 && (
                                             <ContactListBtn
-                                                data-testid="add-contact-btn"
                                                 onClick={() =>
-                                                    setShowManualAddContactModal(
-                                                        true,
+                                                    exportContactList(
+                                                        contactList,
                                                     )
                                                 }
                                             >
-                                                <ThemedPlusOutlined />
+                                                <ThemedDownloadOutlined />
                                                 <ExpandedBtnText>
-                                                    Add
+                                                    Download
                                                 </ExpandedBtnText>
-                                                Contact
+                                                CSV
                                             </ContactListBtn>
-                                        </ContactListBtnCtn>
-                                    </Form>
-                                </AntdFormWrapper>
-                            </Panel>
-                        </StyledCollapse>
-                    </Col>
-                </Row>
-                <StyledSpacer />
-                <h2>
-                    <ThemedDollarOutlined /> Fiat Currency
-                </h2>
-                <AntdFormWrapper>
-                    <CurrencySelectDropdown
-                        defaultValue={
-                            settings && settings.fiatCurrency
-                                ? settings.fiatCurrency
-                                : 'usd'
-                        }
-                        onChange={fiatCode => {
-                            updateCashtabState('settings', {
-                                ...settings,
-                                fiatCurrency: fiatCode,
-                            });
-                        }}
+                                        )}
+                                        <br />
+                                        <br />
+                                        <ContactListBtn
+                                            data-testid="add-contact-btn"
+                                            onClick={() =>
+                                                setShowManualAddContactModal(
+                                                    true,
+                                                )
+                                            }
+                                        >
+                                            <ThemedPlusOutlined />
+                                            <ExpandedBtnText>
+                                                Add
+                                            </ExpandedBtnText>
+                                            Contact
+                                        </ContactListBtn>
+                                    </ContactListBtnCtn>
+                                </Form>
+                            </AntdFormWrapper>
+                        </Panel>
+                    </StyledCollapse>
+                </Col>
+            </Row>
+            <StyledSpacer />
+            <h2>
+                <ThemedDollarOutlined /> Fiat Currency
+            </h2>
+            <AntdFormWrapper>
+                <CurrencySelectDropdown
+                    defaultValue={
+                        settings && settings.fiatCurrency
+                            ? settings.fiatCurrency
+                            : 'usd'
+                    }
+                    onChange={fiatCode => {
+                        updateCashtabState('settings', {
+                            ...settings,
+                            fiatCurrency: fiatCode,
+                        });
+                    }}
+                />
+            </AntdFormWrapper>
+            <StyledSpacer />
+            <h2>
+                <ThemedSettingOutlined /> General Settings
+            </h2>
+            <GeneralSettingsItem>
+                <SettingsLabel>
+                    <LockFilled /> Send Confirmations
+                </SettingsLabel>
+                <SwitchContainer>
+                    <CashtabSwitch
+                        name="send-confirmations-switch"
+                        small
+                        checked={settings.sendModal}
+                        handleToggle={handleSendModalToggle}
                     />
-                </AntdFormWrapper>
-                <StyledSpacer />
-                <h2>
-                    <ThemedSettingOutlined /> General Settings
-                </h2>
+                </SwitchContainer>
+            </GeneralSettingsItem>
+            {isMobile(navigator) && (
                 <GeneralSettingsItem>
                     <SettingsLabel>
-                        <LockFilled /> Send Confirmations
+                        <LockFilled /> Auto-open camera on send
                     </SettingsLabel>
                     <SwitchContainer>
                         <CashtabSwitch
-                            name="send-confirmations-switch"
+                            name="settings-camera-auto-open"
                             small
-                            checked={settings.sendModal}
-                            handleToggle={handleSendModalToggle}
+                            checked={settings.autoCameraOn}
+                            handleToggle={handleCameraOverride}
                         />
                     </SwitchContainer>
                 </GeneralSettingsItem>
-                {isMobile(navigator) && (
+            )}
+            <GeneralSettingsItem>
+                <SettingsLabel>
+                    <LockFilled /> Hide msgs from unknown sender
+                </SettingsLabel>
+                <SwitchContainer>
+                    <CashtabSwitch
+                        name="hideMessagesFromUnknownSenders"
+                        small
+                        checked={settings.hideMessagesFromUnknownSenders}
+                        handleToggle={handleUnknownSenderMsg}
+                    />
+                </SwitchContainer>
+            </GeneralSettingsItem>
+
+            {hasEnoughToken(
+                tokens,
+                appConfig.vipSettingsTokenId,
+                appConfig.vipSettingsTokenQty,
+            ) && (
+                <>
+                    <StyledSpacer />
+                    <VIPSettingsHolder>
+                        {' '}
+                        <TokenIcon
+                            size={64}
+                            tokenId={appConfig.vipSettingsTokenId}
+                        />
+                        <h2>VIP Settings</h2>
+                    </VIPSettingsHolder>
                     <GeneralSettingsItem>
                         <SettingsLabel>
-                            <LockFilled /> Auto-open camera on send
+                            {' '}
+                            <LockFilled /> ABSOLUTE MINIMUM fees
                         </SettingsLabel>
                         <SwitchContainer>
                             <CashtabSwitch
-                                name="settings-camera-auto-open"
+                                name="settings-minFeeSends-switch"
                                 small
-                                checked={settings.autoCameraOn}
-                                handleToggle={handleCameraOverride}
+                                checked={settings.minFeeSends}
+                                handleToggle={handleMinFeesToggle}
                             />
                         </SwitchContainer>
                     </GeneralSettingsItem>
-                )}
-                <GeneralSettingsItem>
-                    <SettingsLabel>
-                        <LockFilled /> Hide msgs from unknown sender
-                    </SettingsLabel>
-                    <SwitchContainer>
-                        <CashtabSwitch
-                            name="hideMessagesFromUnknownSenders"
-                            small
-                            checked={settings.hideMessagesFromUnknownSenders}
-                            handleToggle={handleUnknownSenderMsg}
-                        />
-                    </SwitchContainer>
-                </GeneralSettingsItem>
+                </>
+            )}
 
-                {hasEnoughToken(
-                    tokens,
-                    appConfig.vipSettingsTokenId,
-                    appConfig.vipSettingsTokenQty,
-                ) && (
-                    <>
-                        <StyledSpacer />
-                        <VIPSettingsHolder>
-                            {' '}
-                            <TokenIcon
-                                size={64}
-                                tokenId={appConfig.vipSettingsTokenId}
-                            />
-                            <h2>VIP Settings</h2>
-                        </VIPSettingsHolder>
-                        <GeneralSettingsItem>
-                            <SettingsLabel>
-                                {' '}
-                                <LockFilled /> ABSOLUTE MINIMUM fees
-                            </SettingsLabel>
-                            <SwitchContainer>
-                                <CashtabSwitch
-                                    name="settings-minFeeSends-switch"
-                                    small
-                                    checked={settings.minFeeSends}
-                                    handleToggle={handleMinFeesToggle}
-                                />
-                            </SwitchContainer>
-                        </GeneralSettingsItem>
-                    </>
-                )}
+            <StyledSpacer />
+            <SocialContainer>
+                <SocialLink
+                    href="https://x.com/cashtabwallet"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <ThemedXIcon />
+                </SocialLink>{' '}
+                <SocialLink
+                    href="https://www.facebook.com/Cashtab"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <ThemedFacebookIcon />
+                </SocialLink>
+                <SocialLink
+                    href="https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    <ThemedGithubIcon />
+                </SocialLink>
+            </SocialContainer>
 
-                <StyledSpacer />
-                <SocialContainer>
-                    <SocialLink
-                        href="https://x.com/cashtabwallet"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <ThemedXIcon />
-                    </SocialLink>{' '}
-                    <SocialLink
-                        href="https://www.facebook.com/Cashtab"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <ThemedFacebookIcon />
-                    </SocialLink>
-                    <SocialLink
-                        href="https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab"
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <ThemedGithubIcon />
-                    </SocialLink>
-                </SocialContainer>
-
-                {typeof process.env.REACT_APP_VERSION === 'string' && (
-                    <>
-                        <StyledSpacer />
-                        <VersionContainer>
-                            v{process.env.REACT_APP_VERSION}
-                        </VersionContainer>
-                    </>
-                )}
-            </StyledConfigure>
-        </SidePaddingCtn>
+            {typeof process.env.REACT_APP_VERSION === 'string' && (
+                <>
+                    <StyledSpacer />
+                    <VersionContainer>
+                        v{process.env.REACT_APP_VERSION}
+                    </VersionContainer>
+                </>
+            )}
+        </StyledConfigure>
     );
 };
 

@@ -71,6 +71,13 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
+// Mock a valid sideshift object in window
+window.sideshift = {
+    show: jest.fn(),
+    hide: jest.fn(),
+    addEventListener: jest.fn(),
+};
+
 describe('<App />', () => {
     let user;
     beforeEach(() => {
@@ -185,13 +192,13 @@ describe('<App />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTestId('home-ctn');
+        await screen.findByTestId('tx-history-ctn');
 
         // Navigate to Send screen
         await user.click(screen.queryByTestId('nav-btn-send'));
 
-        // Now we see the Send screen
-        expect(screen.getByTestId('send-xec-ctn')).toBeInTheDocument();
+        // Now we see the Send screen (we check by confirming presence of the send to many switch)
+        expect(screen.getByTestId('Send to many')).toBeInTheDocument();
 
         // Navigate to eTokens screen
         await user.click(screen.queryByTestId('nav-btn-etokens'));
@@ -223,7 +230,9 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-airdrop'));
 
         // Now we see the Airdrop screen
-        expect(screen.getByTestId('airdrop-ctn')).toBeInTheDocument();
+        expect(
+            screen.getByText('Airdrop scaled to token balance'),
+        ).toBeInTheDocument();
 
         // The hamburger menu closes on nav
         expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
@@ -235,7 +244,9 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-swap'));
 
         // Now we see the Swap screen
-        expect(screen.getByTestId('swap-ctn')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: /Open SideShift/ }),
+        ).toBeInTheDocument();
 
         // Navigate to SignVerifyMsg screen
         await user.click(screen.queryByTestId('nav-btn-signverifymsg'));
@@ -268,7 +279,7 @@ describe('<App />', () => {
         );
 
         // We see the home container
-        await screen.findByTestId('home-ctn');
+        await screen.findByTestId('tx-history-ctn');
 
         // Open the collapse of this tx in tx history
         await user.click(
@@ -336,7 +347,7 @@ describe('<App />', () => {
         );
 
         // We see the home container
-        await screen.findByTestId('home-ctn');
+        await screen.findByTestId('tx-history-ctn');
 
         // Open the collapse of this tx in tx history
         await user.click(
@@ -423,14 +434,14 @@ describe('<App />', () => {
         // We do not see the send screen before clicking the button
         await waitFor(() =>
             expect(
-                screen.queryByTestId('send-xec-ctn'),
+                screen.queryByTestId('Send to many'),
             ).not.toBeInTheDocument(),
         );
 
         await user.click(screen.getByTestId('cashtab-msg-reply'));
 
         // Now we see the Send screen
-        expect(await screen.findByTestId('send-xec-ctn')).toBeInTheDocument();
+        expect(await screen.findByTestId('Send to many')).toBeInTheDocument();
 
         // The SendXec send address input is rendered and has expected value
         expect(screen.getByPlaceholderText('Address')).toHaveValue(
@@ -509,7 +520,7 @@ describe('<App />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTestId('home-ctn');
+        await screen.findByTestId('tx-history-ctn');
 
         // Click the hamburger menu
         await user.click(screen.queryByTestId('hamburger'));
@@ -529,7 +540,7 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-send'));
 
         // Now we see the Send screen
-        expect(screen.getByTestId('send-xec-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('Send to many')).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
@@ -642,7 +653,7 @@ describe('<App />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTestId('home-ctn');
+        await screen.findByTestId('tx-history-ctn');
 
         // Click the hamburger menu
         await user.click(screen.queryByTestId('hamburger'));
@@ -662,7 +673,7 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-send'));
 
         // Now we see the Send screen
-        expect(screen.getByTestId('send-xec-ctn')).toBeInTheDocument();
+        expect(screen.getByTestId('Send to many')).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
@@ -855,7 +866,7 @@ describe('<App />', () => {
         );
 
         // We are forwarded to the home screen after the wallet loads
-        expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
+        expect(await screen.findByTestId('tx-history-ctn')).toBeInTheDocument();
 
         // The imported wallet is in localforage
         const wallets = await localforage.getItem('wallets');

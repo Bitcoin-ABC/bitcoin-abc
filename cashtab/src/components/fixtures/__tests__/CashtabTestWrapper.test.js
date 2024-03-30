@@ -91,7 +91,7 @@ describe('<CashtabTestWrapper />', () => {
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
         // Home container
-        expect(await screen.findByTestId('home-ctn')).toBeInTheDocument();
+        expect(await screen.findByTestId('tx-history-ctn')).toBeInTheDocument();
     });
     it('We can render other pages by passing the route', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

@@ -5,7 +5,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
-import { LoadingCtn, SidePaddingCtn } from 'components/Common/Atoms';
+import { LoadingCtn } from 'components/Common/Atoms';
 import TokenList from './TokenList';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
@@ -19,6 +19,7 @@ const EtokensCtn = styled.div`
         margin: 0 0 20px;
         margin-top: 10px;
     }
+    padding-top: 24px;
 `;
 
 const ButtonHolder = styled.div`
@@ -42,30 +43,27 @@ const Etokens = () => {
                 <LoadingCtn />
             ) : (
                 <EtokensCtn data-testid="etokens-ctn">
-                    <br />
-                    <SidePaddingCtn>
-                        <ButtonHolder>
-                            <PrimaryLink
-                                to={{
-                                    pathname: `/create-token`,
-                                }}
-                            >
-                                Create eToken
-                            </PrimaryLink>
-                        </ButtonHolder>
-                        {tokens && tokens.size > 0 ? (
-                            <TokenList
-                                tokens={tokens}
-                                tokenCache={cashtabCache.tokens}
-                                userLocale={userLocale}
-                            />
-                        ) : (
-                            <p>
-                                Tokens sent to your {appConfig.tokenTicker}{' '}
-                                address will appear here
-                            </p>
-                        )}
-                    </SidePaddingCtn>
+                    <ButtonHolder>
+                        <PrimaryLink
+                            to={{
+                                pathname: `/create-token`,
+                            }}
+                        >
+                            Create eToken
+                        </PrimaryLink>
+                    </ButtonHolder>
+                    {tokens && tokens.size > 0 ? (
+                        <TokenList
+                            tokens={tokens}
+                            tokenCache={cashtabCache.tokens}
+                            userLocale={userLocale}
+                        />
+                    ) : (
+                        <p>
+                            Tokens sent to your {appConfig.tokenTicker} address
+                            will appear here
+                        </p>
+                    )}
                 </EtokensCtn>
             )}
         </>

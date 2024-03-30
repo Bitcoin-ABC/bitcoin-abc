@@ -8,10 +8,9 @@ import { WalletContext } from 'wallet/context';
 import PrimaryButton, {
     SecondaryButton,
 } from 'components/Common/PrimaryButton';
-import { SidePaddingCtn, TxLink, SwitchLabel } from 'components/Common/Atoms';
+import { TxLink, SwitchLabel } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
-import { BN } from 'slp-mdm';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
@@ -64,6 +63,9 @@ const SendTokenFormRow = styled.div`
     justify-content: space-between;
     gap: 12px;
     margin: 3px;
+`;
+const InputRow = styled.div`
+    width: 100%;
 `;
 
 const TokenStatsTable = styled.div`
@@ -513,7 +515,7 @@ const SendToken = () => {
         <>
             {tokenBalance &&
                 typeof cashtabCache.tokens.get(tokenId) !== 'undefined' && (
-                    <SidePaddingCtn>
+                    <>
                         {showLargeIconModal && (
                             <Modal
                                 height={275}
@@ -683,40 +685,40 @@ const SendToken = () => {
                             {showSend && (
                                 <>
                                     <SendTokenFormRow>
-                                        <InputWithScanner
-                                            placeholder={
-                                                aliasSettings.aliasEnabled
-                                                    ? `Address or Alias`
-                                                    : `Address`
-                                            }
-                                            name="address"
-                                            value={formData.address}
-                                            handleInput={
-                                                handleTokenAddressChange
-                                            }
-                                            error={sendTokenAddressError}
-                                            loadWithScannerOpen={
-                                                openWithScanner
-                                            }
-                                        />
-                                    </SendTokenFormRow>
-                                    <SendTokenFormRow>
-                                        <AliasAddressPreviewLabel>
-                                            <TxLink
-                                                key={aliasInputAddress}
-                                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                {aliasInputAddress &&
-                                                    `${aliasInputAddress.slice(
-                                                        0,
-                                                        10,
-                                                    )}...${aliasInputAddress.slice(
-                                                        -5,
-                                                    )}`}
-                                            </TxLink>
-                                        </AliasAddressPreviewLabel>
+                                        <InputRow>
+                                            <InputWithScanner
+                                                placeholder={
+                                                    aliasSettings.aliasEnabled
+                                                        ? `Address or Alias`
+                                                        : `Address`
+                                                }
+                                                name="address"
+                                                value={formData.address}
+                                                handleInput={
+                                                    handleTokenAddressChange
+                                                }
+                                                error={sendTokenAddressError}
+                                                loadWithScannerOpen={
+                                                    openWithScanner
+                                                }
+                                            />
+                                            <AliasAddressPreviewLabel>
+                                                <TxLink
+                                                    key={aliasInputAddress}
+                                                    href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    {aliasInputAddress &&
+                                                        `${aliasInputAddress.slice(
+                                                            0,
+                                                            10,
+                                                        )}...${aliasInputAddress.slice(
+                                                            -5,
+                                                        )}`}
+                                                </TxLink>
+                                            </AliasAddressPreviewLabel>
+                                        </InputRow>
                                     </SendTokenFormRow>
                                     <SendTokenFormRow>
                                         <SendTokenInput
@@ -827,7 +829,7 @@ const SendToken = () => {
                                 </TokenStatsRow>
                             )}
                         </SendTokenForm>
-                    </SidePaddingCtn>
+                    </>
                 )}
         </>
     );

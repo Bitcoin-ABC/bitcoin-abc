@@ -7,7 +7,7 @@ import { WalletContext } from 'wallet/context';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
 import CreateTokenForm from './CreateTokenForm';
-import { AlertMsg, SidePaddingCtn } from 'components/Common/Atoms';
+import { AlertMsg } from 'components/Common/Atoms';
 import ApiError from 'components/Common/ApiError';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
@@ -33,18 +33,16 @@ const CreateToken = () => {
 
     return (
         <>
-            <SidePaddingCtn>
-                {apiError && <ApiError />}
-                {balanceSats < appConfig.dustSats ? (
-                    <AlertMsg>
-                        You need at least {toXec(appConfig.dustSats).toString()}{' '}
-                        {appConfig.ticker} {minTokenCreationFiatPriceString} to
-                        create a token
-                    </AlertMsg>
-                ) : (
-                    <CreateTokenForm />
-                )}
-            </SidePaddingCtn>
+            {apiError && <ApiError />}
+            {balanceSats < appConfig.dustSats ? (
+                <AlertMsg>
+                    You need at least {toXec(appConfig.dustSats).toString()}{' '}
+                    {appConfig.ticker} {minTokenCreationFiatPriceString} to
+                    create a token
+                </AlertMsg>
+            ) : (
+                <CreateTokenForm />
+            )}
         </>
     );
 };

@@ -370,6 +370,12 @@ export const WalletBody = styled.div`
     width: 100%;
     min-height: 100vh;
 `;
+export const ScreenWrapper = styled.div`
+    padding: 0px 30px;
+    @media (max-width: 768px) {
+        padding: 0px 15px;
+    }
+`;
 
 export const WalletCtn = styled.div`
     position: relative;
@@ -612,88 +618,96 @@ const App = () => {
                                                     />
                                                 </WalletInfoCtn>
                                             </Header>
-                                            <Routes>
-                                                <Route
-                                                    path="/wallet"
-                                                    element={<Home />}
-                                                />
-                                                <Route
-                                                    path="/receive"
-                                                    element={<Receive />}
-                                                />
-
-                                                <Route
-                                                    path="/create-token"
-                                                    element={<CreateToken />}
-                                                />
-
-                                                <Route
-                                                    path="/send"
-                                                    element={<SendXec />}
-                                                />
-                                                <Route path="send-token">
+                                            <ScreenWrapper>
+                                                <Routes>
                                                     <Route
-                                                        path=":tokenId"
-                                                        element={<SendToken />}
+                                                        path="/wallet"
+                                                        element={<Home />}
                                                     />
-                                                </Route>
-                                                <Route
-                                                    path="/airdrop"
-                                                    element={
-                                                        <Airdrop
-                                                            passLoadingStatus={
-                                                                setSpinner
+                                                    <Route
+                                                        path="/receive"
+                                                        element={<Receive />}
+                                                    />
+
+                                                    <Route
+                                                        path="/create-token"
+                                                        element={
+                                                            <CreateToken />
+                                                        }
+                                                    />
+
+                                                    <Route
+                                                        path="/send"
+                                                        element={<SendXec />}
+                                                    />
+                                                    <Route path="send-token">
+                                                        <Route
+                                                            path=":tokenId"
+                                                            element={
+                                                                <SendToken />
                                                             }
                                                         />
-                                                    }
-                                                />
-
-                                                <Route
-                                                    path="/etokens"
-                                                    element={<Etokens />}
-                                                />
-                                                <Route
-                                                    path="/signverifymsg"
-                                                    element={<SignVerifyMsg />}
-                                                />
-                                                {aliasSettings.aliasEnabled && (
+                                                    </Route>
                                                     <Route
-                                                        path="/alias"
+                                                        path="/airdrop"
                                                         element={
-                                                            <Alias
+                                                            <Airdrop
                                                                 passLoadingStatus={
                                                                     setSpinner
                                                                 }
                                                             />
                                                         }
                                                     />
-                                                )}
-                                                <Route
-                                                    path="/configure"
-                                                    element={<Configure />}
-                                                />
-                                                {process.env
-                                                    .REACT_APP_BUILD_ENV !==
-                                                    'extension' && (
+
                                                     <Route
-                                                        path="/swap"
-                                                        element={<Swap />}
+                                                        path="/etokens"
+                                                        element={<Etokens />}
                                                     />
-                                                )}
-                                                <Route
-                                                    path="/"
-                                                    element={
-                                                        <Navigate
-                                                            to="/wallet"
-                                                            replace
+                                                    <Route
+                                                        path="/signverifymsg"
+                                                        element={
+                                                            <SignVerifyMsg />
+                                                        }
+                                                    />
+                                                    {aliasSettings.aliasEnabled && (
+                                                        <Route
+                                                            path="/alias"
+                                                            element={
+                                                                <Alias
+                                                                    passLoadingStatus={
+                                                                        setSpinner
+                                                                    }
+                                                                />
+                                                            }
                                                         />
-                                                    }
-                                                />
-                                                <Route
-                                                    path="*"
-                                                    element={<NotFound />}
-                                                />
-                                            </Routes>
+                                                    )}
+                                                    <Route
+                                                        path="/configure"
+                                                        element={<Configure />}
+                                                    />
+                                                    {process.env
+                                                        .REACT_APP_BUILD_ENV !==
+                                                        'extension' && (
+                                                        <Route
+                                                            path="/swap"
+                                                            element={<Swap />}
+                                                        />
+                                                    )}
+                                                    <Route
+                                                        path="/"
+                                                        element={
+                                                            <Navigate
+                                                                to="/wallet"
+                                                                replace
+                                                            />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path="*"
+                                                        element={<NotFound />}
+                                                    />
+                                                </Routes>
+                                            </ScreenWrapper>
                                         </>
                                     )}
                                 </>

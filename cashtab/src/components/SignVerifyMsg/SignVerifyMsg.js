@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Form, Input } from 'antd';
 import { WalletContext } from 'wallet/context';
-import { SidePaddingCtn } from 'components/Common/Atoms';
 import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
 import {
     AntdFormWrapper,
@@ -204,152 +203,134 @@ const SignVerifyMsg = () => {
     };
 
     return (
-        <Wrapper>
-            <SidePaddingCtn data-testid="signverifymsg-ctn">
-                <CustomCollapseCtn panelHeader="Sign">
-                    <AntdFormWrapper>
-                        <Form
-                            size="small"
-                            style={{
-                                width: 'auto',
-                            }}
-                        >
-                            <Form.Item>
-                                <SignMessageLabel>Message:</SignMessageLabel>
-                                <TextArea
-                                    placeholder="Enter message to sign"
-                                    name="signMessage"
-                                    onChange={e => handleSignMsgChange(e)}
-                                    showCount
-                                    maxLength={150}
-                                />
-                            </Form.Item>
-                            <Form.Item>
-                                <SignMessageLabel>Address:</SignMessageLabel>
-                                {wallet !== false && (
-                                    <AddressCopyCtn>
-                                        <Input
-                                            name="signMessageAddress"
-                                            disabled={true}
-                                            value={
-                                                wallet.paths.get(1899).address
-                                            }
-                                        />
-                                        <CopyToClipboard
-                                            data={
-                                                wallet.paths.get(1899).address
-                                            }
-                                            showToast
-                                        >
-                                            <ThemedCopySolid />
-                                        </CopyToClipboard>
-                                    </AddressCopyCtn>
-                                )}
-                            </Form.Item>
-                            <PrimaryButton
-                                onClick={signMessageByPk}
-                                disabled={!signMessageIsValid}
-                            >
-                                <PlusSquareOutlined />
-                                &nbsp;Sign Message
-                            </PrimaryButton>
-                            <CopyToClipboard
-                                data={messageSignature}
-                                showToast
-                                customMsg={`Signature copied to clipboard`}
-                            >
-                                <Form.Item>
-                                    <SignMessageLabel>
-                                        Signature:
-                                    </SignMessageLabel>
-                                    <TextArea
-                                        name="signMessageSignature"
-                                        placeholder="The signature will be generated upon signing of the message"
-                                        readOnly={true}
-                                        value={messageSignature}
-                                        onClick={() => handleOnSigCopy()}
+        <Wrapper data-testid="signverifymsg-ctn">
+            <CustomCollapseCtn panelHeader="Sign">
+                <AntdFormWrapper>
+                    <Form
+                        size="small"
+                        style={{
+                            width: 'auto',
+                        }}
+                    >
+                        <Form.Item>
+                            <SignMessageLabel>Message:</SignMessageLabel>
+                            <TextArea
+                                placeholder="Enter message to sign"
+                                name="signMessage"
+                                onChange={e => handleSignMsgChange(e)}
+                                showCount
+                                maxLength={150}
+                            />
+                        </Form.Item>
+                        <Form.Item>
+                            <SignMessageLabel>Address:</SignMessageLabel>
+                            {wallet !== false && (
+                                <AddressCopyCtn>
+                                    <Input
+                                        name="signMessageAddress"
+                                        disabled={true}
+                                        value={wallet.paths.get(1899).address}
                                     />
-                                </Form.Item>
-                            </CopyToClipboard>
-                            {sigCopySuccess}
-                        </Form>
-                    </AntdFormWrapper>
-                </CustomCollapseCtn>
-                <CustomCollapseCtn panelHeader="Verify">
-                    <AntdFormWrapper>
-                        <Form
-                            size="small"
-                            style={{
-                                width: 'auto',
-                            }}
+                                    <CopyToClipboard
+                                        data={wallet.paths.get(1899).address}
+                                        showToast
+                                    >
+                                        <ThemedCopySolid />
+                                    </CopyToClipboard>
+                                </AddressCopyCtn>
+                            )}
+                        </Form.Item>
+                        <PrimaryButton
+                            onClick={signMessageByPk}
+                            disabled={!signMessageIsValid}
+                        >
+                            <PlusSquareOutlined />
+                            &nbsp;Sign Message
+                        </PrimaryButton>
+                        <CopyToClipboard
+                            data={messageSignature}
+                            showToast
+                            customMsg={`Signature copied to clipboard`}
                         >
                             <Form.Item>
-                                <VerifyMessageLabel>
-                                    Message:
-                                </VerifyMessageLabel>
+                                <SignMessageLabel>Signature:</SignMessageLabel>
                                 <TextArea
-                                    placeholder="Enter message to verify"
-                                    name="verifyMessage"
-                                    onChange={e => handleVerifyMsgChange(e)}
-                                    showCount
-                                    maxLength={150}
+                                    name="signMessageSignature"
+                                    placeholder="The signature will be generated upon signing of the message"
+                                    readOnly={true}
+                                    value={messageSignature}
+                                    onClick={() => handleOnSigCopy()}
                                 />
                             </Form.Item>
-                            <Form.Item>
-                                <VerifyMessageLabel>
-                                    Address:
-                                </VerifyMessageLabel>
-                                <DestinationAddressSingleWithoutQRScan
-                                    validateStatus={
-                                        messageVerificationAddrError
-                                            ? 'error'
-                                            : ''
-                                    }
-                                    help={
-                                        messageVerificationAddrError
-                                            ? messageVerificationAddrError
-                                            : ''
-                                    }
-                                    inputProps={{
-                                        placeholder: `${appConfig.ticker} Address`,
-                                        name: 'address',
-                                        onChange: e =>
-                                            handleMessageVerificationAddrChange(
-                                                e,
-                                            ),
-                                        required: true,
-                                    }}
-                                ></DestinationAddressSingleWithoutQRScan>
-                            </Form.Item>
-                            <Form.Item>
-                                <VerifyMessageLabel>
-                                    Signature:
-                                </VerifyMessageLabel>
-                                <TextArea
-                                    placeholder="Input signature"
-                                    name="verifySignature"
-                                    onChange={e => handleVerifySigChange(e)}
-                                    showCount
-                                />
-                                <SignatureValidation>
-                                    {messageVerificationSigError}
-                                </SignatureValidation>
-                            </Form.Item>
-                            <SecondaryButton
-                                onClick={verifyMessageBySig}
-                                disabled={
-                                    !messageVerificationAddrIsValid ||
-                                    !messageVerificationSigIsValid ||
-                                    !messageVerificationMsgIsValid
+                        </CopyToClipboard>
+                        {sigCopySuccess}
+                    </Form>
+                </AntdFormWrapper>
+            </CustomCollapseCtn>
+            <CustomCollapseCtn panelHeader="Verify">
+                <AntdFormWrapper>
+                    <Form
+                        size="small"
+                        style={{
+                            width: 'auto',
+                        }}
+                    >
+                        <Form.Item>
+                            <VerifyMessageLabel>Message:</VerifyMessageLabel>
+                            <TextArea
+                                placeholder="Enter message to verify"
+                                name="verifyMessage"
+                                onChange={e => handleVerifyMsgChange(e)}
+                                showCount
+                                maxLength={150}
+                            />
+                        </Form.Item>
+                        <Form.Item>
+                            <VerifyMessageLabel>Address:</VerifyMessageLabel>
+                            <DestinationAddressSingleWithoutQRScan
+                                validateStatus={
+                                    messageVerificationAddrError ? 'error' : ''
                                 }
-                            >
-                                <PlusSquareOutlined />
-                                &nbsp;Verify Message
-                            </SecondaryButton>
-                        </Form>
-                    </AntdFormWrapper>
-                </CustomCollapseCtn>
-            </SidePaddingCtn>
+                                help={
+                                    messageVerificationAddrError
+                                        ? messageVerificationAddrError
+                                        : ''
+                                }
+                                inputProps={{
+                                    placeholder: `${appConfig.ticker} Address`,
+                                    name: 'address',
+                                    onChange: e =>
+                                        handleMessageVerificationAddrChange(e),
+                                    required: true,
+                                }}
+                            ></DestinationAddressSingleWithoutQRScan>
+                        </Form.Item>
+                        <Form.Item>
+                            <VerifyMessageLabel>Signature:</VerifyMessageLabel>
+                            <TextArea
+                                placeholder="Input signature"
+                                name="verifySignature"
+                                onChange={e => handleVerifySigChange(e)}
+                                showCount
+                            />
+                            <SignatureValidation>
+                                {messageVerificationSigError}
+                            </SignatureValidation>
+                        </Form.Item>
+                        <SecondaryButton
+                            onClick={verifyMessageBySig}
+                            disabled={
+                                !messageVerificationAddrIsValid ||
+                                !messageVerificationSigIsValid ||
+                                !messageVerificationMsgIsValid
+                            }
+                        >
+                            <PlusSquareOutlined />
+                            &nbsp;Verify Message
+                        </SecondaryButton>
+                    </Form>
+                </AntdFormWrapper>
+            </CustomCollapseCtn>
         </Wrapper>
     );
 };

@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import PropTypes from 'prop-types';
-import { SidePaddingCtn, AlertMsg } from 'components/Common/Atoms';
+import { AlertMsg } from 'components/Common/Atoms';
 import { PendingAliasWarningIcon } from 'components/Common/CustomIcons';
 import {
     AntdFormWrapper,
@@ -490,236 +490,209 @@ const Alias = ({ passLoadingStatus }) => {
                     !aliasAddressValidationError &&
                     ` Please also note Cashtab will only track alias registrations for ${wallet.name}: ${defaultAddress}.`}
             </Modal>
-            <SidePaddingCtn>
-                <Row type="flex">
-                    <Col span={24}>
-                        <NamespaceCtn>
-                            <h2>eCash Namespace Alias</h2>
-                        </NamespaceCtn>
-                        <SidePaddingCtn>
-                            <AntdFormWrapper>
-                                <Form
-                                    style={{
-                                        width: 'auto',
+            <Row type="flex">
+                <Col span={24}>
+                    <NamespaceCtn>
+                        <h2>eCash Namespace Alias</h2>
+                    </NamespaceCtn>
+                    <AntdFormWrapper>
+                        <Form
+                            style={{
+                                width: 'auto',
+                            }}
+                        >
+                            <Form.Item>
+                                <AliasInput
+                                    validateStatus={
+                                        isValidAliasInput ? '' : 'error'
+                                    }
+                                    help={
+                                        aliasValidationError
+                                            ? aliasValidationError
+                                            : ''
+                                    }
+                                    inputProps={{
+                                        addonAfter: ' . xec',
+                                        placeholder: 'Enter a desired alias',
+                                        value: formData.aliasName,
+                                        name: 'aliasName',
+                                        onChange: e => handleAliasNameInput(e),
+                                        required: true,
                                     }}
-                                >
-                                    <Form.Item>
-                                        <AliasInput
-                                            validateStatus={
-                                                isValidAliasInput ? '' : 'error'
-                                            }
-                                            help={
-                                                aliasValidationError
-                                                    ? aliasValidationError
-                                                    : ''
-                                            }
-                                            inputProps={{
-                                                addonAfter: ' . xec',
-                                                placeholder:
-                                                    'Enter a desired alias',
-                                                value: formData.aliasName,
-                                                name: 'aliasName',
-                                                onChange: e =>
-                                                    handleAliasNameInput(e),
-                                                required: true,
-                                            }}
-                                        />
-                                        {(() => {
-                                            let aliasLength = getAliasByteCount(
-                                                formData.aliasName,
+                                />
+                                {(() => {
+                                    let aliasLength = getAliasByteCount(
+                                        formData.aliasName,
+                                    );
+                                    if (
+                                        aliasLength > 0 &&
+                                        isValidAliasInput &&
+                                        aliasPrices !== null
+                                    ) {
+                                        // Disable alias registration if the array is not exactly one entry
+                                        if (aliasPrices.prices.length !== 1) {
+                                            setAliasValidationError(
+                                                `Alias registration is temporarily unavailable, please check again later.`,
                                             );
-                                            if (
-                                                aliasLength > 0 &&
-                                                isValidAliasInput &&
-                                                aliasPrices !== null
-                                            ) {
-                                                // Disable alias registration if the array is not exactly one entry
-                                                if (
-                                                    aliasPrices.prices
-                                                        .length !== 1
-                                                ) {
-                                                    setAliasValidationError(
-                                                        `Alias registration is temporarily unavailable, please check again later.`,
-                                                    );
-                                                    setIsValidAliasInput(false);
-                                                    return;
-                                                }
-                                                // TODO Once chronik-client has been upgraded for in-node chronik, update
-                                                // this price parsing logic to use the new ws for blockheight comparisons.
-                                                // Intention is to reverse loop through `aliasPrices.prices` and parse for
-                                                // the latest array entry that has a startHeight within the chain's tipHeight.
-                                                let aliasPriceXec = toXec(
-                                                    aliasPrices.prices[0].fees[
-                                                        aliasLength
-                                                    ],
-                                                ).toLocaleString();
-                                                return (
-                                                    <AliasAvailable>
-                                                        This {aliasLength} byte
-                                                        alias is available,{' '}
-                                                        {aliasPriceXec} XEC to
-                                                        register.
-                                                    </AliasAvailable>
-                                                );
-                                            }
-                                        })()}
-                                        <p />
-                                        <CheckboxContainer>
-                                            <CashtabCheckbox
-                                                checked={useThisAddressChecked}
-                                                onChange={
-                                                    handleDefaultAddressCheckboxChange
-                                                }
-                                            >
-                                                Register to the active wallet
-                                                address
-                                            </CashtabCheckbox>
-                                        </CheckboxContainer>
-                                        {!useThisAddressChecked && (
-                                            <AliasAddressInput
-                                                validateStatus={
-                                                    isValidAliasAddressInput
-                                                        ? ''
-                                                        : 'error'
-                                                }
-                                                help={
-                                                    aliasAddressValidationError
-                                                        ? aliasAddressValidationError
-                                                        : ''
-                                                }
-                                                inputProps={{
-                                                    placeholder:
-                                                        'Enter address for this alias',
-                                                    value: formData.aliasAddress,
-                                                    disabled:
-                                                        useThisAddressChecked,
-                                                    name: 'aliasAddress',
-                                                    onChange: e =>
-                                                        handleAliasAddressInput(
-                                                            e,
-                                                        ),
-                                                    required: true,
-                                                }}
-                                            />
-                                        )}
-                                        <PrimaryButton
-                                            disabled={
-                                                !isValidAliasInput ||
-                                                !isValidAliasAddressInput ||
-                                                aliasValidationError !==
-                                                    false ||
-                                                aliasServerError !== false
-                                            }
-                                            onClick={() =>
-                                                preparePreviewModal()
-                                            }
-                                        >
-                                            <AliasRegisterIcon /> Register Alias
-                                        </PrimaryButton>
-                                    </Form.Item>
-                                </Form>
-                            </AntdFormWrapper>
-                            <StyledSpacer />
-                            <NamespaceCtn>
-                                <CustomCollapseCtn
-                                    panelHeader="Registered Aliases"
-                                    optionalDefaultActiveKey={['1']}
-                                    optionalKey="1"
-                                >
-                                    <Space
-                                        size={[0, 8]}
-                                        wrap
-                                        data-testid="registered-aliases-list"
+                                            setIsValidAliasInput(false);
+                                            return;
+                                        }
+                                        // TODO Once chronik-client has been upgraded for in-node chronik, update
+                                        // this price parsing logic to use the new ws for blockheight comparisons.
+                                        // Intention is to reverse loop through `aliasPrices.prices` and parse for
+                                        // the latest array entry that has a startHeight within the chain's tipHeight.
+                                        let aliasPriceXec = toXec(
+                                            aliasPrices.prices[0].fees[
+                                                aliasLength
+                                            ],
+                                        ).toLocaleString();
+                                        return (
+                                            <AliasAvailable>
+                                                This {aliasLength} byte alias is
+                                                available, {aliasPriceXec} XEC
+                                                to register.
+                                            </AliasAvailable>
+                                        );
+                                    }
+                                })()}
+                                <p />
+                                <CheckboxContainer>
+                                    <CashtabCheckbox
+                                        checked={useThisAddressChecked}
+                                        onChange={
+                                            handleDefaultAddressCheckboxChange
+                                        }
                                     >
-                                        {aliases &&
-                                        aliases.registered &&
-                                        aliases.registered.length > 0
-                                            ? aliases.registered.map(
-                                                  (alias, index) => (
-                                                      <CopyToClipboard
-                                                          data={
-                                                              alias.alias +
-                                                              '.xec'
-                                                          }
-                                                          showToast
-                                                          key={index}
-                                                      >
-                                                          <Tag
-                                                              color={'#0074C2'}
-                                                              key={index}
-                                                          >
-                                                              <AliasLabel>
-                                                                  {alias.alias +
-                                                                      '.xec'}
-                                                              </AliasLabel>
-                                                          </Tag>
-                                                      </CopyToClipboard>
-                                                  ),
-                                              )
-                                            : !aliasServerError && (
-                                                  <h3>
-                                                      {'No registered aliases'}
-                                                  </h3>
-                                              )}
-                                    </Space>
-                                    <AlertMsg>
-                                        {aliasServerError &&
-                                            aliasValidationError === false &&
-                                            aliasServerError}
-                                    </AlertMsg>
-                                </CustomCollapseCtn>
-                                <CustomCollapseCtn
-                                    panelHeader="Pending Aliases"
-                                    optionalDefaultActiveKey={['1']}
-                                    optionalKey="1"
+                                        Register to the active wallet address
+                                    </CashtabCheckbox>
+                                </CheckboxContainer>
+                                {!useThisAddressChecked && (
+                                    <AliasAddressInput
+                                        validateStatus={
+                                            isValidAliasAddressInput
+                                                ? ''
+                                                : 'error'
+                                        }
+                                        help={
+                                            aliasAddressValidationError
+                                                ? aliasAddressValidationError
+                                                : ''
+                                        }
+                                        inputProps={{
+                                            placeholder:
+                                                'Enter address for this alias',
+                                            value: formData.aliasAddress,
+                                            disabled: useThisAddressChecked,
+                                            name: 'aliasAddress',
+                                            onChange: e =>
+                                                handleAliasAddressInput(e),
+                                            required: true,
+                                        }}
+                                    />
+                                )}
+                                <PrimaryButton
+                                    disabled={
+                                        !isValidAliasInput ||
+                                        !isValidAliasAddressInput ||
+                                        aliasValidationError !== false ||
+                                        aliasServerError !== false
+                                    }
+                                    onClick={() => preparePreviewModal()}
                                 >
-                                    <Space
-                                        size={[0, 8]}
-                                        wrap
-                                        data-testid="pending-aliases-list"
-                                    >
-                                        {aliases &&
-                                        aliases.pending &&
-                                        aliases.pending.length > 0
-                                            ? aliases.pending.map(
-                                                  (pendingAlias, index) => (
-                                                      <CopyToClipboard
-                                                          data={
-                                                              pendingAlias.alias +
-                                                              '.xec'
-                                                          }
-                                                          showToast
-                                                          key={index}
-                                                      >
-                                                          <Tag
-                                                              color={'#0074C2'}
-                                                              key={index}
-                                                          >
-                                                              <AliasLabel>
-                                                                  {pendingAlias.alias +
-                                                                      '.xec'}
-                                                              </AliasLabel>
-                                                          </Tag>
-                                                      </CopyToClipboard>
-                                                  ),
-                                              )
-                                            : !aliasServerError && (
-                                                  <h3>
-                                                      {'No pending aliases'}
-                                                  </h3>
-                                              )}
-                                    </Space>
-                                    <AlertMsg>
-                                        {aliasServerError &&
-                                            aliasValidationError === false &&
-                                            aliasServerError}
-                                    </AlertMsg>
-                                </CustomCollapseCtn>
-                            </NamespaceCtn>
-                        </SidePaddingCtn>
-                    </Col>
-                </Row>
-            </SidePaddingCtn>
+                                    <AliasRegisterIcon /> Register Alias
+                                </PrimaryButton>
+                            </Form.Item>
+                        </Form>
+                    </AntdFormWrapper>
+                    <StyledSpacer />
+                    <NamespaceCtn>
+                        <CustomCollapseCtn
+                            panelHeader="Registered Aliases"
+                            optionalDefaultActiveKey={['1']}
+                            optionalKey="1"
+                        >
+                            <Space
+                                size={[0, 8]}
+                                wrap
+                                data-testid="registered-aliases-list"
+                            >
+                                {aliases &&
+                                aliases.registered &&
+                                aliases.registered.length > 0
+                                    ? aliases.registered.map((alias, index) => (
+                                          <CopyToClipboard
+                                              data={alias.alias + '.xec'}
+                                              showToast
+                                              key={index}
+                                          >
+                                              <Tag
+                                                  color={'#0074C2'}
+                                                  key={index}
+                                              >
+                                                  <AliasLabel>
+                                                      {alias.alias + '.xec'}
+                                                  </AliasLabel>
+                                              </Tag>
+                                          </CopyToClipboard>
+                                      ))
+                                    : !aliasServerError && (
+                                          <h3>{'No registered aliases'}</h3>
+                                      )}
+                            </Space>
+                            <AlertMsg>
+                                {aliasServerError &&
+                                    aliasValidationError === false &&
+                                    aliasServerError}
+                            </AlertMsg>
+                        </CustomCollapseCtn>
+                        <CustomCollapseCtn
+                            panelHeader="Pending Aliases"
+                            optionalDefaultActiveKey={['1']}
+                            optionalKey="1"
+                        >
+                            <Space
+                                size={[0, 8]}
+                                wrap
+                                data-testid="pending-aliases-list"
+                            >
+                                {aliases &&
+                                aliases.pending &&
+                                aliases.pending.length > 0
+                                    ? aliases.pending.map(
+                                          (pendingAlias, index) => (
+                                              <CopyToClipboard
+                                                  data={
+                                                      pendingAlias.alias +
+                                                      '.xec'
+                                                  }
+                                                  showToast
+                                                  key={index}
+                                              >
+                                                  <Tag
+                                                      color={'#0074C2'}
+                                                      key={index}
+                                                  >
+                                                      <AliasLabel>
+                                                          {pendingAlias.alias +
+                                                              '.xec'}
+                                                      </AliasLabel>
+                                                  </Tag>
+                                              </CopyToClipboard>
+                                          ),
+                                      )
+                                    : !aliasServerError && (
+                                          <h3>{'No pending aliases'}</h3>
+                                      )}
+                            </Space>
+                            <AlertMsg>
+                                {aliasServerError &&
+                                    aliasValidationError === false &&
+                                    aliasServerError}
+                            </AlertMsg>
+                        </CustomCollapseCtn>
+                    </NamespaceCtn>
+                </Col>
+            </Row>
         </>
     );
 };

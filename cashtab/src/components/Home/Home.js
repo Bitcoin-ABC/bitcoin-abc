@@ -8,7 +8,6 @@ import { WalletContext } from 'wallet/context';
 import { Link } from 'react-router-dom';
 import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
-import { SidePaddingCtn } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
 import Receive from 'components/Receive/Receive';
 
@@ -53,6 +52,7 @@ export const TabLabel = styled.button`
 
 export const TxHistoryCtn = styled.div`
     color: ${props => props.theme.contrast};
+    margin-top: 24px;
 `;
 
 export const Links = styled(Link)`
@@ -132,42 +132,33 @@ const Home = () => {
     return (
         <>
             {apiError && <ApiError />}
-            <br />
-            <SidePaddingCtn data-testid="home-ctn">
-                <TxHistoryCtn data-testid="tx-history-ctn">
-                    <TxHistory
-                        txs={
-                            Array.isArray(parsedTxHistory)
-                                ? parsedTxHistory
-                                : []
-                        }
-                        fiatPrice={fiatPrice}
-                        fiatCurrency={
-                            settings && settings.fiatCurrency
-                                ? settings.fiatCurrency
-                                : 'usd'
-                        }
-                        cashtabState={cashtabState}
-                    />
-                    {!hasHistory && (
-                        <>
-                            <BackupWalletAlert>
-                                <p>
-                                    <b>Backup your wallet</b>
-                                </p>
-                                <p>
-                                    Write down your 12-word seed and keep it in
-                                    a safe place.{' '}
-                                    <em>
-                                        Do not share your backup with anyone.
-                                    </em>
-                                </p>
-                            </BackupWalletAlert>
-                            <Receive />
-                        </>
-                    )}
-                </TxHistoryCtn>
-            </SidePaddingCtn>
+            <TxHistoryCtn data-testid="tx-history-ctn">
+                <TxHistory
+                    txs={Array.isArray(parsedTxHistory) ? parsedTxHistory : []}
+                    fiatPrice={fiatPrice}
+                    fiatCurrency={
+                        settings && settings.fiatCurrency
+                            ? settings.fiatCurrency
+                            : 'usd'
+                    }
+                    cashtabState={cashtabState}
+                />
+                {!hasHistory && (
+                    <>
+                        <BackupWalletAlert>
+                            <p>
+                                <b>Backup your wallet</b>
+                            </p>
+                            <p>
+                                Write down your 12-word seed and keep it in a
+                                safe place.{' '}
+                                <em>Do not share your backup with anyone.</em>
+                            </p>
+                        </BackupWalletAlert>
+                        <Receive />
+                    </>
+                )}
+            </TxHistoryCtn>
         </>
     );
 };
