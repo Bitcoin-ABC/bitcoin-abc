@@ -1196,9 +1196,10 @@ private:
      * block index (permanent memory storage), indicating that the header is
      * known to be part of a sufficiently high-work chain (anti-dos check).
      */
-    bool AcceptBlockHeader(const CBlockHeader &block,
-                           BlockValidationState &state, CBlockIndex **ppindex,
-                           bool min_pow_checked)
+    bool AcceptBlockHeader(
+        const CBlockHeader &block, BlockValidationState &state,
+        CBlockIndex **ppindex, bool min_pow_checked,
+        const std::optional<CCheckpointData> &test_checkpoints = std::nullopt)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);
     friend Chainstate;
 
@@ -1417,10 +1418,10 @@ public:
      * headers.
      * @return True if block headers were accepted as valid.
      */
-    bool ProcessNewBlockHeaders(const std::vector<CBlockHeader> &block,
-                                bool min_pow_checked,
-                                BlockValidationState &state,
-                                const CBlockIndex **ppindex = nullptr)
+    bool ProcessNewBlockHeaders(
+        const std::vector<CBlockHeader> &block, bool min_pow_checked,
+        BlockValidationState &state, const CBlockIndex **ppindex = nullptr,
+        const std::optional<CCheckpointData> &test_checkpoints = std::nullopt)
         LOCKS_EXCLUDED(cs_main);
 
     /**

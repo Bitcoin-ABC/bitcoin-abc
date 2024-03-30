@@ -48,7 +48,6 @@ class DummyConfig : public Config {
 public:
     DummyConfig();
     explicit DummyConfig(std::string net);
-    explicit DummyConfig(std::unique_ptr<CChainParams> chainParamsIn);
     bool SetMaxBlockSize(uint64_t maxBlockSize) override { return false; }
     uint64_t GetMaxBlockSize() const override { return 32'000'000; }
 

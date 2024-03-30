@@ -121,8 +121,7 @@ struct ChainTestingSetup : public BasicTestingSetup {
 
     explicit ChainTestingSetup(
         const std::string &chainName = CBaseChainParams::MAIN,
-        const std::vector<const char *> &extra_args = {},
-        const Config &config = ::GetConfig());
+        const std::vector<const char *> &extra_args = {});
     ~ChainTestingSetup();
 };
 
@@ -138,8 +137,7 @@ struct TestingSetup : public ChainTestingSetup {
     explicit TestingSetup(const std::string &chainName = CBaseChainParams::MAIN,
                           const std::vector<const char *> &extra_args = {},
                           const bool coins_db_in_memory = true,
-                          const bool block_tree_db_in_memory = true,
-                          const Config &config = ::GetConfig());
+                          const bool block_tree_db_in_memory = true);
 };
 
 /** Identical to TestingSetup, but chain set to regtest */

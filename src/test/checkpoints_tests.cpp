@@ -24,9 +24,9 @@
 
 #include <memory>
 
-BOOST_AUTO_TEST_SUITE(checkpoints_tests)
+BOOST_FIXTURE_TEST_SUITE(checkpoints_tests, TestingSetup)
 
-BOOST_FIXTURE_TEST_CASE(sanity, TestingSetup) {
+BOOST_AUTO_TEST_CASE(sanity) {
     const auto params = CreateChainParams(CBaseChainParams::MAIN);
     const CCheckpointData &checkpoints = params->Checkpoints();
     BlockHash p11111 = BlockHash::fromHex(
@@ -45,40 +45,6 @@ BOOST_FIXTURE_TEST_CASE(sanity, TestingSetup) {
     BOOST_CHECK(Checkpoints::CheckBlock(checkpoints, 134444 + 1, p11111));
 }
 
-class ChainParamsWithCheckpoints : public CChainParams {
-public:
-    ChainParamsWithCheckpoints(const CChainParams &chainParams,
-                               CCheckpointData &checkpoints)
-        : CChainParams(chainParams) {
-        checkpointData = checkpoints;
-    }
-};
-
-class MainnetConfigWithTestCheckpoints : public DummyConfig {
-public:
-    MainnetConfigWithTestCheckpoints() : DummyConfig(createChainParams()) {}
-
-    static std::unique_ptr<CChainParams> createChainParams() {
-        CCheckpointData checkpoints = {
-            .mapCheckpoints = {
-                {2, BlockHash::fromHex("000000006a625f06636b8bb6ac7b960a8d03705"
-                                       "d1ace08b1a19da3fdcc99ddbd")},
-            }};
-        const auto mainParams = CreateChainParams(CBaseChainParams::MAIN);
-        return std::make_unique<ChainParamsWithCheckpoints>(*mainParams,
-                                                            checkpoints);
-    }
-};
-
-static const MainnetConfigWithTestCheckpoints g_config{};
-
-struct CheckpointsTestingSetup : public TestingSetup {
-    CheckpointsTestingSetup()
-        : TestingSetup{CBaseChainParams::MAIN, /*extra_args=*/{},
-                       /*coins_db_in_memory=*/true,
-                       /*block_tree_db_in_memory=*/true, g_config} {}
-};
-
 /**
  * This test has 4 precomputed blocks mined ontop of the genesis block:
  *  G ---> A ---> AA (checkpointed)
@@ -88,24 +54,24 @@ struct CheckpointsTestingSetup : public TestingSetup {
  *  * B should be rejected for forking prior to an accepted checkpoint
  *  * AB should be rejected for forking at an accepted checkpoint
  */
-BOOST_FIXTURE_TEST_CASE(ban_fork_prior_to_and_at_checkpoints,
-                        CheckpointsTestingSetup) {
-    const Config &config = m_node.chainman->GetConfig();
-    assert(std::addressof(config) == std::addressof(g_config));
-
+BOOST_AUTO_TEST_CASE(ban_fork_prior_to_and_at_checkpoints) {
+    const CCheckpointData test_checkpoints = {
+        .mapCheckpoints = {{2, BlockHash::fromHex(
+                                   "000000006a625f06636b8bb6ac7b960a8d03705"
+                                   "d1ace08b1a19da3fdcc99ddbd")}},
+    };
     const CBlockIndex *pindex = nullptr;
 
     // Start with mainnet genesis block
-    CBlockHeader headerG = config.GetChainParams().GenesisBlock();
+    CBlockHeader headerG = Assert(m_node.chainman)->GetParams().GenesisBlock();
     BOOST_CHECK(headerG.GetHash() ==
                 uint256S("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f"
                          "1b60a8ce26f"));
 
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            Assert(m_node.chainman)
-                ->ProcessNewBlockHeaders({headerG}, true, state, &pindex));
+        BOOST_CHECK(m_node.chainman->ProcessNewBlockHeaders(
+            {headerG}, true, state, &pindex, test_checkpoints));
         pindex = nullptr;
     }
 
@@ -169,9 +135,8 @@ BOOST_FIXTURE_TEST_CASE(ban_fork_prior_to_and_at_checkpoints,
     // Headers A and AA should be accepted
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            Assert(m_node.chainman)
-                ->ProcessNewBlockHeaders({headerA}, true, state, &pindex));
+        BOOST_CHECK(m_node.chainman->ProcessNewBlockHeaders(
+            {headerA}, true, state, &pindex, test_checkpoints));
         BOOST_CHECK(state.IsValid());
         BOOST_CHECK(pindex != nullptr);
         pindex = nullptr;
@@ -179,9 +144,8 @@ BOOST_FIXTURE_TEST_CASE(ban_fork_prior_to_and_at_checkpoints,
 
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            Assert(m_node.chainman)
-                ->ProcessNewBlockHeaders({headerAA}, true, state, &pindex));
+        BOOST_CHECK(m_node.chainman->ProcessNewBlockHeaders(
+            {headerAA}, true, state, &pindex, test_checkpoints));
         BOOST_CHECK(state.IsValid());
         BOOST_CHECK(pindex != nullptr);
         pindex = nullptr;
@@ -190,9 +154,8 @@ BOOST_FIXTURE_TEST_CASE(ban_fork_prior_to_and_at_checkpoints,
     // Header B should be rejected
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            !Assert(m_node.chainman)
-                 ->ProcessNewBlockHeaders({headerB}, true, state, &pindex));
+        BOOST_CHECK(!m_node.chainman->ProcessNewBlockHeaders(
+            {headerB}, true, state, &pindex, test_checkpoints));
         BOOST_CHECK(state.IsInvalid());
         BOOST_CHECK(state.GetRejectReason() == "bad-fork-prior-to-checkpoint");
         BOOST_CHECK(pindex == nullptr);
@@ -208,9 +171,8 @@ BOOST_FIXTURE_TEST_CASE(ban_fork_prior_to_and_at_checkpoints,
     // Header AB should be rejected
     {
         BlockValidationState state;
-        BOOST_CHECK(
-            !Assert(m_node.chainman)
-                 ->ProcessNewBlockHeaders({headerAB}, true, state, &pindex));
+        BOOST_CHECK(!m_node.chainman->ProcessNewBlockHeaders(
+            {headerAB}, true, state, &pindex, test_checkpoints));
         BOOST_CHECK(state.IsInvalid());
         BOOST_CHECK(state.GetRejectReason() == "checkpoint mismatch");
         BOOST_CHECK(pindex == nullptr);

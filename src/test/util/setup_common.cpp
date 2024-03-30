@@ -194,9 +194,10 @@ CTxMemPool::Options MemPoolOptionsForTest(const NodeContext &node) {
 }
 
 ChainTestingSetup::ChainTestingSetup(
-    const std::string &chainName, const std::vector<const char *> &extra_args,
-    const Config &config)
+    const std::string &chainName, const std::vector<const char *> &extra_args)
     : BasicTestingSetup(chainName, extra_args) {
+    const Config &config = GetConfig();
+
     // We have to run a scheduler thread to prevent ActivateBestChain
     // from blocking due to queue overrun.
     m_node.scheduler = std::make_unique<CScheduler>();
@@ -274,11 +275,12 @@ void TestingSetup::LoadVerifyActivateChainstate() {
 TestingSetup::TestingSetup(const std::string &chainName,
                            const std::vector<const char *> &extra_args,
                            const bool coins_db_in_memory,
-                           const bool block_tree_db_in_memory,
-                           const Config &config)
-    : ChainTestingSetup(chainName, extra_args, config),
+                           const bool block_tree_db_in_memory)
+    : ChainTestingSetup(chainName, extra_args),
       m_coins_db_in_memory(coins_db_in_memory),
       m_block_tree_db_in_memory(block_tree_db_in_memory) {
+    const Config &config = GetConfig();
+
     // Ideally we'd move all the RPC tests to the functional testing framework
     // instead of unit tests, but for now we need these here.
     RPCServer rpcServer;

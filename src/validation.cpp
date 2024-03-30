@@ -3881,12 +3881,11 @@ arith_uint256 CalculateHeadersWork(const std::vector<CBlockHeader> &headers) {
  * in ConnectBlock().
  * Note that -reindex-chainstate skips the validation that happens here!
  */
-static bool ContextualCheckBlockHeader(const CBlockHeader &block,
-                                       BlockValidationState &state,
-                                       BlockManager &blockman,
-                                       ChainstateManager &chainman,
-                                       const CBlockIndex *pindexPrev,
-                                       NodeClock::time_point now)
+static bool ContextualCheckBlockHeader(
+    const CBlockHeader &block, BlockValidationState &state,
+    BlockManager &blockman, ChainstateManager &chainman,
+    const CBlockIndex *pindexPrev, NodeClock::time_point now,
+    const std::optional<CCheckpointData> &test_checkpoints = std::nullopt)
     EXCLUSIVE_LOCKS_REQUIRED(::cs_main) {
     AssertLockHeld(::cs_main);
     assert(pindexPrev != nullptr);
@@ -3903,7 +3902,8 @@ static bool ContextualCheckBlockHeader(const CBlockHeader &block,
 
     // Check against checkpoints
     if (chainman.m_options.checkpoints_enabled) {
-        const CCheckpointData &checkpoints = params.Checkpoints();
+        const CCheckpointData &checkpoints =
+            test_checkpoints ? test_checkpoints.value() : params.Checkpoints();
 
         // Check that the block chain matches the known block chain up to a
         // checkpoint.
@@ -4081,10 +4081,10 @@ static bool ContextualCheckBlock(const CBlock &block,
  *
  * Returns true if the block is successfully added to the block index.
  */
-bool ChainstateManager::AcceptBlockHeader(const CBlockHeader &block,
-                                          BlockValidationState &state,
-                                          CBlockIndex **ppindex,
-                                          bool min_pow_checked) {
+bool ChainstateManager::AcceptBlockHeader(
+    const CBlockHeader &block, BlockValidationState &state,
+    CBlockIndex **ppindex, bool min_pow_checked,
+    const std::optional<CCheckpointData> &test_checkpoints) {
     AssertLockHeld(cs_main);
     const Config &config = this->GetConfig();
     const CChainParams &chainparams = config.GetChainParams();
@@ -4139,9 +4139,9 @@ bool ChainstateManager::AcceptBlockHeader(const CBlockHeader &block,
                                  "bad-prevblk");
         }
 
-        if (!ContextualCheckBlockHeader(block, state, m_blockman, *this,
-                                        pindexPrev,
-                                        m_options.adjusted_time_callback())) {
+        if (!ContextualCheckBlockHeader(
+                block, state, m_blockman, *this, pindexPrev,
+                m_options.adjusted_time_callback(), test_checkpoints)) {
             LogPrint(BCLog::VALIDATION,
                      "%s: Consensus::ContextualCheckBlockHeader: %s, %s\n",
                      __func__, hash.ToString(), state.ToString());
@@ -4213,15 +4213,16 @@ bool ChainstateManager::AcceptBlockHeader(const CBlockHeader &block,
 // Exposed wrapper for AcceptBlockHeader
 bool ChainstateManager::ProcessNewBlockHeaders(
     const std::vector<CBlockHeader> &headers, bool min_pow_checked,
-    BlockValidationState &state, const CBlockIndex **ppindex) {
+    BlockValidationState &state, const CBlockIndex **ppindex,
+    const std::optional<CCheckpointData> &test_checkpoints) {
     AssertLockNotHeld(cs_main);
     {
         LOCK(cs_main);
         for (const CBlockHeader &header : headers) {
             // Use a temp pindex instead of ppindex to avoid a const_cast
             CBlockIndex *pindex = nullptr;
-            bool accepted =
-                AcceptBlockHeader(header, state, &pindex, min_pow_checked);
+            bool accepted = AcceptBlockHeader(
+                header, state, &pindex, min_pow_checked, test_checkpoints);
             ActiveChainstate().CheckBlockIndex();
 
             if (!accepted) {
