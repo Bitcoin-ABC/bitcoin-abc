@@ -1,10 +1,6 @@
 {
     "name": "cashtab",
-<<<<<<< HEAD
-    "version": "2.9.3",
-=======
     "version": "2.10.0",
->>>>>>> c46dce30c ([Cashtab] Patch send to many with improved validation)
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
