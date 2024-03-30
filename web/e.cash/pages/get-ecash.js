@@ -126,7 +126,7 @@ function GetEcash(props) {
                             more join our ever expanding community of miners.
                         </p>
                         <Button
-                            text="Get Started"
+                            text="Mine eCash"
                             link="/mining"
                             corner="bottomRight"
                             color="accent"
