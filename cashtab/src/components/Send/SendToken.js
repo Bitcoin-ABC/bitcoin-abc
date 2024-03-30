@@ -15,7 +15,7 @@ import { BN } from 'slp-mdm';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
-import { isValidEtokenBurnAmount, parseAddressInput } from 'validation';
+import { isValidTokenSendOrBurnAmount, parseAddressInput } from 'validation';
 import { formatDate } from 'utils/formatting';
 import styled from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -288,30 +288,15 @@ const SendToken = () => {
     }
 
     const handleSlpAmountChange = e => {
-        let error = false;
         const { value, name } = e.target;
-
-        // test if exceeds balance using BigNumber
-        let isGreaterThanBalance = false;
-        if (!isNaN(value)) {
-            const bigValue = new BN(value);
-            // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
-            isGreaterThanBalance = bigValue.comparedTo(tokenBalance);
-        }
-
-        // Validate value for > 0
-        if (isNaN(value)) {
-            error = 'Amount must be a number';
-        } else if (value <= 0) {
-            error = 'Amount must be greater than 0';
-        } else if (tokenBalance && isGreaterThanBalance === 1) {
-            error = `Amount cannot exceed your ${tokenTicker} balance of ${tokenBalance}`;
-        } else if (!isNaN(value) && value.toString().includes('.')) {
-            if (value.toString().split('.')[1].length > decimals) {
-                error = `This token only supports ${decimals} decimal places`;
-            }
-        }
-        setSendTokenAmountError(error);
+        const isValidAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+            value,
+            tokenBalance,
+            decimals,
+        );
+        setSendTokenAmountError(
+            isValidAmountOrErrorMsg === true ? false : isValidAmountOrErrorMsg,
+        );
         setFormData(p => ({
             ...p,
             [name]: value,
@@ -418,14 +403,16 @@ const SendToken = () => {
 
     const handleEtokenBurnAmountChange = e => {
         const { name, value } = e.target;
-
-        let error = false;
-        if (!isValidEtokenBurnAmount(new BN(value), tokenBalance)) {
-            error = 'Burn amount must be between 1 and ' + tokenBalance;
-        }
-
-        setBurnTokenAmountError(error);
-
+        const isValidBurnAmountOrErrorMsg = isValidTokenSendOrBurnAmount(
+            value,
+            tokenBalance,
+            decimals,
+        );
+        setBurnTokenAmountError(
+            isValidBurnAmountOrErrorMsg === true
+                ? false
+                : isValidBurnAmountOrErrorMsg,
+        );
         setFormData(p => ({
             ...p,
             [name]: value,

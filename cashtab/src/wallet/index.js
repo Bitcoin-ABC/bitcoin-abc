@@ -11,7 +11,7 @@ import appConfig from 'config/app';
 
 const SATOSHIS_PER_XEC = 100;
 const STRINGIFIED_INTEGER_REGEX = /^[0-9]+$/;
-const STRINGIFIED_DECIMALIZED_REGEX = /^\d*\.?\d*$/;
+export const STRINGIFIED_DECIMALIZED_REGEX = /^\d*\.?\d*$/;
 
 /**
  * Get total value of satoshis associated with an array of chronik utxos

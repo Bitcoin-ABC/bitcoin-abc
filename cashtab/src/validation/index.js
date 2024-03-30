@@ -19,6 +19,7 @@ import aliasSettings from 'config/alias';
 import { getAliasByteCount } from 'opreturn';
 import { fiatToSatoshis } from 'wallet';
 import { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
+import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -377,18 +378,6 @@ export const isValidCashtabCache = cashtabCache => {
     });
 
     return isValidCachedInfo;
-};
-
-export const isValidEtokenBurnAmount = (tokenBurnAmount, maxAmount) => {
-    // A valid eToken burn amount must be between 1 and the wallet's token balance
-    return (
-        tokenBurnAmount !== null &&
-        maxAmount !== null &&
-        typeof tokenBurnAmount !== 'undefined' &&
-        typeof maxAmount !== 'undefined' &&
-        new BN(tokenBurnAmount).gt(0) &&
-        new BN(tokenBurnAmount).lte(maxAmount)
-    );
 };
 
 // XEC airdrop field validations
@@ -792,4 +781,50 @@ export const isValidCashtabWallet = wallet => {
         !('hydratedUtxoDetails' in wallet.state) &&
         !('slpBalancesAndUtxos' in wallet.state)
     );
+};
+
+/**
+ * Validate a token send or burn qty
+ * @param {string} amount decimalized token string of send or burn amount, from user input, e.g. 100.123
+ * @param {string} tokenBalance decimalized token string, e.g. 100.123
+ * @param {number} decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
+ */
+export const isValidTokenSendOrBurnAmount = (
+    amount,
+    tokenBalance,
+    decimals,
+) => {
+    if (typeof amount !== 'string') {
+        return 'Amount must be a string';
+    }
+    if (amount === '') {
+        return 'Amount is required';
+    }
+    if (amount === '0') {
+        return `Amount must be greater than 0`;
+    }
+    if (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) {
+        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+    }
+    // Note: we do not validate decimals, as this is coming from token cache, which is coming from chronik
+    // The user is not inputting decimals
+
+    // Amount must be <= balance
+    const amountBN = new BN(amount);
+    // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
+    if (amountBN.gt(tokenBalance)) {
+        return `Amount ${amount} exceeds balance of ${tokenBalance}`;
+    }
+
+    if (amount.includes('.')) {
+        if (amount.toString().split('.')[1].length > decimals) {
+            if (decimals === 0) {
+                return `This token does not support decimal places`;
+            }
+            return `This token supports no more than ${decimals} decimal place${
+                decimals === 1 ? '' : 's'
+            }`;
+        }
+    }
+    return true;
 };

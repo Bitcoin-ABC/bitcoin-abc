@@ -11,7 +11,6 @@ import {
     isValidCashtabSettings,
     isValidNewWalletNameLength,
     isValidXecSendAmount,
-    isValidEtokenBurnAmount,
     isValidTokenId,
     isValidXecAirdrop,
     isValidAirdropExclusionArray,
@@ -29,6 +28,7 @@ import {
     shouldSendXecBeDisabled,
     parseAddressInput,
     isValidCashtabWallet,
+    isValidTokenSendOrBurnAmount,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -240,38 +240,6 @@ describe('Cashtab validation functions', () => {
     });
     it(`Rejects a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl(12345)).toBe(false);
-    });
-    it(`isValidEtokenBurnAmount rejects null`, () => {
-        const testEtokenBurnAmount = null;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount)).toBe(false);
-    });
-    it(`isValidEtokenBurnAmount rejects undefined`, () => {
-        const testEtokenBurnAmount = undefined;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount)).toBe(false);
-    });
-    it(`isValidEtokenBurnAmount rejects a burn amount that is 0`, () => {
-        const testEtokenBurnAmount = 0;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(false);
-    });
-    it(`isValidEtokenBurnAmount rejects a burn amount that is negative`, () => {
-        const testEtokenBurnAmount = -50;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(false);
-    });
-    it(`isValidEtokenBurnAmount rejects a burn amount that is more than the maxAmount param`, () => {
-        const testEtokenBurnAmount = 1000;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(false);
-    });
-    it(`isValidEtokenBurnAmount accepts a valid burn amount`, () => {
-        const testEtokenBurnAmount = 50;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
-    });
-    it(`isValidEtokenBurnAmount accepts a valid burn amount with decimal points`, () => {
-        const testEtokenBurnAmount = 10.545454;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
-    });
-    it(`isValidEtokenBurnAmount accepts a valid burn amount that is the same as the maxAmount`, () => {
-        const testEtokenBurnAmount = 100;
-        expect(isValidEtokenBurnAmount(testEtokenBurnAmount, 100)).toBe(true);
     });
     it(`isValidTokenId accepts valid token ID that is 64 chars in length`, () => {
         const testValidTokenId =
@@ -630,6 +598,22 @@ describe('Cashtab validation functions', () => {
                         userMultisendInput,
                         balanceSats,
                         userLocale,
+                    ),
+                ).toBe(returned);
+            });
+        });
+    });
+    describe('Determines if a user input send or burn token amount is valid', () => {
+        const { expectedReturns } = vectors.isValidTokenSendOrBurnAmount;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, amount, tokenBalance, decimals, returned } =
+                expectedReturn;
+            it(`isValidTokenSendOrBurnAmount: ${description}`, () => {
+                expect(
+                    isValidTokenSendOrBurnAmount(
+                        amount,
+                        tokenBalance,
+                        decimals,
                     ),
                 ).toBe(returned);
             });
