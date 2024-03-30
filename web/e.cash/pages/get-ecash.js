@@ -11,6 +11,7 @@ import coinupdown from '/public/animations/coin-up-down.json';
 import coinflip from '/public/animations/exchanges-coin-flip.json';
 import services from '/public/animations/services.json';
 import mining from '/public/animations/mining.json';
+import staking from '/public/animations/staking.json';
 import {
     DescriptionBox,
     ImgCtn,
@@ -143,6 +144,24 @@ function GetEcash(props) {
                     </div>
                     <MiningImg height="500px">
                         <AnimateImage image={mining} reverse />
+                    </MiningImg>
+                </MiningSectionCtn>
+                <MiningSectionCtn>
+                    <div>
+                        <H3 text="Staking" id="staking" />
+                        <p>
+                            Stakers power eCash&apos;s Avalanche consensus
+                            system, and earn staking rewards in return.
+                        </p>
+                        <Button
+                            text="Stake eCash"
+                            link="/staking"
+                            corner="bottomRight"
+                            color="accent"
+                        />
+                    </div>
+                    <MiningImg height="500px">
+                        <AnimateImage image={staking} reverse />
                     </MiningImg>
                 </MiningSectionCtn>
             </Container>
