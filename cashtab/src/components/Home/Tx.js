@@ -834,6 +834,11 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                         <h4>
                                                             Alias Registration
                                                         </h4>
+                                                    ) : data.parsed
+                                                          .isEcashChatMessage ? (
+                                                        <h4>
+                                                            eCash Chat Message{' '}
+                                                        </h4>
                                                     ) : (
                                                         <h4>
                                                             External Message

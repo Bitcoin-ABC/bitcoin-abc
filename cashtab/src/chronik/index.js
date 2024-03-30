@@ -245,6 +245,7 @@ export const parseTx = (tx, wallet, cachedTokens) => {
     let opReturnMessage = '';
     let isCashtabMessage = false;
     let isEncryptedMessage = false;
+    let isEcashChatMessage = false;
     let replyAddress = '';
     let aliasFlag = false;
 
@@ -413,6 +414,18 @@ export const parseTx = (tx, wallet, cachedTokens) => {
                     }`;
                     break;
                 }
+                case opreturnConfig.appPrefixesHex.eCashChat: {
+                    isEcashChatMessage = true;
+                    if (stackArray.length >= 2) {
+                        opReturnMessage = Buffer.from(
+                            stackArray[1],
+                            'hex',
+                        ).toString();
+                    } else {
+                        opReturnMessage = 'off-spec eCash Chat Msg';
+                    }
+                    break;
+                }
                 default: {
                     // Unrecognized lokad
                     // In this case, utf8 decode the stack array
@@ -523,6 +536,7 @@ export const parseTx = (tx, wallet, cachedTokens) => {
             airdropTokenId,
             opReturnMessage: '',
             isCashtabMessage,
+            isEcashChatMessage,
             isEncryptedMessage,
             replyAddress,
             assumedTokenDecimals,
@@ -537,6 +551,7 @@ export const parseTx = (tx, wallet, cachedTokens) => {
         airdropTokenId,
         opReturnMessage,
         isCashtabMessage,
+        isEcashChatMessage,
         isEncryptedMessage,
         replyAddress,
         aliasFlag,
