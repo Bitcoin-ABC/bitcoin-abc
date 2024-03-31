@@ -9711,6 +9711,163 @@ export const MsgFromEcashChat = {
     },
 };
 
+export const SlpV1Mint = {
+    tx: {
+        txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '473044022038242777df76cf81fea627fad7c8a4f67ddb2dd68defcdb8d45dbc7e0f90c62102206f5c9a5b79f10cb6ac93d46a084666b810d12871c02182f9097b1ac72643dab6412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: '89b922392753498ea1c6f8f29c9c9c2d7768fcaa36c34b931dbdcedf094cd283',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '47304402206d2c4bada7e705e12f7e8e21b2bfb7a6cf0b02dcb7ffc6b21f1a866dc0e7c7a10220667c1d970506cdae180a78888cf10cf9ada6800b4db22f06a8f4ae5c40aeea16412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 3300,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c50000101044d494e5420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb10102080000000000000064',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '100',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    amount: '0',
+                    isMintBaton: true,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: 'dd9018d0037fee4094c2445b23ed9eef65d456db3f2b9c053ad39ee6505fca44',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 2280,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1711861819,
+        size: 472,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                txType: 'MINT',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 838323,
+            hash: '000000000000000011466b30b743ea02424347838273e890d6a9f1afbc16f66e',
+            timestamp: 1711868662,
+        },
+    },
+    parsed: {
+        airdropFlag: false,
+        airdropTokenId: '',
+        assumedTokenDecimals: true,
+        etokenAmount: '100',
+        incoming: true,
+        isCashtabMessage: false,
+        isEcashChatMessage: false,
+        isEncryptedMessage: false,
+        isEtokenTx: true,
+        isTokenBurn: false,
+        opReturnMessage: '',
+        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        tokenEntries: [
+            {
+                actualBurnAmount: '0',
+                burnSummary: '',
+                burnsMintBatons: false,
+                failedColorings: [],
+                intentionalBurn: '0',
+                isInvalid: false,
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    number: 1,
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                },
+                txType: 'MINT',
+            },
+        ],
+        xecAmount: 33.72,
+    },
+};
+
 export const MsgFromElectrum = {
     tx: {
         txid: 'd0c4c5b86016b7a021470180cb4afd1f8456fcf683a19d8b061b2225abd71be4',

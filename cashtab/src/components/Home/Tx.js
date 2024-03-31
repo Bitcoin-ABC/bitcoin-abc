@@ -535,6 +535,12 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                     <AirdropReceivedTx>
                                                         <AirdropIcon />
                                                     </AirdropReceivedTx>
+                                                ) : data.parsed.isEtokenTx &&
+                                                  data.tokenEntries[0]
+                                                      .txType === 'MINT' ? (
+                                                    <GenesisTx>
+                                                        <GenesisIcon />
+                                                    </GenesisTx>
                                                 ) : (
                                                     <ReceivedTx>
                                                         <ReceiveIcon />
@@ -568,6 +574,12 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                                         </h3>
                                                     )}
                                                 </>
+                                            ) : data.parsed.isEtokenTx &&
+                                              data.tokenEntries[0].txType ===
+                                                  'MINT' ? (
+                                                <GenesisHeader>
+                                                    Mint
+                                                </GenesisHeader>
                                             ) : (
                                                 <ReceivedFromCtn>
                                                     <ReceivedHeader>

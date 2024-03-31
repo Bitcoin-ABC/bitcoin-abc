@@ -208,6 +208,7 @@ export const parseTx = (tx, wallet, cachedTokens) => {
     let isSlpV1 = false;
     let isUnsupportedTokenTx = false;
     let isGenesisTx = false;
+    let isMintTx = false;
 
     // For now, we only support one token per tx
     // Get the tokenId if this is an slpv1 tx
@@ -231,6 +232,9 @@ export const parseTx = (tx, wallet, cachedTokens) => {
         }
         if (entry.txType === 'GENESIS') {
             isGenesisTx = true;
+        }
+        if (entry.txType === 'MINT') {
+            isMintTx = true;
         }
     }
 
@@ -293,9 +297,12 @@ export const parseTx = (tx, wallet, cachedTokens) => {
                 const thisWalletHash160 = walletHash160s[j];
                 if (
                     typeof thisInput.outputScript !== 'undefined' &&
-                    thisInput.outputScript.includes(thisWalletHash160)
+                    thisInput.outputScript.includes(thisWalletHash160) &&
+                    !isMintTx
                 ) {
                     // Then this is an outgoing tx
+                    // TODO not really, it could be a self-send tx like a genesis or mint tx
+                    // Parse better in refactor
                     incoming = false;
                     // Break out of this for loop once you know this is an outgoing tx
                     break;

@@ -40,6 +40,7 @@ import {
     mockSortedFlatTxHistoryWithAllUnconfirmed,
     AlpTx,
     mockParseTxTokenCache,
+    SlpV1Mint,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 
@@ -233,6 +234,25 @@ export default {
                 wallet: mockParseTxWallet,
                 cachedTokens: mockParseTxTokenCache,
                 parsed: MsgFromEcashChat.parsed,
+            },
+            {
+                description: 'slp v1 mint tx',
+                tx: SlpV1Mint.tx,
+                wallet: {
+                    ...mockParseTxWallet,
+                    paths: new Map([
+                        [
+                            1899,
+                            {
+                                address:
+                                    'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                                hash: '95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d',
+                            },
+                        ],
+                    ]),
+                },
+                cachedTokens: mockParseTxTokenCache,
+                parsed: SlpV1Mint.parsed,
             },
         ],
     },
