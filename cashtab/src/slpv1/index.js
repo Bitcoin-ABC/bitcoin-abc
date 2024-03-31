@@ -166,8 +166,11 @@ export const getSendTokenInputs = (utxos, tokenId, sendQty, decimals = -1) => {
         );
     }
 
+    // slp-mdm requires sendQty to be in token satoshis, i.e. an integer for this token's smallest unit of account
     sendQty = new BN(sendQty).times(10 ** decimals);
 
+    // We calculate totalTokenInputUtxoQty with the same basis (token satoshis) -- no adjustment for decimals
+    // as the value of this token utxo is already indexed at this basis
     let totalTokenInputUtxoQty = new BN(0);
 
     const tokenInputs = [];
