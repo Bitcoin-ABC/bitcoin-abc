@@ -59,6 +59,7 @@ import CustomModal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
 import { Input, ModalInput, InputFlex } from 'components/Common/Inputs';
 import CashtabSwitch from 'components/Common/Switch';
+import Seed from 'components/Common/Seed';
 
 const { Panel } = Collapse;
 
@@ -1292,15 +1293,16 @@ const Configure = () => {
                                     <br />
                                 </>
                             }
-                            {wallet && wallet.mnemonic && revealSeed ? (
-                                <>
-                                    <br />
-                                    {wallet.mnemonic}
-                                </>
-                            ) : (
-                                ''
-                            )}
                         </p>
+                        {wallet && wallet.mnemonic && revealSeed && (
+                            <CopyToClipboard
+                                data={wallet.mnemonic}
+                                showToast
+                                customMsg={'Copied seed phrase'}
+                            >
+                                <Seed mnemonic={wallet.mnemonic} />
+                            </CopyToClipboard>
+                        )}
                     </Panel>
                 </StyledCollapse>
             )}
