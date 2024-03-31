@@ -86,7 +86,12 @@ export const initializeTelegramBot = (
         // DEBUG we get here in current prod
 
         // Reply to the original tg msg
-        const msgChannel = callbackQuery.message?.sender_chat?.id;
+        // Get msgChannel from a chat
+        let msgChannel = callbackQuery.message?.chat?.id;
+        // If undefined, get msgChannel from a channel
+        if (typeof msgChannel === 'undefined') {
+            msgChannel = callbackQuery.message?.sender_chat?.id;
+        }
         console.log(`msgChannel`, msgChannel);
         console.log(`isRemovalRequest`, isRemovalRequest);
         if (typeof msgId !== 'undefined' && typeof msgChannel !== 'undefined') {
@@ -129,14 +134,13 @@ export const initializeTelegramBot = (
                     },
                 );
             }
-
-            console.log(`answering callback query`);
-            return telegramBot.answerCallbackQuery(callbackQuery.id, {
-                text: `Token icons for ${tokenId} ${
-                    isRemovalRequest ? `removed from ` : `restored to `
-                } server`,
-            });
         }
+        console.log(`answering callback query`);
+        return telegramBot.answerCallbackQuery(callbackQuery.id, {
+            text: `Token icons for ${tokenId} ${
+                isRemovalRequest ? `removed from ` : `restored to `
+            } server`,
+        });
     });
 
     // Return this bot with event handler
