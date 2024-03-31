@@ -20,6 +20,7 @@ import { getAliasByteCount } from 'opreturn';
 import { fiatToSatoshis } from 'wallet';
 import { UNKNOWN_TOKEN_ID } from 'config/CashtabCache';
 import { STRINGIFIED_DECIMALIZED_REGEX } from 'wallet';
+import { getMaxMintAmount } from 'slpv1';
 
 /**
  * Checks whether the instantiated sideshift library object has loaded
@@ -826,5 +827,48 @@ export const isValidTokenSendOrBurnAmount = (
             }`;
         }
     }
+    return true;
+};
+
+/**
+ * Validate a token mint qty
+ * Same as isValidTokenSendOrBurnAmount except we do not care about baalnce
+ * @param {string} amount decimalized token string of mint amount, from user input, e.g. 100.123
+ * @param {number} decimals 0, 1, 2, 3, 4, 5, 6, 7, 8, or 9
+ */
+export const isValidTokenMintAmount = (amount, decimals) => {
+    if (typeof amount !== 'string') {
+        return 'Amount must be a string';
+    }
+    if (amount === '') {
+        return 'Amount is required';
+    }
+    if (amount === '0') {
+        return `Amount must be greater than 0`;
+    }
+    if (!STRINGIFIED_DECIMALIZED_REGEX.test(amount) || amount.length === 0) {
+        return `Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."`;
+    }
+    // Note: we do not validate decimals, as this is coming from token cache, which is coming from chronik
+    // The user is not inputting decimals
+
+    if (amount.includes('.')) {
+        if (amount.toString().split('.')[1].length > decimals) {
+            if (decimals === 0) {
+                return `This token does not support decimal places`;
+            }
+            return `This token supports no more than ${decimals} decimal place${
+                decimals === 1 ? '' : 's'
+            }`;
+        }
+    }
+    // Amount must be <= 0xffffffffffffffff in token satoshis for this token decimals
+    const amountBN = new BN(amount);
+    // Returns 1 if greater, -1 if less, 0 if the same, null if n/a
+    const maxMintAmount = getMaxMintAmount(decimals);
+    if (amountBN.gt(maxMintAmount)) {
+        return `Amount ${amount} exceeds max mint amount for this token (${maxMintAmount})`;
+    }
+
     return true;
 };

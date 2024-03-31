@@ -7,6 +7,7 @@ import appConfig from 'config/app';
 import { initializeScript } from 'opreturn';
 import { opReturn } from 'config/opreturn';
 import * as utxolib from '@bitgo/utxo-lib';
+import { undecimalizeTokenAmount } from 'wallet';
 
 /**
  * Get targetOutput for a SLP v1 genesis tx
@@ -117,7 +118,7 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
 
 /**
  * Get all available token utxos for an SLP v1 SEND tx from in-node formatted chronik utxos
- * @param {Tx_InNode[]} utxos array of utxos from an in-node instance of chronik
+ * @param {ScriptUtxo_InNode[]} utxos array of utxos from an in-node instance of chronik
  * @param {string} tokenId
  * @returns {array} tokenUtxos, all utxos that can be used for slpv1 send tx
  * mint batons are intentionally excluded
@@ -137,7 +138,7 @@ export const getAllSendUtxos = (utxos, tokenId) => {
 
 /**
  * Get send token inputs from in-node input data
- * @param {Tx_inNode[]} utxos
+ * @param {ScriptUtxo_InNode[]} utxos
  * @param {string} tokenId tokenId of the token you want to send
  * @param {string} sendQty
  * @param {number} decimals 0-9 inclusive, integer. Decimals of this token.
@@ -330,4 +331,93 @@ export const BNToInt64BE = bn => {
     }
 
     return Buffer.from(h.padStart(16, '0'), 'hex');
+};
+
+/**
+ * Get mint baton(s) for a given token
+ * @param {ScriptUtxo_InNode[]} utxos
+ * @param {string} tokenId
+ * @returns {ScriptUtxo_InNode[]}
+ */
+export const getMintBatons = (utxos, tokenId) => {
+    // From an array of chronik utxos, return only token utxos related to a given tokenId
+    return utxos.filter(utxo => {
+        if (
+            utxo.token?.tokenId === tokenId && // UTXO matches the token ID.
+            utxo.token?.isMintBaton === true // UTXO is a minting baton.
+        ) {
+            return true;
+        }
+        return false;
+    });
+};
+/**
+ * Get targetOutput(s) for a SLP v1 MINT tx
+ * Note: Cashtab only supports slpv1 mints that preserve the baton at the wallet's address
+ * Spec: https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#mint---extended-minting-transaction
+ * @param {string} tokenId
+ * @param {number} decimals decimals for this tokenId
+ * @param {string} mintQty decimalized string for token qty *
+ * @throws {error} if invalid input params are passed to TokenType1.mint
+ * @returns {array} targetOutput(s), e.g. [{value: 0, script: <encoded slp send script>}, {value: 546}, {value: 546}]
+ * Note: we always return minted qty at index 1
+ * Note we always return a mint baton at index 2
+ */
+export const getMintTargetOutputs = (tokenId, decimals, mintQty) => {
+    // slp-mdm expects values in token satoshis, so we must undecimalize mintQty
+
+    // Get undecimalized string, i.e. "token satoshis"
+    const tokenSatoshis = undecimalizeTokenAmount(mintQty, decimals);
+
+    // Convert to BN as this is what slp-mdm expects
+    const mintQtyBigNumber = new BN(tokenSatoshis);
+
+    // Cashtab always puts the mint baton at mintBatonVout 2
+    const CASHTAB_MINTBATON_VOUT = 2;
+
+    const script = TokenType1.mint(
+        tokenId,
+        CASHTAB_MINTBATON_VOUT,
+        mintQtyBigNumber,
+    );
+
+    // Build targetOutputs per slpv1 spec
+    // Dust output at v1 receives the minted qty (per spec)
+    // Dust output at v2 for mint baton (per Cashtab)
+
+    // Initialize with OP_RETURN at 0 index, per spec
+    // Note we do not include an address in outputs
+    // Cashtab behavior adds the wallet's change address if no output is added
+    const targetOutputs = [{ value: 0, script }];
+
+    // Add mint amount at index 1
+    targetOutputs.push({
+        value: appConfig.etokenSats,
+    });
+
+    // Add mint baton at index 2
+    targetOutputs.push({
+        value: appConfig.etokenSats,
+    });
+
+    return targetOutputs;
+};
+
+export const getMaxMintAmount = decimals => {
+    // 0xffffffffffffffff
+    const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+    // The max amount depends on token decimals
+    // e.g. if decimals are 0, it's the same
+    // if decimals are 9, it's 18446744073.709551615
+    if (decimals === 0) {
+        return MAX_MINT_AMOUNT_TOKEN_SATOSHIS;
+    }
+    const stringBeforeDecimalPoint = MAX_MINT_AMOUNT_TOKEN_SATOSHIS.slice(
+        0,
+        MAX_MINT_AMOUNT_TOKEN_SATOSHIS.length - decimals,
+    );
+    const stringAfterDecimalPoint = MAX_MINT_AMOUNT_TOKEN_SATOSHIS.slice(
+        -1 * decimals,
+    );
+    return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
 };

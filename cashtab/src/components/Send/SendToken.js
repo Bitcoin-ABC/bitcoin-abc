@@ -14,7 +14,11 @@ import { useNavigate } from 'react-router-dom';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getWalletState } from 'utils/cashMethods';
 import ApiError from 'components/Common/ApiError';
-import { isValidTokenSendOrBurnAmount, parseAddressInput } from 'validation';
+import {
+    isValidTokenSendOrBurnAmount,
+    parseAddressInput,
+    isValidTokenMintAmount,
+} from 'validation';
 import { formatDate } from 'utils/formatting';
 import styled from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -28,6 +32,9 @@ import {
     getSendTokenInputs,
     getSlpSendTargetOutputs,
     getSlpBurnTargetOutputs,
+    getMintBatons,
+    getMintTargetOutputs,
+    getMaxMintAmount,
 } from 'slpv1';
 import { sendXec } from 'transactions';
 import { hasEnoughToken } from 'wallet';
@@ -162,6 +169,7 @@ const SendToken = () => {
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
     const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
     const [burnTokenAmountError, setBurnTokenAmountError] = useState(false);
+    const [mintAmountError, setMintAmountError] = useState(false);
     const [burnConfirmationError, setBurnConfirmationError] = useState(false);
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
@@ -169,18 +177,26 @@ const SendToken = () => {
     const [showSend, setShowSend] = useState(true);
     const [showBurn, setShowBurn] = useState(false);
     const [showAirdrop, setShowAirdrop] = useState(false);
+    const [showMint, setShowMint] = useState(false);
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
+
+    // Check if the user has mint batons for this token
+    // If they don't, disable the mint switch and label why
+    const mintBatons = getMintBatons(wallet.state.slpUtxos, tokenId);
 
     // Load with QR code open if device is mobile
     const openWithScanner =
         settings && settings.autoCameraOn === true && isMobile(navigator);
     const [isModalVisible, setIsModalVisible] = useState(false);
 
-    const [formData, setFormData] = useState({
+    const emptyFormData = {
         amount: '',
         address: '',
         burnAmount: '',
-    });
+        mintAmount: '',
+    };
+
+    const [formData, setFormData] = useState(emptyFormData);
 
     const userLocale = getUserLocale(navigator);
 
@@ -201,11 +217,7 @@ const SendToken = () => {
 
     // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
-        setFormData({
-            amount: '',
-            address: '',
-            burnAmount: '',
-        });
+        setFormData(emptyFormData);
         setAliasInputAddress(false); // clear alias address preview
     };
 
@@ -385,6 +397,17 @@ const SendToken = () => {
         }
     };
 
+    const onMaxMint = () => {
+        const maxMintAmount = getMaxMintAmount(decimals);
+
+        handleMintAmountChange({
+            target: {
+                name: 'mintAmount',
+                value: maxMintAmount,
+            },
+        });
+    };
+
     const checkForConfirmationBeforeSendEtoken = () => {
         if (settings.sendModal) {
             setIsModalVisible(settings.sendModal);
@@ -414,6 +437,23 @@ const SendToken = () => {
             isValidBurnAmountOrErrorMsg === true
                 ? false
                 : isValidBurnAmountOrErrorMsg,
+        );
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
+    const handleMintAmountChange = e => {
+        const { name, value } = e.target;
+        const isValidMintAmountOrErrorMsg = isValidTokenMintAmount(
+            value,
+            decimals,
+        );
+        setMintAmountError(
+            isValidMintAmountOrErrorMsg === true
+                ? false
+                : isValidMintAmountOrErrorMsg,
         );
         setFormData(p => ({
             ...p,
@@ -488,6 +528,59 @@ const SendToken = () => {
         } catch (e) {
             setShowConfirmBurnEtoken(false);
             setConfirmationOfEtokenToBeBurnt('');
+            toast.error(`${e}`);
+        }
+    }
+
+    async function handleMint() {
+        Event('SendToken.js', 'Mint eToken', tokenId);
+
+        try {
+            // Get targetOutputs for an slpv1 burn tx
+            // this is NOT like an slpv1 send tx
+            const mintTargetOutputs = getMintTargetOutputs(
+                tokenId,
+                decimals,
+                formData.mintAmount,
+            );
+
+            // We should not be able to get here without at least one mint baton,
+            // as the mint switch would be disabled
+            // Still, handle
+            if (mintBatons.length < 1) {
+                throw new Error(`Unable to find mint baton for ${tokenName}`);
+            }
+
+            // Build and broadcast the tx
+            const { response } = await sendXec(
+                chronik,
+                wallet,
+                mintTargetOutputs,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
+                chaintipBlockheight,
+                [mintBatons[0]], // Only use one mint baton
+            );
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    ⚗️ Minted {formData.mintAmount} {tokenTicker}
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+            clearInputForms();
+        } catch (e) {
             toast.error(`${e}`);
         }
     }
@@ -671,9 +764,10 @@ const SendToken = () => {
                                     checked={showSend}
                                     handleToggle={() => {
                                         if (!showSend) {
-                                            // If showSend is being set to true here, make sure burn and airdrop are false
+                                            // Make sure all other switches are off
                                             setShowAirdrop(false);
                                             setShowBurn(false);
+                                            setShowMint(false);
                                         }
                                         setShowSend(!showSend);
                                     }}
@@ -756,9 +850,10 @@ const SendToken = () => {
                                     checked={showAirdrop}
                                     handleToggle={() => {
                                         if (!showAirdrop) {
-                                            // If showAirdrop is being set to true here, make sure burn and send are false
+                                            // Make sure all other switches are off
                                             setShowBurn(false);
                                             setShowSend(false);
+                                            setShowMint(false);
                                         }
                                         setShowAirdrop(!showAirdrop);
                                     }}
@@ -792,9 +887,10 @@ const SendToken = () => {
                                     checked={showBurn}
                                     handleToggle={() => {
                                         if (!showBurn) {
-                                            // If showBurn is being set to true here, make sure airdrop and send are false
+                                            // Make sure all other switches are off
                                             setShowAirdrop(false);
                                             setShowSend(false);
+                                            setShowMint(false);
                                         }
                                         setShowBurn(!showBurn);
                                     }}
@@ -824,6 +920,56 @@ const SendToken = () => {
                                             }
                                         >
                                             Burn {tokenTicker}
+                                        </SecondaryButton>
+                                    </InputFlex>
+                                </TokenStatsRow>
+                            )}
+                            <SwitchHolder>
+                                <Switch
+                                    name="mint-switch"
+                                    on="⚗️"
+                                    off="⚗️"
+                                    disabled={mintBatons.length === 0}
+                                    checked={showMint}
+                                    handleToggle={() => {
+                                        if (!showMint) {
+                                            // Make sure all other switches are off
+                                            setShowAirdrop(false);
+                                            setShowBurn(false);
+                                            setShowSend(false);
+                                        }
+                                        setShowMint(!showMint);
+                                    }}
+                                />
+                                <SwitchLabel>
+                                    Mint
+                                    {mintBatons.length === 0
+                                        ? ' (disabled, no mint baton in wallet)'
+                                        : ''}
+                                </SwitchLabel>
+                            </SwitchHolder>
+                            {showMint && (
+                                <TokenStatsRow>
+                                    <InputFlex>
+                                        <SendTokenInput
+                                            name="mintAmount"
+                                            type="number"
+                                            value={formData.mintAmount}
+                                            error={mintAmountError}
+                                            placeholder="Mint Amount"
+                                            decimals={decimals}
+                                            handleInput={handleMintAmountChange}
+                                            handleOnMax={onMaxMint}
+                                        />
+
+                                        <SecondaryButton
+                                            onClick={handleMint}
+                                            disabled={
+                                                mintAmountError ||
+                                                formData.mintAmount === ''
+                                            }
+                                        >
+                                            Mint {tokenTicker}
                                         </SecondaryButton>
                                     </InputFlex>
                                 </TokenStatsRow>

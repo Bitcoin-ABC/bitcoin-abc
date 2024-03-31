@@ -1650,4 +1650,126 @@ export default {
             },
         ],
     },
+    isValidTokenMintAmount: {
+        expectedReturns: [
+            {
+                description:
+                    'A decimalized string with no decimals is valid for a token with no decimals',
+                amount: '100',
+                decimals: 0,
+                returned: true,
+            },
+            {
+                description: '0 is rejected',
+                amount: '0',
+                decimals: 0,
+                returned: 'Amount must be greater than 0',
+            },
+            {
+                description: 'Blank input is rejected',
+                amount: '',
+                decimals: 0,
+                returned: 'Amount is required',
+            },
+            {
+                description: 'Rejects non-string input',
+                amount: 50,
+                decimals: 0,
+                returned: 'Amount must be a string',
+            },
+            {
+                description:
+                    'Rejects input including a decimal marker other than "."',
+                amount: '95,1',
+                decimals: 1,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description: 'Rejects input with multiple decimal points',
+                amount: '95.1.23',
+                decimals: 1,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description:
+                    'Rejects input multiple consecutive decimal points',
+                amount: '95..23',
+                decimals: 1,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description: 'Rejects input containing non-decimal characters',
+                amount: '100.a',
+                decimals: 1,
+                returned:
+                    'Amount must be a non-empty string containing only decimal numbers and optionally one decimal point "."',
+            },
+            {
+                description:
+                    'We get non-plural error msg if token supports only 1 decimal place',
+                amount: '99.12',
+                decimals: 1,
+                returned: 'This token supports no more than 1 decimal place',
+            },
+            {
+                description:
+                    'We cannot specify more decimal places than supported by the token',
+                amount: '99.123',
+                decimals: 2,
+                returned: 'This token supports no more than 2 decimal places',
+            },
+            {
+                description:
+                    'We cannot have decimals for a token supporting 0 decimals',
+                amount: '99.1',
+                decimals: 0,
+                returned: 'This token does not support decimal places',
+            },
+            {
+                description:
+                    'We can specify fewer decimal places than supported by the token',
+                amount: '99.123',
+                decimals: 9,
+                returned: true,
+            },
+            {
+                description:
+                    'We can specify the exact decimal places supported by the token',
+                amount: '99.123456789',
+                decimals: 9,
+                returned: true,
+            },
+            {
+                description:
+                    'We can include a decimal point at the end of the string and no decimal places',
+                amount: '99.',
+                decimals: 9,
+                returned: true,
+            },
+            {
+                description:
+                    'We can include a decimal point at the end of the string and no decimal places, even if the token supports 0 decimals',
+                amount: '99.',
+                decimals: 0,
+                returned: true,
+            },
+            {
+                description: 'We accept the max mint amount',
+                amount: '18446744073709551615',
+                decimals: 0,
+                returned: true,
+            },
+            {
+                description:
+                    'We reject one token satoshi more than the max mint amount',
+                amount: '18446744073709551616',
+                decimals: 0,
+                returned:
+                    'Amount 18446744073709551616 exceeds max mint amount for this token (18446744073709551615)',
+            },
+        ],
+    },
 };

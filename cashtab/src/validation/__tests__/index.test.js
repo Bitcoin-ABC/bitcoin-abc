@@ -29,6 +29,7 @@ import {
     parseAddressInput,
     isValidCashtabWallet,
     isValidTokenSendOrBurnAmount,
+    isValidTokenMintAmount,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -616,6 +617,15 @@ describe('Cashtab validation functions', () => {
                         decimals,
                     ),
                 ).toBe(returned);
+            });
+        });
+    });
+    describe('Determines if a user input token mint amount is valid', () => {
+        const { expectedReturns } = vectors.isValidTokenMintAmount;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, amount, decimals, returned } = expectedReturn;
+            it(`isValidTokenMintAmount: ${description}`, () => {
+                expect(isValidTokenMintAmount(amount, decimals)).toBe(returned);
             });
         });
     });

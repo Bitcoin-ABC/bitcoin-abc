@@ -523,4 +523,144 @@ describe('<SendToken />', () => {
             ),
         );
     });
+    it('Mint switch is disabled if no mint batons for this token in the wallet', async () => {
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+            />,
+        );
+
+        // Wait for element to get token info and load
+        expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
+
+        // The mint switch is disabled
+        expect(screen.getByTestId('mint-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        expect(
+            screen.getByText(/(disabled, no mint baton in wallet)/),
+        ).toBeInTheDocument();
+    });
+    it('We can mint an slpv1 token if we have a mint baton', async () => {
+        // Mock context with a mint baton utxo
+        const mockTokenId =
+            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1';
+        const mintBatonUtxo = {
+            outpoint: {
+                txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
+                outIdx: 2,
+            },
+            blockHeight: -1,
+            isCoinbase: false,
+            value: 546,
+            isFinal: false,
+            token: {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                amount: '0',
+                isMintBaton: true,
+            },
+            path: 1899,
+        };
+        const balanceUtxo = {
+            outpoint: {
+                txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
+                outIdx: 2,
+            },
+            blockHeight: -1,
+            isCoinbase: false,
+            value: 546,
+            isFinal: false,
+            token: {
+                tokenId:
+                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                amount: '20000',
+                isMintBaton: false,
+            },
+            path: 1899,
+        };
+        const mintMockedChronik = await initializeCashtabStateForTests(
+            {
+                ...walletWithXecAndTokens,
+                state: {
+                    ...walletWithXecAndTokens.state,
+                    slpUtxos: [
+                        ...walletWithXecAndTokens.state.slpUtxos,
+                        mintBatonUtxo,
+                        balanceUtxo,
+                    ],
+                },
+            },
+            localforage,
+        );
+        // Set mock tokeninfo call
+        mintMockedChronik.setMock('token', {
+            input: mockTokenId,
+            output: {
+                genesisInfo: {
+                    tokenTicker: 'CACHET',
+                    tokenName: 'Cachet',
+                    tokenDocumentUrl: 'https://cashtab.com/',
+                    tokenDocumentHash: '',
+                    decimals: 2,
+                    tokenId: mockTokenId,
+                },
+            },
+        });
+
+        const hex =
+            '02000000028ec326590f3e42afae0e458995599c4c892af8e749efc7cc6bcfca8b0f2a5b4b020000006b48304502210095c8181e677c6c6c88c3f0836129531944f88722f156bdeda4928342c5554ee702200addb9f7cc4678cd0d9f8111ab774936e92c893fce05fa783a58135f5a69ba614121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a4730440220168f3738b988e690b2a45d818e69369376cde0e96524c5fe3ab5fdbefa89bffa0220777243d6b5d2c6d8929f95817633094c3f9b792e45ab8e095c763963fef099a74121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000396a04534c50000101044d494e5420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1010208000000000000273122020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac357e0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'dc12e6d3c5ea7504fdc51c8a713b952214b80ff27227faf2f970af74b9c8685e';
+
+        mintMockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+        render(
+            <CashtabTestWrapper
+                chronik={mintMockedChronik}
+                route={`/send-token/${mockTokenId}`}
+            />,
+        );
+
+        // Wait for element to get token info and load
+        expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
+
+        // The mint switch is enabled
+        const mintSwitch = screen.getByTestId('mint-switch');
+        expect(mintSwitch).toHaveProperty('disabled', false);
+
+        // Click the mint switch
+        await user.click(mintSwitch);
+
+        // Fill out the form
+        await user.type(screen.getByPlaceholderText('Mint Amount'), '100.33');
+
+        // Mint it
+        await user.click(screen.getByRole('button', { name: /Mint CACHET/ }));
+
+        const burnTokenSuccessNotification = await screen.findByText(
+            '⚗️ Minted 100.33 CACHET',
+        );
+        await waitFor(() =>
+            expect(burnTokenSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
 });

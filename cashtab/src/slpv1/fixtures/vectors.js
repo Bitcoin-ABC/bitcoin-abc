@@ -821,4 +821,380 @@ export default {
             },
         ],
     },
+    getMintBatons: {
+        expectedReturns: [
+            {
+                description: 'We can get a single mint baton',
+                utxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokenId: MOCK_TOKEN_ID,
+                returned: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'We can get the correct mint baton from from an array including other token utxos, mint batons, and non-token utxos',
+                utxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                            amount: '4588000000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                            amount: '229400000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                            amount: '229400000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokenId: MOCK_TOKEN_ID,
+                returned: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                ],
+            },
+            {
+                description: 'We can get multiple mint batons',
+                utxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                            amount: '4588000000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                            amount: '229400000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
+                            amount: '229400000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokenId: MOCK_TOKEN_ID,
+                returned: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'We return an empty array if no matches are found from a bad tokenId',
+                utxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: 546,
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokenId: 'justsomestring',
+                returned: [],
+            },
+            {
+                description:
+                    'We return an empty array if we have no mint batons for a given tokenId',
+                utxos: [
+                    {
+                        value: 546,
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: 546,
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: true,
+                        },
+                    },
+                    {
+                        value: 546,
+                        token: {
+                            tokenId:
+                                'a6050bea718f77e7964d140c4bb89cd88a1816eed1633f19d097835d5fa48df5',
+                            amount: '1000',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                tokenId: MOCK_TOKEN_ID,
+                returned: [],
+            },
+        ],
+    },
+    getMintTargetOutputs: {
+        expectedReturns: [
+            {
+                description:
+                    'Creates expected mint outputs for a 0-decimal token',
+                tokenId: MOCK_TOKEN_ID,
+                decimals: 0,
+                mintQty: '1000',
+                script: `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}01020800000000000003e8`,
+            },
+            {
+                description:
+                    'Creates expected mint outputs for a 9-decimal token',
+                tokenId: MOCK_TOKEN_ID,
+                decimals: 9,
+                mintQty: '1000.123456789',
+                script: `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208000000e8dc00dd15`,
+            },
+            {
+                description:
+                    'Can create a target output for the largest mint qty supported by slpv1',
+                tokenId: MOCK_TOKEN_ID,
+                decimals: 0,
+                mintQty: '18446744073709551615',
+                script: `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'Throws expected error if asked to mint 1 more than slpv1 max qty',
+                tokenId: MOCK_TOKEN_ID,
+                decimals: 0,
+                mintQty: '18446744073709551616',
+                error: 'bn outside of range',
+            },
+        ],
+    },
+    getMaxMintAmount: {
+        expectedReturns: [
+            {
+                description: '0 decimals',
+                decimals: 0,
+                returned: '18446744073709551615',
+            },
+            {
+                description: '1 decimals',
+                decimals: 1,
+                returned: '1844674407370955161.5',
+            },
+            {
+                description: '2 decimals',
+                decimals: 2,
+                returned: '184467440737095516.15',
+            },
+            {
+                description: '3 decimals',
+                decimals: 3,
+                returned: '18446744073709551.615',
+            },
+            {
+                description: '4 decimals',
+                decimals: 4,
+                returned: '1844674407370955.1615',
+            },
+            {
+                description: '5 decimals',
+                decimals: 5,
+                returned: '184467440737095.51615',
+            },
+            {
+                description: '6 decimals',
+                decimals: 6,
+                returned: '18446744073709.551615',
+            },
+            {
+                description: '7 decimals',
+                decimals: 7,
+                returned: '1844674407370.9551615',
+            },
+            {
+                description: '8 decimals',
+                decimals: 8,
+                returned: '184467440737.09551615',
+            },
+            {
+                description: '9 decimals',
+                decimals: 9,
+                returned: '18446744073.709551615',
+            },
+        ],
+    },
 };
