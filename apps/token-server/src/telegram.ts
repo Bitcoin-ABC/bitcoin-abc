@@ -34,6 +34,9 @@ export const initializeTelegramBot = (
 
     // Add event handler for admin actions
     telegramBot.on('callback_query', function onCallbackQuery(callbackQuery) {
+        // DEBUG
+        console.log(`callbackQuery`);
+        console.log(JSON.stringify(callbackQuery, null, 2));
         // Get the message ID so the bot can reply to it in the channel
         const msgId = callbackQuery.message?.message_id;
 
@@ -80,9 +83,14 @@ export const initializeTelegramBot = (
             } by mod.`,
         );
 
+        // DEBUG we get here in current prod
+
         // Reply to the original tg msg
         const msgChannel = callbackQuery.message?.sender_chat?.id;
+        console.log(`msgChannel`, msgChannel);
+        console.log(`isRemovalRequest`, isRemovalRequest);
         if (typeof msgId !== 'undefined' && typeof msgChannel !== 'undefined') {
+            console.log(`debug alpha reached`);
             if (isRemovalRequest) {
                 telegramBot.sendMessage(
                     msgChannel,
@@ -102,6 +110,7 @@ export const initializeTelegramBot = (
                     },
                 );
             } else {
+                console.log(`debug beta reached`);
                 telegramBot.sendMessage(
                     msgChannel,
                     'Icon un-denied and restored to served endpoint',
@@ -121,6 +130,7 @@ export const initializeTelegramBot = (
                 );
             }
 
+            console.log(`answering callback query`);
             return telegramBot.answerCallbackQuery(callbackQuery.id, {
                 text: `Token icons for ${tokenId} ${
                     isRemovalRequest ? `removed from ` : `restored to `
