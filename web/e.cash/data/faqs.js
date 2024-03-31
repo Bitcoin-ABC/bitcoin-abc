@@ -271,7 +271,13 @@ export const faqs = [
         question: "What's the best way to get technical support?",
         answer: (
             <p>
-                Please email us at{' '}
+                You can reach out to us directly via the official eCash{' '}
+                <ExternalLink href="https://t.me/eCash">Telegram</ExternalLink>{' '}
+                or{' '}
+                <ExternalLink href="https://discord.gg/ecash-official-852595915159896114">
+                    Discord
+                </ExternalLink>
+                . You can also email us at{' '}
                 <ExternalLink href="mailto:contact@e.cash">
                     contact@e.cash
                 </ExternalLink>
