@@ -10,13 +10,18 @@ import {
     isValidTokenName,
     isValidTokenTicker,
     isValidTokenDecimals,
-    isValidTokenInitialQty,
+    isValidTokenMintAmount,
     isValidTokenDocumentUrl,
     isProbablyNotAScam,
 } from 'validation';
 import { PlusSquareOutlined, PaperClipOutlined } from '@ant-design/icons';
 import PrimaryButton from 'components/Common/PrimaryButton';
-import { Input, Slider, CashtabDragger } from 'components/Common/Inputs';
+import {
+    Input,
+    SendTokenInput,
+    Slider,
+    CashtabDragger,
+} from 'components/Common/Inputs';
 import CashtabSwitch from 'components/Common/Switch';
 import { TokenParamLabel } from 'components/Common/Atoms';
 import Cropper from 'react-easy-crop';
@@ -25,7 +30,7 @@ import getRoundImg from 'components/Etokens/icons/roundImage';
 import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
-import { getSlpGenesisTargetOutput } from 'slpv1';
+import { getSlpGenesisTargetOutput, getMaxMintAmount } from 'slpv1';
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
@@ -362,14 +367,31 @@ const CreateTokenForm = () => {
         // Also validate the supply here if the form has been touched
         // Supply validation may change when decimals changes
         if (initialQty !== '') {
+            const isValidOrErrorMsg = isValidTokenMintAmount(
+                initialQty,
+                parseInt(value),
+            );
             setGenesisSupplyError(
-                isValidTokenInitialQty(initialQty, value)
-                    ? false
-                    : 'Token supply must be greater than 0 and less than 100,000,000,000. Token supply decimal places cannot exceed token decimal places.',
+                typeof isValidOrErrorMsg === 'string'
+                    ? isValidOrErrorMsg
+                    : false,
             );
         }
 
         setDecimals(value);
+    };
+
+    const onMaxGenesis = () => {
+        // Use 0 for decimals if user has not input decimals yet
+        const usedDecimals = decimals === '' ? 0 : parseInt(decimals);
+        const maxGenesisAmount = getMaxMintAmount(usedDecimals);
+
+        handleNewTokenInitialQtyInput({
+            target: {
+                name: 'initialQty',
+                value: maxGenesisAmount,
+            },
+        });
     };
 
     // New Token Initial Quantity
@@ -377,11 +399,16 @@ const CreateTokenForm = () => {
     const [genesisSupplyError, setGenesisSupplyError] = useState(null);
     const handleNewTokenInitialQtyInput = e => {
         const { value } = e.target;
+        // If user has not yet input decimals, assume 0 decimals
+        const usedDecimalsValue = decimals === '' ? 0 : parseInt(decimals);
+
         // validation
+        const isValidOrErrorMsg = isValidTokenMintAmount(
+            value,
+            usedDecimalsValue,
+        );
         setGenesisSupplyError(
-            isValidTokenInitialQty(value, decimals)
-                ? false
-                : 'Token supply must be greater than 0 and less than 100,000,000,000. Token supply decimal places cannot exceed token decimal places.',
+            typeof isValidOrErrorMsg === 'string' ? isValidOrErrorMsg : false,
         );
         setInitialQty(value);
     };
@@ -600,13 +627,15 @@ const CreateTokenForm = () => {
                     handleInput={handleNewTokenDecimalsInput}
                     error={decimalsError}
                 />
-                <Input
+                <SendTokenInput
                     placeholder="Enter the supply of your token"
                     name="initialQty"
                     type="string"
                     value={initialQty}
+                    decimals={decimals}
                     handleInput={handleNewTokenInitialQtyInput}
                     error={genesisSupplyError}
+                    handleOnMax={onMaxGenesis}
                 />
                 <Input
                     placeholder="Enter a website for your token"

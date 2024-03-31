@@ -6,6 +6,7 @@
 import appConfig from 'config/app';
 import { mockBurnOpReturnTokenUtxos, mockBurnAllTokenUtxos } from './mocks';
 import { BN } from 'slp-mdm';
+import { MAX_MINT_AMOUNT_TOKEN_SATOSHIS } from 'slpv1';
 
 const GENESIS_MINT_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
 export const SEND_DESTINATION_ADDRESS =
@@ -91,6 +92,54 @@ export default {
                     },
                 ],
             },
+            {
+                description:
+                    'Fixed supply eToken mint at max supply for 9 decimal token',
+                genesisConfig: {
+                    name: 'tabcash',
+                    ticker: 'TBC',
+                    documentUrl: 'https://cashtabapp.com/',
+                    decimals: '9',
+                    initialQty: '18446744073.709551615',
+                    documentHash: '',
+                    mintBatonVout: null,
+                },
+                mintAddress: GENESIS_MINT_ADDRESS,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001094c0008ffffffffffffffff',
+                    },
+                    {
+                        value: appConfig.dustSats,
+                        address: GENESIS_MINT_ADDRESS,
+                    },
+                ],
+            },
+            {
+                description:
+                    'Variable supply eToken mint at max supply for 0 decimal token',
+                genesisConfig: {
+                    name: 'tabcash',
+                    ticker: 'TBC',
+                    documentUrl: 'https://cashtabapp.com/',
+                    decimals: '0',
+                    initialQty: MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+                    documentHash: '',
+                    mintBatonVout: 2,
+                },
+                mintAddress: GENESIS_MINT_ADDRESS,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c000100010208ffffffffffffffff',
+                    },
+                    {
+                        value: appConfig.dustSats,
+                        address: GENESIS_MINT_ADDRESS,
+                    },
+                ],
+            },
         ],
         expectedErrors: [
             {
@@ -108,6 +157,20 @@ export default {
                 mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg:
                     'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
+            },
+            {
+                description: 'Exceed 0xffffffffffffffff for genesis qty',
+                genesisConfig: {
+                    name: 'ethantest',
+                    ticker: 'ETN',
+                    documentUrl: 'https://cashtab.com/',
+                    decimals: '0',
+                    initialQty: `${MAX_MINT_AMOUNT_TOKEN_SATOSHIS}1`,
+                    documentHash: '',
+                    mintBatonVout: 2,
+                },
+                mintAddress: GENESIS_MINT_ADDRESS,
+                errorMsg: 'bn outside of range',
             },
             {
                 description: 'Invalid document hash',
@@ -1148,7 +1211,7 @@ export default {
             {
                 description: '0 decimals',
                 decimals: 0,
-                returned: '18446744073709551615',
+                returned: MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
             },
             {
                 description: '1 decimals',

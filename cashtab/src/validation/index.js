@@ -227,16 +227,6 @@ export const isValidTokenDecimals = tokenDecimals => {
     );
 };
 
-export const isValidTokenInitialQty = (tokenInitialQty, tokenDecimals) => {
-    const minimumQty = new BN(1 / 10 ** tokenDecimals);
-    const tokenIntialQtyBig = new BN(tokenInitialQty);
-    return (
-        tokenIntialQtyBig.gte(minimumQty) &&
-        tokenIntialQtyBig.lt(100000000000) &&
-        tokenIntialQtyBig.dp() <= tokenDecimals
-    );
-};
-
 export const isValidTokenDocumentUrl = tokenDocumentUrl => {
     const urlPattern = new RegExp(
         '^(https?:\\/\\/)?' + // protocol

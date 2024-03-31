@@ -6,7 +6,6 @@ import {
     isValidTokenName,
     isValidTokenTicker,
     isValidTokenDecimals,
-    isValidTokenInitialQty,
     isValidTokenDocumentUrl,
     isValidCashtabSettings,
     isValidNewWalletNameLength,
@@ -177,36 +176,6 @@ describe('Cashtab validation functions', () => {
     });
     it(`Rejects tokenDecimals if non-integer`, () => {
         expect(isValidTokenDecimals('1.7')).toBe(false);
-    });
-    it(`Accepts tokenDecimals initial genesis quantity at minimum amount for 3 decimal places`, () => {
-        expect(isValidTokenInitialQty('0.001', '3')).toBe(true);
-    });
-    it(`Accepts initial genesis quantity at minimum amount for 9 decimal places`, () => {
-        expect(isValidTokenInitialQty('0.000000001', '9')).toBe(true);
-    });
-    it(`Accepts initial genesis quantity at amount below 100 billion`, () => {
-        expect(isValidTokenInitialQty('1000', '0')).toBe(true);
-    });
-    it(`Accepts highest possible initial genesis quantity at amount below 100 billion`, () => {
-        expect(isValidTokenInitialQty('99999999999.999999999', '9')).toBe(true);
-    });
-    it(`Accepts initial genesis quantity if decimal places equal tokenDecimals`, () => {
-        expect(isValidTokenInitialQty('0.123', '3')).toBe(true);
-    });
-    it(`Accepts initial genesis quantity if decimal places are less than tokenDecimals`, () => {
-        expect(isValidTokenInitialQty('0.12345', '9')).toBe(true);
-    });
-    it(`Rejects initial genesis quantity of zero`, () => {
-        expect(isValidTokenInitialQty('0', '9')).toBe(false);
-    });
-    it(`Rejects initial genesis quantity if tokenDecimals is not valid`, () => {
-        expect(isValidTokenInitialQty('0', '')).toBe(false);
-    });
-    it(`Rejects initial genesis quantity if 100 billion or higher`, () => {
-        expect(isValidTokenInitialQty('100000000000', '0')).toBe(false);
-    });
-    it(`Rejects initial genesis quantity if it has more decimal places than tokenDecimals`, () => {
-        expect(isValidTokenInitialQty('1.5', '0')).toBe(false);
     });
     it(`Accepts a valid ${appConfig.tokenTicker} token document URL`, () => {
         expect(isValidTokenDocumentUrl('cashtabapp.com')).toBe(true);

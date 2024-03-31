@@ -9,6 +9,9 @@ import { opReturn } from 'config/opreturn';
 import * as utxolib from '@bitgo/utxo-lib';
 import { undecimalizeTokenAmount } from 'wallet';
 
+// 0xffffffffffffffff
+export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+
 /**
  * Get targetOutput for a SLP v1 genesis tx
  * @param {object} genesisConfig object containing token info for genesis tx
@@ -407,8 +410,6 @@ export const getMintTargetOutputs = (tokenId, decimals, mintQty) => {
 };
 
 export const getMaxMintAmount = decimals => {
-    // 0xffffffffffffffff
-    const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
     // The max amount depends on token decimals
     // e.g. if decimals are 0, it's the same
     // if decimals are 9, it's 18446744073.709551615
