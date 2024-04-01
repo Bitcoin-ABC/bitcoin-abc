@@ -131,12 +131,19 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         node.setmocktime(now)
 
         def trigger_avaproofs(msg):
-            node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
+            for _ in range(3):
+                node.mockscheduler(AVALANCHE_MAX_PERIODIC_NETWORKING_INTERVAL)
 
-            outbound.wait_until(lambda: outbound.last_message.get("getavaproofs"))
-            with p2p_lock:
-                outbound.last_message = {}
-            outbound.send_and_ping(msg)
+                outbound.wait_until(lambda: outbound.last_message.get("getavaproofs"))
+                with p2p_lock:
+                    outbound.last_message = {}
+                outbound.send_and_ping(msg)
+
+                remote_proofs = node.getremoteproofs(outbound.nodeid)
+                if any(p["last_update"] == now for p in remote_proofs):
+                    return
+
+            assert False, "Failed to update the remote proofs after 3 retries"
 
         def build_compactproofs_msg(prefilled_proof, proofs_to_announce):
             key0 = random.randint(0, 2**64 - 1)
@@ -177,6 +184,9 @@ class AvalancheRemoteProofsTest(BitcoinTestFramework):
         for proof in proofs:
             node.sendavalancheproof(proof.serialize().hex())
             assert uint256_hex(proof.proofid) in node.getavalancheproofs()["valid"]
+
+        now += 1
+        node.setmocktime(now)
 
         trigger_avaproofs(compactproofs_msg)
 
