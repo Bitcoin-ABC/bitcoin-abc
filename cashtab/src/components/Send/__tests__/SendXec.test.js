@@ -889,8 +889,11 @@ describe('<SendXec />', () => {
             screen.queryByText('(set by BIP21 query string)'),
         ).not.toBeInTheDocument();
 
-        // The Cashtab Message collapse is rendered as there is no op_return_raw param
-        expect(screen.getByText('Message')).toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because we have a querystring address input
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
     });
     it('Pass a valid address and bip21 query string with op_return_raw param to Send To field', async () => {
         // Mock the app with context at the Send screen
@@ -947,8 +950,11 @@ describe('<SendXec />', () => {
             screen.queryByText('(set by BIP21 query string)'),
         ).not.toBeInTheDocument();
 
-        // The Cashtab Message collapse is not rendered because op_return_raw is set
-        expect(screen.queryByText('Message')).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because op_return_raw is set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is rendered
         expect(
@@ -1010,8 +1016,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The Cashtab Message collapse is NOT rendered because op_return_raw is set
-        expect(screen.queryByText('Message')).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because op_return_raw is set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is rendered
         expect(
@@ -1072,8 +1081,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The Cashtab Message collapse is NOT rendered because op_return_raw is set
-        expect(screen.queryByText('Message')).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because op_return_raw is set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is rendered
         expect(
@@ -1148,8 +1160,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The Cashtab Message collapse is NOT rendered because op_return_raw is set
-        expect(screen.queryByText('Message')).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because op_return_raw is set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is rendered
         expect(
@@ -1198,8 +1213,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has been cleared
         expect(addressInputEl).toHaveValue('');
 
-        // The Cashtab Message collapse is now rendered because op_return_raw is no longer set
-        expect(screen.getByText('Message')).toBeInTheDocument();
+        // The Cashtab Msg switch is not disabled because op_return_raw is not set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            false,
+        );
     });
     it('We can calculate max send amount with and without a cashtab msg, and send a max sat tx with a cashtab msg', async () => {
         // Mock the app with context at the Send screen
@@ -1237,12 +1255,14 @@ describe('<SendXec />', () => {
         // Amount input is the expected max send for Cashtab's fee and no other outputs
         expect(amountInputEl).toHaveValue(9509.26);
 
-        // Let's add a message
-        await user.click(screen.getByText('Message'));
+        // Let's add a Cashtab message
+        await user.click(screen.getByTestId('cashtab-msg-switch'));
 
         // Confirm that even a msg of blank spaces is added
         await user.type(
-            screen.getByPlaceholderText('(max 215 bytes)'),
+            screen.getByPlaceholderText(
+                'Include a public Cashtab msg with this tx (max 215 bytes)',
+            ),
             `     `,
         );
 
@@ -1253,10 +1273,16 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveValue(9508.83);
 
         // Clear the msg input and start again
-        await user.clear(screen.getByPlaceholderText('(max 215 bytes)'));
+        await user.clear(
+            screen.getByPlaceholderText(
+                'Include a public Cashtab msg with this tx (max 215 bytes)',
+            ),
+        );
 
         await user.type(
-            screen.getByPlaceholderText('(max 215 bytes)'),
+            screen.getByPlaceholderText(
+                'Include a public Cashtab msg with this tx (max 215 bytes)',
+            ),
             `How about a long-ish Cashtab msg with emojis 🎯😎`,
         );
 
@@ -1362,8 +1388,11 @@ describe('<SendXec />', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The Cashtab Message collapse is NOT rendered because op_return_raw is set
-        expect(screen.queryByText('Message')).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because op_return_raw is set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is rendered
         expect(
@@ -1412,8 +1441,11 @@ describe('<SendXec />', () => {
         // The 'Send To' input field has been cleared
         expect(addressInputEl).toHaveValue('');
 
-        // The Cashtab Message collapse is now rendered because op_return_raw is no longer set
-        expect(screen.getByText('Message')).toBeInTheDocument();
+        // The Cashtab Msg switch is no longer disabled because op_return_raw is not set
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            false,
+        );
     });
     it('We can send a tx with amount denominated in fiat currency', async () => {
         // Mock the app with context at the Send screen
@@ -1518,6 +1550,106 @@ describe('<SendXec />', () => {
 
         // Click Send
         await user.click(screen.getByRole('button', { name: /Send/ }));
+
+        // Notification is rendered with expected txid?;
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
+    it('If we type a Cashtab msg, then disable the switch, we send a tx without our typed Cashtab message', async () => {
+        // Mock the app with context at the Send screen
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Can check in electrum for opreturn and amount
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a4730440220055d58f64b9c4e899e06161829f10477ce1d102acfc1fa1a56d35483256a85070220026c9eb6858f62e2a61c58c4b9e55a28ba36bd6b5a7a37b5bb8108bdc4f78a4a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff018e820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
+        const txid =
+            'c204b8644f35fdf102799c5b6575a7d9b32c6f6cda16182791e4ea8db40b3932';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        const addressInputEl = screen.getByPlaceholderText('Address');
+        const amountInputEl = screen.getByPlaceholderText('Amount');
+        // The user enters a valid BIP21 query string with a valid amount param
+        const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
+        await user.type(addressInputEl, addressInput);
+
+        // We click "max" to populate the Amount field
+        await user.click(screen.getByText('max'));
+
+        // Amount input is the expected max send for Cashtab's fee and no other outputs
+        expect(amountInputEl).toHaveValue(9509.26);
+
+        // Let's add a Cashtab message
+        await user.click(screen.getByTestId('cashtab-msg-switch'));
+
+        // Confirm that even a msg of blank spaces is added
+        await user.type(
+            screen.getByPlaceholderText(
+                'Include a public Cashtab msg with this tx (max 215 bytes)',
+            ),
+            `     `,
+        );
+
+        // We click "max" again to recalculate the max send amount
+        await user.click(screen.getByText('max'));
+
+        // Amount input is now the expected max send for Cashtab's fee and an empty-space Cashtab Msg output
+        expect(amountInputEl).toHaveValue(9508.83);
+
+        // Clear the msg input and start again
+        await user.clear(
+            screen.getByPlaceholderText(
+                'Include a public Cashtab msg with this tx (max 215 bytes)',
+            ),
+        );
+
+        await user.type(
+            screen.getByPlaceholderText(
+                'Include a public Cashtab msg with this tx (max 215 bytes)',
+            ),
+            `How about a long-ish Cashtab msg with emojis 🎯😎`,
+        );
+
+        // We click "max" again to recalculate the max send amount
+        await user.click(screen.getByText('max'));
+
+        // Amount input is now the expected max send for Cashtab's fee and a Cashtab Msg output
+        expect(amountInputEl).toHaveValue(9507.87);
+
+        // Now we turn the Cashtab Msg switch off without clearing the input field
+        await user.click(screen.getByTestId('cashtab-msg-switch'));
+
+        // Click max again to recalc max amount
+        // Note: for now, it is not expected behavior onMax to recalculate as the tx changes, onMax
+        // is always a user input
+        // We click "max" to populate the Amount field
+        await user.click(screen.getByText('max'));
+
+        // We are back to our max send amount for no other outputs
+        expect(amountInputEl).toHaveValue(9509.26);
+
+        // Click Send
+        await user.click(
+            screen.getByRole('button', { name: /Send/ }),
+            addressInput,
+        );
 
         // Notification is rendered with expected txid?;
         const txSuccessNotification = await screen.findByText('eCash sent');

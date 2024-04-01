@@ -50,10 +50,6 @@ export const AlertMsg = styled.p`
     color: ${props => props.theme.forms.error} !important;
 `;
 
-export const MsgBytesizeError = styled.p`
-    color: ${props => props.theme.forms.error} !important;
-`;
-
 export const ConvertAmount = styled.div`
     color: ${props => props.theme.contrast};
     width: 100%;

@@ -638,10 +638,11 @@ describe('<SendXec /> rendered with params in URL', () => {
             screen.getByText('(set by BIP21 query string)'),
         ).toBeInTheDocument();
 
-        // The Cashtab Message collapse is not rendered
-        expect(
-            screen.queryByTestId('cashtab-message-collapse'),
-        ).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because we have txInfoFromUrl
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is rendered
         const opReturnRawAlert = screen.getByTestId('op-return-raw-set-alert');
@@ -733,10 +734,11 @@ describe('<SendXec /> rendered with params in URL', () => {
             screen.queryByText('(set by BIP21 query string)'),
         ).not.toBeInTheDocument();
 
-        // The Cashtab Message collapse is not rendered
-        expect(
-            screen.queryByTestId('cashtab-message-collapse'),
-        ).not.toBeInTheDocument();
+        // The Cashtab Msg switch is disabled because we have txInfoFromUrl
+        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
 
         // The Bip21Alert op_return_raw span is not rendered as the bip21 query string is invalid
         const opReturnRawAlert = screen.queryByTestId(

@@ -5,12 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
-import {
-    ThemedMailOutlined,
-    CashReceivedNotificationIcon,
-} from 'components/Common/CustomIcons';
-import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import { Alert } from 'antd';
+import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import { toSatoshis, toXec } from 'wallet';
@@ -28,7 +23,6 @@ import {
     AlertMsg,
     FormLabel,
     TxLink,
-    MsgBytesizeError,
 } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
 import {
@@ -59,8 +53,23 @@ import {
     SendXecInput,
     TextArea,
 } from 'components/Common/Inputs';
-import CashtabSwitch from 'components/Common/Switch';
+import Switch from 'components/Common/Switch';
 
+const SendXecForm = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+const SendXecRow = styled.div``;
+const SwitchAndLabel = styled.div`
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+`;
+const SwitchLabel = styled.div`
+    color: ${props => props.theme.contrast};
+`;
 const SwitchContainer = styled.div`
     display: flex;
     align-items: center;
@@ -96,14 +105,6 @@ const AmountPreviewCtn = styled.div`
     justify-content: center;
 `;
 
-const SendInputCtn = styled.div`
-    .ant-form-item-explain-error {
-        @media (max-width: 300px) {
-            font-size: 12px;
-        }
-    }
-`;
-
 const LocaleFormattedValue = styled.div`
     color: ${props => props.theme.contrast};
     font-weight: bold;
@@ -111,12 +112,12 @@ const LocaleFormattedValue = styled.div`
     margin-bottom: 0;
 `;
 
-const DestinationAddressSingleCtn = styled.div``;
-const DestinationAddressMultiCtn = styled.div``;
+const SendToOneHolder = styled.div``;
+const SendToManyHolder = styled.div``;
 
-const ExpandingAddressInputCtn = styled.div`
-    min-height: 14rem;
-    ${DestinationAddressSingleCtn} {
+const InputModesHolder = styled.div`
+    min-height: 9rem;
+    ${SendToOneHolder} {
         overflow: hidden;
         transition: ${props =>
             props.open
@@ -125,24 +126,17 @@ const ExpandingAddressInputCtn = styled.div`
         max-height: ${props => (props.open ? '0rem' : '12rem')};
         opacity: ${props => (props.open ? 0 : 1)};
     }
-    ${DestinationAddressMultiCtn} {
+    ${SendToManyHolder} {
         overflow: hidden;
         transition: ${props =>
             props.open
                 ? 'max-height 200ms ease-in, transform 200ms ease-out, opacity 200ms ease-in'
                 : 'max-height 200ms cubic-bezier(0, 1, 0, 1), transform 200ms ease-out'};
-        max-height: ${props => (props.open ? '13rem' : '0rem')};
+        max-height: ${props => (props.open ? '12rem' : '0rem')};
         transform: ${props =>
             props.open ? 'translateY(0%)' : 'translateY(100%)'};
         opacity: ${props => (props.open ? 1 : 0)};
     }
-`;
-
-const PanelHeaderCtn = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
 `;
 
 const AmountSetByBip21Alert = styled.span`
@@ -169,22 +163,25 @@ const SendXec = () => {
         chaintipBlockheight,
     );
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
-    const [opReturnMsg, setOpReturnMsg] = useState(false);
+    const [sendWithCashtabMsg, setSendWithCashtabMsg] = useState(false);
 
     // Load with QR code open if device is mobile
     const openWithScanner =
         settings && settings.autoCameraOn === true && isMobile(navigator);
 
-    const [formData, setFormData] = useState({
+    const emptyFormData = {
         amount: '',
         address: '',
         multiAddressInput: '',
         airdropTokenId: '',
-    });
+        cashtabMsg: '',
+    };
+
+    const [formData, setFormData] = useState(emptyFormData);
     const [sendAddressError, setSendAddressError] = useState(false);
     const [multiSendAddressError, setMultiSendAddressError] = useState(false);
     const [sendAmountError, setSendAmountError] = useState(false);
-    const [isMsgError, setIsMsgError] = useState(false);
+    const [cashtabMsgError, setCashtabMsgError] = useState(false);
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
     const [parsedAddressInput, setParsedAddressInput] = useState(
@@ -212,13 +209,7 @@ const SendXec = () => {
 
     const userLocale = getUserLocale(navigator);
     const clearInputForms = () => {
-        setFormData({
-            amount: '',
-            address: '',
-            multiAddressInput: '',
-            airdropTokenId: '',
-        });
-        setOpReturnMsg(''); // OP_RETURN message has its own state field
+        setFormData(emptyFormData);
         setAliasInputAddress(false); // clear alias address preview
         setParsedAddressInput(parseAddressInput(''));
         // Reset to XEC
@@ -430,12 +421,12 @@ const SendXec = () => {
             targetOutputs.push(
                 getAirdropTargetOutput(
                     formData.airdropTokenId,
-                    opReturnMsg ? opReturnMsg : '',
+                    formData.cashtabMsg,
                 ),
             );
-        } else if (opReturnMsg !== false && opReturnMsg !== '') {
-            // If not an airdrop msg, add opReturnMsg as a Cashtab Msg, if it exists
-            targetOutputs.push(getCashtabMsgTargetOutput(opReturnMsg));
+        } else if (sendWithCashtabMsg && formData.cashtabMsg !== '') {
+            // Send this tx with a Cashtab msg if the user has the switch enabled and the input field is not empty
+            targetOutputs.push(getCashtabMsgTargetOutput(formData.cashtabMsg));
         } else if (
             'op_return_raw' in parsedAddressInput &&
             parsedAddressInput.op_return_raw.error === false
@@ -650,9 +641,9 @@ const SendXec = () => {
         }));
     };
 
-    const handleMsgChange = e => {
-        const { value } = e.target;
-        let msgError = false;
+    const handleCashtabMsgChange = e => {
+        const { name, value } = e.target;
+        let cashtabMsgError = false;
         const msgByteSize = getCashtabMsgByteCount(value);
 
         const maxSize =
@@ -660,10 +651,13 @@ const SendXec = () => {
                 ? opreturnConfig.cashtabMsgByteLimit - localAirdropTxAddedBytes
                 : opreturnConfig.cashtabMsgByteLimit;
         if (msgByteSize > maxSize) {
-            msgError = `Message can not exceed ${maxSize} bytes`;
+            cashtabMsgError = `Message can not exceed ${maxSize} bytes`;
         }
-        setIsMsgError(msgError);
-        setOpReturnMsg(e.target.value);
+        setCashtabMsgError(cashtabMsgError);
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
     };
 
     const onMax = () => {
@@ -675,8 +669,8 @@ const SendXec = () => {
 
         // Account for CashtabMsg if it is set
         const intendedTargetOutputs =
-            opReturnMsg !== false && opReturnMsg !== ''
-                ? getCashtabMsgTargetOutput(opReturnMsg)
+            sendWithCashtabMsg && formData.cashtabMsg !== ''
+                ? getCashtabMsgTargetOutput(formData.cashtabMsg)
                 : [];
 
         // Get max send amount in satoshis
@@ -777,7 +771,8 @@ const SendXec = () => {
         sendAmountError,
         sendAddressError,
         multiSendAddressError,
-        isMsgError,
+        sendWithCashtabMsg,
+        cashtabMsgError,
         priceApiError,
         isOneToManyXECSend,
     );
@@ -809,7 +804,7 @@ const SendXec = () => {
             )}
 
             <SwitchContainer>
-                <CashtabSwitch
+                <Switch
                     name="Send to many"
                     on="Send to many"
                     off="Send to one"
@@ -824,119 +819,170 @@ const SendXec = () => {
                     }
                 />
             </SwitchContainer>
-            <ExpandingAddressInputCtn open={isOneToManyXECSend}>
-                <SendInputCtn>
-                    <DestinationAddressSingleCtn>
-                        <InputWithScanner
-                            placeholder={
-                                aliasSettings.aliasEnabled
-                                    ? `Address or Alias`
-                                    : `Address`
-                            }
-                            name="address"
-                            value={formData.address}
-                            disabled={txInfoFromUrl !== false}
-                            handleInput={handleAddressChange}
-                            error={sendAddressError}
-                            loadWithScannerOpen={openWithScanner}
-                        />
-                        <AliasAddressPreviewLabel>
-                            <TxLink
-                                key={aliasInputAddress}
-                                data-testid="alias-address-preview"
-                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                {aliasInputAddress &&
-                                    `${aliasInputAddress.slice(
-                                        0,
-                                        10,
-                                    )}...${aliasInputAddress.slice(-5)}`}
-                            </TxLink>
-                        </AliasAddressPreviewLabel>
-                        <FormLabel>
-                            {'amount' in parsedAddressInput &&
-                                parsedAddressInput.amount.value !== null && (
-                                    <AmountSetByBip21Alert data-testid="bip-alert">
-                                        {' '}
-                                        (set by BIP21 query string)
-                                    </AmountSetByBip21Alert>
-                                )}
-                        </FormLabel>
-                        <SendXecInput
-                            name="amount"
-                            value={formData.amount}
-                            selectValue={selectedCurrency}
-                            selectDisabled={
-                                'amount' in parsedAddressInput || txInfoFromUrl
-                            }
-                            inputDisabled={
-                                priceApiError ||
-                                (txInfoFromUrl !== false &&
-                                    'value' in txInfoFromUrl &&
-                                    txInfoFromUrl.value !== 'null' &&
-                                    txInfoFromUrl.value !== 'undefined') ||
-                                'amount' in parsedAddressInput
-                            }
-                            fiatCode={settings.fiatCurrency.toUpperCase()}
-                            error={sendAmountError}
-                            handleInput={handleAmountChange}
-                            handleSelect={handleSelectedCurrencyChange}
-                            handleOnMax={onMax}
-                        />
-                    </DestinationAddressSingleCtn>
-                    {priceApiError && (
-                        <AlertMsg>
-                            Error fetching fiat price. Setting send by{' '}
-                            {supportedFiatCurrencies[
-                                settings.fiatCurrency
-                            ].slug.toUpperCase()}{' '}
-                            disabled
-                        </AlertMsg>
-                    )}
-                </SendInputCtn>
-
-                <>
-                    <DestinationAddressMultiCtn>
-                        <TextArea
-                            placeholder={`One address & amount per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`}
-                            name="multiAddressInput"
-                            handleInput={e => handleMultiAddressChange(e)}
-                            value={formData.multiAddressInput}
-                            error={multiSendAddressError}
-                        />
-                    </DestinationAddressMultiCtn>
-                </>
-                <AmountPreviewCtn>
-                    {!priceApiError && (
-                        <>
-                            {isOneToManyXECSend ? (
-                                <LocaleFormattedValue>
-                                    {formatBalance(multiSendTotal, userLocale) +
-                                        ' ' +
-                                        selectedCurrency}
-                                </LocaleFormattedValue>
-                            ) : (
-                                <LocaleFormattedValue>
-                                    {!isNaN(formData.amount)
-                                        ? formatBalance(
-                                              formData.amount,
-                                              userLocale,
-                                          ) +
-                                          ' ' +
-                                          selectedCurrency
-                                        : ''}
-                                </LocaleFormattedValue>
+            <InputModesHolder open={isOneToManyXECSend}>
+                <SendToOneHolder>
+                    <InputWithScanner
+                        placeholder={
+                            aliasSettings.aliasEnabled
+                                ? `Address or Alias`
+                                : `Address`
+                        }
+                        name="address"
+                        value={formData.address}
+                        disabled={txInfoFromUrl !== false}
+                        handleInput={handleAddressChange}
+                        error={sendAddressError}
+                        loadWithScannerOpen={openWithScanner}
+                    />
+                    <AliasAddressPreviewLabel>
+                        <TxLink
+                            key={aliasInputAddress}
+                            data-testid="alias-address-preview"
+                            href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            {aliasInputAddress &&
+                                `${aliasInputAddress.slice(
+                                    0,
+                                    10,
+                                )}...${aliasInputAddress.slice(-5)}`}
+                        </TxLink>
+                    </AliasAddressPreviewLabel>
+                    <FormLabel>
+                        {'amount' in parsedAddressInput &&
+                            parsedAddressInput.amount.value !== null && (
+                                <AmountSetByBip21Alert data-testid="bip-alert">
+                                    {' '}
+                                    (set by BIP21 query string)
+                                </AmountSetByBip21Alert>
                             )}
-                            <ConvertAmount>
-                                {fiatPriceString !== '' && '='}{' '}
-                                {fiatPriceString}
-                            </ConvertAmount>
-                        </>
-                    )}
-                </AmountPreviewCtn>
-            </ExpandingAddressInputCtn>
+                    </FormLabel>
+                    <SendXecInput
+                        name="amount"
+                        value={formData.amount}
+                        selectValue={selectedCurrency}
+                        selectDisabled={
+                            'amount' in parsedAddressInput || txInfoFromUrl
+                        }
+                        inputDisabled={
+                            priceApiError ||
+                            (txInfoFromUrl !== false &&
+                                'value' in txInfoFromUrl &&
+                                txInfoFromUrl.value !== 'null' &&
+                                txInfoFromUrl.value !== 'undefined') ||
+                            'amount' in parsedAddressInput
+                        }
+                        fiatCode={settings.fiatCurrency.toUpperCase()}
+                        error={sendAmountError}
+                        handleInput={handleAmountChange}
+                        handleSelect={handleSelectedCurrencyChange}
+                        handleOnMax={onMax}
+                    />
+                </SendToOneHolder>
+                {priceApiError && (
+                    <AlertMsg>
+                        Error fetching fiat price. Setting send by{' '}
+                        {supportedFiatCurrencies[
+                            settings.fiatCurrency
+                        ].slug.toUpperCase()}{' '}
+                        disabled
+                    </AlertMsg>
+                )}
+                <SendToManyHolder>
+                    <TextArea
+                        placeholder={`One address & amount per line, separated by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,500 \necash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed,700`}
+                        name="multiAddressInput"
+                        handleInput={e => handleMultiAddressChange(e)}
+                        value={formData.multiAddressInput}
+                        error={multiSendAddressError}
+                    />
+                </SendToManyHolder>
+            </InputModesHolder>
+            <SendXecForm>
+                <SendXecRow>
+                    <SwitchAndLabel>
+                        <Switch
+                            name="cashtab-msg-switch"
+                            on="✉️"
+                            off="✉️"
+                            checked={sendWithCashtabMsg}
+                            disabled={
+                                txInfoFromUrl ||
+                                'queryString' in parsedAddressInput ||
+                                'op_return_raw' in parsedAddressInput
+                            }
+                            handleToggle={() =>
+                                setSendWithCashtabMsg(!sendWithCashtabMsg)
+                            }
+                        />
+                        <SwitchLabel>Cashtab Msg</SwitchLabel>
+                    </SwitchAndLabel>
+                </SendXecRow>
+                {sendWithCashtabMsg && (
+                    <SendXecRow>
+                        <TextArea
+                            name="cashtabMsg"
+                            placeholder={`Include a public Cashtab msg with this tx ${
+                                location &&
+                                location.state &&
+                                location.state.airdropTokenId
+                                    ? `(max ${
+                                          opreturnConfig.cashtabMsgByteLimit -
+                                          localAirdropTxAddedBytes
+                                      } bytes)`
+                                    : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
+                            }`}
+                            value={formData.cashtabMsg}
+                            error={cashtabMsgError}
+                            showCount
+                            customCount={getCashtabMsgByteCount(
+                                formData.cashtabMsg,
+                            )}
+                            max={
+                                location &&
+                                location.state &&
+                                location.state.airdropTokenId
+                                    ? opreturnConfig.cashtabMsgByteLimit -
+                                      localAirdropTxAddedBytes
+                                    : opreturnConfig.cashtabMsgByteLimit
+                            }
+                            handleInput={e => handleCashtabMsgChange(e)}
+                            onKeyDown={e =>
+                                e.keyCode == 13 ? e.preventDefault() : ''
+                            }
+                        />
+                    </SendXecRow>
+                )}
+            </SendXecForm>
+
+            <AmountPreviewCtn>
+                {!priceApiError && (
+                    <>
+                        {isOneToManyXECSend ? (
+                            <LocaleFormattedValue>
+                                {formatBalance(multiSendTotal, userLocale) +
+                                    ' ' +
+                                    selectedCurrency}
+                            </LocaleFormattedValue>
+                        ) : (
+                            <LocaleFormattedValue>
+                                {!isNaN(formData.amount)
+                                    ? formatBalance(
+                                          formData.amount,
+                                          userLocale,
+                                      ) +
+                                      ' ' +
+                                      selectedCurrency
+                                    : ''}
+                            </LocaleFormattedValue>
+                        )}
+                        <ConvertAmount>
+                            {fiatPriceString !== '' && '='} {fiatPriceString}
+                        </ConvertAmount>
+                    </>
+                )}
+            </AmountPreviewCtn>
             {'op_return_raw' in parsedAddressInput && (
                 <OpReturnRawSetByBip21Alert data-testid="op-return-raw-set-alert">
                     Hex OP_RETURN &quot;
@@ -954,54 +1000,6 @@ const SendXec = () => {
             >
                 Send
             </PrimaryButton>
-            {!('op_return_raw' in parsedAddressInput) && (
-                <CustomCollapseCtn
-                    data-testid="cashtab-msg-collapse"
-                    panelHeader={
-                        <PanelHeaderCtn>
-                            <ThemedMailOutlined /> Message
-                        </PanelHeaderCtn>
-                    }
-                    optionalDefaultActiveKey={
-                        location &&
-                        location.state &&
-                        location.state.replyAddress
-                            ? ['1']
-                            : ['0']
-                    }
-                    optionalKey="1"
-                >
-                    <Alert
-                        style={{
-                            marginBottom: '10px',
-                        }}
-                        description="Please note this message will be public."
-                        type="warning"
-                        showIcon
-                    />
-                    <TextArea
-                        name="opReturnMsg"
-                        placeholder={
-                            location &&
-                            location.state &&
-                            location.state.airdropTokenId
-                                ? `(max ${
-                                      opreturnConfig.cashtabMsgByteLimit -
-                                      localAirdropTxAddedBytes
-                                  } bytes)`
-                                : `(max ${opreturnConfig.cashtabMsgByteLimit} bytes)`
-                        }
-                        value={opReturnMsg ? opReturnMsg : ''}
-                        handleInput={e => handleMsgChange(e)}
-                        onKeyDown={e =>
-                            e.keyCode == 13 ? e.preventDefault() : ''
-                        }
-                    />
-                    <MsgBytesizeError>
-                        {isMsgError ? isMsgError : ''}
-                    </MsgBytesizeError>
-                </CustomCollapseCtn>
-            )}
             {apiError && <ApiError />}
         </>
     );

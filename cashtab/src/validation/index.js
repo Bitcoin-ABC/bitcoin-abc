@@ -540,7 +540,8 @@ export const isValidOpreturnParam = testedParam => {
  * @param {boolean} apiError
  * @param {false | string} sendAmountError
  * @param {false | string} sendAddressError
- * @param {false | string} isMsgError
+ * @param {boolean} sendWithCashtabMsg
+ * @param {false | string} cashtabMsgError
  * @param {boolean} priceApiError
  * @param {boolean} isOneToManyXECSend
  * @returns boolean
@@ -552,7 +553,8 @@ export const shouldSendXecBeDisabled = (
     sendAmountError,
     sendAddressError,
     multiSendAddressError,
-    isMsgError,
+    sendWithCashtabMsg,
+    cashtabMsgError,
     priceApiError,
     isOneToManyXECSend,
 ) => {
@@ -572,8 +574,8 @@ export const shouldSendXecBeDisabled = (
         sendAmountError !== false ||
         // Disabled if address fails validation
         sendAddressError !== false ||
-        // Disabled if msg fails validation
-        isMsgError !== false ||
+        // Disabled if msg fails validation AND we are sending the msg
+        (sendWithCashtabMsg && cashtabMsgError !== false) ||
         // Disabled if we do not have a fiat price AND the user is attempting to send fiat
         priceApiError ||
         // Disabled if send to many and we have a send to many validation error

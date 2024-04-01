@@ -36,7 +36,6 @@ import { ReactComponent as Download } from 'assets/download.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as Audit } from 'assets/audit.svg';
-import { ReactComponent as Mail } from 'assets/mail.svg';
 export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
 import { ReactComponent as User } from 'assets/user.svg';
 import { ReactComponent as XLogo } from 'assets/xlogo.svg';
@@ -132,14 +131,6 @@ export const ThemedEditOutlined = styled(Edit)`
 `;
 
 export const ThemedTrashcanOutlined = styled(Trashcan)`
-    stroke: ${props => props.theme.eCashBlue};
-    fill: ${props => props.theme.eCashBlue};
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-`;
-
-export const ThemedMailOutlined = styled(Mail)`
     stroke: ${props => props.theme.eCashBlue};
     fill: ${props => props.theme.eCashBlue};
     width: 20px;

@@ -184,12 +184,33 @@ ModalInput.propTypes = {
     handleInput: PropTypes.func,
 };
 
+const Count = styled.span`
+    color: ${props =>
+        props.invalid ? props.theme.eCashPurple : props.theme.contrast};
+`;
+const CountHolder = styled.div`
+    color: ${props => props.theme.contrast};
+`;
+const CountAndErrorFlex = styled.div`
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+`;
+const TextAreaErrorMsg = styled.div`
+    order: 0;
+    font-size: 14px;
+    color: ${props => props.theme.forms.error};
+`;
+
 export const TextArea = ({
     placeholder = '',
     name = '',
     value = '',
     handleInput,
     error = false,
+    showCount = false,
+    customCount = false,
+    max = '',
 }) => {
     return (
         <CashtabInputWrapper>
@@ -198,9 +219,20 @@ export const TextArea = ({
                 name={name}
                 value={value}
                 onChange={e => handleInput(e)}
-                invalid={typeof error === 'string'}
             />
-            <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+            <CountAndErrorFlex>
+                <TextAreaErrorMsg>
+                    {typeof error === 'string' ? error : ''}
+                </TextAreaErrorMsg>
+                {showCount && (
+                    <CountHolder>
+                        <Count invalid={typeof error === 'string'}>
+                            {customCount !== false ? customCount : value.length}
+                        </Count>
+                        /{max}
+                    </CountHolder>
+                )}
+            </CountAndErrorFlex>
         </CashtabInputWrapper>
     );
 };
@@ -211,6 +243,9 @@ TextArea.propTypes = {
     value: PropTypes.string,
     handleInput: PropTypes.func,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+    showCount: PropTypes.bool,
+    customCount: PropTypes.number,
+    max: PropTypes.string,
 };
 
 export const InputWithScanner = ({
