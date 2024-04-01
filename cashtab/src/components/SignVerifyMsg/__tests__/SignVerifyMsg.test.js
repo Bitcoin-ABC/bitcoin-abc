@@ -95,20 +95,21 @@ describe('<SignVerifyMsg />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Open the Sign Message dropdown
-        await user.click(screen.getByText('Sign'));
-
         // Insert message to be signed
         await user.type(
             screen.getByPlaceholderText('Enter message to sign'),
             'test message',
         );
 
-        // Click the Sign button
-        await user.click(screen.getByRole('button', { name: /Sign Message/ }));
+        // Click the Sign button (the Switch is also found by this identifier, btn is at index 0 here)
+        await user.click(screen.getAllByRole('button', { name: /Sign/ })[0]);
+
+        expect(await screen.findByText('Message Signed')).toBeInTheDocument();
 
         expect(
-            await screen.findByText('Message Signature Generated'),
+            screen.getByText(
+                'ILwXI6gAnIkh7nw3r/VDNYWiBxVoHYIjsk9lALezbYjGVXbFj0p4glXibHDQoJVll4+zTS5SWXsVAwhczh5GTts=',
+            ),
         ).toBeInTheDocument();
     });
     it('Notification is rendered upon successfully verifying a message', async () => {
@@ -129,8 +130,8 @@ describe('<SignVerifyMsg />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Open the Verify Message dropdown
-        await user.click(screen.getByText('Verify'));
+        // Click the switch to show verify forms
+        await user.click(screen.getByTestId('sign-mode-switch'));
 
         // Insert message to be signed
         await user.type(
@@ -140,22 +141,27 @@ describe('<SignVerifyMsg />', () => {
 
         // Input the address
         await userEvent.type(
-            screen.getByPlaceholderText('XEC Address'),
+            screen.getByPlaceholderText('Enter address of signature to verify'),
             'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
         );
 
         // Insert signature in Signature textarea of Verify collapse
         await userEvent.type(
-            screen.getByPlaceholderText('Input signature'),
+            screen.getByPlaceholderText('Enter signature to verify'),
             'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
         );
 
         // Click the Verify button
+        // react testing library also finds the switch with this, button is at index 0
         await userEvent.click(
-            screen.getByRole('button', { name: /Verify Message/ }),
+            screen.getAllByRole('button', { name: /Verify/ })[0],
         );
 
-        expect(screen.getByText('Signature verified')).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                'Signature verified. Message "test message" was signed by ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
+            ),
+        ).toBeInTheDocument();
     });
     it('Notification is rendered upon signature verification error', async () => {
         // Mock the app with context at the SignVerifyMsg screen
@@ -175,8 +181,8 @@ describe('<SignVerifyMsg />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Open the Verify Message dropdown
-        await user.click(screen.getByText('Verify'));
+        // Click the switch to show verify forms
+        await user.click(screen.getByTestId('sign-mode-switch'));
 
         // Insert message to be signed
         await user.type(
@@ -186,19 +192,20 @@ describe('<SignVerifyMsg />', () => {
 
         // Input the address
         await userEvent.type(
-            screen.getByPlaceholderText('XEC Address'),
+            screen.getByPlaceholderText('Enter address of signature to verify'),
             'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
         );
 
         // Insert signature in Signature textarea of Verify collapse
         await userEvent.type(
-            screen.getByPlaceholderText('Input signature'),
+            screen.getByPlaceholderText('Enter signature to verify'),
             'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
         );
 
         // Click the Verify button
+        // react testing library also finds the switch with this, button is at index 0
         await userEvent.click(
-            screen.getByRole('button', { name: /Verify Message/ }),
+            screen.getAllByRole('button', { name: /Verify/ })[0],
         );
 
         expect(

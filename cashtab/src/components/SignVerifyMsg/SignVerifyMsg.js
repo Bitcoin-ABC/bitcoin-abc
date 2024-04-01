@@ -4,61 +4,45 @@
 
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Form, Input } from 'antd';
+import { TextArea, Input } from 'components/Common/Inputs';
+import Switch from 'components/Common/Switch';
 import { WalletContext } from 'wallet/context';
-import { CustomCollapseCtn } from 'components/Common/StyledCollapse';
-import {
-    AntdFormWrapper,
-    DestinationAddressSingleWithoutQRScan,
-} from 'components/Common/EnhancedInputs';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
-import { ThemedCopySolid } from 'components/Common/CustomIcons';
 import PrimaryButton, {
     SecondaryButton,
 } from 'components/Common/PrimaryButton';
-import { PlusSquareOutlined } from '@ant-design/icons';
-import { isValidAliasSendInput } from 'validation';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
-import appConfig from 'config/app';
 import { toast } from 'react-toastify';
-const { TextArea } = Input;
+import { theme } from 'assets/styles/theme';
 
-const Wrapper = styled.div`
-    .ant-collapse {
-        &:first-child {
-            margin-top: 30px;
-        }
-    }
-`;
-
-const SignMessageLabel = styled.div`
-    text-align: left;
-    color: ${props => props.theme.forms.text};
-`;
-const AddressCopyCtn = styled.div`
+const SignVerifyForm = styled.div`
+    margin-top: 24px;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+`;
+const Row = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
-
-    svg {
-        height: 30px;
-        width: 30px;
-        &:hover {
-            fill: ${props => props.theme.eCashBlue};
-            cursor: pointer;
-        }
-    }
+    justify-content: flex-start;
+    gap: 12px;
 `;
-
-const VerifyMessageLabel = styled.div`
+const SignatureLabel = styled.div`
+    font-size: 18px;
+    color: ${props => props.theme.contrast};
     text-align: left;
-    color: ${props => props.theme.forms.text};
+    font-weight: bold;
+    width: 100%;
 `;
-
-const SignatureValidation = styled.div`
-    color: ${props => props.theme.encryptionRed};
+const SignatureHolder = styled.code`
+    width: 100%;
+    color: ${props => props.theme.contrast};
+    word-break: break-all;
 `;
 
 const SignVerifyMsg = () => {
@@ -66,70 +50,106 @@ const SignVerifyMsg = () => {
     const { cashtabState } = ContextValue;
     const { wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
+    // Cap msg length to prevent significant computation
+    // Note that emojis etc could have larger impact than length
+    // However, it is not that important, we do not need to get a bytecount for this component
+    const CASHTAB_MESSAGE_MAX_LENGTH = 200;
+    const ECASH_SIGNED_MSG_LENGTH = 88;
+    const emptyFormData = {
+        msgToSign: '',
+        msgToVerify: '',
+        addressToVerify: '',
+        signatureToVerify: '',
+    };
+    const emptyFormDataError = {
+        msgToSign: false,
+        msgToVerify: false,
+        addressToVerify: false,
+        signatureToVerify: false,
+    };
+    const [formData, setFormData] = useState(emptyFormData);
+    const [formDataError, setFormDataError] = useState(emptyFormDataError);
+    const [signMsgMode, setSignMsgMode] = useState(true);
     const [messageSignature, setMessageSignature] = useState('');
-    const [msgToSign, setMsgToSign] = useState('');
-    const [sigCopySuccess, setSigCopySuccess] = useState('');
-    const [signMessageIsValid, setSignMessageIsValid] = useState(null);
-    const [messageVerificationAddr, setMessageVerificationAddr] = useState('');
-    const [messageVerificationSig, setMessageVerificationSig] = useState('');
-    const [messageVerificationMsg, setMessageVerificationMsg] = useState('');
-    const [messageVerificationMsgIsValid, setMessageVerificationMsgIsValid] =
-        useState(false);
-    const [messageVerificationAddrError, setMessageVerificationAddrError] =
-        useState(false);
-    const [messageVerificationAddrIsValid, setMessageVerificationAddrIsValid] =
-        useState(false);
-    const [messageVerificationSigIsValid, setMessageVerificationSigIsValid] =
-        useState(false);
-    const [messageVerificationSigError, setMessageVerificationSigError] =
-        useState(false);
-    const signMessageByPk = () => {
+
+    const signMsg = () => {
+        // We get the msgToSign from formData in state
+        const { msgToSign } = formData;
+
+        // Wrap signing in try...catch to handle any errors
         try {
             // First, get required params
             const keyPair = utxolib.ECPair.fromWIF(
                 wallet.paths.get(1899).wif,
                 utxolib.networks.ecash,
             );
-            // Reference https://github.com/Permissionless-Software-Foundation/bch-js/blob/master/src/bitcoincash.js#L161
-            const privKey = keyPair.__D;
 
             // Now you can get the local signature
             const messageSignature = xecMessage
                 .sign(
                     msgToSign,
-                    privKey,
+                    keyPair.__D,
                     keyPair.compressed,
                     utxolib.networks.ecash.messagePrefix,
                 )
                 .toString('base64');
 
             setMessageSignature(messageSignature);
-            toast.success('Message Signature Generated');
+            toast.success('Message Signed');
         } catch (err) {
             toast.error(`${err}`);
             throw err;
         }
-        setSigCopySuccess('');
     };
 
-    const handleSignMsgChange = e => {
-        const { value } = e.target;
-        // validation
-        if (value && value.length && value.length < 150) {
-            setMsgToSign(value);
-            setSignMessageIsValid(true);
-        } else {
-            setSignMessageIsValid(false);
+    /**
+     * Update formData with user input
+     * @param {Event} e js input event
+     * e.target.value will be input value
+     * e.target.name will be name of originating input field
+     */
+    const handleInput = e => {
+        const { name, value } = e.target;
+
+        // We arbitrarily cap input length on all formData fields on this page
+        if (name !== 'addressToVerify') {
+            setFormDataError(previous => ({
+                ...previous,
+                [name]:
+                    value.length > CASHTAB_MESSAGE_MAX_LENGTH
+                        ? `Cashtab supports msgs up to ${CASHTAB_MESSAGE_MAX_LENGTH} characters.`
+                        : false,
+            }));
+        } else if (name === 'addressToVerify') {
+            // Validate addressToVerify
+            const isValidAddr = cashaddr.isValidCashAddress(value, 'ecash');
+            setFormDataError(previous => ({
+                ...previous,
+                [name]: isValidAddr ? false : 'Invalid cash address',
+            }));
+        } else if (name === 'signatureToVerify') {
+            setFormDataError(previous => ({
+                ...previous,
+                [name]:
+                    value.length !== ECASH_SIGNED_MSG_LENGTH
+                        ? `Invalid eCash signature length`
+                        : false,
+            }));
         }
+
+        setFormData(previous => ({
+            ...previous,
+            [name]: value,
+        }));
     };
 
-    const verifyMessageBySig = () => {
+    const verifyMessage = () => {
         let verification;
         try {
             verification = xecMessage.verify(
-                messageVerificationMsg,
-                cashaddr.toLegacy(messageVerificationAddr),
-                messageVerificationSig,
+                formData.msgToVerify,
+                cashaddr.toLegacy(formData.addressToVerify),
+                formData.signatureToVerify,
                 utxolib.networks.ecash.messagePrefix,
             );
         } catch (err) {
@@ -137,201 +157,113 @@ const SignVerifyMsg = () => {
         }
 
         if (verification) {
-            toast.success('Signature verified');
+            toast.success(
+                `Signature verified. Message "${formData.msgToVerify}" was signed by ${formData.addressToVerify}`,
+            );
         } else {
             toast.error('Signature does not match address and message');
         }
     };
 
-    const handleOnSigCopy = () => {
-        if (messageSignature != '') {
-            setSigCopySuccess('Signature copied to clipboard');
-        }
-    };
-
-    const handleVerifyMsgChange = e => {
-        const { value } = e.target;
-
-        // validation
-        if (value && value.length && value.length < 150) {
-            setMessageVerificationMsgIsValid(true);
-        } else {
-            setMessageVerificationMsgIsValid(false);
-        }
-
-        setMessageVerificationMsg(value);
-    };
-
-    const handleVerifySigChange = e => {
-        const { value } = e.target;
-
-        // validation
-        if (value && value.length && value.length === 88) {
-            setMessageVerificationSigIsValid(true);
-            setMessageVerificationSigError(false);
-        } else {
-            setMessageVerificationSigIsValid(false);
-            setMessageVerificationSigError('Invalid signature');
-        }
-
-        setMessageVerificationSig(value);
-    };
-
-    const handleMessageVerificationAddrChange = e => {
-        const { value } = e.target;
-        let error = false;
-
-        // validate address
-        const isValid = cashaddr.isValidCashAddress(value, 'ecash');
-
-        // Is this valid address?
-        if (!isValid) {
-            error = `Invalid ${appConfig.ticker} address`;
-            // If valid address but token format
-            if (cashaddr.isValidCashAddress(value, 'etoken')) {
-                error = `eToken addresses are not supported for signature verifications`;
-            }
-            if (isValidAliasSendInput(value) === true) {
-                error = `aliases not supported for signature verifications`;
-            }
-            setMessageVerificationAddrIsValid(false);
-        } else {
-            setMessageVerificationAddrIsValid(true);
-        }
-        setMessageVerificationAddrError(error);
-        setMessageVerificationAddr(value);
-    };
-
     return (
-        <Wrapper data-testid="signverifymsg-ctn">
-            <CustomCollapseCtn panelHeader="Sign">
-                <AntdFormWrapper>
-                    <Form
-                        size="small"
-                        style={{
-                            width: 'auto',
-                        }}
-                    >
-                        <Form.Item>
-                            <SignMessageLabel>Message:</SignMessageLabel>
-                            <TextArea
-                                placeholder="Enter message to sign"
-                                name="signMessage"
-                                onChange={e => handleSignMsgChange(e)}
-                                showCount
-                                maxLength={150}
-                            />
-                        </Form.Item>
-                        <Form.Item>
-                            <SignMessageLabel>Address:</SignMessageLabel>
-                            {wallet !== false && (
-                                <AddressCopyCtn>
-                                    <Input
-                                        name="signMessageAddress"
-                                        disabled={true}
-                                        value={wallet.paths.get(1899).address}
-                                    />
-                                    <CopyToClipboard
-                                        data={wallet.paths.get(1899).address}
-                                        showToast
-                                    >
-                                        <ThemedCopySolid />
-                                    </CopyToClipboard>
-                                </AddressCopyCtn>
-                            )}
-                        </Form.Item>
+        <SignVerifyForm data-testid="signverifymsg-ctn">
+            <Row>
+                <Switch
+                    name="sign-mode-switch"
+                    on="✍️ Sign"
+                    off="✅ Verify"
+                    bgColorOff={theme.genesisGreen}
+                    width={110}
+                    right={76}
+                    checked={signMsgMode}
+                    handleToggle={() => setSignMsgMode(!signMsgMode)}
+                />
+            </Row>
+            {signMsgMode ? (
+                <>
+                    <Row>
+                        <TextArea
+                            placeholder={`Enter message to sign`}
+                            name="msgToSign"
+                            handleInput={handleInput}
+                            value={formData.msgToSign}
+                            error={formDataError.msgToSign}
+                            showCount
+                            max={`${CASHTAB_MESSAGE_MAX_LENGTH}`}
+                        />
+                    </Row>
+                    <Row>
                         <PrimaryButton
-                            onClick={signMessageByPk}
-                            disabled={!signMessageIsValid}
+                            onClick={signMsg}
+                            disabled={formData.msgToSign === ''}
                         >
-                            <PlusSquareOutlined />
-                            &nbsp;Sign Message
+                            Sign
                         </PrimaryButton>
-                        <CopyToClipboard
-                            data={messageSignature}
-                            showToast
-                            customMsg={`Signature copied to clipboard`}
-                        >
-                            <Form.Item>
-                                <SignMessageLabel>Signature:</SignMessageLabel>
-                                <TextArea
-                                    name="signMessageSignature"
-                                    placeholder="The signature will be generated upon signing of the message"
-                                    readOnly={true}
-                                    value={messageSignature}
-                                    onClick={() => handleOnSigCopy()}
-                                />
-                            </Form.Item>
-                        </CopyToClipboard>
-                        {sigCopySuccess}
-                    </Form>
-                </AntdFormWrapper>
-            </CustomCollapseCtn>
-            <CustomCollapseCtn panelHeader="Verify">
-                <AntdFormWrapper>
-                    <Form
-                        size="small"
-                        style={{
-                            width: 'auto',
-                        }}
-                    >
-                        <Form.Item>
-                            <VerifyMessageLabel>Message:</VerifyMessageLabel>
-                            <TextArea
-                                placeholder="Enter message to verify"
-                                name="verifyMessage"
-                                onChange={e => handleVerifyMsgChange(e)}
-                                showCount
-                                maxLength={150}
-                            />
-                        </Form.Item>
-                        <Form.Item>
-                            <VerifyMessageLabel>Address:</VerifyMessageLabel>
-                            <DestinationAddressSingleWithoutQRScan
-                                validateStatus={
-                                    messageVerificationAddrError ? 'error' : ''
-                                }
-                                help={
-                                    messageVerificationAddrError
-                                        ? messageVerificationAddrError
-                                        : ''
-                                }
-                                inputProps={{
-                                    placeholder: `${appConfig.ticker} Address`,
-                                    name: 'address',
-                                    onChange: e =>
-                                        handleMessageVerificationAddrChange(e),
-                                    required: true,
-                                }}
-                            ></DestinationAddressSingleWithoutQRScan>
-                        </Form.Item>
-                        <Form.Item>
-                            <VerifyMessageLabel>Signature:</VerifyMessageLabel>
-                            <TextArea
-                                placeholder="Input signature"
-                                name="verifySignature"
-                                onChange={e => handleVerifySigChange(e)}
-                                showCount
-                            />
-                            <SignatureValidation>
-                                {messageVerificationSigError}
-                            </SignatureValidation>
-                        </Form.Item>
+                    </Row>
+                    {messageSignature !== '' && (
+                        <>
+                            <Row>
+                                <SignatureLabel>Signature:</SignatureLabel>
+                            </Row>
+                            <Row>
+                                <CopyToClipboard
+                                    data={messageSignature}
+                                    showToast
+                                >
+                                    <SignatureHolder>
+                                        {messageSignature}
+                                    </SignatureHolder>
+                                </CopyToClipboard>
+                            </Row>
+                        </>
+                    )}
+                </>
+            ) : (
+                <>
+                    <Row>
+                        <TextArea
+                            placeholder={`Enter message to verify`}
+                            name="msgToVerify"
+                            handleInput={handleInput}
+                            value={formData.msgToVerify}
+                            error={formDataError.msgToVerify}
+                            showCount
+                            max={`${CASHTAB_MESSAGE_MAX_LENGTH}`}
+                        />
+                    </Row>
+                    <Row>
+                        <Input
+                            name="addressToVerify"
+                            placeholder="Enter address of signature to verify"
+                            value={formData.addressToVerify}
+                            error={formDataError.addressToVerify}
+                            handleInput={handleInput}
+                        />
+                    </Row>
+                    <Row>
+                        <TextArea
+                            placeholder={`Enter signature to verify`}
+                            name="signatureToVerify"
+                            handleInput={handleInput}
+                            value={formData.signatureToVerify}
+                            error={formDataError.signatureToVerify}
+                        />
+                    </Row>
+                    <Row>
                         <SecondaryButton
-                            onClick={verifyMessageBySig}
+                            onClick={verifyMessage}
                             disabled={
-                                !messageVerificationAddrIsValid ||
-                                !messageVerificationSigIsValid ||
-                                !messageVerificationMsgIsValid
+                                formDataError.msgToVerify !== false ||
+                                formDataError.addressToVerify !== false ||
+                                formDataError.signatureToVerify !== false
                             }
                         >
-                            <PlusSquareOutlined />
-                            &nbsp;Verify Message
+                            Verify
                         </SecondaryButton>
-                    </Form>
-                </AntdFormWrapper>
-            </CustomCollapseCtn>
-        </Wrapper>
+                    </Row>
+                </>
+            )}
+        </SignVerifyForm>
     );
 };
 

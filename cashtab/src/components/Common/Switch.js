@@ -59,8 +59,8 @@ const SwitchInner = styled.span`
         content: attr(data-off);
         ${props =>
             props.bgImageOff
-                ? `background: #ccc url(${props.bgImageOff}) 80%/contain no-repeat`
-                : `background-color: #ccc`};
+                ? `background: ${props.bgColorOff} url(${props.bgImageOff}) 80%/contain no-repeat`
+                : `background-color: ${props.bgColorOff}`};
         text-transform: uppercase;
         padding-right: 10px;
         color: #fff;
@@ -99,6 +99,7 @@ export const CashtabSwitch = ({
     bgImageOn = false,
     off = '',
     bgImageOff = false,
+    bgColorOff = '#ccc',
     checked,
     disabled,
     handleToggle,
@@ -130,6 +131,7 @@ export const CashtabSwitch = ({
                         data-off={off}
                         bgImageOn={bgImageOn}
                         bgImageOff={bgImageOff}
+                        bgColorOff={bgColorOff}
                         disabled={disabled}
                         small={small}
                     ></SwitchInner>
@@ -149,6 +151,7 @@ CashtabSwitch.propTypes = {
     right: PropTypes.number,
     bgImageOn: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     bgImageOff: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
+    bgColorOff: PropTypes.string,
     checked: PropTypes.bool,
     disabled: PropTypes.bool,
     handleToggle: PropTypes.func,

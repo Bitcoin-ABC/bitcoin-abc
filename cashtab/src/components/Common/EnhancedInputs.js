@@ -132,28 +132,6 @@ export const CashtabCheckbox = styled(Checkbox)`
     }
 `;
 
-export const DestinationAddressSingleWithoutQRScan = ({
-    inputProps,
-    ...otherProps
-}) => {
-    return (
-        <AntdFormWrapper>
-            <Form.Item {...otherProps}>
-                <Input
-                    data-testid="destination-address-single-without-qrscan"
-                    prefix={<ThemedWalletOutlined />}
-                    autoComplete="off"
-                    {...inputProps}
-                />
-            </Form.Item>
-        </AntdFormWrapper>
-    );
-};
-
-DestinationAddressSingleWithoutQRScan.propTypes = {
-    inputProps: PropTypes.object,
-};
-
 export const AliasInput = ({ inputProps, ...otherProps }) => {
     return (
         <AntdFormWrapper>
