@@ -159,22 +159,23 @@ class ExchangeBase(PrintError):
         return True
 
     def get_historical_rates_safe(self, ccy, cache_dir):
-        h, timestamp = self.read_historical_rates(ccy, cache_dir)
-        if not h or self._is_timestamp_old(timestamp):
+        cached_history, timestamp = self.read_historical_rates(ccy, cache_dir)
+        if not cached_history or self._is_timestamp_old(timestamp):
             try:
                 self.print_error("requesting fx history for", ccy)
-                h = self.request_history(ccy)
+                new_history = self.request_history(ccy)
                 self.print_error("received fx history for", ccy)
-                if not h:
+                if not new_history:
                     # Paranoia: No data; abort early rather than write out an
                     # empty file
                     raise RuntimeWarning(f"received empty history for {ccy}")
-                self._cache_historical_rates(h, ccy, cache_dir)
+                cached_history.update(new_history)
+                self._cache_historical_rates(cached_history, ccy, cache_dir)
             except Exception as e:
-                self.print_error("failed fx history:", repr(e))
+                self.print_error("failed fx new_history:", repr(e))
                 return
-        self.print_error("received history rates of length", len(h))
-        self.history[ccy] = h
+            self.print_error("received history rates of length", len(new_history))
+        self.history[ccy] = cached_history
         self.history_timestamps[ccy] = timestamp
         self.on_history()
 
@@ -291,7 +292,7 @@ class CoinGecko(ExchangeBase):
     def request_history(self, ccy):
         history = self.get_json(
             "api.coingecko.com",
-            f"/api/v3/coins/ecash/market_chart?vs_currency={ccy}&days=max",
+            f"/api/v3/coins/ecash/market_chart?vs_currency={ccy}&days=365",
         )
 
         return {
