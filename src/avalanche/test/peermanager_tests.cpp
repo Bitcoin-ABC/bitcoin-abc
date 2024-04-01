@@ -10,6 +10,7 @@
 #include <avalanche/test/util.h>
 #include <cashaddrenc.h>
 #include <config.h>
+#include <consensus/activation.h>
 #include <core_io.h>
 #include <key_io.h>
 #include <script/standard.h>
@@ -18,6 +19,7 @@
 #include <util/translation.h>
 #include <validation.h>
 
+#include <test/util/blockindex.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>
@@ -2536,6 +2538,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     }
 
     {
+        proofs.clear();
         for (size_t i = 0; i < 2; i++) {
             // Add a couple proofs
             const CKey key = CKey::MakeCompressedKey();
@@ -2549,6 +2552,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
             BOOST_CHECK(pm.addNode(NodeId(i), proof->getId()));
 
             BOOST_CHECK(pm.setFinalized(peerid));
+
+            proofs.push_back(proof);
         }
 
         // The proofs has been registered > 30min from the previous block time,
@@ -2569,6 +2574,128 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         // Now only one is acceptable
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
         BOOST_CHECK_EQUAL(winners.size(), 1);
+
+        // Remove all proofs
+        for (auto &proof : proofs) {
+            BOOST_CHECK(pm.rejectProof(
+                proof->getId(),
+                avalanche::PeerManager::RejectionMode::INVALIDATE));
+        }
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
+    }
+
+    {
+        BOOST_CHECK_EQUAL(TestPeerManager::getPeerCount(pm), 0);
+
+        gArgs.ForceSetArg("-leekuanyewactivationtime", "0");
+
+        std::array<CBlockIndex, 12> blocks;
+        for (size_t i = 1; i < blocks.size(); ++i) {
+            blocks[i].pprev = &blocks[i - 1];
+        }
+        SetMTP(blocks, now.count());
+        prevBlock.pprev = &blocks.back();
+
+        BOOST_CHECK(IsLeeKuanYewEnabled(Params().GetConsensus(), &prevBlock));
+
+        proofs.clear();
+        for (size_t i = 0; i < 4; i++) {
+            // Add 4 proofs, registered at a 30 minutes interval
+            SetMockTime(now + i * 30min);
+
+            const CKey key = CKey::MakeCompressedKey();
+            CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
+
+            auto proof = buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD,
+                                                       payoutScript);
+            PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
+            BOOST_CHECK_NE(peerid, NO_PEER);
+            BOOST_CHECK(pm.forPeer(proof->getId(), [&](const Peer &peer) {
+                return peer.registration_time == now + i * 30min;
+            }));
+
+            BOOST_CHECK(pm.addNode(NodeId(i), proof->getId()));
+
+            BOOST_CHECK(pm.setFinalized(peerid));
+
+            proofs.push_back(proof);
+        }
+
+        // No proof has been registered before the previous block time
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
+
+        // 1 proof has been registered > 30min from the previous block time, but
+        // none > 60 minutes from the previous block time
+        // => we have no winner.
+        now += 30min + 1s;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
+
+        auto checkRegistrationTime = [&](const CScript &payout) {
+            pm.forEachPeer([&](const Peer &peer) {
+                if (peer.proof->getPayoutScript() == payout) {
+                    BOOST_CHECK_LT(peer.registration_time.count(),
+                                   (now - 60min).count());
+                }
+                return true;
+            });
+        };
+
+        // 1 proof has been registered > 60min but < 90min from the previous
+        // block time and 1 more has been registered > 30 minutes
+        // => we have a winner and one acceptable substitute.
+        now += 30min;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_EQUAL(winners.size(), 2);
+        checkRegistrationTime(winners[0]);
+
+        // 1 proof has been registered > 60min but < 90min from the
+        // previous block time, 1 has been registered > 90 minutes and 1 more
+        // has been registered > 30 minutes
+        // => we have 1 winner and up to 2 acceptable substitutes.
+        now += 30min;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_LE(winners.size(), 3);
+        checkRegistrationTime(winners[0]);
+
+        // 1 proofs has been registered > 60min but < 90min from the
+        // previous block time, 2 has been registered > 90 minutes and 1 more
+        // has been registered > 30 minutes
+        // => we have 1 winner, and up to 2 substitutes.
+        now += 30min;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_LE(winners.size(), 3);
+        checkRegistrationTime(winners[0]);
+
+        // 1 proof has been registered > 60min but < 90min from the
+        // previous block time and 3 more has been registered > 90 minutes
+        // => we have 1 winner, and up to 1 substitute.
+        now += 30min;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_LE(winners.size(), 2);
+        checkRegistrationTime(winners[0]);
+
+        // All proofs has been registered > 90min from the previous block time
+        // => we have 1 winner, and no substitute.
+        now += 30min;
+        SetMockTime(now);
+        prevBlock.nTime = now.count();
+        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
+        BOOST_CHECK_EQUAL(winners.size(), 1);
+        checkRegistrationTime(winners[0]);
+
+        gArgs.ClearForcedArg("-leekuanyewactivationtime");
     }
 }
 

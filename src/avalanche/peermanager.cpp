@@ -9,6 +9,7 @@
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
 #include <cashaddrenc.h>
+#include <consensus/activation.h>
 #include <logging.h>
 #include <random.h>
 #include <scheduler.h>
@@ -980,22 +981,31 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
     // previous block or lacking node connected.
     // The previous block time is capped to now for the unlikely event the
     // previous block time is in the future.
-    const int64_t maxRegistrationTime =
-        std::min(pprev->GetBlockTime(), GetTime()) -
-        std::chrono::duration_cast<std::chrono::seconds>(2 *
-                                                         Peer::DANGLING_TIMEOUT)
-            .count();
+    std::chrono::seconds registrationDelay =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            IsLeeKuanYewEnabled(chainman.GetConsensus(), pprev)
+                ? 4 * Peer::DANGLING_TIMEOUT
+                : 2 * Peer::DANGLING_TIMEOUT);
+    std::chrono::seconds maxRegistrationDelay =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            IsLeeKuanYewEnabled(chainman.GetConsensus(), pprev)
+                ? 6 * Peer::DANGLING_TIMEOUT
+                : 4 * Peer::DANGLING_TIMEOUT);
+    std::chrono::seconds minRegistrationDelay =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            2 * Peer::DANGLING_TIMEOUT);
 
-    const int64_t recentRegistrationTime =
-        std::min(pprev->GetBlockTime(), GetTime()) -
-        std::chrono::duration_cast<std::chrono::seconds>(4 *
-                                                         Peer::DANGLING_TIMEOUT)
-            .count();
+    const int64_t refTime = std::min(pprev->GetBlockTime(), GetTime());
+
+    const int64_t targetRegistrationTime = refTime - registrationDelay.count();
+    const int64_t maxRegistrationTime = refTime - minRegistrationDelay.count();
+    const int64_t minRegistrationTime = refTime - maxRegistrationDelay.count();
 
     const BlockHash prevblockhash = pprev->GetBlockHash();
 
-    winners.clear();
-    while (winners.size() < peers.size()) {
+    std::vector<ProofRef> selectedProofs;
+    ProofRef firstCompliantProof = ProofRef();
+    while (selectedProofs.size() < peers.size()) {
         double bestRewardRank = std::numeric_limits<double>::max();
         ProofRef selectedProof = ProofRef();
         int64_t selectedProofRegistrationTime{0};
@@ -1012,8 +1022,10 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
                 continue;
             }
 
-            if (std::find(winners.begin(), winners.end(),
-                          peer.proof->getPayoutScript()) != winners.end()) {
+            if (std::find_if(selectedProofs.begin(), selectedProofs.end(),
+                             [&peer](const ProofRef &proof) {
+                                 return peer.getProofId() == proof->getId();
+                             }) != selectedProofs.end()) {
                 continue;
             }
 
@@ -1070,15 +1082,41 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
             break;
         }
 
-        winners.push_back(selectedProof->getPayoutScript());
+        if (!firstCompliantProof &&
+            selectedProofRegistrationTime < targetRegistrationTime) {
+            firstCompliantProof = selectedProof;
+        }
 
-        if (selectedProofRegistrationTime < recentRegistrationTime &&
+        selectedProofs.push_back(selectedProof);
+
+        if (selectedProofRegistrationTime < minRegistrationTime &&
             !isFlaky(selectedProof->getId())) {
             break;
         }
     }
 
-    return winners.size() > 0;
+    winners.clear();
+
+    if (!firstCompliantProof) {
+        return false;
+    }
+
+    winners.reserve(selectedProofs.size());
+
+    // Find the winner
+    for (const ProofRef &proof : selectedProofs) {
+        if (proof->getId() == firstCompliantProof->getId()) {
+            winners.push_back(proof->getPayoutScript());
+        }
+    }
+    // Add the others (if any) after the winner
+    for (const ProofRef &proof : selectedProofs) {
+        if (proof->getId() != firstCompliantProof->getId()) {
+            winners.push_back(proof->getPayoutScript());
+        }
+    }
+
+    return true;
 }
 
 bool PeerManager::isFlaky(const ProofId &proofid) const {

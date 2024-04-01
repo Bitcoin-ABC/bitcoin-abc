@@ -74,7 +74,7 @@ class ABCStakingRewardsPolicyTest(BitcoinTestFramework):
 
         assert node.getavalancheinfo()["ready_to_poll"] is True
 
-        now += 60 * 60
+        now += 60 * 60 + 1
         node.setmocktime(now)
 
         self.generate(node, 1)
