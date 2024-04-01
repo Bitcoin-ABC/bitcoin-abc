@@ -577,7 +577,9 @@ export const shouldSendXecBeDisabled = (
         // Disabled if we do not have a fiat price AND the user is attempting to send fiat
         priceApiError ||
         // Disabled if send to many and we have a send to many validation error
-        (isOneToManyXECSend && multiSendAddressError !== false)
+        (isOneToManyXECSend && multiSendAddressError !== false) ||
+        // Disabled if send to many and send to many input is blank
+        (isOneToManyXECSend && formData.multiAddressInput === '')
     );
 };
 

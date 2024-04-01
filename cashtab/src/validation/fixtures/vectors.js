@@ -81,7 +81,8 @@ export default {
                 sendDisabled: true,
             },
             {
-                description: 'Enabled for valid address and amount',
+                description:
+                    'Enabled for valid address and amount in send to one mode',
                 formData: {
                     address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
                     amount: '50',
@@ -96,6 +97,24 @@ export default {
                 priceApiError: false,
                 isOneToManyXECSend: false,
                 sendDisabled: false,
+            },
+            {
+                description:
+                    'Disabled for valid address and amount entered in send to one mode, but app is in send to many mode and input is blank',
+                formData: {
+                    address: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                    amount: '50',
+                    multiAddressInput: '',
+                },
+                balanceSats: 10000,
+                apiError: false,
+                sendAmountError: false,
+                sendAddressError: false,
+                multiSendAddressError: false,
+                isMsgError: false,
+                priceApiError: false,
+                isOneToManyXECSend: true,
+                sendDisabled: true,
             },
             {
                 description: 'Disabled on zero balance for send to one',
