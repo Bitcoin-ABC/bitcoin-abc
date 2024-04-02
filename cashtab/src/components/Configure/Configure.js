@@ -58,7 +58,7 @@ import {
 import CustomModal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
 import { Input, ModalInput, InputFlex } from 'components/Common/Inputs';
-import CashtabSwitch from 'components/Common/Switch';
+import Switch from 'components/Common/Switch';
 import Seed from 'components/Common/Seed';
 
 const { Panel } = Collapse;
@@ -413,29 +413,15 @@ const SettingsLabel = styled.div`
     gap: 9px;
 `;
 
-const SwitchContainer = styled.div`
-    min-width: 35px;
+const Switches = styled.div`
+    flex-direction: column;
+    display: flex;
+    gap: 12px;
 `;
-
 const GeneralSettingsItem = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    .ant-switch svg {
-        fill: #717171;
-    }
-    .anticon {
-        color: ${props => props.theme.contrast};
-    }
-    .ant-switch {
-        background-color: #bdbdbd;
-    }
-    .ant-switch-checked {
-        background-color: ${props => props.theme.eCashBlue};
-        svg {
-            fill: ${props => props.theme.contrast};
-        }
-    }
     color: ${props => props.theme.lightWhite};
 `;
 
@@ -1609,47 +1595,40 @@ const Configure = () => {
             <h2>
                 <ThemedSettingOutlined /> General Settings
             </h2>
-            <GeneralSettingsItem>
-                <SettingsLabel>
-                    <LockFilled /> Send Confirmations
-                </SettingsLabel>
-                <SwitchContainer>
-                    <CashtabSwitch
+            <Switches>
+                <GeneralSettingsItem>
+                    <SettingsLabel>
+                        <LockFilled /> Send Confirmations
+                    </SettingsLabel>
+                    <Switch
                         name="send-confirmations-switch"
-                        small
                         checked={settings.sendModal}
                         handleToggle={handleSendModalToggle}
                     />
-                </SwitchContainer>
-            </GeneralSettingsItem>
-            {isMobile(navigator) && (
-                <GeneralSettingsItem>
-                    <SettingsLabel>
-                        <LockFilled /> Auto-open camera on send
-                    </SettingsLabel>
-                    <SwitchContainer>
-                        <CashtabSwitch
+                </GeneralSettingsItem>
+                {isMobile(navigator) && (
+                    <GeneralSettingsItem>
+                        <SettingsLabel>
+                            <LockFilled /> Auto-open camera on send
+                        </SettingsLabel>
+                        <Switch
                             name="settings-camera-auto-open"
-                            small
                             checked={settings.autoCameraOn}
                             handleToggle={handleCameraOverride}
                         />
-                    </SwitchContainer>
-                </GeneralSettingsItem>
-            )}
-            <GeneralSettingsItem>
-                <SettingsLabel>
-                    <LockFilled /> Hide msgs from unknown sender
-                </SettingsLabel>
-                <SwitchContainer>
-                    <CashtabSwitch
+                    </GeneralSettingsItem>
+                )}
+                <GeneralSettingsItem>
+                    <SettingsLabel>
+                        <LockFilled /> Hide msgs from unknown sender
+                    </SettingsLabel>
+                    <Switch
                         name="hideMessagesFromUnknownSenders"
-                        small
                         checked={settings.hideMessagesFromUnknownSenders}
                         handleToggle={handleUnknownSenderMsg}
                     />
-                </SwitchContainer>
-            </GeneralSettingsItem>
+                </GeneralSettingsItem>
+            </Switches>
 
             {hasEnoughToken(
                 tokens,
@@ -1671,14 +1650,11 @@ const Configure = () => {
                             {' '}
                             <LockFilled /> ABSOLUTE MINIMUM fees
                         </SettingsLabel>
-                        <SwitchContainer>
-                            <CashtabSwitch
-                                name="settings-minFeeSends-switch"
-                                small
-                                checked={settings.minFeeSends}
-                                handleToggle={handleMinFeesToggle}
-                            />
-                        </SwitchContainer>
+                        <Switch
+                            name="settings-minFeeSends-switch"
+                            checked={settings.minFeeSends}
+                            handleToggle={handleMinFeesToggle}
+                        />
                     </GeneralSettingsItem>
                 </>
             )}
