@@ -37,7 +37,7 @@ import {
     getMaxMintAmount,
 } from 'slpv1';
 import { sendXec } from 'transactions';
-import { hasEnoughToken } from 'wallet';
+import { hasEnoughToken, decimalizeTokenAmount } from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
 import {
@@ -158,11 +158,11 @@ const SendToken = () => {
                       tokenTicker: 'UNCACHED',
                       decimals: 0,
                   },
-                  genesisSupply: 0,
+                  genesisSupply: '0',
                   genesisMintBatons: 0,
               };
 
-    const { genesisInfo, genesisSupply, genesisMintBatons } = cachedInfo;
+    const { genesisInfo, genesisSupply } = cachedInfo;
     const { tokenName, tokenTicker, url, decimals } = genesisInfo;
 
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
@@ -179,6 +179,14 @@ const SendToken = () => {
     const [showAirdrop, setShowAirdrop] = useState(false);
     const [showMint, setShowMint] = useState(false);
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
+    const defaultUncachedTokenInfo = {
+        circulatingSupply: null,
+        mintBatons: null,
+    };
+    const [uncachedTokenInfo, setUncachedTokenInfo] = useState(
+        defaultUncachedTokenInfo,
+    );
+    const [uncachedTokenInfoError, setUncachedTokenInfoError] = useState(false);
 
     // Check if the user has mint batons for this token
     // If they don't, disable the mint switch and label why
@@ -199,6 +207,37 @@ const SendToken = () => {
     const [formData, setFormData] = useState(emptyFormData);
 
     const userLocale = getUserLocale(navigator);
+
+    const getUncachedTokenInfo = async () => {
+        let tokenUtxos;
+        try {
+            tokenUtxos = await chronik.tokenId(tokenId).utxos();
+            let undecimalizedBigIntCirculatingSupply = 0n;
+            let mintBatons = 0;
+            for (const utxo of tokenUtxos.utxos) {
+                const { token } = utxo;
+                const { amount, isMintBaton } = token;
+                undecimalizedBigIntCirculatingSupply += BigInt(amount);
+                if (isMintBaton) {
+                    mintBatons += 1;
+                }
+            }
+            const circulatingSupply = decimalizeTokenAmount(
+                undecimalizedBigIntCirculatingSupply.toString(),
+                decimals,
+            );
+
+            setUncachedTokenInfo({ circulatingSupply, mintBatons });
+        } catch (err) {
+            console.error(`Error in chronik.tokenId(${tokenId}).utxos()`, err);
+            setUncachedTokenInfoError(true);
+        }
+    };
+
+    useEffect(() => {
+        // Get token info that is not practical to cache as it is subject to change
+        getUncachedTokenInfo();
+    }, []);
 
     useEffect(() => {
         if (
@@ -745,9 +784,20 @@ const SendToken = () => {
                                 <TokenStatsTableRow>
                                     <TokenStatsLabel>Supply:</TokenStatsLabel>
                                     <TokenStatsCol>
-                                        {genesisMintBatons === 0
-                                            ? 'Fixed'
-                                            : 'Variable'}
+                                        {typeof uncachedTokenInfo.circulatingSupply ===
+                                        'string'
+                                            ? `${decimalizedTokenQtyToLocaleFormat(
+                                                  uncachedTokenInfo.circulatingSupply,
+                                                  userLocale,
+                                              )}${
+                                                  uncachedTokenInfo.mintBatons ===
+                                                  0
+                                                      ? ' (fixed)'
+                                                      : ' (var.)'
+                                              }`
+                                            : uncachedTokenInfoError
+                                            ? 'Error fetching supply'
+                                            : 'Loading...'}
                                     </TokenStatsCol>
                                 </TokenStatsTableRow>
                             </TokenStatsCol>
