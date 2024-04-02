@@ -233,6 +233,10 @@ struct CConnmanTest : public CConnman {
 
         return ret;
     }
+
+    bool AlreadyConnectedToAddress(const CAddress &addr) {
+        return CConnman::AlreadyConnectedToAddress(addr);
+    }
 };
 } // namespace
 
@@ -1369,6 +1373,32 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
     // "timedata_tests/addtimedata". Thus reset that state as it was before our
     // test was run.
     TestOnlyResetTimeData();
+}
+
+BOOST_AUTO_TEST_CASE(already_connected_to_address) {
+    CConnmanTest connman(GetConfig(), 0x1337, 0x1337, *m_node.addrman);
+
+    CNetAddr ip1 = ip(GetRand<uint32_t>());
+    CNetAddr ip2 = ip(GetRand<uint32_t>());
+    BOOST_CHECK_NE(ip1.ToStringIP(), ip2.ToStringIP());
+
+    CAddress ip1port1{{ip1, 2001}, NODE_NETWORK};
+    CAddress ip1port2{{ip1, 2002}, NODE_NETWORK};
+    CAddress ip2port1{{ip2, 2001}, NODE_NETWORK};
+
+    BOOST_CHECK(!connman.AlreadyConnectedToAddress(ip1port1));
+    connman.AddNode(ip1port1, ConnectionType::OUTBOUND_FULL_RELAY);
+    BOOST_CHECK(connman.AlreadyConnectedToAddress(ip1port1));
+
+    // Different IP, same port
+    BOOST_CHECK(!connman.AlreadyConnectedToAddress(ip2port1));
+    connman.AddNode(ip2port1, ConnectionType::OUTBOUND_FULL_RELAY);
+    BOOST_CHECK(connman.AlreadyConnectedToAddress(ip2port1));
+
+    // Same IP, different port
+    BOOST_CHECK(!connman.AlreadyConnectedToAddress(ip1port2));
+    connman.AddNode(ip1port2, ConnectionType::OUTBOUND_FULL_RELAY);
+    BOOST_CHECK(connman.AlreadyConnectedToAddress(ip1port2));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
