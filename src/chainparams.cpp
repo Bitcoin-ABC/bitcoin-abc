@@ -142,6 +142,9 @@ public:
         // May 15, 2024 12:00:00 UTC protocol upgrade
         consensus.leeKuanYewActivationTime = 1715774400;
 
+        // Nov 15, 2024 12:00:00 UTC protocol upgrade
+        consensus.augustoActivationTime = 1731672000;
+
         /**
          * The message start string is designed to be unlikely to occur in
          * normal data. The characters are rarely used upper ASCII, not valid as
@@ -294,6 +297,9 @@ public:
         // May 15, 2024 12:00:00 UTC protocol upgrade
         consensus.leeKuanYewActivationTime = 1715774400;
 
+        // Nov 15, 2024 12:00:00 UTC protocol upgrade
+        consensus.augustoActivationTime = 1731672000;
+
         diskMagic[0] = 0x0b;
         diskMagic[1] = 0x11;
         diskMagic[2] = 0x09;
@@ -427,6 +433,9 @@ public:
 
         // May 15, 2024 12:00:00 UTC protocol upgrade
         consensus.leeKuanYewActivationTime = 1715774400;
+
+        // Nov 15, 2024 12:00:00 UTC protocol upgrade
+        consensus.augustoActivationTime = 1731672000;
 
         diskMagic[0] = 0xfa;
         diskMagic[1] = 0xbf;

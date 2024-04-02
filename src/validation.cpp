@@ -189,7 +189,7 @@ bool CheckSequenceLocksAtTip(CBlockIndex *tip, const CCoinsView &coins_view,
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
                                       int64_t nMedianTimePast) {
     return nMedianTimePast >= gArgs.GetIntArg("-replayprotectionactivationtime",
-                                              params.leeKuanYewActivationTime);
+                                              params.augustoActivationTime);
 }
 
 static bool IsReplayProtectionEnabled(const Consensus::Params &params,
