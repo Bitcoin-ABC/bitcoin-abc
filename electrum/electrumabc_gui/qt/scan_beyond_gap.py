@@ -73,6 +73,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
         )
         vbox.addWidget(label)
+
         vbox.addStretch(1)
         hbox = QtWidgets.QHBoxLayout()
         label = QtWidgets.QLabel(_("Number of addresses to scan:"))
@@ -90,15 +91,31 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         hbox.addWidget(self.which_cb)
         hbox.addStretch(1)
         vbox.addLayout(hbox)
+
+        self.always_add_addresses_cb = QtWidgets.QCheckBox(
+            _("Always add scanned addresses to the wallet")
+        )
+        self.always_add_addresses_cb.setToolTip(
+            _(
+                "Add the scanned addresses even if no new history is found. Leave this "
+                "unchecked if unsure, because subscribing to more addresses may "
+                "needlessly slow down your wallet."
+            )
+        )
+        vbox.addWidget(self.always_add_addresses_cb)
+
         self.prog = QtWidgets.QProgressBar()
         self.prog.setMinimum(0)
         self.prog.setMaximum(100)
         vbox.addWidget(self.prog)
+
         self.prog_label = QtWidgets.QLabel()
         vbox.addWidget(self.prog_label)
+
         self.found_label = QtWidgets.QLabel()
         vbox.addWidget(self.found_label)
         vbox.addStretch(1)
+
         self.cancel_but = QtWidgets.QPushButton(_("Cancel"))
         self.scan_but = QtWidgets.QPushButton(_("Start Scan"))
         vbox.addLayout(Buttons(self.cancel_but, self.scan_but))
@@ -107,7 +124,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         self.scan_but.clicked.connect(self.scan)
 
         self.thread = threading.Thread(target=self.scan_thread, daemon=True)
-        self._thread_args = (None,) * 2
+        self._thread_args = (None,) * 3
         self.stop_flag = False
         self.canceling = False
         self.stage2 = False
@@ -157,9 +174,11 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         self.which_cb.setDisabled(True)
         self.num_sb.setDisabled(True)
         self.found_label.setText("")
-        total = self.num_sb.value()
-        which = self.which_cb.currentIndex()
-        self._thread_args = (total, which)
+        self._thread_args = (
+            self.num_sb.value(),
+            self.which_cb.currentIndex(),
+            self.always_add_addresses_cb.isChecked(),
+        )
         self.thread.start()
 
     def progress_slot(self, pct, scanned, total, found):
@@ -240,8 +259,8 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
         )
 
     def scan_thread(self):
-        total, which = self._thread_args
-        assert total is not None and which is not None
+        total, which, always_add = self._thread_args
+        assert all(arg is not None for arg in self._thread_args)
         wallet = self.main_window.wallet
         network = wallet.network
         assert network
@@ -270,7 +289,8 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
                     )
                     if self.stop_flag:
                         return
-                    if self._addr_has_history(addr, network):
+                    has_history = self._addr_has_history(addr, network)
+                    if has_history:
                         self.print_error(
                             "FOUND:",
                             addr,
@@ -278,6 +298,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
                             n,
                         )
                         num_found += 1
+                    if has_history or always_add:
                         if is_change:
                             change_end = n
                         else:
@@ -286,7 +307,7 @@ class ScanBeyondGap(WindowModalDialog, PrintError):
                     self.progress_sig.emit(ct * 100 // total, ct, total, num_found)
                 i += 1
             num_added = 0
-            if num_found:
+            if num_found or (always_add and (recv_end or change_end)):
                 num_added = self._add_addresses(recv_end, change_end)
             self.done_sig.emit(num_found, num_added)
         except ServerError as e:
