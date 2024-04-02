@@ -44,6 +44,11 @@ const nextConfig = {
                 destination: '/brand',
                 permanent: true,
             },
+            {
+                source: '/developers',
+                destination: '/build',
+                permanent: true,
+            },
         ];
     },
     async headers() {

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Container, GradientSpacer } from '/components/atoms';
 import coinupdown from '/public/animations/coin-up-down.json';
 
-function Developers(props) {
+function Build(props) {
     return (
         <Layout>
             <SubPageHero
@@ -141,4 +141,4 @@ function Developers(props) {
     );
 }
 
-export default Developers;
+export default Build;

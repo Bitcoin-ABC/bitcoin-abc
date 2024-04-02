@@ -33,8 +33,8 @@ export const navitems = [
         ],
     },
     {
-        nav_item: 'Developers',
-        link: '/developers',
+        nav_item: 'Build on eCash',
+        link: '/build',
     },
     {
         nav_item: 'Technology',
