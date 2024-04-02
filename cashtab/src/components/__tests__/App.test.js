@@ -198,7 +198,7 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-send'));
 
         // Now we see the Send screen (we check by confirming presence of the send to many switch)
-        expect(screen.getByTestId('Send to many')).toBeInTheDocument();
+        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
 
         // Navigate to eTokens screen
         await user.click(screen.queryByTestId('nav-btn-etokens'));
@@ -434,14 +434,16 @@ describe('<App />', () => {
         // We do not see the send screen before clicking the button
         await waitFor(() =>
             expect(
-                screen.queryByTestId('Send to many'),
+                screen.queryByTestId('send-to-many-switch'),
             ).not.toBeInTheDocument(),
         );
 
         await user.click(screen.getByTestId('cashtab-msg-reply'));
 
         // Now we see the Send screen
-        expect(await screen.findByTestId('Send to many')).toBeInTheDocument();
+        expect(
+            await screen.findByTestId('send-to-many-switch'),
+        ).toBeInTheDocument();
 
         // The SendXec send address input is rendered and has expected value
         expect(screen.getByPlaceholderText('Address')).toHaveValue(
@@ -540,7 +542,7 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-send'));
 
         // Now we see the Send screen
-        expect(screen.getByTestId('Send to many')).toBeInTheDocument();
+        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
@@ -673,7 +675,7 @@ describe('<App />', () => {
         await user.click(screen.queryByTestId('nav-btn-send'));
 
         // Now we see the Send screen
-        expect(screen.getByTestId('Send to many')).toBeInTheDocument();
+        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(

@@ -73,7 +73,7 @@ const SwitchLabel = styled.div`
 const SwitchContainer = styled.div`
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     color: ${props => props.theme.forms.text};
     white-space: nowrap;
     margin: 12px 0;
@@ -805,7 +805,7 @@ const SendXec = () => {
 
             <SwitchContainer>
                 <Switch
-                    name="Send to many"
+                    name="send-to-many-switch"
                     on="Send to many"
                     off="Send to one"
                     width={150}

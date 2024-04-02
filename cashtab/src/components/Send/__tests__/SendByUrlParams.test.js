@@ -110,7 +110,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -184,7 +184,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -253,7 +253,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -322,7 +322,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -386,7 +386,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             false,
         );
@@ -450,7 +450,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             false,
         );
@@ -518,7 +518,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -591,7 +591,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -605,7 +605,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', true);
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -688,7 +688,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -702,7 +702,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', true);
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             true,
         );
@@ -770,7 +770,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
-        expect(screen.getByTestId('Send to many')).toHaveProperty(
+        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
             'disabled',
             false,
         );
