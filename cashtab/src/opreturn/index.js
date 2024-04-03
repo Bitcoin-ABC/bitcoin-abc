@@ -8,8 +8,9 @@ import { opReturn } from 'config/opreturn';
 import {
     isValidTokenId,
     meetsAliasSpec,
-    isValidOpreturnParam,
+    getOpReturnRawError,
 } from 'validation';
+import { getStackArray } from 'ecash-script';
 
 /**
  * Initialize an OP_RETURN script element in a way that utxolib.script.compile(script) accepts
@@ -73,6 +74,140 @@ export const getCashtabMsgByteCount = cashtabMsg => {
     // Cashtab msgs are utf8 encoded
     const cashtabMsgScript = Buffer.from(cashtabMsg, 'utf8');
     return cashtabMsgScript.length;
+};
+
+/**
+ * Parse an op_return_raw input according to known op_return specs
+ * The returned output is used to generate a preview of the tx on the SendXec screen
+ * @param {string} opReturnRaw
+ * @returns {object} {protocol: <protocolLabel>, data: <parsedData>}
+ */
+export const parseOpReturnRaw = opReturnRaw => {
+    // Intialize return data
+    const parsed = { protocol: 'Unknown Protocol', data: opReturnRaw };
+    // See if we can parse it with ecash-script
+    let stackArray;
+    try {
+        stackArray = getStackArray(
+            `${opReturn.opReturnPrefixHex}${opReturnRaw}`,
+        );
+    } catch (err) {
+        // Note that in Cashtab we only call parseOpReturnRaw if validation has already cleared this
+        throw new Error('Invalid OP_RETURN');
+    }
+    const firstPush = stackArray[0];
+
+    // Parse known protocol identifiers
+    switch (firstPush) {
+        case opReturn.appPrefixesHex.eToken:
+            parsed.protocol = 'SLP';
+            // Unless there is a reason in the future, do not fully parse all possible slp variations
+            return parsed;
+        case opReturn.appPrefixesHex.cashtab:
+            if (typeof stackArray[1] !== 'undefined') {
+                parsed.protocol = 'Cashtab Msg';
+                parsed.data = Buffer.from(stackArray[1], 'hex').toString(
+                    'utf8',
+                );
+            } else {
+                parsed.protocol = 'Invalid Cashtab Msg';
+            }
+            return parsed;
+        case opReturn.appPrefixesHex.cashtabEncrypted:
+            parsed.protocol = 'Encrypted Cashtab Msg';
+            return parsed;
+        case opReturn.appPrefixesHex.airdrop: {
+            let data = '';
+            if (typeof stackArray[1] !== 'undefined') {
+                parsed.protocol = 'Airdrop';
+                data = `Token ID: ${stackArray[1]}`;
+            }
+            if (typeof stackArray[2] !== 'undefined') {
+                data = `${data}\nMsg: ${Buffer.from(
+                    stackArray[2],
+                    'hex',
+                ).toString('utf8')}`;
+            }
+            if (data === '') {
+                parsed.protocol = 'Invalid Airdrop';
+                return parsed;
+            }
+            parsed.data = data;
+            return parsed;
+        }
+        case opReturn.appPrefixesHex.aliasRegistration: {
+            // Magic numbers per spec
+            // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/ecash-alias.md
+            if (
+                stackArray[1] === '00' &&
+                typeof stackArray[2] !== 'undefined' &&
+                typeof stackArray[3] !== 'undefined' &&
+                stackArray[3].length === 42
+            ) {
+                const addressTypeByte = stackArray[3].slice(0, 2);
+                let addressType;
+                if (addressTypeByte === '00') {
+                    addressType = 'p2pkh';
+                } else if (addressTypeByte === '08') {
+                    addressType = 'p2sh';
+                } else {
+                    parsed.protocol = 'Invalid Alias Registration';
+                    return parsed;
+                }
+
+                parsed.protocol = 'Alias Registration';
+                parsed.data = `${Buffer.from(stackArray[2], 'hex').toString(
+                    'utf8',
+                )} to ${cashaddr.encode(
+                    'ecash',
+                    addressType,
+                    stackArray[3].slice(1),
+                )}`;
+                return parsed;
+            }
+            parsed.protocol = 'Invalid Alias Registration';
+            return parsed;
+        }
+        case opReturn.appPrefixesHex.paybutton: {
+            // Spec https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
+            if (
+                stackArray[1] === '00' &&
+                typeof stackArray[2] !== 'undefined' &&
+                typeof stackArray[3] !== 'undefined'
+            ) {
+                parsed.protocol = 'PayButton';
+                const dataPush =
+                    stackArray[2] === '00'
+                        ? ''
+                        : Buffer.from(stackArray[2], 'hex').toString('utf8');
+                const noncePush = stackArray[3] === '00' ? '' : stackArray[3];
+                parsed.data = `${
+                    dataPush !== ''
+                        ? `Data: ${dataPush}${noncePush !== '' ? ', ' : ''}`
+                        : ''
+                }${noncePush !== '' ? `Nonce: ${noncePush}` : ''}`;
+                return parsed;
+            }
+            parsed.protocol = 'Invalid PayButton';
+            parsed.data = opReturnRaw;
+            return parsed;
+        }
+        case opReturn.appPrefixesHex.eCashChat: {
+            // Same spec as a Cashtab msg, different prefix
+            if (typeof stackArray[1] !== 'undefined') {
+                parsed.protocol = 'eCash Chat';
+                parsed.data = Buffer.from(stackArray[1], 'hex').toString(
+                    'utf8',
+                );
+            } else {
+                parsed.protocol = 'Invalid eCash Chat';
+            }
+            return parsed;
+        }
+        default: {
+            return parsed;
+        }
+    }
 };
 
 /**
@@ -214,7 +349,7 @@ export const getAliasByteCount = alias => {
  * @returns {object} targetOutput, e.g. {value: 0, script: <encoded opparam>}
  */
 export const getOpreturnParamTargetOutput = opreturnParam => {
-    if (!isValidOpreturnParam(opreturnParam)) {
+    if (getOpReturnRawError(opreturnParam) !== false) {
         throw new Error(`Invalid opreturnParam "${opreturnParam}"`);
     }
 

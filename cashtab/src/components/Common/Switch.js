@@ -33,12 +33,8 @@ const SwitchInner = styled.span`
         content: attr(data-on);
         ${props =>
             props.bgImageOn
-                ? `background: ${
-                      props.disabled ? '#ccc' : props.theme.eCashBlue
-                  } url(${props.bgImageOn}) 20%/contain no-repeat`
-                : `background-color: ${
-                      props.disabled ? '#ccc' : props.theme.eCashBlue
-                  }`};
+                ? `background: ${props.theme.eCashBlue} url(${props.bgImageOn}) 20%/contain no-repeat`
+                : `background-color: ${props.theme.eCashBlue}`};
         text-transform: uppercase;
         padding-left: 10px;
         color: #fff;
@@ -132,7 +128,6 @@ export const CashtabSwitch = ({
                         bgImageOn={bgImageOn}
                         bgImageOff={bgImageOff}
                         bgColorOff={bgColorOff}
-                        disabled={disabled}
                         small={small}
                     ></SwitchInner>
                     <SwitchItself right={right} small={small}></SwitchItself>

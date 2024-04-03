@@ -37,6 +37,7 @@ const InputRow = styled.div`
 `;
 
 const CashtabInput = styled.input`
+    ${props => props.disabled && `cursor: not-allowed`};
     background-color: ${props => props.theme.forms.selectionBackground};
     font-size: 18px;
     padding: 16px 12px;
@@ -66,7 +67,23 @@ const CashtabTextArea = styled.textarea`
     :focus-visible {
         outline: none;
     }
-    height: 142px;
+    height: ${props => props.height}px;
+    resize: none;
+    ${props => props.disabled && `cursor: not-allowed`};
+    &::-webkit-scrollbar {
+        width: 12px;
+    }
+    &::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        background-color: ${props => props.theme.eCashBlue};
+        border-radius: 10px;
+        height: 80%;
+    }
+    &::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        color: ${props => props.theme.eCashBlue};
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+    }
 `;
 
 const LeftInput = styled(CashtabInput)`
@@ -193,7 +210,7 @@ const CountHolder = styled.div`
 `;
 const CountAndErrorFlex = styled.div`
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
 `;
 const TextAreaErrorMsg = styled.div`
@@ -207,6 +224,8 @@ export const TextArea = ({
     name = '',
     value = '',
     handleInput,
+    disabled = false,
+    height = 142,
     error = false,
     showCount = false,
     customCount = false,
@@ -218,6 +237,8 @@ export const TextArea = ({
                 placeholder={placeholder}
                 name={name}
                 value={value}
+                height={height}
+                disabled={disabled}
                 onChange={e => handleInput(e)}
             />
             <CountAndErrorFlex>
@@ -242,6 +263,8 @@ TextArea.propTypes = {
     name: PropTypes.string,
     value: PropTypes.string,
     handleInput: PropTypes.func,
+    disabled: PropTypes.bool,
+    height: PropTypes.number,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     showCount: PropTypes.bool,
     customCount: PropTypes.number,
@@ -335,7 +358,7 @@ export const SendXecInput = ({
                 <OnMaxBtn
                     onClick={handleOnMax}
                     // Disable the onMax button if the user has fiat selected
-                    disabled={selectValue !== appConfig.ticker}
+                    disabled={selectValue !== appConfig.ticker || inputDisabled}
                 >
                     max
                 </OnMaxBtn>

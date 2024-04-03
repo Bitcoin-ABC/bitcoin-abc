@@ -28,15 +28,6 @@ export const TxLink = styled.a`
     color: ${props => props.theme.primary};
 `;
 
-export const FormLabel = styled.label`
-    font-size: 16px;
-    margin-bottom: 5px;
-    text-align: left;
-    width: 100%;
-    display: inline-block;
-    color: ${props => props.theme.contrast};
-`;
-
 export const WalletInfoCtn = styled.div`
     background: ${props => props.theme.walletInfoContainer};
     padding: 12px 20px;

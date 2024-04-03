@@ -17,13 +17,9 @@ import {
     shouldSendXecBeDisabled,
     parseAddressInput,
     isValidXecSendAmount,
+    getOpReturnRawError,
 } from 'validation';
-import {
-    ConvertAmount,
-    AlertMsg,
-    FormLabel,
-    TxLink,
-} from 'components/Common/Atoms';
+import { ConvertAmount, AlertMsg, TxLink } from 'components/Common/Atoms';
 import { getWalletState } from 'utils/cashMethods';
 import {
     sendXec,
@@ -35,6 +31,7 @@ import {
     getAirdropTargetOutput,
     getCashtabMsgByteCount,
     getOpreturnParamTargetOutput,
+    parseOpReturnRaw,
 } from 'opreturn';
 import ApiError from 'components/Common/ApiError';
 import { formatFiatBalance, formatBalance } from 'utils/formatting';
@@ -54,8 +51,10 @@ import {
     TextArea,
 } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
+import { opReturn } from 'config/opreturn';
 
 const SendXecForm = styled.div`
+    margin: 12px 0;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -104,6 +103,23 @@ const AmountPreviewCtn = styled.div`
     flex-direction: column;
     justify-content: center;
 `;
+const ParsedOpReturnRawRow = styled.div`
+    display: flex;
+    flex-direction: column;
+    word-break: break-word;
+`;
+const ParsedOpReturnRawLabel = styled.div`
+    color: ${props => props.theme.contrast};
+    text-align: left;
+    width: 100%;
+`;
+const ParsedOpReturnRaw = styled.div`
+    background-color: #fff2f0;
+    border-radius: 12px;
+    color: ${props => props.theme.eCashBlue};
+    padding: 12px;
+    text-align: left;
+`;
 
 const LocaleFormattedValue = styled.div`
     color: ${props => props.theme.contrast};
@@ -114,6 +130,15 @@ const LocaleFormattedValue = styled.div`
 
 const SendToOneHolder = styled.div``;
 const SendToManyHolder = styled.div``;
+const SendToOneInputForm = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+const InputAndAliasPreviewHolder = styled.div`
+    displaly: flex;
+    flex-direction: column;
+`;
 
 const InputModesHolder = styled.div`
     min-height: 9rem;
@@ -139,15 +164,6 @@ const InputModesHolder = styled.div`
     }
 `;
 
-const AmountSetByBip21Alert = styled.span`
-    color: ${props => props.theme.eCashPurple};
-`;
-const OpReturnRawSetByBip21Alert = styled.div`
-    color: ${props => props.theme.eCashPurple};
-    padding: 12px;
-    overflow-wrap: break-word;
-`;
-
 const SendXec = () => {
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
@@ -164,6 +180,12 @@ const SendXec = () => {
     );
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     const [sendWithCashtabMsg, setSendWithCashtabMsg] = useState(false);
+    const [sendWithOpReturnRaw, setSendWithOpReturnRaw] = useState(false);
+    const [opReturnRawError, setOpReturnRawError] = useState(false);
+    const [parsedOpReturnRaw, setParsedOpReturnRaw] = useState({
+        protocol: '',
+        data: '',
+    });
 
     // Load with QR code open if device is mobile
     const openWithScanner =
@@ -175,6 +197,7 @@ const SendXec = () => {
         multiAddressInput: '',
         airdropTokenId: '',
         cashtabMsg: '',
+        opReturnRaw: '',
     };
 
     const [formData, setFormData] = useState(emptyFormData);
@@ -427,14 +450,9 @@ const SendXec = () => {
         } else if (sendWithCashtabMsg && formData.cashtabMsg !== '') {
             // Send this tx with a Cashtab msg if the user has the switch enabled and the input field is not empty
             targetOutputs.push(getCashtabMsgTargetOutput(formData.cashtabMsg));
-        } else if (
-            'op_return_raw' in parsedAddressInput &&
-            parsedAddressInput.op_return_raw.error === false
-        ) {
+        } else if (formData.opReturnRaw !== '' && opReturnRawError === false) {
             targetOutputs.push(
-                getOpreturnParamTargetOutput(
-                    parsedAddressInput.op_return_raw.value,
-                ),
+                getOpreturnParamTargetOutput(formData.opReturnRaw),
             );
         }
 
@@ -583,6 +601,19 @@ const SendXec = () => {
             handleAmountChange(amountObj);
         }
 
+        // Set op_return_raw if it's in the query string
+        if ('op_return_raw' in parsedAddressInput) {
+            // Turn on sendWithOpReturnRaw
+            setSendWithOpReturnRaw(true);
+            // Update the op_return_raw field and trigger its validation
+            handleOpReturnRawInput({
+                target: {
+                    name: 'opReturnRaw',
+                    value: parsedAddressInput.op_return_raw.value,
+                },
+            });
+        }
+
         // Set address field to user input
         setFormData(p => ({
             ...p,
@@ -639,6 +670,23 @@ const SendXec = () => {
             ...p,
             [name]: value,
         }));
+    };
+
+    const handleOpReturnRawInput = e => {
+        const { name, value } = e.target;
+        // Validate input
+        const error = getOpReturnRawError(value);
+        setOpReturnRawError(error);
+        // Update formdata
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+        // Update parsedOpReturn if we have no opReturnRawError
+        if (error === false) {
+            // Need to gate this for no error as parseOpReturnRaw expects a validated op_return_raw
+            setParsedOpReturnRaw(parseOpReturnRaw(value));
+        }
     };
 
     const handleCashtabMsgChange = e => {
@@ -773,6 +821,8 @@ const SendXec = () => {
         multiSendAddressError,
         sendWithCashtabMsg,
         cashtabMsgError,
+        sendWithOpReturnRaw,
+        opReturnRawError,
         priceApiError,
         isOneToManyXECSend,
     );
@@ -821,64 +871,59 @@ const SendXec = () => {
             </SwitchContainer>
             <InputModesHolder open={isOneToManyXECSend}>
                 <SendToOneHolder>
-                    <InputWithScanner
-                        placeholder={
-                            aliasSettings.aliasEnabled
-                                ? `Address or Alias`
-                                : `Address`
-                        }
-                        name="address"
-                        value={formData.address}
-                        disabled={txInfoFromUrl !== false}
-                        handleInput={handleAddressChange}
-                        error={sendAddressError}
-                        loadWithScannerOpen={openWithScanner}
-                    />
-                    <AliasAddressPreviewLabel>
-                        <TxLink
-                            key={aliasInputAddress}
-                            data-testid="alias-address-preview"
-                            href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            {aliasInputAddress &&
-                                `${aliasInputAddress.slice(
-                                    0,
-                                    10,
-                                )}...${aliasInputAddress.slice(-5)}`}
-                        </TxLink>
-                    </AliasAddressPreviewLabel>
-                    <FormLabel>
-                        {'amount' in parsedAddressInput &&
-                            parsedAddressInput.amount.value !== null && (
-                                <AmountSetByBip21Alert data-testid="bip-alert">
-                                    {' '}
-                                    (set by BIP21 query string)
-                                </AmountSetByBip21Alert>
-                            )}
-                    </FormLabel>
-                    <SendXecInput
-                        name="amount"
-                        value={formData.amount}
-                        selectValue={selectedCurrency}
-                        selectDisabled={
-                            'amount' in parsedAddressInput || txInfoFromUrl
-                        }
-                        inputDisabled={
-                            priceApiError ||
-                            (txInfoFromUrl !== false &&
-                                'value' in txInfoFromUrl &&
-                                txInfoFromUrl.value !== 'null' &&
-                                txInfoFromUrl.value !== 'undefined') ||
-                            'amount' in parsedAddressInput
-                        }
-                        fiatCode={settings.fiatCurrency.toUpperCase()}
-                        error={sendAmountError}
-                        handleInput={handleAmountChange}
-                        handleSelect={handleSelectedCurrencyChange}
-                        handleOnMax={onMax}
-                    />
+                    <SendToOneInputForm>
+                        <InputAndAliasPreviewHolder>
+                            <InputWithScanner
+                                placeholder={
+                                    aliasSettings.aliasEnabled
+                                        ? `Address or Alias`
+                                        : `Address`
+                                }
+                                name="address"
+                                value={formData.address}
+                                disabled={txInfoFromUrl !== false}
+                                handleInput={handleAddressChange}
+                                error={sendAddressError}
+                                loadWithScannerOpen={openWithScanner}
+                            />
+                            <AliasAddressPreviewLabel>
+                                <TxLink
+                                    key={aliasInputAddress}
+                                    data-testid="alias-address-preview"
+                                    href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    {aliasInputAddress &&
+                                        `${aliasInputAddress.slice(
+                                            0,
+                                            10,
+                                        )}...${aliasInputAddress.slice(-5)}`}
+                                </TxLink>
+                            </AliasAddressPreviewLabel>
+                        </InputAndAliasPreviewHolder>
+                        <SendXecInput
+                            name="amount"
+                            value={formData.amount}
+                            selectValue={selectedCurrency}
+                            selectDisabled={
+                                'amount' in parsedAddressInput || txInfoFromUrl
+                            }
+                            inputDisabled={
+                                priceApiError ||
+                                (txInfoFromUrl !== false &&
+                                    'value' in txInfoFromUrl &&
+                                    txInfoFromUrl.value !== 'null' &&
+                                    txInfoFromUrl.value !== 'undefined') ||
+                                'amount' in parsedAddressInput
+                            }
+                            fiatCode={settings.fiatCurrency.toUpperCase()}
+                            error={sendAmountError}
+                            handleInput={handleAmountChange}
+                            handleSelect={handleSelectedCurrencyChange}
+                            handleOnMax={onMax}
+                        />
+                    </SendToOneInputForm>
                 </SendToOneHolder>
                 {priceApiError && (
                     <AlertMsg>
@@ -909,12 +954,18 @@ const SendXec = () => {
                             checked={sendWithCashtabMsg}
                             disabled={
                                 txInfoFromUrl ||
-                                'queryString' in parsedAddressInput ||
-                                'op_return_raw' in parsedAddressInput
+                                'queryString' in parsedAddressInput
                             }
-                            handleToggle={() =>
-                                setSendWithCashtabMsg(!sendWithCashtabMsg)
-                            }
+                            handleToggle={() => {
+                                // If we are sending a Cashtab msg, toggle off op_return_raw
+                                if (
+                                    !sendWithCashtabMsg &&
+                                    sendWithOpReturnRaw
+                                ) {
+                                    setSendWithOpReturnRaw(false);
+                                }
+                                setSendWithCashtabMsg(!sendWithCashtabMsg);
+                            }}
                         />
                         <SwitchLabel>Cashtab Msg</SwitchLabel>
                     </SwitchAndLabel>
@@ -923,6 +974,7 @@ const SendXec = () => {
                     <SendXecRow>
                         <TextArea
                             name="cashtabMsg"
+                            height={62}
                             placeholder={`Include a public Cashtab msg with this tx ${
                                 location &&
                                 location.state &&
@@ -954,6 +1006,64 @@ const SendXec = () => {
                         />
                     </SendXecRow>
                 )}
+                <SendXecRow>
+                    <SwitchAndLabel>
+                        <Switch
+                            name="opreturnraw-switch"
+                            checked={sendWithOpReturnRaw}
+                            disabled={
+                                txInfoFromUrl ||
+                                'queryString' in parsedAddressInput
+                            }
+                            handleToggle={() => {
+                                // If we are sending with op_return_raw, toggle off CashtabMsg
+                                if (
+                                    !sendWithOpReturnRaw &&
+                                    sendWithCashtabMsg
+                                ) {
+                                    setSendWithCashtabMsg(false);
+                                }
+                                setSendWithOpReturnRaw(!sendWithOpReturnRaw);
+                            }}
+                        />
+                        <SwitchLabel>op_return_raw</SwitchLabel>
+                    </SwitchAndLabel>
+                </SendXecRow>
+                {sendWithOpReturnRaw && (
+                    <>
+                        <SendXecRow>
+                            <TextArea
+                                name="opReturnRaw"
+                                height={62}
+                                placeholder={`(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`}
+                                value={formData.opReturnRaw}
+                                error={opReturnRawError}
+                                disabled={
+                                    txInfoFromUrl ||
+                                    'queryString' in parsedAddressInput
+                                }
+                                showCount
+                                max={2 * opReturn.opreturnParamByteLimit}
+                                handleInput={handleOpReturnRawInput}
+                            />
+                        </SendXecRow>
+                        {opReturnRawError === false &&
+                            formData.parsedOpReturnRaw !== '' && (
+                                <SendXecRow>
+                                    <ParsedOpReturnRawRow>
+                                        <ParsedOpReturnRawLabel>
+                                            Parsed op_return_raw
+                                        </ParsedOpReturnRawLabel>
+                                        <ParsedOpReturnRaw>
+                                            <b>{parsedOpReturnRaw.protocol}</b>
+                                            <br />
+                                            {parsedOpReturnRaw.data}
+                                        </ParsedOpReturnRaw>
+                                    </ParsedOpReturnRawRow>
+                                </SendXecRow>
+                            )}
+                    </>
+                )}
             </SendXecForm>
 
             <AmountPreviewCtn>
@@ -983,13 +1093,6 @@ const SendXec = () => {
                     </>
                 )}
             </AmountPreviewCtn>
-            {'op_return_raw' in parsedAddressInput && (
-                <OpReturnRawSetByBip21Alert data-testid="op-return-raw-set-alert">
-                    Hex OP_RETURN &quot;
-                    {parsedAddressInput.op_return_raw.value}
-                    &quot; set by BIP21
-                </OpReturnRawSetByBip21Alert>
-            )}
             <PrimaryButton
                 style={{ marginTop: '12px' }}
                 data-testid="send-it"

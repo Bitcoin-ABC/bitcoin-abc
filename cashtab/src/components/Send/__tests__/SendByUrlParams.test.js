@@ -130,11 +130,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // Wait for balance to be loaded
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
@@ -204,11 +199,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // The Send button is not disabled because we have a valid amount
         expect(
             await screen.findByRole('button', { name: /Send/ }),
@@ -272,11 +262,6 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
-
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
@@ -342,11 +327,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
@@ -403,11 +383,6 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The "Webapp Tx Request" notice is NOT rendered
         expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
-
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
@@ -467,11 +442,6 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The "Webapp Tx Request" notice is NOT rendered
         expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
-
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
@@ -538,11 +508,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // The Send button is not disabled because we have a valid amount
         expect(
             await screen.findByRole('button', { name: /Send/ }),
@@ -562,7 +527,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const amount = 17;
         const op_return_raw =
-            '04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
+            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
         // ?bip21=ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177
@@ -616,6 +581,16 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
 
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
@@ -625,6 +600,23 @@ describe('<SendXec /> rendered with params in URL', () => {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
 
+        // The op_return_raw switch is disabled because we have txInfoFromUrl
+        expect(screen.getByTestId('opreturnraw-switch')).toHaveProperty(
+            'disabled',
+            true,
+        );
+
+        // The op_return_raw switch is checked because it is set by txInfoFromUrl
+        expect(screen.getByTestId('opreturnraw-switch')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // We see the preview of this op_return_raw
+        expect(
+            screen.getByText('cashtab message with op_return_raw'),
+        ).toBeInTheDocument();
+
         // The Send button is enabled as we have valid address and amount params
         expect(
             await screen.findByRole('button', { name: /Send/ }),
@@ -633,24 +625,10 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
-        );
-
-        // The Bip21Alert op_return_raw span is rendered
-        const opReturnRawAlert = screen.getByTestId('op-return-raw-set-alert');
-        expect(opReturnRawAlert).toBeInTheDocument();
-
-        // Alert renders the set hex string
-        expect(opReturnRawAlert).toHaveTextContent(
-            `Hex OP_RETURN "${op_return_raw}" set by BIP21`,
         );
     });
     it('bip21 param - an invalid bip21 param shows validation errors but cannot be changed', async () => {
@@ -658,7 +636,7 @@ describe('<SendXec /> rendered with params in URL', () => {
             'ecash:qp33mh3a7qq7p8yulhnvwty2uq5ynukqcvuxmvzfhm';
         const amount = 17;
         const op_return_raw =
-            '04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
+            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
         // Repeat the op_return_raw param
         const bip21Str = `${destinationAddress}?amount=${amount}&op_return_raw=${op_return_raw}&op_return_raw=${op_return_raw}`;
         const hash = `#/send?bip21=${bip21Str}`;
@@ -715,10 +693,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // We get the expected validation error
         expect(
-            // Note that, due to antd quirks, we get 2 of these
-            screen.getAllByText(
-                'bip21 parameters may not appear more than once',
-            )[0],
+            screen.getByText('bip21 parameters may not appear more than once'),
         ).toBeInTheDocument();
 
         // The Send button is disabled
@@ -729,22 +704,11 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
-        // The Bip21Alert span is not rendered as no info about the tx is set for invalid bip21
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
         );
-
-        // The Bip21Alert op_return_raw span is not rendered as the bip21 query string is invalid
-        const opReturnRawAlert = screen.queryByTestId(
-            'op-return-raw-set-alert',
-        );
-        expect(opReturnRawAlert).not.toBeInTheDocument();
     });
     it('No params. Send screen loads normally with no rendered input.', async () => {
         const hash = `#/send`;
@@ -787,11 +751,6 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The "Webapp Tx Request" notice is NOT rendered
         expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
-
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // The Send button is disabled
         expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(

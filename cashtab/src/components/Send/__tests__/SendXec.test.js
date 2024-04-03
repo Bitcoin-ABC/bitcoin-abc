@@ -114,11 +114,6 @@ describe('<SendXec />', () => {
             false,
         );
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // The Send button is disabled
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
@@ -162,11 +157,6 @@ describe('<SendXec />', () => {
             'disabled',
             false,
         );
-
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
@@ -237,11 +227,6 @@ describe('<SendXec />', () => {
             false,
         );
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
 
@@ -301,11 +286,6 @@ describe('<SendXec />', () => {
             false,
         );
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
 
@@ -313,8 +293,7 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
-        expect(screen.getAllByText('Invalid address')[0]).toBeInTheDocument();
+        expect(screen.getByText('Invalid address')).toBeInTheDocument();
 
         // The Send button is disabled
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
@@ -350,11 +329,6 @@ describe('<SendXec />', () => {
             false,
         );
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
 
@@ -362,9 +336,8 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(`Aliases must end with '.xec'`)[0],
+            screen.getByText(`Aliases must end with '.xec'`),
         ).toBeInTheDocument();
 
         // The Send button is disabled
@@ -419,11 +392,6 @@ describe('<SendXec />', () => {
             false,
         );
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
 
@@ -431,11 +399,10 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(
+            screen.getByText(
                 `eCash Alias does not exist or yet to receive 1 confirmation`,
-            )[0],
+            ),
         ).toBeInTheDocument();
 
         // The Send button is disabled
@@ -483,11 +450,6 @@ describe('<SendXec />', () => {
             false,
         );
 
-        // The Bip21Alert span is not rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
-
         // Amount input is untouched
         expect(amountInputEl).toHaveValue(null);
 
@@ -495,11 +457,10 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(
+            screen.getByText(
                 `Error resolving alias at indexer, contact admin.`,
-            )[0],
+            ),
         ).toBeInTheDocument();
 
         // The Send button is disabled
@@ -556,11 +517,6 @@ describe('<SendXec />', () => {
         expect(screen.getByRole('button', { name: /Send/ })).not.toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
     });
     it('Pass a valid alias and bip21 query string with valid amount param to Send To field', async () => {
         // Mock the app with context at the Send screen
@@ -631,11 +587,6 @@ describe('<SendXec />', () => {
             'cursor: not-allowed',
         );
 
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
-
         // The alias address preview renders the expected address preview
         expect(
             screen.getByText(
@@ -677,20 +628,14 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(`Send amount must be at least 5.5 XEC`)[0],
+            screen.getByText(`Send amount must be at least 5.5 XEC`),
         ).toBeInTheDocument();
 
         // The Send button is disabled
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
 
         // The "Send to Many" switch is disabled
         expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
@@ -729,22 +674,16 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(
+            screen.getByText(
                 `Amount 1,000,000.00 XEC exceeds wallet balance of 9,513.12 XEC`,
-            )[0],
+            ),
         ).toBeInTheDocument();
 
         // The Send button is disabled
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
 
         // The "Send to Many" switch is disabled
         expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
@@ -804,22 +743,16 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', true);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(
+            screen.getByText(
                 `XEC transactions do not support more than 2 decimal places`,
-            )[0],
+            ),
         ).toBeInTheDocument();
 
         // The Send button is disabled
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
 
         // The "Send to Many" switch is disabled
         expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
@@ -874,20 +807,14 @@ describe('<SendXec />', () => {
         expect(amountInputEl).toHaveProperty('disabled', false);
 
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(`Unsupported param "notaparam"`)[0],
+            screen.getByText(`Unsupported param "notaparam"`),
         ).toBeInTheDocument();
 
         // The Send button is disabled
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The Bip21Alert span is NOT rendered
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // The Cashtab Msg switch is disabled because we have a querystring address input
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
@@ -912,8 +839,8 @@ describe('<SendXec />', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
-        const addressInput =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?op_return_raw=0401020304';
+        const op_return_raw = '0401020304';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
         // The 'Send To' input field has this address as a value
@@ -940,26 +867,26 @@ describe('<SendXec />', () => {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
 
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
         // The Send button is disabled because amount is not entered
         expect(screen.getByRole('button', { name: /Send/ })).toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The amount set by Bip21Alert span is NOT rendered as the amount is not set by bip21
-        expect(
-            screen.queryByText('(set by BIP21 query string)'),
-        ).not.toBeInTheDocument();
 
         // The Cashtab Msg switch is disabled because op_return_raw is set
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
         );
-
-        // The Bip21Alert op_return_raw span is rendered
-        expect(
-            screen.getByText(`Hex OP_RETURN "0401020304" set by BIP21`),
-        ).toBeInTheDocument();
     });
     it('Pass a valid address and bip21 query string with valid amount and op_return_raw params to Send To field', async () => {
         // Mock the app with context at the Send screen
@@ -978,8 +905,8 @@ describe('<SendXec />', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The user enters a valid BIP21 query string with a valid amount param
-        const addressInput =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=0401020304';
+        const op_return_raw = '0401020304';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
         // The 'Send To' input field has this address as a value
@@ -1006,26 +933,26 @@ describe('<SendXec />', () => {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
 
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
         // The Send button is enabled as we have valid address and amount params
         expect(screen.getByRole('button', { name: /Send/ })).not.toHaveStyle(
             'cursor: not-allowed',
         );
-
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
 
         // The Cashtab Msg switch is disabled because op_return_raw is set
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
         );
-
-        // The Bip21Alert op_return_raw span is rendered
-        expect(
-            screen.getByText(`Hex OP_RETURN "0401020304" set by BIP21`),
-        ).toBeInTheDocument();
     });
     it('Pass a valid address and bip21 query string with valid amount and invalid op_return_raw params to Send To field', async () => {
         // Mock the app with context at the Send screen
@@ -1043,9 +970,9 @@ describe('<SendXec />', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
-        // The user enters a valid BIP21 query string with a valid amount param
-        const addressInput =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=notahexstring';
+        // The user enters a valid BIP21 query string with a valid amount param and invalid op_return_raw
+        const op_return_raw = 'notahexstring';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=500&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
         // The 'Send To' input field has this address as a value
@@ -1063,12 +990,19 @@ describe('<SendXec />', () => {
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
 
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
         // We get expected addr validation error
-        // Due to antd quirks, we get multiple elements with this
         expect(
-            screen.getAllByText(
-                `Invalid op_return_raw param "notahexstring"`,
-            )[0],
+            screen.getByText('Input must be lowercase hex a-f 0-9.'),
         ).toBeInTheDocument();
 
         // The Send button is disabled as we have valid address and amount params
@@ -1076,21 +1010,11 @@ describe('<SendXec />', () => {
             'cursor: not-allowed',
         );
 
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because op_return_raw is set
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
         );
-
-        // The Bip21Alert op_return_raw span is rendered
-        expect(
-            screen.getByText(`Hex OP_RETURN "notahexstring" set by BIP21`),
-        ).toBeInTheDocument();
     });
     it('Clicking "Send" will send a valid tx with op_return_raw after entry of a valid address and bip21 query string with valid amount and op_return_raw params to Send To field', async () => {
         // Mock the app with context at the Send screen
@@ -1119,8 +1043,9 @@ describe('<SendXec />', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
-        const addressInput =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
+        const op_return_raw =
+            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
         // The 'Send To' input field has this address as a value
@@ -1141,6 +1066,21 @@ describe('<SendXec />', () => {
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
 
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
+        // We see expected data in the op_return_raw preview
+        expect(
+            screen.getByText('cashtab message with op_return_raw'),
+        ).toBeInTheDocument();
+
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
@@ -1155,23 +1095,11 @@ describe('<SendXec />', () => {
             'cursor: not-allowed',
         );
 
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because op_return_raw is set
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
         );
-
-        // The Bip21Alert op_return_raw span is rendered
-        expect(
-            screen.getByText(
-                `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
-            ),
-        ).toBeInTheDocument();
 
         // Click Send
         await user.click(
@@ -1347,8 +1275,9 @@ describe('<SendXec />', () => {
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
         // The user enters a valid BIP21 query string with a valid amount param
-        const addressInput =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177';
+        const op_return_raw =
+            '04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177';
+        const addressInput = `ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6?amount=17&op_return_raw=${op_return_raw}`;
         await user.type(addressInputEl, addressInput);
 
         // The 'Send To' input field has this address as a value
@@ -1369,6 +1298,16 @@ describe('<SendXec />', () => {
         // The amount input is disabled because it is set by a bip21 query string
         expect(amountInputEl).toHaveProperty('disabled', true);
 
+        const opReturnRawInput = screen.getByPlaceholderText(
+            `(Advanced) Enter raw hex to be included with this transaction's OP_RETURN`,
+        );
+
+        // The op_return_raw input is populated with this op_return_raw
+        expect(opReturnRawInput).toHaveValue(op_return_raw);
+
+        // The op_return_raw input is disabled
+        expect(opReturnRawInput).toHaveProperty('disabled', true);
+
         // No addr validation errors on load
         for (const addrErr of SEND_ADDRESS_VALIDATION_ERRORS) {
             expect(screen.queryByText(addrErr)).not.toBeInTheDocument();
@@ -1383,23 +1322,11 @@ describe('<SendXec />', () => {
             'cursor: not-allowed',
         );
 
-        // The Bip21Alert span is rendered
-        expect(
-            screen.getByText('(set by BIP21 query string)'),
-        ).toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because op_return_raw is set
         expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
             'disabled',
             true,
         );
-
-        // The Bip21Alert op_return_raw span is rendered
-        expect(
-            screen.getByText(
-                `Hex OP_RETURN "04007461622263617368746162206D6573736167652077697468206F705F72657475726E5F726177" set by BIP21`,
-            ),
-        ).toBeInTheDocument();
 
         // Click Send
         await user.click(

@@ -505,18 +505,47 @@ export const isValidMultiSendUserInput = (
     return true;
 };
 
+const VALID_LOWERCASE_HEX_REGEX = /^[a-f0-9]+$/;
 /**
- * Test a bip21 opreturn param for spec compliance
- * @param {string} opreturn
+ * Validate bip21 op_return_raw input
+ * @param {string} opReturnRaw user input (or webapp tx input) for bip21 op_return_raw
+ * @returns {boolean | string} true if valid, string error msg if not
+ */
+export const getOpReturnRawError = opReturnRaw => {
+    if (opReturnRaw === '') {
+        return 'Cashtab will not send an empty op_return_raw';
+    }
+    if (opReturnRaw.startsWith(opReturn.opReturnPrefixHex)) {
+        return `op_return_raw will have OP_RETURN (6a) prepended automatically`;
+    }
+    if (!VALID_LOWERCASE_HEX_REGEX.test(opReturnRaw)) {
+        return `Input must be lowercase hex a-f 0-9.`;
+    }
+    const BYTE_LENGTH_HEX = 2;
+    if (
+        opReturnRaw.length / BYTE_LENGTH_HEX >
+        opReturn.opreturnParamByteLimit
+    ) {
+        return `op_return_raw exceeds ${opReturn.opreturnParamByteLimit} bytes`;
+    }
+    if (opReturnRaw.length % BYTE_LENGTH_HEX !== 0) {
+        return `op_return_raw input must be in hex bytes. Length of input must be divisible by two.`;
+    }
+    if (!nodeWillAcceptOpReturnRaw(opReturnRaw)) {
+        return 'Invalid OP_RETURN';
+    }
+    // No error
+    return false;
+};
+
+/**
+ * Test a bip21 op_return_raw param to see if an eCash node will accept it
+ * @param {string} opReturnRaw
  * @returns {bool}
  */
-export const isValidOpreturnParam = testedParam => {
-    // Spec
-    // The param must contain a valid hex string for a valid `OP_RETURN` output,
-    // not beginning with the`OP_RETURN` `6a`.
-
+export const nodeWillAcceptOpReturnRaw = opReturnRaw => {
     try {
-        if (testedParam === '') {
+        if (opReturnRaw === '') {
             // No empty OP_RETURN for this param per ecash bip21 spec
             return false;
         }
@@ -524,7 +553,7 @@ export const isValidOpreturnParam = testedParam => {
         // Use validation from ecash-script library
         // Apply .toLowerCase() to support uppercase, lowercase, or mixed case input
         getStackArray(
-            `${opReturn.opReturnPrefixHex}${testedParam.toLowerCase()}`,
+            `${opReturn.opReturnPrefixHex}${opReturnRaw.toLowerCase()}`,
         );
 
         return true;
@@ -542,6 +571,8 @@ export const isValidOpreturnParam = testedParam => {
  * @param {false | string} sendAddressError
  * @param {boolean} sendWithCashtabMsg
  * @param {false | string} cashtabMsgError
+ * @param {boolean} sendWithOpReturnRaw
+ * @param {false | string} opReturnRawError
  * @param {boolean} priceApiError
  * @param {boolean} isOneToManyXECSend
  * @returns boolean
@@ -555,6 +586,8 @@ export const shouldSendXecBeDisabled = (
     multiSendAddressError,
     sendWithCashtabMsg,
     cashtabMsgError,
+    sendWithOpReturnRaw,
+    opReturnRawError,
     priceApiError,
     isOneToManyXECSend,
 ) => {
@@ -576,6 +609,8 @@ export const shouldSendXecBeDisabled = (
         sendAddressError !== false ||
         // Disabled if msg fails validation AND we are sending the msg
         (sendWithCashtabMsg && cashtabMsgError !== false) ||
+        // Disabled if op_return_raw fails validation AND we are sending with op_return_raw
+        (sendWithOpReturnRaw && opReturnRawError !== false) ||
         // Disabled if we do not have a fiat price AND the user is attempting to send fiat
         priceApiError ||
         // Disabled if send to many and we have a send to many validation error
@@ -699,9 +734,10 @@ export function parseAddressInput(
                     value: opreturnParam,
                     error: false,
                 };
-                if (!isValidOpreturnParam(opreturnParam)) {
-                    // opreturn must be valid
-                    parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param "${opreturnParam}"`;
+                const opReturnRawError = getOpReturnRawError(opreturnParam);
+                if (opReturnRawError !== false) {
+                    // If we have an invalid op_return_raw param, set error
+                    parsedAddressInput.op_return_raw.error = `Invalid op_return_raw param: ${opReturnRawError}`;
                 }
             }
         }
