@@ -1680,6 +1680,21 @@ module.exports = {
             } | ${miner}`,
         );
 
+        // Halving countdown
+        const HALVING_HEIGHT = 840000;
+        const blocksLeft = HALVING_HEIGHT - height;
+        if (blocksLeft > 0) {
+            // countdown
+            tgMsg.push(
+                `⏰ ${blocksLeft.toLocaleString()} block${
+                    blocksLeft !== 1 ? 's' : ''
+                } until eCash halving`,
+            );
+        }
+        if (height === HALVING_HEIGHT) {
+            tgMsg.push(`🎉🎉🎉 eCash block reward reduced by 50% 🎉🎉🎉`);
+        }
+
         // Staker
         // Staking rewards to <staker>
         if (staker) {
