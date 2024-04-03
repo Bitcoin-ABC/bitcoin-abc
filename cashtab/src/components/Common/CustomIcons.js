@@ -141,6 +141,9 @@ export const ThemedTrashcanOutlined = styled(Trashcan)`
 export const ThemedSignAndVerifyMsg = styled(Audit)`
     min-width: 24px;
 `;
+export const WalletIcon = styled(ThemedWalletOutlined)`
+    min-width: 24px;
+`;
 
 export const ThemedUserProfileIcon = styled(User)`
     height: 33px;

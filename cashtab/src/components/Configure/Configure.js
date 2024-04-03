@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useLocation, Link } from 'react-router-dom';
-import { Collapse, Form, Alert, Tooltip, Checkbox } from 'antd';
+import { Collapse, Form, Tooltip } from 'antd';
 import { Row, Col } from 'antd';
 import { LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
@@ -18,7 +18,6 @@ import PrimaryButton, {
     SecondaryButton,
 } from 'components/Common/PrimaryButton';
 import {
-    ThemedCopyOutlined,
     ThemedWalletOutlined,
     ThemedDollarOutlined,
     ThemedSettingOutlined,
@@ -29,7 +28,6 @@ import {
     ThemedCopySolid,
     ThemedTrashcanOutlined,
     ThemedEditOutlined,
-    WarningIcon,
     ThemedXIcon,
     ThemedFacebookIcon,
     ThemedGithubIcon,
@@ -59,7 +57,7 @@ import CustomModal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
 import { Input, ModalInput, InputFlex } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
-import Seed from 'components/Common/Seed';
+import { Info } from 'components/Common/Atoms';
 
 const { Panel } = Collapse;
 
@@ -375,26 +373,22 @@ const AWRow = styled.div`
 `;
 
 const StyledConfigure = styled.div`
+    margin: 12px 0;
     h2 {
         color: ${props => props.theme.contrast};
         font-size: 25px;
     }
     svg {
         fill: ${props => props.theme.eCashBlue};
-        
     }
     p {
         color: ${props => props.theme.darkBlue};
     }
-    .ant-alert {
-        color: ${props => props.theme.lightGrey}
-        font-size: 14px;
-    }
-    .ant-collapse-header{
-        .anticon{
+    .ant-collapse-header {
+        .anticon {
             flex: 1;
         }
-        .seedPhrase{ 
+        .seedPhrase {
             flex: 2;
         }
     }
@@ -463,8 +457,6 @@ const Configure = () => {
     const [walletDeleteConfirmationError, setWalletDeleteConfirmationError] =
         useState(false);
     const [seedInput, openSeedInput] = useState(false);
-    const [revealSeed, setRevealSeed] = useState(false);
-    const [showTranslationWarning, setShowTranslationWarning] = useState(false);
     const [savedWalletContactModal, setSavedWalletContactModal] =
         useState(false);
 
@@ -547,11 +539,6 @@ const Configure = () => {
     };
 
     useEffect(() => {
-        const detectedBrowserLang = navigator.language;
-        if (!detectedBrowserLang.includes('en-')) {
-            setShowTranslationWarning(true);
-        }
-
         handleContactListRouting();
     }, []);
 
@@ -1229,70 +1216,12 @@ const Configure = () => {
                     />
                 </CustomModal>
             )}
-            <h2>
-                <ThemedCopyOutlined /> Backup your wallet
-            </h2>
-            <Alert
-                style={{ marginBottom: '12px' }}
-                description="Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe."
-                type="warning"
-                showIcon
-            />
-            {showTranslationWarning && (
-                <Alert
-                    style={{ marginBottom: '12px' }}
-                    description="Please do not translate your seed phrase. Store your seed phrase in English. You must re-enter these exact English words to restore your wallet from seed."
-                    type="warning"
-                    showIcon
-                />
-            )}
-            {wallet && wallet.mnemonic && (
-                <StyledCollapse expandIconPosition="start">
-                    <Panel
-                        header={
-                            <div className="seedPhrase">
-                                Click to reveal seed phrase
-                            </div>
-                        }
-                    >
-                        <p
-                            className="notranslate"
-                            style={{ userSelect: 'text' }}
-                        >
-                            {
-                                <>
-                                    <WarningIcon />
-                                    <br />
-                                    <b>NEVER</b> share your seed phrase.
-                                    <br />
-                                    <b>DO NOT</b> enter it into 3rd party
-                                    websites.
-                                    <br />
-                                    <br />
-                                    <Checkbox
-                                        onChange={() => {
-                                            setRevealSeed(!revealSeed);
-                                        }}
-                                    >
-                                        I understand, show me my seed phrase.
-                                    </Checkbox>
-                                    <br />
-                                </>
-                            }
-                        </p>
-                        {wallet && wallet.mnemonic && revealSeed && (
-                            <CopyToClipboard
-                                data={wallet.mnemonic}
-                                showToast
-                                customMsg={'Copied seed phrase'}
-                            >
-                                <Seed mnemonic={wallet.mnemonic} />
-                            </CopyToClipboard>
-                        )}
-                    </Panel>
-                </StyledCollapse>
-            )}
-            <StyledSpacer />
+            <Info>
+                ℹ️ Backup wallet has moved
+                <br />
+                <br /> Go to the <Link to="/backup">Backup Wallet</Link> screen
+                to see your seed phrase
+            </Info>
             <h2>
                 <ThemedWalletOutlined /> Manage Wallets
             </h2>

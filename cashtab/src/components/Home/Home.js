@@ -10,6 +10,7 @@ import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import { getWalletState } from 'utils/cashMethods';
 import Receive from 'components/Receive/Receive';
+import { Alert } from 'components/Common/Atoms';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -113,13 +114,6 @@ export const AddrSwitchContainer = styled.div`
     padding: 6px 0 12px 0;
 `;
 
-const BackupWalletAlert = styled.div`
-    background-color: #fff2f0;
-    border-radius: 12px;
-    color: red;
-    padding: 12px;
-`;
-
 const Home = () => {
     const ContextValue = React.useContext(WalletContext);
     const { fiatPrice, apiError, cashtabState } = ContextValue;
@@ -145,7 +139,7 @@ const Home = () => {
                 />
                 {!hasHistory && (
                     <>
-                        <BackupWalletAlert>
+                        <Alert>
                             <p>
                                 <b>Backup your wallet</b>
                             </p>
@@ -154,7 +148,7 @@ const Home = () => {
                                 safe place.{' '}
                                 <em>Do not share your backup with anyone.</em>
                             </p>
-                        </BackupWalletAlert>
+                        </Alert>
                         <Receive />
                     </>
                 )}

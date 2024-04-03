@@ -74,3 +74,16 @@ export const SwitchLabel = styled.div`
     color: ${props => props.theme.contrast};
     font-size: 18px;
 `;
+
+export const Alert = styled.div`
+    background-color: #fff2f0;
+    border-radius: 12px;
+    color: red;
+    padding: 12px;
+`;
+export const Info = styled.div`
+    background-color: #fff2f0;
+    border-radius: 12px;
+    color: ${props => props.theme.eCashBlue};
+    padding: 12px;
+`;

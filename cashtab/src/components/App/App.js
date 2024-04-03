@@ -11,6 +11,7 @@ import {
     ReceiveIcon,
     SettingsIcon,
     AirdropIcon,
+    WalletIcon,
     ThemedSignAndVerifyMsg,
     ThemedUserProfileIcon,
     SwapIcon,
@@ -24,6 +25,7 @@ import CreateToken from 'components/Etokens/CreateToken';
 import SendXec from 'components/Send/SendXec';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
+import BackupWallet from 'components/BackupWallet/BackupWallet';
 import Alias from 'components/Alias/Alias';
 import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
@@ -555,6 +557,13 @@ const App = () => {
                                                         </NavHeader>
                                                     )}
                                                     {selectedKey ===
+                                                        'backup' && (
+                                                        <NavHeader>
+                                                            Wallet Backup
+                                                            <WalletIcon />
+                                                        </NavHeader>
+                                                    )}
+                                                    {selectedKey ===
                                                         'configure' && (
                                                         <NavHeader>
                                                             Settings
@@ -656,6 +665,12 @@ const App = () => {
                                                                     setSpinner
                                                                 }
                                                             />
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path="/backup"
+                                                        element={
+                                                            <BackupWallet />
                                                         }
                                                     />
 
@@ -760,6 +775,15 @@ const App = () => {
                                         data-testid="hamburger-menu"
                                         open={navMenuClicked}
                                     >
+                                        <NavItem
+                                            data-testid="nav-btn-backup"
+                                            active={selectedKey === 'backup'}
+                                            onClick={() => navigate('/backup')}
+                                        >
+                                            {' '}
+                                            <p>Wallet Backup</p>
+                                            <WalletIcon />
+                                        </NavItem>
                                         <NavItem
                                             data-testid="nav-btn-airdrop"
                                             active={selectedKey === 'airdrop'}

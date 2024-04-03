@@ -259,6 +259,16 @@ describe('<App />', () => {
 
         // Now we see the Settings screen
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+
+        // Navigate to Backup screen
+        await user.click(screen.queryByTestId('nav-btn-backup'));
+
+        // Now we see the Backup screen
+        expect(
+            screen.getByText(
+                `ℹ️ Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe.`,
+            ),
+        ).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
