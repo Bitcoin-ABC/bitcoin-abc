@@ -1,5 +1,34 @@
 # Release notes
 
+## Release 5.2.12
+
+- Disable "Generate Key" button in the Delegation editor for non-HD and
+  watch-only wallets (D15013).
+- Improve the error message when the user cancels the password dialog in the
+  proof editor (D15040).
+- Support Trezor Safe 3 hardware wallets (D5197).
+- Drop support for the `bitcoincash:` cash-address prefix and fix support
+  for the `ectest:` prefix in testnet mode (D15245).
+- Drop support for python 3.8 (D15373).
+- Support parsing multi-output payment URIs (D15250).
+- Add a warning dialog when a large amount is entered in the Send tab via
+  a payment URIs, to prevent users from being one accidental click away
+  from sending eCash after clicking on a malicious URL (D15396).
+- Improve detection of the delegator key when building an Avalanche
+  Delegation from an Avalanche Proof (D15708).
+- Fix clearing of the wallet password when Avalanche widgets are closed
+  if the cached password is shared with a parent widget (D15700).
+- Fix fetching and caching of historical fiat exchange rates (D15841).
+- Add an option to always save new addresses when using the "Scan More
+  Addresses" tool, even if no transaction history is found for any scanned
+  address (D15849).
+
+Electron Cash backports:
+- Validate hosts and ports in the Network dialog widgets (D15195).
+- Bump docker version to Ubuntu 20.04 for AppImage building (D15522).
+- Bump python version to 3.11.8 for binary releases (D15527).
+
+
 ## Release 5.2.11
 
 - Show a single popup dialog with a progress bar when broadcasting multiple
