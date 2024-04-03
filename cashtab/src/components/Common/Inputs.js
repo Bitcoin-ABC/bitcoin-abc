@@ -245,7 +245,7 @@ TextArea.propTypes = {
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     showCount: PropTypes.bool,
     customCount: PropTypes.number,
-    max: PropTypes.string,
+    max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
 export const InputWithScanner = ({
@@ -391,7 +391,7 @@ SendTokenInput.propTypes = {
     name: PropTypes.string,
     placeholder: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    decimals: PropTypes.number,
+    decimals: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     inputDisabled: PropTypes.bool,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     handleInput: PropTypes.func,

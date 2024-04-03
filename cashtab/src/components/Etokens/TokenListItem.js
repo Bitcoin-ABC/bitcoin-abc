@@ -64,31 +64,28 @@ TokenListItem.propTypes = {
     ticker: PropTypes.string,
     balance: PropTypes.string,
     tokenId: PropTypes.string,
-    cachedTokenInfo: PropTypes.oneOfType([
-        undefined,
-        PropTypes.shape({
-            block: PropTypes.shape({
-                hash: PropTypes.string,
-                height: PropTypes.number,
-                timestamp: PropTypes.number,
-            }),
-            genesisInfo: PropTypes.shape({
-                decimals: PropTypes.number,
-                hash: PropTypes.string,
-                tokenName: PropTypes.string,
-                tokenTicker: PropTypes.string,
-                url: PropTypes.string,
-            }),
-            genesisMintBatons: PropTypes.number,
-            genesisOutputScripts: PropTypes.arrayOf(PropTypes.string),
-            timeFirstSeen: PropTypes.number,
-            tokenType: PropTypes.shape({
-                number: PropTypes.number,
-                protocol: PropTypes.string,
-                type: PropTypes.string,
-            }),
+    cachedTokenInfo: PropTypes.shape({
+        block: PropTypes.shape({
+            hash: PropTypes.string,
+            height: PropTypes.number,
+            timestamp: PropTypes.number,
         }),
-    ]),
+        genesisInfo: PropTypes.shape({
+            decimals: PropTypes.number,
+            hash: PropTypes.string,
+            tokenName: PropTypes.string,
+            tokenTicker: PropTypes.string,
+            url: PropTypes.string,
+        }),
+        genesisMintBatons: PropTypes.number,
+        genesisOutputScripts: PropTypes.arrayOf(PropTypes.string),
+        timeFirstSeen: PropTypes.number,
+        tokenType: PropTypes.shape({
+            number: PropTypes.number,
+            protocol: PropTypes.string,
+            type: PropTypes.string,
+        }),
+    }),
 };
 
 export default TokenListItem;
