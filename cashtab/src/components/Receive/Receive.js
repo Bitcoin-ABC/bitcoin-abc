@@ -6,7 +6,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import { QRCode } from 'components/Receive/QRCode';
-import useWindowDimensions from 'hooks/useWindowDimensions';
+import useWindowDimensions from 'components/Receive/useWindowDimensions';
 
 const QrCodeCtn = styled.div``;
 

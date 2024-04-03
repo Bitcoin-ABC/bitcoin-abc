@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import useWallet from '../useWallet';
+import useWallet from 'wallet/useWallet';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -11,7 +11,7 @@ import {
     nonDefaultContactList,
     nonDefaultCashtabCache,
     mockIncomingTokenTxDetails,
-} from 'hooks/fixtures/mocks';
+} from 'wallet/fixtures/mocks';
 import appConfig from 'config/app';
 import { when } from 'jest-when';
 import {

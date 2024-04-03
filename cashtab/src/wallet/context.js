@@ -4,7 +4,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import useWallet from 'hooks/useWallet';
+import useWallet from 'wallet/useWallet';
 
 export const WalletContext = React.createContext();
 

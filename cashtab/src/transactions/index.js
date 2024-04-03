@@ -45,7 +45,7 @@ export const signInputs = (txBuilder, paths, inputs) => {
  * Create and broadcast a standard eCash tx, i.e. from Cashtab to a p2pkh or p2sh destination address
  * No OP_RETURN, no etokens, one destination address
  * @param {object} chronik initialized instance of chronik-client
- * @param {object} wallet Cashtab object that stores wallet information, see hooks/useWallet.js
+ * @param {object} wallet Cashtab object that stores wallet information, see wallet/useWallet.js
  * @param {array} targetOutputs Array of objects containing keys for value and address, e.g. [{value: <satsToSend>, address: <destinationAddress>}]
  * @param {number} feeRate satoshis per byte
  * @param {number} chaintipBlockheight the current chaintip blockheight
