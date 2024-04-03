@@ -303,7 +303,9 @@ void Shutdown(NodeContext &node) {
     GetMainSignals().FlushBackgroundCallbacks();
 
 #if ENABLE_CHRONIK
-    chronik::Stop();
+    if (node.args->GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
+        chronik::Stop();
+    }
 #endif
 
     // Stop and delete all indexes only after flushing background callbacks.
