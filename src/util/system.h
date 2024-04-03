@@ -128,12 +128,10 @@ enum class OptionsCategory {
     COMMANDS,
     REGISTER_COMMANDS,
     AVALANCHE,
+    CHRONIK,
 
     // Always the last option to avoid printing these in the help
     HIDDEN,
-
-    // Hide Chronik for now
-    CHRONIK,
 };
 
 struct SectionInfo {
