@@ -15,7 +15,7 @@ import {
     validWalletJson,
     validWalletJsonMultiPath,
 } from 'validation/fixtures/mocks';
-import { walletWithXecAndTokens_pre_2_9_0 } from 'components/fixtures/mocks';
+import { walletWithXecAndTokens_pre_2_9_0 } from 'components/App/fixtures/mocks';
 import { toXec } from 'wallet';
 import { cashtabWalletFromJSON } from 'helpers';
 

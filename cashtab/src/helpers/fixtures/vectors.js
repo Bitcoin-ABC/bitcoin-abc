@@ -19,7 +19,7 @@ import {
     walletWithXecAndTokens_pre_2_9_0,
     validSavedWallets_pre_2_1_0,
     validSavedWallets_pre_2_9_0,
-} from 'components/fixtures/mocks';
+} from 'components/App/fixtures/mocks';
 import appConfig from 'config/app';
 // Test vectors for helper functions
 

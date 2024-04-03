@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { MockChronikClient } from '../../../../modules/mock-chronik-client';
+import { MockChronikClient } from '../../../../../modules/mock-chronik-client';
 import { CashtabSettings } from 'config/cashtabSettings';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON, cashtabWalletToJSON } from 'helpers';

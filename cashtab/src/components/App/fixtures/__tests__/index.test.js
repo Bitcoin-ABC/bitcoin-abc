@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import vectors from 'components/fixtures/vectors';
+import vectors from 'components/App/fixtures/vectors';
 import {
     initializeCashtabStateForTests,
     initializeCashtabStateAtLegacyWalletKeysForTests,
     clearLocalForage,
-} from 'components/fixtures/helpers';
+} from 'components/App/fixtures/helpers';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { chronik as chronikConfig } from 'config/chronik';

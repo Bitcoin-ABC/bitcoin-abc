@@ -8,7 +8,7 @@ import '@testing-library/jest-dom';
 import userEvent, {
     PointerEventsCheckLevel,
 } from '@testing-library/user-event';
-import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import {
     SEND_ADDRESS_VALIDATION_ERRORS,
     SEND_AMOUNT_VALIDATION_ERRORS,
@@ -22,8 +22,8 @@ import appConfig from 'config/app';
 import {
     initializeCashtabStateForTests,
     clearLocalForage,
-} from 'components/fixtures/helpers';
-import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+} from 'components/App/fixtures/helpers';
+import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { CashtabSettings } from 'config/cashtabSettings';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function

@@ -29,7 +29,7 @@ import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Swap from 'components/Swap/Swap';
-import NotFound from 'components/NotFound';
+import NotFound from 'components/App/NotFound';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
@@ -46,11 +46,11 @@ import {
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
 import { hasEnoughToken } from 'wallet';
-import ServiceWorkerWrapper from './Common/ServiceWorkerWrapper';
+import ServiceWorkerWrapper from 'components/Common/ServiceWorkerWrapper';
 import aliasSettings from 'config/alias';
-import WebApp from './AppModes/WebApp';
-import Extension from './AppModes/Extension';
-import ExtensionHeader from './Common/ExtensionHeader';
+import WebApp from 'components/AppModes/WebApp';
+import Extension from 'components/AppModes/Extension';
+import ExtensionHeader from 'components/Common/ExtensionHeader';
 import { WalletInfoCtn } from 'components/Common/Atoms';
 import WalletLabel from 'components/Common/WalletLabel.js';
 import BalanceHeader from 'components/Common/BalanceHeader';

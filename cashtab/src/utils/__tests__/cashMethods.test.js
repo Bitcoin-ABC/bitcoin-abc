@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { getHashArrayFromWallet, sumOneToManyXec } from 'utils/cashMethods';
-import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 
 it(`sumOneToManyXec() correctly parses the value for a valid one to many send XEC transaction`, () => {
     const destinationAddressAndValueArray = [

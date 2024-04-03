@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './components/App';
+import App from 'components/App/App';
 import { WalletProvider } from 'wallet/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from 'components/Common/GoogleAnalytics';

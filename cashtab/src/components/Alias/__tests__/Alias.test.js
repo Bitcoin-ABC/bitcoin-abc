@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import {
     aliasPricesResp,
     aliasAddressTwoRegisteredOnePending,
@@ -19,8 +19,8 @@ import aliasSettings from 'config/alias';
 import {
     initializeCashtabStateForTests,
     clearLocalForage,
-} from 'components/fixtures/helpers';
-import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+} from 'components/App/fixtures/helpers';
+import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import appConfig from 'config/app';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function

@@ -12,7 +12,7 @@ import {
     walletWithXecAndTokens,
     easterEggTokenChronikTokenDetails,
     easterEggTokenChronikGenesisTx,
-} from 'components/fixtures/mocks';
+} from 'components/App/fixtures/mocks';
 import {
     tokenUtxos,
     tokenUtxosDecimals,
@@ -26,8 +26,8 @@ import appConfig from 'config/app';
 import {
     initializeCashtabStateForTests,
     clearLocalForage,
-} from 'components/fixtures/helpers';
-import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+} from 'components/App/fixtures/helpers';
+import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {

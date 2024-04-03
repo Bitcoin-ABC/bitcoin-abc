@@ -17,7 +17,7 @@ import { when } from 'jest-when';
 import {
     clearLocalForage,
     initializeCashtabStateForTests,
-} from 'components/fixtures/helpers';
+} from 'components/App/fixtures/helpers';
 import aliasSettings from 'config/alias';
 import { cashtabCacheToJSON, storedCashtabCacheToMap } from 'helpers';
 import CashtabCache from 'config/CashtabCache';
@@ -25,7 +25,7 @@ import {
     walletWithXecAndTokens,
     mockCacheWalletWithXecAndTokens,
     mockCachedInfoCashtabDark,
-} from 'components/fixtures/mocks';
+} from 'components/App/fixtures/mocks';
 
 describe('useWallet hook rendering in different localforage states', () => {
     const xecPrice = 0.00003;

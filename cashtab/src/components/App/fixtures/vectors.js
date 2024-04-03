@@ -6,7 +6,7 @@ import {
     walletWithXecAndTokens_pre_2_1_0,
     walletWithXecAndTokens,
     validSavedWallets,
-} from 'components/fixtures/mocks';
+} from 'components/App/fixtures/mocks';
 
 export default {
     initializeCashtabStateAtLegacyWalletKeysForTests: {

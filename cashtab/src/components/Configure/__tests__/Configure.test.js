@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { walletWithXecAndTokens } from 'components/fixtures/mocks';
-import { populatedContactList } from '../fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { populatedContactList } from 'components/Configure/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent, {
     PointerEventsCheckLevel,
@@ -18,9 +18,9 @@ import {
     initializeCashtabStateForTests,
     prepareMockedChronikCallsForWallet,
     clearLocalForage,
-} from 'components/fixtures/helpers';
-import { validSavedWallets } from 'components/fixtures/mocks';
-import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+} from 'components/App/fixtures/helpers';
+import { validSavedWallets } from 'components/App/fixtures/mocks';
+import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import * as bip39 from 'bip39';
 import { cashtabWalletsFromJSON } from 'helpers';
 

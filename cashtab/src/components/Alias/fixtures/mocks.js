@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { walletWithXecAndTokens } from 'components/fixtures/mocks';
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 
 const defaultAddress = walletWithXecAndTokens.paths.get(1899).address;
 export const aliasAddressTwoRegisteredOnePending = {

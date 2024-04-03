@@ -20,7 +20,7 @@ import {
     validSavedWallets_pre_2_9_0,
     validSavedWallets,
     mockCacheWalletWithXecAndTokens,
-} from 'components/fixtures/mocks';
+} from 'components/App/fixtures/mocks';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { when } from 'jest-when';
@@ -30,8 +30,8 @@ import {
     initializeCashtabStateForTests,
     initializeCashtabStateAtLegacyWalletKeysForTests,
     prepareMockedChronikCallsForWallet,
-} from 'components/fixtures/helpers';
-import CashtabTestWrapper from 'components/fixtures/CashtabTestWrapper';
+} from 'components/App/fixtures/helpers';
+import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
 import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
 import {
