@@ -10,6 +10,7 @@ import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
 const latestVersion = `0.28.4`;
+const oldVersion = `0.27.15`;
 
 function Upgrade(props) {
     return (
@@ -92,14 +93,16 @@ function Upgrade(props) {
                     The process of upgrading your node is straightforward:
                     simply stop the currently running node, download the new
                     version, and start the new version. Here are some example
-                    instructions for upgrading from version 0.27.15 to version{' '}
-                    {latestVersion} on Linux:
+                    instructions for upgrading from version {oldVersion} to
+                    version {latestVersion} on Linux:
                 </p>
                 <ol>
                     <li>
                         Shut down the node:
                         <br />
-                        <code>./bitcoin-abc-0.27.15/bin/bitcoin-cli stop</code>
+                        <code>
+                            ./bitcoin-abc-{oldVersion}/bin/bitcoin-cli stop
+                        </code>
                     </li>
                     <li>
                         Download the new version archive from the website:{' '}
@@ -129,12 +132,12 @@ function Upgrade(props) {
                         Clean up old version and archives (optional):
                         <ul>
                             <li>
-                                <code>rm -rf bitcoin-abc-0.27.15</code>
+                                <code>rm -rf bitcoin-abc-{oldVersion}</code>
                             </li>
                             <li>
                                 <code>
-                                    rm -f
-                                    bitcoin-abc-0.27.15-x86_64-linux-gnu.tar.gz
+                                    rm -f bitcoin-abc-{oldVersion}
+                                    -x86_64-linux-gnu.tar.gz
                                 </code>
                             </li>
                             <li>
