@@ -27,17 +27,18 @@ Bitcoin ABC Release Process
 
 5. Increment version number for the next release in:
     - `CMakeLists.txt`
+    - `contrib/aur/bitcoin-abc/PKGBUILD` and `contrib/aur/bitcoin-abc-qt/PKGBUILD`
     - `contrib/seeds/makeseeds.py` (only after a new major release)
 
 ## Release
 
-6. Create Gitian Builds (see [gitian-building.md](/doc/gitian-building.md))
+6. Create GUIX Builds (see gui [README](/contrib/guix/README.md))
 
-7. Verify matching Gitian Builds, gather signatures
+7. Verify matching GUIX Builds, gather signatures
 
 8. Verify IBD both with and without `-checkpoints=0 -assumevalid=0`
 
-9. Upload Gitian Builds to [bitcoinabc.org](https://download.bitcoinabc.org/)
+9. Upload GUIX Builds to [bitcoinabc.org](https://download.bitcoinabc.org/)
 
 10. Create a [GitHub release](https://github.com/Bitcoin-ABC/bitcoin-abc/releases):
     `contrib/release/github-release.sh -a <path to release binaries> -t <release tag> -o <file containing your Github OAuth token>`
@@ -50,11 +51,9 @@ Bitcoin ABC Release Process
 
 ## After Release
 
-13. Publish signed checksums (various places, e.g. blog, reddit/r/BitcoinABC)
+13. Publish signed checksums
 
 14. Announce Release:
     - [Reddit](https://www.reddit.com/r/BitcoinABC/)
     - Twitter @Bitcoin_ABC
-    - Public slack channels friendly to Bitcoin ABC announcements
-      (eg. #abc-announce on BTCforks,  #hardfork on BTCchat)
-
+    - Telegram groups (like https://t.me/ecash)
