@@ -2413,9 +2413,9 @@ void CConnman::ThreadOpenConnections(
             if (conn_type == ConnectionType::AVALANCHE_OUTBOUND &&
                 !(addr.nServices & NODE_AVALANCHE)) {
                 // If this peer is not suitable as an avalanche one and we tried
-                // over 50 addresses already, see if we can fallback to a non
+                // over 20 addresses already, see if we can fallback to a non
                 // avalanche full outbound.
-                if (nTries < 50 ||
+                if (nTries < 20 ||
                     nOutboundFullRelay >= m_max_outbound_full_relay ||
                     setConnected.count(addr.GetGroup(addrman.GetAsmap()))) {
                     // Fallback is not desirable or possible, try another one
