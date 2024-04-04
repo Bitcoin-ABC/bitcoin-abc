@@ -35,6 +35,12 @@ import { toast } from 'react-toastify';
 import CashtabState from 'config/CashtabState';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
+import {
+    BlockNotification,
+    BlockNotificationLink,
+    BlockNotificationDesc,
+} from 'components/Common/Atoms';
+import { explorer } from 'config/explorer';
 
 const useWallet = chronik => {
     const [cashtabLoaded, setCashtabLoaded] = useState(false);
@@ -459,7 +465,12 @@ const useWallet = chronik => {
         // Set or update the onMessage handler
         // We can only set this when wallet is defined, so we do not set it in loadCashtabState
         ws.onMessage = msg => {
-            processChronikWsMsg(msg, cashtabState, fiatPrice);
+            processChronikWsMsg(
+                msg,
+                cashtabState,
+                fiatPrice,
+                aliasSettings.aliasEnabled,
+            );
         };
 
         // Check if current subscriptions match current wallet
@@ -509,7 +520,12 @@ const useWallet = chronik => {
     };
 
     // Parse chronik ws message for incoming tx notifications
-    const processChronikWsMsg = async (msg, cashtabState, fiatPrice) => {
+    const processChronikWsMsg = async (
+        msg,
+        cashtabState,
+        fiatPrice,
+        aliasesEnabled,
+    ) => {
         // get the message type
         const { msgType } = msg;
         // get cashtabState params from param, so you know they are the most recent
@@ -518,32 +534,63 @@ const useWallet = chronik => {
         // type === 'AddedToMempool' or 'BlockConnected'
         // Dev note: Other chronik msg types
         // "Confirmed", arrives as subscribed + seen txid is confirmed in a block
-        if (msgType !== 'TX_ADDED_TO_MEMPOOL' && msgType !== 'BLK_CONNECTED') {
+        if (msgType !== 'TX_ADDED_TO_MEMPOOL' && msgType !== 'BLK_FINALIZED') {
             return;
         }
 
         // when new blocks are found, refresh alias prices
-        if (msgType === 'BLK_CONNECTED') {
-            try {
-                const aliasPricesResp = await queryAliasServer('prices');
-                if (!aliasPricesResp || !aliasPricesResp.prices) {
-                    throw new Error(
-                        'Invalid response from alias prices endpoint',
-                    );
-                }
+        if (msgType === 'BLK_FINALIZED') {
+            // Halvening countdown
+            const { blockHeight, blockHash } = msg;
+            const HALVING_BLOCKHEIGHT = 840000;
+            const blocksRemaining = HALVING_BLOCKHEIGHT - blockHeight;
+            toast(
+                <BlockNotification>
+                    <BlockNotificationLink
+                        href={`${explorer.blockExplorerUrl}/block/${blockHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {`📦 ${blockHeight.toLocaleString()} finalized by Avalanche`}
+                    </BlockNotificationLink>
+                    {blocksRemaining > 0 && (
+                        <BlockNotificationDesc>
+                            ⏰ {blocksRemaining.toLocaleString()} blocks until
+                            eCash halving.
+                        </BlockNotificationDesc>
+                    )}
+                    {blocksRemaining === 0 && (
+                        <BlockNotificationDesc>
+                            🎉🎉🎉 eCash block reward reduced by 50% 🎉🎉🎉
+                        </BlockNotificationDesc>
+                    )}
+                </BlockNotification>,
+                { autoClose: blocksRemaining === 0 ? false : 5000 },
+            );
 
-                // Only refresh alias prices if new tiers have been published.
-                // The 'prices' API tracks historical pricing via an array of 'prices[].fees'.
-                // Therefore a pricing update can be identified as a length change to the 'prices' object.
-                if (
-                    aliasPrices &&
-                    aliasPrices.prices.length === aliasPricesResp.prices.length
-                ) {
-                    return;
+            if (aliasesEnabled) {
+                try {
+                    const aliasPricesResp = await queryAliasServer('prices');
+                    if (!aliasPricesResp || !aliasPricesResp.prices) {
+                        throw new Error(
+                            'Invalid response from alias prices endpoint',
+                        );
+                    }
+
+                    // Only refresh alias prices if new tiers have been published.
+                    // The 'prices' API tracks historical pricing via an array of 'prices[].fees'.
+                    // Therefore a pricing update can be identified as a length change to the 'prices' object.
+                    if (
+                        aliasPrices &&
+                        aliasPrices.prices.length ===
+                            aliasPricesResp.prices.length
+                    ) {
+                        return;
+                    }
+                    setAliasPrices(aliasPricesResp);
+                } catch (err) {
+                    setAliasServerError(err);
                 }
-                setAliasPrices(aliasPricesResp);
-            } catch (err) {
-                setAliasServerError(err);
             }
             return;
         }

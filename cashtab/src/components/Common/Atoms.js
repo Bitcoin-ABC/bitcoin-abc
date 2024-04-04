@@ -78,3 +78,19 @@ export const Info = styled.div`
     color: ${props => props.theme.eCashBlue};
     padding: 12px;
 `;
+export const BlockNotification = styled.div`
+    display: flex;
+    flex-direction: column;
+`;
+export const BlockNotificationLink = styled.a`
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    color: ${props => props.theme.walletBackground};
+    text-decoration: none;
+`;
+export const BlockNotificationDesc = styled.div`
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+`;

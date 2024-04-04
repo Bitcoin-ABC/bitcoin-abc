@@ -202,7 +202,12 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
+        const mockWebsocketMsg = {
+            msgType: 'BLK_FINALIZED',
+            blockHash:
+                '0000000000000000042ceefd8937bb1eb25764c4c5a157701fddbfb552f9803f',
+            blockHeight: 838989,
+        };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockAliasServerResponse = {
             note: 'alias-server is in beta and these prices are not finalized.',
@@ -256,6 +261,7 @@ describe('useWallet hook rendering in different localforage states', () => {
                 mockWebsocketMsg,
                 result.current.cashtabState,
                 result.current.fiatPrice,
+                true,
             );
         });
 
@@ -271,7 +277,12 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
+        const mockWebsocketMsg = {
+            msgType: 'BLK_FINALIZED',
+            blockHash:
+                '0000000000000000042ceefd8937bb1eb25764c4c5a157701fddbfb552f9803f',
+            blockHeight: 838989,
+        };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockExistingAliasPrices = {
             note: 'alias-server is in beta and these prices are not finalized.',
@@ -385,6 +396,7 @@ describe('useWallet hook rendering in different localforage states', () => {
                 mockWebsocketMsg,
                 result.current.cashtabState,
                 result.current.fiatPrice,
+                true,
             );
         });
 
@@ -398,7 +410,12 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
+        const mockWebsocketMsg = {
+            msgType: 'BLK_FINALIZED',
+            blockHash:
+                '0000000000000000042ceefd8937bb1eb25764c4c5a157701fddbfb552f9803f',
+            blockHeight: 838989,
+        };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const mockExistingAliasPrices = {
             note: 'alias-server is in beta and these prices are not finalized.',
@@ -543,6 +560,7 @@ describe('useWallet hook rendering in different localforage states', () => {
                 mockWebsocketMsg,
                 result.current.cashtabState,
                 result.current.fiatPrice,
+                true,
             );
         });
 
@@ -558,7 +576,12 @@ describe('useWallet hook rendering in different localforage states', () => {
             localforage,
         );
         const { result } = renderHook(() => useWallet(mockedChronik));
-        const mockWebsocketMsg = { msgType: 'BLK_CONNECTED' };
+        const mockWebsocketMsg = {
+            msgType: 'BLK_FINALIZED',
+            blockHash:
+                '0000000000000000042ceefd8937bb1eb25764c4c5a157701fddbfb552f9803f',
+            blockHeight: 838989,
+        };
         const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/prices`;
         const expectedError = 'Invalid response from alias prices endpoint';
 
@@ -582,6 +605,7 @@ describe('useWallet hook rendering in different localforage states', () => {
                 mockWebsocketMsg,
                 result.current.cashtabState,
                 result.current.fiatPrice,
+                true,
             );
         });
 
@@ -730,6 +754,7 @@ describe('useWallet hook rendering in different localforage states', () => {
                     mockWebsocketMsg,
                     result.current.cashtabState,
                     result.current.fiatPrice,
+                    true,
                 ),
             ).toBe(true);
         });
