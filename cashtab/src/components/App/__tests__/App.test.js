@@ -293,6 +293,12 @@ describe('<App />', () => {
                 `ℹ️ Your seed phrase is the only way to restore your wallet. Write it down. Keep it safe.`,
             ),
         ).toBeInTheDocument();
+
+        // Navigate to Contacts screen
+        await user.click(screen.queryByTestId('nav-btn-contacts'));
+
+        // Now we see the Contacts screen
+        expect(screen.getByTestId('contacts')).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -329,9 +335,6 @@ describe('<App />', () => {
         // Get the "Add to contacts" button of tx
         const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
 
-        // We do not see the configure screen before clicking the button
-        expect(screen.queryByTestId('configure-ctn')).not.toBeInTheDocument();
-
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
         expect(storedContacts).toStrictEqual(null);
@@ -339,13 +342,19 @@ describe('<App />', () => {
         // Click the button
         await user.click(addToContactsBtn);
 
-        // Now we see the Configure screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+        // We see the add contact from tx history modal, prompting for name only input
+        await user.type(
+            screen.getByPlaceholderText('Enter new contact name'),
+            'contact from tx history',
+        );
+
+        // Click OK
+        await user.click(screen.getByText('OK'));
 
         const newContactList = [
             {
                 address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-                name: 'qphlh',
+                name: 'contact from tx history',
             },
         ];
 
@@ -397,9 +406,6 @@ describe('<App />', () => {
         // Get the "Add to contacts" button of tx
         const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
 
-        // We do not see the configure screen before clicking the button
-        expect(screen.queryByTestId('configure-ctn')).not.toBeInTheDocument();
-
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
         expect(storedContacts).toEqual(initialContactList);
@@ -407,8 +413,14 @@ describe('<App />', () => {
         // Click the button
         await user.click(addToContactsBtn);
 
-        // Now we see the Configure screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+        // We see the add contact from tx history modal, prompting for name only input
+        await user.type(
+            screen.getByPlaceholderText('Enter new contact name'),
+            'contact from tx history',
+        );
+
+        // Click OK
+        await user.click(screen.getByText('OK'));
 
         // localforage has been updated with this newly added contact
         await waitFor(async () =>
@@ -419,7 +431,7 @@ describe('<App />', () => {
                 },
                 {
                     address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-                    name: 'qphlh',
+                    name: 'contact from tx history',
                 },
             ]),
         );

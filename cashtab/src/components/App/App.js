@@ -12,6 +12,7 @@ import {
     SettingsIcon,
     AirdropIcon,
     WalletIcon,
+    ContactsIcon,
     ThemedSignAndVerifyMsg,
     ThemedUserProfileIcon,
     SwapIcon,
@@ -26,6 +27,7 @@ import SendXec from 'components/Send/SendXec';
 import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
 import BackupWallet from 'components/BackupWallet/BackupWallet';
+import Contacts from 'components/Contacts';
 import Alias from 'components/Alias/Alias';
 import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
@@ -564,6 +566,13 @@ const App = () => {
                                                         </NavHeader>
                                                     )}
                                                     {selectedKey ===
+                                                        'contacts' && (
+                                                        <NavHeader>
+                                                            Contacts
+                                                            <ContactsIcon />
+                                                        </NavHeader>
+                                                    )}
+                                                    {selectedKey ===
                                                         'configure' && (
                                                         <NavHeader>
                                                             Settings
@@ -672,6 +681,10 @@ const App = () => {
                                                         element={
                                                             <BackupWallet />
                                                         }
+                                                    />
+                                                    <Route
+                                                        path="/contacts"
+                                                        element={<Contacts />}
                                                     />
 
                                                     <Route
@@ -783,6 +796,17 @@ const App = () => {
                                             {' '}
                                             <p>Wallet Backup</p>
                                             <WalletIcon />
+                                        </NavItem>
+                                        <NavItem
+                                            data-testid="nav-btn-contacts"
+                                            active={selectedKey === 'contacts'}
+                                            onClick={() =>
+                                                navigate('/contacts')
+                                            }
+                                        >
+                                            {' '}
+                                            <p>Contacts</p>
+                                            <ContactsIcon />
                                         </NavItem>
                                         <NavItem
                                             data-testid="nav-btn-airdrop"

@@ -88,7 +88,6 @@ export const ThemedContactSendOutlined = styled(Send)`
 `;
 export const ThemedCopySolid = styled(CopySolid)`
     fill: ${props => props.theme.contrast};
-    padding: 0rem 0rem 0.27rem 0rem;
     height: 1.3em;
     width: 1.3em;
     cursor: pointer;
@@ -142,6 +141,9 @@ export const ThemedSignAndVerifyMsg = styled(Audit)`
     min-width: 24px;
 `;
 export const WalletIcon = styled(ThemedWalletOutlined)`
+    min-width: 24px;
+`;
+export const ContactsIcon = styled(ThemedContactsOutlined)`
     min-width: 24px;
 `;
 

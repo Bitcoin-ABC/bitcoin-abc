@@ -2001,4 +2001,83 @@ export default {
             },
         ],
     },
+    getContactNameError: {
+        expectedReturns: [
+            {
+                description:
+                    'Accepts a max-length contact name if it does not exist in current contacts',
+                name: 'thisnameistwentyfourchar',
+                contacts: [{ name: 'not that' }],
+                returned: false,
+            },
+            {
+                description:
+                    'Accepts a max-length contact name if no contacts exist',
+                name: 'thisnameistwentyfourchar',
+                contacts: [],
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects a max-length + 1 contact name if it does not exist in current contacts',
+                name: 'thisnameistwentyfivechars',
+                contacts: [{ name: 'not that' }],
+                returned: `Contact names cannot be longer than ${appConfig.localStorageMaxCharacters} characters`,
+            },
+            {
+                description: 'Rejects an empty string',
+                name: '',
+                contacts: [{ name: 'not that' }],
+                returned: 'Please enter a contact name',
+            },
+            {
+                description:
+                    'Rejects a contact name if it already exists in contacts',
+                name: 'gamma',
+                contacts: [
+                    { name: 'alpha' },
+                    { name: 'beta' },
+                    { name: 'gamma' },
+                ],
+                returned: `"gamma" already exists in contacts`,
+            },
+        ],
+    },
+    getContactAddressError: {
+        expectedReturns: [
+            {
+                description:
+                    'No error from a valid ecash: prefixed address to an empty contact list',
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                contacts: [],
+                returned: false,
+            },
+            {
+                description:
+                    'Expected error from a valid ecash: prefixed address if exists in contact list',
+                address: 'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                contacts: [
+                    {
+                        name: 'name',
+                        address:
+                            'ecash:qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                    },
+                ],
+                returned: 'qqa...70g already in Contacts',
+            },
+            {
+                description:
+                    'Expected error from a valid prefixless ecash: address',
+                address: 'qqa9lv3kjd8vq7952p7rq0f6lkpqvlu0cydvxtd70g',
+                contacts: [],
+                returned: `Addresses in Contacts must start with "ecash:" prefix`,
+            },
+            {
+                description: 'Expected error from an invalid address',
+                address: 'ecash:notvalid',
+                contacts: [],
+                returned: `Invalid address`,
+            },
+        ],
+    },
 };

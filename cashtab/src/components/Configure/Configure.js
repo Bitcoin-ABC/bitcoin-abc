@@ -2,11 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useLocation, Link } from 'react-router-dom';
-import { Collapse, Form, Tooltip } from 'antd';
-import { Row, Col } from 'antd';
+import { Link } from 'react-router-dom';
+import { Collapse, Tooltip } from 'antd';
 import { LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
@@ -22,10 +21,6 @@ import {
     ThemedDollarOutlined,
     ThemedSettingOutlined,
     ThemedContactsOutlined,
-    ThemedContactSendOutlined,
-    ThemedPlusOutlined,
-    ThemedDownloadOutlined,
-    ThemedCopySolid,
     ThemedTrashcanOutlined,
     ThemedEditOutlined,
     ThemedXIcon,
@@ -37,12 +32,7 @@ import {
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { Event } from 'components/Common/GoogleAnalytics';
 import ApiError from 'components/Common/ApiError';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
-import {
-    isValidNewWalletNameLength,
-    validateMnemonic,
-    isValidRecipient,
-} from 'validation';
+import { isValidNewWalletNameLength, validateMnemonic } from 'validation';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { isMobile, getUserLocale } from 'helpers';
@@ -181,162 +171,6 @@ const SWButtonCtn = styled.div`
     }
 `;
 
-const ContactListRow = styled.div`
-    border-radius: 3px;
-    padding: 10px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 6px;
-    @media (max-width: 500px) {
-        flex-direction: column;
-        margin-bottom: 12px;
-    }
-`;
-
-const ContactListAddress = styled.div`
-    width: 40%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    word-wrap: break-word;
-    hyphens: auto;
-    @media (max-width: 500px) {
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
-    div {
-        font-size: 13px;
-        color: ${props => props.theme.darkBlue};
-        margin: 12px;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    div.overflow {
-        width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-`;
-
-const ContactListName = styled.div`
-    width: 30%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    word-wrap: break-word;
-    hyphens: auto;
-    @media (max-width: 500px) {
-        width: 100%;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
-    div {
-        font-size: 13px;
-        color: ${props => props.theme.darkBlue};
-        margin: 0px;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    div.overflow {
-        width: 150px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-`;
-
-const ContactListCtn = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    @media (max-width: 500px) {
-        width: 100%;
-        justify-content: center;
-    }
-    ${ThemedCopySolid} {
-        margin-top: 7px;
-    }
-
-    button {
-        cursor: pointer;
-        background: transparent;
-        border: 1px solid #fff;
-        box-shadow: none;
-        color: #fff;
-        border-radius: 3px;
-        opacity: 0.6;
-        transition: all 200ms ease-in-out;
-
-        :hover {
-            opacity: 1;
-            background: ${props => props.theme.eCashBlue};
-            border-color: ${props => props.theme.eCashBlue};
-        }
-
-        @media (max-width: 768px) {
-            font-size: 14px;
-        }
-    }
-
-    svg {
-        stroke: ${props => props.theme.eCashBlue};
-        fill: ${props => props.theme.eCashBlue};
-        width: 25px;
-        height: 25px;
-        margin-right: 10px;
-        cursor: pointer;
-        :hover {
-            stroke: ${props => props.theme.settings.delete};
-            fill: ${props => props.theme.settings.delete};
-        }
-    }
-`;
-
-const ContactListBtnCtn = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-`;
-
-const ExpandedBtnText = styled.span`
-    @media (max-width: 335px) {
-        display: none;
-    }
-`;
-
-const ContactListBtn = styled.button`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    background: transparent;
-    border: 1px solid #fff;
-    box-shadow: none;
-    color: #fff;
-    border-radius: 3px;
-    opacity: 0.6;
-    gap: 3px;
-    transition: all 200ms ease-in-out;
-    @media (max-width: 500px) {
-        width: 100%;
-        justify-content: center;
-    }
-    :hover {
-        opacity: 1;
-        background: ${props => props.theme.eCashBlue};
-        border-color: ${props => props.theme.eCashBlue};
-    }
-    svg {
-        fill: ${props => props.theme.contrast} !important;
-    }
-`;
-
 const AWRow = styled.div`
     padding: 10px 0;
     display: flex;
@@ -426,6 +260,12 @@ const VIPSettingsHolder = styled.div`
     justify-content: center;
 `;
 
+const NoticeHolder = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+
 const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const { apiError, updateCashtabState, cashtabState } = ContextValue;
@@ -438,7 +278,6 @@ const Configure = () => {
 
     const { tokens } = walletState;
 
-    const location = useLocation();
     const userLocale = getUserLocale(navigator);
 
     const [formData, setFormData] = useState({
@@ -482,65 +321,9 @@ const Configure = () => {
 
     const [isValidMnemonic, setIsValidMnemonic] = useState(null);
 
-    const [showRenameContactModal, setShowRenameContactModal] = useState(false);
-    const [contactToBeRenamed, setContactToBeRenamed] = useState(null); //object
-    const [newContactNameIsValid, setNewContactNameIsValid] = useState(null);
-    const [
-        confirmationOfContactToBeRenamed,
-        setConfirmationOfContactToBeRenamed,
-    ] = useState(null);
-
-    const [showDeleteContactModal, setShowDeleteContactModal] = useState(false);
-    const [contactAddressToDelete, setContactAddressToDelete] = useState(null);
-    const [contactDeleteConfirmationError, setContactDeleteConfirmationError] =
-        useState(false);
-    const [
-        confirmationOfContactToBeDeleted,
-        setConfirmationOfContactToBeDeleted,
-    ] = useState(null);
-
-    const [showManualAddContactModal, setShowManualAddContactModal] =
-        useState(false);
     const [manualContactName, setManualContactName] = useState('');
     const [manualContactAddress, setManualContactAddress] = useState('');
-    const [manualContactNameError, setManualContactNameError] = useState(false);
-    const [manualContactAddressError, setManualContactAddressError] =
-        useState(false);
-
-    const handleContactListRouting = async () => {
-        // if this was routed from Home screen's Add to Contact link
-        if (location && location.state && location.state.contactToAdd) {
-            // set default name for contact and sender as address
-            let newContactObj = {
-                name: location.state.contactToAdd.substring(6, 11),
-                address: location.state.contactToAdd,
-            };
-
-            // Check to see if the contact exists
-            const contactExists = contactList.find(
-                contact => contact.address === newContactObj.address,
-            );
-
-            if (typeof contactExists !== 'undefined') {
-                // Contact already exists
-                toast.error(
-                    `${location.state.contactToAdd} already exists in Contacts`,
-                );
-            } else {
-                contactList.push(newContactObj);
-
-                // Update localforage and state
-                await updateCashtabState('contactList', contactList);
-                toast.success(
-                    `${location.state.contactToAdd} added to Contacts`,
-                );
-            }
-        }
-    };
-
-    useEffect(() => {
-        handleContactListRouting();
-    }, []);
+    useState(false);
 
     // Generate a new wallet from a random seed and add it to wallets
     const addNewWallet = async () => {
@@ -796,70 +579,6 @@ const Configure = () => {
         setConfirmationOfWalletToBeDeleted(value);
     };
 
-    const handleContactNameInput = e => {
-        const { value } = e.target;
-
-        if (
-            value &&
-            value.length &&
-            value.length < appConfig.localStorageMaxCharacters
-        ) {
-            setNewContactNameIsValid(true);
-        } else {
-            setNewContactNameIsValid(false);
-        }
-        setConfirmationOfContactToBeRenamed(value);
-    };
-
-    const handleRenameContact = contactObj => {
-        if (!contactObj) {
-            console.error(
-                'handleRenameContact() error: Invalid contact object for update',
-            );
-            return;
-        }
-        setContactToBeRenamed(contactObj);
-        setShowRenameContactModal(true);
-    };
-
-    const handleRenameContactCancel = () => {
-        setShowRenameContactModal(false);
-        // Reset info
-        setConfirmationOfContactToBeRenamed(null);
-    };
-
-    const handleRenameContactModalOk = () => {
-        if (
-            !newContactNameIsValid ||
-            newContactNameIsValid === null ||
-            !contactToBeRenamed
-        ) {
-            return;
-        }
-        renameContactByName(contactToBeRenamed);
-        setShowRenameContactModal(false);
-        // Clear input
-        setConfirmationOfContactToBeRenamed(null);
-    };
-
-    const renameContactByName = async contact => {
-        // obtain reference to the contact object in the array
-        let contactToUpdate = contactList.find(
-            element => element.address === contact.address,
-        );
-
-        // if a match was found
-        if (typeof contactToUpdate !== 'undefined') {
-            // update the contact name
-            contactToUpdate.name = confirmationOfContactToBeRenamed;
-
-            // Update localforage and state
-            await updateCashtabState('contactList', contactList);
-        } else {
-            toast.error(`Unable to find contact`);
-        }
-    };
-
     const handleSendModalToggle = e => {
         updateCashtabState('settings', {
             ...settings,
@@ -887,105 +606,6 @@ const Configure = () => {
         });
     };
 
-    const getContactNameByAddress = contactAddress => {
-        if (!contactAddress) {
-            return;
-        }
-
-        // filter contact from local contact list array
-        const filteredContactList = contactList.filter(
-            element => element.address === contactAddress,
-        );
-
-        if (!filteredContactList) {
-            return;
-        }
-
-        return filteredContactList[0].name;
-    };
-
-    const deleteContactByAddress = async contactAddress => {
-        if (!contactAddress) {
-            return;
-        }
-
-        // filter contact from local contact list array
-        const updatedContactList = contactList.filter(
-            element => element.address !== contactAddress,
-        );
-
-        // Update localforage and state
-        await updateCashtabState('contactList', updatedContactList);
-        toast.success(`${contactAddressToDelete} removed from Contact List`);
-    };
-
-    const handleDeleteContact = contactAddress => {
-        if (!contactAddress) {
-            console.error(
-                'handleDeleteContact() error: Invalid contact address for deletion',
-            );
-            return;
-        }
-        setContactAddressToDelete(contactAddress);
-        setShowDeleteContactModal(true);
-    };
-
-    const handleDeleteContactModalCancel = () => {
-        // Clear user input
-        setConfirmationOfContactToBeDeleted(null);
-        setShowDeleteContactModal(false);
-    };
-
-    const handleDeleteContactModalOk = () => {
-        if (contactDeleteConfirmationError || !contactAddressToDelete) {
-            return;
-        }
-        setShowDeleteContactModal(false);
-        deleteContactByAddress(contactAddressToDelete);
-        // Reset validation input
-        setConfirmationOfContactToBeDeleted(false);
-    };
-
-    const handleContactToDeleteInput = e => {
-        const { value } = e.target;
-        const contactName = getContactNameByAddress(contactAddressToDelete);
-        if (value && value === 'delete ' + contactName) {
-            setContactDeleteConfirmationError(false);
-        } else {
-            setContactDeleteConfirmationError(
-                `Input must exactly match "delete ${contactName}"`,
-            );
-        }
-        setConfirmationOfContactToBeDeleted(value);
-    };
-
-    const exportContactList = contactListArray => {
-        if (!contactListArray) {
-            toast.error('Unable to export contact list');
-            return;
-        }
-
-        // convert object array into csv data
-        let csvContent =
-            'data:text/csv;charset=utf-8,' +
-            contactListArray.map(
-                element => '\n' + element.name + '|' + element.address,
-            );
-
-        // encode csv
-        var encodedUri = encodeURI(csvContent);
-
-        // hidden DOM node to set the default file name
-        var csvLink = document.createElement('a');
-        csvLink.setAttribute('href', encodedUri);
-        csvLink.setAttribute(
-            'download',
-            'Cashtab_Contacts_' + wallet.name + '.csv',
-        );
-        document.body.appendChild(csvLink);
-        csvLink.click();
-    };
-
     const handleAddSavedWalletAsContactOk = async () => {
         // Check to see if the contact exists
         const contactExists = contactList.find(
@@ -1003,7 +623,7 @@ const Configure = () => {
             });
             // update localforage and state
             await updateCashtabState('contactList', contactList);
-            toast.success(`${manualContactAddress} added to Contact List`);
+            toast.success(`${manualContactAddress} added to Contacts`);
         }
 
         // Reset relevant state fields
@@ -1028,69 +648,6 @@ const Configure = () => {
         setSavedWalletContactModal(true);
     };
 
-    const handleManualAddContactModalOk = async () => {
-        // if either inputs are invalid then go no further
-        if (manualContactNameError || manualContactAddressError) {
-            return;
-        }
-
-        // Check to see if the contact exists
-        const contactExists = contactList.find(
-            contact => contact.address === manualContactAddress,
-        );
-
-        if (typeof contactExists !== 'undefined') {
-            // Contact exists
-            toast.error(
-                `${manualContactAddress} already exists in the Contact List`,
-            );
-        } else {
-            contactList.push({
-                name: manualContactName,
-                address: manualContactAddress,
-            });
-            // update localforage and state
-            await updateCashtabState('contactList', contactList);
-            toast.success(`${manualContactAddress} added to Contact List`);
-        }
-
-        // Reset relevant state fields
-        setShowManualAddContactModal(false);
-        setManualContactName('');
-        setManualContactAddress('');
-    };
-
-    const handleManualAddContactModalCancel = () => {
-        setShowManualAddContactModal(false);
-        setManualContactName('');
-        setManualContactAddress('');
-    };
-
-    const handleManualContactNameInput = e => {
-        const { value } = e.target;
-
-        if (value && value.length && value.length < 24) {
-            setManualContactNameError(false);
-        } else {
-            setManualContactNameError(
-                'Contact name must be a string between 1 and 24 characters long',
-            );
-        }
-        setManualContactName(value);
-    };
-
-    const handleManualContactAddressInput = async e => {
-        const { value } = e.target;
-        setManualContactAddress(value);
-        const validContactAddress = await isValidRecipient(value);
-
-        setManualContactAddressError(
-            validContactAddress === true
-                ? false
-                : 'Invalid eCash address or alias',
-        );
-    };
-
     return (
         <StyledConfigure data-testid="configure-ctn">
             {savedWalletContactModal && (
@@ -1101,78 +658,6 @@ const Configure = () => {
                     handleCancel={() => handleAddSavedWalletAsContactCancel()}
                     showCancelButton
                 />
-            )}
-            {showManualAddContactModal && (
-                <CustomModal
-                    data-testid="confirm-add-contact-modal"
-                    height={305}
-                    title={`Add new contact`}
-                    handleOk={() => handleManualAddContactModalOk()}
-                    handleCancel={() => handleManualAddContactModalCancel()}
-                    showCancelButton
-                >
-                    <InputFlex>
-                        <ModalInput
-                            placeholder="Enter new contact name"
-                            name="manualContactName"
-                            error={manualContactNameError}
-                            value={manualContactName}
-                            handleInput={handleManualContactNameInput}
-                        />
-                        <ModalInput
-                            placeholder="Enter new eCash address or alias"
-                            name="manualContactAddress"
-                            value={manualContactAddress}
-                            error={manualContactAddressError}
-                            handleInput={handleManualContactAddressInput}
-                        />
-                    </InputFlex>
-                </CustomModal>
-            )}
-            {showDeleteContactModal && (
-                <CustomModal
-                    height={290}
-                    title="Confirm Delete Contact"
-                    description={`Delete
-                                "${getContactNameByAddress(
-                                    contactAddressToDelete,
-                                )}" from contact list?`}
-                    handleOk={() => handleDeleteContactModalOk()}
-                    handleCancel={() => handleDeleteContactModalCancel()}
-                    showCancelButton
-                >
-                    <ModalInput
-                        placeholder={`Type "delete ${getContactNameByAddress(
-                            contactAddressToDelete,
-                        )}" to confirm`}
-                        name="contactToBeDeletedInput"
-                        value={confirmationOfContactToBeDeleted}
-                        handleInput={handleContactToDeleteInput}
-                        error={contactDeleteConfirmationError}
-                    />
-                </CustomModal>
-            )}
-            {showRenameContactModal && (
-                <CustomModal
-                    height={290}
-                    title={`Rename contact?`}
-                    description={`Editing name for contact ${contactToBeRenamed.name}`}
-                    handleOk={() => handleRenameContactModalOk()}
-                    handleCancel={() => handleRenameContactCancel()}
-                    showCancelButton
-                >
-                    <ModalInput
-                        placeholder="Enter new contact name"
-                        name="newContactName"
-                        value={confirmationOfContactToBeRenamed}
-                        error={
-                            newContactNameIsValid
-                                ? false
-                                : 'Contact name must be a string between 1 and 24 characters long'
-                        }
-                        handleInput={handleContactNameInput}
-                    />
-                </CustomModal>
             )}
             {walletToBeRenamed !== null && showRenameWalletModal && (
                 <CustomModal
@@ -1216,12 +701,20 @@ const Configure = () => {
                     />
                 </CustomModal>
             )}
-            <Info>
-                ℹ️ Backup wallet has moved
-                <br />
-                <br /> Go to the <Link to="/backup">Backup Wallet</Link> screen
-                to see your seed phrase
-            </Info>
+            <NoticeHolder>
+                <Info>
+                    ℹ️ Backup wallet has moved
+                    <br />
+                    <br /> Go to the <Link to="/backup">
+                        Backup Wallet
+                    </Link>{' '}
+                    screen to see your seed phrase
+                </Info>
+                <Info>
+                    ℹ️ Contacts have moved to the{' '}
+                    <Link to="/contacts">Contacts</Link> screen
+                </Info>
+            </NoticeHolder>
             <h2>
                 <ThemedWalletOutlined /> Manage Wallets
             </h2>
@@ -1374,133 +867,7 @@ const Configure = () => {
                     </StyledCollapse>
                 </>
             )}
-            <Row type="flex" data-testid="contact-list-collapse">
-                <Col span={24}>
-                    <StyledCollapse
-                        style={{
-                            marginBottom: '24px',
-                        }}
-                        defaultActiveKey={
-                            location &&
-                            location.state &&
-                            location.state.contactToAdd
-                                ? ['1']
-                                : ['0']
-                        }
-                    >
-                        <Panel header="Contact List" key="1">
-                            <AntdFormWrapper data-testid="contact-list-items">
-                                <Form
-                                    style={{
-                                        width: 'auto',
-                                    }}
-                                >
-                                    {contactList && contactList.length > 0 ? (
-                                        contactList.map((element, index) => (
-                                            <ContactListRow key={index}>
-                                                <Tooltip title={element.name}>
-                                                    <ContactListName>
-                                                        <div className="overflow">
-                                                            {element.name}
-                                                        </div>
-                                                    </ContactListName>
-                                                </Tooltip>
-                                                <Tooltip
-                                                    title={element.address}
-                                                >
-                                                    <ContactListAddress>
-                                                        <div className="overflow notranslate">
-                                                            {element.address}
-                                                        </div>
-                                                    </ContactListAddress>
-                                                </Tooltip>
-                                                <ContactListCtn data-testid="contact-list-options">
-                                                    <CopyToClipboard
-                                                        data={element.address}
-                                                        showToast
-                                                    >
-                                                        <ThemedCopySolid />
-                                                    </CopyToClipboard>
-                                                    <ThemedEditOutlined
-                                                        data-testid="rename-contact-btn"
-                                                        onClick={() =>
-                                                            handleRenameContact(
-                                                                element,
-                                                            )
-                                                        }
-                                                    />
-                                                    <Link
-                                                        to="/send"
-                                                        state={{
-                                                            contactSend:
-                                                                element.address,
-                                                        }}
-                                                    >
-                                                        <ThemedContactSendOutlined />
-                                                    </Link>
-                                                    <ThemedTrashcanOutlined
-                                                        data-testid="delete-contact-btn"
-                                                        onClick={() =>
-                                                            handleDeleteContact(
-                                                                element.address,
-                                                            )
-                                                        }
-                                                    />
-                                                </ContactListCtn>
-                                            </ContactListRow>
-                                        ))
-                                    ) : (
-                                        <div>
-                                            <p>
-                                                {'Your contact list is empty.'}
-                                            </p>
-                                            <p>
-                                                {
-                                                    'Contacts can be added by clicking on a received transaction and looking for the "Add to contacts" icon or via the "New Contact" button below.'
-                                                }
-                                            </p>
-                                        </div>
-                                    )}
-                                    {/* Export button will only show when there are contacts */}
-                                    <ContactListBtnCtn>
-                                        {contactList && contactList.length > 0 && (
-                                            <ContactListBtn
-                                                onClick={() =>
-                                                    exportContactList(
-                                                        contactList,
-                                                    )
-                                                }
-                                            >
-                                                <ThemedDownloadOutlined />
-                                                <ExpandedBtnText>
-                                                    Download
-                                                </ExpandedBtnText>
-                                                CSV
-                                            </ContactListBtn>
-                                        )}
-                                        <br />
-                                        <br />
-                                        <ContactListBtn
-                                            data-testid="add-contact-btn"
-                                            onClick={() =>
-                                                setShowManualAddContactModal(
-                                                    true,
-                                                )
-                                            }
-                                        >
-                                            <ThemedPlusOutlined />
-                                            <ExpandedBtnText>
-                                                Add
-                                            </ExpandedBtnText>
-                                            Contact
-                                        </ContactListBtn>
-                                    </ContactListBtnCtn>
-                                </Form>
-                            </AntdFormWrapper>
-                        </Panel>
-                    </StyledCollapse>
-                </Col>
-            </Row>
+
             <StyledSpacer />
             <h2>
                 <ThemedDollarOutlined /> Fiat Currency

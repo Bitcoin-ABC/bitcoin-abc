@@ -7,6 +7,7 @@ export const theme = {
     eCashPurple: '#ff21d0',
     darkBlue: '#273498',
     contrast: '#fff',
+    panel: '#26415a',
     backgroundImage: `url("/cashtab_bg.png")`,
     backgroundColor: '#d5d5d7',
     walletBackground: '#152b45',

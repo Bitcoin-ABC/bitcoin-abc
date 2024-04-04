@@ -92,7 +92,7 @@ describe('<Configure />', () => {
         jest.clearAllMocks();
         await clearLocalForage(localforage);
     });
-    it('We can add, delete, rename, contacts from the Configure screen, and add a savedWallet as a contact', async () => {
+    it('We can add a savedWallet as a contact', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithXecAndTokens,
@@ -126,164 +126,6 @@ describe('<Configure />', () => {
         // Configure component is rendered
         expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
 
-        // Open the collapse
-        await user.click(screen.getByRole('button', { name: /Contact List/ }), {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
-
-        const addressToDelete =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
-
-        // We find the expected contacts
-        await waitFor(() =>
-            expect(screen.getByTestId('contact-list-items')).toHaveTextContent(
-                `alpha${addressToDelete}betaecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035gammaecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72yDownloadCSVAddContact`,
-            ),
-        );
-
-        // Click the first row Delete button
-        await user.click(screen.getAllByTestId('delete-contact-btn')[0], {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
-
-        // Type correct confirmation phrase in confirm delete modal
-        await user.type(
-            screen.getByPlaceholderText('Type "delete alpha" to confirm'),
-            'delete alpha',
-        );
-
-        // Click OK
-        await user.click(screen.getByText('OK'));
-
-        // Confirm it has been removed from local storage
-        const expectedContactsAfterRemovingAlpha = [
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                name: 'beta',
-            },
-            {
-                address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-                name: 'gamma',
-            },
-        ];
-        const contactListAfterRemove = await localforage.getItem('contactList');
-        expect(contactListAfterRemove).toEqual(
-            expectedContactsAfterRemovingAlpha,
-        );
-
-        // Confirm notification is triggered
-        await waitFor(() => {
-            expect(
-                screen.getByText(
-                    `${addressToDelete} removed from Contact List`,
-                ),
-            ).toBeInTheDocument();
-        });
-
-        // Add a contact
-        await user.click(screen.getByTestId('add-contact-btn'), {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
-
-        const nameInput = screen.getByPlaceholderText('Enter new contact name');
-        const addrInput = screen.getByPlaceholderText(
-            'Enter new eCash address or alias',
-        );
-        const address = 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0';
-        await user.type(nameInput, 'delta');
-        await user.type(addrInput, address);
-
-        // Click OK
-        await user.click(screen.getByText('OK'));
-
-        // Confirm new contact is added in local storage
-        const contactListAfterAdd = await localforage.getItem('contactList');
-        expect(contactListAfterAdd).toEqual([
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                name: 'beta',
-            },
-            {
-                address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-                name: 'gamma',
-            },
-            {
-                address: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-                name: 'delta',
-            },
-        ]);
-
-        // Confirm add contact success notification is triggered
-        await waitFor(() => {
-            expect(
-                screen.getByText(`${address} added to Contact List`),
-            ).toBeInTheDocument();
-        });
-
-        // We get an error if we add a contact that already exists
-        await user.click(screen.getByRole('button', { name: 'Add Contact' }), {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
-        const nameInputRepeat = screen.getByPlaceholderText(
-            'Enter new contact name',
-        );
-        const addrInputRepeat = screen.getByPlaceholderText(
-            'Enter new eCash address or alias',
-        );
-        await user.type(nameInputRepeat, 'delta');
-        await user.type(addrInputRepeat, address);
-
-        // Click OK
-        const okAddContactButtonAgain = screen.getByText('OK');
-        await user.click(okAddContactButtonAgain);
-
-        // Confirm error notification is triggered
-        await waitFor(() => {
-            expect(
-                screen.getByText(
-                    `${address} already exists in the Contact List`,
-                ),
-            ).toBeInTheDocument();
-        });
-
-        // We can rename a contact
-        await user.click(screen.getAllByTestId('rename-contact-btn')[0], {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
-
-        const editNameInput = screen.getByPlaceholderText(
-            'Enter new contact name',
-        );
-        await user.type(editNameInput, 'omega');
-
-        // Click OK
-        const okRenameContactButton = screen.getByText('OK');
-        await user.click(okRenameContactButton);
-
-        // Confirm first contact (formerly beta) is renamed
-        const contactListAfterRename = await localforage.getItem('contactList');
-        expect(contactListAfterRename).toEqual([
-            {
-                address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-                name: 'omega',
-            },
-            {
-                address: 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-                name: 'gamma',
-            },
-            {
-                address: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-                name: 'delta',
-            },
-        ]);
-
-        // No notification expected for successfully renaming a contact
-
         // We can add a savedWallet as a contact
 
         // Note the savedWallets collapse loads expanded
@@ -302,7 +144,7 @@ describe('<Configure />', () => {
         // Confirm new wallet added to contacts
         await waitFor(async () =>
             expect(await localforage.getItem('contactList')).toEqual(
-                contactListAfterRename.concat(addedSavedWalletContact),
+                populatedContactList.concat(addedSavedWalletContact),
             ),
         );
 
@@ -310,7 +152,7 @@ describe('<Configure />', () => {
         await waitFor(() => {
             expect(
                 screen.getByText(
-                    `${addedSavedWalletContact.address} added to Contact List`,
+                    `${addedSavedWalletContact.address} added to Contacts`,
                 ),
             ).toBeInTheDocument();
         });

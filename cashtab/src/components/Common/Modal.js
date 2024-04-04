@@ -73,7 +73,8 @@ const ModalDescription = styled.div`
 const ButtonHolder = styled.div`
     width: 100%;
     position: fixed;
-    bottom: 24px;
+    left: 50%;
+    bottom: 0;
     display: flex;
     justify-content: center;
     gap: 24px;

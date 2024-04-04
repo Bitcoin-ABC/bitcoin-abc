@@ -6,7 +6,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Tx from './Tx';
 
-const TxHistory = ({ txs, fiatPrice, fiatCurrency, cashtabState }) => {
+const TxHistory = ({
+    txs,
+    fiatPrice,
+    fiatCurrency,
+    cashtabState,
+    updateCashtabState,
+}) => {
     return (
         <div>
             {txs.map(tx => (
@@ -16,6 +22,7 @@ const TxHistory = ({ txs, fiatPrice, fiatCurrency, cashtabState }) => {
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
                     cashtabState={cashtabState}
+                    updateCashtabState={updateCashtabState}
                 />
             ))}
         </div>
@@ -45,6 +52,7 @@ TxHistory.propTypes = {
             tokens: PropTypes.object.isRequired,
         }),
     }),
+    updateCashtabState: PropTypes.func,
 };
 
 export default TxHistory;

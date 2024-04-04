@@ -28,6 +28,10 @@ import {
 import { explorer } from 'config/explorer';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
 import appConfig from 'config/app';
+import Modal from 'components/Common/Modal';
+import { ModalInput } from 'components/Common/Inputs';
+import { toast } from 'react-toastify';
+import { getContactNameError } from 'validation';
 
 const TxIcon = styled.div`
     svg {
@@ -421,7 +425,13 @@ const ReceivedFromCtn = styled.div`
     }
 `;
 
-const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
+const Tx = ({
+    data,
+    fiatPrice,
+    fiatCurrency,
+    cashtabState,
+    updateCashtabState,
+}) => {
     const { contactList, settings, cashtabCache } = cashtabState;
     const { tokens } = cashtabCache;
 
@@ -437,6 +447,75 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
     }
 
     const [displayedMessage, setDisplayedMessage] = useState(false);
+    const [showAddNewContactModal, setShowAddNewContactModal] = useState(false);
+    const emptyFormData = {
+        newContactName: '',
+    };
+    const emptyFormDataErrors = {
+        newContactName: false,
+    };
+
+    // State variables
+    const [formData, setFormData] = useState(emptyFormData);
+    const [formDataErrors, setFormDataErrors] = useState(emptyFormDataErrors);
+
+    /**
+     * Update formData with user input
+     * @param {Event} e js input event
+     * e.target.value will be input value
+     * e.target.name will be name of originating input field
+     */
+    const handleInput = e => {
+        const { name, value } = e.target;
+
+        if (name === 'newContactName') {
+            const contactNameError = getContactNameError(value, contactList);
+            setFormDataErrors(previous => ({
+                ...previous,
+                [name]: contactNameError,
+            }));
+        }
+        setFormData(previous => ({
+            ...previous,
+            [name]: value,
+        }));
+    };
+
+    const addNewContact = async () => {
+        const addressToAdd = data.parsed.replyAddress;
+
+        // Check to see if the contact exists
+        const contactExists = contactList.find(
+            contact => contact.address === addressToAdd,
+        );
+
+        if (typeof contactExists !== 'undefined') {
+            // Contact exists
+            // Not expected to ever happen from Tx.js as user should not see option to
+            // add an existing contact
+            toast.error(`${addressToAdd} already exists in Contacts`);
+        } else {
+            contactList.push({
+                name: formData.newContactName,
+                address: addressToAdd,
+            });
+            // update localforage and state
+            await updateCashtabState('contactList', contactList);
+            toast.success(
+                `${formData.newContactName} (${addressToAdd}) added to Contact List`,
+            );
+        }
+
+        // Reset relevant state fields
+        setShowAddNewContactModal(false);
+
+        // Clear new contact formData
+        setFormData(previous => ({
+            ...previous,
+            newContactName: '',
+        }));
+    };
+
     const handleShowMessage = () => {
         setDisplayedMessage(!displayedMessage);
     };
@@ -475,6 +554,23 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
     }
     return (
         <>
+            {showAddNewContactModal && (
+                <Modal
+                    height={180}
+                    title={`Add new contact`}
+                    handleOk={addNewContact}
+                    handleCancel={() => setShowAddNewContactModal(false)}
+                    showCancelButton
+                >
+                    <ModalInput
+                        placeholder="Enter new contact name"
+                        name="newContactName"
+                        value={formData.newContactName}
+                        error={formDataErrors.newContactName}
+                        handleInput={handleInput}
+                    />
+                </Modal>
+            )}
             {unparsedTx ? (
                 <TxWrapper>
                     <UnparsedTx>
@@ -1050,23 +1146,20 @@ const Tx = ({ data, fiatPrice, fiatCurrency, cashtabState }) => {
                                     data.parsed.replyAddress &&
                                     !fromKnownSender && (
                                         <AddToContacts>
-                                            <DropdownButton>
-                                                <Link
-                                                    data-testid="add-to-contacts-btn"
-                                                    to="/configure"
-                                                    state={{
-                                                        contactToAdd:
-                                                            data.parsed
-                                                                .replyAddress,
-                                                    }}
-                                                >
-                                                    <DropdownIconWrapper>
-                                                        <TextLayer>
-                                                            Add to contacts
-                                                        </TextLayer>
-                                                        <ThemedContactsOutlined />
-                                                    </DropdownIconWrapper>
-                                                </Link>
+                                            <DropdownButton
+                                                data-testid="add-to-contacts-btn"
+                                                onClick={() => {
+                                                    setShowAddNewContactModal(
+                                                        true,
+                                                    );
+                                                }}
+                                            >
+                                                <DropdownIconWrapper>
+                                                    <TextLayer>
+                                                        Add to contacts
+                                                    </TextLayer>
+                                                    <ThemedContactsOutlined />
+                                                </DropdownIconWrapper>
                                             </DropdownButton>
                                         </AddToContacts>
                                     )}
@@ -1102,6 +1195,7 @@ Tx.propTypes = {
             tokens: PropTypes.object.isRequired,
         }),
     }),
+    updateCashtabState: PropTypes.func,
 };
 
 export default Tx;

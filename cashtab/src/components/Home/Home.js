@@ -116,7 +116,8 @@ export const AddrSwitchContainer = styled.div`
 
 const Home = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { fiatPrice, apiError, cashtabState } = ContextValue;
+    const { fiatPrice, apiError, cashtabState, updateCashtabState } =
+        ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
@@ -136,6 +137,7 @@ const Home = () => {
                             : 'usd'
                     }
                     cashtabState={cashtabState}
+                    updateCashtabState={updateCashtabState}
                 />
                 {!hasHistory && (
                     <>

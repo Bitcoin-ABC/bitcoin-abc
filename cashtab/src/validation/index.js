@@ -39,30 +39,83 @@ export const isValidSideshiftObj = sideshiftObj => {
     );
 };
 
-// Parses whether the value is a valid eCash address
-// or a valid and registered alias
-export const isValidRecipient = async value => {
-    if (cashaddr.isValidCashAddress(value, 'ecash')) {
-        return true;
+/**
+ * Get error from user-input contact address
+ * A valid contact address can be a valid alias that resolves to an address
+ * NOTE
+ * If we support alias entry to contact list -- which is quite complicated and has potentially zero impact
+ * we still need to save the actual address in the list
+ * otherwise we will need to lookup many aliases in contacts for all cashtab features that depend on "is
+ * this address in contact lits"
+ * @param {*} value
+ * @param {*} contacts
+ * @returns {false | string}
+ */
+export const getContactAddressOrAliasError = async (
+    addressOrAlias,
+    contacts,
+) => {
+    const isValidCashAddress = cashaddr.isValidCashAddress(
+        addressOrAlias,
+        'ecash',
+    );
+    const isValidAlias = isValidAliasSendInput(addressOrAlias) === true;
+    if (!isValidCashAddress && !isValidAlias) {
+        return `"${addressOrAlias}" is not a valid eCash address or alias`;
     }
-    // If not a valid XEC address, check if it's an alias
-    if (isValidAliasSendInput(value) !== true) {
-        return false;
+    // Check if alias address resolves
+    let resolvedAddress;
+
+    if (isValidAlias) {
+        try {
+            const aliasDetails = await queryAliasServer(
+                'alias',
+                addressOrAlias.split('.xec')[0],
+            );
+            if ('address' in aliasDetails) {
+                resolvedAddress = aliasDetails.address;
+            } else {
+                return `Alias "${addressOrAlias}" is unregistered`;
+            }
+        } catch (err) {
+            console.error(
+                `getContactAddressOrAliasError(): Error retrieving alias details`,
+                err,
+            );
+            // For purposes of UI, present this validation msg
+            // Also possible the server is down
+            // Either way, we do not want to accept such an input
+            return `Error resolving "${addressOrAlias}"`;
+        }
     }
-    // extract alias without the `.xec`
-    const aliasName = value.slice(0, -4);
-    try {
-        const aliasDetails = await queryAliasServer('alias', aliasName);
-        return aliasDetails && !aliasDetails.error && !!aliasDetails.address;
-    } catch (err) {
-        console.error(
-            `isValidRecipient(): Error retrieving alias details`,
-            err,
-        );
+    let address = isValidAlias ? resolvedAddress : addressOrAlias;
+    for (const contact of contacts) {
+        if (contact.address === address) {
+            return `${address} is already in Contacts`;
+        }
     }
+
     return false;
 };
 
+export const getContactAddressError = (address, contacts) => {
+    const isValidCashAddress = cashaddr.isValidCashAddress(address, 'ecash');
+    // We do not accept prefixless input
+    if (!address.startsWith('ecash:')) {
+        return `Addresses in Contacts must start with "ecash:" prefix`;
+    }
+    if (!isValidCashAddress) {
+        return `Invalid address`;
+    }
+    for (const contact of contacts) {
+        if (contact.address === address) {
+            return `${address.slice(6, 9)}...${address.slice(
+                -3,
+            )} already in Contacts`;
+        }
+    }
+    return false;
+};
 /**
  * Does a given string meet the spec of a valid ecash alias
  * See spec a doc/standards/ecash-alias.md
@@ -901,4 +954,26 @@ export const isValidTokenMintAmount = (amount, decimals) => {
     }
 
     return true;
+};
+
+/**
+ * Determine if a new contact name is valid (same rule as renaming a contact)
+ * The contact name must be <= 24 characters
+ * The contact name must not already exist in contacts
+ * @param {string} name
+ * @param {{name: string;}[]} contacts array of cashtab contact objects, with key 'name'
+ */
+export const getContactNameError = (name, contacts) => {
+    if (name === '') {
+        return 'Please enter a contact name';
+    }
+    if (name.length > appConfig.localStorageMaxCharacters) {
+        return `Contact names cannot be longer than ${appConfig.localStorageMaxCharacters} characters`;
+    }
+    for (const contact of contacts) {
+        if (contact.name === name) {
+            return `"${name}" already exists in contacts`;
+        }
+    }
+    return false;
 };
