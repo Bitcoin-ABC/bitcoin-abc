@@ -73,7 +73,7 @@ const BackupWallet = () => {
                     checked={showSeed}
                     handleToggle={() => setShowSeed(!showSeed)}
                 />
-                <SwitchLabel>I understand, show me my seed phrase.</SwitchLabel>
+                <SwitchLabel>Show seed phrase</SwitchLabel>
             </SwitchRow>
             <FlexRow>
                 {showSeed && (
