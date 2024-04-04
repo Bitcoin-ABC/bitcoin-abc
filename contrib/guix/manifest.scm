@@ -582,7 +582,6 @@ inspecting signatures in Mach-O binaries.")
     (cond ((string-suffix? "-mingw32" target)
            (list ;; Native GCC 12 toolchain
                  gcc-toolchain-12
-                 (list gcc-toolchain-12 "static")
                  clang-10
                  zip
                  (make-mingw-pthreads-cross-toolchain "x86_64-w64-mingw32")
