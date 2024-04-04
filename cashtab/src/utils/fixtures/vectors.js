@@ -62,6 +62,20 @@ export default {
                 userLocale: 'es-ES',
                 returned: '6499969,00',
             },
+            {
+                description:
+                    'Locale with multibyte thousands separator works as this is still string length 1',
+                decimalizedTokenQty: '1000',
+                userLocale: 'ar-AE',
+                returned: '1,000',
+            },
+            {
+                description:
+                    'Locale with multibyte thousands separator works as this is still string length 1',
+                decimalizedTokenQty: '1000',
+                userLocale: 'ar',
+                returned: '1٬000',
+            },
         ],
     },
 };
