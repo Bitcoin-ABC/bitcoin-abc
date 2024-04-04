@@ -76,13 +76,13 @@ export const roadmap = [
                 status: 'complete',
             },
             {
-                title: 'Regular Heartbeat',
-                description: 'more consistent block times',
-                status: 'underway',
-            },
-            {
                 title: 'Reference Indexer',
                 description: 'programmatic block explorer',
+                status: 'complete',
+            },
+            {
+                title: 'Regular Heartbeat',
+                description: 'more consistent block times',
                 status: 'underway',
             },
             {
