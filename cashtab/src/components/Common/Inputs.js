@@ -91,7 +91,7 @@ const OnMaxBtnToken = styled(OnMaxBtn)`
 
 const CurrencyDropdown = styled.select`
     width: 100px;
-    cursor: pointer;
+    cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     font-size: 18px;
     padding: 6px;
     color: ${props =>
