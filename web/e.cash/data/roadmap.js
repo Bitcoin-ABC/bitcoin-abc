@@ -76,8 +76,8 @@ export const roadmap = [
                 status: 'complete',
             },
             {
-                title: 'Reference Indexer',
-                description: 'programmatic block explorer',
+                title: 'Blockchain Indexer',
+                description: 'powerful application API',
                 status: 'complete',
             },
             {
