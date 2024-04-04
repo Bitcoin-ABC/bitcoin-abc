@@ -56,6 +56,12 @@ export default {
                 userLocale: 'fr-FR',
                 returned: '9 999 999 999 999 999,999999999',
             },
+            {
+                description: 'Locale with no thousands separator',
+                decimalizedTokenQty: '6499969.00',
+                userLocale: 'es-ES',
+                returned: '6499969,00',
+            },
         ],
     },
 };

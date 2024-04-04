@@ -74,10 +74,16 @@ export const decimalizedTokenQtyToLocaleFormat = (
     })[1];
 
     // Get the thousands separator of this locale
-    const localeThousandsSymbol = Number(1000).toLocaleString(userLocale, {
+    const localeThousand = Number(1000).toLocaleString(userLocale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
-    })[1];
+    });
+
+    // length of '1,000' or '1 000'
+    const LOCALE_HAS_THOUSANDS_LENGTH = 5;
+    const hasThousandSeparator =
+        localeThousand.length === LOCALE_HAS_THOUSANDS_LENGTH;
+    const localeThousandsSymbol = hasThousandSeparator ? localeThousand[1] : '';
 
     // While we support output format in other locales, Cashtab only handles decimalized strings with '.'
     // Split for decimals
