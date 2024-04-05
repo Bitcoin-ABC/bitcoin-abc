@@ -18,7 +18,7 @@ function Staking(props) {
                 h2text="Staking"
             >
                 <p>
-                    Stakers have an important job: to participate in the
+                    Stakers have an important job: to participate in
                     eCash&apos;s avalanche consensus system, enabling eCash to
                     be a fast and reliable electronic cash system. eCash
                     avalanche participants should run reliable high-availability
