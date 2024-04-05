@@ -9,10 +9,11 @@ import ExternalLink from '/components/external-link';
 import { Container, GradientSpacer } from '/components/atoms';
 import pins from '/public/animations/pins.json';
 
-const latestVersion = `0.29.1`;
 const oldVersion = `0.28.12`;
 
 function Upgrade(props) {
+    const latestVersion = props.latestVersion;
+
     return (
         <Layout>
             <SubPageHero
@@ -153,6 +154,28 @@ function Upgrade(props) {
             </Container>
         </Layout>
     );
+}
+
+async function getLatestVersion() {
+    const response = await fetch(
+        'https://api.github.com/repos/Bitcoin-abc/bitcoin-abc/releases?per_page=1',
+        {
+            headers: {
+                accept: 'application/vnd.github.v3+json',
+            },
+        },
+    );
+    const releases = await response.json();
+    return releases[0].name;
+}
+
+export async function getStaticProps() {
+    const latestVersion = await getLatestVersion();
+    return {
+        props: {
+            latestVersion: latestVersion,
+        },
+    };
 }
 
 export default Upgrade;
