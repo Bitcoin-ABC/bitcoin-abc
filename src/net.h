@@ -9,8 +9,8 @@
 
 #include <avalanche/proofid.h>
 #include <avalanche/proofradixtreeadapter.h>
-#include <bloom.h>
 #include <chainparams.h>
+#include <common/bloom.h>
 #include <compat.h>
 #include <consensus/amount.h>
 #include <crypto/siphash.h>

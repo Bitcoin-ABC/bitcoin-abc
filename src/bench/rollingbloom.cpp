@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
-#include <bloom.h>
+#include <common/bloom.h>
 
 static void RollingBloom(benchmark::Bench &bench) {
     CRollingBloomFilter filter(120000, 0.000001);

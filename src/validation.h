@@ -15,9 +15,9 @@
 #include <attributes.h>
 #include <blockfileinfo.h>
 #include <blockindexcomparators.h>
-#include <bloom.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/bloom.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>

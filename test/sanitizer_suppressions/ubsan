@@ -15,7 +15,7 @@ unsigned-integer-overflow:addrman.cpp
 unsigned-integer-overflow:arith_uint256.h
 unsigned-integer-overflow:basic_string.h
 unsigned-integer-overflow:bench/bench.h
-unsigned-integer-overflow:bloom.cpp
+unsigned-integer-overflow:common/bloom.cpp
 unsigned-integer-overflow:coded_stream.h
 unsigned-integer-overflow:coins.cpp
 unsigned-integer-overflow:compressor.cpp

@@ -13,7 +13,7 @@
 #include <avalanche/voterecord.h> // For AVALANCHE_MAX_INFLIGHT_POLL
 #include <blockindex.h>
 #include <blockindexcomparators.h>
-#include <bloom.h>
+#include <common/bloom.h>
 #include <eventloop.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>

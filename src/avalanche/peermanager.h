@@ -9,8 +9,8 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofpool.h>
 #include <avalanche/proofradixtreeadapter.h>
-#include <bloom.h>
 #include <coins.h>
+#include <common/bloom.h>
 #include <consensus/validation.h>
 #include <pubkey.h>
 #include <radix.h>
