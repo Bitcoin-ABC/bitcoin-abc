@@ -7,23 +7,25 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
 const ModalContainer = styled.div`
-  width: ${props => props.width}px;
-  height: ${props => props.height}px;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 100%;
-  max-height: 100%;
-  border-radius: 9px;
-  background: rgba(0, 0, 0, 0.75);\
-  backdrop-filter: blur(5px);
-  padding: 12px;
-  z-index: 1000;
-  box-sizing: border-box;
-  *, *:before, *:after {
-    box-sizing: inherit;
-  }
+    width: ${props => props.width}px;
+    height: ${props => props.height}px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    padding: 12px;
+    z-index: 1000;
+    box-sizing: border-box;
+    *,
+    *:before,
+    *:after {
+        box-sizing: inherit;
+    }
 `;
 const ModalTitle = styled.div`
     font-weight: bold;
@@ -75,6 +77,9 @@ const ButtonHolder = styled.div`
     display: flex;
     justify-content: center;
     gap: 24px;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, -50%);
 `;
 const ModalBaseButton = styled.button`
     font-size: 14px;
@@ -92,15 +97,23 @@ const ModalBaseButton = styled.button`
     }
 `;
 const ModalConfirm = styled(ModalBaseButton)`
-    color: ${props => props.theme.buttons.primary.color};
-    background-image: ${props => props.theme.buttons.primary.backgroundImage};
+    color: ${props =>
+        props.disabled
+            ? props.theme.buttons.disabled.color
+            : props.theme.buttons.primary.color};
     border: 1px solid
         ${props => (props.disabled ? 'none' : props.theme.eCashBlue)};
+    ${props =>
+        props.disabled
+            ? `background: ${props.theme.buttons.disabled.background};`
+            : `background-image: ${props.theme.buttons.primary.backgroundImage}; `};
+    background-size: 200% auto;
 `;
 const ModalCancel = styled(ModalBaseButton)`
     color: ${props => props.theme.buttons.primary.color};
     border: 1px solid ${props => props.theme.eCashPurple};
-    background: transparent;
+    background-image: ${props => props.theme.buttons.secondary.backgroundImage};
+    background-size: 200% auto;
     :hover {
         color: ${props => props.theme.buttons.primary.color};
         background-color: ${props => props.theme.buttons.modal.background};
@@ -122,6 +135,15 @@ const ModalExit = styled.button`
     }
 `;
 
+const Overlay = styled.div`
+    z-index: 999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+`;
+
 export const Modal = ({
     title,
     description,
@@ -132,28 +154,36 @@ export const Modal = ({
     width = 320,
     height = 210,
     showButtons = true,
+    disabled = false,
 }) => {
     return (
-        <ModalContainer width={width} height={height}>
-            <ModalExit onClick={handleCancel}>X</ModalExit>
-            <ModalBody height={height} showButtons={showButtons}>
-                {typeof title !== 'undefined' && (
-                    <ModalTitle>{title}</ModalTitle>
-                )}
-                {typeof description !== 'undefined' && (
-                    <ModalDescription>{description}</ModalDescription>
-                )}
-                {children}
-            </ModalBody>
-            {showButtons && (
-                <ButtonHolder>
-                    <ModalConfirm onClick={handleOk}>OK</ModalConfirm>
-                    {showCancelButton && (
-                        <ModalCancel onClick={handleCancel}>Cancel</ModalCancel>
+        <>
+            <ModalContainer width={width} height={height}>
+                <ModalExit onClick={handleCancel}>X</ModalExit>
+                <ModalBody height={height} showButtons={showButtons}>
+                    {typeof title !== 'undefined' && (
+                        <ModalTitle>{title}</ModalTitle>
                     )}
-                </ButtonHolder>
-            )}
-        </ModalContainer>
+                    {typeof description !== 'undefined' && (
+                        <ModalDescription>{description}</ModalDescription>
+                    )}
+                    {children}
+                </ModalBody>
+                {showButtons && (
+                    <ButtonHolder>
+                        <ModalConfirm disabled={disabled} onClick={handleOk}>
+                            OK
+                        </ModalConfirm>
+                        {showCancelButton && (
+                            <ModalCancel onClick={handleCancel}>
+                                Cancel
+                            </ModalCancel>
+                        )}
+                    </ButtonHolder>
+                )}
+            </ModalContainer>
+            <Overlay />
+        </>
     );
 };
 
@@ -166,6 +196,7 @@ Modal.propTypes = {
     width: PropTypes.number,
     height: PropTypes.number,
     showButtons: PropTypes.bool,
+    disabled: PropTypes.bool,
     children: PropTypes.node,
 };
 
