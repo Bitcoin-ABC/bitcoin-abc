@@ -209,11 +209,6 @@ public:
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
 
-    CDataStream &operator+=(const CDataStream &b) {
-        vch.insert(vch.end(), b.begin(), b.end());
-        return *this;
-    }
-
     std::string str() const { return (std::string(begin(), end())); }
 
     //
