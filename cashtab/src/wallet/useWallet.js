@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getHashArrayFromWallet } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
@@ -59,6 +59,19 @@ const useWallet = chronik => {
     const [chaintipBlockheight, setChaintipBlockheight] = useState(0);
     const [cashtabState, setCashtabState] = useState(new CashtabState());
     const locale = getUserLocale();
+
+    // Ref https://stackoverflow.com/questions/53446020/how-to-compare-oldvalues-and-newvalues-on-react-hooks-useeffect
+    // Get the previous value of a state variable
+    const usePrevious = value => {
+        const ref = useRef();
+        useEffect(() => {
+            ref.current = value;
+        }, [value]);
+        return ref.current;
+    };
+
+    const prevFiatPrice = usePrevious(fiatPrice);
+    const prevFiatCurrency = usePrevious(cashtabState.settings.fiatCurrency);
 
     const update = async cashtabState => {
         if (!cashtabLoaded) {
@@ -699,9 +712,14 @@ const useWallet = chronik => {
     // Must be able to end them and set new ones with new currencies
     const initializeFiatPriceApi = async selectedFiatCurrency => {
         // Update fiat price and confirm it is set to make sure ap keeps loading state until this is updated
+
+        // Call this instance with showNotifications = false,
+        // as we do not want to calculate price deltas when the user selects a new foreign currency
         await fetchXecPrice(selectedFiatCurrency);
         // Set interval for updating the price with given currency
 
+        // Now we call with showNotifications = true, as we want
+        // to show price changes when the currency has not changed
         const thisFiatInterval = setInterval(function () {
             fetchXecPrice(selectedFiatCurrency);
         }, appConfig.fiatUpdateIntervalMs);
@@ -730,6 +748,7 @@ const useWallet = chronik => {
             let xecPriceInFiat = xecPriceJson[cryptoId][fiatCode];
 
             if (typeof xecPriceInFiat === 'number') {
+                // If we have a good fetch
                 return setFiatPrice(xecPriceInFiat);
             }
         } catch (err) {
@@ -815,6 +834,62 @@ const useWallet = chronik => {
         // Reset fiat price API when fiatCurrency setting changes
         initializeFiatPriceApi(cashtabState.settings.fiatCurrency);
     }, [cashtabLoaded, cashtabState.settings.fiatCurrency]);
+
+    /**
+     * useEffect
+     * Depends on fiatPrice and user-set fiatCurrency
+     * Used to trigger price notifications at new fiatPrice milestones
+     * Optimized for USD
+     * Also supports EUR and GBP as these are "close enough", for now anyway
+     */
+    useEffect(() => {
+        // Do nothing if the user has just changed the fiat currency
+        if (cashtabState.settings.fiatCurrency !== prevFiatCurrency) {
+            return;
+        }
+
+        // We only support currencies that are similar order of magnitude to USD
+        // USD is the real referencce for "killed zero"
+        const FIAT_CHANGE_SUPPORTED_CURRENCIES = [
+            'usd',
+            'eur',
+            'gbp',
+            'cad',
+            'aud',
+        ];
+        if (
+            !FIAT_CHANGE_SUPPORTED_CURRENCIES.includes(
+                cashtabState.settings.fiatCurrency,
+            )
+        ) {
+            return;
+        }
+        // Otherwise we do support them
+        if (fiatPrice === null || prevFiatPrice === null) {
+            return;
+        }
+        const priceIncreased = fiatPrice - prevFiatPrice > 0;
+        if (priceIncreased) {
+            // We only show price notifications if price has increased
+            // "tens" for USD price per 1,000,000 XEC
+            const prevTens = parseInt(Math.floor(prevFiatPrice * 1e5));
+            const tens = parseInt(Math.floor(fiatPrice * 1e5));
+            if (tens > prevTens) {
+                // We have passed a $10 milestone
+                toast(
+                    `XEC is now ${
+                        supportedFiatCurrencies[
+                            cashtabState.settings.fiatCurrency
+                        ].symbol
+                    }${fiatPrice} ${cashtabState.settings.fiatCurrency.toUpperCase()}`,
+                );
+            }
+            if (tens >= 10 && prevTens < 10) {
+                // We have killed a zero
+                toast(`ZERO KILLED 🔫🔫🔫🔪🔪🔪`, { autoClose: false });
+            }
+        }
+    }, [fiatPrice, cashtabState.settings.fiatCurrency]);
 
     // Update websocket subscriptions and websocket onMessage handler whenever
     // 1. cashtabState changes

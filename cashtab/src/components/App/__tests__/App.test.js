@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent, {
     PointerEventsCheckLevel,
 } from '@testing-library/user-event';
@@ -43,6 +43,7 @@ import {
 import { createCashtabWallet } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import CashtabCache from 'config/CashtabCache';
+import { CashtabSettings } from 'config/cashtabSettings';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -93,6 +94,8 @@ describe('<App />', () => {
         // Keep this in the code, because different URLs will have different outputs requiring different parsing
         const priceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${fiatCode}&include_last_updated_at=true`;
         const xecPrice = 0.00003;
+        const nextXecPrice = 0.000042;
+        const zeroKillingXecPrice = 0.000111;
         const priceResponse = {
             ecash: {
                 usd: xecPrice,
@@ -101,8 +104,29 @@ describe('<App />', () => {
         };
         when(fetch)
             .calledWith(priceApiUrl)
-            .mockResolvedValue({
+            .mockResolvedValueOnce({
                 json: () => Promise.resolve(priceResponse),
+            });
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValueOnce({
+                json: () =>
+                    Promise.resolve({
+                        ...priceResponse,
+                        ecash: { ...priceResponse.ecash, usd: nextXecPrice },
+                    }),
+            });
+        when(fetch)
+            .calledWith(priceApiUrl)
+            .mockResolvedValueOnce({
+                json: () =>
+                    Promise.resolve({
+                        ...priceResponse,
+                        ecash: {
+                            ...priceResponse.ecash,
+                            usd: zeroKillingXecPrice,
+                        },
+                    }),
             });
     });
     afterEach(async () => {
@@ -1244,5 +1268,103 @@ describe('<App />', () => {
                 ]),
             ),
         );
+    });
+    it('We see a price notification if new price is at a new tens level in USD per 1,000,000 XEC, and a special notification if a zero is killed', async () => {
+        jest.useFakeTimers();
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Advance timers more than the price interval
+        act(() => {
+            jest.advanceTimersByTime(appConfig.fiatUpdateIntervalMs + 1000);
+        });
+
+        // We get a notification for a "tens" price milestone
+        expect(
+            await screen.findByText('XEC is now $0.000042 USD'),
+        ).toBeInTheDocument();
+
+        // Advance timers more than the price interval
+        act(() => {
+            jest.advanceTimersByTime(appConfig.fiatUpdateIntervalMs + 1000);
+        });
+
+        // We get a notification for a "tens" price milestone
+        expect(
+            await screen.findByText('XEC is now $0.000111 USD'),
+        ).toBeInTheDocument();
+
+        // We get a zero killed notification
+        expect(
+            await screen.findByText('ZERO KILLED 🔫🔫🔫🔪🔪🔪'),
+        ).toBeInTheDocument();
+
+        // Return to normal timers
+        // Ref https://testing-library.com/docs/using-fake-timers/
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
+    });
+    it('We do not see price notifications if new price is at a new tens level in JPY per 1,000,000 XEC, because user fiat currency does not support zero killed notifications for JPY', async () => {
+        jest.useFakeTimers();
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        await localforage.setItem('settings', new CashtabSettings('jpy'));
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Advance timers more than the price interval
+        act(() => {
+            jest.advanceTimersByTime(appConfig.fiatUpdateIntervalMs + 1000);
+        });
+
+        // We DO NOT get a notification for a "tens" price milestone
+        await waitFor(() =>
+            expect(
+                screen.queryByText('XEC is now $0.000042 USD'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Advance timers more than the price interval
+        act(() => {
+            jest.advanceTimersByTime(appConfig.fiatUpdateIntervalMs + 1000);
+        });
+
+        // We DO NOT get a notification for a "tens" price milestone
+        await waitFor(() =>
+            expect(
+                screen.queryByText('XEC is now $0.000111 USD'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // We DO NOT get a zero killed notification
+        await waitFor(() =>
+            expect(
+                screen.queryByText('ZERO KILLED 🔫🔫🔫🔪🔪🔪'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Return to normal timers
+        // Ref https://testing-library.com/docs/using-fake-timers/
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
     });
 });
