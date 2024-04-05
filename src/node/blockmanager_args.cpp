@@ -39,6 +39,10 @@ std::optional<bilingual_str> ApplyArgsManOptions(const ArgsManager &args,
         opts.fast_prune = *value;
     }
 
+    if (auto value{args.GetBoolArg("-reindex")}) {
+        opts.reindex = *value;
+    }
+
     return std::nullopt;
 }
 } // namespace node

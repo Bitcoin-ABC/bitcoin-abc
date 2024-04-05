@@ -129,7 +129,6 @@ using node::BlockManager;
 using node::CalculateCacheSizes;
 using node::DEFAULT_PERSIST_MEMPOOL;
 using node::DEFAULT_STOPATHEIGHT;
-using node::fReindex;
 using node::ImportBlocks;
 using node::KernelNotifications;
 using node::LoadChainstate;
@@ -2588,7 +2587,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.notifications =
         std::make_unique<KernelNotifications>(node.exit_status);
     ReadNotificationArgs(args, *node.notifications);
-    fReindex = args.GetBoolArg("-reindex", false);
     bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
 
     ChainstateManager::Options chainman_opts{
@@ -2698,7 +2696,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         node::ChainstateLoadOptions options;
         options.mempool = Assert(node.mempool.get());
-        options.reindex = node::fReindex;
+        options.reindex = blockman_opts.reindex;
         options.reindex_chainstate = fReindexChainState;
         options.prune = chainman.m_blockman.IsPruneMode();
         options.check_blocks =
@@ -2758,7 +2756,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         if (!fLoaded && !ShutdownRequested()) {
             // first suggest a reindex
-            if (!options.reindex) {
+            if (!blockman_opts.reindex) {
                 bool fRet = uiInterface.ThreadSafeQuestion(
                     error + Untranslated(".\n\n") +
                         _("Do you want to rebuild the block database now?"),
@@ -2768,7 +2766,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     CClientUIInterface::MSG_ERROR |
                         CClientUIInterface::BTN_ABORT);
                 if (fRet) {
-                    fReindex = true;
+                    blockman_opts.reindex = true;
                     AbortShutdown();
                 } else {
                     LogPrintf("Aborted block database rebuild. Exiting.\n");
@@ -2833,21 +2831,22 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         g_txindex = std::make_unique<TxIndex>(
             interfaces::MakeChain(node, Params()), index_cache_sizes.tx_index,
-            false, fReindex);
+            false, chainman.m_blockman.m_reindexing);
         node.indexes.emplace_back(g_txindex.get());
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
         InitBlockFilterIndex(
             [&] { return interfaces::MakeChain(node, Params()); }, filter_type,
-            index_cache_sizes.filter_index, false, fReindex);
+            index_cache_sizes.filter_index, false,
+            chainman.m_blockman.m_reindexing);
         node.indexes.emplace_back(GetBlockFilterIndex(filter_type));
     }
 
     if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
         g_coin_stats_index = std::make_unique<CoinStatsIndex>(
             interfaces::MakeChain(node, Params()), /* cache size */ 0, false,
-            fReindex);
+            chainman.m_blockman.m_reindexing);
         node.indexes.emplace_back(g_coin_stats_index.get());
     }
 
@@ -2868,8 +2867,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                   "background sync to complete before enabling Chronik."));
         }
 
-        const bool fReindexChronik =
-            fReindex || args.GetBoolArg("-chronikreindex", false);
+        const bool fReindexChronik = chainman.m_blockman.m_reindexing ||
+                                     args.GetBoolArg("-chronikreindex", false);
         if (!chronik::Start(args, config, node, fReindexChronik)) {
             return false;
         }
@@ -2888,7 +2887,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // if pruning, perform the initial blockstore prune
     // after any wallet rescanning has taken place.
     if (chainman.m_blockman.IsPruneMode()) {
-        if (!fReindex) {
+        if (!chainman.m_blockman.m_reindexing) {
             LOCK(cs_main);
             for (Chainstate *chainstate : chainman.GetAll()) {
                 uiInterface.InitMessage(_("Pruning blockstore...").translated);

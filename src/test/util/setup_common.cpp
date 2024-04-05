@@ -225,7 +225,7 @@ void TestingSetup::LoadVerifyActivateChainstate() {
     options.mempool = Assert(m_node.mempool.get());
     options.block_tree_db_in_memory = m_block_tree_db_in_memory;
     options.coins_db_in_memory = m_coins_db_in_memory;
-    options.reindex = node::fReindex;
+    options.reindex = m_args.GetBoolArg("-reindex", false);
     options.reindex_chainstate =
         m_args.GetBoolArg("-reindex-chainstate", false);
     options.prune = chainman.m_blockman.IsPruneMode();

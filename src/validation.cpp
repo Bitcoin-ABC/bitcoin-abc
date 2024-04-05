@@ -82,7 +82,6 @@ using kernel::Notifications;
 using fsbridge::FopenFn;
 using node::BlockManager;
 using node::BlockMap;
-using node::fReindex;
 using node::SnapshotMetadata;
 
 /**
@@ -2616,7 +2615,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             LOCK(m_blockman.cs_LastBlockFile);
             if (m_blockman.IsPruneMode() &&
                 (m_blockman.m_check_for_pruning || nManualPruneHeight > 0) &&
-                !fReindex) {
+                !m_chainman.m_blockman.m_reindexing) {
                 // Make sure we don't prune any of the prune locks bestblocks.
                 // Pruning is height-based.
                 int last_prune{m_chain.Height()};
@@ -3501,11 +3500,12 @@ bool Chainstate::ActivateBestChainStep(
     return true;
 }
 
-static SynchronizationState GetSynchronizationState(bool init) {
+static SynchronizationState GetSynchronizationState(bool init,
+                                                    bool reindexing) {
     if (!init) {
         return SynchronizationState::POST_INIT;
     }
-    if (::fReindex) {
+    if (reindexing) {
         return SynchronizationState::INIT_REINDEX;
     }
     return SynchronizationState::INIT_DOWNLOAD;
@@ -3531,7 +3531,8 @@ static bool NotifyHeaderTip(ChainstateManager &chainman)
     // Send block tip changed notifications without cs_main
     if (fNotify) {
         chainman.GetNotifications().headerTip(
-            GetSynchronizationState(fInitialBlockDownload),
+            GetSynchronizationState(fInitialBlockDownload,
+                                    chainman.m_blockman.m_reindexing),
             pindexHeader->nHeight, pindexHeader->nTime, false);
     }
     return fNotify;
@@ -3686,7 +3687,9 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                     // Always notify the UI if a new block tip was connected
                     if (kernel::IsInterrupted(
                             m_chainman.GetNotifications().blockTip(
-                                GetSynchronizationState(still_in_ibd),
+                                GetSynchronizationState(
+                                    still_in_ibd,
+                                    m_chainman.m_blockman.m_reindexing),
                                 *pindexNewTip))) {
                         // Just breaking and returning success for now. This
                         // could be changed to bubble up the kernel::Interrupted
@@ -4050,7 +4053,8 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
         // distinguish user-initiated invalidateblock changes from other
         // changes.
         (void)m_chainman.GetNotifications().blockTip(
-            GetSynchronizationState(m_chainman.IsInitialBlockDownload()),
+            GetSynchronizationState(m_chainman.IsInitialBlockDownload(),
+                                    m_chainman.m_blockman.m_reindexing),
             *to_mark_failed_or_parked->pprev);
     }
     return true;
@@ -4902,8 +4906,9 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
         m_last_presync_update = now;
     }
     bool initial_download = IsInitialBlockDownload();
-    GetNotifications().headerTip(GetSynchronizationState(initial_download),
-                                 height, timestamp, /*presync=*/true);
+    GetNotifications().headerTip(
+        GetSynchronizationState(initial_download, m_blockman.m_reindexing),
+        height, timestamp, /*presync=*/true);
     if (initial_download) {
         int64_t blocks_left{
             (NodeClock::now() - NodeSeconds{std::chrono::seconds{timestamp}}) /
@@ -5734,8 +5739,8 @@ bool ChainstateManager::LoadRecentHeadersTime(const fs::path &filePath) {
 bool ChainstateManager::LoadBlockIndex() {
     AssertLockHeld(cs_main);
     // Load block index from databases
-    bool needs_init = fReindex;
-    if (!fReindex) {
+    bool needs_init = m_blockman.m_reindexing;
+    if (!m_blockman.m_reindexing) {
         bool ret{m_blockman.LoadBlockIndexDB(SnapshotBlockhash())};
         if (!ret) {
             return false;
@@ -5789,8 +5794,8 @@ bool ChainstateManager::LoadBlockIndex() {
 
     if (needs_init) {
         // Everything here is for *new* reindex/DBs. Thus, though
-        // LoadBlockIndexDB may have set fReindex if we shut down
-        // mid-reindex previously, we don't check fReindex and
+        // LoadBlockIndexDB may have set m_reindexing if we shut down
+        // mid-reindex previously, we don't check m_reindexing and
         // instead only check it prior to LoadBlockIndexDB to set
         // needs_init.
 
@@ -5963,7 +5968,8 @@ void ChainstateManager::LoadExternalBlockFile(
                     }
                 }
 
-                if (m_blockman.IsPruneMode() && !fReindex && pblock) {
+                if (m_blockman.IsPruneMode() && !m_blockman.m_reindexing &&
+                    pblock) {
                     // Must update the tip for pruning to work while importing
                     // with -loadblock. This is a tradeoff to conserve disk
                     // space at the expense of time spent updating the tip to be

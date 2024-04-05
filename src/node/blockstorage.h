@@ -65,8 +65,6 @@ static constexpr size_t BLOCK_SERIALIZATION_HEADER_SIZE{
 static constexpr size_t UNDO_DATA_DISK_OVERHEAD{
     BLOCK_SERIALIZATION_HEADER_SIZE + uint256::size()};
 
-extern std::atomic_bool fReindex;
-
 // Because validation code takes pointers to the map's CBlockIndex objects, if
 // we ever switch to another associative container, we need to either use a
 // container that has stable addressing (true of all std associative
@@ -256,10 +254,17 @@ public:
 
     explicit BlockManager(const util::SignalInterrupt &interrupt, Options opts)
         : m_prune_mode{opts.prune_target > 0}, m_opts{std::move(opts)},
-          m_interrupt{interrupt} {};
+          m_interrupt{interrupt}, m_reindexing{m_opts.reindex} {};
 
     const util::SignalInterrupt &m_interrupt;
     std::atomic<bool> m_importing{false};
+
+    /**
+     * Tracks if a reindex is currently in progress. Set to true when a reindex
+     * is requested and false when reindexing completes. Its value is persisted
+     * in the BlockTreeDB across restarts.
+     */
+    std::atomic_bool m_reindexing;
 
     BlockMap m_block_index GUARDED_BY(cs_main);
 
@@ -356,7 +361,9 @@ public:
     static constexpr auto PRUNE_TARGET_MANUAL{
         std::numeric_limits<uint64_t>::max()};
 
-    [[nodiscard]] bool LoadingBlocks() const { return m_importing || fReindex; }
+    [[nodiscard]] bool LoadingBlocks() const {
+        return m_importing || m_reindexing;
+    }
 
     /**
      * Calculate the amount of disk space the block & undo files currently use

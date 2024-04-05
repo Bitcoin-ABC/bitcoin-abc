@@ -28,7 +28,6 @@
 #include <unordered_map>
 
 namespace node {
-std::atomic_bool fReindex(false);
 
 std::vector<CBlockIndex *> BlockManager::GetAllBlockIndices() {
     AssertLockHeld(cs_main);
@@ -427,7 +426,7 @@ bool BlockManager::LoadBlockIndexDB(
 
     // Check whether we need to continue reindexing
     if (m_block_tree_db->IsReindexing()) {
-        fReindex = true;
+        m_reindexing = true;
     }
 
     return true;
@@ -1123,7 +1122,7 @@ void ImportBlocks(ChainstateManager &chainman,
         ImportingNow imp{chainman.m_blockman.m_importing};
 
         // -reindex
-        if (fReindex) {
+        if (chainman.m_blockman.m_reindexing) {
             int nFile = 0;
             // Map of disk positions for blocks with unknown parent (only used
             // for reindex);  parent hash -> child disk position, multiple
@@ -1153,7 +1152,7 @@ void ImportBlocks(ChainstateManager &chainman,
             WITH_LOCK(
                 ::cs_main,
                 chainman.m_blockman.m_block_tree_db->WriteReindexing(false));
-            fReindex = false;
+            chainman.m_blockman.m_reindexing = false;
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):
