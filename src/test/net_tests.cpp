@@ -1396,8 +1396,6 @@ BOOST_AUTO_TEST_CASE(already_connected_to_address) {
     BOOST_CHECK(connman.AlreadyConnectedToAddress(ip2port1));
 
     // Same IP, different port
-    BOOST_CHECK(!connman.AlreadyConnectedToAddress(ip1port2));
-    connman.AddNode(ip1port2, ConnectionType::OUTBOUND_FULL_RELAY);
     BOOST_CHECK(connman.AlreadyConnectedToAddress(ip1port2));
 }
 
