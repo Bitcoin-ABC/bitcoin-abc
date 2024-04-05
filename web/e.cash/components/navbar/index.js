@@ -8,15 +8,16 @@ import { navitems } from '../../data/navitems';
 import { socials } from '../../data/socials';
 import { NavbarOuter, NavbarCtn, EnvVarMessage, SocialCtn } from './styles';
 import AnnouncementBar from '/components/announcement-bar';
+import { useApiData } from './getNavbarData';
 
 export default function Navbar({ announcementbar }) {
-    const [priceLinkText, setPriceLinkText] = useState('Buy XEC');
     const [mobileMenu, setMobileMenu] = useState(false);
     const [selectedDropDownMenu, setSelectedDropDownMenu] = useState(-1);
     const [windowWidth, setWindowWidth] = useState('');
     const [windowHeight, setWindowHeight] = useState(0);
     const [navBackground, setNavBackground] = useState(false);
     const mobileBreakPoint = 920;
+    const { priceLinkText } = useApiData();
 
     const handleResize = () => {
         setWindowWidth(window.innerWidth);
@@ -26,17 +27,6 @@ export default function Navbar({ announcementbar }) {
         setWindowHeight(window.scrollY);
     };
 
-    const getPrice = () => {
-        const api =
-            'https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd';
-        fetch(api)
-            .then(response => response.json())
-            .then(data =>
-                setPriceLinkText('1 XEC = $' + data.ecash.usd.toFixed(6)),
-            )
-            .catch(err => console.log(err));
-    };
-
     useEffect(() => {
         // set the window width so logic for mobile or desktop menus is applied correctly
         setWindowWidth(window.innerWidth);
@@ -44,8 +34,6 @@ export default function Navbar({ announcementbar }) {
         window.addEventListener('resize', handleResize);
         // add event listerner for scroll so we can change the nav background on scroll
         window.addEventListener('scroll', handleScroll);
-        // get XEC price
-        getPrice();
         // remove the event listeners after mount to avoid memory leak
         return () => {
             window.removeEventListener('resize', handleResize);
