@@ -20,7 +20,6 @@ import {
     meetsAliasSpec,
     isValidAliasSendInput,
     isProbablyNotAScam,
-    getContactAddressOrAliasError,
     isValidSideshiftObj,
     isValidMultiSendUserInput,
     shouldSendXecBeDisabled,
@@ -39,9 +38,7 @@ import {
     invalidXecAirdropExclusionListPrefixless,
 } from 'validation/fixtures/mocks';
 import vectors from 'validation/fixtures/vectors';
-import { when } from 'jest-when';
 import appConfig from 'config/app';
-import aliasSettings from 'config/alias';
 
 describe('Cashtab validation functions', () => {
     it(`isValidSideshiftObj() returns true for a valid sideshift library object`, () => {
@@ -72,117 +69,6 @@ describe('Cashtab validation functions', () => {
             addEvenListener: 'not-a-function',
         };
         expect(isValidSideshiftObj(mockSideshift)).toBe(false);
-    });
-    it(`getContactAddressOrAliasError() returns false for a valid and registered alias input that is not already in contacts`, async () => {
-        const mockRegisteredAliasResponse = {
-            alias: 'cbdc',
-            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-            txid: 'f7d71433af9a4e0081ea60349becf2a60efed8890df7c3e8e079b3427f51d5ea',
-            blockheight: 802515,
-        };
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${mockRegisteredAliasResponse.alias}`;
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(mockRegisteredAliasResponse),
-            });
-        expect(await getContactAddressOrAliasError('cbdc.xec', [])).toBe(false);
-    });
-    it(`getContactAddressOrAliasError() returns expected error for a valid and registered alias input that is already in contacts`, async () => {
-        const mockRegisteredAliasResponse = {
-            alias: 'cbdc',
-            address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-            txid: 'f7d71433af9a4e0081ea60349becf2a60efed8890df7c3e8e079b3427f51d5ea',
-            blockheight: 802515,
-        };
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${mockRegisteredAliasResponse.alias}`;
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(mockRegisteredAliasResponse),
-            });
-        expect(
-            await getContactAddressOrAliasError('cbdc.xec', [
-                { address: 'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx' },
-            ]),
-        ).toBe(
-            `ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx is already in Contacts`,
-        );
-    });
-    it(`getContactAddressOrAliasError() returns expected error for a valid alias input that the server is unable to resolve`, async () => {
-        const mockRegisteredAliasResponse = new Error('some server error');
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/cbdc`;
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue(mockRegisteredAliasResponse);
-        expect(await getContactAddressOrAliasError('cbdc.xec', [])).toBe(
-            `Error resolving "cbdc.xec"`,
-        );
-    });
-    it(`getContactAddressOrAliasError() returns expected error for a valid but unregistered alias input`, async () => {
-        const mockUnregisteredAliasResponse = {
-            alias: 'koush',
-            isRegistered: false,
-            registrationFeeSats: 554,
-            processedBlockheight: 803421,
-        };
-        const fetchUrl = `${aliasSettings.aliasServerBaseUrl}/alias/${mockUnregisteredAliasResponse.alias}`;
-
-        // mock the fetch call to alias-server's '/alias' endpoint
-        global.fetch = jest.fn();
-        when(fetch)
-            .calledWith(fetchUrl)
-            .mockResolvedValue({
-                json: () => Promise.resolve(mockUnregisteredAliasResponse),
-            });
-        expect(await getContactAddressOrAliasError('koush.xec', [])).toBe(
-            'Alias "koush.xec" is unregistered',
-        );
-    });
-    it(`getContactAddressOrAliasError() returns expected error for an invalid eCash address / alias input`, async () => {
-        expect(await getContactAddressOrAliasError('notvalid', [])).toBe(
-            `"notvalid" is not a valid eCash address or alias`,
-        );
-    });
-    it(`getContactAddressOrAliasError() returns false for a valid eCash address that is not in Contacts`, async () => {
-        expect(
-            await getContactAddressOrAliasError(
-                'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                [],
-            ),
-        ).toBe(false);
-    });
-    it(`getContactAddressOrAliasError() returns expected error for a valid eCash address that is in Contacts`, async () => {
-        expect(
-            await getContactAddressOrAliasError(
-                'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                [
-                    {
-                        address:
-                            'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                    },
-                ],
-            ),
-        ).toBe(
-            'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx is already in Contacts',
-        );
-    });
-    it(`getContactAddressOrAliasError() returns false for a valid prefix-less eCash address`, async () => {
-        expect(
-            await getContactAddressOrAliasError(
-                'qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx',
-                [],
-            ),
-        ).toBe(false);
     });
     it(`validateMnemonic() returns true for a valid mnemonic`, () => {
         const mnemonic =

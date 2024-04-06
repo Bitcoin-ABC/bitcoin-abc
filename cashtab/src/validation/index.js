@@ -11,7 +11,6 @@ import {
     cashtabSettingsValidation,
 } from 'config/cashtabSettings';
 import tokenBlacklist from 'config/tokenBlacklist';
-import { queryAliasServer } from 'alias';
 import appConfig from 'config/app';
 import { opReturn } from 'config/opreturn';
 import { getStackArray } from 'ecash-script';
@@ -37,65 +36,6 @@ export const isValidSideshiftObj = sideshiftObj => {
         typeof sideshiftObj.hide === 'function' &&
         typeof sideshiftObj.addEventListener === 'function'
     );
-};
-
-/**
- * Get error from user-input contact address
- * A valid contact address can be a valid alias that resolves to an address
- * NOTE
- * If we support alias entry to contact list -- which is quite complicated and has potentially zero impact
- * we still need to save the actual address in the list
- * otherwise we will need to lookup many aliases in contacts for all cashtab features that depend on "is
- * this address in contact lits"
- * @param {*} value
- * @param {*} contacts
- * @returns {false | string}
- */
-export const getContactAddressOrAliasError = async (
-    addressOrAlias,
-    contacts,
-) => {
-    const isValidCashAddress = cashaddr.isValidCashAddress(
-        addressOrAlias,
-        'ecash',
-    );
-    const isValidAlias = isValidAliasSendInput(addressOrAlias) === true;
-    if (!isValidCashAddress && !isValidAlias) {
-        return `"${addressOrAlias}" is not a valid eCash address or alias`;
-    }
-    // Check if alias address resolves
-    let resolvedAddress;
-
-    if (isValidAlias) {
-        try {
-            const aliasDetails = await queryAliasServer(
-                'alias',
-                addressOrAlias.split('.xec')[0],
-            );
-            if ('address' in aliasDetails) {
-                resolvedAddress = aliasDetails.address;
-            } else {
-                return `Alias "${addressOrAlias}" is unregistered`;
-            }
-        } catch (err) {
-            console.error(
-                `getContactAddressOrAliasError(): Error retrieving alias details`,
-                err,
-            );
-            // For purposes of UI, present this validation msg
-            // Also possible the server is down
-            // Either way, we do not want to accept such an input
-            return `Error resolving "${addressOrAlias}"`;
-        }
-    }
-    let address = isValidAlias ? resolvedAddress : addressOrAlias;
-    for (const contact of contacts) {
-        if (contact.address === address) {
-            return `${address} is already in Contacts`;
-        }
-    }
-
-    return false;
 };
 
 export const getContactAddressError = (address, contacts) => {
