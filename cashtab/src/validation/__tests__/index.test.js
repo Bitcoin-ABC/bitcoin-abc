@@ -8,7 +8,6 @@ import {
     isValidTokenDecimals,
     isValidTokenDocumentUrl,
     isValidCashtabSettings,
-    isValidNewWalletNameLength,
     isValidXecSendAmount,
     isValidTokenId,
     isValidXecAirdrop,
@@ -31,6 +30,7 @@ import {
     nodeWillAcceptOpReturnRaw,
     getContactNameError,
     getContactAddressError,
+    getWalletNameError,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -243,22 +243,6 @@ describe('Cashtab validation functions', () => {
     });
     it(`isValidAirdropExclusionArray rejects a null airdrop exclusion list`, () => {
         expect(isValidAirdropExclusionArray(null)).toBe(false);
-    });
-    it(`accepts a valid wallet name`, () => {
-        expect(isValidNewWalletNameLength('Apollo')).toBe(true);
-    });
-    it(`rejects wallet name that is too long`, () => {
-        expect(
-            isValidNewWalletNameLength(
-                'this string is far too long to be used as a wallet name...',
-            ),
-        ).toBe(false);
-    });
-    it(`rejects blank string as new wallet name`, () => {
-        expect(isValidNewWalletNameLength('')).toBe(false);
-    });
-    it(`rejects wallet name of the wrong type`, () => {
-        expect(isValidNewWalletNameLength(['newWalletName'])).toBe(false);
     });
     it(`isProbablyNotAScam recognizes "bitcoin" is probably a scam token name`, () => {
         expect(isProbablyNotAScam('bitcoin')).toBe(false);
@@ -533,6 +517,15 @@ describe('Cashtab validation functions', () => {
                 expect(getContactAddressError(address, contacts)).toBe(
                     returned,
                 );
+            });
+        });
+    });
+    describe('Gets error or false for wallet name input', () => {
+        const { expectedReturns } = vectors.getWalletNameError;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, name, wallets, returned } = expectedReturn;
+            it(`getWalletNameError: ${description}`, () => {
+                expect(getWalletNameError(name, wallets)).toBe(returned);
             });
         });
     });

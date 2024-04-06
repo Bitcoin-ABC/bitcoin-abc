@@ -3,6 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import appConfig from 'config/app';
+import { toXec } from 'wallet';
+
 export const formatDate = (dateString, userLocale = 'en') => {
     const options = { month: 'short', day: 'numeric', year: 'numeric' };
     const dateFormattingError = 'Unable to format date.';
@@ -100,4 +102,32 @@ export const decimalizedTokenQtyToLocaleFormat = (
     }
 
     return localeTokenString;
+};
+
+export const formatXecBalance = (balanceSats, userLocale) => {
+    // Get XEC balance
+    let balanceXec = toXec(balanceSats);
+    // Format up to max supply
+    const trillion = 1e12;
+    const billion = 1e9;
+    const million = 1e6;
+    const thousand = 1e3;
+    let units = 'T';
+    if (balanceXec >= trillion) {
+        balanceXec = balanceXec / trillion;
+    } else if (balanceXec >= billion) {
+        balanceXec = balanceXec / billion;
+        units = 'B';
+    } else if (balanceXec >= million) {
+        balanceXec = balanceXec / million;
+        units = 'M';
+    } else if (balanceXec >= thousand) {
+        balanceXec = balanceXec / thousand;
+        units = 'k';
+    } else {
+        units = '';
+    }
+    return `${balanceXec.toLocaleString(userLocale, {
+        maximumFractionDigits: 2,
+    })}${units}`;
 };

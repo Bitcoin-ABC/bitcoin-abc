@@ -379,13 +379,28 @@ export const isValidTokenId = tokenId => {
     );
 };
 
-export const isValidNewWalletNameLength = newWalletName => {
-    return (
-        typeof newWalletName === 'string' &&
-        newWalletName.length > 0 &&
-        newWalletName.length <= appConfig.localStorageMaxCharacters &&
-        newWalletName.length !== ''
-    );
+/**
+ * Get false if no error, or a string error for why a wallet name is invalid
+ * @param {string} name
+ * @param {{name: string;}[]} wallets
+ * @returns {false | string}
+ */
+export const getWalletNameError = (name, wallets) => {
+    if (name === '') {
+        return 'Wallet name cannot be a blank string';
+    }
+    if (name.trim() === '') {
+        return 'Wallet name cannot be only blank spaces';
+    }
+    if (name.length > appConfig.localStorageMaxCharacters) {
+        return `Wallet name cannot exceed ${appConfig.localStorageMaxCharacters} characters`;
+    }
+    for (const wallet of wallets) {
+        if (wallet.name === name) {
+            return `Wallet name "${name}" already exists`;
+        }
+    }
+    return false;
 };
 
 export const isValidXecAirdrop = xecAirdrop => {

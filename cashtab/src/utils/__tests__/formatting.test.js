@@ -7,6 +7,7 @@ import {
     formatFiatBalance,
     formatBalance,
     decimalizedTokenQtyToLocaleFormat,
+    formatXecBalance,
 } from 'utils/formatting';
 import vectors from 'utils/fixtures/vectors';
 
@@ -119,6 +120,17 @@ describe('Correctly executes formatting functions', () => {
                         userLocale,
                     ),
                 ).toBe(returned);
+            });
+        });
+    });
+    describe('We can format an XEC balance', () => {
+        const { expectedReturns } = vectors.formatXecBalance;
+        expectedReturns.forEach(vector => {
+            const { description, balanceSats, userLocale, returned } = vector;
+            it(`formatXecBalance: ${description}`, () => {
+                expect(formatXecBalance(balanceSats, userLocale)).toBe(
+                    returned,
+                );
             });
         });
     });

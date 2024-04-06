@@ -11,6 +11,7 @@ import {
     ReceiveIcon,
     SettingsIcon,
     AirdropIcon,
+    BankIcon,
     WalletIcon,
     ContactsIcon,
     ThemedSignAndVerifyMsg,
@@ -28,6 +29,7 @@ import SendToken from 'components/Send/SendToken';
 import Airdrop from 'components/Airdrop/Airdrop';
 import BackupWallet from 'components/BackupWallet/BackupWallet';
 import Contacts from 'components/Contacts';
+import Wallets from 'components/Wallets';
 import Alias from 'components/Alias/Alias';
 import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
@@ -573,6 +575,13 @@ const App = () => {
                                                         </NavHeader>
                                                     )}
                                                     {selectedKey ===
+                                                        'wallets' && (
+                                                        <NavHeader>
+                                                            Wallets
+                                                            <BankIcon />
+                                                        </NavHeader>
+                                                    )}
+                                                    {selectedKey ===
                                                         'configure' && (
                                                         <NavHeader>
                                                             Settings
@@ -681,6 +690,10 @@ const App = () => {
                                                         element={
                                                             <BackupWallet />
                                                         }
+                                                    />
+                                                    <Route
+                                                        path="/wallets"
+                                                        element={<Wallets />}
                                                     />
                                                     <Route
                                                         path="/contacts"
@@ -796,6 +809,15 @@ const App = () => {
                                             {' '}
                                             <p>Wallet Backup</p>
                                             <WalletIcon />
+                                        </NavItem>
+                                        <NavItem
+                                            data-testid="nav-btn-wallets"
+                                            active={selectedKey === 'wallets'}
+                                            onClick={() => navigate('/wallets')}
+                                        >
+                                            {' '}
+                                            <p>Wallets</p>
+                                            <BankIcon />
                                         </NavItem>
                                         <NavItem
                                             data-testid="nav-btn-contacts"

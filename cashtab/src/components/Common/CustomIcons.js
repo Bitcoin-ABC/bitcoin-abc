@@ -8,6 +8,7 @@ import {
     CopyOutlined,
     DollarOutlined,
     LoadingOutlined,
+    BankOutlined,
     WalletOutlined,
     SettingOutlined,
     LockOutlined,
@@ -68,6 +69,9 @@ export const ThemedDollarOutlined = styled(DollarOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;
 export const ThemedWalletOutlined = styled(WalletOutlined)`
+    color: ${props => props.theme.icons.outlined} !important;
+`;
+export const ThemedBankOutlined = styled(BankOutlined)`
     color: ${props => props.theme.icons.outlined} !important;
 `;
 export const ThemedSettingOutlined = styled(SettingOutlined)`
@@ -141,6 +145,9 @@ export const ThemedSignAndVerifyMsg = styled(Audit)`
     min-width: 24px;
 `;
 export const WalletIcon = styled(ThemedWalletOutlined)`
+    min-width: 24px;
+`;
+export const BankIcon = styled(ThemedBankOutlined)`
     min-width: 24px;
 `;
 export const ContactsIcon = styled(ThemedContactsOutlined)`

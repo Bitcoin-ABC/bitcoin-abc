@@ -2080,4 +2080,42 @@ export default {
             },
         ],
     },
+    getWalletNameError: {
+        expectedReturns: [
+            {
+                description:
+                    'Accepts a string of max length if no wallets exist with the same name',
+                name: 'thisnameistwentyfourchar',
+                wallets: [],
+                returned: false,
+            },
+            {
+                description:
+                    'Returns expected error for a string of max length if wallet exists with the same name',
+                name: 'thisnameistwentyfourchar',
+                wallets: [{ name: 'thisnameistwentyfourchar' }],
+                returned:
+                    'Wallet name "thisnameistwentyfourchar" already exists',
+            },
+            {
+                description: 'Returns expected error for an empty string',
+                name: '',
+                wallets: [],
+                returned: 'Wallet name cannot be a blank string',
+            },
+            {
+                description: 'Returns expected error for blank spaces',
+                name: '     ',
+                wallets: [],
+                returned: 'Wallet name cannot be only blank spaces',
+            },
+            {
+                description:
+                    'Returns expected error for wallet 1 char over the max name length',
+                name: 'thisnameistwentyfivechars',
+                wallets: [],
+                returned: `Wallet name cannot exceed ${appConfig.localStorageMaxCharacters} characters`,
+            },
+        ],
+    },
 };

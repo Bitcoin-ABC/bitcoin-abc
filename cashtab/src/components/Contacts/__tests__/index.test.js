@@ -3,8 +3,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
-import { populatedContactList } from 'components/Configure/fixtures/mocks';
+import {
+    walletWithXecAndTokens,
+    populatedContactList,
+} from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent, {
     PointerEventsCheckLevel,

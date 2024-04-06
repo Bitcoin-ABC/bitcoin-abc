@@ -78,4 +78,74 @@ export default {
             },
         ],
     },
+    formatXecBalance: {
+        expectedReturns: [
+            {
+                description: 'Balance over 1 trillion XEC (10 trillion)',
+                balanceSats: 1000000000000000,
+                userLocale: 'en-US',
+                returned: '10T',
+            },
+            {
+                description: 'Balance of exactly 1 trillion XEC',
+                balanceSats: 100000000000000,
+                userLocale: 'en-US',
+                returned: '1T',
+            },
+            {
+                description: 'Balance exceeding 1 billion XEC (10 billion)',
+                balanceSats: 1000000000000,
+                userLocale: 'en-US',
+                returned: '10B',
+            },
+            {
+                description: 'Balance exactly 1 billion XEC',
+                balanceSats: 100000000000,
+                userLocale: 'en-US',
+                returned: '1B',
+            },
+            {
+                description: 'Balance exceeding 1 million XEC (10 million)',
+                balanceSats: 1000000000,
+                userLocale: 'en-US',
+                returned: '10M',
+            },
+            {
+                description: 'Balance of exactly 1 million XEC',
+                balanceSats: 100000000,
+                userLocale: 'en-US',
+                returned: '1M',
+            },
+            {
+                description: 'Balance exceeding 1 thousand XEC (10 thousand)',
+                balanceSats: 1000000,
+                userLocale: 'en-US',
+                returned: '10k',
+            },
+            {
+                description: 'Balance of exactly 1 thousand XEC',
+                balanceSats: 100000,
+                userLocale: 'en-US',
+                returned: '1k',
+            },
+            {
+                description: 'Balance less than 1 thousand XEC',
+                balanceSats: 99999,
+                userLocale: 'en-US',
+                returned: '999.99',
+            },
+            {
+                description: 'Balance less than 1 thousand XEC, but french',
+                balanceSats: 99999,
+                userLocale: 'fr-FR',
+                returned: '999,99',
+            },
+            {
+                description: 'Balance less than 1 thousand XEC, but arabic',
+                balanceSats: 99999,
+                userLocale: 'ar',
+                returned: '٩٩٩٫٩٩',
+            },
+        ],
+    },
 };

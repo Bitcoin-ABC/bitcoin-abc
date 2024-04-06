@@ -15,7 +15,6 @@ import {
     freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
     easterEggTokenChronikTokenDetails,
-    vipTokenChronikTokenMocks,
     validSavedWallets_pre_2_1_0,
     validSavedWallets_pre_2_9_0,
     validSavedWallets,
@@ -32,7 +31,6 @@ import {
     prepareMockedChronikCallsForWallet,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
-import { explorer } from 'config/explorer';
 import { legacyMockTokenInfoById } from 'chronik/fixtures/chronikUtxos';
 import {
     cashtabCacheToJSON,
@@ -299,6 +297,12 @@ describe('<App />', () => {
 
         // Now we see the Contacts screen
         expect(screen.getByTestId('contacts')).toBeInTheDocument();
+
+        // Navigate to Wallets screen
+        await user.click(screen.queryByTestId('nav-btn-wallets'));
+
+        // Now we see the Wallets screen
+        expect(screen.getByTestId('wallets')).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -498,125 +502,6 @@ describe('<App />', () => {
         // The value field is populated with dust
         expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.5);
     });
-    it('We do not see the camera auto-open setting in the config screen on a desktop device', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            freshWalletWithOneIncomingCashtabMsg,
-            localforage,
-        );
-
-        render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
-        );
-
-        // We are on the settings screen
-        await screen.findByTestId('configure-ctn');
-
-        // We do not see the auto open option
-        expect(
-            screen.queryByText('Auto-open camera on send'),
-        ).not.toBeInTheDocument();
-    });
-    it('We do see the camera auto-open setting in the config screen on a mobile device', async () => {
-        Object.defineProperty(navigator, 'userAgentData', {
-            value: {
-                mobile: true,
-            },
-            writable: true,
-        });
-
-        // Get mocked chronik client with expected API results for this wallet
-        const mockedChronik = await initializeCashtabStateForTests(
-            freshWalletWithOneIncomingCashtabMsg,
-            localforage,
-        );
-
-        render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
-        );
-
-        // We are on the settings screen
-        await screen.findByTestId('configure-ctn');
-
-        // Now we do see the auto open option
-        expect(
-            await screen.findByText('Auto-open camera on send'),
-        ).toBeInTheDocument();
-
-        // Unset mock
-        Object.defineProperty(navigator, 'userAgentData', {
-            value: {
-                mobile: false,
-            },
-            writable: true,
-        });
-    });
-    it('Setting "Send Confirmations" settings will show send confirmations', async () => {
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
-            localforage,
-        );
-
-        const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206e0875eb1b866bc063217eb55ba88ddb2a5c4f299278e0c7ce4f34194619a6d502201e2c373cfe93ed35c6502e22b748ab07893e22643107b58f018af8ffbd6b654e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88accd6c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const txid =
-            '7eb806a83c48b0ab38b5af10aaa7452d4648f2c0d41975343ada9f4aa8255bd8';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
-
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
-
-        // Default route is home
-        await screen.findByTestId('tx-history-ctn');
-
-        // Click the hamburger menu
-        await user.click(screen.queryByTestId('hamburger'));
-
-        // Navigate to Settings screen
-        await user.click(screen.queryByTestId('nav-btn-configure'));
-
-        // Now we see the Settings screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
-
-        // Send confirmations are disabled by default
-
-        // Enable send confirmations
-        await user.click(screen.getByTestId('send-confirmations-switch'));
-
-        // Navigate to the Send screen
-        await user.click(screen.queryByTestId('nav-btn-send'));
-
-        // Now we see the Send screen
-        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
-
-        // Fill out to and amount
-        await user.type(
-            screen.getByPlaceholderText('Address'),
-            'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-        );
-        await user.type(screen.getByPlaceholderText('Amount'), '55');
-        // click send
-        await user.click(screen.getByRole('button', { name: /Send/ }));
-        // we see a modal
-        expect(
-            await screen.findByText(
-                `Send 55 XEC to ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y`,
-            ),
-        ).toBeInTheDocument();
-
-        // We can click ok to send the tx
-        await user.click(screen.getByText('OK'));
-
-        // Notification is rendered with expected txid?;
-        const txSuccessNotification = await screen.findByText('eCash sent');
-        await waitFor(() =>
-            expect(txSuccessNotification).toHaveAttribute(
-                'href',
-                `${explorer.blockExplorerUrl}/tx/${txid}`,
-            ),
-        );
-    });
     it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {
         // Note: this is what happens to existing users when we add a new key to cashtabState.settings
         const mockedChronik = await initializeCashtabStateForTests(
@@ -648,140 +533,6 @@ describe('<App />', () => {
                 minFeeSends: false,
             }),
         );
-    });
-    it('Setting "ABSOLUTE MINIMUM fees" settings will reduce fees to absolute min', async () => {
-        // Modify walletWithXecAndTokens to have the required token for this feature
-        const walletWithVipToken = {
-            ...walletWithXecAndTokens,
-            state: {
-                ...walletWithXecAndTokens.state,
-                slpUtxos: [
-                    ...walletWithXecAndTokens.state.slpUtxos,
-                    requiredUtxoThisToken,
-                ],
-            },
-        };
-
-        const mockedChronik = await initializeCashtabStateForTests(
-            walletWithVipToken,
-            localforage,
-        );
-
-        // Make sure the app can get this token's genesis info by calling a mock
-        mockedChronik.setMock('token', {
-            input: appConfig.vipSettingsTokenId,
-            output: vipTokenChronikTokenMocks.token,
-        });
-        mockedChronik.setMock('tx', {
-            input: appConfig.vipSettingsTokenId,
-            output: vipTokenChronikTokenMocks.tx,
-        });
-
-        // Can verify in Electrum that this tx is sent at 1.0 sat/byte
-        const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022043679b2fcde0099b0cd29bfbca382e92e3b871c079a0db7d73c39440d067f5bb02202e2ab2d5d83b70911da2758afd9e56eaaaa989050f35e4cc4d28d20afc29778a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb26d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const txid =
-            '6d2e157e2e2b1fa47cc63ede548375213942e29c090f5d9cbc2722258f720c08';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
-
-        // Can verify in Electrum that this tx is sent at 1.0 sat/byte
-        const tokenSendHex =
-            '02000000023abaa0b3d97fdc6fb07a535c552fcb379e7bffa6e7e52707b8cf1507bf243e42010000006b483045022100a3ee483d79bbc25ea139dbdac578a533ceb6a8764ba49aa4a46f9cfd73efd86602202fe5a207777e0ef846d19e04b75f9ebb3ff5e0c3b70108526aadb2e9ea27865c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b483045022100c45c36d3083c2a7980535b0495a34c976c90bb51de502b9f9f3f840578a46283022034d491a71135e8497bfa79b664e0e7d5458ec3387643dc1636a8d65721c7b2054121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000024e160364080000000005f5e09c22020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac0d800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const tokenSendTxid =
-            'ce727c96439dfe365cb47f780c37ebb2e756051db62375e992419d5db3c81b1e';
-
-        mockedChronik.setMock('broadcastTx', {
-            input: tokenSendHex,
-            output: { txid: tokenSendTxid },
-        });
-
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
-
-        // Default route is home
-        await screen.findByTestId('tx-history-ctn');
-
-        // Click the hamburger menu
-        await user.click(screen.queryByTestId('hamburger'));
-
-        // Navigate to Settings screen
-        await user.click(screen.queryByTestId('nav-btn-configure'));
-
-        // Now we see the Settings screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
-
-        // Send confirmations are disabled by default
-
-        // Enable min fee sends
-        await user.click(screen.getByTestId('settings-minFeeSends-switch'));
-
-        // Navigate to the Send screen
-        await user.click(screen.queryByTestId('nav-btn-send'));
-
-        // Now we see the Send screen
-        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
-
-        // Fill out to and amount
-        await user.type(
-            screen.getByPlaceholderText('Address'),
-            'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
-        );
-        await user.type(screen.getByPlaceholderText('Amount'), '55');
-
-        // click send to broadcast the tx
-        await user.click(screen.getByRole('button', { name: /Send/ }));
-
-        // Notification is rendered with expected txid
-        const txSuccessNotification = await screen.findByText('eCash sent');
-        await waitFor(() =>
-            expect(txSuccessNotification).toHaveAttribute(
-                'href',
-                `${explorer.blockExplorerUrl}/tx/${txid}`,
-            ),
-        );
-
-        // If the user's balance of this token falls below the required amount,
-        // the feature will be disabled even though the settings value persists
-
-        // Send some tokens
-
-        // Navigate to eTokens screen
-        await user.click(screen.queryByTestId('nav-btn-etokens'));
-
-        // Click on the VIP token
-        await user.click(screen.getByText('GRP'));
-
-        // Wait for element to get token info and load
-        expect((await screen.findAllByText(/GRP/))[0]).toBeInTheDocument();
-
-        // We send enough GRP to be under the min
-        await user.type(
-            screen.getByPlaceholderText('Address'),
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
-        );
-        await user.type(screen.getByPlaceholderText('Amount'), '99000001');
-
-        // Click the Send token button
-        await user.click(screen.getByRole('button', { name: /Send/ }));
-
-        const sendTokenSuccessNotification = await screen.findByText(
-            'eToken sent',
-        );
-        await waitFor(() =>
-            expect(sendTokenSuccessNotification).toHaveAttribute(
-                'href',
-                `${explorer.blockExplorerUrl}/tx/${tokenSendTxid}`,
-            ),
-        );
-
-        // Actually we can't update the utxo set now, so we add a separate test to confirm
-        // the feature is disabled even if it was set to true but then token balance decreased
-        // TODO we can test wallet utxo set updates if we connect some Cashtab integration tests
-        // to regtest
-
-        // See SendXec test, "If the user has minFeeSends set to true but no longer has the right token amount, the feature is disabled"
     });
     it('Wallet with easter egg token sees easter egg', async () => {
         const EASTER_EGG_TOKENID =
