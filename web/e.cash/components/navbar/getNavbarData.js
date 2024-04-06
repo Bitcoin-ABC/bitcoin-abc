@@ -7,6 +7,7 @@ const ApiDataContext = createContext();
 
 export const ApiDataProvider = ({ children }) => {
     const [priceLinkText, setPriceLinkText] = useState('Buy XEC');
+    const [blockHeight, setBlockHeight] = useState(0);
 
     const getPrice = () => {
         const api =
@@ -19,12 +20,21 @@ export const ApiDataProvider = ({ children }) => {
             .catch(err => console.log(err));
     };
 
+    const getBlockHeight = () => {
+        const api = 'https://api.blockchair.com/ecash/stats';
+        fetch(api)
+            .then(response => response.json())
+            .then(data => setBlockHeight(data.data.best_block_height))
+            .catch(err => console.log(err));
+    };
+
     useEffect(() => {
         getPrice();
+        getBlockHeight();
     }, []);
 
     return (
-        <ApiDataContext.Provider value={{ priceLinkText }}>
+        <ApiDataContext.Provider value={{ priceLinkText, blockHeight }}>
             {children}
         </ApiDataContext.Provider>
     );
