@@ -127,6 +127,14 @@ describe('<SendXec />', () => {
         for (const amountErr of SEND_AMOUNT_VALIDATION_ERRORS) {
             expect(screen.queryByText(amountErr)).not.toBeInTheDocument();
         }
+
+        // We select op_return_raw input
+        await user.click(screen.getByTestId('opreturnraw-switch'));
+
+        // We do not see the parsed op return raw msg area bc the op_return_raw input is empty
+        expect(
+            screen.queryByTestId('Parsed op_return_raw'),
+        ).not.toBeInTheDocument();
     });
     it('Pass valid address to Send To field', async () => {
         // Mock the app with context at the Send screen

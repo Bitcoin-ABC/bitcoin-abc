@@ -1048,7 +1048,7 @@ const SendXec = () => {
                             />
                         </SendXecRow>
                         {opReturnRawError === false &&
-                            formData.parsedOpReturnRaw !== '' && (
+                            formData.opReturnRaw !== '' && (
                                 <SendXecRow>
                                     <ParsedOpReturnRawRow>
                                         <ParsedOpReturnRawLabel>
