@@ -314,6 +314,7 @@ const Contacts = () => {
                                         }
                                     />
                                     <Link
+                                        data-testid="send-to-contact"
                                         to="/send"
                                         state={{
                                             contactSend: contact.address,

@@ -271,10 +271,6 @@ const SendXec = () => {
 
         // if this was routed from the Contact List
         if (location && location.state && location.state.contactSend) {
-            setFormData({
-                address: location.state.contactSend,
-            });
-
             // explicitly trigger the address validation upon navigation from contact list
             handleAddressChange({
                 target: {

@@ -276,4 +276,31 @@ describe('<Contacts />', () => {
             ).toBeInTheDocument();
         });
     });
+    it('We can send a tx to an address in contacts', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Custom contact list
+        await localforage.setItem('contactList', populatedContactList);
+
+        render(
+            <CashtabTestWrapper chronik={mockedChronik} route="/contacts" />,
+        );
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Click the first row Send button
+        await user.click(screen.getAllByTestId('send-to-contact')[0]);
+
+        // Now we are on the SendXec page and the address field is filled out
+        expect(screen.getByPlaceholderText('Address')).toHaveValue(
+            populatedContactList[0].address,
+        );
+    });
 });
