@@ -882,11 +882,15 @@ const useWallet = chronik => {
                             cashtabState.settings.fiatCurrency
                         ].symbol
                     }${fiatPrice} ${cashtabState.settings.fiatCurrency.toUpperCase()}`,
+                    { icon: CashReceivedNotificationIcon },
                 );
             }
             if (tens >= 10 && prevTens < 10) {
                 // We have killed a zero
-                toast(`ZERO KILLED 🔫🔫🔫🔪🔪🔪`, { autoClose: false });
+                toast(`ZERO KILLED 🔫🔫🔫🔪🔪🔪`, {
+                    autoClose: false,
+                    icon: CashReceivedNotificationIcon,
+                });
             }
         }
     }, [fiatPrice, cashtabState.settings.fiatCurrency]);
