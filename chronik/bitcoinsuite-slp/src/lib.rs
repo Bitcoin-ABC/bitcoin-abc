@@ -8,6 +8,7 @@ abc_rust_lint::lint! {
     pub mod color;
     pub mod consts;
     pub mod empp;
+    pub mod lokad_id;
     pub mod parsed;
     pub mod slp;
     pub mod structs;

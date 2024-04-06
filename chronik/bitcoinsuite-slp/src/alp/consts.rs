@@ -4,7 +4,7 @@
 
 //! Module for constants used in ALP.
 
-use crate::structs::LokadId;
+use crate::lokad_id::LokadId;
 
 /// LOKAD ID of the ALP protocol.
 /// It was originally intended to be called "SLPv2", but later renamed to ALP to

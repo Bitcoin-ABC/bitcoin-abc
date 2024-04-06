@@ -16,9 +16,10 @@ use crate::{
         ParseError::*,
     },
     consts::{BURN, GENESIS, MINT, SEND},
+    lokad_id::LokadId,
     parsed::{ParsedData, ParsedGenesis, ParsedMintData, ParsedTxType},
     slp::consts::SLP_LOKAD_ID,
-    structs::{Amount, GenesisInfo, LokadId, TokenMeta},
+    structs::{Amount, GenesisInfo, TokenMeta},
     token_id::TokenId,
     token_type::{AlpTokenType, TokenType},
 };

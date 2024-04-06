@@ -4,7 +4,7 @@
 
 //! Module for constants used in SLP.
 
-use crate::structs::LokadId;
+use crate::lokad_id::LokadId;
 
 /// LOKAD ID of SLP is "SLP\0"
 pub const SLP_LOKAD_ID: LokadId = *b"SLP\0";

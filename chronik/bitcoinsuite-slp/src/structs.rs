@@ -10,12 +10,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{token_id::TokenId, token_type::TokenType};
 
-/// A LOKAD ID is a 4 byte prefix identifying the protocol:
-/// "SLP\0" for SLP
-/// "SLP2" for ALP
-/// ".xec" for alias
-pub type LokadId = [u8; 4];
-
 /// SLP or ALP amount
 pub type Amount = u64;
 
