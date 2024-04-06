@@ -111,7 +111,7 @@ export const BlankTile = styled.div`
     }
 `;
 
-export const MiningSectionCtn = styled(motion.div).attrs(() =>
+export const ImageTextCtn = styled(motion.div).attrs(() =>
     getAnimationSettings(),
 )`
     width: 100%;
@@ -119,6 +119,7 @@ export const MiningSectionCtn = styled(motion.div).attrs(() =>
     align-items: center;
     justify-content: space-between;
     margin: 300px 0;
+    flex-direction: ${props => (props.rightimage ? 'row-reverse' : 'row')};
     ${props => props.theme.breakpoint.medium} {
         flex-direction: column;
         margin-bottom: 40px;
@@ -131,9 +132,13 @@ export const MiningSectionCtn = styled(motion.div).attrs(() =>
             margin-bottom: 50px;
         }
     }
+
+    > :nth-child(2) {
+        left: ${props => (props.rightimage ? '0' : 'unset')};
+    }
 `;
 
-export const MiningImg = styled.div`
+export const SectionImg = styled.div`
     width: 60%;
     display: flex;
     align-items: center;

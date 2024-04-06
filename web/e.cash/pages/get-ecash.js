@@ -20,8 +20,8 @@ import {
     Tile,
     TileImgCtn,
     BlankTile,
-    MiningSectionCtn,
-    MiningImg,
+    ImageTextCtn,
+    SectionImg,
     SwapZoneCtn,
 } from '/styles/pages/get-ecash.js';
 import AnimateImage from '/components/animate-image';
@@ -128,7 +128,7 @@ function GetEcash(props) {
                     </ImgCtn>
                 </DescriptionBox>
                 <TileSection title="Services" items={props.services} />
-                <MiningSectionCtn>
+                <ImageTextCtn>
                     <div>
                         <H3 text="Mining" id="mining" />
                         <p>
@@ -142,11 +142,11 @@ function GetEcash(props) {
                             color="accent"
                         />
                     </div>
-                    <MiningImg height="500px">
+                    <SectionImg height="500px">
                         <AnimateImage image={mining} reverse />
-                    </MiningImg>
-                </MiningSectionCtn>
-                <MiningSectionCtn>
+                    </SectionImg>
+                </ImageTextCtn>
+                <ImageTextCtn rightimage="true">
                     <div>
                         <H3 text="Staking" id="staking" />
                         <p>
@@ -160,10 +160,10 @@ function GetEcash(props) {
                             color="accent"
                         />
                     </div>
-                    <MiningImg height="500px">
+                    <SectionImg height="500px">
                         <AnimateImage image={staking} reverse />
-                    </MiningImg>
-                </MiningSectionCtn>
+                    </SectionImg>
+                </ImageTextCtn>
             </Container>
             <Script
                 src="https://swapzone.io/script/exchange-widget.js"
