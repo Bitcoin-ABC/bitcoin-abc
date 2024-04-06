@@ -9,10 +9,7 @@ import { Collapse, Tooltip } from 'antd';
 import { LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
 import { StyledCollapse } from 'components/Common/StyledCollapse';
-import {
-    AntdFormWrapper,
-    CurrencySelectDropdown,
-} from 'components/Common/EnhancedInputs';
+import { AntdFormWrapper } from 'components/Common/EnhancedInputs';
 import PrimaryButton, {
     SecondaryButton,
 } from 'components/Common/PrimaryButton';
@@ -45,7 +42,12 @@ import {
 } from 'wallet';
 import CustomModal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
-import { Input, ModalInput, InputFlex } from 'components/Common/Inputs';
+import {
+    Input,
+    ModalInput,
+    InputFlex,
+    CurrencySelect,
+} from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { Info } from 'components/Common/Atoms';
 
@@ -872,21 +874,16 @@ const Configure = () => {
             <h2>
                 <ThemedDollarOutlined /> Fiat Currency
             </h2>
-            <AntdFormWrapper>
-                <CurrencySelectDropdown
-                    defaultValue={
-                        settings && settings.fiatCurrency
-                            ? settings.fiatCurrency
-                            : 'usd'
-                    }
-                    onChange={fiatCode => {
-                        updateCashtabState('settings', {
-                            ...settings,
-                            fiatCurrency: fiatCode,
-                        });
-                    }}
-                />
-            </AntdFormWrapper>
+            <CurrencySelect
+                name="configure-fiat-select"
+                value={cashtabState.settings.fiatCurrency}
+                handleSelect={e => {
+                    updateCashtabState('settings', {
+                        ...settings,
+                        fiatCurrency: e.target.value,
+                    });
+                }}
+            />
             <StyledSpacer />
             <h2>
                 <ThemedSettingOutlined /> General Settings

@@ -87,6 +87,21 @@ describe('<Configure />', () => {
             .mockResolvedValue({
                 json: () => Promise.resolve(priceResponse),
             });
+        // Mock another price URL for a user that changes fiat currency
+        const altFiat = 'gbp';
+        const altFiatPriceApiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${cryptoId}&vs_currencies=${altFiat}&include_last_updated_at=true`;
+        const xecPriceAltFiat = 0.00002;
+        const altFiatPriceResponse = {
+            ecash: {
+                [altFiat]: xecPriceAltFiat,
+                last_updated_at: 1706644626,
+            },
+        };
+        when(fetch)
+            .calledWith(altFiatPriceApiUrl)
+            .mockResolvedValue({
+                json: () => Promise.resolve(altFiatPriceResponse),
+            });
     });
     afterEach(async () => {
         jest.clearAllMocks();
@@ -478,5 +493,35 @@ describe('<Configure />', () => {
                 `By a vanishingly small chance, "qrj4p" already existed in saved wallets. Please try again.`,
             ),
         ).toBeInTheDocument();
+    });
+    it('We can choose a new fiat currency', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        render(
+            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
+        );
+
+        // Wait for wallet to load
+        await waitFor(() =>
+            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+        );
+
+        // Choose GBP
+        await user.selectOptions(
+            screen.getByTestId('configure-fiat-select'),
+            screen.getByTestId('gbp'),
+        );
+
+        // We expect balance header to be updated
+        expect(screen.getByTestId('ecash-price')).toHaveTextContent(
+            `1 XEC = 0.00002000 GBP`,
+        );
+
+        // We expect localforage to be updated
+        expect((await localforage.getItem('settings')).fiatCurrency).toEqual(
+            'gbp',
+        );
     });
 });

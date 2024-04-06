@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import ScanQRCode from './ScanQRCode';
 import appConfig from 'config/app';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 const CashtabInputWrapper = styled.div`
     box-sizing: border-box;
@@ -107,7 +108,6 @@ const OnMaxBtnToken = styled(OnMaxBtn)`
 `;
 
 const CurrencyDropdown = styled.select`
-    width: 100px;
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     font-size: 18px;
     padding: 6px;
@@ -118,6 +118,9 @@ const CurrencyDropdown = styled.select`
     :focus-visible {
         outline: none;
     }
+`;
+const SendXecDropdown = styled(CurrencyDropdown)`
+    width: 100px;
 `;
 const CurrencyOption = styled.option`
     text-align: left;
@@ -342,7 +345,7 @@ export const SendXecInput = ({
                     onChange={e => handleInput(e)}
                     disabled={inputDisabled}
                 />
-                <CurrencyDropdown
+                <SendXecDropdown
                     data-testid="currency-select-dropdown"
                     value={selectValue}
                     onChange={e => handleSelect(e)}
@@ -354,7 +357,7 @@ export const SendXecInput = ({
                     <CurrencyOption data-testid="fiat-option" value={fiatCode}>
                         {fiatCode}
                     </CurrencyOption>
-                </CurrencyDropdown>
+                </SendXecDropdown>
                 <OnMaxBtn
                     onClick={handleOnMax}
                     // Disable the onMax button if the user has fiat selected
@@ -577,4 +580,46 @@ CashtabDragger.propTypes = {
     name: PropTypes.string,
     handleFile: PropTypes.func,
     imageUrl: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
+};
+
+export const CurrencySelect = ({ name = 'select', value, handleSelect }) => {
+    // Build select dropdown from supportedFiatCurrencies
+    const currencyMenuOptions = [];
+    const currencyKeys = Object.keys(supportedFiatCurrencies);
+    for (let i = 0; i < currencyKeys.length; i += 1) {
+        const currencyMenuOption = {};
+        currencyMenuOption.value =
+            supportedFiatCurrencies[currencyKeys[i]].slug;
+        currencyMenuOption.label = `${
+            supportedFiatCurrencies[currencyKeys[i]].name
+        } (${supportedFiatCurrencies[currencyKeys[i]].symbol})`;
+        currencyMenuOptions.push(currencyMenuOption);
+    }
+    const currencyOptions = currencyMenuOptions.map(currencyMenuOption => {
+        return (
+            <CurrencyOption
+                key={currencyMenuOption.value}
+                value={currencyMenuOption.value}
+                data-testid={currencyMenuOption.value}
+            >
+                {currencyMenuOption.label}
+            </CurrencyOption>
+        );
+    });
+
+    return (
+        <CurrencyDropdown
+            data-testid={name}
+            value={value}
+            onChange={handleSelect}
+        >
+            {currencyOptions}
+        </CurrencyDropdown>
+    );
+};
+
+CurrencySelect.propTypes = {
+    name: PropTypes.string.isRequired,
+    value: PropTypes.string.isRequired,
+    handleSelect: PropTypes.func.isRequired,
 };

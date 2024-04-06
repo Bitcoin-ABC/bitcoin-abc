@@ -4,13 +4,12 @@
 
 import * as React from 'react';
 import PropTypes from 'prop-types';
-import { Form, Input, Select, Checkbox } from 'antd';
+import { Form, Input, Checkbox } from 'antd';
 import {
     ThemedWalletOutlined,
     ThemedAliasOutlined,
 } from 'components/Common/CustomIcons';
 import styled, { css } from 'styled-components';
-import { supportedFiatCurrencies } from 'config/cashtabSettings';
 
 export const AntdFormCss = css`
     input[type='number'] {
@@ -166,44 +165,4 @@ export const AliasAddressInput = ({ inputProps, ...otherProps }) => {
 
 AliasAddressInput.propTypes = {
     inputProps: PropTypes.object,
-};
-
-export const CurrencySelectDropdown = selectProps => {
-    const { Option } = Select;
-
-    // Build select dropdown from supportedFiatCurrencies
-    const currencyMenuOptions = [];
-    const currencyKeys = Object.keys(supportedFiatCurrencies);
-    for (let i = 0; i < currencyKeys.length; i += 1) {
-        const currencyMenuOption = {};
-        currencyMenuOption.value =
-            supportedFiatCurrencies[currencyKeys[i]].slug;
-        currencyMenuOption.label = `${
-            supportedFiatCurrencies[currencyKeys[i]].name
-        } (${supportedFiatCurrencies[currencyKeys[i]].symbol})`;
-        currencyMenuOptions.push(currencyMenuOption);
-    }
-    const currencyOptions = currencyMenuOptions.map(currencyMenuOption => {
-        return (
-            <Option
-                key={currencyMenuOption.value}
-                value={currencyMenuOption.value}
-                className="selectedCurrencyOption"
-            >
-                {currencyMenuOption.label}
-            </Option>
-        );
-    });
-
-    return (
-        <Select
-            className="select-after"
-            style={{
-                width: '100%',
-            }}
-            {...selectProps}
-        >
-            {currencyOptions}
-        </Select>
-    );
 };
