@@ -16,13 +16,25 @@ import {
     FireOutlined,
     UserAddOutlined,
     WarningOutlined,
-    SwapOutlined,
     AppstoreAddOutlined,
     GithubOutlined,
 } from '@ant-design/icons';
 import { Image } from 'antd';
+import PayButton from 'assets/paybutton.webp';
 import { ReactComponent as QRCode } from 'assets/qrcode.svg';
 import { ReactComponent as Send } from 'assets/send.svg';
+import { ReactComponent as CopyPaste } from 'assets/copypaste.svg';
+import { ReactComponent as AddContact } from 'assets/addcontact.svg';
+import { ReactComponent as Unknown } from 'assets/unknown.svg';
+import { ReactComponent as Reply } from 'assets/reply.svg';
+import { ReactComponent as Mint } from 'assets/mint.svg';
+import { ReactComponent as CashtabMsg } from 'assets/cashtab-msg.svg';
+import { ReactComponent as Chat } from 'assets/chat.svg';
+import { ReactComponent as Mined } from 'assets/pickaxe.svg';
+import { ReactComponent as CashtabEncrypted } from 'assets/cashtab-encrypted.svg';
+import { ReactComponent as TokenBurn } from 'assets/tokenburn.svg';
+import { ReactComponent as Swap } from 'assets/swap.svg';
+import { ReactComponent as Alias } from 'assets/alias.svg';
 import { ReactComponent as Receive } from 'assets/receive.svg';
 import { ReactComponent as Genesis } from 'assets/flask.svg';
 import { ReactComponent as Unparsed } from 'assets/alert-circle.svg';
@@ -228,23 +240,56 @@ export const CashLoader = () => (
         <LoadingOutlined data-testid="cash-loader" />
     </LoadingBlock>
 );
+const Rotate = styled.div`
+    transform: rotate(-45deg);
+`;
+const MineRotate = styled.div`
+    transform: rotate(45deg);
+`;
+export const SendIcon = () => (
+    <Rotate>
+        <Send title="tx-sent" />
+    </Rotate>
+);
 
-export const ReceiveIcon = () => <Receive />;
+export const MinedIcon = () => (
+    <MineRotate>
+        <Mined title="tx-mined" />
+    </MineRotate>
+);
+const PayButtonImg = styled.img`
+    color: transparent;
+    filter: brightness(0) invert(1);
+`;
+export const EncryptedMsgIcon = () => (
+    <img src={CashtabEncrypted} alt="tx-encrypted-msg" />
+);
+export const TokenBurnIcon = () => <TokenBurn title="tx-token-burn" />;
+export const PayButtonIcon = () => (
+    <PayButtonImg src={PayButton} alt="tx-paybutton" />
+);
+export const ChatIcon = () => <img src={Chat} alt="tx-chat" />;
+export const MintIcon = () => <Mint title="tx-mint" />;
+export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
+export const AddContactIcon = () => <AddContact title="add-contact" />;
+export const ReplyIcon = () => <Reply title="reply" />;
+export const UnknownIcon = () => <Unknown title="tx-unknown" />;
+export const CashtabMsgIcon = () => <CashtabMsg title="tx-cashtab-msg" />;
+
+export const AliasIconTx = () => <Alias title="tx-alias-registration" />;
+export const GenesisIcon = () => <Genesis title="tx-genesis" />;
+export const ReceiveIcon = () => <Receive title="tx-received" />;
+export const AirdropIcon = () => <Airdrop title="tx-airdrop" />;
+export const SwapIcon = () => <Swap title="swap" />;
 export const QRCodeIcon = () => <QRCode />;
-export const GenesisIcon = () => <Genesis />;
 export const UnparsedIcon = () => <Unparsed />;
 export const HomeIcon = () => <Home />;
 export const SettingsIcon = () => <Settings height={'33px'} width={'30px'} />;
 
 export const WarningIcon = () => <WarningOutlined style={{ fontSize: 45 }} />;
-export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;
-export const SwapIcon = () => <SwapOutlined style={{ fontSize: 24 }} />;
 export const EtokensIcon = () => (
     <AppstoreAddOutlined style={{ fontSize: 24 }} />
 );
-export const SendIcon = styled(Send)`
-    transform: rotate(-35deg);
-`;
 export const AliasRegisterIcon = () => (
     <UserAddOutlined style={{ fontSize: 20 }} />
 );

@@ -325,26 +325,16 @@ describe('<App />', () => {
         // We see the home container
         await screen.findByTestId('tx-history-ctn');
 
-        // Open the collapse of this tx in tx history
-        await user.click(
-            await screen.findByRole('button', {
-                name: /Warning: This sender is not in your contact list. Beware of scams./,
-            }),
-            {
-                // https://github.com/testing-library/user-event/issues/922
-                pointerEventsCheck: PointerEventsCheckLevel.Never,
-            },
-        );
-
-        // Get the "Add to contacts" button of tx
-        const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
+        // Open the collapse of this tx in tx history to see the panel options
+        // We can click anywhere on this tx
+        await user.click(screen.getByText('Cashtab Msg'));
 
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
         expect(storedContacts).toStrictEqual(null);
 
-        // Click the button
-        await user.click(addToContactsBtn);
+        // Click the add to contacts button
+        await user.click(screen.getByTitle('add-contact'));
 
         // We see the add contact from tx history modal, prompting for name only input
         await user.type(
@@ -396,26 +386,16 @@ describe('<App />', () => {
         // We see the home container
         await screen.findByTestId('tx-history-ctn');
 
-        // Open the collapse of this tx in tx history
-        await user.click(
-            await screen.findByRole('button', {
-                name: /Warning: This sender is not in your contact list. Beware of scams./,
-            }),
-            {
-                // https://github.com/testing-library/user-event/issues/922
-                pointerEventsCheck: PointerEventsCheckLevel.Never,
-            },
-        );
-
-        // Get the "Add to contacts" button of tx
-        const addToContactsBtn = screen.getByTestId('add-to-contacts-btn');
+        // Open the collapse of this tx in tx history to see the panel options
+        // We can click anywhere on this tx
+        await user.click(screen.getByText('Cashtab Msg'));
 
         // Confirm expected initial state of localforage
         const storedContacts = await localforage.getItem('contactList');
         expect(storedContacts).toEqual(initialContactList);
 
-        // Click the button
-        await user.click(addToContactsBtn);
+        // Click the add to contacts button
+        await user.click(screen.getByTitle('add-contact'));
 
         // We see the add contact from tx history modal, prompting for name only input
         await user.type(
@@ -488,7 +468,7 @@ describe('<App />', () => {
             ).not.toBeInTheDocument(),
         );
 
-        await user.click(screen.getByTestId('cashtab-msg-reply'));
+        await user.click(screen.getByTitle('reply'));
 
         // Now we see the Send screen
         expect(

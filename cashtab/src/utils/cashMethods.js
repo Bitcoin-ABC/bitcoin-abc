@@ -31,16 +31,3 @@ export const getWalletState = wallet => {
 
     return wallet.state;
 };
-
-/**
- * Get hash values to use for chronik calls
- * @param {object} wallet valid cashtab wallet
- * @returns {string[]} array of hashes of all addresses in wallet
- */
-export const getHashArrayFromWallet = wallet => {
-    const hashArray = [];
-    wallet.paths.forEach(pathInfo => {
-        hashArray.push(pathInfo.hash);
-    });
-    return hashArray;
-};

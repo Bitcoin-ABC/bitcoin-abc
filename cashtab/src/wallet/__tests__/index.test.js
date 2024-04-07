@@ -14,8 +14,10 @@ import {
     decimalizeTokenAmount,
     undecimalizeTokenAmount,
     removeLeadingZeros,
+    getHashes,
 } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import vectors from '../fixtures/vectors';
 
 describe('Cashtab wallet methods', () => {
@@ -193,5 +195,12 @@ describe('Cashtab wallet methods', () => {
                 expect(removeLeadingZeros(givenString)).toBe(returned);
             });
         });
+    });
+    it(`Successfully extracts a hash160 array from valid cashtab wallet`, () => {
+        expect(getHashes(walletWithXecAndTokens)).toStrictEqual([
+            '3a5fb236934ec078b4507c303d3afd82067f8fc1',
+            'a28f8852f868f88e71ec666c632d6f86e978f046',
+            '600efb12a6f813eccf13171a8bc62055212d8d6c',
+        ]);
     });
 });

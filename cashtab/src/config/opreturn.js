@@ -5,6 +5,7 @@
 'use strict';
 
 export const opReturn = {
+    opReserved: '50',
     opReturnPrefixHex: '6a',
     opReturnPrefixDec: '106',
     opPushDataOne: '4c',
@@ -16,6 +17,7 @@ export const opReturn = {
         aliasRegistration: '2e786563',
         paybutton: '50415900',
         eCashChat: '63686174',
+        swap: '53575000',
     },
     /* The max payload per spec is 220 bytes (or 223 bytes including +1 for OP_RETURN and +2 for pushdata opcodes)
        Within this 223 bytes, transaction building will take up 8 bytes, hence cashtabMsgByteLimit is set to 215 bytes

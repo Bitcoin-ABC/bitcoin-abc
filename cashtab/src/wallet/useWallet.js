@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { getHashArrayFromWallet } from 'utils/cashMethods';
 import {
     isValidCashtabSettings,
     isValidCashtabCache,
@@ -30,7 +29,13 @@ import {
     cashtabWalletsFromJSON,
     cashtabWalletsToJSON,
 } from 'helpers';
-import { createCashtabWallet, getLegacyPaths, getBalanceSats } from 'wallet';
+import {
+    createCashtabWallet,
+    getLegacyPaths,
+    getBalanceSats,
+    getHashes,
+    toXec,
+} from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState from 'config/CashtabState';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -41,6 +46,7 @@ import {
     BlockNotificationDesc,
 } from 'components/Common/Atoms';
 import { explorer } from 'config/explorer';
+import { toFormattedXec } from 'utils/formatting';
 
 const useWallet = chronik => {
     const [cashtabLoaded, setCashtabLoaded] = useState(false);
@@ -451,9 +457,7 @@ const useWallet = chronik => {
 
         if (cashtabState.wallets.length > 0) {
             // Subscribe to addresses of current wallet, if you have one
-            const hash160Array = getHashArrayFromWallet(
-                cashtabState.wallets[0],
-            );
+            const hash160Array = getHashes(cashtabState.wallets[0]);
             for (const hash of hash160Array) {
                 ws.subscribeToScript('p2pkh', hash);
             }
@@ -500,7 +504,7 @@ const useWallet = chronik => {
         }
 
         let subscriptionUpdateRequired = false;
-        const hash160Array = getHashArrayFromWallet(cashtabState.wallets[0]);
+        const hash160Array = getHashes(cashtabState.wallets[0]);
         if (scripts.length !== hash160Array.length) {
             // If the websocket is not subscribed to the same amount of addresses as the wallet,
             // we need to update subscriptions
@@ -627,6 +631,7 @@ const useWallet = chronik => {
 
         let tokenCacheForParsingThisTx = cashtabCache.tokens;
         let thisTokenCachedInfo;
+        let tokenId;
         if (
             incomingTxDetails.tokenStatus !== 'TOKEN_STATUS_NON_TOKEN' &&
             incomingTxDetails.tokenEntries.length > 0
@@ -634,7 +639,7 @@ const useWallet = chronik => {
             // If this is a token tx with at least one tokenId that is NOT cached, get token info
             // TODO we must get token info for multiple token IDs when we start supporting
             // token types other than slpv1
-            const tokenId = incomingTxDetails.tokenEntries[0].tokenId;
+            tokenId = incomingTxDetails.tokenEntries[0].tokenId;
             thisTokenCachedInfo = cashtabCache.tokens.get(tokenId);
             if (typeof thisTokenCachedInfo === 'undefined') {
                 // If we do not have this token cached
@@ -662,38 +667,46 @@ const useWallet = chronik => {
         // parse tx for notification
         const parsedTx = parseTx(
             incomingTxDetails,
-            cashtabState.wallets[0],
-            tokenCacheForParsingThisTx,
+            getHashes(cashtabState.wallets[0]),
         );
 
-        if (parsedTx.incoming) {
-            if (parsedTx.isEtokenTx) {
-                let eTokenAmountReceived = parsedTx.etokenAmount;
-                const eTokenReceivedString = `Received ${
-                    parsedTx.assumedTokenDecimals ? '' : eTokenAmountReceived
-                } ${
-                    typeof thisTokenCachedInfo !== 'undefined'
-                        ? `${thisTokenCachedInfo.genesisInfo.tokenTicker} (${thisTokenCachedInfo.genesisInfo.tokenName})`
-                        : ''
-                }`;
+        if (parsedTx.xecTxType === 'Received') {
+            if (
+                incomingTxDetails.tokenEntries.length > 0 &&
+                incomingTxDetails.tokenEntries[0].txType === 'SEND' &&
+                incomingTxDetails.tokenEntries[0].burnSummary === '' &&
+                incomingTxDetails.tokenEntries[0].actualBurnAmount === '0'
+            ) {
+                // For now, we only parse the first tokenEntry for an incoming tx notification
+                // Only parse incoming SEND txs
+                let eTokenReceivedString = '';
+                if (typeof thisTokenCachedInfo === 'undefined') {
+                    // If we do not have token name, ticker, or decimals, show a generic notification
+                    eTokenReceivedString = `Received ${tokenId.slice(
+                        0,
+                        3,
+                    )}...${tokenId.slice(-3)}`;
+                } else {
+                    const { tokenTicker, tokenName } =
+                        thisTokenCachedInfo.genesisInfo;
+                    eTokenReceivedString = `Received ${tokenName} (${tokenTicker})`;
+                    // TODO calculate and format decimalized quantity
+                    // TODO test this feature of parseChronikWsMsg, e.g. add a helper function
+                    // getNotification(Tx_InNode) that can be easily tested and called here
+                }
                 toast(eTokenReceivedString, {
-                    icon: (
-                        <TokenIcon
-                            size={32}
-                            tokenId={parsedTx.tokenEntries[0].tokenId}
-                        />
-                    ),
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
                 });
             } else {
-                const xecAmount = parsedTx.xecAmount;
-                const xecReceivedString = `Received ${xecAmount.toLocaleString(
+                const xecReceivedString = `Received ${toFormattedXec(
+                    parsedTx.satoshisSent,
                     locale,
                 )} ${appConfig.ticker}${
                     settings && typeof settings.fiatCurrency !== 'undefined'
                         ? ` (${
                               supportedFiatCurrencies[settings.fiatCurrency]
                                   .symbol
-                          }${(xecAmount * fiatPrice).toFixed(
+                          }${(toXec(parsedTx.satoshisSent) * fiatPrice).toFixed(
                               appConfig.cashDecimals,
                           )} ${settings.fiatCurrency.toUpperCase()})`
                         : ''

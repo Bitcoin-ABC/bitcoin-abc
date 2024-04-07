@@ -7272,17 +7272,13 @@ export const stakingRwd = {
         },
     },
     parsed: {
-        incoming: true,
-        xecAmount: 625008.97,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        opReturnMessage: '',
-        replyAddress: 'N/A',
+        satoshisSent: 62500897,
+        stackArray: [],
+        xecTxType: 'Staking Reward',
+        recipients: [
+            'ecash:qr689ree3wukyetgqv6xld9vghthvpq69cg04xjp57',
+            'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+        ],
     },
 };
 
@@ -7338,17 +7334,10 @@ export const incomingXec = {
         },
     },
     parsed: {
-        incoming: true,
-        xecAmount: 42,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        opReturnMessage: '',
-        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        satoshisSent: 4200,
+        stackArray: [],
+        xecTxType: 'Received',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -7404,17 +7393,10 @@ export const outgoingXec = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 222,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        opReturnMessage: '',
-        replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+        satoshisSent: 22200,
+        stackArray: [],
+        xecTxType: 'Sent',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -7474,17 +7456,15 @@ export const aliasRegistration = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 5.55,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        opReturnMessage: 'bug2',
-        replyAddress: 'ecash:qrwpz3mx89y0ph8mqrxyqlk6gxcjzuf66vc4ajscad',
+        satoshisSent: 555,
+        stackArray: [
+            '2e786563',
+            '00',
+            '62756732',
+            '00dc1147663948f0dcfb00cc407eda41b121713ad3',
+        ],
+        xecTxType: 'Sent',
+        recipients: ['ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07'],
     },
 };
 
@@ -7619,37 +7599,17 @@ export const incomingEtoken = {
         },
     },
     parsed: {
-        incoming: true,
-        xecAmount: 5.46,
-        isEtokenTx: true,
-        isTokenBurn: false,
-        tokenEntries: [
-            {
-                tokenId:
-                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
+        satoshisSent: 546,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+            '000000000000000c',
+            '00000000000000e4',
         ],
-        assumedTokenDecimals: false,
-        etokenAmount: '12',
-        airdropFlag: false,
-        airdropTokenId: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        opReturnMessage: '',
-        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        xecTxType: 'Received',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -7784,37 +7744,17 @@ export const outgoingEtoken = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 5.46,
-        isEtokenTx: true,
-        isTokenBurn: false,
-        tokenEntries: [
-            {
-                tokenId:
-                    '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
+        satoshisSent: 546,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            '4bd147fc5d5ff26249a9299c46b80920c0b81f59a60e05428262160ebee0b0c3',
+            '0000000000000011',
+            '0000000000000034',
         ],
-        assumedTokenDecimals: false,
-        etokenAmount: '17',
-        airdropFlag: false,
-        airdropTokenId: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        opReturnMessage: '',
-        replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+        xecTxType: 'Sent',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -7891,37 +7831,21 @@ export const genesisTx = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 0,
-        isEtokenTx: true,
-        isTokenBurn: false,
-        etokenAmount: '777.7777777',
-        tokenEntries: [
-            {
-                tokenId:
-                    'cf601c56b58bc05a39a95374a4a865f0a8b56544ea937b30fb46315441717c50',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'GENESIS',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
+        satoshisSent: 546,
+        stackArray: [
+            '534c5000',
+            '01',
+            '47454e45534953',
+            '554454',
+            '55706461746554657374',
+            '68747470733a2f2f636173687461622e636f6d2f',
+            '',
+            '07',
+            '',
+            '00000001cf977871',
         ],
-        assumedTokenDecimals: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        xecTxType: 'Sent',
+        recipients: [],
     },
 };
 
@@ -8048,37 +7972,17 @@ export const incomingEtokenNineDecimals = {
         },
     },
     parsed: {
-        incoming: true,
-        xecAmount: 5.46,
-        isEtokenTx: true,
-        isTokenBurn: false,
-        etokenAmount: '0.123456789',
-        tokenEntries: [
-            {
-                tokenId:
-                    'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
+        satoshisSent: 546,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
+            '00000000075bcd15',
+            '000000024554499f',
         ],
-        assumedTokenDecimals: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        xecTxType: 'Received',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -8600,19 +8504,686 @@ export const legacyAirdropTx = {
         },
     },
     parsed: {
-        incoming: true,
-        xecAmount: 5.69,
-        isEtokenTx: false,
-        aliasFlag: false,
-        airdropFlag: true,
-        airdropTokenId:
+        satoshisSent: 569,
+        stackArray: [
+            '64726f70',
             'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
-        opReturnMessage: 'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
-        isCashtabMessage: true,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduu04m37fwd',
+            '00746162',
+            '65766320746f6b656e207365727669636520686f6c64657273206169722064726f70f09fa587f09f8c90f09fa587e29da4f09f918cf09f9bacf09f9bacf09f8d97f09fa4b4',
+        ],
+        xecTxType: 'Received',
+        recipients: [
+            'ecash:qqp49ckzgmar3ljh7egymnlk9z32hpwf4qf8m8l9gc',
+            'ecash:qp7j4nzkraqhhuext4r9l0tkk7tke566m5phzhkktx',
+            'ecash:qpu29ydpjdr3vxjn9ucu462afykv27t9aq4t0vgc3v',
+            'ecash:qpuvcexsnsk9tr3v0ud6733lfc4xy3j4nqq3chf5l9',
+            'ecash:qpc4xc6q5kknr8ey4epn6l92g36a6606as2zhlv5c3',
+            'ecash:qpjfhctcr7tzc485wfeatr33gw0mg54e9y4kuan3jl',
+            'ecash:qzlreeyeuv0taqx842lkwwkds4xgj6wacssxeqqpz4',
+            'ecash:qr5g7wfc83xjv3qs7vxjk2xd4em4cel23cmmek9thu',
+            'ecash:qp0me6v4nnnmwy3exyu2austqy7452qzuc2j22e0nt',
+            'ecash:qpg0xh3cv8tqj300e54statzalc562xmzqwuzjntyl',
+            'ecash:qzrxakyh8ezy68m9x043skx29p9dtzdury4xkq4azv',
+            'ecash:qqyy3mss5vmthgnu0m5sm39pcfq8z799kun7jjcf72',
+            'ecash:qzt4pnwah9mts3nxdznnkkxq5xhm6m6dhq77227t0f',
+            'ecash:qz8wz5dlputr0nwjux6pa5kdx2cd7z5ny5x4tw2zpk',
+            'ecash:qzl8jth497mtckku404cadsylwanm3rfxslzu6ufgg',
+            'ecash:qq4djmjx07f4f7rwpsg6el0r2yv55xpaequ4h6axa6',
+            'ecash:qzhay3c0yep99uf4n4acpyll7n7azgx9lykz945tm5',
+            'ecash:qz9gaysz88a4e3j8s4wp6c6tpwlycjm8qy0t5wv0r6',
+            'ecash:qqf0sn65lt2xj5ep7cwrz0fwx2s237qgvsntr84uqt',
+            'ecash:qzzzk9f2pw75v3a04m8wezn2l25sv688cuy23pmxch',
+            'ecash:qrlfw84jjcx7ln5n2q79vsw4f64d92m2q5z7v4d2da',
+            'ecash:qp59aqjevxm8g4h5gr92424sl9xtxd2twgl620v7ph',
+            'ecash:qpmtg3r6xct7jxxsxfsn20shnfvrlpwjccn0x53qp0',
+            'ecash:pqvtknma3zqur5290se6dtuwtyml0amk4q7apqmnwx',
+            'ecash:qzekdmmurl75aazj6uj4vc68yrxgws0pmsgztm4atw',
+            'ecash:qr67stwqz9cdnxskh7tppk588h68lq420gvwpush28',
+            'ecash:qqhddqwu2ssa6js99aymmf26ns69lvp9uqhgstr4vr',
+            'ecash:qzu863zm9ka6vhz6twmejkd5fsj9jdgclqcwvvhlkq',
+            'ecash:pp7erhrc87cutdljf0hajthderdtl29t0cckdef6dm',
+            'ecash:prmj9lywy0zuydnr4ge88az9k7ztyga2k5zqm3zchg',
+            'ecash:qz2qssp3rjlxqyl9ntlh98lurkgzl46dry8x8j7ftm',
+            'ecash:qrfef5yyvpaua9l6fenpkmev05hjxlyfac99kea3re',
+            'ecash:qpcwrv6v28x4xxw9ef2d49u2vs3xqhnt8c7qtax842',
+            'ecash:qpqwavpkm8ttcuwdvku3addmlfwcpzq9egtnc3rwvz',
+            'ecash:qpx4tamfec20638zkc6spk2sz6pc5hgnp5yhp72z28',
+            'ecash:qzsha6zk9m0f3hlfe5q007zdwnzvn3vwuuzel2lfzv',
+            'ecash:qzsnlsmy95089yltfw030mqmdakhaf92avqgmfwnsn',
+            'ecash:qp3wjpa3tjlj042z2wv7hahsldgwhwy0rquas9fmzn',
+            'ecash:qzr2jy0x2afmx7thg3yzxrn73aaw4w86tcv87dlc9m',
+            'ecash:qr5nvnzhwpu0zmhzkfljc4c2fezsm4fw0gxf008tgt',
+            'ecash:qrkez7h6j6pnc8l2v78zxd6v24lds0lkluen22kx9g',
+            'ecash:qzpv7j9wlnvqquh0y8j2v80w3skhp59ukvfejazgkn',
+            'ecash:qpzwswytm4jvraneq5neqehsg33c6rskdy0hunmn7m',
+            'ecash:qrtzu6z98d6e8pskkafsnsecr52dv89e5sqggy7w5p',
+            'ecash:qqjmr545vy9kmmkcu0f2cah57yfgsvfxus3qv9h336',
+            'ecash:qptyydu4msh6sharjvwdl8jc7nuxv8ptysp2d46z2p',
+            'ecash:qrsrm989nwespwt94s355f6trn6pc09d6uvu4zsdp8',
+            'ecash:qq0q665w7ty2pakw4n5x2czea2wmavgmmgz0n7r63a',
+            'ecash:qrmv6mh3h4ad6v20mxc3tsadph88s3ynpshjfcac55',
+            'ecash:qzy0k220s7c0qklkahwp66lau2ar4paum549mlx7vn',
+            'ecash:qzs4fuqzyarkajt5rfqka94kjemlmh6tr5sqsrh0tz',
+            'ecash:qqmz5dmn7459ez0yhqqwf38ejfwm9mqmtswnrhjrcl',
+            'ecash:qpnhp9v93qzf50ees28pmhzh70whwgn6zyzefhg5vl',
+            'ecash:qzcrzd696hmus5xfdqkzwydk598jmwf8dvcneehcza',
+            'ecash:qrl89x4yqaulsg4gcjvg7jdpzhy240qvcuwluwhshd',
+            'ecash:qrkw7qql8sfhezq0s2xcg0m4fgyzadfedv6jdz8zgs',
+            'ecash:qp370xkalsadx0gyecry4hsz60yv4j52l5dcy6vscq',
+            'ecash:qzy6dks7mpkgjelsx6g6mxhcmy7xykgnwvm2ka7y4n',
+            'ecash:qz06z7pkpj43wru5yv3r5kckv9cl2n2mcyvh00d7l3',
+            'ecash:qz7r06eys9aggs4j8t56qmxyqhy0mu08cspyq02pq4',
+            'ecash:qrnc6vzxxfyfhgjqk2vcdln2l5evw74pvv9ruy8fga',
+            'ecash:qzvnu6lw7a85a5xrleg6lz27gakwxlpk9v55jr2p46',
+            'ecash:qzugyr9xh88tpa2xu9pdmkzh5jt5fqm3ngjykg3vgy',
+            'ecash:qr9f38l560030ljdcm4nxz6xn0tdt4ypfcxrgleaav',
+            'ecash:qzkjnnwwygmlw854lmj4ruzyyhmskljvn52clpf7gl',
+            'ecash:qq840pewqms4ty7g52y0edmpky722uwh3qvx936rje',
+            'ecash:qq4fd9zdqecq3q4mmxz8v8vunepptukh3czav3gjyt',
+            'ecash:qq0rwc6wv6f7y2yqrsv5c3tsr4y6r5fw9squdmajds',
+            'ecash:qp36z7k8xt7k4l5xnxeypg5mfqeyvvyduu04m37fwd',
+        ],
     },
+};
+export const onSpecAirdropTxNoMsg = {
+    tx: {
+        txid: '298c3d1a5bd00bd86d92d48ec5695c25a0a86093964d9f53eb19b46dc472b9f5',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '1238b76f12c0a4e2c54f5f80951464396f40685256f0ffc3e30a450995e5da43',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '483045022100a6886a347a977b31fb3cf4a0b0ef85e58bd60d7af9db27d4d260f71c9b5f22c30220436ceaca789bc8ab631633434eb0b64b93ae6ebeac94d3ddbd12d3916a57fc8441210343b0a63fb80795016f064481f0380836adf7cde6ad32a662ddf551876b303a93',
+                value: 16194930,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a0464726f7020fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa4cad415454454e54494f4e204752554d50592050454f504c452120f09f98be20596f752063616e206e6f77206465706f736974202447525020746f207468652065546f6b656e20626f7420617420742e6d652f6543617368506c617920746f20746f7020757020796f757220436173696e6f20437265646974732120316d2024475250203d2031204372656469742e20506c617920436173696e6f2067616d657320616e642077696e205845432120',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9145561e7d054bb4d81d862fdc674525c2dc337ac6d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91417b83cbad4814a5c6400e418ec69f29963a2805888ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9142e153c4fc63dcabf0e8949b20ddab2c3df7704ed88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9149966d31280b53f1c2b85f975918eb3023b281f8688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914bfd3a8b912a7988809090de56651d47451528ba188ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9147ff46e0807b0d3a5797dd65beae6cfcc2d01e56e88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914585ecb807269977bc21a1a2cd5d7c4ff1150e94988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9140db07d6b795f5fe5f47e53aab25aac078d229f8188ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9143f23e265a57078ac8e675f78bd552a95943ca7e888ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914a33b3460d43b9e27a165185b2863b1f64d418d8288ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914e006de0508dcbf24ae0455ca3b5665ed0545553c88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9145f1ec6dd2d02c1fa32b184818be5611ae674df0388ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914445c0c740419357dd03c93a351c69eedf433be4688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914eafcfdecd98cde993e3be01a9ad1158fd3eb773988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914023a7087ee9bfabc77548fc5f0a359ae9bacf7bc88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914eded3588169234400f7556a40baf808e1ec8ebf588ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9141a33684209d978e8bc143c6fcdb7f56e3243dcee88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914486cbf0bfba3b7d0aae10bec7f0d4226e6e10f9688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91480c72defab2c99cf19341cc0e2992c659d42198788ac',
+                spentBy: {
+                    txid: '46eed31f3d61c5a0a7023c4626c061afc158de9d3855ab304abefd7bb4f7de0d',
+                    outIdx: 109,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914a15db8a24f9b3740383927a1d787ba77b34b63a888ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91423a1340dbbe6dedf1cd31cdf11f85b3442cfd82888ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9141e464c8d283976ddc13fa6756736f8f3a0069f7888ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914f2d85c4f3fb78c1d9727dea73690c72815756e2b88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914d8723ad3becc44356267e8d0313692c493fe2bdf88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914161cae938ec121bd9970304766865991fe80a63088ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91490ec469ca54ce9616282dea980a39f0e4b9a6ab988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914b386b1f59b5f03b45471df214d47f7ab5d48003088ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914d2ea9ba1a091c2adf0116da4d2c3ddc3cf7124a988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9149846b6b38ff713334ac19fe3cf851a1f98c07b0088ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91451379ab611287658c9e1c0f98f0929addd5a2f1d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91432fc3341b83f902a360cbbf91a08ea99c293733d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91459f93839ba24abd6996b75a39486691dd40660be88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91473ef17c5b9f551eae3f3b4fadf61f93cae5e6aea88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91469003998c2c32ac81951b88416a9a15df3a1992988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9145dd0411fa601ab82fcd68894c95934619a49920688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914534c4407eeea7e4b8c3ed7dae5cb4a2539beed9988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91447f86f44721c8d0bac263602717fc10b0da49b9f88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91485149cd55457401ad4645c54b86caa0ce0d4f05f88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914f0af3a1411ed4989bf5c44641c3a86d473afe45188ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914973d953e15d62383b24ebe3d73d01e7b83bd989788ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9144de2fb39f09d14492f4d40e0fb670a42af505c6b88ac',
+                spentBy: {
+                    txid: '11a58a92afc39a6d7bd413a11864d0d34f21ab72b63028293d1004ff76e74950',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914fd7f54f496cadb0b6d3cc206ee098bab29bd5bbf88ac',
+                spentBy: {
+                    txid: '51518eb20ca45eaa07925e6d502da8b5be5ad411272863be9a2280e46d6505f7',
+                    outIdx: 11,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914b55d27e509500af85243622343ca9e3d54a0438a88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914547abbaaa1c5e92ecde551c1bfdb9a2e5454b83088ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9140f69a9314698156aee8bdb96a36f1e08f1ba168d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91468506abb4ce69c0e596c80bebe456f3be7f904fd88ac',
+                spentBy: {
+                    txid: '39ef9f76d052d4b3fa5f4aa19b5597b1b55ab71e361c665eef371a501a1282be',
+                    outIdx: 9,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91447ab6772a47d55b7649b83f105fd5cdc3eaa22a988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91463a17ac732fd6afe8699b240a29b483246308de788ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914b74cc1418fad22fe0eb0bef57082d9836a29340c88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914e33f7fa6b1c03d68a28758c1ef3a5fa7322cafbb88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914a30153ad73ba57b6f37c210435e407bb7a368a5d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9141404dc7b54ab7768837729e2efe052105a4c405988ac',
+                spentBy: {
+                    txid: '6ab45eb0770ca387bcd76e3ffc0439958dc2bb7b87437234c722a3c615ca2071',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91496cdae0c820426ae831216d629383dda7ee5adab88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91412c4c82aac6896d96ede38eb916b5819a46c803a88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9147bdf4e819215ccfe937a633ae28ae2e9d3aadc0688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9146e2b68c87b86ed79b86a09c62c4762d7e431bcca88ac',
+                spentBy: {
+                    txid: 'c95c7f6f4baa7d91fd3aa24f9b73b4e04ef840ac970ae82e2d386f81eeec2cf0',
+                    outIdx: 22,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914e7a5f062e50a35d639fc1773738839119e61475d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914a34960963da7e02e1f0357325985475bda969def88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9149d8689dc0813da4f520225eebb8b80c8352ec4a588ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914bd4cdb9bc9dbe21e2b9bdd3395be350d8abbe16d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9142d755595516b0f625c51d223bc84a5adfc77b20688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914dd01dbc55b0fe9e33ceb700b4c4452010bdb5a1688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9140839c285a8d5b52934c28d4a45a1835dd45f0a5388ac',
+                spentBy: {
+                    txid: 'cd68979654b1ecee37a33c321b6cb7f2966be6af02232855f46c2aef231463cb',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9143dd8ebcdf0e4d65712a723f2235675316687716388ac',
+                spentBy: {
+                    txid: 'f8123bf1175047b9d5ebd5d7cacbb378aaa8f58a55ed400893f192f28606a0d3',
+                    outIdx: 3,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914974a7bb26ac2f62bf60a675f5f0024a689c03d7d88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914f5f740bc76e56b77bcab8b4d7f888167f416fc6888ac',
+                spentBy: {
+                    txid: '27f2d0454f78b90be92eea7d557486ebc07d7ea1004fa7dbc0e7f89e835a4c6e',
+                    outIdx: 3,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914dceb306a73582e52c43025f7eed5827a6d9e92e088ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914f93029e7593327c5b864ea6896ecfda4fffb6ab888ac',
+                spentBy: {
+                    txid: 'c62c16c68df7d69d5d1524ac250e30473dacdbf13c131fb1978911674f045665',
+                    outIdx: 17,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9140620a7df2e0637bc8d3dfa663c979c15a671dfe488ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9147847fe7070bec8567b3e810f543f2f80cc3e03be88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914837604effd470faaba3e044e0a7c4e6a8a7ee8c688ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9142def2114338f0be9a26956378efce60e17b580b388ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91482b15f681a94fe9f6ac29ddee214d3dd88f55bfc88ac',
+                spentBy: {
+                    txid: '920853c238299614bc03270839f1b815c9763385485e04be18a861039c07b606',
+                    outIdx: 14,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91478f43ee6b1e577329c0fc9cb47f7435954eae81f88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914c1a7d12dddc6a3072df09cf5e0a00ece198cc8c188ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914bccecb7e3e5d3fccbee3211494ad3214f91cc74f88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914fbc9461beec0d783052c20c994ffb44e46041d5188ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914a94b8176d28cb5b5c301f10bb45bdb3d6e0c277d88ac',
+                spentBy: {
+                    txid: 'b2c0183a724aa141568e9c116b684eb94e8be326c92cf588d83296916974017f',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914993e6beef74f4ed0c3fe51af895e476ce37c362b88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9142ec5281864fc989dab543b054631c9703809689e88ac',
+                spentBy: {
+                    txid: '962f5149fbca6c739886cb839901b0de5926119430ce268b7aa1be0c073ad84c',
+                    outIdx: 6,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914581bd5bc835cc788bd90a4f6f0c9c21eb173572e88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91428cabb69be3e20707574d7a0ddc65a801b6ae59988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914b8b3c22d82784c27e0224fd8a8ff549a67e955a388ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914b8af3f36894ee7e6563c672714f9eb47cc83a9e188ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914fa49f98fb25e8b84ce210d06f052aed88c2c4f9888ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9146134463df4436bf8c662b64917610f63fa5d89ef88ac',
+                spentBy: {
+                    txid: 'd8a9729473589d3c30d26e672c2c49e1a58fc380765ddbcde8628ab93293af11',
+                    outIdx: 3,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                spentBy: {
+                    txid: '3c844ed9f76207027a47dd2170a590a1f8d8a8ff9b797da4f050ad6394adf52a',
+                    outIdx: 1,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914b3f80c88220f138201702a4d0c033b248059fcdc88ac',
+                spentBy: {
+                    txid: '7d5cf7814e3225587e522e03da0589b806de0498a779e8b0d1cb273c9f257b87',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914ad7eb2c8b88fa2e3f5158b398a49bf277401984e88ac',
+                spentBy: {
+                    txid: '50974e99e87dec3b575497b9592a89d9ae0f2dc129f26d567582e4d0aaf27741',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9146b475c3b68ff8411e5c43271edc4e4f26dfc802a88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a914ee8cbaa5642d1c5d1af1503edda6a55044e8106e88ac',
+                spentBy: {
+                    txid: 'ca0229e4287f534526e811545e43c01bc011d2451acebd18aacbb74fe8d055ea',
+                    outIdx: 2,
+                },
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9147e3f074aae3cc99a6f48b928008eb9458615b6a988ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a9140816fa82ce5021871afb6fbdc9470714fbf7c7ed88ac',
+            },
+            {
+                value: 2105,
+                outputScript:
+                    '76a91412e01685eea02225ae3d3d528b184ae0db52314388ac',
+                spentBy: {
+                    txid: 'fc4013c0a37cde3de2238f61c5212a7d115382aae5e0cb28b80c1d935e9233f5',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 15987628,
+                outputScript:
+                    '76a9142a96944d06700882bbd984761d9c9e4215f2d78e88ac',
+                spentBy: {
+                    txid: '96f072b8db666b8eb59c0f43373b65c50fd5ac5042ea1e7d822161b45c2219a1',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1711102052,
+        size: 3645,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 836935,
+            hash: '000000000000000008e74d35ca49974c15ca67e1209fa7e23bea15450dd64336',
+            timestamp: 1711102691,
+        },
+    },
+    parsed: {},
 };
 
 export const outgoingEncryptedMsg = {
@@ -8672,17 +9243,13 @@ export const outgoingEncryptedMsg = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 12,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        opReturnMessage: 'Encrypted Cashtab Msg',
-        isCashtabMessage: true,
-        isEcashChatMessage: false,
-        isEncryptedMessage: true,
-        replyAddress: 'ecash:qrhxmjw5p72a3cgx5cect3h63q5erw0gfcvjnyv7xt',
+        satoshisSent: 1200,
+        stackArray: [
+            '65746162',
+            '040f3cc3bc507126c239cde840befd974bdac054f9b9f2bfd4ff32b5f59ca554c4f3fb2d11d30eae3e5d3f61625ff7812ba14f8c901c30ee7e03dea57681a8f7ab8c64d42ce505921b4d67507452537cbe7525281714857c75d7a441b65030b7ea646b59ed0c34adc9f739661620cf7678963db3cac78afd7f49ad0d63aad404b07730255ded82ea3a939c63ee040ae9fac9336bb8d84d7b3380665ffa514a45f4',
+        ],
+        xecTxType: 'Sent',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -8743,17 +9310,13 @@ export const incomingEncryptedMsg = {
         },
     },
     parsed: {
-        incoming: true,
-        xecAmount: 11,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        opReturnMessage: 'Encrypted Cashtab Msg',
-        isCashtabMessage: true,
-        isEcashChatMessage: false,
-        isEncryptedMessage: true,
-        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        satoshisSent: 1100,
+        stackArray: [
+            '65746162',
+            '04eaa5cbe6e13db7d91f35dca5d270c944a9a3e8c7738c56d12069312f589c7f193e67ea3d2f6d1f300f404c33c19e48dc3ac35145c8152624b7a8e22278e9133862425da2cc44f7297c8618ffa78dd09054a4a5490afd2b62139f19fa7b8516cbae692488fa50e79101d55e7582b3a662c3a5cc737044ef392f8c1fde63b8385886aed37d1b68e887284262f298fe74c0',
+        ],
+        xecTxType: 'Received',
+        recipients: ['ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6'],
     },
 };
 
@@ -8882,37 +9445,16 @@ export const tokenBurn = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 0,
-        isEtokenTx: true,
-        isTokenBurn: true,
-        etokenAmount: '12',
-        tokenEntries: [
-            {
-                tokenId:
-                    '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: 'Unexpected burn: Burns 12 base tokens',
-                failedColorings: [],
-                actualBurnAmount: '12',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
+        satoshisSent: 546,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            '4db25a4b2f0b57415ce25fab6d9cb3ac2bbb444ff493dc16d0615a11ad06c875',
+            '00000000000f41b9',
         ],
-        assumedTokenDecimals: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        xecTxType: 'Sent',
+        recipients: [],
     },
 };
 
@@ -9017,409 +9559,95 @@ export const tokenBurnDecimals = {
         },
     },
     parsed: {
-        incoming: false,
-        xecAmount: 0,
-        isEtokenTx: true,
-        etokenAmount: '0.1234567',
-        isTokenBurn: true,
-        tokenEntries: [
-            {
-                tokenId:
-                    '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: 'Unexpected burn: Burns 1234567 base tokens',
-                failedColorings: [],
-                actualBurnAmount: '1234567',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
+        satoshisSent: 546,
+        stackArray: [
+            '534c5000',
+            '01',
+            '53454e44',
+            '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
+            '00129950892eb779',
         ],
-        assumedTokenDecimals: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-    },
-};
-
-export const incomingEtokenTwo = {
-    tx: {
-        txid: 'b808f6a831dcdfda2bd4c5f857f94e1a746a4effeda6a5ad742be6137884a4fb',
-        version: 2,
-        inputs: [
-            {
-                prevOut: {
-                    txid: 'c638754cb7707edd4faad89bdfee899aa7acbbc61f66e21f8faf60bdbb34fd65',
-                    outIdx: 3,
-                },
-                inputScript:
-                    '4830450221009d649476ad963306a5210d9df2dfd7e2bb604be43d6cdfe359638d96239973eb02200ac6e71575f0f111dad2fbbeb2712490cc709ffe03eda7de33acc8614b2c0979412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 3503,
-                sequenceNo: 4294967295,
-                outputScript:
-                    '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-            },
-            {
-                prevOut: {
-                    txid: '82d8dc652779f8d6c8453d2ba5aefec91f5247489246e5672cf3c5986fa3d235',
-                    outIdx: 2,
-                },
-                inputScript:
-                    '483045022100b7bec6d09e71bc4c124886e5953f6e7a7845c920f66feac2e9e5d16fc58a649a0220689d617c11ef0bd63dbb7ea0fa5c0d3419d6500535bda8f7a7fc3e27f27c3de6412103318d0e1109f32debc66952d0e3ec21b1cf96575ea4c2a97a6535628f7f8b10e6',
-                value: 546,
-                sequenceNo: 4294967295,
-                token: {
-                    tokenId:
-                        'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    amount: '9876543156',
-                    isMintBaton: false,
-                    entryIdx: 0,
-                },
-                outputScript:
-                    '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-            },
-        ],
-        outputs: [
-            {
-                value: 0,
-                outputScript:
-                    '6a04534c500001010453454e4420acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f550800000000075bcd1508000000024554499f',
-            },
-            {
-                value: 546,
-                outputScript:
-                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
-                token: {
-                    tokenId:
-                        'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    amount: '123456789',
-                    isMintBaton: false,
-                    entryIdx: 0,
-                },
-            },
-            {
-                value: 546,
-                outputScript:
-                    '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-                token: {
-                    tokenId:
-                        'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    amount: '9753086367',
-                    isMintBaton: false,
-                    entryIdx: 0,
-                },
-            },
-            {
-                value: 1685,
-                outputScript:
-                    '76a9144e532257c01b310b3b5c1fd947c79a72addf852388ac',
-                spentBy: {
-                    txid: '04b16fa516fbdd64d51b8aa1a752855beb4250d99199322d89d9c4c6172a1b9f',
-                    outIdx: 4,
-                },
-            },
-        ],
-        lockTime: 0,
-        timeFirstSeen: 0,
-        size: 481,
-        isCoinbase: false,
-        tokenEntries: [
-            {
-                tokenId:
-                    'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
-        ],
-        tokenFailedParsings: [],
-        tokenStatus: 'TOKEN_STATUS_NORMAL',
-        block: {
-            height: 760076,
-            hash: '00000000000000000bf1ee10a21cc4b784ea48840fa00237e41f69a027c6a86c',
-            timestamp: 1664840266,
-        },
-    },
-    parsed: {
-        incoming: true,
-        xecAmount: 5.46,
-        isEtokenTx: true,
-        etokenAmount: '0.123456789',
-        isTokenBurn: false,
-        tokenEntries: [
-            {
-                tokenId:
-                    'acba1d7f354c6d4d001eb99d31de174e5cea8a31d692afd6e7eb8474ad541f55',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
-        ],
-        assumedTokenDecimals: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+        xecTxType: 'Sent',
+        recipients: [],
     },
 };
 
 export const swapTx = {
     tx: {
-        txid: '2f030de7c8f80a1ecac3645092dd22f0943c34d54cb734e12d7dfda0641fdfcf',
+        txid: 'baed6358b9ea2e354e384d2e31a576ffa25fcceaf796e711e8306f9c8086b00f',
         version: 1,
         inputs: [
             {
                 prevOut: {
-                    txid: '4e771bc4bbd377f05b467b0e070ff330f03112b9effb61af5568e174850afa1b',
-                    outIdx: 1,
-                },
-                inputScript:
-                    '41ff62002b741b8b4831484f9a214c72972965765dc398cccb2f9756a910415f89a28c3560b772a73cb6f987057a7204105cb8afab30a46e74308a134d15ceb48b4121038a124bbf306b5bd19e8d10a396a96ae18abe79229820f30e81989fd645cf0525',
-                value: 546,
-                sequenceNo: 4294967295,
-                outputScript:
-                    '76a91480ad93eff2bd02e6383ba62476ffd729d1b2660d88ac',
-            },
-            {
-                prevOut: {
-                    txid: 'ffbe78a817d157a0debf3c6ee5e14cea8a2bd1cd0feaf8c368292b694110d7f4',
-                    outIdx: 1,
-                },
-                inputScript:
-                    '41a112ff6b2b9d288f507b48e042390b8b285bf761e617885eb9a536259c1bd1bec673325cebbf913d90ad0ec3237eac29e6592198cb52dcd6cf6786f784f5889e41210247295c2401b8846ddd915ba9808e0962241003baecd0242b3888d1b3182c2154',
-                value: 546,
-                sequenceNo: 4294967295,
-                token: {
-                    tokenId:
-                        '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    amount: '10000',
-                    isMintBaton: false,
-                    entryIdx: 0,
-                },
-                outputScript:
-                    '76a91475c5980aa6eeada103b45f82e37163e9047903af88ac',
-            },
-            {
-                prevOut: {
-                    txid: '6684cb754ec82e4d9b9b068ab2191af8cfd0998da9f753c16fabb293664e45af',
-                    outIdx: 0,
-                },
-                inputScript:
-                    '41bb8866a6cd6975ec9fdd8c45860c6cee5f83c52c801f830b3a97a69b6a02762c73a71ef91ce519224eb7e62fc4eb895587231a258a8f368f007c6377e7ca0028412102744cf89c996b8ec7ea887a1c4d0e0f98a2c82f8a1e4956ed12d8c8dc8bb2f6e4',
-                value: 101670,
-                sequenceNo: 4294967295,
-                outputScript:
-                    '76a914205c792fff2ffc891e986246760ee1079fa5a36988ac',
-            },
-        ],
-        outputs: [
-            {
-                value: 0,
-                outputScript:
-                    '6a04534c500001010453454e442054dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484080000000000002710',
-            },
-            {
-                value: 546,
-                outputScript:
-                    '76a914205c792fff2ffc891e986246760ee1079fa5a36988ac',
-                token: {
-                    tokenId:
-                        '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    amount: '10000',
-                    isMintBaton: false,
-                    entryIdx: 0,
-                },
-                spentBy: {
-                    txid: '7d3e61946d7573ee58d8d2d1d05366604b7eb5db64d8a1e22201f12f5836f864',
-                    outIdx: 1,
-                },
-            },
-            {
-                value: 100546,
-                outputScript:
-                    '76a91480ad93eff2bd02e6383ba62476ffd729d1b2660d88ac',
-                spentBy: {
-                    txid: '561d26cc733822b2c518f6917bc84eeb78c505dc07e4f86379e93518f2c63514',
-                    outIdx: 0,
-                },
-            },
-            {
-                value: 1000,
-                outputScript:
-                    '76a914a7d744e1246a20f26238e0510fb82d8df84cc82d88ac',
-                spentBy: {
-                    txid: 'b1db3cfab9ae782c9d85a52ea3271109d7270dbaa589b6cc19c72b9f7d23840b',
-                    outIdx: 1,
-                },
-            },
-        ],
-        lockTime: 0,
-        timeFirstSeen: 0,
-        size: 599,
-        isCoinbase: false,
-        tokenEntries: [
-            {
-                tokenId:
-                    '54dc2ecd5251f8dfda4c4f15ce05272116b01326076240e2b9cc0104d33b1484',
-                tokenType: {
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                    number: 1,
-                },
-                txType: 'SEND',
-                isInvalid: false,
-                burnSummary: '',
-                failedColorings: [],
-                actualBurnAmount: '0',
-                intentionalBurn: '0',
-                burnsMintBatons: false,
-            },
-        ],
-        tokenFailedParsings: [],
-        tokenStatus: 'TOKEN_STATUS_NORMAL',
-        block: {
-            height: 767064,
-            hash: '0000000000000000018dacde348577244cca129a8787f1594ef3e2dff9831153',
-            timestamp: 1669029608,
-        },
-    },
-    parsed: {
-        incoming: true,
-        xecAmount: 10,
-        isEtokenTx: false,
-        aliasFlag: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: '',
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qzq2myl0727s9e3c8wnzgahl6u5arvnxp5fs9sem4x',
-    },
-};
-
-export const aliasOffSpec = {
-    tx: {
-        txid: '7b265a49e0bd5fe0c5e4b4aec634a25dd85656766a035b6e436c415538c43d90',
-        version: 2,
-        inputs: [
-            {
-                prevOut: {
-                    txid: '1be4bb9f820d60a82f6eb86a32ca9442700f180fc94469bca2ded9129f5dce88',
+                    txid: '8b55a382501b538296cd13269b341f7a964366a705a45f89f56e0d783240f3a4',
                     outIdx: 2,
                 },
                 inputScript:
-                    '47304402205af9cf7ddb8412803b8e884dbd5cb02535ffc266fd5c6afb3e48e7425e7b215b0220799688d330130e4c7c7ffa33d9310e0bbc6fd820bbe26f7f47f52c17d79d6d4d4121022658400e1f93f3f491b6b8e98c0af1f45e30dd6a328894b7ea0569e0182c1e77',
-                value: 3962985,
-                sequenceNo: 4294967294,
+                    '41256f3c091df7dea2bb9d74241b47116364d7b0035dfe1c5d1d398d8e92e99f4d5f3dd747f8e81ca99ddaf5630399ef18e26b6a3bf9b763cdd25225e68f7bbd2d41210304222c88e9936a195762fc4ee41a082e906a0e8434df43a03bfcdf1f9d2c1b8d',
+                value: 546,
+                sequenceNo: 4294967295,
                 outputScript:
-                    '76a914bc4932372bf33d57b3a21b2b2636919bc83a87a788ac',
+                    '76a91493472d56ba91581ed473225a765dd14a2db5d9d888ac',
+            },
+            {
+                prevOut: {
+                    txid: '8b55a382501b538296cd13269b341f7a964366a705a45f89f56e0d783240f3a4',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '418ab02f08273afd67c4db840f09429d7c76c0a71b28dbaef5c63f277944a168819d72bedd14e78b327a237f6070b0519ef8456efbfe206bae0c60d3b5f328faea412103df543832906a1f5fc8f201bb99454f350b1906375d522f735bd357cbda11ab5b',
+                value: 2565,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a9149ea00e6c2ef24026719421e4790e1a694c94381b88ac',
             },
         ],
         outputs: [
             {
                 value: 0,
-                outputScript: '6a042e7865630d616e64616e6f746865726f6e65',
+                outputScript:
+                    '6a045357500001010101209e0a9d4720782cf661beaea6c5513f1972e0f3b1541ba4c83f4c87ef65f843dc0453454c4c0631323831323301002039c6db26912f34352d50fdfd8d75d1c16cb8a669f3ae05000a6c8c74d14839a50101063132383132330437383035',
             },
             {
-                value: 551,
+                value: 2656,
                 outputScript:
-                    '76a914638568e36d0b5d7d49a6e99854caa27d9772b09388ac',
+                    '76a91493472d56ba91581ed473225a765dd14a2db5d9d888ac',
                 spentBy: {
-                    txid: '33805053250ab648e231ea61a70fc4027765c184c112cc0b83f05f7c9db6a4c5',
-                    outIdx: 12,
-                },
-            },
-            {
-                value: 3961979,
-                outputScript:
-                    '76a914bc4932372bf33d57b3a21b2b2636919bc83a87a788ac',
-                spentBy: {
-                    txid: 'f299dfce0030f9a0cf6d104b95182d973cf46111cfb3daaebb62b44c25d3f134',
-                    outIdx: 0,
+                    txid: '47f7a2189eb65e9a2288f81640351cc80ada49288b09973bcaa7aef1e423faa8',
+                    outIdx: 1,
                 },
             },
         ],
         lockTime: 0,
-        timeFirstSeen: 0,
-        size: 254,
+        timeFirstSeen: 1712535539,
+        size: 439,
         isCoinbase: false,
         tokenEntries: [],
         tokenFailedParsings: [],
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
         block: {
-            height: 778616,
-            hash: '00000000000000000fc2761e52b21752aee12a0f36b339f669a195b00a4a172e',
-            timestamp: 1675967591,
+            height: 839523,
+            hash: '00000000000000000c61b358a9681170b9387790370bf3ca18a402bc50264fc0',
+            timestamp: 1712536759,
         },
     },
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: true,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'off-spec alias registration',
-        replyAddress: 'ecash:qz7yjv3h90en64an5gdjkf3kjxdusw585u9j5rqxcg',
-        xecAmount: 0,
+        satoshisSent: 0,
+        stackArray: [
+            '53575000',
+            '01',
+            '01',
+            '9e0a9d4720782cf661beaea6c5513f1972e0f3b1541ba4c83f4c87ef65f843dc',
+            '53454c4c',
+            '313238313233',
+            '00',
+            '39c6db26912f34352d50fdfd8d75d1c16cb8a669f3ae05000a6c8c74d14839a5',
+            '01',
+            '313238313233',
+            '37383035',
+        ],
+        xecTxType: 'Received',
+        recipients: ['ecash:qzf5wt2kh2g4s8k5wv395aja699zmdwemq05vg6h92'],
     },
 };
 
@@ -9475,17 +9703,10 @@ export const PayButtonNoDataYesNonce = {
         },
     },
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'PayButton (d980190d13019567)',
-        replyAddress: 'ecash:qqpuv0f62tx7zdk63pvwn58l42qsednrjgnt0czndd',
-        xecAmount: 0,
+        satoshisSent: 1800,
+        stackArray: ['50415900', '00', '00', 'd980190d13019567'],
+        xecTxType: 'Received',
+        recipients: ['ecash:qqqmlnj07demzz9avk6d5zx7vgddapddk5k05jys53'],
     },
 };
 
@@ -9546,17 +9767,13 @@ export const PayButtonYesDataYesNonce = {
         },
     },
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'PayButton (69860643e4dc4c88): 😂👍',
-        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: 0,
+        satoshisSent: 3401592,
+        stackArray: ['50415900', '00', 'f09f9882f09f918d', '69860643e4dc4c88'],
+        xecTxType: 'Sent',
+        recipients: [
+            'ecash:qrjh8hvf5c0cmt44d06mt76a0nvxuvdt9cmj39zxwm',
+            'ecash:qp5h4eetqcj407nfl82dpyvz22w6x69tdyxpprn8zg',
+        ],
     },
 };
 
@@ -9569,17 +9786,13 @@ PayButtonEmptyTx.outputs[0].outputScript = '6a0450415900000000';
 export const PayButtonEmpty = {
     tx: PayButtonEmptyTx,
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'PayButton',
-        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: 0,
+        satoshisSent: 3401592,
+        stackArray: ['50415900', '00', '00', '00'],
+        xecTxType: 'Sent',
+        recipients: [
+            'ecash:qrjh8hvf5c0cmt44d06mt76a0nvxuvdt9cmj39zxwm',
+            'ecash:qp5h4eetqcj407nfl82dpyvz22w6x69tdyxpprn8zg',
+        ],
     },
 };
 // data and no payment id
@@ -9592,17 +9805,13 @@ PayButtonYesDataNoNonceTx.outputs[0].outputScript =
 export const PayButtonYesDataNoNonce = {
     tx: PayButtonYesDataNoNonceTx,
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'PayButton: only data here',
-        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: 0,
+        satoshisSent: 3401592,
+        stackArray: ['50415900', '00', '6f6e6c7920646174612068657265', '00'],
+        xecTxType: 'Sent',
+        recipients: [
+            'ecash:qrjh8hvf5c0cmt44d06mt76a0nvxuvdt9cmj39zxwm',
+            'ecash:qp5h4eetqcj407nfl82dpyvz22w6x69tdyxpprn8zg',
+        ],
     },
 };
 
@@ -9615,17 +9824,13 @@ PayButtonOffSpecTx.outputs[0].outputScript = '6a04504159000008f09f9882f09f918d';
 export const PayButtonOffSpec = {
     tx: PayButtonOffSpecTx,
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'off-spec PayButton tx',
-        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: 0,
+        satoshisSent: 3401592,
+        stackArray: ['50415900', '00', 'f09f9882f09f918d'],
+        xecTxType: 'Sent',
+        recipients: [
+            'ecash:qrjh8hvf5c0cmt44d06mt76a0nvxuvdt9cmj39zxwm',
+            'ecash:qp5h4eetqcj407nfl82dpyvz22w6x69tdyxpprn8zg',
+        ],
     },
 };
 
@@ -9639,17 +9844,13 @@ PayButtonBadVersionTx.outputs[0].outputScript =
 export const PayButtonBadVersion = {
     tx: PayButtonBadVersionTx,
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'Unsupported version PayButton tx: 01',
-        replyAddress: 'ecash:qrnz3uf0r6g3e8eqashwkxz8uw30lt2les5yk8l5d7',
-        xecAmount: 0,
+        satoshisSent: 3401592,
+        stackArray: ['50415900', '01', 'f09f9882f09f918d', '69860643e4dc4c88'],
+        xecTxType: 'Sent',
+        recipients: [
+            'ecash:qrjh8hvf5c0cmt44d06mt76a0nvxuvdt9cmj39zxwm',
+            'ecash:qp5h4eetqcj407nfl82dpyvz22w6x69tdyxpprn8zg',
+        ],
     },
 };
 
@@ -9697,18 +9898,64 @@ export const MsgFromEcashChat = {
         tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
     },
     parsed: {
-        incoming: true,
-        xecAmount: 0,
-        isEtokenTx: false,
-        airdropFlag: false,
-        airdropTokenId: '',
-        opReturnMessage: 'hello from eCash Chat 👍',
-        isCashtabMessage: false,
-        isEcashChatMessage: true,
-        isEncryptedMessage: false,
-        replyAddress: 'ecash:qqznd7vug3avk24jdwgakaqewkmwp0vczu5u9man9y',
-        aliasFlag: false,
+        satoshisSent: 1000,
+        xecTxType: 'Received',
+        stackArray: [
+            '63686174',
+            '68656c6c6f2066726f6d206543617368204368617420f09f918d',
+        ],
+        recipients: ['ecash:qqznd7vug3avk24jdwgakaqewkmwp0vczu5u9man9y'],
     },
+};
+export const CashtabMsg = {
+    tx: {
+        txid: '1ce6c307b4083fcfc065287a00f0a582cf88bf33de34845db4c49387d4532b8a',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '01d4b064a4e17f77e5712cb13b488e65d39b33b54475b78debee1fe1d9d9acb1',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '483045022100eccfc2e23d49fb7e72a35123c807f4feef2f379313673295f36611d725e877b002207b1df4c142c590a54d371fe2f04c05769ecf778e0d28fc50a671e5c5d8b277854121028c1fc90b3fa6e5be985032b061b5ca6db41a6878a9c8b442747b820ca74010db',
+                value: 3001592,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914e6309418b6e60b8119928ec45b8ba87de8e735f788ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04007461624cbe4d6572636920706f7572206c65207072697820657420626f6e6e6520636f6e74696e756174696f6e2064616e7320766f732070726f6a6574732064652064c3a976656c6f70706575722e2e2e204a27616920c3a974c3a92063656e737572c3a92073c3bb722074c3a96cc3a96772616d6d65206a7573717527617520313520417672696c20323032342e2052c3a97061726572206c6520627567206f6273657276c3a920737572206c6120706167652065546f6b656e204661756365743f',
+            },
+            {
+                value: 550,
+                outputScript:
+                    '76a9143c28745097b1e32b343c50a8d4a7697fe7ad8aff88ac',
+            },
+            {
+                value: 3000609,
+                outputScript:
+                    '76a914e6309418b6e60b8119928ec45b8ba87de8e735f788ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1712616513,
+        size: 433,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 839618,
+            hash: '00000000000000000e63e39951cc745db046aa7f57f811b68846ade8ad100293',
+            timestamp: 1712616969,
+        },
+    },
+    parsed: {},
 };
 
 export const SlpV1Mint = {
@@ -9834,37 +10081,17 @@ export const SlpV1Mint = {
         },
     },
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        assumedTokenDecimals: true,
-        etokenAmount: '100',
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: true,
-        isTokenBurn: false,
-        opReturnMessage: '',
-        replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-        tokenEntries: [
-            {
-                actualBurnAmount: '0',
-                burnSummary: '',
-                burnsMintBatons: false,
-                failedColorings: [],
-                intentionalBurn: '0',
-                isInvalid: false,
-                tokenId:
-                    'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
-                tokenType: {
-                    number: 1,
-                    protocol: 'SLP',
-                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                },
-                txType: 'MINT',
-            },
+        satoshisSent: 3372,
+        stackArray: [
+            '534c5000',
+            '01',
+            '4d494e54',
+            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+            '02',
+            '0000000000000064',
         ],
-        xecAmount: 33.72,
+        xecTxType: 'Sent',
+        recipients: [],
     },
 };
 
@@ -9925,20 +10152,72 @@ export const MsgFromElectrum = {
         },
     },
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: 'testing a msg for error',
-        replyAddress: 'ecash:qrhlng96s3awja5h48uhcpvg02azksgxpce6nvshln',
-        xecAmount: 0,
+        satoshisSent: 600,
+        stackArray: ['74657374696e672061206d736720666f72206572726f72'],
+        xecTxType: 'Received',
+        recipients: ['ecash:qpe3l0v88vmq86x6l43fywu4f5u9w8sslsga0tcn4t'],
     },
 };
 
+export const unknownAppTx = {
+    tx: {
+        txid: '4cd528a95263714b8f748d58df30c44956158825924e3385b5c5c511129d1b3a',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '9ca28926f8ec125dce0b7084468bd595b27bd73991b48461ac994cacff47a21d',
+                    outIdx: 1,
+                },
+                inputScript:
+                    '483045022100b50fac4b810ac6b10ce35f25fcc1a6b1f87b1209e8ee5973732d983395199de102204f860238b12ba3e7adfc432e331405f751fef1aa494c2d0122b7aaa522158933412102188904278ebf33059093f596a2697cf3668b3bec9a3a0c6408a455147ab3db93',
+                value: 3725,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a914d18b7b500f17c5db64303fec630f9dbb85aa959688ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a4cd43336616533642d4d45524f4e2d57494e227d2c7b226e616d65223a2277616c61222c226d657373616765223a223635396661313133373065333136663265613336616533642d57414c412d57494e227d5d2c227465726d73223a5b7b226e616d65223a22726566657265655075624b6579222c2274797065223a226279746573222c2276616c7565223a22303231383839303432373865626633333035393039336635393661323639376366333636386233626563396133613063363430386134353531343761623364623933227d5d7d7d7d7d',
+            },
+            {
+                value: 3308,
+                outputScript:
+                    '76a914d18b7b500f17c5db64303fec630f9dbb85aa959688ac',
+                spentBy: {
+                    txid: 'e5b4912fa19d93db9b6b9586ad9ab3a7f9bc3514325c71e36816e4b047a9f6b8',
+                    outIdx: 0,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 0,
+        size: 416,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 826662,
+            hash: '00000000000000001d45441094ec7a93f42f3beb564684aba68250b016feefb4',
+            timestamp: 1704961725,
+        },
+    },
+    parsed: {
+        satoshisSent: 3308,
+        stackArray: [
+            '3336616533642d4d45524f4e2d57494e227d2c7b226e616d65223a2277616c61222c226d657373616765223a223635396661313133373065333136663265613336616533642d57414c412d57494e227d5d2c227465726d73223a5b7b226e616d65223a22726566657265655075624b6579222c2274797065223a226279746573222c2276616c7565223a22303231383839303432373865626633333035393039336635393661323639376366333636386233626563396133613063363430386134353531343761623364623933227d5d7d7d7d7d',
+        ],
+        xecTxType: 'Sent',
+        recipients: [],
+    },
+};
+
+// TODO you are here. Get the parseTx unit tests to match mocks by updating mocks.
+// You will need integration tests for rendering of different OP_RETURN types
 export const AlpTx = {
     tx: {
         txid: '791c460c6d5b513283b98b92b83f0e6fa662fc279f39fd00bd27047370ba4647',
@@ -10105,17 +10384,16 @@ export const AlpTx = {
         },
     },
     parsed: {
-        airdropFlag: false,
-        airdropTokenId: '',
-        aliasFlag: false,
-        incoming: true,
-        isCashtabMessage: false,
-        isEcashChatMessage: false,
-        isEncryptedMessage: false,
-        isEtokenTx: false,
-        opReturnMessage: '',
-        replyAddress: 'ecash:qpt4z9kg4h6czlyel3da4jxmrrgscfts859gzp2zuu',
-        xecAmount: 0,
+        satoshisSent: 546,
+        stackArray: [
+            '50',
+            '534c5032000453454e4445e1f25de444e399b6d46fa66e3424c04549a85a14b12bc9a4ddc9cdcdcdcdcd038a02000000003e3000000000948f00000000',
+        ],
+        xecTxType: 'Received',
+        recipients: [
+            'ecash:pzctlwr4prjjqwqrfyxz7wy36pq0wu46pud7n9ffz3',
+            'ecash:qpt4z9kg4h6czlyel3da4jxmrrgscfts859gzp2zuu',
+        ],
     },
 };
 
@@ -17084,6 +17362,268 @@ for (const tokenId of Object.keys(chronikTokenMocks)) {
 }
 export const mockLargeTokenCache = largeTokenCache;
 
+const txHistorySupportingTokenCache = {
+    aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1: {
+        token: {
+            tokenId:
+                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                number: 1,
+            },
+            timeFirstSeen: 1711776546,
+            genesisInfo: {
+                tokenTicker: 'CACHET',
+                tokenName: 'Cachet',
+                url: 'https://cashtab.com/',
+                decimals: 2,
+                hash: '',
+            },
+            block: {
+                height: 838192,
+                hash: '0000000000000000132232769161d6211f7e6e20cf63b26e5148890aacd26962',
+                timestamp: 1711779364,
+            },
+        },
+        tx: {
+            txid: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+            version: 2,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: 'dd3eafefb1941fd67d8a29b7dd057ac48ec11712887e2ae7c008a7c72d0cd9fc',
+                        outIdx: 0,
+                    },
+                    inputScript:
+                        '4830450221009bb1fb7d49d9ac64b79ea041be2e2efa5a8709a470930b04c27c9fc46ed1906302206a0a9daf5e64e934a3467951dd2da37405969d4434d4006ddfea3ed39ff4e0ae412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                    value: 2200,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                },
+            ],
+            outputs: [
+                {
+                    value: 0,
+                    outputScript:
+                        '6a04534c500001010747454e4553495306434143484554064361636865741468747470733a2f2f636173687461622e636f6d2f4c0001020102080000000000989680',
+                },
+                {
+                    value: 546,
+                    outputScript:
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    token: {
+                        tokenId:
+                            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                        tokenType: {
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                            number: 1,
+                        },
+                        amount: '10000000',
+                        isMintBaton: false,
+                        entryIdx: 0,
+                    },
+                },
+                {
+                    value: 546,
+                    outputScript:
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    token: {
+                        tokenId:
+                            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                        tokenType: {
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                            number: 1,
+                        },
+                        amount: '0',
+                        isMintBaton: true,
+                        entryIdx: 0,
+                    },
+                    spentBy: {
+                        txid: '4b5b2a0f8bcacf6bccc7ef49e7f82a894c9c599589450eaeaf423e0f5926c38e',
+                        outIdx: 0,
+                    },
+                },
+                {
+                    value: 773,
+                    outputScript:
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    spentBy: {
+                        txid: '343356b9d4acd59065f90b1ace647c1f714f1fd4c411e2cf77081a0246c7416d',
+                        outIdx: 3,
+                    },
+                },
+            ],
+            lockTime: 0,
+            timeFirstSeen: 1711776546,
+            size: 335,
+            isCoinbase: false,
+            tokenEntries: [
+                {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        number: 1,
+                    },
+                    txType: 'GENESIS',
+                    isInvalid: false,
+                    burnSummary: '',
+                    failedColorings: [],
+                    actualBurnAmount: '0',
+                    intentionalBurn: '0',
+                    burnsMintBatons: false,
+                },
+            ],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NORMAL',
+            block: {
+                height: 838192,
+                hash: '0000000000000000132232769161d6211f7e6e20cf63b26e5148890aacd26962',
+                timestamp: 1711779364,
+            },
+        },
+        calculated: {
+            genesisSupply: '100000.00',
+            genesisOutputScripts: [
+                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            ],
+            genesisMintBatons: 1,
+        },
+    },
+    cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145: {
+        token: {
+            tokenId:
+                'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+            tokenType: {
+                protocol: 'ALP',
+                type: 'ALP_TOKEN_TYPE_STANDARD',
+                number: 0,
+            },
+            timeFirstSeen: 0,
+            genesisInfo: {
+                tokenTicker: 'CRD',
+                tokenName: 'Credo In Unum Deo',
+                url: 'https://crd.network/token',
+                decimals: 4,
+                data: {},
+                authPubkey:
+                    '0334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10',
+            },
+            block: {
+                height: 795680,
+                hash: '00000000000000000b7e89959ee52ca1cd691e1fc3b4891c1888f84261c83e73',
+                timestamp: 1686305735,
+            },
+        },
+        tx: {
+            txid: 'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+            version: 1,
+            inputs: [
+                {
+                    prevOut: {
+                        txid: 'dd2020be54ad3dccf98548512e6f735cac002434bbddb61f19cbe6f3f1de04da',
+                        outIdx: 0,
+                    },
+                    inputScript:
+                        '4130ef71df9d2daacf48d05a0361e103e087b636f4d68af8decd769227caf198003991629bf7057fa1572fc0dd3581115a1b06b5c0eafc88555e58521956fe5cbc410768999600fc71a024752102d8cb55aaf01f84335130bf7b3751267e5cf3398a60e5162ff93ec8d77f14850fac',
+                    value: 4000,
+                    sequenceNo: 4294967295,
+                    outputScript:
+                        'a91464275fca443d169d23d077c85ad1bb7a31b6e05987',
+                },
+            ],
+            outputs: [
+                {
+                    value: 0,
+                    outputScript:
+                        '6a504c63534c5032000747454e455349530343524411437265646f20496e20556e756d2044656f1968747470733a2f2f6372642e6e6574776f726b2f746f6b656e00210334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10040001',
+                },
+                {
+                    value: 546,
+                    outputScript:
+                        '76a914bbb6c4fecc56ecce35958f87c2367cd3f5e88c2788ac',
+                    token: {
+                        tokenId:
+                            'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                        tokenType: {
+                            protocol: 'ALP',
+                            type: 'ALP_TOKEN_TYPE_STANDARD',
+                            number: 0,
+                        },
+                        amount: '0',
+                        isMintBaton: true,
+                        entryIdx: 0,
+                    },
+                    spentBy: {
+                        txid: 'ff06c312bef229f6f27989326d9be7e0e142aaa84538967b104b262af69f7f00',
+                        outIdx: 0,
+                    },
+                },
+            ],
+            lockTime: 777777,
+            timeFirstSeen: 0,
+            size: 308,
+            isCoinbase: false,
+            tokenEntries: [
+                {
+                    tokenId:
+                        'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
+                    tokenType: {
+                        protocol: 'ALP',
+                        type: 'ALP_TOKEN_TYPE_STANDARD',
+                        number: 0,
+                    },
+                    txType: 'GENESIS',
+                    isInvalid: false,
+                    burnSummary: '',
+                    failedColorings: [],
+                    actualBurnAmount: '0',
+                    intentionalBurn: '0',
+                    burnsMintBatons: false,
+                },
+            ],
+            tokenFailedParsings: [],
+            tokenStatus: 'TOKEN_STATUS_NORMAL',
+            block: {
+                height: 795680,
+                hash: '00000000000000000b7e89959ee52ca1cd691e1fc3b4891c1888f84261c83e73',
+                timestamp: 1686305735,
+            },
+        },
+        calculated: {
+            genesisSupply: '0.0000',
+            genesisOutputScripts: [],
+            genesisMintBatons: 1,
+        },
+    },
+};
+// Build a mock token cache from these chronik mocks
+const supportingTokenCache = new CashtabCache().tokens;
+for (const tokenId of Object.keys(txHistorySupportingTokenCache)) {
+    const { token, calculated } = txHistorySupportingTokenCache[tokenId];
+    const { timeFirstSeen, genesisInfo, tokenType } = token;
+    const { genesisSupply, genesisOutputScripts, genesisMintBatons } =
+        calculated;
+    const cachedInfo = {
+        timeFirstSeen,
+        genesisInfo,
+        tokenType,
+        genesisSupply,
+        genesisOutputScripts,
+        genesisMintBatons,
+    };
+    if ('block' in token) {
+        cachedInfo.block = token.block;
+    }
+    supportingTokenCache.set(tokenId, cachedInfo);
+}
+export const mockTxHistorySupportingTokenCache = supportingTokenCache;
+
 /**
  * getTxHistory mocks
  * Mock a wallet with tx history at two different paths to confirm expected behavior
@@ -18153,17 +18693,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1710799378,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 11,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-            aliasFlag: false,
+            recipients: ['ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj'],
+            satoshisSent: 1100,
+            stackArray: [],
+            xecTxType: 'Sent',
         },
     },
     {
@@ -18212,17 +18745,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1710799378,
         },
         parsed: {
-            incoming: true,
-            xecAmount: 33,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-            aliasFlag: false,
+            recipients: ['ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj'],
+            satoshisSent: 3300,
+            stackArray: [],
+            xecTxType: 'Received',
         },
     },
     {
@@ -18271,17 +18797,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1710799378,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 11,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
-            aliasFlag: false,
+            recipients: ['ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj'],
+            satoshisSent: 1100,
+            stackArray: [],
+            xecTxType: 'Sent',
         },
     },
     {
@@ -18330,17 +18849,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1710799378,
         },
         parsed: {
-            incoming: true,
-            xecAmount: 11,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-            aliasFlag: false,
+            recipients: ['ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj'],
+            satoshisSent: 1100,
+            stackArray: [],
+            xecTxType: 'Received',
         },
     },
     {
@@ -18480,37 +18992,17 @@ export const expectedParsedTxHistory = [
             timestamp: 1710799378,
         },
         parsed: {
-            incoming: true,
-            xecAmount: 5.46,
-            isEtokenTx: true,
-            etokenAmount: '1',
-            isTokenBurn: false,
-            tokenEntries: [
-                {
-                    tokenId:
-                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    txType: 'SEND',
-                    isInvalid: false,
-                    burnSummary: '',
-                    failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
-                    burnsMintBatons: false,
-                },
+            recipients: ['ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj'],
+            satoshisSent: 546,
+            stackArray: [
+                '534c5000',
+                '01',
+                '53454e44',
+                '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
+                '0000000000000001',
+                '0000000000000008',
             ],
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
-            assumedTokenDecimals: false,
+            xecTxType: 'Received',
         },
     },
     {
@@ -18634,37 +19126,17 @@ export const expectedParsedTxHistory = [
             timestamp: 1708821393,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 5.46,
-            isEtokenTx: true,
-            etokenAmount: '33',
-            isTokenBurn: false,
-            tokenEntries: [
-                {
-                    tokenId:
-                        '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
-                    tokenType: {
-                        protocol: 'SLP',
-                        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
-                        number: 1,
-                    },
-                    txType: 'SEND',
-                    isInvalid: false,
-                    burnSummary: '',
-                    failedColorings: [],
-                    actualBurnAmount: '0',
-                    intentionalBurn: '0',
-                    burnsMintBatons: false,
-                },
+            recipients: ['ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y'],
+            satoshisSent: 546,
+            stackArray: [
+                '534c5000',
+                '01',
+                '53454e44',
+                '20a0b9337a78603c6681ed2bc541593375535dcd9979196620ce71f233f2f6f8',
+                '00000007aef40a00',
+                '00038d5fad5b8e00',
             ],
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-            assumedTokenDecimals: false,
+            xecTxType: 'Sent',
         },
     },
     {
@@ -18713,17 +19185,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1705492712,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 1003.83,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-            aliasFlag: false,
+            recipients: ['ecash:qr6mxvfp2hlr0qg5phhqapqz8ajv7uaxk55z9332rl'],
+            satoshisSent: 100383,
+            stackArray: [],
+            xecTxType: 'Sent',
         },
     },
     {
@@ -18772,17 +19237,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1705365441,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 1010.53,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-            aliasFlag: false,
+            recipients: ['ecash:qpp6zklxvwrqynkhlp75qszgcw0mdu8uuu55gjkvax'],
+            satoshisSent: 101053,
+            stackArray: [],
+            xecTxType: 'Sent',
         },
     },
     {
@@ -18831,17 +19289,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1705365441,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 1011.32,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-            aliasFlag: false,
+            recipients: ['ecash:qpp6zklxvwrqynkhlp75qszgcw0mdu8uuu55gjkvax'],
+            satoshisSent: 101132,
+            stackArray: [],
+            xecTxType: 'Sent',
         },
     },
     {
@@ -18890,17 +19341,10 @@ export const expectedParsedTxHistory = [
             timestamp: 1705365441,
         },
         parsed: {
-            incoming: false,
-            xecAmount: 1012.15,
-            isEtokenTx: false,
-            airdropFlag: false,
-            airdropTokenId: '',
-            opReturnMessage: '',
-            isCashtabMessage: false,
-            isEcashChatMessage: false,
-            isEncryptedMessage: false,
-            replyAddress: 'ecash:qqxefwshnmppcsjp0fc6w7rnkdsexc7cagdus7ugd0',
-            aliasFlag: false,
+            recipients: ['ecash:qpp6zklxvwrqynkhlp75qszgcw0mdu8uuu55gjkvax'],
+            satoshisSent: 101215,
+            stackArray: [],
+            xecTxType: 'Sent',
         },
     },
 ];
@@ -18908,15 +19352,5 @@ export const expectedParsedTxHistory = [
 const tokenInfoErrorParsedTxHistory = JSON.parse(
     JSON.stringify(expectedParsedTxHistory),
 );
-for (const tx of tokenInfoErrorParsedTxHistory) {
-    if ('assumedTokenDecimals' in tx.parsed) {
-        // If we had cached token info before, we do not have it now
-        tx.parsed.assumedTokenDecimals = true;
-    }
-    if (tx.parsed.etokenAmount === '33') {
-        // Update amount for the one assumed tx where decimals is not really 0
-        tx.parsed.etokenAmount = '33000000000';
-    }
-}
 
 export const noCachedInfoParsedTxHistory = tokenInfoErrorParsedTxHistory;

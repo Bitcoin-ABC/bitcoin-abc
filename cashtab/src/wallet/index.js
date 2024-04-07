@@ -372,3 +372,16 @@ export const removeLeadingZeros = givenString => {
     }
     return givenString.slice(leadingZeroCount, givenString.length);
 };
+
+/**
+ * Get hash values to use for chronik calls and parsing tx history
+ * @param {object} wallet valid cashtab wallet
+ * @returns {string[]} array of hashes of all addresses in wallet
+ */
+export const getHashes = wallet => {
+    const hashArray = [];
+    wallet.paths.forEach(pathInfo => {
+        hashArray.push(pathInfo.hash);
+    });
+    return hashArray;
+};

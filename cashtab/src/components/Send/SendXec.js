@@ -263,10 +263,14 @@ const SendXec = () => {
 
         // if this was routed from Wallet screen's Reply to message link then prepopulate the address and value field
         if (location && location.state && location.state.replyAddress) {
+            // Populate a dust tx to the reply address
             setFormData({
+                ...formData,
                 address: location.state.replyAddress,
                 amount: `${toXec(appConfig.dustSats)}`,
             });
+            // Turn on the Cashtab Msg switch
+            setSendWithCashtabMsg(true);
         }
 
         // if this was routed from the Contact List

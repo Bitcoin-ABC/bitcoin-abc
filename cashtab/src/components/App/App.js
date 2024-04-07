@@ -321,6 +321,9 @@ const NavItem = styled.button`
         height: auto;
         flex: 1;
     }
+    g {
+        fill: ${props => props.theme.contrast};
+    }
     p {
         flex: 2;
         margin: 0;
@@ -456,6 +459,12 @@ const NavHeader = styled.div`
         fill: ${props => props.theme.navActive};
         height: 33px;
         width: 30px;
+    }
+    g {
+        fill: ${props => props.theme.navActive};
+    }
+    path {
+        fill: ${props => props.theme.navActive};
     }
 `;
 

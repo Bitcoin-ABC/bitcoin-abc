@@ -35,7 +35,7 @@ import {
 } from 'wallet';
 import { getUserLocale } from 'helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
-import { formatXecBalance } from 'utils/formatting';
+import { toFormattedXec } from 'utils/formatting';
 
 const Wallets = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -392,7 +392,7 @@ const Wallets = () => {
                                 </WalletName>
                                 <WalletBalance>
                                     {wallet?.state?.balanceSats !== 0
-                                        ? formatXecBalance(
+                                        ? toFormattedXec(
                                               wallet.state.balanceSats,
                                               userLocale,
                                           )

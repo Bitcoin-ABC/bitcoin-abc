@@ -118,10 +118,9 @@ describe('Cashtab chronik.js functions', () => {
     describe('Parses supported tx types', () => {
         const { expectedReturns } = vectors.parseTx;
         expectedReturns.forEach(expectedReturn => {
-            const { description, tx, wallet, cachedTokens, parsed } =
-                expectedReturn;
+            const { description, tx, hashes, parsed } = expectedReturn;
             it(`parseTx: ${description}`, () => {
-                expect(parseTx(tx, wallet, cachedTokens)).toStrictEqual(parsed);
+                expect(parseTx(tx, hashes)).toStrictEqual(parsed);
             });
         });
     });

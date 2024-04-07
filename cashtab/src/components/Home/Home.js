@@ -11,6 +11,8 @@ import ApiError from 'components/Common/ApiError';
 import { getWalletState } from 'utils/cashMethods';
 import Receive from 'components/Receive/Receive';
 import { Alert } from 'components/Common/Atoms';
+import { getUserLocale } from 'helpers';
+import { getHashes } from 'wallet';
 
 export const Tabs = styled.div`
     margin: auto;
@@ -52,6 +54,9 @@ export const TabLabel = styled.button`
 `;
 
 export const TxHistoryCtn = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
     color: ${props => props.theme.contrast};
     margin-top: 24px;
 `;
@@ -120,9 +125,12 @@ const Home = () => {
         ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
+    const hashes = getHashes(wallet);
     const walletState = getWalletState(wallet);
     const { parsedTxHistory } = walletState;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
+
+    const userLocale = getUserLocale(navigator);
 
     return (
         <>
@@ -130,6 +138,7 @@ const Home = () => {
             <TxHistoryCtn data-testid="tx-history-ctn">
                 <TxHistory
                     txs={Array.isArray(parsedTxHistory) ? parsedTxHistory : []}
+                    hashes={hashes}
                     fiatPrice={fiatPrice}
                     fiatCurrency={
                         settings && settings.fiatCurrency
@@ -138,6 +147,7 @@ const Home = () => {
                     }
                     cashtabState={cashtabState}
                     updateCashtabState={updateCashtabState}
+                    userLocale={userLocale}
                 />
                 {!hasHistory && (
                     <>

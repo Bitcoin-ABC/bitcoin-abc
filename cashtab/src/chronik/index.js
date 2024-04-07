@@ -2,13 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN } from 'slp-mdm';
-import { getHashArrayFromWallet } from 'utils/cashMethods';
 import { opReturn as opreturnConfig } from 'config/opreturn';
 import { chronik as chronikConfig } from 'config/chronik';
 import { getStackArray } from 'ecash-script';
 import cashaddr from 'ecashaddrjs';
-import { toXec, decimalizeTokenAmount, undecimalizeTokenAmount } from 'wallet';
+import {
+    getHashes,
+    decimalizeTokenAmount,
+    undecimalizeTokenAmount,
+} from 'wallet';
 
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
@@ -195,373 +197,122 @@ export const sortAndTrimChronikTxHistory = (txs, renderedCount) => {
  * @param {Map} cachedTokens
  * @returns
  */
-export const parseTx = (tx, wallet, cachedTokens) => {
-    const walletHash160s = getHashArrayFromWallet(wallet);
-    const { inputs, outputs, tokenEntries } = tx;
+export const parseTx = (tx, hashes) => {
+    const { inputs, outputs, isCoinbase } = tx;
 
     // Assign defaults
     let incoming = true;
-    let satoshis = 0;
-    let etokenAmount = new BN(0);
-    let isTokenBurn = false;
+    let stackArray = [];
 
-    let isSlpV1 = false;
-    let isUnsupportedTokenTx = false;
-    let isGenesisTx = false;
-    let isMintTx = false;
+    // If it is not an incoming tx, make an educated guess about what addresses were sent to
+    const destinationAddresses = new Set();
 
-    // For now, we only support one token per tx
-    // Get the tokenId if this is an slpv1 tx
-    // TODO support multiple token actions in a tx
-    let tokenId = '';
+    // Iterate over inputs to see if this is an incoming tx (incoming === true)
+    for (const input of inputs) {
+        for (const hash of hashes) {
+            if (
+                typeof input.outputScript !== 'undefined' &&
+                input.outputScript.includes(hash)
+            ) {
+                // Then this is an outgoing tx
+                // Note: if the outputs also only send to inputs, then it is actually an incoming "self-send" tx
+                // For the purposes of rendering Cashtab tx history, self send txs are considered !incoming
+                incoming = false;
 
-    // Iterate over tokenEntries to parse for token status
-    for (const entry of tokenEntries) {
-        if (
-            entry.tokenType?.protocol === 'SLP' &&
-            entry.tokenType?.number === 1 &&
-            typeof entry.tokenId !== 'undefined'
-        ) {
-            isSlpV1 = true;
-            tokenId = entry.tokenId;
-            // Check for token burn
-            if (entry.burnSummary !== '' && entry.actualBurnAmount !== '') {
-                isTokenBurn = true;
-                etokenAmount = new BN(entry.actualBurnAmount);
-            }
-        }
-        if (entry.txType === 'GENESIS') {
-            isGenesisTx = true;
-        }
-        if (entry.txType === 'MINT') {
-            isMintTx = true;
-        }
-    }
-
-    // We might lose this variable. Cashtab only supports SLP type 1 txs for now.
-    // Will be easy to tell if it's "any token" by modifying this definition, e.g. isSlpV1 | isAlp
-    let isEtokenTx = isSlpV1;
-    isUnsupportedTokenTx = tokenEntries.length > 0 && !isEtokenTx;
-
-    // Initialize required variables
-    let airdropFlag = false;
-    let airdropTokenId = '';
-    let opReturnMessage = '';
-    let isCashtabMessage = false;
-    let isEncryptedMessage = false;
-    let isEcashChatMessage = false;
-    let replyAddress = '';
-    let aliasFlag = false;
-
-    if (tx.isCoinbase) {
-        // Note that coinbase inputs have `undefined` for `thisInput.outputScript`
-        incoming = true;
-        replyAddress = 'N/A';
-    } else {
-        // Iterate over inputs to see if this is an incoming tx (incoming === true)
-        for (let i = 0; i < inputs.length; i += 1) {
-            const thisInput = inputs[i];
-
-            /* 
-        
-        Assume the first input is the originating address
-        
-        https://en.bitcoin.it/wiki/Script for reference
-        
-        Assume standard pay-to-pubkey-hash tx        
-        scriptPubKey: OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
-        76 + a9 + 14 = OP_DUP + OP_HASH160 + 14 Bytes to push
-        88 + ac = OP_EQUALVERIFY + OP_CHECKSIG
-
-        So, the hash160 we want will be in between '76a914' and '88ac'
-        ...most of the time ;)
-        */
-
-            // Since you may have more than one address in inputs, assume the first one is the replyAddress
-            if (i === 0) {
-                try {
-                    replyAddress = cashaddr.encodeOutputScript(
-                        thisInput.outputScript,
-                    );
-                } catch (err) {
-                    console.error(
-                        `Error from cashaddr.encodeOutputScript(${thisInput.outputScript})`,
-                        err,
-                    );
-                    // If the transaction is nonstandard, don't worry about a reply address for now
-                    replyAddress = 'N/A';
-                }
-            }
-
-            for (let j = 0; j < walletHash160s.length; j += 1) {
-                const thisWalletHash160 = walletHash160s[j];
-                if (
-                    typeof thisInput.outputScript !== 'undefined' &&
-                    thisInput.outputScript.includes(thisWalletHash160) &&
-                    !isMintTx
-                ) {
-                    // Then this is an outgoing tx
-                    // TODO not really, it could be a self-send tx like a genesis or mint tx
-                    // Parse better in refactor
-                    incoming = false;
-                    // Break out of this for loop once you know this is an outgoing tx
-                    break;
-                }
+                // Break out of this for loop once you know this is (probably) an outgoing tx
+                break;
             }
         }
     }
 
     // Iterate over outputs to get the amount sent
-    for (let i = 0; i < outputs.length; i += 1) {
-        const thisOutput = outputs[i];
-        const thisOutputReceivedAtHash160 = thisOutput.outputScript;
+    let change = 0;
+    let outputSatoshis = 0;
+    let receivedSatoshis = 0;
+    // A selfSendTx only sends to outputs in the wallet
+    let selfSendTx = true;
+    for (const output of outputs) {
+        const { outputScript, value } = output;
+        // outputSatoshis will have the total satoshis of all outputs
+        outputSatoshis += value;
+        if (outputScript.startsWith(opreturnConfig.opReturnPrefixHex)) {
+            // If this is an OP_RETURN output, get stackArray to store in parsed
+            // Note: we are assuming the tx only has one OP_RETURN output
+            // If it has more than one, then we will only parse the stackArray of the highest-index OP_RETURN
+            // For now, there is no need to handle the edge case of multiple OP_RETURNS in tx parsing
+            stackArray = getStackArray(outputScript);
 
-        if (
-            thisOutputReceivedAtHash160.startsWith(
-                opreturnConfig.opReturnPrefixHex,
-            ) &&
-            !isUnsupportedTokenTx
-        ) {
-            // If this is an OP_RETURN output, parse it
-            const stackArray = getStackArray(thisOutputReceivedAtHash160);
-
-            const lokad = stackArray[0];
-            switch (lokad) {
-                case opreturnConfig.appPrefixesHex.eToken: {
-                    // Do not set opReturnMsg for etoken txs
-                    break;
-                }
-                case opreturnConfig.appPrefixesHex.airdrop: {
-                    // this is to facilitate special Cashtab-specific cases of airdrop txs, both with and without msgs
-                    // The UI via Tx.js can check this airdropFlag attribute in the parsedTx object to conditionally render airdrop-specific formatting if it's true
-                    airdropFlag = true;
-                    // index 0 is drop prefix, 1 is the token Id, 2 is msg prefix, 3 is msg
-                    airdropTokenId =
-                        stackArray.length >= 2 ? stackArray[1] : 'N/A';
-
-                    // Legacy airdrops used to add the Cashtab Msg lokad before a msg
-                    if (stackArray.length >= 3) {
-                        // If there are pushes beyond the token id, we have a msg
-                        isCashtabMessage = true;
-                        if (
-                            stackArray[2] ===
-                                opreturnConfig.appPrefixesHex.cashtab &&
-                            stackArray.length >= 4
-                        ) {
-                            // Legacy airdrops also pushed hte cashtab msg lokad before the msg
-                            opReturnMessage = Buffer.from(
-                                stackArray[3],
-                                'hex',
-                            ).toString();
-                        } else {
-                            opReturnMessage = Buffer.from(
-                                stackArray[2],
-                                'hex',
-                            ).toString();
-                        }
-                    }
-                    break;
-                }
-                case opreturnConfig.appPrefixesHex.cashtab: {
-                    isCashtabMessage = true;
-                    if (stackArray.length >= 2) {
-                        opReturnMessage = Buffer.from(
-                            stackArray[1],
-                            'hex',
-                        ).toString();
-                    } else {
-                        opReturnMessage = 'off-spec Cashtab Msg';
-                    }
-                    break;
-                }
-                case opreturnConfig.appPrefixesHex.cashtabEncrypted: {
-                    // Encrypted Cashtab msgs are deprecated, set a standard msg
-                    isCashtabMessage = true;
-                    isEncryptedMessage = true;
-                    opReturnMessage = 'Encrypted Cashtab Msg';
-                    break;
-                }
-                case opreturnConfig.appPrefixesHex.aliasRegistration: {
-                    aliasFlag = true;
-                    if (stackArray.length >= 3) {
-                        opReturnMessage = Buffer.from(
-                            stackArray[2],
-                            'hex',
-                        ).toString();
-                    } else {
-                        opReturnMessage = 'off-spec alias registration';
-                    }
-                    break;
-                }
-                case opreturnConfig.appPrefixesHex.paybutton: {
-                    // Paybutton tx
-                    // For now, Cashtab only supports version 0 PayButton txs
-                    // ref doc/standards/paybutton.md
-                    // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/paybutton.md
-
-                    // <lokad> <version> <data> <paymentId>
-
-                    if (stackArray.length !== 4) {
-                        opReturnMessage = 'off-spec PayButton tx';
-                        break;
-                    }
-                    if (stackArray[1] !== '00') {
-                        opReturnMessage = `Unsupported version PayButton tx: ${stackArray[1]}`;
-                        break;
-                    }
-                    const dataHex = stackArray[2];
-                    const nonceHex = stackArray[3];
-
-                    opReturnMessage = `PayButton${
-                        nonceHex !== '00' ? ` (${nonceHex})` : ''
-                    }${
-                        dataHex !== '00'
-                            ? `: ${Buffer.from(dataHex, 'hex').toString()}`
-                            : ''
-                    }`;
-                    break;
-                }
-                case opreturnConfig.appPrefixesHex.eCashChat: {
-                    isEcashChatMessage = true;
-                    if (stackArray.length >= 2) {
-                        opReturnMessage = Buffer.from(
-                            stackArray[1],
-                            'hex',
-                        ).toString();
-                    } else {
-                        opReturnMessage = 'off-spec eCash Chat Msg';
-                    }
-                    break;
-                }
-                default: {
-                    // Unrecognized lokad
-                    // In this case, utf8 decode the stack array
-
-                    const decodedStackArray = [];
-                    for (const hexStr of stackArray) {
-                        decodedStackArray.push(
-                            Buffer.from(hexStr, 'hex').toString(),
-                        );
-                    }
-
-                    // join with space
-                    opReturnMessage = decodedStackArray.join(' ');
-
-                    break;
-                }
-            }
-            // Continue to the next output, we do not need to parse values for OP_RETURN outputs
+            // Continue to the next output, we do not parse value for OP_RETURN outputs
             continue;
         }
         // Find amounts at your wallet's addresses
-        for (let j = 0; j < walletHash160s.length; j += 1) {
-            const thisWalletHash160 = walletHash160s[j];
-            if (thisOutputReceivedAtHash160.includes(thisWalletHash160)) {
+        let walletIncludesThisOutputScript = false;
+        for (const hash of hashes) {
+            if (outputScript.includes(hash)) {
+                walletIncludesThisOutputScript = true;
                 // If incoming tx, this is amount received by the user's wallet
                 // if outgoing tx (incoming === false), then this is a change amount
-                const thisOutputAmount = thisOutput.value;
-                satoshis = incoming
-                    ? satoshis + thisOutputAmount
-                    : satoshis - thisOutputAmount;
-
-                // Parse token qty if token tx
-                // Note: edge case this is a token tx that sends XEC to Cashtab recipient but token somewhere else
-                if (isEtokenTx && !isTokenBurn) {
-                    try {
-                        const thisEtokenAmount = new BN(
-                            thisOutput.token.amount,
-                        );
-
-                        etokenAmount =
-                            incoming || isGenesisTx
-                                ? etokenAmount.plus(thisEtokenAmount)
-                                : etokenAmount.minus(thisEtokenAmount);
-                    } catch (err) {
-                        // edge case described above; in this case there is zero eToken value for this Cashtab recipient in this output, so add 0
-                        etokenAmount.plus(new BN(0));
-                    }
-                }
+                change += value;
+                receivedSatoshis += value;
             }
         }
-        // Output amounts not at your wallet are sent amounts if !incoming
-        // Exception for eToken genesis transactions
-        if (!incoming) {
-            const thisOutputAmount = thisOutput.value;
-            satoshis = satoshis + thisOutputAmount;
-            if (isEtokenTx && !isGenesisTx && !isTokenBurn) {
-                try {
-                    const thisEtokenAmount = new BN(thisOutput.token.amount);
-                    etokenAmount = etokenAmount.plus(thisEtokenAmount);
-                } catch (err) {
-                    // NB the edge case described above cannot exist in an outgoing tx
-                    // because the eTokens sent originated from this wallet
-                }
+        if (!walletIncludesThisOutputScript) {
+            // See if this output script is a p2pkh or p2sh ecash address
+            try {
+                const destinationAddress =
+                    cashaddr.encodeOutputScript(outputScript);
+                destinationAddresses.add(destinationAddress);
+            } catch (err) {
+                // Do not render non-address recipients in tx history
             }
+
+            // If any output is at an outputScript that is not included in this wallet
+            // Then it is not a self-send tx
+            selfSendTx = false;
         }
     }
+    const satoshisSent = selfSendTx
+        ? outputSatoshis
+        : isCoinbase
+        ? change
+        : incoming
+        ? receivedSatoshis
+        : outputSatoshis - change;
 
-    /* If it's an eToken tx that 
-        - did not send any eTokens to the receiving Cashtab wallet
-        - did send XEC to the receiving Cashtab wallet
-       Parse it as an XEC received tx
-       This type of tx is created by this swap wallet. More detailed parsing to be added later as use case is better understood
-       https://www.youtube.com/watch?v=5EFWXHPwzRk
-    */
-    if (isEtokenTx && etokenAmount.isEqualTo(0)) {
-        isEtokenTx = false;
-        opReturnMessage = '';
-    }
-    // Convert from sats to XEC
-    const xecAmount = toXec(satoshis);
+    let xecTxType = incoming ? 'Received' : 'Sent';
 
-    // Get decimal info for correct etokenAmount
-    let assumedTokenDecimals = false;
-    if (isEtokenTx) {
-        // Parse with decimals = 0 if you do not have this token cached for some reason
-        // Acceptable error rendering in tx history
-        let decimals = 0;
-        const cachedTokenInfo = cachedTokens.get(tokenId);
-        if (typeof cachedTokenInfo !== 'undefined') {
-            decimals = cachedTokenInfo.genesisInfo.decimals;
+    // Parse for tx label
+    if (isCoinbase) {
+        // Note, staking rewards activated at blockheight 818670
+        // For now, we assume Cashtab is parsing txs after this height
+        const STAKING_REWARDS_FACTOR = 0.1; // i.e. 10%
+        // In practice, the staking reward will almost always be the one that is exactly 10% of totalCoinbaseSats
+        // Use a STAKING_REWARDS_PADDING range to exclude miner and ifp outputs
+        const STAKING_REWARDS_PADDING = 0.01;
+        if (
+            satoshisSent >=
+                Math.floor(
+                    (STAKING_REWARDS_FACTOR - STAKING_REWARDS_PADDING) *
+                        outputSatoshis,
+                ) &&
+            satoshisSent <=
+                Math.floor(
+                    (STAKING_REWARDS_FACTOR + STAKING_REWARDS_PADDING) *
+                        outputSatoshis,
+                )
+        ) {
+            xecTxType = 'Staking Reward';
         } else {
-            assumedTokenDecimals = true;
+            // We do not specifically parse for IFP reward vs miner reward
+            xecTxType = 'Coinbase Reward';
         }
-        etokenAmount = etokenAmount.shiftedBy(-1 * decimals);
     }
-    etokenAmount = etokenAmount.toString();
 
-    // Return eToken specific fields if eToken tx
-    if (isEtokenTx) {
-        return {
-            incoming,
-            xecAmount,
-            isEtokenTx,
-            etokenAmount,
-            isTokenBurn,
-            tokenEntries: tx.tokenEntries,
-            airdropFlag,
-            airdropTokenId,
-            opReturnMessage: '',
-            isCashtabMessage,
-            isEcashChatMessage,
-            isEncryptedMessage,
-            replyAddress,
-            assumedTokenDecimals,
-        };
-    }
-    // Otherwise do not include these fields
     return {
-        incoming,
-        xecAmount,
-        isEtokenTx,
-        airdropFlag,
-        airdropTokenId,
-        opReturnMessage,
-        isCashtabMessage,
-        isEcashChatMessage,
-        isEncryptedMessage,
-        replyAddress,
-        aliasFlag,
+        xecTxType,
+        satoshisSent,
+        stackArray,
+        recipients: Array.from(destinationAddresses),
     };
 };
 
@@ -627,7 +378,7 @@ export const getHistory = async (chronik, wallet, cachedTokens) => {
             }
         }
 
-        tx.parsed = parseTx(tx, wallet, cachedTokens);
+        tx.parsed = parseTx(tx, getHashes(wallet));
 
         history.push(tx);
     }

@@ -104,30 +104,30 @@ export const decimalizedTokenQtyToLocaleFormat = (
     return localeTokenString;
 };
 
-export const formatXecBalance = (balanceSats, userLocale) => {
+export const toFormattedXec = (satoshis, userLocale) => {
     // Get XEC balance
-    let balanceXec = toXec(balanceSats);
+    let xecAmount = toXec(satoshis);
     // Format up to max supply
     const trillion = 1e12;
     const billion = 1e9;
     const million = 1e6;
     const thousand = 1e3;
     let units = 'T';
-    if (balanceXec >= trillion) {
-        balanceXec = balanceXec / trillion;
-    } else if (balanceXec >= billion) {
-        balanceXec = balanceXec / billion;
+    if (xecAmount >= trillion) {
+        xecAmount = xecAmount / trillion;
+    } else if (xecAmount >= billion) {
+        xecAmount = xecAmount / billion;
         units = 'B';
-    } else if (balanceXec >= million) {
-        balanceXec = balanceXec / million;
+    } else if (xecAmount >= million) {
+        xecAmount = xecAmount / million;
         units = 'M';
-    } else if (balanceXec >= thousand) {
-        balanceXec = balanceXec / thousand;
+    } else if (xecAmount >= thousand) {
+        xecAmount = xecAmount / thousand;
         units = 'k';
     } else {
         units = '';
     }
-    return `${balanceXec.toLocaleString(userLocale, {
+    return `${xecAmount.toLocaleString(userLocale, {
         maximumFractionDigits: 2,
     })}${units}`;
 };

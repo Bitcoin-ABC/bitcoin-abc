@@ -2,8 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { getHashArrayFromWallet, sumOneToManyXec } from 'utils/cashMethods';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import { sumOneToManyXec } from 'utils/cashMethods';
 
 it(`sumOneToManyXec() correctly parses the value for a valid one to many send XEC transaction`, () => {
     const destinationAddressAndValueArray = [
@@ -29,14 +28,4 @@ it(`sumOneToManyXec() returns NaN for an address and value array that is partial
         'ecash:qq9h6d0a5q65fgywv4ry64x04ep906mdku8f0gxfgx,',
     ];
     expect(sumOneToManyXec(destinationAddressAndValueArray)).toStrictEqual(NaN);
-});
-
-describe('Correctly executes cash utility functions', () => {
-    it(`Successfully extracts a hash160 array from valid cashtab wallet`, () => {
-        expect(getHashArrayFromWallet(walletWithXecAndTokens)).toStrictEqual([
-            '3a5fb236934ec078b4507c303d3afd82067f8fc1',
-            'a28f8852f868f88e71ec666c632d6f86e978f046',
-            '600efb12a6f813eccf13171a8bc62055212d8d6c',
-        ]);
-    });
 });

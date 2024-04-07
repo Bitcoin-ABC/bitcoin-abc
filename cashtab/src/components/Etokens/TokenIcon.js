@@ -12,6 +12,7 @@ const TokenIcon = ({ size, tokenId }) => {
             src={`${tokenConfig.tokenIconsUrl}/${size}/${tokenId}.png`}
             width={size}
             height={size}
+            alt={`icon for ${tokenId}`}
         />
     );
 };

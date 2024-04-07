@@ -110,12 +110,6 @@ const Configure = () => {
             autoCameraOn: e.target.checked,
         });
     };
-    const handleUnknownSenderMsg = e => {
-        updateCashtabState('settings', {
-            ...settings,
-            hideMessagesFromUnknownSenders: e.target.checked,
-        });
-    };
 
     return (
         <StyledConfigure data-testid="configure-ctn">
@@ -179,16 +173,6 @@ const Configure = () => {
                         />
                     </GeneralSettingsItem>
                 )}
-                <GeneralSettingsItem>
-                    <SettingsLabel>
-                        <LockFilled /> Hide msgs from unknown sender
-                    </SettingsLabel>
-                    <Switch
-                        name="hideMessagesFromUnknownSenders"
-                        checked={settings.hideMessagesFromUnknownSenders}
-                        handleToggle={handleUnknownSenderMsg}
-                    />
-                </GeneralSettingsItem>
             </Switches>
 
             {hasEnoughToken(

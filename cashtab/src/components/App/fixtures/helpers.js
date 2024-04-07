@@ -319,11 +319,11 @@ export const prepareMockedChronikCallsForWallet = (
         tokenIdsToMock.add(utxo.token.tokenId);
     }
     for (const tx of wallet.state.parsedTxHistory) {
-        if (tx.parsed.isEtokenTx) {
+        if (tx.parsed?.isEtokenTx || tx?.tokenEntries.length > 0) {
             const tokenId =
-                'tokenEntries' in tx.parsed
-                    ? tx.parsed.tokenEntries[0].tokenId
-                    : tx.parsed.slpMeta.tokenId;
+                'tokenEntries' in tx
+                    ? tx.tokenEntries[0].tokenId
+                    : tx.slpMeta.tokenId;
             tokenIdsToMock.add(tokenId);
         }
     }

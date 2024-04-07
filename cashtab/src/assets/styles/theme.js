@@ -17,6 +17,7 @@ export const theme = {
     encryptionRed: '#DC143C',
     genesisGreen: '#00e781',
     aliasGreen: '#0FFF50',
+    separator: 'rgba(255, 255, 255, 0.12)',
     receivedMessage: 'rgba(0,171,231,0.2)',
     sentMessage: 'rgba(255, 255, 255, 0.1)',
     lightWhite: 'rgba(255,255,255,0.4)',

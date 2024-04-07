@@ -4,33 +4,38 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import Tx from './Tx';
+import Tx from 'components/Home/Tx';
 
 const TxHistory = ({
     txs,
+    hashes,
     fiatPrice,
     fiatCurrency,
     cashtabState,
     updateCashtabState,
+    userLocale = 'en-US',
 }) => {
     return (
-        <div>
+        <>
             {txs.map(tx => (
                 <Tx
                     key={tx.txid}
-                    data={tx}
+                    hashes={hashes}
+                    tx={tx}
                     fiatPrice={fiatPrice}
                     fiatCurrency={fiatCurrency}
                     cashtabState={cashtabState}
                     updateCashtabState={updateCashtabState}
+                    userLocale={userLocale}
                 />
             ))}
-        </div>
+        </>
     );
 };
 
 TxHistory.propTypes = {
     txs: PropTypes.array,
+    hashes: PropTypes.arrayOf(PropTypes.string),
     fiatPrice: PropTypes.number,
     fiatCurrency: PropTypes.string,
     cashtabState: PropTypes.shape({
@@ -53,6 +58,7 @@ TxHistory.propTypes = {
         }),
     }),
     updateCashtabState: PropTypes.func,
+    userLocale: PropTypes.string,
 };
 
 export default TxHistory;
