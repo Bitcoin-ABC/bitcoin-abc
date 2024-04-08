@@ -38,17 +38,6 @@ const StyledConfigure = styled.div`
     svg {
         fill: ${props => props.theme.eCashBlue};
     }
-    p {
-        color: ${props => props.theme.darkBlue};
-    }
-    .ant-collapse-header {
-        .anticon {
-            flex: 1;
-        }
-        .seedPhrase {
-            flex: 2;
-        }
-    }
 `;
 
 const StyledSpacer = styled.div`
