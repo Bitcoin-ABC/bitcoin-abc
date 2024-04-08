@@ -78,7 +78,7 @@ function Upgrade(props) {
                     <ExternalLink href="https://www.npmjs.com/package/chronik-client">
                         chronik-client
                     </ExternalLink>{' '}
-                    to get an overview npm package.
+                    npm package.
                 </p>
 
                 <H3 text="Do I need to upgrade my wallet?" id="wallet" />
