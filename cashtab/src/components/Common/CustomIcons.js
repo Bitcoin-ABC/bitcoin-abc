@@ -235,9 +235,6 @@ export const GenesisIcon = () => <Genesis />;
 export const UnparsedIcon = () => <Unparsed />;
 export const HomeIcon = () => <Home />;
 export const SettingsIcon = () => <Settings height={'33px'} width={'30px'} />;
-export const PendingAliasWarningIcon = () => (
-    <WarningOutlined style={{ fontSize: 25 }} />
-);
 
 export const WarningIcon = () => <WarningOutlined style={{ fontSize: 45 }} />;
 export const AirdropIcon = () => <Airdrop height={'33px'} width={'30px'} />;

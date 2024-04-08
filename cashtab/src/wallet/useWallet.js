@@ -951,7 +951,9 @@ const useWallet = chronik => {
             // 3) No interval is set to watch these pending aliases
             // 4) We have an active wallet
             // Set an interval to watch these pending aliases
-            refreshAliasesOnStartup(cashtabState.wallets[0].paths.get(1899));
+            refreshAliasesOnStartup(
+                cashtabState.wallets[0].paths.get(1899).address,
+            );
         } else if (aliases?.pending?.length === 0 && aliasIntervalId !== null) {
             // If we have no pending aliases but we still have an interval to check them, clearInterval
             clearInterval(aliasIntervalId);

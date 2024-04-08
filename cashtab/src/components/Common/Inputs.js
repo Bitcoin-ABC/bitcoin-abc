@@ -107,6 +107,10 @@ const OnMaxBtnToken = styled(OnMaxBtn)`
     min-width: 59px;
 `;
 
+const AliasSuffixHolder = styled(OnMaxBtn)`
+    cursor: auto;
+`;
+
 const CurrencyDropdown = styled.select`
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     font-size: 18px;
@@ -414,6 +418,43 @@ export const SendTokenInput = ({
 };
 
 SendTokenInput.propTypes = {
+    name: PropTypes.string,
+    placeholder: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    decimals: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    inputDisabled: PropTypes.bool,
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+    handleInput: PropTypes.func,
+    handleOnMax: PropTypes.func,
+};
+
+export const AliasInput = ({
+    name = '',
+    placeholder = '',
+    value = '',
+    inputDisabled = false,
+    error = false,
+    handleInput,
+}) => {
+    return (
+        <CashtabInputWrapper>
+            <InputRow invalid={typeof error === 'string'}>
+                <LeftInput
+                    placeholder={placeholder}
+                    type="string"
+                    name={name}
+                    value={value}
+                    onChange={e => handleInput(e)}
+                    disabled={inputDisabled}
+                />
+                <AliasSuffixHolder>.xec</AliasSuffixHolder>
+            </InputRow>
+            <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+        </CashtabInputWrapper>
+    );
+};
+
+AliasInput.propTypes = {
     name: PropTypes.string,
     placeholder: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),

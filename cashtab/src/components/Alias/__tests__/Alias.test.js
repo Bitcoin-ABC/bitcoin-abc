@@ -112,23 +112,10 @@ describe('<Alias />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Registered and Pending Alias dropdowns are rendered
-        expect(
-            screen.getByTestId('registered-aliases-list'),
-        ).toBeInTheDocument();
-        expect(screen.getByTestId('pending-aliases-list')).toBeInTheDocument();
-
-        // Validate the aliases within the dropdowns
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('registered-aliases-list'),
-            ).toHaveTextContent('chicken555.xecchicken666.xec');
-        });
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('pending-aliases-list'),
-            ).toHaveTextContent('chicken444.xec');
-        });
+        // Validate rendering of registered and pending alias tags
+        expect(await screen.findByText('chicken555.xec')).toBeInTheDocument();
+        expect(await screen.findByText('chicken666.xec')).toBeInTheDocument();
+        expect(await screen.findByText('chicken444.xec')).toBeInTheDocument();
     });
     it('Registered and Pending Aliases are correctly rendered when pending list is empty', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -163,23 +150,11 @@ describe('<Alias />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Registered and Pending Alias dropdowns are rendered
+        // Tags rendered as expected
+        expect(await screen.findByText('chicken555.xec')).toBeInTheDocument();
         expect(
-            screen.getByTestId('registered-aliases-list'),
+            await screen.findByText('No pending aliases'),
         ).toBeInTheDocument();
-        expect(screen.getByTestId('pending-aliases-list')).toBeInTheDocument();
-
-        // Validate the aliases within the dropdowns
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('registered-aliases-list'),
-            ).toHaveTextContent('chicken555.xec');
-        });
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('pending-aliases-list'),
-            ).toHaveTextContent('No pending aliases');
-        });
     });
     it('Registered and Pending Aliases are correctly rendered when registered list is empty', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -214,23 +189,11 @@ describe('<Alias />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Registered and Pending Alias dropdowns are rendered
-        expect(
-            screen.getByTestId('registered-aliases-list'),
-        ).toBeInTheDocument();
-        expect(screen.getByTestId('pending-aliases-list')).toBeInTheDocument();
-
         // Validate the aliases within the dropdowns
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('registered-aliases-list'),
-            ).toHaveTextContent('No registered aliases');
-        });
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('pending-aliases-list'),
-            ).toHaveTextContent('chicken444.xec');
-        });
+        expect(
+            await screen.findByText('No registered aliases'),
+        ).toBeInTheDocument();
+        expect(await screen.findByText('chicken444.xec')).toBeInTheDocument();
     });
     it('Registered and Pending lists still renders when aliasValidationError is populated and aliasServerError is false', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -259,23 +222,12 @@ describe('<Alias />', () => {
             expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
         );
 
-        // Registered and Pending Alias dropdowns are rendered
-        expect(
-            screen.getByTestId('registered-aliases-list'),
-        ).toBeInTheDocument();
-        expect(screen.getByTestId('pending-aliases-list')).toBeInTheDocument();
+        // We see registered aliases
+        expect(await screen.findByText('chicken555.xec')).toBeInTheDocument();
+        expect(await screen.findByText('chicken666.xec')).toBeInTheDocument();
 
-        // Validate the aliases within the dropdowns
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('registered-aliases-list'),
-            ).toHaveTextContent('chicken555.xecchicken666.xec');
-        });
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('pending-aliases-list'),
-            ).toHaveTextContent('chicken444.xec');
-        });
+        // We see pending alias
+        expect(await screen.findByText('chicken444.xec')).toBeInTheDocument();
     });
     it('Registered and Pending lists do not render when aliasValidationError is false and aliasServerError is populated', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -303,15 +255,7 @@ describe('<Alias />', () => {
         );
 
         // Validate the aliases within the dropdowns
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('registered-aliases-list'),
-            ).not.toHaveTextContent('chicken555.xec');
-        });
-        await waitFor(() => {
-            expect(
-                screen.getByTestId('pending-aliases-list'),
-            ).not.toHaveTextContent('chicken444.xec');
-        });
+        expect(screen.queryByText('chicken555.xec')).not.toBeInTheDocument();
+        expect(screen.queryByText('chicken444.xec')).not.toBeInTheDocument();
     });
 });
