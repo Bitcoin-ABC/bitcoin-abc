@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        /* Language and Environment */
+        "target": "es2020",
+        "lib": ["ES2020"],
+        /* Modules */
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        /* Emit */
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "./dist",
+        /* Interop Constraints */
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        /* Type Checking */
+        "strict": true
+    }
+}

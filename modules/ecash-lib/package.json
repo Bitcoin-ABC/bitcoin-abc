@@ -1,0 +1,35 @@
+{
+    "name": "ecash-lib",
+    "version": "0.1.0",
+    "description": "Library for eCash transaction building",
+    "main": "./dist/index.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
+        "directory": "modules/ecash-lib"
+    },
+    "keywords": [
+        "ecash",
+        "xec",
+        "bitcoin"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
+    },
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc#readme",
+    "devDependencies": {
+        "@types/chai": "^4.3.14",
+        "@types/mocha": "^10.0.6",
+        "chai": "^5.1.0",
+        "mocha": "^10.4.0",
+        "tsx": "^4.7.2",
+        "typescript": "^5.4.3"
+    }
+}
