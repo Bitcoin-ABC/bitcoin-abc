@@ -105,9 +105,8 @@ block content %}
                     {% for (token_id, json_balance) in json_balances %} {% if
                     token_id != "main" %} {% let token =
                     tokens|get_token(token_id) %} {% match token %} {% when Some
-                    with (token) %} {% match token.slp_tx_data %} {% when Some
-                    with (slp_tx_data) %} {% match slp_tx_data.genesis_info %}
-                    {% when Some with (genesis_info) %}
+                    with (token) %} {% match token.genesis_info %} {% when Some
+                    with (genesis_info) %}
                     <div class="etoken-row">
                         <div class="etoken-row-cell">
                             {{
@@ -155,7 +154,7 @@ block content %}
                         </div>
                     </div>
                     {% when None %} {% endmatch %} {% when None %} {% endmatch
-                    %} {% when None %} {% endmatch %} {% endif %} {% endfor %}
+                    %} {% endif %} {% endfor %}
                 </div>
                 {% endif %}
             </div>

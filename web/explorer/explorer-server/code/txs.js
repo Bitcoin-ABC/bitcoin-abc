@@ -96,7 +96,6 @@ const datatable = () => {
             zeroRecords: '',
             emptyTable: '',
         },
-        ajax: `/api/block/${blockHash}/transactions`,
         order: [],
         responsive: {
             details: {
@@ -162,7 +161,9 @@ const datatable = () => {
     });
 
     params = window.state.getParameters();
-    $('#txs-table').dataTable().api().page.len(params.rows);
+    const page_size = params.rows;
+    $('#txs-table').dataTable().api().page.len(page_size);
+    refreshTxsTablePage(0);
 };
 
 // events
@@ -190,6 +191,18 @@ $('#txs-table').on('xhr.dt', () => {
     updateLoading(false);
 });
 
+function refreshTxsTablePage(page) {
+    const blockHash = $('#block-hash').text();
+    params = window.state.getParameters();
+    const page_size = params.rows;
+
+    $('#txs-table')
+        .dataTable()
+        .api()
+        .ajax.url(`/api/block/${blockHash}/transactions/${page}/${page_size}`)
+        .load();
+}
+
 // Basically a fake refresh, dynamically updates everything
 // according to new params
 // updates: URL, table and pagination
@@ -203,6 +216,8 @@ const reRenderPage = params => {
                 .DataTable()
                 .page(params.page - 1)
                 .draw(false);
+
+            refreshTxsTablePage(params.page - 1);
         }
     }
 

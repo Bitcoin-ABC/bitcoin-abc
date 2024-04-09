@@ -189,7 +189,7 @@ import "components/output.html" as output %} {% import
         <h2>{{ token_section_title }}</h2>
         <div class="tx-details-ctn">
             {% call token_info_table::render(tx, slp_genesis_info, slp_meta,
-            token_input, token_output) %}
+            token_input, token_output, action_str, specification) %}
         </div>
         {% endif %}
 

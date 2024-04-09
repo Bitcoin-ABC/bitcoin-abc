@@ -43,9 +43,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.82"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f538837af36e6f6a9be0faa67f9a314f8119e4e4b5867c6ab40ed60360142519"
+checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
 
 [[package]]
 name = "arrayvec"
@@ -222,7 +222,7 @@ checksum = "7ce18265ec2324ad075345d5814fbeed4f41f0a660055dc78840b74d19b874b1"
 [[package]]
 name = "bitcoinsuite-chronik-client"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=dc6d80b#dc6d80b293812c49018d2faf4e051da8f62983d9"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
 dependencies = [
  "bitcoinsuite-core",
  "bitcoinsuite-error",
@@ -237,7 +237,7 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-core"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=dc6d80b#dc6d80b293812c49018d2faf4e051da8f62983d9"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
 dependencies = [
  "bs58",
  "bytes",
@@ -257,7 +257,7 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-error"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=dc6d80b#dc6d80b293812c49018d2faf4e051da8f62983d9"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
 dependencies = [
  "bitcoinsuite-error-derive",
  "eyre",
@@ -268,7 +268,7 @@ dependencies = [
 [[package]]
 name = "bitcoinsuite-error-derive"
 version = "0.1.0"
-source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=dc6d80b#dc6d80b293812c49018d2faf4e051da8f62983d9"
+source = "git+https://github.com/LogosFoundation/bitcoinsuite?rev=6d2d946#6d2d946f793b1fc6265a7b3f8f73420811e1dae3"
 dependencies = [
  "convert_case",
  "proc-macro2",
@@ -454,9 +454,9 @@ checksum = "11157ac094ffbdde99aa67b23417ebdd801842852b500e395a45a9c0aac03e4a"
 
 [[package]]
 name = "encoding_rs"
-version = "0.8.34"
+version = "0.8.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b45de904aa0b010bce2ab45264d0631681847fa7b6f2eaa7dab7619943bc4f59"
+checksum = "7268b386296a025e474d5140678f75d6de9493ae55a5d709eeb9dd08149945e1"
 dependencies = [
  "cfg-if",
 ]
@@ -1397,9 +1397,9 @@ checksum = "4339fc7a1021c9c1621d87f5e3505f2805c8c105420ba2f2a4df86814590c142"
 
 [[package]]
 name = "quote"
-version = "1.0.36"
+version = "1.0.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fa76aaf39101c457836aec0ce2316dbdc3ab723cdda1c6bd4e6ad4208acaca7"
+checksum = "291ec9ab5efd934aaf503a6466c5d5251535d108ee747472c3977cc5acc868ef"
 dependencies = [
  "proc-macro2",
 ]

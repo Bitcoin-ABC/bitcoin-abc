@@ -78,12 +78,12 @@ pub async fn data_blocks(
 }
 
 pub async fn data_block_txs(
-    Path(hash): Path<String>,
+    Path((hash, page, page_size)): Path<(String, usize, usize)>,
     server: Extension<Arc<Server>>,
 ) -> Result<Json<JsonTxsResponse>, ServerError> {
     Ok(Json(
         server
-            .data_block_txs(&hash)
+            .data_block_txs(&hash, page, page_size)
             .await
             .map_err(to_server_error)?,
     ))

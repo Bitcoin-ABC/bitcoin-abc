@@ -1,6 +1,6 @@
 {% macro render(index, input, tx, slp_genesis_info, sats_addr_prefix,
-tokens_addr_prefix) %} {% let is_token = input.slp_token|check_is_token %} {%
-let destination = input.output_script|destination_from_script(is_token,
+tokens_addr_prefix) %} {% let is_token = input.token|check_is_token %} {% let
+destination = input.output_script|destination_from_script(is_token,
 sats_addr_prefix, tokens_addr_prefix) %} {% let decoded_input_script =
 input.input_script|get_script %}
 
@@ -33,8 +33,7 @@ input.input_script|get_script %}
             </div>
 
             <div class="input-hex">
-                {% match input.slp_token %} {% when Some with (slp_token) %} {%
-                match tx.slp_tx_data %} {% when Some with (slp_tx_data) %} {%
+                {% match input.token %} {% when Some with (slp_token) %} {%
                 match slp_genesis_info %} {% when Some with (genesis_info) %} {%
                 if slp_token.amount > 0 || slp_token.is_mint_baton %} {% if
                 slp_token.is_mint_baton %}
@@ -48,8 +47,8 @@ input.input_script|get_script %}
                     <small>{{ input.value|render_sats|safe }} XEC</small>
                 </div>
                 {% when None %} {{ input.value|render_sats|safe }} XEC {% when
-                None %} {% endmatch %} {% when None %} {% endmatch %} {% when
-                None %} {{ input.value|render_sats|safe }} XEC {% endmatch %}
+                None %} {% endmatch %} {% when None %} {{
+                input.value|render_sats|safe }} XEC {% endmatch %}
             </div>
         </div>
     </div>

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use askama::Template;
 use bitcoinsuite_chronik_client::proto::{
-    BlockInfo, SlpGenesisInfo, SlpMeta, Token, Tx, Utxo,
+    BlockInfo, GenesisInfo, ScriptUtxo, TokenEntry, TokenInfo, Tx,
 };
 use chrono::{DateTime, Utc};
 
@@ -39,8 +39,8 @@ pub struct TransactionTemplate<'a> {
     pub tx_hex: &'a str,
     pub token_hex: Option<String>,
     pub tx: Tx,
-    pub slp_genesis_info: Option<SlpGenesisInfo>,
-    pub slp_meta: Option<SlpMeta>,
+    pub slp_genesis_info: Option<GenesisInfo>,
+    pub slp_meta: Option<TokenEntry>,
     pub raw_tx: String,
     pub confirmations: i32,
     pub timestamp: DateTime<Utc>,
@@ -55,10 +55,10 @@ pub struct TransactionTemplate<'a> {
 #[derive(Template)]
 #[template(path = "pages/address.html")]
 pub struct AddressTemplate<'a> {
-    pub tokens: HashMap<String, Token>,
+    pub tokens: HashMap<String, TokenInfo>,
     pub token_dust: i64,
     pub total_xec: i64,
-    pub token_utxos: Vec<Utxo>,
+    pub token_utxos: Vec<ScriptUtxo>,
     pub address_num_txs: u32,
     pub address: &'a str,
     pub sats_address: &'a str,

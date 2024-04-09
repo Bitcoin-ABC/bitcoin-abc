@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bitcoinsuite_chronik_client::proto::{OutPoint, SlpToken, Token};
+use bitcoinsuite_chronik_client::proto::{OutPoint, Token, TokenInfo};
 use bitcoinsuite_core::Script;
 use chrono::DateTime;
 use chrono_humanize::HumanTime;
@@ -56,8 +56,8 @@ pub fn get_script(signature_script: &[u8]) -> askama::Result<String> {
     Ok(script.to_string())
 }
 
-pub fn check_is_token(slp_token: &Option<SlpToken>) -> askama::Result<bool> {
-    Ok(slp_token
+pub fn check_is_token(token: &Option<Token>) -> askama::Result<bool> {
+    Ok(token
         .as_ref()
         .map(|slp| slp.amount > 0 || slp.is_mint_baton)
         .unwrap_or(false))
@@ -211,8 +211,8 @@ pub fn render_token_amount(
 }
 
 pub fn get_token<'a>(
-    tokens: &'a HashMap<String, Token>,
+    tokens: &'a HashMap<String, TokenInfo>,
     token_id: &str,
-) -> askama::Result<Option<&'a Token>> {
+) -> askama::Result<Option<&'a TokenInfo>> {
     Ok(tokens.get(token_id))
 }

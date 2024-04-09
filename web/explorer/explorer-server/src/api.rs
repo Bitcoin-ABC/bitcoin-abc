@@ -1,42 +1,52 @@
 use std::collections::HashMap;
 
 use bitcoinsuite_chronik_client::proto::{
-    Block, SlpGenesisInfo, Token, Tx, TxHistoryPage,
+    token_type, Block, GenesisInfo, TokenInfo, TokenType, Tx, TxHistoryPage,
 };
 use bitcoinsuite_core::CashAddress;
 use bitcoinsuite_error::Result;
+use eyre::eyre;
 
 use crate::{
     blockchain::to_be_hex,
     server_primitives::{JsonToken, JsonTx, JsonTxStats},
 };
 
+pub fn token_type_to_int(token_type_in: &Option<TokenType>) -> Result<i32> {
+    let token_type = token_type_in
+        .clone()
+        .ok_or_else(|| eyre!("Malformed token.token_type"))?
+        .token_type
+        .ok_or_else(|| eyre!("Malformed token.token_type.token_type"))?;
+
+    match token_type {
+        token_type::TokenType::Slp(slp) => Ok(slp),
+        token_type::TokenType::Alp(alp) => Ok(alp),
+    }
+}
+
 pub fn tokens_to_json(
-    tokens: &HashMap<String, Token>,
+    tokens: &HashMap<String, TokenInfo>,
 ) -> Result<HashMap<String, JsonToken>> {
     let mut json_tokens = HashMap::new();
 
     for (token_id, token) in tokens.iter() {
-        if let Some(slp_tx_data) = &token.slp_tx_data {
-            if let (Some(slp_meta), Some(genesis_info)) =
-                (&slp_tx_data.slp_meta, &slp_tx_data.genesis_info)
-            {
-                let token_ticker =
-                    String::from_utf8_lossy(&genesis_info.token_ticker)
-                        .to_string();
-                let token_name =
-                    String::from_utf8_lossy(&genesis_info.token_name)
-                        .to_string();
+        if let Some(genesis_info) = &token.genesis_info {
+            let token_ticker =
+                String::from_utf8_lossy(&genesis_info.token_ticker).to_string();
+            let token_name =
+                String::from_utf8_lossy(&genesis_info.token_name).to_string();
 
-                let json_token = JsonToken {
-                    token_id: token_id.clone(),
-                    token_type: slp_meta.token_type,
-                    token_ticker,
-                    token_name,
-                    decimals: genesis_info.decimals,
-                };
-                json_tokens.insert(token_id.clone(), json_token.clone());
-            }
+            let token_type = token_type_to_int(&token.token_type)?;
+
+            let json_token = JsonToken {
+                token_id: token_id.clone(),
+                token_type,
+                token_ticker,
+                token_name,
+                decimals: genesis_info.decimals,
+            };
+            json_tokens.insert(token_id.clone(), json_token.clone());
         }
     }
 
@@ -57,11 +67,9 @@ pub fn tx_history_to_json(
             None => (None, tx.time_first_seen),
         };
 
-        let (token_id, token) = match &tx.slp_tx_data {
-            Some(slp_tx_data) => {
-                let slp_meta =
-                    slp_tx_data.slp_meta.as_ref().expect("Impossible");
-                let token_id = hex::encode(&slp_meta.token_id);
+        let (token_id, token) = match &tx.token_entries.get(0) {
+            Some(token_entry) => {
+                let token_id = hex::encode(&token_entry.token_id);
                 let json_token = json_tokens.get(&token_id);
 
                 match json_token {
@@ -95,31 +103,25 @@ pub fn tx_history_to_json(
 
 pub fn block_txs_to_json(
     block: Block,
-    tokens_by_hex: &HashMap<String, Token>,
+    block_txs: TxHistoryPage,
+    tokens_by_hex: &HashMap<String, TokenInfo>,
 ) -> Result<Vec<JsonTx>> {
     let mut json_txs = Vec::new();
 
-    for tx in block.txs.iter() {
+    for tx in block_txs.txs.iter() {
         let (block_height, timestamp) = match &block.block_info {
             Some(block_info) => (Some(block_info.height), block_info.timestamp),
             None => (None, 0),
         };
 
-        let (token_id, token) = match &tx.slp_tx_data {
-            Some(slp_tx_data) => {
-                let slp_meta =
-                    slp_tx_data.slp_meta.as_ref().expect("Impossible");
-                let token_id_hex = hex::encode(&slp_meta.token_id);
+        let (token_id, token) = match &tx.token_entries.get(0) {
+            Some(token_entry) => {
+                let token_id_hex = hex::encode(&token_entry.token_id);
                 let genesis_info = match tokens_by_hex.get(&token_id_hex) {
-                    Some(token) => token
-                        .slp_tx_data
-                        .as_ref()
-                        .expect("Impossible")
-                        .genesis_info
-                        .as_ref(),
+                    Some(token) => token.genesis_info.as_ref(),
                     None => None,
                 };
-                let default_genesis_info = SlpGenesisInfo::default();
+                let default_genesis_info = GenesisInfo::default();
                 let genesis_info = match genesis_info {
                     Some(genesis_info) => genesis_info,
                     None => {
@@ -140,8 +142,8 @@ pub fn block_txs_to_json(
                 (
                     Some(token_id_hex),
                     Some(JsonToken {
-                        token_id: to_be_hex(&slp_meta.token_id),
-                        token_type: slp_meta.token_type,
+                        token_id: to_be_hex(&token_entry.token_id.as_bytes()),
+                        token_type: token_type_to_int(&token_entry.token_type)?,
                         token_ticker,
                         token_name,
                         decimals: genesis_info.decimals,
@@ -173,19 +175,23 @@ pub fn block_txs_to_json(
 pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
     let sats_input = tx.inputs.iter().map(|input| input.value).sum();
     let sats_output = tx.outputs.iter().map(|output| output.value).sum();
+
     let token_input: i128 = tx
         .inputs
         .iter()
-        .filter_map(|input| input.slp_token.as_ref())
+        .filter_map(|input| input.token.as_ref())
         .map(|token| token.amount as i128)
         .sum();
     let token_output: i128 = tx
         .outputs
         .iter()
-        .filter_map(|output| output.slp_token.as_ref())
+        .filter_map(|output| output.token.as_ref())
         .map(|token| token.amount as i128)
         .sum();
-    let does_burn_slp = tx.inputs.iter().any(|input| input.slp_burn.is_some());
+    let does_burn_slp = tx
+        .token_entries
+        .iter()
+        .any(|entry| entry.actual_burn_amount.parse::<i128>().unwrap() > 0);
 
     let mut delta_sats: i64 = 0;
     let mut delta_tokens: i64 = 0;
@@ -197,7 +203,7 @@ pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
             }
         }
         delta_sats -= input.value;
-        if let Some(slp) = &input.slp_token {
+        if let Some(slp) = &input.token {
             delta_tokens -= slp.amount as i64;
         }
     }
@@ -209,7 +215,7 @@ pub fn calc_tx_stats(tx: &Tx, address_bytes: Option<&[u8]>) -> JsonTxStats {
             }
         }
         delta_sats += output.value;
-        if let Some(slp) = &output.slp_token {
+        if let Some(slp) = &output.token {
             delta_tokens += slp.amount as i64;
         }
     }

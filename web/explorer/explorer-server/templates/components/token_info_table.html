@@ -1,5 +1,6 @@
-{% macro render(tx, slp_genesis_info, slp_meta, token_input, token_output) %} {%
-match slp_genesis_info %} {% when Some with (genesis_info) %}
+{% macro render(tx, slp_genesis_info, slp_meta, token_input, token_output,
+action_str, specification) %} {% match slp_genesis_info %} {% when Some with
+(genesis_info) %}
 <div class="tx-details-half">
     <div class="tx-details-row">
         <div>Token Ticker</div>
@@ -40,8 +41,7 @@ match slp_genesis_info %} {% when Some with (genesis_info) %}
     <div class="tx-details-row">
         <div style="white-space: nowrap">Document URI</div>
         <div style="word-break: break-all; padding-left: 20px">
-            {% let token_url =
-            genesis_info.token_document_url|string_from_lossy_utf8 %}
+            {% let token_url = genesis_info.url|string_from_lossy_utf8 %}
             <a
                 href="#"
                 onclick="checkDocumentUri('{{ token_url }}');return false;"
@@ -54,12 +54,10 @@ match slp_genesis_info %} {% when Some with (genesis_info) %}
     <div class="tx-details-row">
         <div>Document Hash</div>
         <div>
-            {% match genesis_info.token_document_url.len() %} {% when 0 %}
+            {% match genesis_info.url.len() %} {% when 0 %}
             <div class="ui black horizontal label">Not set</div>
             {% when _ %}
-            <div class="hex">
-                {{ genesis_info.token_document_hash|hexify_u8_vector }}
-            </div>
+            <div class="hex">{{ genesis_info.hash|hexify_u8_vector }}</div>
             {% endmatch %}
         </div>
     </div>
