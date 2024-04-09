@@ -183,7 +183,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             help="Directory for caching pregenerated datadirs (default: %(default)s)",
         )
         parser.add_argument(
-            "--tmpdir", dest="tmpdir", help="Root directory for datadirs"
+            "--tmpdir",
+            dest="tmpdir",
+            help="Root directory for datadirs (must not exist)",
         )
         parser.add_argument(
             "-l",
