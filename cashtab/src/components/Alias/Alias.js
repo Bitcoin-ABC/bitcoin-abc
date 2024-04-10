@@ -7,7 +7,6 @@ import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import PropTypes from 'prop-types';
 import { AlertMsg } from 'components/Common/Atoms';
-import { AliasRegisterIcon } from 'components/Common/CustomIcons';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
@@ -568,7 +567,7 @@ const Alias = ({ passLoadingStatus }) => {
                     }
                     onClick={() => preparePreviewModal()}
                 >
-                    <AliasRegisterIcon /> Register Alias
+                    Register Alias
                 </PrimaryButton>
 
                 <AliasHeader>Registered Aliases</AliasHeader>

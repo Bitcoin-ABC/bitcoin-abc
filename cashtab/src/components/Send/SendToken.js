@@ -47,7 +47,7 @@ import {
     InputFlex,
 } from 'components/Common/Inputs';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
-import { ThemedCopySolid } from 'components/Common/CustomIcons';
+import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 import Switch from 'components/Common/Switch';
 
@@ -97,6 +97,10 @@ const TokenStatsRow = styled.div`
 const TokenStatsCol = styled.div`
     align-items: center;
     flex-wrap: wrap;
+    svg {
+        height: 20px;
+        width: 20px;
+    }
 `;
 const TokenStatsTableRow = styled.div`
     width: 100%;
@@ -729,7 +733,7 @@ const SendToken = () => {
                                             data={tokenId}
                                             showToast
                                         >
-                                            <ThemedCopySolid
+                                            <CopyPasteIcon
                                                 style={{
                                                     marginTop: '8px',
                                                     fontSize: '12px',

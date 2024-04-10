@@ -46,7 +46,7 @@ describe('<BalanceHeader />', () => {
         );
 
         // Loader is rendered
-        expect(screen.getByTestId('cash-loader')).toBeInTheDocument();
+        expect(screen.getByTitle('Loading')).toBeInTheDocument();
 
         // XEC balance is not rendered
         expect(screen.queryByTestId('balance-xec')).not.toBeInTheDocument();

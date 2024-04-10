@@ -22,13 +22,17 @@ import Communist from 'assets/communist.png';
 import { toast } from 'react-toastify';
 import CashtabSwitch from 'components/Common/Switch';
 import { Input, TextArea, InputFlex } from 'components/Common/Inputs';
-import { ThemedCopySolid } from 'components/Common/CustomIcons';
+import { CopyPasteIcon } from 'components/Common/CustomIcons';
 
 const AirdropForm = styled.div`
     margin-top: 24px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+    svg {
+        height: 24px;
+        width: 24px;
+    }
 `;
 const FormRow = styled.div`
     display: flex;
@@ -453,7 +457,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                                     'Airdrop recipients copied to clipboard'
                                 }
                             >
-                                <ThemedCopySolid />
+                                <CopyPasteIcon />
                             </CopyToClipboard>
                         </AirdropTitle>
                         <TextArea

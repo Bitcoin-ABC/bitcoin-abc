@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
-    ThemedCopySolid,
+    CopyPasteIcon,
     ThemedTrashcanOutlined,
     ThemedEditOutlined,
     ThemedContactSendOutlined,
@@ -23,7 +23,7 @@ import {
     ContactList,
     ContactsPanel,
     Row,
-    ContactListAddress,
+    ButtonRow,
     ContactListName,
     ButtonPanel,
 } from 'components/Contacts/styles';
@@ -292,20 +292,12 @@ const Contacts = () => {
                                 <ContactListName>
                                     {contact.name}
                                 </ContactListName>
-                                <ContactListAddress className="notranslate">
-                                    {contact.address.endsWith('.xec')
-                                        ? contact.address
-                                        : `${contact.address.slice(
-                                              6,
-                                              9,
-                                          )}...${contact.address.slice(-3)}`}
-                                </ContactListAddress>
                                 <ButtonPanel>
                                     <CopyToClipboard
                                         data={contact.address}
                                         showToast
                                     >
-                                        <ThemedCopySolid />
+                                        <CopyPasteIcon />
                                     </CopyToClipboard>
                                     <ThemedEditOutlined
                                         data-testid="rename-contact-btn"
@@ -342,22 +334,22 @@ const Contacts = () => {
                         </div>
                     )}
                 </ContactsPanel>
-                <Row>
+                <ButtonRow>
                     <PrimaryButton
                         data-testid="add-contact-btn"
                         onClick={() => setShowAddNewContactModal(true)}
                     >
                         Add Contact
                     </PrimaryButton>
-                </Row>
+                </ButtonRow>
                 {contactList && contactList.length > 0 && (
-                    <Row>
+                    <ButtonRow>
                         <SecondaryButton
                             onClick={() => exportContactList(contactList)}
                         >
                             Export
                         </SecondaryButton>
-                    </Row>
+                    </ButtonRow>
                 )}
             </ContactList>
         </>

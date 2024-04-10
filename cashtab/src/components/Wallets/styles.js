@@ -14,6 +14,8 @@ export const WalletsList = styled.div`
     gap: 12px;
     color: ${props => props.theme.contrast};
     svg {
+        height: 24px;
+        width: 24px;
         fill: ${props => props.theme.eCashBlue};
     }
     box-sizing: border-box;
@@ -33,20 +35,25 @@ export const WalletsPanel = styled.div`
     border-radius: 9px;
     margin-bottom: 12px;
 `;
-
-export const Row = styled.div`
+export const Wallet = styled.div`
+    display: flex;
+    flex-direction: column;
+    border-top: 0.5px solid ${props => props.theme.separator};
+    gap: 0 12px;
+    padding: 6px 0;
+`;
+export const WalletRow = styled.div`
     display: flex;
     width: 100%;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
+    justify-content: space-between;
 `;
+export const ActionsRow = styled.div``;
 
 export const WalletName = styled.div`
     display: flex;
     text-align: left;
     word-break: break-word;
-    width: 30%;
 `;
 
 export const ActiveWalletName = styled(WalletName)`
@@ -54,14 +61,24 @@ export const ActiveWalletName = styled(WalletName)`
     color: ${props => props.theme.eCashBlue};
 `;
 
+export const SvgButtonPanel = styled.div`
+    display: flex;
+    gap: 9px;
+    align-items: baseline;
+`;
 export const ButtonPanel = styled.div`
     display: flex;
     gap: 9px;
     align-items: center;
+    justify-content: center;
+`;
+export const SvgButton = styled.div`
+    border: none;
+    background: none;
+    cursor: pointer;
 `;
 
 export const WalletBalance = styled.div`
-    width: 30%;
     display: flex;
     align-items: center;
     justify-content: center;

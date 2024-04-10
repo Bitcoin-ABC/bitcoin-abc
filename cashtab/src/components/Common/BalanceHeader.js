@@ -10,7 +10,7 @@ import {
 } from 'config/cashtabSettings';
 import appConfig from 'config/app';
 import { toXec } from 'wallet';
-import { CashLoader } from 'components/Common/CustomIcons';
+import { CashtabLoader } from 'components/Common/Spinner';
 import PropTypes from 'prop-types';
 
 export const BalanceXec = styled.div`
@@ -91,7 +91,7 @@ const BalanceHeader = ({
 
     // Render a spinner if the balance is not loaded
     return !renderBalanceHeader ? (
-        <CashLoader />
+        <CashtabLoader />
     ) : (
         <>
             <BalanceXec

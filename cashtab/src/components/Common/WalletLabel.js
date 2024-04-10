@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import HideBalanceSwitch from './HideBalanceSwitch';
-import { ThemedCopySolid } from 'components/Common/CustomIcons';
+import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { getWalletsForNewActiveWallet } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getTextWidth } from 'helpers';
@@ -17,9 +17,15 @@ const LabelCtn = styled.div`
     align-items: center;
     justify-content: center;
     gap: 3%;
-    .ant-switch {
-        margin-bottom: 5px;
+    svg {
+        height: 24px;
+        width: 24px;
     }
+`;
+const SwitchAndIcon = styled.div`
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
 `;
 
 const EXTRA_WIDTH_FOR_SELECT = 32;
@@ -91,13 +97,15 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
                     </WalletOption>
                 ))}
             </WalletDropdown>
-            <CopyToClipboard data={address} showToast>
-                <ThemedCopySolid style={{ marginTop: `8px` }} />
-            </CopyToClipboard>
-            <HideBalanceSwitch
-                settings={settings}
-                updateCashtabState={updateCashtabState}
-            />
+            <SwitchAndIcon>
+                <CopyToClipboard data={address} showToast>
+                    <CopyPasteIcon />
+                </CopyToClipboard>
+                <HideBalanceSwitch
+                    settings={settings}
+                    updateCashtabState={updateCashtabState}
+                />
+            </SwitchAndIcon>
         </LabelCtn>
     );
 };

@@ -45,7 +45,7 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
-/* Hide up and down arros on input type="number" */
+/* Hide up and down arrows on input type="number" */
 /* Firefox */
 input[type='number'] {
     -moz-appearance: textfield;
@@ -55,21 +55,4 @@ html,
 body {
     max-width: 100%;
     overflow-x: hidden;
-}
-
-/* Hide scroll bars on antd modals*/
-.ant-modal-wrap.ant-modal-centered::-webkit-scrollbar {
-    display: none;
-}
-
-/* ITEMS BELOW TO BE MOVED TO STYLED COMPONENTS*/
-
-/* useWallet.js, useBCH.js */
-@media (max-width: 768px) {
-    .ant-notification {
-        width: 100%;
-        top: 20px !important;
-        max-width: unset;
-        margin-right: 0;
-    }
 }

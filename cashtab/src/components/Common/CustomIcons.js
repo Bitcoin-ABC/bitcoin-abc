@@ -4,22 +4,6 @@
 
 import * as React from 'react';
 import styled from 'styled-components';
-import {
-    CopyOutlined,
-    DollarOutlined,
-    LoadingOutlined,
-    BankOutlined,
-    WalletOutlined,
-    SettingOutlined,
-    LockOutlined,
-    ContactsOutlined,
-    FireOutlined,
-    UserAddOutlined,
-    WarningOutlined,
-    AppstoreAddOutlined,
-    GithubOutlined,
-} from '@ant-design/icons';
-import { Image } from 'antd';
 import PayButton from 'assets/paybutton.webp';
 import { ReactComponent as QRCode } from 'assets/qrcode.svg';
 import { ReactComponent as Send } from 'assets/send.svg';
@@ -39,74 +23,36 @@ import { ReactComponent as Receive } from 'assets/receive.svg';
 import { ReactComponent as Genesis } from 'assets/flask.svg';
 import { ReactComponent as Unparsed } from 'assets/alert-circle.svg';
 import { ReactComponent as Home } from 'assets/home.svg';
-import { ReactComponent as Settings } from 'assets/cog.svg';
-import { ReactComponent as CopySolid } from 'assets/copy.svg';
 import { ReactComponent as LinkSolid } from 'assets/external-link-square-alt.svg';
 import { ReactComponent as Airdrop } from 'assets/airdrop-icon.svg';
 import { ReactComponent as Pdf } from 'assets/file-pdf.svg';
-import { ReactComponent as Plus } from 'assets/plus.svg';
-import { ReactComponent as Download } from 'assets/download.svg';
 import { ReactComponent as Edit } from 'assets/edit.svg';
 import { ReactComponent as Trashcan } from 'assets/trashcan.svg';
 import { ReactComponent as Audit } from 'assets/audit.svg';
-export const CashLoadingIcon = <LoadingOutlined className="cashLoadingIcon" />;
+import { ReactComponent as Dollar } from 'assets/dollar.svg';
 import { ReactComponent as User } from 'assets/user.svg';
 import { ReactComponent as XLogo } from 'assets/xlogo.svg';
 import { ReactComponent as Facebook } from 'assets/Facebook_Logo.svg';
+import { ReactComponent as Wallet } from 'assets/wallet.svg';
+import { ReactComponent as Bank } from 'assets/bank.svg';
+import { ReactComponent as Settings } from 'assets/settings.svg';
+import { ReactComponent as Contacts } from 'assets/contacts.svg';
+import { ReactComponent as Tokens } from 'assets/tokens.svg';
+import { ReactComponent as Github } from 'assets/github.svg';
 import appConfig from 'config/app';
 
 export const CashReceivedNotificationIcon = () => (
-    <Image
-        height={'24px'}
-        width={'24px'}
-        src={appConfig.logo}
-        preview={false}
-    />
+    <img height={'24px'} width={'24px'} src={appConfig.logo} />
 );
 export const TokenNotificationIcon = () => (
-    <Image
-        src={appConfig.tokenLogo}
-        height={'24px'}
-        width={'24px'}
-        preview={false}
-    />
+    <img src={appConfig.tokenLogo} height={'24px'} width={'24px'} />
 );
-export const ThemedBurnOutlined = styled(FireOutlined)`
-    color: ${props => props.theme.eCashPurple} !important;
-`;
-export const ThemedCopyOutlined = styled(CopyOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedDollarOutlined = styled(DollarOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedWalletOutlined = styled(WalletOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedBankOutlined = styled(BankOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedSettingOutlined = styled(SettingOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedLockOutlined = styled(LockOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
-export const ThemedContactsOutlined = styled(ContactsOutlined)`
-    color: ${props => props.theme.icons.outlined} !important;
-`;
 export const ThemedContactSendOutlined = styled(Send)`
     color: ${props => props.theme.icons.outlined} !important;
     transform: rotate(-35deg);
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
     width: 1.3em;
-`;
-export const ThemedCopySolid = styled(CopySolid)`
-    fill: ${props => props.theme.contrast};
-    height: 1.3em;
-    width: 1.3em;
-    cursor: pointer;
 `;
 
 export const ThemedLinkSolid = styled(LinkSolid)`
@@ -117,20 +63,6 @@ export const ThemedLinkSolid = styled(LinkSolid)`
 `;
 
 export const ThemedPdfSolid = styled(Pdf)`
-    fill: ${props => props.theme.contrast};
-    padding: 0.15rem 0rem 0.18rem 0rem;
-    height: 1.3em;
-    width: 1.3em;
-`;
-
-export const ThemedPlusOutlined = styled(Plus)`
-    fill: ${props => props.theme.contrast};
-    padding: 0.15rem 0rem 0.18rem 0rem;
-    height: 1.3em;
-    width: 1.3em;
-`;
-
-export const ThemedDownloadOutlined = styled(Download)`
     fill: ${props => props.theme.contrast};
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
@@ -154,15 +86,6 @@ export const ThemedTrashcanOutlined = styled(Trashcan)`
 `;
 
 export const ThemedSignAndVerifyMsg = styled(Audit)`
-    min-width: 24px;
-`;
-export const WalletIcon = styled(ThemedWalletOutlined)`
-    min-width: 24px;
-`;
-export const BankIcon = styled(ThemedBankOutlined)`
-    min-width: 24px;
-`;
-export const ContactsIcon = styled(ThemedContactsOutlined)`
     min-width: 24px;
 `;
 
@@ -202,19 +125,7 @@ export const ThemedFacebookIcon = styled(Facebook)`
     height: 42px;
     width: 100%;
 `;
-export const ThemedGithubIcon = styled(GithubOutlined)`
-    svg {
-        fill: ${props => props.theme.contrast} !important;
-    }
-    font-size: 42px;
-    @media (hover: hover) {
-        :hover {
-            svg {
-                fill: ${props => props.theme.eCashPurple} !important;
-            }
-        }
-    }
-`;
+
 export const ThemedAliasOutlined = styled(User)`
     fill: ${props => props.theme.icons.outlined} !important;
     height: 12px;
@@ -234,12 +145,6 @@ export const LoadingBlock = styled.div`
         fill: ${props => props.theme.eCashBlue};
     }
 `;
-
-export const CashLoader = () => (
-    <LoadingBlock>
-        <LoadingOutlined data-testid="cash-loader" />
-    </LoadingBlock>
-);
 const Rotate = styled.div`
     transform: rotate(-45deg);
 `;
@@ -275,23 +180,35 @@ export const AddContactIcon = () => <AddContact title="add-contact" />;
 export const ReplyIcon = () => <Reply title="reply" />;
 export const UnknownIcon = () => <Unknown title="tx-unknown" />;
 export const CashtabMsgIcon = () => <CashtabMsg title="tx-cashtab-msg" />;
-
 export const AliasIconTx = () => <Alias title="tx-alias-registration" />;
 export const GenesisIcon = () => <Genesis title="tx-genesis" />;
 export const ReceiveIcon = () => <Receive title="tx-received" />;
 export const AirdropIcon = () => <Airdrop title="tx-airdrop" />;
 export const SwapIcon = () => <Swap title="swap" />;
+export const DollarIcon = () => <Dollar title="dollar sign" />;
+export const WalletIcon = () => <Wallet title="wallet" />;
+export const BankIcon = () => <Bank title="wallets" />;
+export const SettingsIcon = () => <Settings title="settings" />;
+export const ContactsIcon = () => <Contacts title="Contact List" />;
+export const TokensIcon = () => <Tokens title="Tokens" />;
+const GithubIconWrapper = styled.div`
+    svg {
+        height: 42px;
+        width: 42px;
+    }
+    svg,
+    g,
+    path {
+        fill: ${props => props.theme.contrast};
+    }
+    fill: ${props => props.theme.contrast};
+`;
+export const GithubIcon = () => (
+    <GithubIconWrapper>
+        <Github height="142px" width="142px" title="Github" />
+    </GithubIconWrapper>
+);
 export const QRCodeIcon = () => <QRCode />;
 export const UnparsedIcon = () => <Unparsed />;
 export const HomeIcon = () => <Home />;
-export const SettingsIcon = () => <Settings height={'33px'} width={'30px'} />;
-
-export const WarningIcon = () => <WarningOutlined style={{ fontSize: 45 }} />;
-export const EtokensIcon = () => (
-    <AppstoreAddOutlined style={{ fontSize: 24 }} />
-);
-export const AliasRegisterIcon = () => (
-    <UserAddOutlined style={{ fontSize: 20 }} />
-);
 export const AliasIcon = styled(User)``;
-export const CustomSpinner = <LoadingOutlined style={{ fontSize: 24 }} spin />;

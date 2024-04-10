@@ -14,6 +14,8 @@ export const ContactList = styled.div`
     gap: 12px;
     color: ${props => props.theme.contrast};
     svg {
+        height: 24px;
+        width: 24px;
         fill: ${props => props.theme.eCashBlue};
     }
     box-sizing: border-box;
@@ -38,7 +40,16 @@ export const Row = styled.div`
     display: flex;
     width: 100%;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-bottom: 0.5px solid ${props => props.theme.separator};
+    padding: 6px 0;
+`;
+export const ButtonRow = styled.div`
+    display: flex;
+    width: 100%;
+    align-items: center;
     gap: 12px;
 `;
 
@@ -46,13 +57,10 @@ export const ContactListName = styled.div`
     display: flex;
     text-align: left;
     word-break: break-word;
-    width: 33%;
 `;
 
 export const ButtonPanel = styled.div`
     display: flex;
     gap: 9px;
-    align-items: center;
+    align-items: baseline;
 `;
-
-export const ContactListAddress = styled(ContactListName)``;

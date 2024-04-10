@@ -7,10 +7,18 @@ import PropTypes from 'prop-types';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
+import styled from 'styled-components';
+
+const TokenLink = styled(Link)`
+    text-decoration: none;
+`;
 
 const TokenList = ({ tokens, tokenCache, userLocale }) => {
     return Array.from(tokens).map(keyValueArray => (
-        <Link key={keyValueArray[0]} to={`/send-token/${keyValueArray[0]}`}>
+        <TokenLink
+            key={keyValueArray[0]}
+            to={`/send-token/${keyValueArray[0]}`}
+        >
             <TokenListItem
                 tokenId={keyValueArray[0]}
                 balance={decimalizedTokenQtyToLocaleFormat(
@@ -19,7 +27,7 @@ const TokenList = ({ tokens, tokenCache, userLocale }) => {
                 )}
                 cachedTokenInfo={tokenCache.get(keyValueArray[0])}
             />
-        </Link>
+        </TokenLink>
     ));
 };
 

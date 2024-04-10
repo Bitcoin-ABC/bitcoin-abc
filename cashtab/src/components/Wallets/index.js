@@ -6,10 +6,10 @@ import React, { useState } from 'react';
 import { WalletContext } from 'wallet/context';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
-    ThemedCopySolid,
+    CopyPasteIcon,
     ThemedTrashcanOutlined,
     ThemedEditOutlined,
-    ThemedContactsOutlined,
+    AddContactIcon,
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import { ModalInput } from 'components/Common/Inputs';
@@ -20,12 +20,16 @@ import PrimaryButton, {
 import {
     WalletsList,
     WalletsPanel,
-    Row,
+    Wallet,
+    WalletRow,
+    ActionsRow,
     ActiveWalletName,
     WalletName,
     ButtonPanel,
+    SvgButtonPanel,
     WalletBalance,
     ActivateButton,
+    SvgButton,
 } from 'components/Wallets/styles';
 import { getWalletNameError, validateMnemonic } from 'validation';
 import {
@@ -358,17 +362,17 @@ const Wallets = () => {
                 <WalletsPanel>
                     {wallets.map((wallet, index) =>
                         index === 0 ? (
-                            <Row key={`${wallet.name}_${index}`}>
+                            <WalletRow key={`${wallet.name}_${index}`}>
                                 <ActiveWalletName className="notranslate">
                                     {wallet.name}
                                 </ActiveWalletName>
                                 <h4>(active)</h4>
-                                <ButtonPanel>
+                                <SvgButtonPanel>
                                     <CopyToClipboard
                                         data={wallet.paths.get(1899).address}
                                         showToast
                                     >
-                                        <ThemedCopySolid />
+                                        <CopyPasteIcon />
                                     </CopyToClipboard>
                                     <ThemedEditOutlined
                                         data-testid="rename-active-wallet"
@@ -376,77 +380,89 @@ const Wallets = () => {
                                             setWalletToBeRenamed(wallet)
                                         }
                                     />
-                                    <ThemedContactsOutlined
+                                    <SvgButton
                                         onClick={() =>
                                             addWalletToContacts(wallet)
                                         }
-                                    />
-                                </ButtonPanel>
-                            </Row>
+                                    >
+                                        <AddContactIcon />
+                                    </SvgButton>
+                                </SvgButtonPanel>
+                            </WalletRow>
                         ) : (
-                            <Row key={`${wallet.name}_${index}`}>
-                                <WalletName>
-                                    <h3 className="overflow notranslate">
-                                        {wallet.name}
-                                    </h3>
-                                </WalletName>
-                                <WalletBalance>
-                                    {wallet?.state?.balanceSats !== 0
-                                        ? toFormattedXec(
-                                              wallet.state.balanceSats,
-                                              userLocale,
-                                          )
-                                        : '-'}
-                                </WalletBalance>
-                                <ButtonPanel>
-                                    <CopyToClipboard
-                                        data={wallet.paths.get(1899).address}
-                                        showToast
-                                    >
-                                        <ThemedCopySolid />
-                                    </CopyToClipboard>
-                                    <ThemedEditOutlined
-                                        data-testid="rename-saved-wallet"
-                                        onClick={() =>
-                                            setWalletToBeRenamed(wallet)
-                                        }
-                                    />
-                                    <ThemedContactsOutlined
-                                        data-testid="add-saved-wallet-to-contact-btn"
-                                        onClick={() =>
-                                            addWalletToContacts(wallet)
-                                        }
-                                    />
-                                    <ThemedTrashcanOutlined
-                                        data-testid="delete-saved-wallet"
-                                        onClick={() =>
-                                            setWalletToBeDeleted(wallet)
-                                        }
-                                    />
-                                    <ActivateButton
-                                        onClick={() =>
-                                            activateWallet(wallet, wallets)
-                                        }
-                                    >
-                                        Activate
-                                    </ActivateButton>
-                                </ButtonPanel>
-                            </Row>
+                            <Wallet key={`${wallet.name}_${index}`}>
+                                <WalletRow>
+                                    <WalletName>
+                                        <h3 className="overflow notranslate">
+                                            {wallet.name}
+                                        </h3>
+                                    </WalletName>
+                                    <WalletBalance>
+                                        {wallet?.state?.balanceSats !== 0
+                                            ? `${toFormattedXec(
+                                                  wallet.state.balanceSats,
+                                                  userLocale,
+                                              )} XEC`
+                                            : '-'}
+                                    </WalletBalance>
+                                </WalletRow>
+                                <ActionsRow>
+                                    <ButtonPanel>
+                                        <SvgButtonPanel>
+                                            <CopyToClipboard
+                                                data={
+                                                    wallet.paths.get(1899)
+                                                        .address
+                                                }
+                                                showToast
+                                            >
+                                                <CopyPasteIcon />
+                                            </CopyToClipboard>
+                                            <ThemedEditOutlined
+                                                data-testid="rename-saved-wallet"
+                                                onClick={() =>
+                                                    setWalletToBeRenamed(wallet)
+                                                }
+                                            />
+                                            <SvgButton
+                                                onClick={() =>
+                                                    addWalletToContacts(wallet)
+                                                }
+                                            >
+                                                <AddContactIcon />
+                                            </SvgButton>
+                                            <ThemedTrashcanOutlined
+                                                data-testid="delete-saved-wallet"
+                                                onClick={() =>
+                                                    setWalletToBeDeleted(wallet)
+                                                }
+                                            />
+                                        </SvgButtonPanel>
+                                        <ActivateButton
+                                            onClick={() =>
+                                                activateWallet(wallet, wallets)
+                                            }
+                                        >
+                                            Activate
+                                        </ActivateButton>
+                                    </ButtonPanel>
+                                </ActionsRow>
+                            </Wallet>
                         ),
                     )}
                 </WalletsPanel>
-                <Row>
+                <WalletRow>
                     <PrimaryButton onClick={() => addNewWallet()}>
                         New Wallet
                     </PrimaryButton>
-                </Row>
-                <Row>
+                </WalletRow>
+                <WalletRow>
                     <SecondaryButton
                         onClick={() => setShowImportWalletModal(true)}
                     >
                         Import Wallet
                     </SecondaryButton>
-                </Row>
+                </WalletRow>
             </WalletsList>
         </>
     );

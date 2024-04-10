@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as React from 'react';
-import { CashLoader } from 'components/Common/CustomIcons';
+import { CashtabLoader } from 'components/Common/Spinner';
 import { AlertMsg } from 'components/Common/Atoms';
 
 const ApiError = () => {
@@ -20,7 +20,7 @@ const ApiError = () => {
                     notify admin
                 </a>
             </AlertMsg>
-            <CashLoader />
+            <CashtabLoader />
         </>
     );
 };

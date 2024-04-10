@@ -3,9 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState } from 'react';
-import { Spin } from 'antd';
 import {
-    CashLoadingIcon,
     HomeIcon,
     SendIcon,
     ReceiveIcon,
@@ -17,8 +15,9 @@ import {
     ThemedSignAndVerifyMsg,
     ThemedUserProfileIcon,
     SwapIcon,
-    EtokensIcon,
+    TokensIcon,
 } from 'components/Common/CustomIcons';
+import Spinner from 'components/Common/Spinner';
 import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { theme } from 'assets/styles/theme';
 import Home from 'components/Home/Home';
@@ -84,96 +83,12 @@ const GlobalStyle = createGlobalStyle`
     *::placeholder {
         color: ${props => props.theme.forms.placeholder} !important;
     }
-    *::selection {
-    background: ${props => props.theme.eCashBlue} !important;
-    }
-    .ant-modal-content, .ant-modal-header, .ant-modal-title {
-        background-color: ${props => props.theme.modal.background} !important;
-        color: ${props => props.theme.modal.color} !important;
-    }
-    .ant-modal-content svg {
-        fill: ${props => props.theme.modal.color};
-    }   
-    .ant-modal-footer button {
-        background-color: ${props =>
-            props.theme.modal.buttonBackground} !important;
-        color: ${props => props.theme.modal.color} !important;
-        border-color: ${props => props.theme.modal.border} !important;
-        :hover {
-            background-color: ${props => props.theme.eCashBlue} !important;
+    a {
+        color: ${props => props.theme.eCashBlue}
+        &:hover {
+            color: ${props => props.theme.eCashPurple}
+            text-decoration: none;
         }
-    }    
-    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button, .ant-modal > button, .ant-modal-confirm-btns > button, .ant-modal-footer > button, #cropControlsConfirm {
-        border-radius: 3px;
-        background-color: ${props =>
-            props.theme.modal.buttonBackground} !important;
-        color: ${props => props.theme.modal.color} !important;
-        border-color: ${props => props.theme.modal.border} !important;
-        :hover {
-            background-color: ${props => props.theme.eCashBlue} !important;
-        }
-        text-shadow: none !important;
-    }    
-    
-    .ant-modal-wrap > div > div.ant-modal-content > div > div > div.ant-modal-confirm-btns > button:hover,.ant-modal-confirm-btns > button:hover, .ant-modal-footer > button:hover, #cropControlsConfirm:hover {
-        color: ${props => props.theme.contrast};
-        transition: all 0.3s;
-        background-color: ${props => props.theme.eCashBlue};
-        border-color: ${props => props.theme.eCashBlue};
-    }   
-    .selectedCurrencyOption, .ant-select-dropdown {
-        text-align: left;
-        color: ${props => props.theme.contrast} !important;
-        background-color: ${props =>
-            props.theme.collapses.expandedBackground} !important;
-    }
-    .cashLoadingIcon {
-        color: ${props => props.theme.eCashBlue} !important;
-        font-size: 48px !important;
-    }
-    .selectedCurrencyOption:hover {
-        color: ${props => props.theme.contrast} !important;
-        background-color: ${props => props.theme.eCashBlue} !important;
-    }
-    #addrSwitch, #cropSwitch {
-        .ant-switch-checked {
-            background-color: white !important;
-        }
-    }
-    #addrSwitch.ant-switch-checked, #cropSwitch.ant-switch-checked {
-        background-image: ${props =>
-            props.theme.buttons.primary.backgroundImage} !important;
-    }
-
-    .ant-slider-rail {
-        background-color: ${props => props.theme.forms.border} !important;
-    }
-    .ant-slider-track {
-        background-color: ${props => props.theme.eCashBlue} !important;
-    }
-    .ant-descriptions-bordered .ant-descriptions-row {
-    background: ${props => props.theme.contrast};
-    }
-    .ant-modal-confirm-content, .ant-modal-confirm-title {
-        color: ${props => props.theme.contrast} !important;
-    }
-    .ant-form-item-explain {
-        div {
-            color: ${props => props.theme.forms.text};
-        }
-    }
-    .ant-input-prefix {
-        color: ${props => props.theme.eCashBlue};
-    }
-    .ant-spin-nested-loading>div>.ant-spin .ant-spin-dot {
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        margin: auto !important;
-    }
-    .ant-spin-nested-loading>div>.ant-spin {
-        position: fixed !important;
     }
 `;
 
@@ -299,7 +214,9 @@ const NavMenu = styled.div`
 
 const NavItem = styled.button`
     display: flex;
-    justify-content: right;
+    justify-content: space-between;
+    margin-left: 3px;
+    text-align: left;
     align-items: center;
     width: 100%;
     white-space: nowrap;
@@ -311,17 +228,20 @@ const NavItem = styled.button`
     cursor: pointer;
     &:hover {
         color: ${props => props.theme.eCashPurple};
-        svg {
+        svg,
+        g,
+        path {
             fill: ${props => props.theme.eCashPurple};
         }
     }
     svg {
         fill: ${props => props.theme.contrast};
-        max-width: 26px;
+        max-width: 33px;
         height: auto;
         flex: 1;
     }
-    g {
+    g,
+    path {
         fill: ${props => props.theme.contrast};
     }
     p {
@@ -332,7 +252,7 @@ const NavItem = styled.button`
         active &&
         `    
         color: ${props.theme.navActive};
-        svg {
+        svg, g, path {
             fill: ${props.theme.navActive};
         }
   `}
@@ -345,7 +265,9 @@ export const NavButton = styled.button`
     }
     @media (hover: hover) {
         :hover {
-            svg {
+            svg,
+            g,
+            path {
                 fill: ${props => props.theme.eCashPurple};
             }
         }
@@ -359,14 +281,18 @@ export const NavButton = styled.button`
     font-size: 10px;
     svg {
         fill: ${props => props.theme.contrast};
-        width: 26px;
-        height: auto;
+        width: 30px;
+        height: 30px;
+    }
+    g,
+    path {
+        fill: ${props => props.theme.contrast};
     }
     ${({ active, ...props }) =>
         active &&
         `    
         color: ${props.theme.navActive};
-        svg {
+        svg, g, path {
             fill: ${props.theme.navActive};
         }
   `}
@@ -516,393 +442,355 @@ const App = () => {
                     <WebApp />
                 </>
             )}
-            <Spin
-                spinning={
-                    loading || spinner || (wallet !== false && !validWallet)
-                }
-                indicator={CashLoadingIcon}
-            >
-                <CustomApp>
-                    <CashtabNotification
-                        position="top-right"
-                        autoClose={5000}
-                        hideProgressBar={false}
-                        newestOnTop
-                        closeOnClick
-                        rtl={false}
-                        pauseOnFocusLoss
-                        draggable
-                        pauseOnHover
-                        theme="light"
-                        transition={Bounce}
-                    />
-                    <WalletBody>
-                        <WalletCtn>
-                            {!cashtabLoaded ? (
-                                <LoadingCtn data-testid="loading-ctn" />
-                            ) : (
-                                <>
-                                    {wallet === false ? (
-                                        <OnBoarding />
-                                    ) : (
-                                        <>
-                                            <Header>
-                                                <HeaderCtn>
-                                                    {process.env
-                                                        .REACT_APP_BUILD_ENV ===
-                                                    'extension' ? (
-                                                        <ExtensionHeader
-                                                            selectedKey={
-                                                                selectedKey
+
+            {loading ||
+                spinner ||
+                (wallet !== false && !validWallet && <Spinner />)}
+            <CustomApp>
+                <CashtabNotification
+                    position="top-right"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                    transition={Bounce}
+                />
+                <WalletBody>
+                    <WalletCtn>
+                        {!cashtabLoaded ? (
+                            <LoadingCtn data-testid="loading-ctn" />
+                        ) : (
+                            <>
+                                {wallet === false ? (
+                                    <OnBoarding />
+                                ) : (
+                                    <>
+                                        <Header>
+                                            <HeaderCtn>
+                                                {process.env
+                                                    .REACT_APP_BUILD_ENV ===
+                                                'extension' ? (
+                                                    <ExtensionHeader
+                                                        selectedKey={
+                                                            selectedKey
+                                                        }
+                                                    />
+                                                ) : (
+                                                    <CashtabLogo
+                                                        src={Cashtab}
+                                                        alt="cashtab"
+                                                    />
+                                                )}
+                                                {selectedKey === 'airdrop' && (
+                                                    <NavHeader>
+                                                        Airdrop
+                                                        <AirdropIcon />
+                                                    </NavHeader>
+                                                )}
+                                                {selectedKey === 'backup' && (
+                                                    <NavHeader>
+                                                        Wallet Backup
+                                                        <WalletIcon />
+                                                    </NavHeader>
+                                                )}
+                                                {selectedKey === 'contacts' && (
+                                                    <NavHeader>
+                                                        Contacts
+                                                        <ContactsIcon />
+                                                    </NavHeader>
+                                                )}
+                                                {selectedKey === 'wallets' && (
+                                                    <NavHeader>
+                                                        Wallets
+                                                        <BankIcon />
+                                                    </NavHeader>
+                                                )}
+                                                {selectedKey ===
+                                                    'configure' && (
+                                                    <NavHeader>
+                                                        Settings
+                                                        <SettingsIcon />
+                                                    </NavHeader>
+                                                )}
+                                                {selectedKey ===
+                                                    'signverifymsg' && (
+                                                    <NavHeader>
+                                                        {' '}
+                                                        Sign & Verify Msg
+                                                        <ThemedSignAndVerifyMsg />
+                                                    </NavHeader>
+                                                )}
+                                                {process.env
+                                                    .REACT_APP_BUILD_ENV !==
+                                                    'extension' && (
+                                                    <>
+                                                        {selectedKey ===
+                                                            'swap' && (
+                                                            <NavHeader>
+                                                                {' '}
+                                                                Swap
+                                                                <SwapIcon />
+                                                            </NavHeader>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {process.env
+                                                    .REACT_APP_BUILD_ENV !==
+                                                    'extension' && (
+                                                    <>
+                                                        {hasTab && (
+                                                            <EasterEgg
+                                                                src={TabCash}
+                                                                alt="tabcash"
+                                                            />
+                                                        )}
+                                                    </>
+                                                )}
+                                            </HeaderCtn>
+                                            <WalletInfoCtn data-testid="wallet-info-ctn">
+                                                <WalletLabel
+                                                    wallets={wallets}
+                                                    settings={settings}
+                                                    updateCashtabState={
+                                                        updateCashtabState
+                                                    }
+                                                ></WalletLabel>
+                                                <BalanceHeader
+                                                    balanceSats={balanceSats}
+                                                    settings={settings}
+                                                    fiatPrice={fiatPrice}
+                                                    locale={navigator.language}
+                                                />
+                                            </WalletInfoCtn>
+                                        </Header>
+                                        <ScreenWrapper>
+                                            <Routes>
+                                                <Route
+                                                    path="/wallet"
+                                                    element={<Home />}
+                                                />
+                                                <Route
+                                                    path="/receive"
+                                                    element={<Receive />}
+                                                />
+
+                                                <Route
+                                                    path="/create-token"
+                                                    element={<CreateToken />}
+                                                />
+
+                                                <Route
+                                                    path="/send"
+                                                    element={<SendXec />}
+                                                />
+                                                <Route path="send-token">
+                                                    <Route
+                                                        path=":tokenId"
+                                                        element={<SendToken />}
+                                                    />
+                                                </Route>
+                                                <Route
+                                                    path="/airdrop"
+                                                    element={
+                                                        <Airdrop
+                                                            passLoadingStatus={
+                                                                setSpinner
                                                             }
                                                         />
-                                                    ) : (
-                                                        <CashtabLogo
-                                                            src={Cashtab}
-                                                            alt="cashtab"
-                                                        />
-                                                    )}
-                                                    {selectedKey ===
-                                                        'airdrop' && (
-                                                        <NavHeader>
-                                                            Airdrop
-                                                            <AirdropIcon />
-                                                        </NavHeader>
-                                                    )}
-                                                    {selectedKey ===
-                                                        'backup' && (
-                                                        <NavHeader>
-                                                            Wallet Backup
-                                                            <WalletIcon />
-                                                        </NavHeader>
-                                                    )}
-                                                    {selectedKey ===
-                                                        'contacts' && (
-                                                        <NavHeader>
-                                                            Contacts
-                                                            <ContactsIcon />
-                                                        </NavHeader>
-                                                    )}
-                                                    {selectedKey ===
-                                                        'wallets' && (
-                                                        <NavHeader>
-                                                            Wallets
-                                                            <BankIcon />
-                                                        </NavHeader>
-                                                    )}
-                                                    {selectedKey ===
-                                                        'configure' && (
-                                                        <NavHeader>
-                                                            Settings
-                                                            <SettingsIcon />
-                                                        </NavHeader>
-                                                    )}
-                                                    {selectedKey ===
-                                                        'signverifymsg' && (
-                                                        <NavHeader>
-                                                            {' '}
-                                                            Sign & Verify Msg
-                                                            <ThemedSignAndVerifyMsg />
-                                                        </NavHeader>
-                                                    )}
-                                                    {process.env
-                                                        .REACT_APP_BUILD_ENV !==
-                                                        'extension' && (
-                                                        <>
-                                                            {selectedKey ===
-                                                                'swap' && (
-                                                                <NavHeader>
-                                                                    {' '}
-                                                                    Swap
-                                                                    <SwapIcon />
-                                                                </NavHeader>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    {process.env
-                                                        .REACT_APP_BUILD_ENV !==
-                                                        'extension' && (
-                                                        <>
-                                                            {hasTab && (
-                                                                <EasterEgg
-                                                                    src={
-                                                                        TabCash
-                                                                    }
-                                                                    alt="tabcash"
-                                                                />
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </HeaderCtn>
-                                                <WalletInfoCtn data-testid="wallet-info-ctn">
-                                                    <WalletLabel
-                                                        wallets={wallets}
-                                                        settings={settings}
-                                                        updateCashtabState={
-                                                            updateCashtabState
-                                                        }
-                                                    ></WalletLabel>
-                                                    <BalanceHeader
-                                                        balanceSats={
-                                                            balanceSats
-                                                        }
-                                                        settings={settings}
-                                                        fiatPrice={fiatPrice}
-                                                        locale={
-                                                            navigator.language
-                                                        }
-                                                    />
-                                                </WalletInfoCtn>
-                                            </Header>
-                                            <ScreenWrapper>
-                                                <Routes>
-                                                    <Route
-                                                        path="/wallet"
-                                                        element={<Home />}
-                                                    />
-                                                    <Route
-                                                        path="/receive"
-                                                        element={<Receive />}
-                                                    />
+                                                    }
+                                                />
+                                                <Route
+                                                    path="/backup"
+                                                    element={<BackupWallet />}
+                                                />
+                                                <Route
+                                                    path="/wallets"
+                                                    element={<Wallets />}
+                                                />
+                                                <Route
+                                                    path="/contacts"
+                                                    element={<Contacts />}
+                                                />
 
+                                                <Route
+                                                    path="/etokens"
+                                                    element={<Etokens />}
+                                                />
+                                                <Route
+                                                    path="/signverifymsg"
+                                                    element={<SignVerifyMsg />}
+                                                />
+                                                {aliasSettings.aliasEnabled && (
                                                     <Route
-                                                        path="/create-token"
+                                                        path="/alias"
                                                         element={
-                                                            <CreateToken />
-                                                        }
-                                                    />
-
-                                                    <Route
-                                                        path="/send"
-                                                        element={<SendXec />}
-                                                    />
-                                                    <Route path="send-token">
-                                                        <Route
-                                                            path=":tokenId"
-                                                            element={
-                                                                <SendToken />
-                                                            }
-                                                        />
-                                                    </Route>
-                                                    <Route
-                                                        path="/airdrop"
-                                                        element={
-                                                            <Airdrop
+                                                            <Alias
                                                                 passLoadingStatus={
                                                                     setSpinner
                                                                 }
                                                             />
                                                         }
                                                     />
+                                                )}
+                                                <Route
+                                                    path="/configure"
+                                                    element={<Configure />}
+                                                />
+                                                {process.env
+                                                    .REACT_APP_BUILD_ENV !==
+                                                    'extension' && (
                                                     <Route
-                                                        path="/backup"
-                                                        element={
-                                                            <BackupWallet />
-                                                        }
+                                                        path="/swap"
+                                                        element={<Swap />}
                                                     />
-                                                    <Route
-                                                        path="/wallets"
-                                                        element={<Wallets />}
-                                                    />
-                                                    <Route
-                                                        path="/contacts"
-                                                        element={<Contacts />}
-                                                    />
-
-                                                    <Route
-                                                        path="/etokens"
-                                                        element={<Etokens />}
-                                                    />
-                                                    <Route
-                                                        path="/signverifymsg"
-                                                        element={
-                                                            <SignVerifyMsg />
-                                                        }
-                                                    />
-                                                    {aliasSettings.aliasEnabled && (
-                                                        <Route
-                                                            path="/alias"
-                                                            element={
-                                                                <Alias
-                                                                    passLoadingStatus={
-                                                                        setSpinner
-                                                                    }
-                                                                />
-                                                            }
+                                                )}
+                                                <Route
+                                                    path="/"
+                                                    element={
+                                                        <Navigate
+                                                            to="/wallet"
+                                                            replace
                                                         />
-                                                    )}
-                                                    <Route
-                                                        path="/configure"
-                                                        element={<Configure />}
-                                                    />
-                                                    {process.env
-                                                        .REACT_APP_BUILD_ENV !==
-                                                        'extension' && (
-                                                        <Route
-                                                            path="/swap"
-                                                            element={<Swap />}
-                                                        />
-                                                    )}
-                                                    <Route
-                                                        path="/"
-                                                        element={
-                                                            <Navigate
-                                                                to="/wallet"
-                                                                replace
-                                                            />
-                                                        }
-                                                    />
-                                                    <Route
-                                                        path="*"
-                                                        element={<NotFound />}
-                                                    />
-                                                </Routes>
-                                            </ScreenWrapper>
-                                        </>
-                                    )}
-                                </>
-                            )}
-                        </WalletCtn>
-                        {wallet !== false && (
-                            <Footer>
-                                <NavButton
-                                    active={selectedKey === 'wallet'}
-                                    onClick={() => navigate('/wallet')}
-                                >
-                                    <HomeIcon />
-                                </NavButton>
-
-                                <NavButton
-                                    data-testid="nav-btn-send"
-                                    active={selectedKey === 'send'}
-                                    onClick={() => navigate('/send')}
-                                >
-                                    <SendIcon
-                                        style={{
-                                            marginTop: '-9px',
-                                        }}
-                                    />
-                                </NavButton>
-                                <NavButton
-                                    data-testid="nav-btn-etokens"
-                                    active={selectedKey === 'etokens'}
-                                    onClick={() => navigate('/etokens')}
-                                >
-                                    <EtokensIcon
-                                        style={{
-                                            marginTop: '-9px',
-                                        }}
-                                    />
-                                </NavButton>
-                                <NavButton
-                                    data-testid="nav-btn-receive"
-                                    active={selectedKey === 'receive'}
-                                    onClick={() => navigate('receive')}
-                                >
-                                    <ReceiveIcon />
-                                </NavButton>
-                                <NavWrapper
-                                    data-testid="hamburger"
-                                    onClick={handleNavMenuClick}
-                                >
-                                    <NavIcon clicked={navMenuClicked} />
-                                    <NavMenu
-                                        data-testid="hamburger-menu"
-                                        open={navMenuClicked}
-                                    >
-                                        <NavItem
-                                            data-testid="nav-btn-backup"
-                                            active={selectedKey === 'backup'}
-                                            onClick={() => navigate('/backup')}
-                                        >
-                                            {' '}
-                                            <p>Wallet Backup</p>
-                                            <WalletIcon />
-                                        </NavItem>
-                                        <NavItem
-                                            data-testid="nav-btn-wallets"
-                                            active={selectedKey === 'wallets'}
-                                            onClick={() => navigate('/wallets')}
-                                        >
-                                            {' '}
-                                            <p>Wallets</p>
-                                            <BankIcon />
-                                        </NavItem>
-                                        <NavItem
-                                            data-testid="nav-btn-contacts"
-                                            active={selectedKey === 'contacts'}
-                                            onClick={() =>
-                                                navigate('/contacts')
-                                            }
-                                        >
-                                            {' '}
-                                            <p>Contacts</p>
-                                            <ContactsIcon />
-                                        </NavItem>
-                                        <NavItem
-                                            data-testid="nav-btn-airdrop"
-                                            active={selectedKey === 'airdrop'}
-                                            onClick={() => navigate('/airdrop')}
-                                        >
-                                            {' '}
-                                            <p>Airdrop</p>
-                                            <AirdropIcon />
-                                        </NavItem>
-                                        {process.env.REACT_APP_BUILD_ENV !==
-                                            'extension' && (
-                                            <NavItem
-                                                data-testid="nav-btn-swap"
-                                                active={selectedKey === 'swap'}
-                                                onClick={() =>
-                                                    navigate('/swap')
-                                                }
-                                            >
-                                                {' '}
-                                                <p>Swap</p>
-                                                <SwapIcon />
-                                            </NavItem>
-                                        )}
-                                        <NavItem
-                                            data-testid="nav-btn-signverifymsg"
-                                            active={
-                                                selectedKey === 'signverifymsg'
-                                            }
-                                            onClick={() =>
-                                                navigate('/signverifymsg')
-                                            }
-                                        >
-                                            <p>Sign & Verify</p>
-                                            <ThemedSignAndVerifyMsg />
-                                        </NavItem>
-                                        {aliasSettings.aliasEnabled && (
-                                            <NavItem
-                                                active={selectedKey === 'alias'}
-                                                onClick={() =>
-                                                    navigate('/alias')
-                                                }
-                                            >
-                                                {' '}
-                                                <p>Alias</p>
-                                                <ThemedUserProfileIcon />
-                                            </NavItem>
-                                        )}
-                                        <NavItem
-                                            data-testid="nav-btn-configure"
-                                            active={selectedKey === 'configure'}
-                                            onClick={() =>
-                                                navigate('/configure')
-                                            }
-                                        >
-                                            <p>Settings</p>
-                                            <SettingsIcon />
-                                        </NavItem>
-                                    </NavMenu>
-                                </NavWrapper>
-                            </Footer>
+                                                    }
+                                                />
+                                                <Route
+                                                    path="*"
+                                                    element={<NotFound />}
+                                                />
+                                            </Routes>
+                                        </ScreenWrapper>
+                                    </>
+                                )}
+                            </>
                         )}
-                    </WalletBody>
-                </CustomApp>
-            </Spin>
+                    </WalletCtn>
+                    {wallet !== false && (
+                        <Footer>
+                            <NavButton
+                                active={selectedKey === 'wallet'}
+                                onClick={() => navigate('/wallet')}
+                            >
+                                <HomeIcon />
+                            </NavButton>
+
+                            <NavButton
+                                data-testid="nav-btn-send"
+                                active={selectedKey === 'send'}
+                                onClick={() => navigate('/send')}
+                                style={{ paddingBottom: '10px' }}
+                            >
+                                <SendIcon />
+                            </NavButton>
+                            <NavButton
+                                data-testid="nav-btn-etokens"
+                                active={selectedKey === 'etokens'}
+                                onClick={() => navigate('/etokens')}
+                            >
+                                <TokensIcon />
+                            </NavButton>
+                            <NavButton
+                                data-testid="nav-btn-receive"
+                                active={selectedKey === 'receive'}
+                                onClick={() => navigate('receive')}
+                            >
+                                <ReceiveIcon />
+                            </NavButton>
+                            <NavWrapper
+                                data-testid="hamburger"
+                                onClick={handleNavMenuClick}
+                            >
+                                <NavIcon clicked={navMenuClicked} />
+                                <NavMenu
+                                    data-testid="hamburger-menu"
+                                    open={navMenuClicked}
+                                >
+                                    <NavItem
+                                        data-testid="nav-btn-backup"
+                                        active={selectedKey === 'backup'}
+                                        onClick={() => navigate('/backup')}
+                                    >
+                                        {' '}
+                                        <p>Wallet Backup</p>
+                                        <WalletIcon />
+                                    </NavItem>
+                                    <NavItem
+                                        data-testid="nav-btn-wallets"
+                                        active={selectedKey === 'wallets'}
+                                        onClick={() => navigate('/wallets')}
+                                    >
+                                        {' '}
+                                        <p>Wallets</p>
+                                        <BankIcon />
+                                    </NavItem>
+                                    <NavItem
+                                        data-testid="nav-btn-contacts"
+                                        active={selectedKey === 'contacts'}
+                                        onClick={() => navigate('/contacts')}
+                                    >
+                                        {' '}
+                                        <p>Contacts</p>
+                                        <ContactsIcon />
+                                    </NavItem>
+                                    <NavItem
+                                        data-testid="nav-btn-airdrop"
+                                        active={selectedKey === 'airdrop'}
+                                        onClick={() => navigate('/airdrop')}
+                                    >
+                                        {' '}
+                                        <p>Airdrop</p>
+                                        <AirdropIcon />
+                                    </NavItem>
+                                    {process.env.REACT_APP_BUILD_ENV !==
+                                        'extension' && (
+                                        <NavItem
+                                            data-testid="nav-btn-swap"
+                                            active={selectedKey === 'swap'}
+                                            onClick={() => navigate('/swap')}
+                                        >
+                                            {' '}
+                                            <p>Swap</p>
+                                            <SwapIcon />
+                                        </NavItem>
+                                    )}
+                                    <NavItem
+                                        data-testid="nav-btn-signverifymsg"
+                                        active={selectedKey === 'signverifymsg'}
+                                        onClick={() =>
+                                            navigate('/signverifymsg')
+                                        }
+                                    >
+                                        <p>Sign & Verify</p>
+                                        <ThemedSignAndVerifyMsg />
+                                    </NavItem>
+                                    {aliasSettings.aliasEnabled && (
+                                        <NavItem
+                                            active={selectedKey === 'alias'}
+                                            onClick={() => navigate('/alias')}
+                                        >
+                                            {' '}
+                                            <p>Alias</p>
+                                            <ThemedUserProfileIcon />
+                                        </NavItem>
+                                    )}
+                                    <NavItem
+                                        data-testid="nav-btn-configure"
+                                        active={selectedKey === 'configure'}
+                                        onClick={() => navigate('/configure')}
+                                    >
+                                        <p>Settings</p>
+                                        <SettingsIcon />
+                                    </NavItem>
+                                </NavMenu>
+                            </NavWrapper>
+                        </Footer>
+                    )}
+                </WalletBody>
+            </CustomApp>
         </ThemeProvider>
     );
 };

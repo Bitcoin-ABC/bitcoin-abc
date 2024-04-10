@@ -5,16 +5,15 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { LockFilled } from '@ant-design/icons';
 import { WalletContext } from 'wallet/context';
 import {
-    ThemedDollarOutlined,
-    ThemedSettingOutlined,
+    DollarIcon,
+    SettingsIcon,
     ThemedXIcon,
     ThemedFacebookIcon,
-    ThemedGithubIcon,
     SocialContainer,
     SocialLink,
+    GithubIcon,
 } from 'components/Common/CustomIcons';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getWalletState } from 'utils/cashMethods';
@@ -29,15 +28,28 @@ const VersionContainer = styled.div`
     color: ${props => props.theme.contrast};
 `;
 
-const StyledConfigure = styled.div`
-    margin: 12px 0;
-    h2 {
-        color: ${props => props.theme.contrast};
-        font-size: 25px;
-    }
+const ConfigIconWrapper = styled.div`
     svg {
+        height: 42px;
+        width: 42px;
         fill: ${props => props.theme.eCashBlue};
     }
+`;
+const StyledConfigure = styled.div`
+    margin: 12px 0;
+`;
+
+const HeadlineAndIcon = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 12px 0;
+`;
+const Headline = styled.div`
+    font-size: 20px;
+    color: ${props => props.theme.contrast};
+    font-weight: bold;
 `;
 
 const StyledSpacer = styled.div`
@@ -51,6 +63,7 @@ const SettingsLabel = styled.div`
     text-align: left;
     display: flex;
     gap: 9px;
+    color: ${props => props.theme.contrast};
 `;
 
 const Switches = styled.div`
@@ -61,15 +74,9 @@ const Switches = styled.div`
 const GeneralSettingsItem = styled.div`
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    color: ${props => props.theme.lightWhite};
-`;
-
-const VIPSettingsHolder = styled.div`
-    display: flex;
-    align-items: center;
+    justify-content: flex-start;
     gap: 12px;
-    justify-content: center;
+    color: ${props => props.theme.lightWhite};
 `;
 
 const NoticeHolder = styled.div`
@@ -131,11 +138,12 @@ const Configure = () => {
                     <Link to="/wallets">Wallets</Link> screen
                 </Info>
             </NoticeHolder>
-
-            <StyledSpacer />
-            <h2>
-                <ThemedDollarOutlined /> Fiat Currency
-            </h2>
+            <HeadlineAndIcon>
+                <ConfigIconWrapper>
+                    <DollarIcon />
+                </ConfigIconWrapper>{' '}
+                <Headline>Fiat Currency</Headline>
+            </HeadlineAndIcon>
             <CurrencySelect
                 name="configure-fiat-select"
                 value={cashtabState.settings.fiatCurrency}
@@ -147,30 +155,29 @@ const Configure = () => {
                 }}
             />
             <StyledSpacer />
-            <h2>
-                <ThemedSettingOutlined /> General Settings
-            </h2>
+            <HeadlineAndIcon>
+                <ConfigIconWrapper>
+                    <SettingsIcon />
+                </ConfigIconWrapper>{' '}
+                <Headline>General Settings</Headline>
+            </HeadlineAndIcon>
             <Switches>
                 <GeneralSettingsItem>
-                    <SettingsLabel>
-                        <LockFilled /> Send Confirmations
-                    </SettingsLabel>
                     <Switch
                         name="send-confirmations-switch"
                         checked={settings.sendModal}
                         handleToggle={handleSendModalToggle}
                     />
+                    <SettingsLabel>Send Confirmations</SettingsLabel>
                 </GeneralSettingsItem>
                 {isMobile(navigator) && (
                     <GeneralSettingsItem>
-                        <SettingsLabel>
-                            <LockFilled /> Auto-open camera on send
-                        </SettingsLabel>
                         <Switch
                             name="settings-camera-auto-open"
                             checked={settings.autoCameraOn}
                             handleToggle={handleCameraOverride}
                         />
+                        <SettingsLabel>Auto-open camera on send</SettingsLabel>
                     </GeneralSettingsItem>
                 )}
             </Switches>
@@ -182,24 +189,21 @@ const Configure = () => {
             ) && (
                 <>
                     <StyledSpacer />
-                    <VIPSettingsHolder>
+                    <HeadlineAndIcon>
                         {' '}
                         <TokenIcon
                             size={64}
                             tokenId={appConfig.vipSettingsTokenId}
                         />
-                        <h2>VIP Settings</h2>
-                    </VIPSettingsHolder>
+                        <Headline>VIP Settings</Headline>
+                    </HeadlineAndIcon>
                     <GeneralSettingsItem>
-                        <SettingsLabel>
-                            {' '}
-                            <LockFilled /> ABSOLUTE MINIMUM fees
-                        </SettingsLabel>
                         <Switch
                             name="settings-minFeeSends-switch"
                             checked={settings.minFeeSends}
                             handleToggle={handleMinFeesToggle}
                         />
+                        <SettingsLabel> ABSOLUTE MINIMUM fees</SettingsLabel>
                     </GeneralSettingsItem>
                 </>
             )}
@@ -225,7 +229,7 @@ const Configure = () => {
                     target="_blank"
                     rel="noreferrer"
                 >
-                    <ThemedGithubIcon />
+                    <GithubIcon />
                 </SocialLink>
             </SocialContainer>
 

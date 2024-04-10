@@ -54,6 +54,7 @@ const PrimaryButton = styled(CashtabBaseButton)`
 `;
 export const PrimaryLink = styled(CashtabBaseLink)`
     ${PrimaryButtonOrLinkCss}
+    text-decoration: none;
 `;
 
 const SecondaryButtonOrLinkCss = css`
@@ -77,6 +78,7 @@ const SecondaryButton = styled(CashtabBaseButton)`
 `;
 const SecondaryLink = styled(CashtabBaseLink)`
     ${SecondaryButtonOrLinkCss}
+    text-decoration: none;
 `;
 
 export default PrimaryButton;

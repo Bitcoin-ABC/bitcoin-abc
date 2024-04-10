@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.25.0",
+    "version": "2.26.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -25,10 +25,8 @@
         ]
     },
     "dependencies": {
-        "@ant-design/icons": "^5.3.0",
         "@bitgo/utxo-lib": "^9.33.0",
         "@zxing/browser": "^0.1.4",
-        "antd": "^5.13.3",
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",
         "bitcoinjs-message": "^2.2.0",

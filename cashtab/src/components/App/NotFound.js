@@ -3,14 +3,20 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { Row, Col } from 'antd';
+import styled from 'styled-components';
+
+const Centered = styled.div`
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: ${props => props.theme.contrast};
+`;
 
 const NotFound = () => (
-    <Row justify="center" type="flex">
-        <Col span={8}>
-            <h1>Page not found</h1>
-        </Col>
-    </Row>
+    <Centered>
+        <h1>Page not found</h1>
+    </Centered>
 );
 
 export default NotFound;

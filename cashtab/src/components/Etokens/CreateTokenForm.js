@@ -14,7 +14,6 @@ import {
     isValidTokenDocumentUrl,
     isProbablyNotAScam,
 } from 'validation';
-import { PlusSquareOutlined, PaperClipOutlined } from '@ant-design/icons';
 import PrimaryButton from 'components/Common/PrimaryButton';
 import {
     Input,
@@ -671,7 +670,6 @@ const CreateTokenForm = () => {
 
                 {!loading && tokenIcon && (
                     <EditIcon onClick={() => setShowCropModal(true)}>
-                        <PaperClipOutlined />
                         {tokenIcon.name} [edit]
                     </EditIcon>
                 )}
@@ -749,8 +747,7 @@ const CreateTokenForm = () => {
                     disabled={!tokenGenesisDataIsValid}
                     style={{ marginTop: '30px' }}
                 >
-                    <PlusSquareOutlined />
-                    &nbsp;Create eToken
+                    Create eToken
                 </PrimaryButton>
             </Form>
         </>

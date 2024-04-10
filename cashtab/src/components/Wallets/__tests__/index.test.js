@@ -120,7 +120,7 @@ describe('<Wallets />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(screen.queryByTitle('loading-ctn')).not.toBeInTheDocument(),
         );
 
         // We can add a savedWallet as a contact
@@ -129,9 +129,8 @@ describe('<Wallets />', () => {
         expect((await screen.findAllByText('alpha'))[1]).toBeInTheDocument();
 
         // Click button to add this saved wallet to contacts
-        await user.click(
-            screen.getAllByTestId('add-saved-wallet-to-contact-btn')[0],
-        );
+        // Note we want index 1 of these buttons, as index 0 is the active wallet
+        await user.click(screen.getAllByTitle('add-contact')[1]);
 
         // Confirm new wallet added to contacts
         await waitFor(async () =>

@@ -120,18 +120,6 @@ describe('<Contacts />', () => {
         // Contacts component is rendered
         expect(screen.getByTestId('contacts')).toBeInTheDocument();
 
-        const addressToDelete =
-            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
-
-        // Addresses are rendered as expected
-        expect(
-            screen.getByText(
-                `${addressToDelete.slice(6, 9)}...${addressToDelete.slice(-3)}`,
-            ),
-        ).toBeInTheDocument();
-        expect(screen.getByText(`qz2...035`)).toBeInTheDocument();
-        expect(screen.getByText(`qph...72y`)).toBeInTheDocument();
-
         // Click the first row Delete button
         await user.click(screen.getAllByTestId('delete-contact-btn')[0], {
             // https://github.com/testing-library/user-event/issues/922
