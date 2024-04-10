@@ -10,17 +10,25 @@ import {
     Tx_InNode,
     BlockMetadata_InNode,
     ScriptUtxo_InNode,
+    TokenType,
 } from 'chronik-client';
 import { ServerWallet } from '../src/wallet';
+import { SlpInputsAndOutputs } from '../src/transactions';
 import { Request } from 'express';
 
 const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
 const IFP_OUTPUTSCRIPT = 'a914d37c4c809fe9840e7bfa77b86bd47163f6fb6c6087';
 const MOCK_CHECKED_ADDRESS = 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035';
+const MOCK_DESTINATION_ADDRESS =
+    'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx';
 const MOCK_CHECKED_OUTPUTSCRIPT =
     '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac';
 const MOCK_OTHER_CHECKED_OUTPUTSCRIPT =
     '76a914a24e2b67689c3753983d3b408bc7690d31b1b74d88ac';
+const MOCK_TOKENID_ONES =
+    '1111111111111111111111111111111111111111111111111111111111111111';
+const MOCK_TOKENID_TWOS =
+    '2222222222222222222222222222222222222222222222222222222222222222';
 const MOCK_REWARD_TOKENID =
     'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa';
 const MOCK_OTHER_TOKENID =
@@ -64,6 +72,30 @@ const MOCK_SCRIPT_UTXO: ScriptUtxo_InNode = {
     isCoinbase: false,
     value: 546,
     isFinal: true,
+};
+
+const MOCK_TOKEN_TYPE: TokenType = {
+    protocol: 'SLP',
+    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+    number: 1,
+};
+const MOCK_UTXO_TOKEN: Token_InNode = {
+    tokenId: MOCK_TOKENID_ONES,
+    tokenType: MOCK_TOKEN_TYPE,
+    amount: '1',
+    isMintBaton: false,
+};
+const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo_InNode = {
+    ...MOCK_SCRIPT_UTXO,
+    token: MOCK_UTXO_TOKEN,
+};
+const MOCK_MINT_BATON_TOKEN_UTXO: ScriptUtxo_InNode = {
+    ...MOCK_SPENDABLE_TOKEN_UTXO,
+    token: {
+        ...MOCK_UTXO_TOKEN,
+        amount: '0',
+        isMintBaton: true,
+    },
 };
 
 const MOCK_BLOCK_METADATA_INNODE: BlockMetadata_InNode = {
@@ -201,6 +233,29 @@ interface SyncWalletError {
     error: Error;
 }
 
+interface GetSlpInputsAndOutputsVector {
+    returns: GetSlpInputsAndOutputsReturn[];
+    errors: GetSlpInputsAndOutputsError[];
+}
+
+interface GetSlpInputsAndOutputsReturn {
+    description: string;
+    rewardAmountTokenSats: string;
+    destinationAddress: string;
+    tokenId: string;
+    utxos: ScriptUtxo_InNode[];
+    returned: SlpInputsAndOutputs;
+}
+
+interface GetSlpInputsAndOutputsError {
+    description: string;
+    rewardAmountTokenSats: string;
+    destinationAddress: string;
+    tokenId: string;
+    utxos: ScriptUtxo_InNode[];
+    error: Error;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
@@ -210,6 +265,7 @@ interface TestVectors {
     isTokenImageRequest: IsTokenImageRequestVector;
     getWalletFromSeed: GetWalletFromSeedVector;
     syncWallet: SyncWalletVector;
+    getSlpInputsAndOutputs: GetSlpInputsAndOutputsVector;
 }
 
 const vectors: TestVectors = {
@@ -745,6 +801,151 @@ const vectors: TestVectors = {
                     utxos: [],
                 },
                 error: new Error('error from chronik'),
+            },
+        ],
+    },
+    getSlpInputsAndOutputs: {
+        returns: [
+            {
+                description:
+                    'We get expected inputs and outputs if we have sufficient token utxos to exactly cover the reward amount',
+                rewardAmountTokenSats: '3',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                tokenId: MOCK_TOKENID_ONES,
+                utxos: [
+                    MOCK_SPENDABLE_TOKEN_UTXO,
+                    MOCK_SPENDABLE_TOKEN_UTXO,
+                    MOCK_SPENDABLE_TOKEN_UTXO,
+                ],
+                returned: {
+                    slpInputs: [
+                        MOCK_SPENDABLE_TOKEN_UTXO,
+                        MOCK_SPENDABLE_TOKEN_UTXO,
+                        MOCK_SPENDABLE_TOKEN_UTXO,
+                    ],
+                    slpOutputs: [
+                        {
+                            script: new Uint8Array([
+                                106, 4, 83, 76, 80, 0, 1, 1, 4, 83, 69, 78, 68,
+                                32, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+                                17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+                                17, 17, 17, 17, 17, 17, 17, 17, 17, 8, 0, 0, 0,
+                                0, 0, 0, 0, 3,
+                            ]),
+                            value: 0,
+                        },
+                        {
+                            address:
+                                'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx',
+                            value: 546,
+                        },
+                    ],
+                },
+            },
+            {
+                description:
+                    'We get expected inputs and outputs if we have sufficient token utxos to cover the reward amount with change',
+                rewardAmountTokenSats: '3',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                tokenId: MOCK_TOKENID_ONES,
+                utxos: [
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        token: {
+                            ...MOCK_UTXO_TOKEN,
+                            amount: '5',
+                        },
+                    },
+                ],
+                returned: {
+                    slpInputs: [
+                        {
+                            ...MOCK_SPENDABLE_TOKEN_UTXO,
+                            token: {
+                                ...MOCK_UTXO_TOKEN,
+                                amount: '5',
+                            },
+                        },
+                    ],
+                    slpOutputs: [
+                        {
+                            script: new Uint8Array([
+                                106, 4, 83, 76, 80, 0, 1, 1, 4, 83, 69, 78, 68,
+                                32, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+                                17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+                                17, 17, 17, 17, 17, 17, 17, 17, 17, 8, 0, 0, 0,
+                                0, 0, 0, 0, 3, 8, 0, 0, 0, 0, 0, 0, 0, 2,
+                            ]),
+                            value: 0,
+                        },
+                        {
+                            address:
+                                'ecash:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqs7ratqfx',
+                            value: 546,
+                        },
+                        {
+                            value: 546,
+                        },
+                    ],
+                },
+            },
+        ],
+        errors: [
+            {
+                description: 'We have insufficient utxos if we have no utxos',
+                rewardAmountTokenSats: '1',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                tokenId: MOCK_TOKENID_ONES,
+                utxos: [],
+                error: new Error('Insufficient token utxos'),
+            },
+            {
+                description:
+                    'We have insufficient utxos if we have utxos of total amount one less than rewardAmountTokenSats',
+                rewardAmountTokenSats: '3',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                tokenId: MOCK_TOKENID_ONES,
+                utxos: [MOCK_SPENDABLE_TOKEN_UTXO, MOCK_SPENDABLE_TOKEN_UTXO],
+                error: new Error('Insufficient token utxos'),
+            },
+            {
+                description:
+                    'We have insufficient utxos if we have mint batons, eCash utxos, and spendable token utxos of other tokenIds, but not enough spendable utxos for the right token',
+                rewardAmountTokenSats: '5',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                tokenId: MOCK_TOKENID_ONES,
+                utxos: [
+                    MOCK_MINT_BATON_TOKEN_UTXO,
+                    MOCK_SPENDABLE_TOKEN_UTXO,
+                    MOCK_MINT_BATON_TOKEN_UTXO,
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        token: {
+                            ...MOCK_UTXO_TOKEN,
+                            tokenId: MOCK_TOKENID_TWOS,
+                            amount: '5',
+                        },
+                    },
+                ],
+                error: new Error('Insufficient token utxos'),
+            },
+            {
+                description:
+                    'We have insufficient utxos if we have only mint batons, even if they are (somehow) of enough quantity',
+                rewardAmountTokenSats: '1',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                tokenId: MOCK_TOKENID_ONES,
+                utxos: [
+                    {
+                        ...MOCK_MINT_BATON_TOKEN_UTXO,
+                        token: {
+                            ...MOCK_UTXO_TOKEN,
+                            isMintBaton: true,
+                            amount: '5',
+                        },
+                    },
+                ],
+                error: new Error('Insufficient token utxos'),
             },
         ],
     },
