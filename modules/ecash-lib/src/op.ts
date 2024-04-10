@@ -4,7 +4,14 @@
 
 import { Bytes } from './io/bytes.js';
 import { Writer } from './io/writer.js';
-import { OP_PUSHDATA1, OP_PUSHDATA2, OP_PUSHDATA4, Opcode } from './opcode.js';
+import {
+    OP_0,
+    OP_1NEGATE,
+    OP_PUSHDATA1,
+    OP_PUSHDATA2,
+    OP_PUSHDATA4,
+    Opcode,
+} from './opcode.js';
 
 /**
  * A single operation in Bitcoin script, either a singular non-pushop code or
@@ -89,4 +96,30 @@ export function writeOp(op: Op, writer: Writer) {
             }
     }
     writer.putBytes(op.data);
+}
+
+/** Return an Op that minimally pushes the given bytes onto the stack */
+export function pushBytesOp(data: Uint8Array): Op {
+    if (data.length == 0) {
+        return OP_0;
+    } else if (data.length == 1) {
+        if (data[0] >= 1 && data[0] <= 16) {
+            return data[0] + 0x50;
+        } else if (data[0] == 0x81) {
+            return OP_1NEGATE;
+        }
+    }
+    let opcode: Opcode;
+    if (data.length >= 0x01 && data.length <= 0x4b) {
+        opcode = data.length;
+    } else if (data.length >= 0x4c && data.length <= 0xff) {
+        opcode = OP_PUSHDATA1;
+    } else if (data.length >= 0x100 && data.length <= 0xffff) {
+        opcode = OP_PUSHDATA2;
+    } else if (data.length >= 0x10000 && data.length <= 0xffffffff) {
+        opcode = OP_PUSHDATA4;
+    } else {
+        throw 'Bytes way too large';
+    }
+    return { opcode, data };
 }

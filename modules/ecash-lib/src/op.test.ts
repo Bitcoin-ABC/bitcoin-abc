@@ -7,6 +7,10 @@ import { expect } from 'chai';
 import {
     OP_0,
     OP_1,
+    OP_16,
+    OP_1NEGATE,
+    OP_2,
+    OP_3,
     OP_CHECKSIG,
     OP_CODESEPARATOR,
     OP_DUP,
@@ -14,9 +18,13 @@ import {
     OP_EQUALVERIFY,
     OP_HASH160,
     OP_PUSHDATA1,
+    OP_PUSHDATA2,
+    OP_PUSHDATA4,
 } from './opcode.js';
-import { isPushOp, readOp, writeOp } from './op.js';
-import { Bytes, WriterBytes, fromHex, toHex } from './index.js';
+import { isPushOp, pushBytesOp, readOp, writeOp } from './op.js';
+import { fromHex, toHex } from './io/hex.js';
+import { Bytes } from './io/bytes.js';
+import { WriterBytes } from './io/writerbytes.js';
 
 const wrote = (size: number, fn: (writer: WriterBytes) => void) => {
     const writer = new WriterBytes(size);
@@ -222,5 +230,72 @@ describe('Op', () => {
         ).to.throw(
             'Inconsistent PushOp, claims to push 2 bytes but actually has 0 bytes attached',
         );
+    });
+    it('pushBytesOp', () => {
+        // single push opcodes
+        expect(pushBytesOp(new Uint8Array())).to.equal(OP_0);
+        expect(pushBytesOp(new Uint8Array([1]))).to.equal(OP_1);
+        expect(pushBytesOp(new Uint8Array([2]))).to.equal(OP_2);
+        expect(pushBytesOp(new Uint8Array([3]))).to.equal(OP_3);
+        expect(pushBytesOp(new Uint8Array([16]))).to.equal(OP_16);
+        expect(pushBytesOp(new Uint8Array([0x81]))).to.equal(OP_1NEGATE);
+
+        expect(pushBytesOp(new Uint8Array([1, 0]))).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([1, 0]),
+        });
+        expect(pushBytesOp(new Uint8Array([16, 0]))).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([16, 0]),
+        });
+        expect(pushBytesOp(new Uint8Array([0x81, 0]))).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([0x81, 0]),
+        });
+
+        expect(pushBytesOp(new Uint8Array([0]))).to.deep.equal({
+            opcode: 1,
+            data: new Uint8Array([0]),
+        });
+        expect(pushBytesOp(new Uint8Array([17]))).to.deep.equal({
+            opcode: 1,
+            data: new Uint8Array([17]),
+        });
+        expect(pushBytesOp(new Uint8Array([0x80]))).to.deep.equal({
+            opcode: 1,
+            data: new Uint8Array([0x80]),
+        });
+        expect(pushBytesOp(new Uint8Array([0xff]))).to.deep.equal({
+            opcode: 1,
+            data: new Uint8Array([0xff]),
+        });
+
+        for (let size = 2; size <= 0x4b; ++size) {
+            expect(pushBytesOp(new Uint8Array(size))).to.deep.equal({
+                opcode: size,
+                data: new Uint8Array(size),
+            });
+        }
+
+        expect(pushBytesOp(new Uint8Array(0x4c))).to.deep.equal({
+            opcode: OP_PUSHDATA1,
+            data: new Uint8Array(0x4c),
+        });
+        expect(pushBytesOp(new Uint8Array(0xff))).to.deep.equal({
+            opcode: OP_PUSHDATA1,
+            data: new Uint8Array(0xff),
+        });
+        expect(pushBytesOp(new Uint8Array(0x100))).to.deep.equal({
+            opcode: OP_PUSHDATA2,
+            data: new Uint8Array(0x100),
+        });
+        expect(pushBytesOp(new Uint8Array(0xffff))).to.deep.equal({
+            opcode: OP_PUSHDATA2,
+            data: new Uint8Array(0xffff),
+        });
+        expect(pushBytesOp(new Uint8Array(0x10000))).to.deep.equal({
+            opcode: OP_PUSHDATA4,
+            data: new Uint8Array(0x10000),
+        });
     });
 });
