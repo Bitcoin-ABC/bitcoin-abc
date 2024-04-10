@@ -4,6 +4,8 @@
 
 export * from './ecc.js';
 export * from './hash.js';
+export * from './op.js';
+export * from './opcode.js';
 export * from './script.js';
 export * from './tx.js';
 export * from './io/bytes.js';
