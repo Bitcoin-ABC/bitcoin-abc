@@ -94,6 +94,14 @@ templates:
 
       npm ci
 
+      # Test build if this is a typescript app that builds
+      if [ -z "${RUN_NPM_BUILD+x}" ] ; then
+        echo "CI not configured to test build."
+      else
+        echo "CI configured to test build. Building..."
+        npm run build
+      fi
+
       # Make sure the report is available even if the tests fail
       move_junit_report() {
         mv "${MOCHA_JUNIT_PATH}" "${BUILD_DIR}/"
@@ -780,6 +788,7 @@ builds:
     env:
       JS_PROJECT_ROOT: apps/token-server
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
+      RUN_NPM_BUILD: "true"
     templates:
       - js-mocha
 
@@ -806,6 +815,15 @@ builds:
       - modules/chronik-client/
     env:
       JS_PROJECT_ROOT: modules/chronik-client
+    templates:
+      - js-mocha
+
+  ecash-lib-tests:
+    runOnDiffRegex:
+      - modules/ecash-lib/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-lib
+      RUN_NPM_BUILD: "true"
     templates:
       - js-mocha
 
