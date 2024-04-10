@@ -14,6 +14,7 @@ PACKAGES=(
   bison
   bsdmainutils
   build-essential
+  binaryen
   ccache
   cmake
   curl
@@ -185,7 +186,11 @@ RUST_NIGHTLY_DATE=2023-12-29
                                  "aarch64-unknown-linux-gnu" \
                                  "arm-unknown-linux-gnueabihf" \
                                  "x86_64-apple-darwin" \
-                                 "x86_64-pc-windows-gnu"
+                                 "x86_64-pc-windows-gnu" \
+                                 "wasm32-unknown-unknown"
+
+# Install wasm-bindgen to extract type info from .wasm files
+"${RUST_HOME}/cargo" install -f wasm-bindgen-cli@0.2.92
 
 # Install Electrum ABC test dependencies
 here=$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")

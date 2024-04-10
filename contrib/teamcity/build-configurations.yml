@@ -63,6 +63,8 @@ templates:
   #    relative to the repository top level (no trailing /).
   #  - DEPENDS_MOCK_CHRONIK_CLIENT: "true" if these tests require
   #    the mock-chronik-client library, otherwise unset
+  #  - DEPENDS_ECASH_LIB_WASM: "true" if these tests require ecash-lib-wasm
+  #    to be built, otherwise unset
   js-mocha:
     artifacts:
       coverage.tar.gz: coverage.tar.gz
@@ -84,6 +86,15 @@ templates:
         echo "Test depends on mock-chronik-client. Installing mock-chronik-client dependencies..."
         pushd "${TOPLEVEL}/modules/mock-chronik-client"
         npm ci
+      fi
+
+      # Build ecash-lib-wasm for ecash-lib's WebAssembly part
+      if [ -z "${DEPENDS_ECASH_LIB_WASM+x}" ] ; then
+        echo "Test does not depend on ecash-lib-wasm, skipping"
+      else
+        echo "Test depends on ecash-lib-wasm. Building WebAssembly..."
+        pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
+        ./build-wasm.sh
       fi
 
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
@@ -824,6 +835,7 @@ builds:
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       RUN_NPM_BUILD: "true"
+      DEPENDS_ECASH_LIB_WASM: "true"
     templates:
       - js-mocha
 

@@ -2,7 +2,8 @@
     "compilerOptions": {
         /* Language and Environment */
         "target": "es2020",
-        "lib": ["ES2020"],
+        /* ES2020 for bigint, DOM for WebAssemby */
+        "lib": ["ES2020", "DOM"],
         /* Modules */
         "module": "NodeNext",
         "moduleResolution": "NodeNext",

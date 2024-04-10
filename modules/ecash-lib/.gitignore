@@ -12,3 +12,6 @@ test_results/
 
 # compiled ts
 dist/
+
+# compiled WebAssembly
+src/ffi/

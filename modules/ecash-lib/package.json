@@ -5,7 +5,7 @@
     "main": "./dist/index.js",
     "type": "module",
     "scripts": {
-        "build": "tsc",
+        "build": "tsc && cp -r ./src/ffi ./dist",
         "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts",
         "coverage": "nyc npm run test",
         "junit": "npm run test --reporter mocha-junit-reporter"
@@ -30,6 +30,7 @@
         "@istanbuljs/nyc-config-typescript": "^1.0.2",
         "@types/chai": "^4.3.14",
         "@types/mocha": "^10.0.6",
+        "@types/node": "^20.12.7",
         "chai": "^5.1.0",
         "eslint-plugin-header": "^3.1.1",
         "mocha": "^10.4.0",

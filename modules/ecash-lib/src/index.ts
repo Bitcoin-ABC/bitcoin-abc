@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+export * from './ecc.js';
+export * from './hash.js';
 export * from './script.js';
 export * from './tx.js';
 export * from './io/bytes.js';
