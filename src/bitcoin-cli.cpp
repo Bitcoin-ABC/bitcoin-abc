@@ -800,7 +800,7 @@ static UniValue CallRPC(BaseRequestHandler *rh, const std::string &strMethod,
     if (r != 0) {
         throw CConnectionFailed("send http request failed");
     }
-
+    assert(base.get());
     event_base_dispatch(base.get());
 
     if (response.status == 0) {
