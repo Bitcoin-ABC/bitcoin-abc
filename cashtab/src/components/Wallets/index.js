@@ -4,9 +4,7 @@
 
 import React, { useState } from 'react';
 import { WalletContext } from 'wallet/context';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
-    CopyPasteIcon,
     TrashcanIcon,
     EditIcon,
     AddContactIcon,
@@ -16,7 +14,9 @@ import { ModalInput } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import PrimaryButton, {
     SecondaryButton,
-} from 'components/Common/PrimaryButton';
+    IconButton,
+    CopyIconButton,
+} from 'components/Common/Buttons';
 import {
     WalletsList,
     WalletsPanel,
@@ -29,7 +29,6 @@ import {
     SvgButtonPanel,
     WalletBalance,
     ActivateButton,
-    SvgButton,
 } from 'components/Wallets/styles';
 import { getWalletNameError, validateMnemonic } from 'validation';
 import {
@@ -368,26 +367,25 @@ const Wallets = () => {
                                 </ActiveWalletName>
                                 <h4>(active)</h4>
                                 <SvgButtonPanel>
-                                    <CopyToClipboard
+                                    <CopyIconButton
+                                        name={`Copy address of ${wallet.name}`}
                                         data={wallet.paths.get(1899).address}
                                         showToast
-                                    >
-                                        <CopyPasteIcon />
-                                    </CopyToClipboard>
-                                    <SvgButton
+                                    />
+                                    <IconButton
+                                        name={`Rename ${wallet.name}`}
+                                        icon={<EditIcon />}
                                         onClick={() =>
                                             setWalletToBeRenamed(wallet)
                                         }
-                                    >
-                                        <EditIcon />
-                                    </SvgButton>
-                                    <SvgButton
+                                    />
+                                    <IconButton
+                                        name={`Add ${wallet.name} to contacts`}
+                                        icon={<AddContactIcon />}
                                         onClick={() =>
                                             addWalletToContacts(wallet)
                                         }
-                                    >
-                                        <AddContactIcon />
-                                    </SvgButton>
+                                    />
                                 </SvgButtonPanel>
                             </WalletRow>
                         ) : (
@@ -410,38 +408,38 @@ const Wallets = () => {
                                 <ActionsRow>
                                     <ButtonPanel>
                                         <SvgButtonPanel>
-                                            <CopyToClipboard
+                                            <CopyIconButton
+                                                name={`Copy address of ${wallet.name}`}
                                                 data={
                                                     wallet.paths.get(1899)
                                                         .address
                                                 }
                                                 showToast
-                                            >
-                                                <CopyPasteIcon />
-                                            </CopyToClipboard>
-                                            <SvgButton
+                                            />
+                                            <IconButton
+                                                name={`Rename ${wallet.name}`}
+                                                icon={<EditIcon />}
                                                 onClick={() =>
                                                     setWalletToBeRenamed(wallet)
                                                 }
-                                            >
-                                                <EditIcon />
-                                            </SvgButton>
-                                            <SvgButton
+                                            />
+                                            <IconButton
+                                                name={`Add ${wallet.name} to contacts`}
+                                                icon={<AddContactIcon />}
                                                 onClick={() =>
                                                     addWalletToContacts(wallet)
                                                 }
-                                            >
-                                                <AddContactIcon />
-                                            </SvgButton>
-                                            <SvgButton
+                                            />
+                                            <IconButton
+                                                name={`Delete ${wallet.name}`}
+                                                icon={<TrashcanIcon />}
                                                 onClick={() =>
                                                     setWalletToBeDeleted(wallet)
                                                 }
-                                            >
-                                                <TrashcanIcon />
-                                            </SvgButton>
+                                            />
                                         </SvgButtonPanel>
                                         <ActivateButton
+                                            aria-label={`Activate ${wallet.name}`}
                                             onClick={() =>
                                                 activateWallet(wallet, wallets)
                                             }

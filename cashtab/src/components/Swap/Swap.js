@@ -4,7 +4,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import PrimaryButton from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/Buttons';
 import { isValidSideshiftObj } from 'validation';
 import { AlertMsg } from 'components/Common/Atoms';
 

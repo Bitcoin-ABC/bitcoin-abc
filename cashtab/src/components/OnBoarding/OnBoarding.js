@@ -6,9 +6,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import { Input, InputFlex } from 'components/Common/Inputs';
-import PrimaryButton, {
-    SecondaryButton,
-} from 'components/Common/PrimaryButton';
+import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { validateMnemonic } from 'validation';
 import appConfig from 'config/app';

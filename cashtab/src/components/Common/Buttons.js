@@ -2,8 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import React from 'react';
 import styled, { css } from 'styled-components';
 import { Link } from 'react-router-dom';
+import { CopyPasteIcon } from 'components/Common/CustomIcons';
+import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 
 const BaseButtonOrLinkCss = css`
     font-size: 24px;
@@ -95,5 +99,80 @@ const SecondaryLink = styled(CashtabBaseLink)`
     }
 `;
 
+const SvgButtonOrLinkCss = css`
+    border: none;
+    background: none;
+    cursor: pointer;
+    svg {
+        height: 24px;
+        width: 24px;
+        fill: ${props => props.theme.eCashBlue};
+    }
+`;
+const SvgButton = styled.button`
+    ${SvgButtonOrLinkCss}
+`;
+
+const IconButton = ({ name, icon, onClick }) => (
+    <SvgButton aria-label={name} onClick={onClick}>
+        {icon}
+    </SvgButton>
+);
+IconButton.propTypes = {
+    name: PropTypes.string,
+    icon: PropTypes.node,
+    onClick: PropTypes.func,
+};
+
+const SvgLink = styled(Link)`
+    ${SvgButtonOrLinkCss}
+`;
+
+const IconLink = ({ name, icon, to, state }) => (
+    <SvgLink aria-label={name} to={to} state={state}>
+        {icon}
+    </SvgLink>
+);
+IconLink.propTypes = {
+    name: PropTypes.string,
+    icon: PropTypes.node,
+    to: PropTypes.string,
+    state: PropTypes.object,
+};
+
+const CopyIconButton = ({
+    name,
+    data,
+    showToast = false,
+    customMsg = false,
+}) => {
+    return (
+        <SvgButton
+            aria-label={name}
+            onClick={() => {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(data);
+                }
+                if (showToast) {
+                    const toastMsg = customMsg
+                        ? customMsg
+                        : `"${data}" copied to clipboard`;
+                    toast.success(toastMsg);
+                }
+            }}
+        >
+            <CopyPasteIcon />
+        </SvgButton>
+    );
+};
+
+CopyIconButton.propTypes = {
+    name: PropTypes.string,
+    data: PropTypes.string,
+    showToast: PropTypes.bool,
+    customMsg: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
+    children: PropTypes.node,
+};
+
 export default PrimaryButton;
-export { SecondaryButton, SecondaryLink };
+export { SecondaryButton, SecondaryLink, IconButton, IconLink, CopyIconButton };

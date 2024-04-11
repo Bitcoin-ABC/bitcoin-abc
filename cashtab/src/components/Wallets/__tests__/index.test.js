@@ -126,8 +126,11 @@ describe('<Wallets />', () => {
         expect((await screen.findAllByText('alpha'))[1]).toBeInTheDocument();
 
         // Click button to add this saved wallet to contacts
-        // Note we want index 1 of these buttons, as index 0 is the active wallet
-        await user.click(screen.getAllByTitle('add-contact')[1]);
+        await user.click(
+            screen.getByRole('button', {
+                name: /Add alpha to contacts/i,
+            }),
+        );
 
         // Confirm new wallet added to contacts
         await waitFor(async () =>
@@ -141,6 +144,48 @@ describe('<Wallets />', () => {
                 `${addedSavedWalletContact.name} (${addedSavedWalletContact.address}) added to Contact List`,
             ),
         ).toBeInTheDocument();
+    });
+    it('We can copy the address of a savedWallet to the clipboard', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+
+        // Custom contact list
+        await localforage.setItem('contactList', populatedContactList);
+
+        const savedWallet = validSavedWallets[0];
+
+        await localforage.setItem('wallets', [
+            walletWithXecAndTokens,
+            savedWallet,
+        ]);
+
+        render(<CashtabTestWrapper chronik={mockedChronik} route="/wallets" />);
+
+        // Wait for the app to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // Click button to add this saved wallet to contacts
+        await user.click(
+            screen.getByRole('button', {
+                name: /Copy address of alpha/i,
+            }),
+        );
+
+        // Confirm copy success notification is triggered
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    `"ecash:qzs4zzxs0gvfrc6e2wqhkmvj4dmmh332cvfpd7yjep" copied to clipboard`,
+                ),
+            ).toBeInTheDocument();
+        });
     });
     it('Confirm mocked bip39.generateMnemonic() returns the expected seed', () => {
         expect(bip39.generateMnemonic()).toBe(
@@ -188,7 +233,11 @@ describe('<Wallets />', () => {
         expect((await screen.findAllByText('echo'))[1]).toBeInTheDocument();
 
         // Let's rename alpha. Its button will be the second edit button, as the first is for the active wallet.
-        await user.click(screen.getAllByTitle('edit')[1]);
+        await user.click(
+            screen.getByRole('button', {
+                name: /Rename alpha/i,
+            }),
+        );
 
         // We see a modal.
         expect(await screen.findByText(`Rename "alpha"?`)).toBeInTheDocument();
@@ -229,7 +278,11 @@ describe('<Wallets />', () => {
         ).toBeInTheDocument();
 
         // Now let's rename the active wallet
-        await user.click(screen.getAllByTitle('edit')[0]);
+        await user.click(
+            screen.getByRole('button', {
+                name: /Rename Transaction Fixtures/i,
+            }),
+        );
 
         await user.type(
             await screen.findByPlaceholderText('Enter new wallet name'),
@@ -256,7 +309,11 @@ describe('<Wallets />', () => {
         // We can delete a wallet
         // Delete the first wallet in the savedWallets list
         // It's the first appearance of the trashcan button bc we do not support deleting the active wallet
-        await user.click(screen.getAllByTitle('trashcan')[0]);
+        await user.click(
+            screen.getByRole('button', {
+                name: /Delete ALPHA PRIME/i,
+            }),
+        );
 
         // We see a confirmation modal
         expect(
@@ -411,10 +468,10 @@ describe('<Wallets />', () => {
 
         // We can change the active wallet
 
-        // Activate the first wallet in the list
+        // Activate bravo
         // Since ALPHA PRIME has been deleted, "bravo" is the first wallet in the list
         await user.click(
-            screen.getAllByRole('button', { name: 'Activate' })[0],
+            screen.getByRole('button', { name: /Activate bravo/ }),
         );
 
         // Now "bravo" is the active wallet

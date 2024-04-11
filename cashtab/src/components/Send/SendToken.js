@@ -5,9 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
-import PrimaryButton, {
-    SecondaryButton,
-} from 'components/Common/PrimaryButton';
+import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { TxLink, SwitchLabel } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';

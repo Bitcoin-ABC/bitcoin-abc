@@ -3,11 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
-    CopyPasteIcon,
     TrashcanIcon,
     EditIcon,
     SendIcon,
@@ -17,7 +14,10 @@ import { ModalInput, InputFlex } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import PrimaryButton, {
     SecondaryButton,
-} from 'components/Common/PrimaryButton';
+    IconButton,
+    IconLink,
+    CopyIconButton,
+} from 'components/Common/Buttons';
 import { getContactAddressError, getContactNameError } from 'validation';
 import {
     ContactList,
@@ -26,7 +26,6 @@ import {
     ButtonRow,
     ContactListName,
     ButtonPanel,
-    SvgButton,
 } from 'components/Contacts/styles';
 
 const Contacts = () => {
@@ -294,36 +293,33 @@ const Contacts = () => {
                                     {contact.name}
                                 </ContactListName>
                                 <ButtonPanel>
-                                    <CopyToClipboard
+                                    <CopyIconButton
+                                        name={`Copy ${contact.name}`}
                                         data={contact.address}
                                         showToast
-                                    >
-                                        <CopyPasteIcon />
-                                    </CopyToClipboard>
-                                    <SvgButton
-                                        aria-label={`Rename ${contact.name}`}
+                                    />
+                                    <IconButton
+                                        name={`Rename ${contact.name}`}
+                                        icon={<EditIcon />}
                                         onClick={() =>
                                             setContactToBeRenamed(contact)
                                         }
-                                    >
-                                        <EditIcon />
-                                    </SvgButton>
-                                    <Link
+                                    />
+                                    <IconLink
+                                        name={`Send to ${contact.name}`}
+                                        icon={<SendIcon />}
                                         to="/send"
                                         state={{
                                             contactSend: contact.address,
                                         }}
-                                    >
-                                        <SendIcon />
-                                    </Link>
-                                    <SvgButton
-                                        aria-label={`Delete ${contact.name}`}
+                                    />
+                                    <IconButton
+                                        name={`Delete ${contact.name}`}
+                                        icon={<TrashcanIcon />}
                                         onClick={() =>
                                             setContactToBeDeleted(contact)
                                         }
-                                    >
-                                        <TrashcanIcon />
-                                    </SvgButton>
+                                    />
                                 </ButtonPanel>
                             </Row>
                         ))

@@ -14,7 +14,7 @@ import {
     isValidTokenDocumentUrl,
     isProbablyNotAScam,
 } from 'validation';
-import PrimaryButton from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/Buttons';
 import {
     Input,
     SendTokenInput,

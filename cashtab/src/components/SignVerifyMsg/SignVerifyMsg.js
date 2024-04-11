@@ -8,9 +8,7 @@ import { TextArea, Input } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { WalletContext } from 'wallet/context';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
-import PrimaryButton, {
-    SecondaryButton,
-} from 'components/Common/PrimaryButton';
+import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import xecMessage from 'bitcoinjs-message';
 import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';

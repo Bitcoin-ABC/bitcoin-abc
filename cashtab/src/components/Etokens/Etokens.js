@@ -10,7 +10,7 @@ import TokenList from './TokenList';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
-import { PrimaryLink } from 'components/Common/PrimaryButton';
+import { PrimaryLink } from 'components/Common/Buttons';
 
 const EtokensCtn = styled.div`
     color: ${props => props.theme.contrast};

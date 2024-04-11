@@ -7,7 +7,7 @@ import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import PropTypes from 'prop-types';
 import { AlertMsg } from 'components/Common/Atoms';
-import PrimaryButton from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/Buttons';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
 import { meetsAliasSpec } from 'validation';

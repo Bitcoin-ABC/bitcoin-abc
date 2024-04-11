@@ -13,11 +13,6 @@ export const WalletsList = styled.div`
     align-items: center;
     gap: 12px;
     color: ${props => props.theme.contrast};
-    svg {
-        height: 24px;
-        width: 24px;
-        fill: ${props => props.theme.eCashBlue};
-    }
     box-sizing: border-box;
     *,
     *:before,
@@ -63,7 +58,6 @@ export const ActiveWalletName = styled(WalletName)`
 
 export const SvgButtonPanel = styled.div`
     display: flex;
-    gap: 9px;
     align-items: baseline;
 `;
 export const ButtonPanel = styled.div`
@@ -71,11 +65,6 @@ export const ButtonPanel = styled.div`
     gap: 9px;
     align-items: center;
     justify-content: center;
-`;
-export const SvgButton = styled.div`
-    border: none;
-    background: none;
-    cursor: pointer;
 `;
 
 export const WalletBalance = styled.div`

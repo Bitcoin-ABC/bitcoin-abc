@@ -7,7 +7,7 @@ import { useLocation } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
 import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
-import PrimaryButton from 'components/Common/PrimaryButton';
+import PrimaryButton from 'components/Common/Buttons';
 import { toSatoshis, toXec } from 'wallet';
 import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
 import { sumOneToManyXec } from 'utils/cashMethods';

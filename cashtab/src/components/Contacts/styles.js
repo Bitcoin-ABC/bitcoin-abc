@@ -13,11 +13,6 @@ export const ContactList = styled.div`
     align-items: center;
     gap: 12px;
     color: ${props => props.theme.contrast};
-    svg {
-        height: 24px;
-        width: 24px;
-        fill: ${props => props.theme.eCashBlue};
-    }
     box-sizing: border-box;
     *,
     *:before,
@@ -63,10 +58,4 @@ export const ButtonPanel = styled.div`
     display: flex;
     gap: 9px;
     align-items: baseline;
-`;
-
-export const SvgButton = styled.button`
-    border: none;
-    background: none;
-    cursor: pointer;
 `;

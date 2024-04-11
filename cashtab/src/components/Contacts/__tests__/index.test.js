@@ -117,7 +117,23 @@ describe('<Contacts />', () => {
         // Contacts component is rendered
         expect(screen.getByTitle('Contacts')).toBeInTheDocument();
 
-        // Click the first row Delete button
+        // We can copy a contact's address to the clipboard
+        await user.click(
+            screen.getByRole('button', {
+                name: /Copy alpha/i,
+            }),
+        );
+
+        // Confirm copy success notification is triggered
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    `"ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6" copied to clipboard`,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Delete the first saved wallet, "alpha"
         await user.click(
             screen.getByRole('button', {
                 name: /Delete alpha/i,
@@ -281,7 +297,11 @@ describe('<Contacts />', () => {
         );
 
         // Click the first row Send button
-        await user.click(screen.getAllByTitle('tx-sent')[0]);
+        await user.click(
+            screen.getByRole('link', {
+                name: /Send to alpha/i,
+            }),
+        );
 
         // Now we are on the SendXec page and the address field is filled out
         expect(screen.getByPlaceholderText('Address')).toHaveValue(

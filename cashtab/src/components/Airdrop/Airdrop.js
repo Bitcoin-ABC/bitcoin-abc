@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import { BN } from 'slp-mdm';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
-import PrimaryButton, { SecondaryLink } from 'components/Common/PrimaryButton';
+import PrimaryButton, { SecondaryLink } from 'components/Common/Buttons';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import { getMintAddress } from 'chronik';
 import {
