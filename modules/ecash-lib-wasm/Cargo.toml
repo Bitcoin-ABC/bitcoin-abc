@@ -6,7 +6,11 @@
 name = "ecash-lib-wasm"
 version = "0.1.0"
 edition = "2021"
-rust-version.workspace = true
+rust-version = "1.76.0"
+
+[workspace]
+# Not a workspace member
+members = []
 
 [lib]
 crate-type = ["cdylib"]
@@ -32,3 +36,8 @@ git = "https://github.com/raipay/secp256k1-abc"
 rev = "b23e742"
 default-features = false
 features = ["alloc"]
+
+[profile.release-wasm]
+inherits = "release"
+lto = true
+opt-level = "z"

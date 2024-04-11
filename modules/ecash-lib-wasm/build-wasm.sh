@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 export LC_ALL=C.UTF-8
 
+# shellcheck source=/dev/null
+source "${HOME}/.cargo/env"
+
 # Build wasm
 CARGO_TARGET_DIR=./target \
 CFLAGS="-Wno-pointer-sign -Wno-implicit-function-declaration" \

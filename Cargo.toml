@@ -15,13 +15,7 @@ members = [
     "chronik/chronik-plugin",
     "chronik/chronik-proto",
     "chronik/chronik-util",
-    "modules/ecash-lib-wasm",
 ]
 
 [workspace.package]
 rust-version = "1.76.0"
-
-[profile.release-wasm]
-inherits = "release"
-lto = true
-opt-level = "z"
