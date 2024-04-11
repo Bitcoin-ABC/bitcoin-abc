@@ -176,10 +176,17 @@ const SendToken = () => {
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
-    const [showSend, setShowSend] = useState(true);
-    const [showBurn, setShowBurn] = useState(false);
-    const [showAirdrop, setShowAirdrop] = useState(false);
-    const [showMint, setShowMint] = useState(false);
+
+    // By default, we load the app with all switches disabled
+    // For SLP v1 tokens, we want showSend to be enabled by default
+    // But we may not want this to be default for other token types in the future
+    const switchesOff = {
+        showSend: false,
+        showAirdrop: false,
+        showBurn: false,
+        showMint: false,
+    };
+    const [switches, setSwitches] = useState(switchesOff);
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
     const defaultUncachedTokenInfo = {
         circulatingSupply: null,
@@ -239,6 +246,10 @@ const SendToken = () => {
     useEffect(() => {
         // Get token info that is not practical to cache as it is subject to change
         getUncachedTokenInfo();
+
+        // Set the Send switch to on by default
+        // TODO handle other token types and other default settings
+        setSwitches(prev => ({ ...prev, showSend: true }));
     }, []);
 
     useEffect(() => {
@@ -810,25 +821,23 @@ const SendToken = () => {
                         <SendTokenForm>
                             <SwitchHolder>
                                 <Switch
-                                    name="send-switch"
+                                    name="Toggle Send"
                                     on="➡️"
                                     off="➡️"
-                                    checked={showSend}
+                                    checked={switches.showSend}
                                     handleToggle={() => {
-                                        if (!showSend) {
-                                            // Make sure all other switches are off
-                                            setShowAirdrop(false);
-                                            setShowBurn(false);
-                                            setShowMint(false);
-                                        }
-                                        setShowSend(!showSend);
+                                        // We turn everything else off, whether we are turning this one on or off
+                                        setSwitches({
+                                            ...switchesOff,
+                                            showSend: !switches.showSend,
+                                        });
                                     }}
                                 />
                                 <SwitchLabel>
                                     Send {tokenName} ({tokenTicker})
                                 </SwitchLabel>
                             </SwitchHolder>
-                            {showSend && (
+                            {switches.showSend && (
                                 <>
                                     <SendTokenFormRow>
                                         <InputRow>
@@ -896,25 +905,23 @@ const SendToken = () => {
                             )}
                             <SwitchHolder>
                                 <Switch
-                                    name="airdrop-switch"
+                                    name="Toggle Airdrop"
                                     on="🪂"
                                     off="🪂"
-                                    checked={showAirdrop}
-                                    handleToggle={() => {
-                                        if (!showAirdrop) {
-                                            // Make sure all other switches are off
-                                            setShowBurn(false);
-                                            setShowSend(false);
-                                            setShowMint(false);
-                                        }
-                                        setShowAirdrop(!showAirdrop);
-                                    }}
+                                    checked={switches.showAirdrop}
+                                    handleToggle={() =>
+                                        // We turn everything else off, whether we are turning this one on or off
+                                        setSwitches({
+                                            ...switchesOff,
+                                            showAirdrop: !switches.showAirdrop,
+                                        })
+                                    }
                                 />
                                 <SwitchLabel>
                                     Airdrop XEC to {tokenTicker} holders
                                 </SwitchLabel>
                             </SwitchHolder>
-                            {showAirdrop && (
+                            {switches.showAirdrop && (
                                 <TokenStatsRow>
                                     <Link
                                         style={{ width: '100%' }}
@@ -936,20 +943,18 @@ const SendToken = () => {
                                     name="Toggle Burn"
                                     on="🔥"
                                     off="🔥"
-                                    checked={showBurn}
-                                    handleToggle={() => {
-                                        if (!showBurn) {
-                                            // Make sure all other switches are off
-                                            setShowAirdrop(false);
-                                            setShowSend(false);
-                                            setShowMint(false);
-                                        }
-                                        setShowBurn(!showBurn);
-                                    }}
+                                    checked={switches.showBurn}
+                                    handleToggle={() =>
+                                        // We turn everything else off, whether we are turning this one on or off
+                                        setSwitches({
+                                            ...switchesOff,
+                                            showBurn: !switches.showBurn,
+                                        })
+                                    }
                                 />
                                 <SwitchLabel>Burn {tokenTicker}</SwitchLabel>
                             </SwitchHolder>
-                            {showBurn && (
+                            {switches.showBurn && (
                                 <TokenStatsRow>
                                     <InputFlex>
                                         <SendTokenInput
@@ -982,16 +987,14 @@ const SendToken = () => {
                                     on="⚗️"
                                     off="⚗️"
                                     disabled={mintBatons.length === 0}
-                                    checked={showMint}
-                                    handleToggle={() => {
-                                        if (!showMint) {
-                                            // Make sure all other switches are off
-                                            setShowAirdrop(false);
-                                            setShowBurn(false);
-                                            setShowSend(false);
-                                        }
-                                        setShowMint(!showMint);
-                                    }}
+                                    checked={switches.showMint}
+                                    handleToggle={() =>
+                                        // We turn everything else off, whether we are turning this one on or off
+                                        setSwitches({
+                                            ...switchesOff,
+                                            showMint: !switches.showMint,
+                                        })
+                                    }
                                 />
                                 <SwitchLabel>
                                     Mint
@@ -1000,7 +1003,7 @@ const SendToken = () => {
                                         : ''}
                                 </SwitchLabel>
                             </SwitchHolder>
-                            {showMint && (
+                            {switches.showMint && (
                                 <TokenStatsRow>
                                     <InputFlex>
                                         <SendTokenInput

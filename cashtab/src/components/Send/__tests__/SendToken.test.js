@@ -488,8 +488,33 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
+        // The send switch is turned on by default
+        expect(screen.getByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
         // Click the burn switch to show the burn interface
         await user.click(screen.getByTitle('Toggle Burn'));
+
+        // The burn switch is turned on
+        expect(screen.getByTitle('Toggle Burn')).toHaveProperty(
+            'checked',
+            true,
+        );
+        // Confirm that turning Burn on turns all other switches off
+        expect(screen.getByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            false,
+        );
+        expect(screen.getByTitle('Toggle Airdrop')).toHaveProperty(
+            'checked',
+            false,
+        );
+        expect(screen.getByTitle('Toggle Mint')).toHaveProperty(
+            'checked',
+            false,
+        );
 
         await user.type(screen.getByPlaceholderText('Burn Amount'), '1');
 
