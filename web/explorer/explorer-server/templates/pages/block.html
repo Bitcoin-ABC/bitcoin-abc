@@ -147,14 +147,6 @@ footer_classes %}hidden{% endblock %} {% block content %}
                 <table class="ui very basic collapsing celled table">
                     <tbody>
                         <tr>
-                            <td>Header</td>
-                            <td>
-                                <div class="hex">
-                                    {{ block_header|hexify_u8_vector }}
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
                             <td>Coinbase data</td>
                             <td>{{ coinbase_data|string_from_lossy_utf8 }}</td>
                         </tr>

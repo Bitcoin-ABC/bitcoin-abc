@@ -21,7 +21,6 @@ pub struct BlocksTemplate {
 #[template(path = "pages/block.html")]
 pub struct BlockTemplate<'a> {
     pub block_hex: &'a str,
-    pub block_header: Vec<u8>,
     pub block_info: BlockInfo,
     pub confirmations: i32,
     pub timestamp: DateTime<chrono::Utc>,

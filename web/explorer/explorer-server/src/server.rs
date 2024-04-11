@@ -212,7 +212,6 @@ impl Server {
 
         let block_template = BlockTemplate {
             block_hex,
-            block_header: block.raw_header,
             block_info,
             confirmations,
             timestamp,
