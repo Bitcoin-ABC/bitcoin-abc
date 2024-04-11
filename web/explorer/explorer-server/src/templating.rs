@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use askama::Template;
 use bitcoinsuite_chronik_client::proto::{
-    BlockInfo, SlpGenesisInfo, SlpMeta, SlpTokenType, SlpTxType, Token, Tx,
-    Utxo,
+    BlockInfo, SlpGenesisInfo, SlpMeta, Token, Tx, Utxo,
 };
 use chrono::{DateTime, Utc};
 
@@ -49,6 +48,8 @@ pub struct TransactionTemplate<'a> {
     pub sats_output: i64,
     pub token_input: i128,
     pub token_output: i128,
+    pub action_str: &'a str,
+    pub specification: &'a str,
 }
 
 #[derive(Template)]

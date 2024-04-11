@@ -264,7 +264,11 @@ impl Server {
 
         let token_hex = token_id.as_ref().map(|token| token.to_hex_be());
 
-        let token_section_title: Cow<str> = match &tx.slp_tx_data {
+        let (token_section_title, action_str, specification): (
+            Cow<str>,
+            Cow<str>,
+            Cow<str>,
+        ) = match &tx.slp_tx_data {
             Some(slp_tx_data) => {
                 let slp_meta =
                     slp_tx_data.slp_meta.as_ref().expect("Impossible");
@@ -302,13 +306,36 @@ impl Server {
                     _ => "Unknown",
                 };
 
-                format!("Token Details ({} Transaction)", action_str).into()
+                let specification = match token_type {
+                    SlpTokenType::Fungible => {
+                        "https://github.com/simpleledger/\
+                         slp-specifications/blob/master/\
+                         slp-token-type-1.md"
+                    }
+                    SlpTokenType::Nft1Group
+                    | SlpTokenType::Nft1Child => {
+                        "https://github.com/simpleledger/\
+                         slp-specifications/blob/master/slp-nft-1.md"
+                    }
+                    _ => "Unknown",
+                };
+
+                (
+                    format!("Token Details ({} Transaction)", action_str)
+                        .into(),
+                    action_str.into(),
+                    specification.into(),
+                )
             }
             None => {
                 if tx.slp_error_msg.is_empty() {
-                    "Token Details (Invalid Transaction)".into()
+                    (
+                        "Token Details (Invalid Transaction)".into(),
+                        "Unknown".into(),
+                        "Unknown".into(),
+                    )
                 } else {
-                    "".into()
+                    ("".into(), "Unknown".into(), "Unknown".into())
                 }
             }
         };
@@ -353,6 +380,8 @@ impl Server {
             raw_tx,
             confirmations,
             timestamp,
+            action_str: &action_str,
+            specification: &specification,
         };
 
         Ok(transaction_template.render().unwrap())

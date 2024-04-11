@@ -13,38 +13,12 @@ match slp_genesis_info %} {% when Some with (genesis_info) %}
 
     <div class="tx-details-row">
         <div>Token Type</div>
-        <div>
-            {% match slp_meta %} {% when Some with (slp_meta) %} {% match
-            slp_meta.token_type() %} {% when SlpTokenType::Fungible %} Type1 (<a
-                href="https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md"
-                >Specification</a
-            >) {% when SlpTokenType::Nft1Group %} NFT1 Group (<a
-                href="https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md"
-                >Specification</a
-            >) {% when SlpTokenType::Nft1Child %} NFT1 Child (<a
-                href="https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md"
-                >Specification</a
-            >) {% when _ %} Unknown {% endmatch %} {% when None %} Unknown {%
-            endmatch %}
-        </div>
+        <div>{{ specification }}</div>
     </div>
 
     <div class="tx-details-row">
         <div>Transaction Type</div>
-        <div>
-            {% match slp_meta %} {% when Some with (slp_meta) %} {% match
-            slp_meta.token_type() %} {% when SlpTokenType::Fungible %} {% match
-            slp_meta.tx_type() %} {% when SlpTxType::Genesis %} GENESIS {% when
-            SlpTxType::Mint %} MINT {% when SlpTxType::Send %} SEND {% when _ %}
-            {% endmatch %} {% when SlpTokenType::Nft1Group %} {% match
-            slp_meta.tx_type() %} {% when SlpTxType::Genesis %} NFT1 GROUP
-            GENESIS {% when SlpTxType::Mint %} NFT1 GROUP MINT {% when
-            SlpTxType::Send %} NFT1 GROUP SEND {% when _ %} {% endmatch %} {%
-            when SlpTokenType::Nft1Child %} {% match slp_meta.tx_type() %} {%
-            when SlpTxType::Genesis %} NFT1 Child GENESIS {% when
-            SlpTxType::Send %} NFT1 Child SEND {% when _ %} {% endmatch %} {%
-            when _ %} Unknown {% endmatch %} {% when None %} {% endmatch %}
-        </div>
+        <div>{{ action_str }}</div>
     </div>
 </div>
 
