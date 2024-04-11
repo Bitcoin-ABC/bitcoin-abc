@@ -3,7 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React from 'react';
-import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import {
+    walletWithXecAndTokens,
+    MOCK_CHRONIK_TOKEN_CALL,
+    MOCK_CHRONIK_GENESIS_TX_CALL,
+} from 'components/App/fixtures/mocks';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
@@ -135,10 +139,43 @@ describe('<CreateTokenForm />', () => {
         );
     });
     it('User can create a token with a mint baton', async () => {
+        const createdTokenId =
+            'a34382e000eed02f749ab6a9e8de37e25e7565f016707dc81460ce63167ee1c2';
+        // Mock a utxo of the not-yet-created token so we can test the redirect
+        const MOCK_UTXO_FOR_BALANCE = {
+            token: {
+                tokenId: createdTokenId,
+                isMintBaton: false,
+                amount: '10',
+            },
+        };
         const mockedChronik = await initializeCashtabStateForTests(
-            walletWithXecAndTokens,
+            {
+                ...walletWithXecAndTokens,
+                state: {
+                    ...walletWithXecAndTokens.state,
+                    slpUtxos: [
+                        ...walletWithXecAndTokens.state.slpUtxos,
+                        MOCK_UTXO_FOR_BALANCE,
+                    ],
+                },
+            },
             localforage,
         );
+
+        // Mock the not-yet-created token's tokeninfo and utxo calls to test the redirect
+        mockedChronik.setMock('token', {
+            input: createdTokenId,
+            output: MOCK_CHRONIK_TOKEN_CALL,
+        });
+        mockedChronik.setMock('tx', {
+            input: createdTokenId,
+            output: MOCK_CHRONIK_GENESIS_TX_CALL,
+        });
+        mockedChronik.setTokenId(createdTokenId);
+        mockedChronik.setUtxosByTokenId(createdTokenId, {
+            utxos: [MOCK_UTXO_FOR_BALANCE],
+        });
         // Add tx mock to mockedChronik
         const hex =
             '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402205e54e8ef3c0912b2bbeda364c1b15298e235d91eca3f8e02395fe5f07a406ee70220482d820793356ba8c3012ac2bd6630c8daa88c443111d8f9ee93785937d48f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c000102010208000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac227d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
@@ -197,5 +234,8 @@ describe('<CreateTokenForm />', () => {
             'href',
             `${explorer.blockExplorerUrl}/tx/${txid}`,
         );
+
+        // We are sent to its token-action page
+        expect(await screen.findByTitle('Token Stats')).toBeInTheDocument();
     });
 });

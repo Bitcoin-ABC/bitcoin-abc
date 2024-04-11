@@ -2394,3 +2394,107 @@ export const populatedContactList = [
         name: 'gamma',
     },
 ];
+
+export const MOCK_CHRONIK_TOKEN_CALL = {
+    tokenId: '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
+    tokenType: {
+        protocol: 'SLP',
+        type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+        number: 1,
+    },
+    timefirstSeen: 0,
+    genesisInfo: {
+        tokenTicker: 'CGEN',
+        tokenName: 'Cashtab Genesis',
+        url: 'https://boomertakes.com/',
+        decimals: 9,
+        hash: '',
+    },
+    block: {
+        height: 684837,
+        hash: '00000000000000001d065fdd22416c4e8e99803964f4fb9c91af6feb5ead5ff3',
+        timestamp: 1620082584,
+    },
+};
+
+export const MOCK_CHRONIK_GENESIS_TX_CALL = {
+    txid: '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
+    version: 2,
+    inputs: [
+        {
+            prevOut: {
+                txid: '11ae0a8c62deeadbffe82ddea823e731dba7172a672bd98628bf8bd3c0e15b50',
+                outIdx: 3,
+            },
+            inputScript:
+                '473044022009777275694aab45f8c5589308b8f525c4b9b7f0b0a4b80b01531988313e92fc02206e7f0afa725f407f59f85482f26ea20a70c5fe533c0592c95733a4418054c025412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+            value: 1497156989,
+            sequenceNo: 4294967295,
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+        },
+    ],
+    outputs: [
+        {
+            value: 0,
+            outputScript:
+                '6a04534c500001010747454e45534953044347454e0f436173687461622047656e657369731868747470733a2f2f626f6f6d657274616b65732e636f6d2f4c0001094c000800038d7ea4c68000',
+        },
+        {
+            value: 546,
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            token: {
+                tokenId:
+                    '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                    number: 1,
+                },
+                amount: '1000000000000000',
+                isMintBaton: false,
+                entryIdx: 0,
+            },
+            spentBy: {
+                txid: '4f5af8d3dc9d1fb3dc803a80589cab62c78235264aa90e4f8066b7960804cd74',
+                outIdx: 1,
+            },
+        },
+        {
+            value: 1497155685,
+            outputScript: '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            spentBy: {
+                txid: '0916e71779c9de7ee125741d3f5ab01f556356dbc86fd327a24f1e9e22ebc917',
+                outIdx: 0,
+            },
+        },
+    ],
+    lockTime: 0,
+    timeFirstSeen: 0,
+    size: 311,
+    isCoinbase: false,
+    tokenEntries: [
+        {
+            tokenId:
+                '16b12bbacdbb8c8a799adbfd782bfff9843c1f9b0be148eaae02a1a7f74f95c4',
+            tokenType: {
+                protocol: 'SLP',
+                type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                number: 1,
+            },
+            txType: 'GENESIS',
+            isInvalid: false,
+            burnSummary: '',
+            failedColorings: [],
+            actualBurnAmount: '0',
+            intentionalBurn: '0',
+            burnsMintBatons: false,
+        },
+    ],
+    tokenFailedParsings: [],
+    tokenStatus: 'TOKEN_STATUS_NORMAL',
+    block: {
+        height: 684837,
+        hash: '00000000000000001d065fdd22416c4e8e99803964f4fb9c91af6feb5ead5ff3',
+        timestamp: 1620082584,
+    },
+};

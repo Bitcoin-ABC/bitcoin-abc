@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import styled from 'styled-components';
 import Modal from 'components/Common/Modal';
 import { WalletContext } from 'wallet/context';
@@ -37,6 +37,7 @@ import { getWalletState } from 'utils/cashMethods';
 import { hasEnoughToken } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
+import { useNavigate } from 'react-router-dom';
 
 const Form = styled.div`
     display: flex;
@@ -114,6 +115,7 @@ const TokenParam = styled.div`
 `;
 
 const CreateTokenForm = () => {
+    const navigate = useNavigate();
     const { chronik, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
@@ -125,6 +127,7 @@ const CreateTokenForm = () => {
 
     // eToken icon adds
     const [tokenIcon, setTokenIcon] = useState('');
+    const [createdTokenId, setCreatedTokenId] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fileName, setFileName] = useState('');
     const [tokenIconFileName, setTokenIconFileName] = useState(undefined);
@@ -139,6 +142,17 @@ const CreateTokenForm = () => {
     const [rotation, setRotation] = useState(0);
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+    useEffect(() => {
+        // After the user has created a token, we wait until the wallet has updated its balance
+        // and the page is available, then we navigate to the page
+        if (createdTokenId === null) {
+            return;
+        }
+        if (typeof tokens.get(createdTokenId) !== 'undefined') {
+            navigate(`/send-token/${createdTokenId}`);
+        }
+    }, [createdTokenId, tokens]);
 
     const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -540,9 +554,12 @@ const CreateTokenForm = () => {
                 chaintipBlockheight,
             );
 
+            const { txid } = response;
+            setCreatedTokenId(txid);
+
             toast(
                 <TokenCreatedLink
-                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -555,7 +572,7 @@ const CreateTokenForm = () => {
 
             // If this eToken has an icon, upload to server
             if (tokenIcon !== '') {
-                submitTokenIcon(response.txid);
+                submitTokenIcon(txid);
             }
         } catch (e) {
             toast.error(`${e}`);

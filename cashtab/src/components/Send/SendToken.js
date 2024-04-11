@@ -716,7 +716,7 @@ const SendToken = () => {
                             ticker={tokenTicker}
                             name={tokenName}
                         />
-                        <TokenStatsTable>
+                        <TokenStatsTable title="Token Stats">
                             <TokenStatsCol>
                                 <TokenIconExpandButton
                                     onClick={() => setShowLargeIconModal(true)}
