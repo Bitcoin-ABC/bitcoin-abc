@@ -8,9 +8,7 @@ import {
     populatedContactList,
 } from 'components/App/fixtures/mocks';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent, {
-    PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
@@ -63,11 +61,8 @@ jest.mock('bip39', () => ({
 describe('<Contacts />', () => {
     let user;
     beforeEach(() => {
-        // Set up userEvent to skip pointerEvents check, which returns false positives with antd
-        user = userEvent.setup({
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        // Set up userEvent
+        user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
@@ -121,10 +116,7 @@ describe('<Contacts />', () => {
         expect(screen.getByTestId('contacts')).toBeInTheDocument();
 
         // Click the first row Delete button
-        await user.click(screen.getAllByTestId('delete-contact-btn')[0], {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        await user.click(screen.getAllByTestId('delete-contact-btn')[0]);
 
         // Type correct confirmation phrase in confirm delete modal
         await user.type(
@@ -159,10 +151,7 @@ describe('<Contacts />', () => {
         });
 
         // Add a contact
-        await user.click(screen.getByTestId('add-contact-btn'), {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        await user.click(screen.getByTestId('add-contact-btn'));
 
         const nameInput = screen.getByPlaceholderText('Enter contact name');
         const addrInput = screen.getByPlaceholderText(
@@ -200,10 +189,7 @@ describe('<Contacts />', () => {
         });
 
         // We are blocked by validation if we try to add a contact that already exists
-        await user.click(screen.getByRole('button', { name: 'Add Contact' }), {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        await user.click(screen.getByRole('button', { name: 'Add Contact' }));
         const nameInputRepeat =
             screen.getByPlaceholderText('Enter contact name');
         const addrInputRepeat = screen.getByPlaceholderText(
@@ -228,10 +214,7 @@ describe('<Contacts />', () => {
         await user.click(screen.getByText('Cancel'));
 
         // We can rename a contact
-        await user.click(screen.getAllByTestId('rename-contact-btn')[0], {
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        await user.click(screen.getAllByTestId('rename-contact-btn')[0]);
 
         const editNameInput = screen.getByPlaceholderText(
             'Enter new contact name',

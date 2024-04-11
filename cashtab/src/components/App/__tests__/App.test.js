@@ -4,9 +4,7 @@
 
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import userEvent, {
-    PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import {
     walletWithXecAndTokens,
@@ -80,11 +78,8 @@ window.sideshift = {
 describe('<App />', () => {
     let user;
     beforeEach(() => {
-        // Set up userEvent to skip pointerEvents check, which returns false positives with antd
-        user = userEvent.setup({
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        // Set up userEvent
+        user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage

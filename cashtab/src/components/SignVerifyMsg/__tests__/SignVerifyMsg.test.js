@@ -5,9 +5,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import userEvent, {
-    PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import { when } from 'jest-when';
 import 'fake-indexeddb/auto';
@@ -49,11 +47,8 @@ window.matchMedia = query => ({
 describe('<SignVerifyMsg />', () => {
     let user;
     beforeEach(() => {
-        // Set up userEvent to skip pointerEvents check, which returns false positives with antd
-        user = userEvent.setup({
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
+        // Set up userEvent
+        user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
@@ -140,22 +135,20 @@ describe('<SignVerifyMsg />', () => {
         );
 
         // Input the address
-        await userEvent.type(
+        await user.type(
             screen.getByPlaceholderText('Enter address of signature to verify'),
             'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
         );
 
         // Insert signature in Signature textarea of Verify collapse
-        await userEvent.type(
+        await user.type(
             screen.getByPlaceholderText('Enter signature to verify'),
             'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
         );
 
         // Click the Verify button
         // react testing library also finds the switch with this, button is at index 0
-        await userEvent.click(
-            screen.getAllByRole('button', { name: /Verify/ })[0],
-        );
+        await user.click(screen.getAllByRole('button', { name: /Verify/ })[0]);
 
         expect(
             screen.getByText(
@@ -191,22 +184,20 @@ describe('<SignVerifyMsg />', () => {
         );
 
         // Input the address
-        await userEvent.type(
+        await user.type(
             screen.getByPlaceholderText('Enter address of signature to verify'),
             'ecash:qq3spmxfh9ct0v3vkxncwk4sr2ld9vkhgvlu32e43c',
         );
 
         // Insert signature in Signature textarea of Verify collapse
-        await userEvent.type(
+        await user.type(
             screen.getByPlaceholderText('Enter signature to verify'),
             'H6Rde63iJ93n/I7gUac/xheY3mL1eAt2uIR54fgre6O3Om8ogWe+DASNQGDDBkNY43JIGwAIPq9lmMJjeykYFNQ=',
         );
 
         // Click the Verify button
         // react testing library also finds the switch with this, button is at index 0
-        await userEvent.click(
-            screen.getAllByRole('button', { name: /Verify/ })[0],
-        );
+        await user.click(screen.getAllByRole('button', { name: /Verify/ })[0]);
 
         expect(
             screen.getByText('Signature does not match address and message'),

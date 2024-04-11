@@ -42,7 +42,6 @@ jest.mock('@zxing/browser');
 
 describe('<ScanQRCode />', () => {
     it('Renders the modal on load if loadWithCameraOpen is true', async () => {
-        const user = userEvent.setup();
         render(
             <ThemeProvider theme={theme}>
                 <ScanQRCode loadWithScannerOpen={true} />
@@ -57,13 +56,12 @@ describe('<ScanQRCode />', () => {
         expect(await screen.findByTestId('video')).toBeInTheDocument();
 
         // Click the close button
-        await user.click(screen.getByRole('button', { name: /X/ }));
+        await userEvent.click(screen.getByRole('button', { name: /X/ }));
 
         // Expect modal to be closed
         expect(screen.queryByTestId('video')).not.toBeInTheDocument();
     });
     it('Does not render the modal on load if loadWithCameraOpen is false', async () => {
-        const user = userEvent.setup();
         render(
             <ThemeProvider theme={theme}>
                 <ScanQRCode loadWithScannerOpen={false} />
@@ -78,7 +76,7 @@ describe('<ScanQRCode />', () => {
         expect(screen.queryByTestId('video')).not.toBeInTheDocument();
 
         // Click the open modal button
-        await user.click(StartScanningButton);
+        await userEvent.click(StartScanningButton);
 
         // The modal is rendered
         expect(await screen.findByTestId('video')).toBeInTheDocument();

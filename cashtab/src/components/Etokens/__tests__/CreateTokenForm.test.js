@@ -5,9 +5,7 @@
 import React from 'react';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
 import { render, screen } from '@testing-library/react';
-import userEvent, {
-    PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { explorer } from 'config/explorer';
 import {
@@ -48,7 +46,10 @@ window.matchMedia = query => ({
 });
 
 describe('<CreateTokenForm />', () => {
+    let user;
     beforeEach(() => {
+        // Configure userEvent
+        user = userEvent.setup();
         // Mock the fetch call for Cashtab's price API
         global.fetch = jest.fn();
         const fiatCode = 'usd'; // Use usd until you mock getting settings from localforage
@@ -92,12 +93,6 @@ describe('<CreateTokenForm />', () => {
                 route="/create-token"
             />,
         );
-
-        // Configure userEvent to skip PointerEventsCheck, as this returns false positives with antd
-        const user = userEvent.setup({
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
 
         // The user enters valid token metadata
         await user.type(
@@ -159,12 +154,6 @@ describe('<CreateTokenForm />', () => {
                 route="/create-token"
             />,
         );
-
-        // Configure userEvent to skip PointerEventsCheck, as this returns false positives with antd
-        const user = userEvent.setup({
-            // https://github.com/testing-library/user-event/issues/922
-            pointerEventsCheck: PointerEventsCheckLevel.Never,
-        });
 
         // The user enters valid token metadata
         await user.type(
