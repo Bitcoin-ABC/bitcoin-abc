@@ -18,6 +18,7 @@
 #include <node/transaction.h>
 #include <node/ui_interface.h>
 #include <shutdown.h>
+#include <span.h>
 #include <streams.h>
 #include <undo.h>
 #include <util/error.h>
@@ -237,7 +238,7 @@ rust::Vec<uint8_t> ChronikBridge::load_raw_tx(uint32_t file_num,
     }
     CDataStream raw_tx{SER_NETWORK, PROTOCOL_VERSION};
     raw_tx << tx;
-    return chronik::util::ToRustVec<uint8_t>(raw_tx);
+    return chronik::util::ToRustVec<uint8_t>(MakeUCharSpan(raw_tx));
 }
 
 Tx bridge_tx(const CTransaction &tx, const std::vector<::Coin> &spent_coins) {
@@ -364,7 +365,7 @@ rust::Vec<uint8_t> compress_script(rust::Slice<const uint8_t> bytecode) {
     CScript script{vec.begin(), vec.end()};
     CDataStream compressed{SER_NETWORK, PROTOCOL_VERSION};
     compressed << Using<ScriptCompression>(script);
-    return chronik::util::ToRustVec<uint8_t>(compressed);
+    return chronik::util::ToRustVec<uint8_t>(MakeUCharSpan(compressed));
 }
 
 rust::Vec<uint8_t> decompress_script(rust::Slice<const uint8_t> compressed) {
