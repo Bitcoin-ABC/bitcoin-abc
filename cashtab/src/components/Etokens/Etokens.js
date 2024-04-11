@@ -43,7 +43,7 @@ const Etokens = () => {
                 <LoadingCtn />
             ) : (
                 <EtokensCtn title="Wallet Tokens">
-                    <ButtonHolder>
+                    <ButtonHolder title="Create eToken">
                         <PrimaryLink
                             to={{
                                 pathname: `/create-token`,
