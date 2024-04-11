@@ -109,7 +109,9 @@ describe('<Alias />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Validate rendering of registered and pending alias tags
@@ -147,7 +149,9 @@ describe('<Alias />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Tags rendered as expected
@@ -186,7 +190,9 @@ describe('<Alias />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Validate the aliases within the dropdowns
@@ -219,7 +225,9 @@ describe('<Alias />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // We see registered aliases
@@ -251,7 +259,9 @@ describe('<Alias />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Validate the aliases within the dropdowns

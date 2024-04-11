@@ -161,8 +161,7 @@ export const QRCode = ({
                     </Copied>
 
                     <CustomQRCode
-                        data-testid="raw-qr-code"
-                        id="borderedQRCode"
+                        title="Raw QR Code"
                         value={address || ''}
                         size={size}
                         renderAs={'svg'}

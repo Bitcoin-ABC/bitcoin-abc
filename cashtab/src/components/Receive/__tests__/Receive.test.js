@@ -91,14 +91,16 @@ describe('<Receive />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Receive screen is rendered
-        expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Receive')).toBeInTheDocument();
 
         // QR Code is rendered
-        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('QR Code')).toBeInTheDocument();
 
         // Copy div is not displayed
         expect(screen.queryByText('Address Copied to Clipboard')).toHaveStyle(
@@ -106,7 +108,7 @@ describe('<Receive />', () => {
         );
 
         // Click the QR Code
-        const qrCodeItself = screen.queryByTestId('raw-qr-code');
+        const qrCodeItself = screen.queryByTitle('Raw QR Code');
         await user.click(qrCodeItself);
 
         // Copy div is displayed
@@ -143,15 +145,17 @@ describe('<Receive />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Receive screen is rendered
-        expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Receive')).toBeInTheDocument();
 
         // We render the rest of the component as expected
         // QR Code is rendered
-        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('QR Code')).toBeInTheDocument();
 
         // Copy div is not displayed
         expect(screen.queryByText('Address Copied to Clipboard')).toHaveStyle(
@@ -161,7 +165,7 @@ describe('<Receive />', () => {
         // We expect QR Code width of 245px = 320 - CASHTAB_MOBILE_QR_PADDING of 75px
         // QR Code is rendered
         const EXPECTED_DESKTOP_WIDTH = '245';
-        const qrCodeItself = screen.queryByTestId('raw-qr-code');
+        const qrCodeItself = screen.queryByTitle('Raw QR Code');
         expect(qrCodeItself).toBeInTheDocument();
         expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
         expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);
@@ -188,15 +192,17 @@ describe('<Receive />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Receive screen is rendered
-        expect(await screen.findByTestId('receive-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Receive')).toBeInTheDocument();
 
         // We render the rest of the component as expected
         // QR Code is rendered
-        expect(screen.getByTestId('qr-code-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('QR Code')).toBeInTheDocument();
 
         // Copy div is not displayed
         expect(screen.queryByText('Address Copied to Clipboard')).toHaveStyle(
@@ -206,7 +212,7 @@ describe('<Receive />', () => {
         // We expect QR Code width of 250 for extension
         // QR Code is rendered
         const EXPECTED_DESKTOP_WIDTH = '250';
-        const qrCodeItself = screen.queryByTestId('raw-qr-code');
+        const qrCodeItself = screen.queryByTitle('Raw QR Code');
         expect(qrCodeItself).toBeInTheDocument();
         expect(qrCodeItself).toHaveAttribute('width', EXPECTED_DESKTOP_WIDTH);
         expect(qrCodeItself).toHaveAttribute('height', EXPECTED_DESKTOP_WIDTH);

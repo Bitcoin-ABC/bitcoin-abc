@@ -645,7 +645,7 @@ const CreateTokenForm = () => {
                 />
                 <SwitchRow>
                     <Switch
-                        name="mint-baton-switch"
+                        name="Toggle Mint Baton"
                         on="Variable"
                         off="Fixed"
                         width={110}

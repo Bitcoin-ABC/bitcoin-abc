@@ -100,7 +100,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
@@ -110,7 +112,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -144,7 +146,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is not disabled because we have a valid amount
         expect(
-            await screen.findByRole('button', { name: /Send/ }),
+            await screen.findByRole('button', { name: 'Send' }),
         ).not.toHaveStyle('cursor: not-allowed');
     });
     it('Legacy params. Address and value keys are set and valid. Invalid bip21 string is ignored.', async () => {
@@ -169,7 +171,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded
@@ -179,7 +183,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -201,7 +205,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is not disabled because we have a valid amount
         expect(
-            await screen.findByRole('button', { name: /Send/ }),
+            await screen.findByRole('button', { name: 'Send' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
@@ -233,7 +237,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
@@ -243,7 +249,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -264,7 +270,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
 
@@ -297,7 +303,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
@@ -307,7 +315,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -328,7 +336,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
 
@@ -359,14 +367,16 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             false,
         );
@@ -385,7 +395,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
 
@@ -418,14 +428,16 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             false,
         );
@@ -444,7 +456,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
-        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
 
@@ -478,7 +490,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded
@@ -488,7 +502,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -510,7 +524,7 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is not disabled because we have a valid amount
         expect(
-            await screen.findByRole('button', { name: /Send/ }),
+            await screen.findByRole('button', { name: 'Send' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // No addr validation errors on load
@@ -546,7 +560,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded
@@ -556,7 +572,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -570,7 +586,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', true);
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -601,13 +617,13 @@ describe('<SendXec /> rendered with params in URL', () => {
         }
 
         // The op_return_raw switch is disabled because we have txInfoFromUrl
-        expect(screen.getByTestId('opreturnraw-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle op_return_raw')).toHaveProperty(
             'disabled',
             true,
         );
 
         // The op_return_raw switch is checked because it is set by txInfoFromUrl
-        expect(screen.getByTestId('opreturnraw-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle op_return_raw')).toHaveProperty(
             'checked',
             true,
         );
@@ -619,14 +635,14 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // The Send button is enabled as we have valid address and amount params
         expect(
-            await screen.findByRole('button', { name: /Send/ }),
+            await screen.findByRole('button', { name: 'Send' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
         // The "Webapp Tx Request" notice is rendered
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
-        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
             'disabled',
             true,
         );
@@ -656,7 +672,9 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for balance to be loaded, as input fields are not populated until balance loads
@@ -666,7 +684,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -680,7 +698,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(addressInputEl).toHaveProperty('disabled', true);
 
         // The "Send to Many" switch is disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             true,
         );
@@ -697,7 +715,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         ).toBeInTheDocument();
 
         // The Send button is disabled
-        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
 
@@ -705,7 +723,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
-        expect(screen.getByTestId('cashtab-msg-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
             'disabled',
             true,
         );
@@ -727,14 +745,16 @@ describe('<SendXec /> rendered with params in URL', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         const addressInputEl = screen.getByPlaceholderText('Address');
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // The "Send to Many" switch is not disabled
-        expect(screen.getByTestId('send-to-many-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Multisend')).toHaveProperty(
             'disabled',
             false,
         );
@@ -753,7 +773,7 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Send button is disabled
-        expect(await screen.findByRole('button', { name: /Send/ })).toHaveStyle(
+        expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
         );
 

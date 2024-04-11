@@ -78,20 +78,22 @@ describe('<CashtabTestWrapper />', () => {
         // We are at the <App/> component, i.e. home page if we do not nav anywhere
 
         // API Error is NOT rendered
-        await waitFor(() =>
-            expect(screen.queryByTestId('api-error')).not.toBeInTheDocument(),
-        );
+        expect(
+            screen.queryByText('Error in chronik connection'),
+        ).not.toBeInTheDocument();
 
         // Wait for Cashtab to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for the balance to render
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
         // Home container
-        expect(await screen.findByTestId('tx-history-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Tx History')).toBeInTheDocument();
     });
     it('We can render other pages by passing the route', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -103,6 +105,6 @@ describe('<CashtabTestWrapper />', () => {
         );
 
         // We are at the <Configure/> component, i.e. home page if we do not nav anywhere
-        expect(await screen.findByTestId('configure-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Settings')).toBeInTheDocument();
     });
 });

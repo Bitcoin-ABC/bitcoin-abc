@@ -49,17 +49,17 @@ describe('<ScanQRCode />', () => {
         );
 
         // Button to open modal is rendered
-        const StartScanningButton = screen.queryByTestId('scan-qr-code');
+        const StartScanningButton = screen.queryByTitle('Scan QR Code');
         expect(StartScanningButton).toBeInTheDocument();
 
         // The video component inside the modal is rendered
-        expect(await screen.findByTestId('video')).toBeInTheDocument();
+        expect(await screen.findByTitle('Video Preview')).toBeInTheDocument();
 
         // Click the close button
         await userEvent.click(screen.getByRole('button', { name: /X/ }));
 
         // Expect modal to be closed
-        expect(screen.queryByTestId('video')).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Video Preview')).not.toBeInTheDocument();
     });
     it('Does not render the modal on load if loadWithCameraOpen is false', async () => {
         render(
@@ -69,16 +69,16 @@ describe('<ScanQRCode />', () => {
         );
 
         // Button to open modal is rendered
-        const StartScanningButton = screen.queryByTestId('scan-qr-code');
+        const StartScanningButton = screen.queryByTitle('Scan QR Code');
         expect(StartScanningButton).toBeInTheDocument();
 
         // The modal root component is not rendered
-        expect(screen.queryByTestId('video')).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Video Preview')).not.toBeInTheDocument();
 
         // Click the open modal button
         await userEvent.click(StartScanningButton);
 
         // The modal is rendered
-        expect(await screen.findByTestId('video')).toBeInTheDocument();
+        expect(await screen.findByTitle('Video Preview')).toBeInTheDocument();
     });
 });

@@ -136,7 +136,9 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // We get the Onboarding screen
@@ -154,7 +156,9 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // We get the Onboarding screen
@@ -174,7 +178,9 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // We get the Onboarding screen
@@ -194,7 +200,9 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // We get the Onboarding screen
@@ -209,42 +217,58 @@ describe('<App />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTestId('tx-history-ctn');
+        await screen.findByTitle('Tx History');
 
         // Navigate to Send screen
-        await user.click(screen.queryByTestId('nav-btn-send'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Send Screen/i,
+            }),
+        );
 
         // Now we see the Send screen (we check by confirming presence of the send to many switch)
-        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
+        expect(screen.getByTitle('Toggle Multisend')).toBeInTheDocument();
 
         // Navigate to eTokens screen
-        await user.click(screen.queryByTestId('nav-btn-etokens'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Tokens/i,
+            }),
+        );
 
         // Now we see the eTokens screen
-        expect(screen.getByTestId('etokens-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Wallet Tokens')).toBeInTheDocument();
 
         // Navigate to Receive screen
-        await user.click(screen.queryByTestId('nav-btn-receive'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Receive/i,
+            }),
+        );
 
         // Now we see the Receive screen
-        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Receive')).toBeInTheDocument();
 
         // We do not expect to see hamburger menu items before the menu is clicked
         // This is handled by dynamic css changes, so test that
-        expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
+        expect(screen.queryByTitle('Other Screens')).toHaveStyle(
             `max-height: 0`,
         );
 
         // Click the hamburger menu
-        await user.click(screen.queryByTestId('hamburger'));
+        await user.click(screen.queryByTitle('Show Other Screens'));
 
         // Now we see these items
-        expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
+        expect(screen.queryByTitle('Other Screens')).toHaveStyle(
             `max-height: 100rem`,
         );
 
         // Navigate to Airdrop screen
-        await user.click(screen.queryByTestId('nav-btn-airdrop'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Airdrop/i,
+            }),
+        );
 
         // Now we see the Airdrop screen
         expect(
@@ -252,13 +276,17 @@ describe('<App />', () => {
         ).toBeInTheDocument();
 
         // The hamburger menu closes on nav
-        expect(screen.queryByTestId('hamburger-menu')).toHaveStyle(
+        expect(screen.queryByTitle('Other Screens')).toHaveStyle(
             `max-height: 0`,
         );
 
         // ... but, we can still click these items with the testing library, so we do
         // Navigate to Swap screen
-        await user.click(screen.queryByTestId('nav-btn-swap'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Swap/i,
+            }),
+        );
 
         // Now we see the Swap screen
         expect(
@@ -266,19 +294,31 @@ describe('<App />', () => {
         ).toBeInTheDocument();
 
         // Navigate to SignVerifyMsg screen
-        await user.click(screen.queryByTestId('nav-btn-signverifymsg'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Sign & Verify/i,
+            }),
+        );
 
         // Now we see the SignVerifyMsg screen
-        expect(screen.getByTestId('signverifymsg-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Sign & Verify')).toBeInTheDocument();
 
         // Navigate to Settings screen
-        await user.click(screen.queryByTestId('nav-btn-configure'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Settings/i,
+            }),
+        );
 
         // Now we see the Settings screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Settings')).toBeInTheDocument();
 
         // Navigate to Backup screen
-        await user.click(screen.queryByTestId('nav-btn-backup'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Wallet Backup/i,
+            }),
+        );
 
         // Now we see the Backup screen
         expect(
@@ -288,16 +328,24 @@ describe('<App />', () => {
         ).toBeInTheDocument();
 
         // Navigate to Contacts screen
-        await user.click(screen.queryByTestId('nav-btn-contacts'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Contacts/i,
+            }),
+        );
 
         // Now we see the Contacts screen
-        expect(screen.getByTestId('contacts')).toBeInTheDocument();
+        expect(screen.getByTitle('Contacts')).toBeInTheDocument();
 
         // Navigate to Wallets screen
-        await user.click(screen.queryByTestId('nav-btn-wallets'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Wallets/i,
+            }),
+        );
 
         // Now we see the Wallets screen
-        expect(screen.getByTestId('wallets')).toBeInTheDocument();
+        expect(screen.getByTitle('Wallets')).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(
@@ -309,16 +357,18 @@ describe('<App />', () => {
 
         // Wait for the page to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '10,000.00 XEC',
         );
 
         // We see the home container
-        await screen.findByTestId('tx-history-ctn');
+        await screen.findByTitle('Tx History');
 
         // Open the collapse of this tx in tx history to see the panel options
         // We can click anywhere on this tx
@@ -370,16 +420,18 @@ describe('<App />', () => {
 
         // Wait for the page to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '10,000.00 XEC',
         );
 
         // We see the home container
-        await screen.findByTestId('tx-history-ctn');
+        await screen.findByTitle('Tx History');
 
         // Open the collapse of this tx in tx history to see the panel options
         // We can click anywhere on this tx
@@ -427,9 +479,7 @@ describe('<App />', () => {
 
         // Wait for cashtabbootup, so that loadContactList has been called
         // Wallet-info is rendered
-        expect(
-            await screen.findByTestId('wallet-info-ctn'),
-        ).toBeInTheDocument();
+        expect(await screen.findByTitle('Wallet Info')).toBeInTheDocument();
 
         // localforage has been updated with the new format for an empty contact list
         await waitFor(async () =>
@@ -447,19 +497,17 @@ describe('<App />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Wallet-info is rendered
-        expect(
-            await screen.findByTestId('wallet-info-ctn'),
-        ).toBeInTheDocument();
+        expect(await screen.findByTitle('Wallet Info')).toBeInTheDocument();
 
         // Balance is correct
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '10,000.00 XEC',
         );
 
         // We do not see the send screen before clicking the button
         await waitFor(() =>
             expect(
-                screen.queryByTestId('send-to-many-switch'),
+                screen.queryByTitle('Toggle Multisend'),
             ).not.toBeInTheDocument(),
         );
 
@@ -467,7 +515,7 @@ describe('<App />', () => {
 
         // Now we see the Send screen
         expect(
-            await screen.findByTestId('send-to-many-switch'),
+            await screen.findByTitle('Toggle Multisend'),
         ).toBeInTheDocument();
 
         // The SendXec send address input is rendered and has expected value
@@ -631,16 +679,18 @@ describe('<App />', () => {
 
         // The wallet must load from API calls
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
         // We are forwarded to the home screen after the wallet loads
-        expect(await screen.findByTestId('tx-history-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Tx History')).toBeInTheDocument();
 
         // The imported wallet is in localforage
         const wallets = await localforage.getItem('wallets');
@@ -679,11 +729,13 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -715,11 +767,13 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -753,11 +807,13 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -795,11 +851,13 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -825,11 +883,13 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -850,11 +910,13 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -890,11 +952,13 @@ describe('<App />', () => {
 
         // Wait for the page to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -920,11 +984,13 @@ describe('<App />', () => {
 
         // Wait for the page to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait balance to be rendered correctly so we know Cashtab has loaded the wallet
-        expect(await screen.findByTestId('balance-xec')).toHaveTextContent(
+        expect(await screen.findByTitle('Balance in XEC')).toHaveTextContent(
             '9,513.12 XEC',
         );
 
@@ -1019,7 +1085,9 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Advance timers more than the price interval
@@ -1066,7 +1134,9 @@ describe('<App />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Advance timers more than the price interval

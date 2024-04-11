@@ -87,7 +87,9 @@ describe('<SignVerifyMsg />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Insert message to be signed
@@ -122,11 +124,13 @@ describe('<SignVerifyMsg />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Click the switch to show verify forms
-        await user.click(screen.getByTestId('sign-mode-switch'));
+        await user.click(screen.getByTitle('Toggle Sign Verify'));
 
         // Insert message to be signed
         await user.type(
@@ -171,11 +175,13 @@ describe('<SignVerifyMsg />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Click the switch to show verify forms
-        await user.click(screen.getByTestId('sign-mode-switch'));
+        await user.click(screen.getByTitle('Toggle Sign Verify'));
 
         // Insert message to be signed
         await user.type(

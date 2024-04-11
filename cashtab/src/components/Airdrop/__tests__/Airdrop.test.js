@@ -111,7 +111,9 @@ describe('<Airdrop />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         await user.type(
@@ -139,7 +141,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore the mint address
-        await user.click(screen.getByTestId('ignore-mint-address'));
+        await user.click(screen.getByTitle('Toggle Ignore Mint Address'));
         await user.click(
             screen.getByRole('button', { name: /Calculate Airdrop/ }),
         );
@@ -152,7 +154,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore other addresses
-        await user.click(screen.getByTestId('ignore-custom-addresses'));
+        await user.click(screen.getByTitle('Toggle Ignore Custom Addresses'));
         await user.type(
             await screen.findByPlaceholderText(/If more than one XEC address/),
             'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
@@ -171,7 +173,7 @@ describe('<Airdrop />', () => {
 
         // We can airdrop people with less of a token the same amount of XEC as other users in case we happen to think in this way
         // We can ignore other addresses
-        await user.click(screen.getByTestId('communist-airdrop'));
+        await user.click(screen.getByTitle('Toggle Communism'));
 
         await user.click(
             screen.getByRole('button', { name: /Calculate Airdrop/ }),
@@ -213,7 +215,9 @@ describe('<Airdrop />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         await user.type(
@@ -241,7 +245,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore the mint address
-        await user.click(screen.getByTestId('ignore-mint-address'));
+        await user.click(screen.getByTitle('Toggle Ignore Mint Address'));
         await user.click(
             screen.getByRole('button', { name: /Calculate Airdrop/ }),
         );
@@ -254,7 +258,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore addresses based on having too little of the token
-        await user.click(screen.getByTestId('minimum-etoken-holder-balance'));
+        await user.click(screen.getByTitle('Toggle Minimum Token Balance'));
         await user.type(
             await screen.findByPlaceholderText(/Minimum eToken balance/),
             '0.25',
@@ -272,7 +276,7 @@ describe('<Airdrop />', () => {
         );
 
         // We can ignore another address
-        await user.click(screen.getByTestId('ignore-custom-addresses'));
+        await user.click(screen.getByTitle('Toggle Ignore Custom Addresses'));
         await user.type(
             await screen.findByPlaceholderText(/If more than one XEC address/),
             'ecash:qp6qkpeg5xmpcqtu6uc5qkhzexg4sq009sfeekcfk2',

@@ -23,7 +23,7 @@ describe('<QRCode />', () => {
         const QrCodeCopied = screen.queryByText('Address Copied to Clipboard');
         expect(QrCodeCopied).toHaveStyle('display: none');
 
-        const qrCodeElement = screen.getByTestId('raw-qr-code');
+        const qrCodeElement = screen.getByTitle('Raw QR Code');
         await userEvent.click(qrCodeElement);
 
         // We do see the addr copied div with correct address after click
@@ -42,7 +42,7 @@ describe('<QRCode />', () => {
         const QrCodeCopied = screen.queryByText('Address Copied to Clipboard');
         expect(QrCodeCopied).toHaveStyle('display: none');
 
-        const qrCodeElement = screen.getByTestId('raw-qr-code');
+        const qrCodeElement = screen.getByTitle('Raw QR Code');
         await userEvent.click(qrCodeElement);
 
         // We do see the addr copied div with correct address after click
@@ -56,6 +56,6 @@ describe('<QRCode />', () => {
                 <QRCode pixelRatio={25} />
             </ThemeProvider>,
         );
-        expect(screen.getByTestId('raw-qr-code')).toBeInTheDocument();
+        expect(screen.getByTitle('Raw QR Code')).toBeInTheDocument();
     });
 });

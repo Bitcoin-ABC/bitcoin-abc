@@ -935,7 +935,7 @@ const SendToken = () => {
                             )}
                             <SwitchHolder>
                                 <Switch
-                                    name="burn-switch"
+                                    name="Toggle Burn"
                                     on="🔥"
                                     off="🔥"
                                     checked={showBurn}
@@ -980,7 +980,7 @@ const SendToken = () => {
                             )}
                             <SwitchHolder>
                                 <Switch
-                                    name="mint-switch"
+                                    name="Toggle Mint"
                                     on="⚗️"
                                     off="⚗️"
                                     disabled={mintBatons.length === 0}

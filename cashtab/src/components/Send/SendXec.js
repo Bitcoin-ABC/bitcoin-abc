@@ -848,14 +848,12 @@ const SendXec = () => {
                 />
             )}
             {txInfoFromUrl && (
-                <AppCreatedTxSummary data-testid="app-created-tx">
-                    Webapp Tx Request
-                </AppCreatedTxSummary>
+                <AppCreatedTxSummary>Webapp Tx Request</AppCreatedTxSummary>
             )}
 
             <SwitchContainer>
                 <Switch
-                    name="send-to-many-switch"
+                    name="Toggle Multisend"
                     on="Send to many"
                     off="Send to one"
                     width={150}
@@ -889,7 +887,6 @@ const SendXec = () => {
                             <AliasAddressPreviewLabel>
                                 <TxLink
                                     key={aliasInputAddress}
-                                    data-testid="alias-address-preview"
                                     href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
                                     target="_blank"
                                     rel="noreferrer"
@@ -948,7 +945,7 @@ const SendXec = () => {
                 <SendXecRow>
                     <SwitchAndLabel>
                         <Switch
-                            name="cashtab-msg-switch"
+                            name="Toggle Cashtab Msg"
                             on="✉️"
                             off="✉️"
                             checked={sendWithCashtabMsg}
@@ -1009,7 +1006,7 @@ const SendXec = () => {
                 <SendXecRow>
                     <SwitchAndLabel>
                         <Switch
-                            name="opreturnraw-switch"
+                            name="Toggle op_return_raw"
                             checked={sendWithOpReturnRaw}
                             disabled={
                                 txInfoFromUrl ||
@@ -1095,7 +1092,6 @@ const SendXec = () => {
             </AmountPreviewCtn>
             <PrimaryButton
                 style={{ marginTop: '12px' }}
-                data-testid="send-it"
                 disabled={disableSendButton}
                 onClick={() => {
                     checkForConfirmationBeforeSendXec();

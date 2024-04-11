@@ -85,21 +85,23 @@ describe('<Home />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Initially, Home component is not rendered
-        expect(screen.queryByTestId('tx-history-ctn')).not.toBeInTheDocument();
+        expect(screen.queryByTitle('Tx History')).not.toBeInTheDocument();
 
         // Initially, Loading ctn is rendered
-        expect(screen.getByTestId('loading-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Cashtab Loading')).toBeInTheDocument();
 
         // After wallet loads, this is reversed
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Wait for the balance to render
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
         // The home screen is in the document
-        expect(await screen.findByTestId('tx-history-ctn')).toBeInTheDocument();
+        expect(await screen.findByTitle('Tx History')).toBeInTheDocument();
 
         // No API Error
         await waitFor(() =>
@@ -119,7 +121,9 @@ describe('<Home />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // API Error is rendered
@@ -137,7 +141,9 @@ describe('<Home />', () => {
 
         // Wait for the component to finish loading
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Backup warning is rendered
@@ -148,6 +154,6 @@ describe('<Home />', () => {
         await screen.findByText('Do not share your backup with anyone.');
 
         // Receive QR code is rendered
-        expect(screen.getByTestId('receive-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Receive')).toBeInTheDocument();
     });
 });

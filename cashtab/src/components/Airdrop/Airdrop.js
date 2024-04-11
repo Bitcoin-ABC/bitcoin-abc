@@ -352,7 +352,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             <FormRow>
                 <SwitchHolder>
                     <CashtabSwitch
-                        name="communist-airdrop"
+                        name="Toggle Communism"
                         on="Pro-Rata"
                         width={120}
                         right={86}
@@ -386,7 +386,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             <FormRow>
                 <SwitchHolder>
                     <CashtabSwitch
-                        name="ignore-mint-address"
+                        name="Toggle Ignore Mint Address"
                         checked={ignoreMintAddress}
                         handleToggle={() =>
                             handleIgnoreMintAddress(prev => !prev)
@@ -398,7 +398,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             <FormRow>
                 <SwitchHolder>
                     <CashtabSwitch
-                        name="minimum-etoken-holder-balance"
+                        name="Toggle Minimum Token Balance"
                         checked={ignoreMinEtokenBalance}
                         handleToggle={() =>
                             handleIgnoreMinEtokenBalanceAmt(prev => !prev)
@@ -418,7 +418,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             <FormRow>
                 <SwitchHolder>
                     <CashtabSwitch
-                        name="ignore-custom-addresses"
+                        name="Toggle Ignore Custom Addresses"
                         checked={ignoreCustomAddresses}
                         handleToggle={() =>
                             handleIgnoreCustomAddresses(prev => !prev)

@@ -47,13 +47,6 @@ export const CashReceivedNotificationIcon = () => (
 export const TokenNotificationIcon = () => (
     <img src={appConfig.tokenLogo} height={'24px'} width={'24px'} />
 );
-export const ThemedContactSendOutlined = styled(Send)`
-    color: ${props => props.theme.icons.outlined} !important;
-    transform: rotate(-35deg);
-    padding: 0.15rem 0rem 0.18rem 0rem;
-    height: 1.3em;
-    width: 1.3em;
-`;
 
 export const ThemedLinkSolid = styled(LinkSolid)`
     fill: ${props => props.theme.contrast};
@@ -67,22 +60,6 @@ export const ThemedPdfSolid = styled(Pdf)`
     padding: 0.15rem 0rem 0.18rem 0rem;
     height: 1.3em;
     width: 1.3em;
-`;
-
-export const ThemedEditOutlined = styled(Edit)`
-    stroke: ${props => props.theme.eCashBlue};
-    fill: ${props => props.theme.eCashBlue};
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-`;
-
-export const ThemedTrashcanOutlined = styled(Trashcan)`
-    stroke: ${props => props.theme.eCashBlue};
-    fill: ${props => props.theme.eCashBlue};
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
 `;
 
 export const ThemedSignAndVerifyMsg = styled(Audit)`
@@ -177,6 +154,26 @@ export const ChatIcon = () => <img src={Chat} alt="tx-chat" />;
 export const MintIcon = () => <Mint title="tx-mint" />;
 export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
 export const AddContactIcon = () => <AddContact title="add-contact" />;
+const TrashCanWrapper = styled.div`
+    stroke: ${props => props.theme.eCashBlue};
+    fill: ${props => props.theme.eCashBlue};
+    cursor: pointer;
+`;
+export const TrashcanIcon = () => (
+    <TrashCanWrapper>
+        <Trashcan title="trashcan" />
+    </TrashCanWrapper>
+);
+const EditWrapper = styled.div`
+    stroke: ${props => props.theme.eCashBlue};
+    fill: ${props => props.theme.eCashBlue};
+    cursor: pointer;
+`;
+export const EditIcon = () => (
+    <EditWrapper>
+        <Edit title="edit" />
+    </EditWrapper>
+);
 export const ReplyIcon = () => <Reply title="reply" />;
 export const UnknownIcon = () => <Unknown title="tx-unknown" />;
 export const CashtabMsgIcon = () => <CashtabMsg title="tx-cashtab-msg" />;

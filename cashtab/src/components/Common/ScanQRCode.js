@@ -124,7 +124,7 @@ const ScanQRCode = ({
     return (
         <>
             <StyledScanQRCode
-                data-testid="scan-qr-code"
+                title="Scan QR Code"
                 {...otherProps}
                 onClick={() => setVisible(!visible)}
             >
@@ -148,7 +148,7 @@ const ScanQRCode = ({
                         </>
                     ) : (
                         <QRPreview
-                            data-testid="video"
+                            title="Video Preview"
                             id="test-area-qr-code-webcam"
                         ></QRPreview>
                     )}

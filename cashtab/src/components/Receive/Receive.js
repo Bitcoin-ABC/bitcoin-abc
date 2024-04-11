@@ -47,11 +47,10 @@ export const Receive = () => {
         return windowWidthPx - CASHTAB_MOBILE_QR_PADDING;
     };
     return (
-        <ReceiveCtn data-testid="receive-ctn">
+        <ReceiveCtn title="Receive">
             {wallet !== false && (
-                <QrCodeCtn data-testid="qr-code-ctn">
+                <QrCodeCtn title="QR Code">
                     <QRCode
-                        id="borderedQRCode"
                         address={wallet.paths.get(1899).address}
                         size={getQrCodeWidth(width)}
                         logoSizePx={width > 500 ? 48 : 24}

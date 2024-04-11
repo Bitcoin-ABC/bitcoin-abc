@@ -7,8 +7,8 @@ import { WalletContext } from 'wallet/context';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     CopyPasteIcon,
-    ThemedTrashcanOutlined,
-    ThemedEditOutlined,
+    TrashcanIcon,
+    EditIcon,
     AddContactIcon,
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
@@ -358,7 +358,7 @@ const Wallets = () => {
                     />
                 </Modal>
             )}
-            <WalletsList data-testid="wallets">
+            <WalletsList title="Wallets">
                 <WalletsPanel>
                     {wallets.map((wallet, index) =>
                         index === 0 ? (
@@ -374,12 +374,13 @@ const Wallets = () => {
                                     >
                                         <CopyPasteIcon />
                                     </CopyToClipboard>
-                                    <ThemedEditOutlined
-                                        data-testid="rename-active-wallet"
+                                    <SvgButton
                                         onClick={() =>
                                             setWalletToBeRenamed(wallet)
                                         }
-                                    />
+                                    >
+                                        <EditIcon />
+                                    </SvgButton>
                                     <SvgButton
                                         onClick={() =>
                                             addWalletToContacts(wallet)
@@ -418,12 +419,13 @@ const Wallets = () => {
                                             >
                                                 <CopyPasteIcon />
                                             </CopyToClipboard>
-                                            <ThemedEditOutlined
-                                                data-testid="rename-saved-wallet"
+                                            <SvgButton
                                                 onClick={() =>
                                                     setWalletToBeRenamed(wallet)
                                                 }
-                                            />
+                                            >
+                                                <EditIcon />
+                                            </SvgButton>
                                             <SvgButton
                                                 onClick={() =>
                                                     addWalletToContacts(wallet)
@@ -431,12 +433,13 @@ const Wallets = () => {
                                             >
                                                 <AddContactIcon />
                                             </SvgButton>
-                                            <ThemedTrashcanOutlined
-                                                data-testid="delete-saved-wallet"
+                                            <SvgButton
                                                 onClick={() =>
                                                     setWalletToBeDeleted(wallet)
                                                 }
-                                            />
+                                            >
+                                                <TrashcanIcon />
+                                            </SvgButton>
                                         </SvgButtonPanel>
                                         <ActivateButton
                                             onClick={() =>

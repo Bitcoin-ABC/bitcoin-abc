@@ -184,7 +184,7 @@ describe('<CreateTokenForm />', () => {
         );
 
         // Hit the switch for a variable supply token
-        await user.click(screen.getByTestId('mint-baton-switch'));
+        await user.click(screen.getByTitle('Toggle Mint Baton'));
 
         // Click the Create eToken button
         await user.click(screen.getByRole('button', { name: /Create eToken/ }));

@@ -42,7 +42,7 @@ const Etokens = () => {
             {loading ? (
                 <LoadingCtn />
             ) : (
-                <EtokensCtn data-testid="etokens-ctn">
+                <EtokensCtn title="Wallet Tokens">
                     <ButtonHolder>
                         <PrimaryLink
                             to={{

@@ -64,3 +64,9 @@ export const ButtonPanel = styled.div`
     gap: 9px;
     align-items: baseline;
 `;
+
+export const SvgButton = styled.button`
+    border: none;
+    background: none;
+    cursor: pointer;
+`;

@@ -119,7 +119,7 @@ const Configure = () => {
     };
 
     return (
-        <StyledConfigure data-testid="configure-ctn">
+        <StyledConfigure title="Settings">
             <NoticeHolder>
                 <Info>
                     ℹ️ Backup wallet has moved
@@ -164,7 +164,7 @@ const Configure = () => {
             <Switches>
                 <GeneralSettingsItem>
                     <Switch
-                        name="send-confirmations-switch"
+                        name="Toggle Send Confirmations"
                         checked={settings.sendModal}
                         handleToggle={handleSendModalToggle}
                     />
@@ -173,7 +173,7 @@ const Configure = () => {
                 {isMobile(navigator) && (
                     <GeneralSettingsItem>
                         <Switch
-                            name="settings-camera-auto-open"
+                            name="Toggle QR Code Scanner Auto-open"
                             checked={settings.autoCameraOn}
                             handleToggle={handleCameraOverride}
                         />
@@ -199,7 +199,7 @@ const Configure = () => {
                     </HeadlineAndIcon>
                     <GeneralSettingsItem>
                         <Switch
-                            name="settings-minFeeSends-switch"
+                            name="Toggle minimum fee sends"
                             checked={settings.minFeeSends}
                             handleToggle={handleMinFeesToggle}
                         />

@@ -113,13 +113,13 @@ export const CashtabSwitch = ({
         <Container>
             <ToggleSwitch switchWidth={width}>
                 <SwitchInput
+                    title={name}
                     type="checkbox"
                     checked={checked}
                     onChange={handleToggle}
                     disabled={disabled}
                     name={name}
                     id={name}
-                    data-testid={name}
                 />
                 <SwitchLabel htmlFor={name} disabled={disabled}>
                     <SwitchInner

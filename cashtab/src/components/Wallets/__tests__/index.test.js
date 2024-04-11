@@ -115,7 +115,9 @@ describe('<Wallets />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTitle('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // We can add a savedWallet as a contact
@@ -172,10 +174,10 @@ describe('<Wallets />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
-
-        // Note, the savedWallets collapse loads open by default
 
         // We see expected saved wallets
         // Note, we see these in the wallet header dropdown and in the savedWallets list
@@ -185,8 +187,8 @@ describe('<Wallets />', () => {
         expect((await screen.findAllByText('delta'))[1]).toBeInTheDocument();
         expect((await screen.findAllByText('echo'))[1]).toBeInTheDocument();
 
-        // Let's rename alpha. Its button will be the first in the list.
-        await user.click(screen.getAllByTestId('rename-saved-wallet')[0]);
+        // Let's rename alpha. Its button will be the second edit button, as the first is for the active wallet.
+        await user.click(screen.getAllByTitle('edit')[1]);
 
         // We see a modal.
         expect(await screen.findByText(`Rename "alpha"?`)).toBeInTheDocument();
@@ -227,7 +229,7 @@ describe('<Wallets />', () => {
         ).toBeInTheDocument();
 
         // Now let's rename the active wallet
-        await user.click(screen.getByTestId('rename-active-wallet'));
+        await user.click(screen.getAllByTitle('edit')[0]);
 
         await user.type(
             await screen.findByPlaceholderText('Enter new wallet name'),
@@ -253,7 +255,8 @@ describe('<Wallets />', () => {
 
         // We can delete a wallet
         // Delete the first wallet in the savedWallets list
-        await user.click(screen.getAllByTestId('delete-saved-wallet')[0]);
+        // It's the first appearance of the trashcan button bc we do not support deleting the active wallet
+        await user.click(screen.getAllByTitle('trashcan')[0]);
 
         // We see a confirmation modal
         expect(

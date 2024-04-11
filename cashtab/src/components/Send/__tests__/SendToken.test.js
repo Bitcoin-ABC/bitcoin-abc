@@ -455,7 +455,7 @@ describe('<SendToken />', () => {
         await user.type(amountInputEl, amountInput);
 
         // Click the Send token button
-        await user.click(screen.getByRole('button', { name: /Send/ }));
+        await user.click(screen.getByRole('button', { name: /Send BEAR/ }));
 
         const sendTokenSuccessNotification = await screen.findByText(
             'eToken sent',
@@ -489,7 +489,7 @@ describe('<SendToken />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // Click the burn switch to show the burn interface
-        await user.click(screen.getByTestId('burn-switch'));
+        await user.click(screen.getByTitle('Toggle Burn'));
 
         await user.type(screen.getByPlaceholderText('Burn Amount'), '1');
 
@@ -530,7 +530,7 @@ describe('<SendToken />', () => {
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
         // The mint switch is disabled
-        expect(screen.getByTestId('mint-switch')).toHaveProperty(
+        expect(screen.getByTitle('Toggle Mint')).toHaveProperty(
             'disabled',
             true,
         );
@@ -636,7 +636,7 @@ describe('<SendToken />', () => {
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
 
         // The mint switch is enabled
-        const mintSwitch = screen.getByTestId('mint-switch');
+        const mintSwitch = screen.getByTitle('Toggle Mint');
         expect(mintSwitch).toHaveProperty('disabled', false);
 
         // Click the mint switch

@@ -95,7 +95,7 @@ const BalanceHeader = ({
     ) : (
         <>
             <BalanceXec
-                data-testid="balance-xec"
+                title="Balance in XEC"
                 balanceVisible={settings.balanceVisible === false}
             >
                 {formattedBalanceXec} {appConfig.ticker}{' '}
@@ -103,7 +103,7 @@ const BalanceHeader = ({
             {renderFiatValues && (
                 <>
                     <BalanceFiat
-                        data-testid="balance-fiat"
+                        title="Balance in Local Currency"
                         balanceVisible={settings.balanceVisible === false}
                     >
                         {supportedFiatCurrencies[settings.fiatCurrency].symbol}
@@ -112,7 +112,7 @@ const BalanceHeader = ({
                             settings.fiatCurrency
                         ].slug.toUpperCase()}
                     </BalanceFiat>
-                    <EcashPrice data-testid="ecash-price">
+                    <EcashPrice title="Price in Local Currency">
                         1 {appConfig.ticker} = {formattedExchangeRate}{' '}
                         {settings.fiatCurrency.toUpperCase()}
                     </EcashPrice>

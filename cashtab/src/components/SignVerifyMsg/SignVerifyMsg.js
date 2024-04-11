@@ -166,10 +166,10 @@ const SignVerifyMsg = () => {
     };
 
     return (
-        <SignVerifyForm data-testid="signverifymsg-ctn">
+        <SignVerifyForm title="Sign & Verify">
             <Row>
                 <Switch
-                    name="sign-mode-switch"
+                    name="Toggle Sign Verify"
                     on="✍️ Sign"
                     off="✅ Verify"
                     bgColorOff={theme.genesisGreen}

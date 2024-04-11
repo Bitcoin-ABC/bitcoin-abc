@@ -463,7 +463,7 @@ const App = () => {
                 <WalletBody>
                     <WalletCtn>
                         {!cashtabLoaded ? (
-                            <LoadingCtn data-testid="loading-ctn" />
+                            <LoadingCtn title="Cashtab Loading" />
                         ) : (
                             <>
                                 {wallet === false ? (
@@ -552,7 +552,7 @@ const App = () => {
                                                     </>
                                                 )}
                                             </HeaderCtn>
-                                            <WalletInfoCtn data-testid="wallet-info-ctn">
+                                            <WalletInfoCtn title="Wallet Info">
                                                 <WalletLabel
                                                     wallets={wallets}
                                                     settings={settings}
@@ -679,7 +679,7 @@ const App = () => {
                             </NavButton>
 
                             <NavButton
-                                data-testid="nav-btn-send"
+                                aria-label="Send Screen"
                                 active={selectedKey === 'send'}
                                 onClick={() => navigate('/send')}
                                 style={{ paddingBottom: '10px' }}
@@ -687,30 +687,29 @@ const App = () => {
                                 <SendIcon />
                             </NavButton>
                             <NavButton
-                                data-testid="nav-btn-etokens"
+                                aria-label="Tokens"
                                 active={selectedKey === 'etokens'}
                                 onClick={() => navigate('/etokens')}
                             >
                                 <TokensIcon />
                             </NavButton>
                             <NavButton
-                                data-testid="nav-btn-receive"
+                                aria-label="Receive"
                                 active={selectedKey === 'receive'}
                                 onClick={() => navigate('receive')}
                             >
                                 <ReceiveIcon />
                             </NavButton>
                             <NavWrapper
-                                data-testid="hamburger"
+                                title="Show Other Screens"
                                 onClick={handleNavMenuClick}
                             >
                                 <NavIcon clicked={navMenuClicked} />
                                 <NavMenu
-                                    data-testid="hamburger-menu"
+                                    title="Other Screens"
                                     open={navMenuClicked}
                                 >
                                     <NavItem
-                                        data-testid="nav-btn-backup"
                                         active={selectedKey === 'backup'}
                                         onClick={() => navigate('/backup')}
                                     >
@@ -719,7 +718,6 @@ const App = () => {
                                         <WalletIcon />
                                     </NavItem>
                                     <NavItem
-                                        data-testid="nav-btn-wallets"
                                         active={selectedKey === 'wallets'}
                                         onClick={() => navigate('/wallets')}
                                     >
@@ -728,7 +726,6 @@ const App = () => {
                                         <BankIcon />
                                     </NavItem>
                                     <NavItem
-                                        data-testid="nav-btn-contacts"
                                         active={selectedKey === 'contacts'}
                                         onClick={() => navigate('/contacts')}
                                     >
@@ -737,7 +734,6 @@ const App = () => {
                                         <ContactsIcon />
                                     </NavItem>
                                     <NavItem
-                                        data-testid="nav-btn-airdrop"
                                         active={selectedKey === 'airdrop'}
                                         onClick={() => navigate('/airdrop')}
                                     >
@@ -748,7 +744,6 @@ const App = () => {
                                     {process.env.REACT_APP_BUILD_ENV !==
                                         'extension' && (
                                         <NavItem
-                                            data-testid="nav-btn-swap"
                                             active={selectedKey === 'swap'}
                                             onClick={() => navigate('/swap')}
                                         >
@@ -758,7 +753,6 @@ const App = () => {
                                         </NavItem>
                                     )}
                                     <NavItem
-                                        data-testid="nav-btn-signverifymsg"
                                         active={selectedKey === 'signverifymsg'}
                                         onClick={() =>
                                             navigate('/signverifymsg')
@@ -778,7 +772,6 @@ const App = () => {
                                         </NavItem>
                                     )}
                                     <NavItem
-                                        data-testid="nav-btn-configure"
                                         active={selectedKey === 'configure'}
                                         onClick={() => navigate('/configure')}
                                     >

@@ -109,14 +109,20 @@ describe('<Contacts />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Contacts component is rendered
-        expect(screen.getByTestId('contacts')).toBeInTheDocument();
+        expect(screen.getByTitle('Contacts')).toBeInTheDocument();
 
         // Click the first row Delete button
-        await user.click(screen.getAllByTestId('delete-contact-btn')[0]);
+        await user.click(
+            screen.getByRole('button', {
+                name: /Delete alpha/i,
+            }),
+        );
 
         // Type correct confirmation phrase in confirm delete modal
         await user.type(
@@ -151,7 +157,7 @@ describe('<Contacts />', () => {
         });
 
         // Add a contact
-        await user.click(screen.getByTestId('add-contact-btn'));
+        await user.click(screen.getByRole('button', { name: 'Add Contact' }));
 
         const nameInput = screen.getByPlaceholderText('Enter contact name');
         const addrInput = screen.getByPlaceholderText(
@@ -214,7 +220,11 @@ describe('<Contacts />', () => {
         await user.click(screen.getByText('Cancel'));
 
         // We can rename a contact
-        await user.click(screen.getAllByTestId('rename-contact-btn')[0]);
+        await user.click(
+            screen.getByRole('button', {
+                name: /Rename beta/i,
+            }),
+        );
 
         const editNameInput = screen.getByPlaceholderText(
             'Enter new contact name',
@@ -265,11 +275,13 @@ describe('<Contacts />', () => {
 
         // Wait for the app to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Click the first row Send button
-        await user.click(screen.getAllByTestId('send-to-contact')[0]);
+        await user.click(screen.getAllByTitle('tx-sent')[0]);
 
         // Now we are on the SendXec page and the address field is filled out
         expect(screen.getByPlaceholderText('Address')).toHaveValue(

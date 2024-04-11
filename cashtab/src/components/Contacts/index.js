@@ -8,9 +8,9 @@ import { WalletContext } from 'wallet/context';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
 import {
     CopyPasteIcon,
-    ThemedTrashcanOutlined,
-    ThemedEditOutlined,
-    ThemedContactSendOutlined,
+    TrashcanIcon,
+    EditIcon,
+    SendIcon,
 } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import { ModalInput, InputFlex } from 'components/Common/Inputs';
@@ -26,6 +26,7 @@ import {
     ButtonRow,
     ContactListName,
     ButtonPanel,
+    SvgButton,
 } from 'components/Contacts/styles';
 
 const Contacts = () => {
@@ -284,7 +285,7 @@ const Contacts = () => {
                     </InputFlex>
                 </Modal>
             )}
-            <ContactList data-testid="contacts">
+            <ContactList title="Contacts">
                 <ContactsPanel>
                     {contactList && contactList.length > 0 ? (
                         contactList.map((contact, index) => (
@@ -299,27 +300,30 @@ const Contacts = () => {
                                     >
                                         <CopyPasteIcon />
                                     </CopyToClipboard>
-                                    <ThemedEditOutlined
-                                        data-testid="rename-contact-btn"
+                                    <SvgButton
+                                        aria-label={`Rename ${contact.name}`}
                                         onClick={() =>
                                             setContactToBeRenamed(contact)
                                         }
-                                    />
+                                    >
+                                        <EditIcon />
+                                    </SvgButton>
                                     <Link
-                                        data-testid="send-to-contact"
                                         to="/send"
                                         state={{
                                             contactSend: contact.address,
                                         }}
                                     >
-                                        <ThemedContactSendOutlined />
+                                        <SendIcon />
                                     </Link>
-                                    <ThemedTrashcanOutlined
-                                        data-testid="delete-contact-btn"
+                                    <SvgButton
+                                        aria-label={`Delete ${contact.name}`}
                                         onClick={() =>
                                             setContactToBeDeleted(contact)
                                         }
-                                    />
+                                    >
+                                        <TrashcanIcon />
+                                    </SvgButton>
                                 </ButtonPanel>
                             </Row>
                         ))
@@ -336,7 +340,6 @@ const Contacts = () => {
                 </ContactsPanel>
                 <ButtonRow>
                     <PrimaryButton
-                        data-testid="add-contact-btn"
                         onClick={() => setShowAddNewContactModal(true)}
                     >
                         Add Contact

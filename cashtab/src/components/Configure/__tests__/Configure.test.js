@@ -104,7 +104,7 @@ describe('<Configure />', () => {
         );
 
         // We are on the settings screen
-        await screen.findByTestId('configure-ctn');
+        await screen.findByTitle('Settings');
 
         // We do not see the auto open option
         expect(
@@ -130,7 +130,7 @@ describe('<Configure />', () => {
         );
 
         // We are on the settings screen
-        await screen.findByTestId('configure-ctn');
+        await screen.findByTitle('Settings');
 
         // Now we do see the auto open option
         expect(
@@ -163,27 +163,35 @@ describe('<Configure />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTestId('tx-history-ctn');
+        await screen.findByTitle('Tx History');
 
         // Click the hamburger menu
-        await user.click(screen.queryByTestId('hamburger'));
+        await user.click(screen.queryByTitle('Show Other Screens'));
 
         // Navigate to Settings screen
-        await user.click(screen.queryByTestId('nav-btn-configure'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Settings/i,
+            }),
+        );
 
         // Now we see the Settings screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Settings')).toBeInTheDocument();
 
         // Send confirmations are disabled by default
 
         // Enable send confirmations
-        await user.click(screen.getByTestId('send-confirmations-switch'));
+        await user.click(screen.getByTitle('Toggle Send Confirmations'));
 
         // Navigate to the Send screen
-        await user.click(screen.queryByTestId('nav-btn-send'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Send Screen/i,
+            }),
+        );
 
         // Now we see the Send screen
-        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
+        expect(screen.getByTitle('Toggle Multisend')).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
@@ -192,7 +200,7 @@ describe('<Configure />', () => {
         );
         await user.type(screen.getByPlaceholderText('Amount'), '55');
         // click send
-        await user.click(screen.getByRole('button', { name: /Send/ }));
+        await user.click(screen.getByRole('button', { name: 'Send' }));
         // we see a modal
         expect(
             await screen.findByText(
@@ -264,27 +272,34 @@ describe('<Configure />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTestId('tx-history-ctn');
+        await screen.findByTitle('Tx History');
 
         // Click the hamburger menu
-        await user.click(screen.queryByTestId('hamburger'));
+        await user.click(screen.queryByTitle('Show Other Screens'));
 
-        // Navigate to Settings screen
-        await user.click(screen.queryByTestId('nav-btn-configure'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Settings/i,
+            }),
+        );
 
         // Now we see the Settings screen
-        expect(screen.getByTestId('configure-ctn')).toBeInTheDocument();
+        expect(screen.getByTitle('Settings')).toBeInTheDocument();
 
         // Send confirmations are disabled by default
 
         // Enable min fee sends
-        await user.click(screen.getByTestId('settings-minFeeSends-switch'));
+        await user.click(screen.getByTitle('Toggle minimum fee sends'));
 
         // Navigate to the Send screen
-        await user.click(screen.queryByTestId('nav-btn-send'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Send Screen/i,
+            }),
+        );
 
         // Now we see the Send screen
-        expect(screen.getByTestId('send-to-many-switch')).toBeInTheDocument();
+        expect(screen.getByTitle('Toggle Multisend')).toBeInTheDocument();
 
         // Fill out to and amount
         await user.type(
@@ -294,7 +309,7 @@ describe('<Configure />', () => {
         await user.type(screen.getByPlaceholderText('Amount'), '55');
 
         // click send to broadcast the tx
-        await user.click(screen.getByRole('button', { name: /Send/ }));
+        await user.click(screen.getByRole('button', { name: 'Send' }));
 
         // Notification is rendered with expected txid
         const txSuccessNotification = await screen.findByText('eCash sent');
@@ -311,7 +326,11 @@ describe('<Configure />', () => {
         // Send some tokens
 
         // Navigate to eTokens screen
-        await user.click(screen.queryByTestId('nav-btn-etokens'));
+        await user.click(
+            screen.getByRole('button', {
+                name: /Tokens/i,
+            }),
+        );
 
         // Click on the VIP token
         await user.click(screen.getByText('GRP'));
@@ -327,7 +346,7 @@ describe('<Configure />', () => {
         await user.type(screen.getByPlaceholderText('Amount'), '99000001');
 
         // Click the Send token button
-        await user.click(screen.getByRole('button', { name: /Send/ }));
+        await user.click(screen.getByRole('button', { name: /Send GRP/ }));
 
         const sendTokenSuccessNotification = await screen.findByText(
             'eToken sent',
@@ -357,7 +376,9 @@ describe('<Configure />', () => {
 
         // Wait for wallet to load
         await waitFor(() =>
-            expect(screen.queryByTestId('loading-ctn')).not.toBeInTheDocument(),
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
         );
 
         // Choose GBP
@@ -367,7 +388,7 @@ describe('<Configure />', () => {
         );
 
         // We expect balance header to be updated
-        expect(screen.getByTestId('ecash-price')).toHaveTextContent(
+        expect(screen.getByTitle('Price in Local Currency')).toHaveTextContent(
             `1 XEC = 0.00002000 GBP`,
         );
 
