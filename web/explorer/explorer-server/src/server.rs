@@ -200,9 +200,6 @@ impl Server {
         let block = self.chronik.block_by_hash(&block_hash).await?;
         let block_info =
             block.block_info.ok_or_else(|| eyre!("Block has no info"))?;
-        let block_details = block
-            .block_details
-            .ok_or_else(|| eyre!("Block has details"))?;
 
         let blockchain_info = self.chronik.blockchain_info().await?;
         let best_height = blockchain_info.tip_height;
@@ -217,7 +214,6 @@ impl Server {
             block_hex,
             block_header: block.raw_header,
             block_info,
-            block_details,
             confirmations,
             timestamp,
             difficulty,

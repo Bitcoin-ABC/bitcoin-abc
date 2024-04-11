@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use askama::Template;
 use bitcoinsuite_chronik_client::proto::{
-    BlockDetails, BlockInfo, SlpGenesisInfo, SlpMeta, SlpTokenType, SlpTxType,
-    Token, Tx, Utxo,
+    BlockInfo, SlpGenesisInfo, SlpMeta, SlpTokenType, SlpTxType, Token, Tx,
+    Utxo,
 };
 use chrono::{DateTime, Utc};
 
@@ -23,7 +23,6 @@ pub struct BlockTemplate<'a> {
     pub block_hex: &'a str,
     pub block_header: Vec<u8>,
     pub block_info: BlockInfo,
-    pub block_details: BlockDetails,
     pub confirmations: i32,
     pub timestamp: DateTime<chrono::Utc>,
     pub difficulty: f64,
