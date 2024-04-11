@@ -5,27 +5,21 @@
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import CopyToClipboard from 'components/Common/CopyToClipboard';
-import HideBalanceSwitch from './HideBalanceSwitch';
-import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { getWalletsForNewActiveWallet } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getTextWidth } from 'helpers';
+import WalletHeaderActions from 'components/Common/WalletHeaderActions';
 
 const LabelCtn = styled.div`
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: ${props => (props.minified ? 'space-between' : 'center')};
     gap: 3%;
     svg {
-        height: 24px;
-        width: 24px;
+        height: 21px;
+        width: 21px;
     }
-`;
-const SwitchAndIcon = styled.div`
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
+    width: 100%;
 `;
 
 const EXTRA_WIDTH_FOR_SELECT = 32;
@@ -34,9 +28,18 @@ const WalletDropdown = styled.select`
         'Segoe UI', 'Roboto', 'Oxygen', 'Cantarell', 'Fira Sans', 'Droid Sans',
         'Helvetica Neue', sans-serif;
     width: ${props =>
-        getTextWidth(document, props.value, '18px Poppins') +
-        EXTRA_WIDTH_FOR_SELECT}px;
-    max-width: 90%;
+        props.minified
+            ? '100%'
+            : `${
+                  getTextWidth(document, props.value, '18px Poppins') +
+                  EXTRA_WIDTH_FOR_SELECT
+              }px`};
+    ${props =>
+        !props.minified &&
+        `max-width: 90%;
+        @media (max-width: 450px) {
+            max-width: 70%;
+        }`};
     cursor: pointer;
     font-size: 18px;
     padding: 6px;
@@ -44,6 +47,8 @@ const WalletDropdown = styled.select`
     border: none;
     border-radius: 9px;
     background-color: transparent;
+    transition: width 0.2s;
+    text-overflow: ellipsis;
 `;
 const WalletOption = styled.option`
     text-align: left;
@@ -54,7 +59,7 @@ const WalletOption = styled.option`
     }
 `;
 
-const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
+const WalletLabel = ({ wallets, settings, updateCashtabState, minified }) => {
     const address = wallets[0].paths.get(1899).address;
 
     const handleSelectWallet = e => {
@@ -84,8 +89,9 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
     };
 
     return (
-        <LabelCtn>
+        <LabelCtn minified={minified}>
             <WalletDropdown
+                minified={minified}
                 name="wallets"
                 id="wallets"
                 onChange={e => handleSelectWallet(e)}
@@ -97,15 +103,13 @@ const WalletLabel = ({ wallets, settings, updateCashtabState }) => {
                     </WalletOption>
                 ))}
             </WalletDropdown>
-            <SwitchAndIcon>
-                <CopyToClipboard data={address} showToast>
-                    <CopyPasteIcon />
-                </CopyToClipboard>
-                <HideBalanceSwitch
+            {!minified && (
+                <WalletHeaderActions
+                    address={address}
                     settings={settings}
                     updateCashtabState={updateCashtabState}
                 />
-            </SwitchAndIcon>
+            )}
         </LabelCtn>
     );
 };
@@ -136,6 +140,7 @@ WalletLabel.propTypes = {
         PropTypes.bool,
     ]),
     updateCashtabState: PropTypes.func,
+    minified: PropTypes.bool,
 };
 
 export default WalletLabel;

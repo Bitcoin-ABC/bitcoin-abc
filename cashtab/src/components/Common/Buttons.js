@@ -171,7 +171,6 @@ CopyIconButton.propTypes = {
     data: PropTypes.string,
     showToast: PropTypes.bool,
     customMsg: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
-    children: PropTypes.node,
 };
 
 export default PrimaryButton;

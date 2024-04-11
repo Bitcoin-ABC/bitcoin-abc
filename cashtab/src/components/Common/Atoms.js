@@ -28,11 +28,6 @@ export const TxLink = styled.a`
     color: ${props => props.theme.primary};
 `;
 
-export const WalletInfoCtn = styled.div`
-    background: ${props => props.theme.walletInfoContainer};
-    padding: 12px 20px;
-`;
-
 export const TokenParamLabel = styled.span`
     font-weight: bold;
 `;
