@@ -360,9 +360,6 @@ export const EnvVarMessage = styled.div`
     top: 0;
     left: 5px;
     top: 4px;
-    :nth-child(2) {
-        top: 14px;
-    }
 `;
 
 export const SocialCtn = styled.div`

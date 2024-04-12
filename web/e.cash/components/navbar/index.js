@@ -17,7 +17,7 @@ export default function Navbar({ announcementbar }) {
     const [windowHeight, setWindowHeight] = useState(0);
     const [navBackground, setNavBackground] = useState(false);
     const mobileBreakPoint = 920;
-    const { priceLinkText, blockHeight } = useApiData();
+    const { priceLinkText } = useApiData();
 
     const handleResize = () => {
         setWindowWidth(window.innerWidth);
@@ -50,27 +50,8 @@ export default function Navbar({ announcementbar }) {
         }
     }, [windowHeight]);
 
-    const blocksBeforeHalving = 840000 - blockHeight;
-
     return (
         <NavbarOuter navBackground={navBackground}>
-            {blocksBeforeHalving > 0 && (
-                <AnnouncementBar
-                    navBackground={navBackground}
-                    href="https://ecash.supply"
-                >
-                    <span>
-                        {blockHeight > 0 ? (
-                            <span>
-                                eCash halving in {blocksBeforeHalving} block
-                                {blocksBeforeHalving > 1 ? 's' : ''}!
-                            </span>
-                        ) : (
-                            <span>eCash halving is imminent!</span>
-                        )}
-                    </span>
-                </AnnouncementBar>
-            )}
             <AnnouncementBar navBackground={navBackground} href="/upgrade">
                 <span>
                     <span>Prepare for the eCash network upgrade!</span>
