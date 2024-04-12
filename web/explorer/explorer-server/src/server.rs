@@ -139,6 +139,7 @@ impl Server {
                 difficulty: calculate_block_difficulty(block.n_bits),
                 size: block.block_size,
                 num_txs: block.num_txs,
+                is_final: block.is_final,
             });
         }
 

@@ -41,6 +41,7 @@ pub struct JsonBlock {
     pub difficulty: f64,
     pub size: u64,
     pub num_txs: u64,
+    pub is_final: bool,
 }
 
 #[derive(Serialize, Clone)]
