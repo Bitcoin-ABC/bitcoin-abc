@@ -26,11 +26,10 @@ pub struct JsonBalance {
 #[serde(rename_all = "camelCase")]
 pub struct JsonToken {
     pub token_id: String,
-    pub token_type: u32,
+    pub token_type: i32,
     pub token_ticker: String,
     pub token_name: String,
     pub decimals: u32,
-    pub group_id: Option<String>,
 }
 
 #[derive(Serialize)]

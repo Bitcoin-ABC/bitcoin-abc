@@ -30,11 +30,10 @@ pub fn tokens_to_json(
 
                 let json_token = JsonToken {
                     token_id: token_id.clone(),
-                    token_type: slp_meta.token_type as u32,
+                    token_type: slp_meta.token_type,
                     token_ticker,
                     token_name,
                     decimals: genesis_info.decimals,
-                    group_id: Some(hex::encode(&slp_meta.group_token_id)),
                 };
                 json_tokens.insert(token_id.clone(), json_token.clone());
             }
@@ -142,11 +141,10 @@ pub fn block_txs_to_json(
                     Some(token_id_hex),
                     Some(JsonToken {
                         token_id: to_be_hex(&slp_meta.token_id),
-                        token_type: slp_meta.token_type as u32,
+                        token_type: slp_meta.token_type,
                         token_ticker,
                         token_name,
                         decimals: genesis_info.decimals,
-                        group_id: Some(to_be_hex(&slp_meta.group_token_id)),
                     }),
                 )
             }
