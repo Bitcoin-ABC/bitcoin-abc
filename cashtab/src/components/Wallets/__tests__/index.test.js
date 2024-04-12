@@ -385,6 +385,9 @@ describe('<Wallets />', () => {
         );
 
         // We see import modal
+        expect(
+            screen.getByPlaceholderText('mnemonic (seed phrase)'),
+        ).toBeInTheDocument();
 
         // Import button is disabled
         const importBtn = screen.getByRole('button', {
@@ -415,12 +418,17 @@ describe('<Wallets />', () => {
         // Click import
         await user.click(importBtn);
 
-        // Wallet imported success modal
+        // Wallet imported success toast
         expect(
             await screen.findByText(
                 `New imported wallet "qzxep" added to your saved wallets`,
             ),
         ).toBeInTheDocument();
+
+        // The modal is no longer with us
+        expect(
+            screen.queryByPlaceholderText('mnemonic (seed phrase)'),
+        ).not.toBeInTheDocument();
 
         // We see the new wallet
         expect((await screen.findAllByText('qzxep'))[1]).toBeInTheDocument();
@@ -433,11 +441,11 @@ describe('<Wallets />', () => {
             'qzxep',
         );
 
-        // Wait for mnemonic input to be cleared
+        // The modal will be closed after a successful import
         await waitFor(() =>
             expect(
-                screen.getByPlaceholderText('mnemonic (seed phrase)'),
-            ).toHaveValue(''),
+                screen.queryByPlaceholderText('mnemonic (seed phrase)'),
+            ).not.toBeInTheDocument(),
         );
 
         // Bring up the import modal again
@@ -453,13 +461,18 @@ describe('<Wallets />', () => {
             'pioneer waste next tired armed course expand stairs load brick asthma budget',
         );
 
+        // It is a new import button now
+        const newImportButton = screen.getByRole('button', {
+            name: 'OK',
+        });
+
         // The button is not disabled
-        expect(importBtn).toHaveProperty('disabled', false);
+        expect(newImportButton).toHaveProperty('disabled', false);
 
         // Click import
-        await user.click(importBtn);
+        await user.click(newImportButton);
 
-        // Wallet imported failure modal
+        // Wallet imported failure toast
         expect(
             await screen.findByText(
                 `Cannot import: wallet already exists (name: "qzxep")`,

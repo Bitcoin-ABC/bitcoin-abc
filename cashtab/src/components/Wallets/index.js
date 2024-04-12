@@ -244,6 +244,9 @@ const Wallets = () => {
 
         // Clear formdata
         setFormData({ ...formData, mnemonic: '' });
+
+        // Close the modal
+        setShowImportWalletModal(false);
     }
 
     /**
