@@ -18,6 +18,10 @@ import appConfig from 'config/app';
 import 'fake-indexeddb/auto';
 import localforage from 'localforage';
 import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+import {
+    slp1FixedBear,
+    slp1FixedCachet,
+} from 'components/Etokens/fixtures/mocks';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -78,20 +82,19 @@ describe('<SendToken />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        // Set mock tokeninfo call
+        // Set chronik mocks required for cache preparation and supply calc
         mockedChronik.setMock('token', {
-            input: '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-            output: {
-                genesisInfo: {
-                    tokenTicker: 'BEAR',
-                    tokenName: 'BearNip',
-                    tokenDocumentUrl: 'https://cashtab.com/',
-                    tokenDocumentHash: '',
-                    decimals: 0,
-                    tokenId:
-                        '3fee3384150b030490b7bee095a63900f66a45f2d8e3002ae2cf17ce3ef4d109',
-                },
-            },
+            input: slp1FixedBear.tokenId,
+            output: slp1FixedBear.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: slp1FixedBear.tokenId,
+            output: slp1FixedBear.tx,
+        });
+        mockedChronik.setTokenId(slp1FixedBear.tokenId);
+        mockedChronik.setUtxosByTokenId(slp1FixedBear.tokenId, {
+            tokenId: slp1FixedBear.tokenId,
+            utxos: slp1FixedBear.utxos,
         });
 
         // Set up userEvent
@@ -628,17 +631,17 @@ describe('<SendToken />', () => {
         );
         // Set mock tokeninfo call
         mintMockedChronik.setMock('token', {
-            input: mockTokenId,
-            output: {
-                genesisInfo: {
-                    tokenTicker: 'CACHET',
-                    tokenName: 'Cachet',
-                    tokenDocumentUrl: 'https://cashtab.com/',
-                    tokenDocumentHash: '',
-                    decimals: 2,
-                    tokenId: mockTokenId,
-                },
-            },
+            input: slp1FixedCachet.tokenId,
+            output: slp1FixedCachet.token,
+        });
+        mintMockedChronik.setMock('tx', {
+            input: slp1FixedCachet.tokenId,
+            output: slp1FixedCachet.tx,
+        });
+        mockedChronik.setTokenId(slp1FixedCachet.tokenId);
+        mockedChronik.setUtxosByTokenId(slp1FixedCachet.tokenId, {
+            tokenId: slp1FixedCachet.tokenId,
+            utxos: slp1FixedCachet.utxos,
         });
 
         const hex =

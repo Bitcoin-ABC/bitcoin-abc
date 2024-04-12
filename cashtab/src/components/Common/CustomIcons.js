@@ -39,6 +39,8 @@ import { ReactComponent as Settings } from 'assets/settings.svg';
 import { ReactComponent as Contacts } from 'assets/contacts.svg';
 import { ReactComponent as Tokens } from 'assets/tokens.svg';
 import { ReactComponent as Github } from 'assets/github.svg';
+import { ReactComponent as Question } from 'assets/question.svg';
+
 import appConfig from 'config/app';
 
 export const CashReceivedNotificationIcon = () => (
@@ -188,6 +190,8 @@ export const BankIcon = () => <Bank title="wallets" />;
 export const SettingsIcon = () => <Settings title="settings" />;
 export const ContactsIcon = () => <Contacts title="Contact List" />;
 export const TokensIcon = () => <Tokens title="Tokens" />;
+export const QuestionIcon = () => <Question title="More Info" />;
+
 const GithubIconWrapper = styled.div`
     svg {
         height: 42px;
