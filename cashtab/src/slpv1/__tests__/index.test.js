@@ -24,14 +24,12 @@ describe('slpv1 methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, genesisConfig, mintAddress, targetOutputs } =
+            const { description, genesisConfig, targetOutputs } =
                 expectedReturn;
             it(`getSlpGenesisTargetOutput: ${description}`, () => {
                 // Output value should be zero for OP_RETURN
-                const calculatedTargetOutputs = getSlpGenesisTargetOutput(
-                    genesisConfig,
-                    mintAddress,
-                );
+                const calculatedTargetOutputs =
+                    getSlpGenesisTargetOutput(genesisConfig);
 
                 // We expect 2 outputs or 3 outputs
                 expect(calculatedTargetOutputs.length >= 2).toBe(true);
@@ -43,7 +41,6 @@ describe('slpv1 methods', () => {
                 );
                 // The output at the 1-index is dust to given address
                 expect(calculatedTargetOutputs[1]).toStrictEqual({
-                    address: mintAddress,
                     value: appConfig.etokenSats,
                 });
                 if (calculatedTargetOutputs.length > 2) {
@@ -56,7 +53,6 @@ describe('slpv1 methods', () => {
                     // The mint baton is at index 2
                     // eslint-disable-next-line jest/no-conditional-expect
                     expect(calculatedTargetOutputs[2]).toStrictEqual({
-                        address: mintAddress,
                         value: appConfig.etokenSats,
                     });
                 }
@@ -65,12 +61,11 @@ describe('slpv1 methods', () => {
 
         // Error cases
         expectedErrors.forEach(expectedError => {
-            const { description, genesisConfig, mintAddress, errorMsg } =
-                expectedError;
+            const { description, genesisConfig, errorMsg } = expectedError;
             it(`getSlpGenesisTargetOutput throws error for: ${description}`, () => {
-                expect(() =>
-                    getSlpGenesisTargetOutput(genesisConfig, mintAddress),
-                ).toThrow(errorMsg);
+                expect(() => getSlpGenesisTargetOutput(genesisConfig)).toThrow(
+                    errorMsg,
+                );
             });
         });
     });

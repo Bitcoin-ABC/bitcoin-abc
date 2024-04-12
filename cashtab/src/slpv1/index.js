@@ -15,11 +15,10 @@ export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
 /**
  * Get targetOutput for a SLP v1 genesis tx
  * @param {object} genesisConfig object containing token info for genesis tx
- * @param {string} mintAddress the address minting this token
  * @throws {error} if invalid input params are passed to TokenType1.genesis
  * @returns {object} targetOutput, e.g. {value: 0, script: <encoded slp genesis script>}
  */
-export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
+export const getSlpGenesisTargetOutput = genesisConfig => {
     const {
         ticker,
         name,
@@ -57,10 +56,10 @@ export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
 
     // Per SLP v1 spec, genesis tx is minted to output at index 1
     // In Cashtab, we mint genesis txs to our own Path1899 address
-    // Note, we do not validate the mintAddress here. The tx will fail if it is not a valid address.
+    // Expected behavior for Cashtab tx building is to add change address to output
+    // with no address
     targetOutputs.push({
         value: appConfig.etokenSats,
-        address: mintAddress,
     });
 
     // If the user specified the creation of a mint baton, add it
@@ -68,7 +67,6 @@ export const getSlpGenesisTargetOutput = (genesisConfig, mintAddress) => {
     if (mintBatonVout !== null) {
         targetOutputs.push({
             value: appConfig.etokenSats,
-            address: mintAddress,
         });
     }
 

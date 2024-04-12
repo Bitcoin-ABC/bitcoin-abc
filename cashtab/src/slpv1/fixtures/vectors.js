@@ -28,7 +28,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: null,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 targetOutputs: [
                     {
                         value: 0,
@@ -36,7 +35,6 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: GENESIS_MINT_ADDRESS,
                     },
                 ],
             },
@@ -52,7 +50,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: 2,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 targetOutputs: [
                     {
                         value: 0,
@@ -60,11 +57,9 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: GENESIS_MINT_ADDRESS,
                     },
                     {
                         value: appConfig.dustSats,
-                        address: GENESIS_MINT_ADDRESS,
                     },
                 ],
             },
@@ -80,7 +75,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: 2,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 targetOutputs: [
                     {
                         value: 0,
@@ -88,7 +82,6 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: GENESIS_MINT_ADDRESS,
                     },
                 ],
             },
@@ -104,7 +97,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: null,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 targetOutputs: [
                     {
                         value: 0,
@@ -112,7 +104,6 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: GENESIS_MINT_ADDRESS,
                     },
                 ],
             },
@@ -128,7 +119,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: 2,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 targetOutputs: [
                     {
                         value: 0,
@@ -154,7 +144,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: 3,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg:
                     'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
             },
@@ -169,7 +158,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: 2,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg: 'bn outside of range',
             },
             {
@@ -183,7 +171,6 @@ export default {
                     documentHash: 'not hex and not the right length',
                     mintBatonVout: 2,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg: 'documentHash must be either 0 or 32 hex bytes',
             },
             {
@@ -196,7 +183,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: null,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg: 'bn not an integer',
             },
             {
@@ -209,7 +195,6 @@ export default {
                     documentHash: '',
                     mintBatonVout: null,
                 },
-                mintAddress: GENESIS_MINT_ADDRESS,
                 errorMsg:
                     'The first argument must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object. Received an instance of Object',
             },

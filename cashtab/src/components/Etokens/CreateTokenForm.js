@@ -535,10 +535,7 @@ const CreateTokenForm = () => {
         // create token with data in state fields
         try {
             // Get target outputs for an SLP v1 genesis tx
-            const targetOutputs = getSlpGenesisTargetOutput(
-                configObj,
-                wallet.paths.get(1899).address,
-            );
+            const targetOutputs = getSlpGenesisTargetOutput(configObj);
             const { response } = await sendXec(
                 chronik,
                 wallet,
