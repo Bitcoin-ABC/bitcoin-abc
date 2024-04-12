@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { BN, TokenType1 } from 'slp-mdm';
+import { BN, TokenType1, NFT1 } from 'slp-mdm';
 import appConfig from 'config/app';
 import { initializeScript } from 'opreturn';
 import { opReturn } from 'config/opreturn';
@@ -11,6 +11,10 @@ import { undecimalizeTokenAmount } from 'wallet';
 
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+
+// Note: NFT1 spec supports non-zero decimals, but 0 is recommended
+// Cashtab follows the recommendation and will only mint 0-decimal NFT1 parent tokens
+const NFT1_PARENT_DECIMALS = 0;
 
 /**
  * Get targetOutput for a SLP v1 genesis tx
@@ -422,4 +426,63 @@ export const getMaxMintAmount = decimals => {
         -1 * decimals,
     );
     return `${stringBeforeDecimalPoint}.${stringAfterDecimalPoint}`;
+};
+
+/**
+ * Get targetOutput for a SLP v1 NFT Parent (aka Group) genesis tx
+ * @param {object} genesisConfig object containing token info for genesis tx
+ * @throws {error} if invalid input params are passed to TokenType1.genesis
+ * @returns {object} targetOutput, e.g. {value: 0, script: <encoded slp genesis script>}
+ */
+export const getNftParentGenesisTargetOutputs = genesisConfig => {
+    const {
+        ticker,
+        name,
+        documentUrl,
+        documentHash,
+        mintBatonVout,
+        initialQty,
+    } = genesisConfig;
+
+    if (mintBatonVout !== null && mintBatonVout !== 2) {
+        throw new Error(
+            'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
+        );
+    }
+
+    const targetOutputs = [];
+
+    // Note that this function handles validation; will throw an error on invalid inputs
+    const script = NFT1.Group.genesis(
+        ticker,
+        name,
+        documentUrl,
+        documentHash,
+        NFT1_PARENT_DECIMALS,
+        mintBatonVout,
+        // Per spec, this must be BN of an integer
+        // This function will throw an error if initialQty is not an integer
+        new BN(initialQty),
+    );
+
+    // Per SLP v1 spec, OP_RETURN must be at index 0
+    // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#genesis---token-genesis-transaction
+    targetOutputs.push({ value: 0, script });
+
+    // Per SLP v1 spec, genesis tx is minted to output at index 1
+    // In Cashtab, we mint genesis txs to our own Path1899 address
+    // If an output does not have an address, Cashtab will add its change address
+    targetOutputs.push({
+        value: appConfig.etokenSats,
+    });
+
+    // If the user specified the creation of a mint baton, add it
+    // Note: Cashtab only supports the creation of one mint baton at index 2
+    if (mintBatonVout !== null) {
+        targetOutputs.push({
+            value: appConfig.etokenSats,
+        });
+    }
+
+    return targetOutputs;
 };

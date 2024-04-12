@@ -12,6 +12,7 @@ import {
     getMintBatons,
     getMintTargetOutputs,
     getMaxMintAmount,
+    getNftParentGenesisTargetOutputs,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
@@ -383,6 +384,31 @@ describe('slpv1 methods', () => {
             const { description, decimals, returned } = vector;
             it(`getMaxMintAmount: ${description}`, () => {
                 expect(getMaxMintAmount(decimals)).toBe(returned);
+            });
+        });
+    });
+    describe('Get targetOutputs for NFT1 parent genesis tx', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getNftParentGenesisTargetOutputs;
+
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, genesisConfig, targetOutputs } =
+                expectedReturn;
+            it(`getNftParentGenesisTargetOutputs: ${description}`, () => {
+                expect(getNftParentGenesisTargetOutputs(genesisConfig)).toEqual(
+                    targetOutputs,
+                );
+            });
+        });
+
+        // Error cases
+        expectedErrors.forEach(expectedError => {
+            const { description, genesisConfig, errorMsg } = expectedError;
+            it(`getNftParentGenesisTargetOutputs throws error for: ${description}`, () => {
+                expect(() =>
+                    getNftParentGenesisTargetOutputs(genesisConfig),
+                ).toThrow(errorMsg);
             });
         });
     });

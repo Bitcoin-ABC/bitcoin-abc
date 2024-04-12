@@ -1245,4 +1245,127 @@ export default {
             },
         ],
     },
+    getNftParentGenesisTargetOutputs: {
+        expectedReturns: [
+            {
+                description: 'Fixed supply NFT1 parent',
+                genesisConfig: {
+                    name: 'NFT1 Parent Test',
+                    ticker: 'NPT',
+                    documentUrl: 'https://cashtab.com/',
+                    initialQty: '100',
+                    documentHash:
+                        '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
+                    mintBatonVout: null,
+                },
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001810747454e45534953034e5054104e46543120506172656e7420546573741468747470733a2f2f636173687461622e636f6d2f200000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c01004c00080000000000000064',
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.etokenSats,
+                    },
+                ],
+            },
+            {
+                description: 'Variable supply NFT1 parent',
+                genesisConfig: {
+                    name: 'NFT1 Parent Test',
+                    ticker: 'NPT',
+                    documentUrl: 'https://cashtab.com/',
+                    initialQty: '100',
+                    documentHash:
+                        '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
+                    mintBatonVout: 2,
+                },
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001810747454e45534953034e5054104e46543120506172656e7420546573741468747470733a2f2f636173687461622e636f6d2f200000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c01000102080000000000000064',
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.etokenSats,
+                    },
+                    {
+                        value: appConfig.etokenSats,
+                    },
+                ],
+            },
+            {
+                description: 'NFT1 parent genesis at max supply',
+                genesisConfig: {
+                    name: 'NFT1 Parent Test',
+                    ticker: 'NPT',
+                    documentUrl: 'https://cashtab.com/',
+                    initialQty: MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+                    documentHash:
+                        '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
+                    mintBatonVout: null,
+                },
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001810747454e45534953034e5054104e46543120506172656e7420546573741468747470733a2f2f636173687461622e636f6d2f200000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c01004c0008ffffffffffffffff',
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.etokenSats,
+                    },
+                ],
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'Variable supply NFT1 parent with mintBatonVout !== 2',
+                genesisConfig: {
+                    name: 'NFT1 Parent Test',
+                    ticker: 'NPT',
+                    documentUrl: 'https://cashtab.com/',
+                    initialQty: '100',
+                    documentHash:
+                        '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
+                    mintBatonVout: 3,
+                },
+                errorMsg:
+                    'Cashtab only supports slpv1 genesis txs for fixed supply tokens or tokens with mint baton at index 2',
+            },
+            {
+                description: 'Exceed 0xffffffffffffffff for genesis qty',
+                genesisConfig: {
+                    name: 'NFT1 Parent Test',
+                    ticker: 'NPT',
+                    documentUrl: 'https://cashtab.com/',
+                    initialQty: `${MAX_MINT_AMOUNT_TOKEN_SATOSHIS}1`,
+                    documentHash:
+                        '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
+                    mintBatonVout: null,
+                },
+                mintAddress: GENESIS_MINT_ADDRESS,
+                errorMsg: 'bn outside of range',
+            },
+            {
+                description: 'Initial qty is not an integer',
+                genesisConfig: {
+                    name: 'NFT1 Parent Test',
+                    ticker: 'NPT',
+                    documentUrl: 'https://cashtab.com/',
+                    initialQty: new BN(100.123),
+                    documentHash:
+                        '0000000000000000108da5cf31407c9261d489171db51a88cc400c7590eb087c',
+                    mintBatonVout: null,
+                },
+                errorMsg: 'bn not an integer',
+            },
+        ],
+    },
 };
