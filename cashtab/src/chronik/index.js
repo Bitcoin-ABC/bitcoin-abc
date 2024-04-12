@@ -386,33 +386,6 @@ export const getHistory = async (chronik, wallet, cachedTokens) => {
     return history;
 };
 
-export const getMintAddress = async (chronik, tokenId) => {
-    let genesisTx;
-    try {
-        genesisTx = await chronik.tx(tokenId);
-        // get the minting address chronik
-        // iterate over the tx outputs
-        const { outputs } = genesisTx;
-        for (let i = 0; i < outputs.length; i += 1) {
-            const thisOutput = outputs[i];
-            // Check to see if this output has eTokens
-            if (
-                thisOutput &&
-                thisOutput.token &&
-                typeof thisOutput.token !== 'undefined' &&
-                thisOutput.token.amount &&
-                Number(thisOutput.token.amount) > 0
-            ) {
-                // then this is the minting address
-                return cashaddr.encodeOutputScript(thisOutput.outputScript);
-            }
-        }
-    } catch (err) {
-        console.error(`Error in getMintAddress`, err);
-        return err;
-    }
-};
-
 /**
  * Get all info about a token used in Cashtab's token cache
  * @param {ChronikClientNode} chronik

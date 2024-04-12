@@ -10,7 +10,6 @@ import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
 import PrimaryButton, { SecondaryLink } from 'components/Common/Buttons';
 import CopyToClipboard from 'components/Common/CopyToClipboard';
-import { getMintAddress } from 'chronik';
 import {
     isValidTokenId,
     isValidXecAirdrop,
@@ -23,6 +22,8 @@ import { toast } from 'react-toastify';
 import CashtabSwitch from 'components/Common/Switch';
 import { Input, TextArea, InputFlex } from 'components/Common/Inputs';
 import { CopyPasteIcon } from 'components/Common/CustomIcons';
+import { getTokenGenesisInfo } from 'chronik';
+import cashaddr from 'ecashaddrjs';
 
 const AirdropForm = styled.div`
     margin-top: 24px;
@@ -55,28 +56,18 @@ const AirdropTitle = styled.div`
 
 const Airdrop = ({ passLoadingStatus }) => {
     const ContextValue = React.useContext(WalletContext);
-    const { chronik, cashtabState } = ContextValue;
+    const { chronik, cashtabState, updateCashtabState } = ContextValue;
     const { wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const location = useLocation();
-    useEffect(() => {
-        if (location && location.state && location.state.airdropEtokenId) {
-            setFormData({
-                ...formData,
-                tokenId: location.state.airdropEtokenId,
-            });
-            handleTokenIdInput({
-                target: {
-                    value: location.state.airdropEtokenId,
-                },
-            });
-        }
-    }, []);
 
     const [formData, setFormData] = useState({
         tokenId: '',
         totalAirdrop: '',
     });
+
+    const [tokenInfo, setTokenInfo] = useState(undefined);
+    const [mintAddress, setMintAddress] = useState(undefined);
 
     const [equalDistributionRatio, setEqualDistributionRatio] = useState(false);
     const [tokenIdIsValid, setTokenIdIsValid] = useState(null);
@@ -110,6 +101,97 @@ const Airdrop = ({ passLoadingStatus }) => {
         ignoreMinEtokenBalanceAmountError,
         setIgnoreMinEtokenBalanceAmountError,
     ] = useState(false);
+
+    useEffect(() => {
+        if (location && location.state && location.state.airdropEtokenId) {
+            setFormData({
+                ...formData,
+                tokenId: location.state.airdropEtokenId,
+            });
+            handleTokenIdInput({
+                target: {
+                    value: location.state.airdropEtokenId,
+                },
+            });
+        }
+    }, []);
+
+    useEffect(() => {
+        if (tokenIdIsValid) {
+            // If we have a valid tokenId in the input field
+
+            // See if we have this token info already available in cache
+            let thisTokenInfo = cashtabCache.tokens.get(formData.tokenId);
+
+            // If not, get it
+            if (typeof thisTokenInfo === 'undefined') {
+                console.info(
+                    `We do not have cached token info for ${formData.tokenId}`,
+                );
+                // If we do not have this info in cache, put it there
+                // Note that we cannot use 'await' inside a useEffect, so we must call this function separately
+                // Note also we cannot return a function call inside a useEffect except for a cleanup function
+                getTokenInfo(formData.tokenId);
+            } else {
+                // If we already have it, set it to state to enable form functions that depend on this info
+                setTokenInfo(thisTokenInfo);
+            }
+        }
+    }, [formData.tokenId, tokenIdIsValid]);
+
+    useEffect(() => {
+        if (typeof tokenInfo !== 'undefined') {
+            // Calculate the mint address from cached token info
+            // Assume it is the first outputscript of genesisOutputScripts
+            try {
+                const { genesisOutputScripts, genesisInfo } = tokenInfo;
+                // For SLP1 tokens, there will only be one genesis address
+                // For ALP or others, assume it is the first genesis address, though it may not exist
+                // based on how we calculate this address
+                const mintAddress = cashaddr.encodeOutputScript(
+                    genesisOutputScripts[0],
+                );
+                console.info(
+                    `Mint address for ${genesisInfo.tokenName} is ${mintAddress}`,
+                );
+                setMintAddress(mintAddress);
+            } catch (err) {
+                // If we can't get it, just toast notification
+                // Form fields that depend on this info will be disabled
+                // This will happen if the genesis outputscript is not a valid p2pkh or p2sh address
+                toast.error(`Error determining mint address for token: ${err}`);
+            }
+        }
+    }, [tokenInfo]);
+
+    const getTokenInfo = async tokenId => {
+        let tokenCacheInfo;
+        try {
+            tokenCacheInfo = await getTokenGenesisInfo(chronik, tokenId);
+            console.info(
+                `Fetched tokenCacheInfo for ${tokenId}`,
+                tokenCacheInfo,
+            );
+            const { genesisInfo } = tokenCacheInfo;
+            const { tokenName, tokenTicker } = genesisInfo;
+            setTokenInfo(tokenCacheInfo);
+            // Add token info for this token to cache
+            cashtabCache.tokens.set(tokenId, tokenCacheInfo);
+            // Update cashtabCache.tokens in state and localforage
+            updateCashtabState('cashtabCache', {
+                ...cashtabState.cashtabCache,
+                tokens: cashtabState.cashtabCache.tokens,
+            });
+            toast.success(
+                `Token info for ${tokenName} (${tokenTicker}) fetched and cached.`,
+            );
+        } catch (err) {
+            // Toast error
+            // Input settings that depend on this info will be disabled as it will be undefined
+            // in state unless it is successfully added
+            toast.error(`Error getting token info from chronik: ${err}`);
+        }
+    };
 
     const handleTokenIdInput = e => {
         const { name, value } = e.target;
@@ -168,19 +250,16 @@ const Airdrop = ({ passLoadingStatus }) => {
             excludedAddresses.push(wallet.paths.get(1899).address);
         }
         if (ignoreMintAddress) {
-            let mintAddress;
-            try {
-                mintAddress = await getMintAddress(chronik, formData.tokenId);
-                excludedAddresses.push(mintAddress);
-            } catch (err) {
-                console.error(`Error getting mint address from chronik`, err);
+            if (typeof mintAddress === 'undefined') {
+                // Should never happen as the switch is disabled if we do not have this info
                 toast.error(
-                    `Error determining mint address for ${formData.tokenId}`,
+                    'Mint address not available, please retry without ignoring the mint address',
                 );
                 // Clear result field from earlier calc, if present, on any error
                 setAirdropRecipients('');
                 return passLoadingStatus(false);
             }
+            excludedAddresses.push(mintAddress);
         }
         if (ignoreCustomAddresses && ignoreCustomAddressesListIsValid) {
             const addressStringArray = ignoreCustomAddressesList.split(',');
@@ -189,34 +268,20 @@ const Airdrop = ({ passLoadingStatus }) => {
             }
         }
 
-        // Convert user-entered ignoreMinEtokenBalanceAmount to correct decimals
-        // i.e., "undecimalize it" so it is on the same basis as other amounts in getAirdropTx
-        const tokenInfo = cashtabCache.tokens.get(formData.tokenId);
-        let undecimalizedMinTokenAmount;
-        if (typeof tokenInfo === 'undefined') {
-            // User may be airdropping to a token they do not hold
-            // In this case, we must get decimals from chronik
-            let tokenInfo;
-            try {
-                tokenInfo = await chronik.token(formData.tokenId);
-                undecimalizedMinTokenAmount = new BN(
-                    ignoreMinEtokenBalanceAmount,
-                )
-                    .times(10 ** tokenInfo.genesisInfo.decimals)
-                    .toString();
-            } catch (err) {
-                console.error(`Error getting token utxos from chronik`, err);
+        // By default, this is 0
+        let undecimalizedMinTokenAmount = '0';
+        if (ignoreMinEtokenBalanceAmount) {
+            if (typeof tokenInfo === 'undefined') {
+                // Should never happen as the calculate button is disabled if we do not have this info
                 toast.error(
-                    `Error determining mint address for ${formData.tokenId}`,
+                    `Error determining decimals for minimum balance to ignore. Try again without ignoring a min balance, or refresh the page and try again.`,
                 );
                 // Clear result field from earlier calc, if present, on any error
                 setAirdropRecipients('');
                 return passLoadingStatus(false);
             }
-        } else {
-            // get it from cache if available
             undecimalizedMinTokenAmount = new BN(ignoreMinEtokenBalanceAmount)
-                .times(10 ** tokenInfo.decimals)
+                .times(10 ** tokenInfo.genesisInfo.decimals)
                 .toString();
         }
 
@@ -388,6 +453,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                     <CashtabSwitch
                         name="Toggle Ignore Mint Address"
                         checked={ignoreMintAddress}
+                        disabled={typeof mintAddress === 'undefined'}
                         handleToggle={() =>
                             handleIgnoreMintAddress(prev => !prev)
                         }
@@ -400,6 +466,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                     <CashtabSwitch
                         name="Toggle Minimum Token Balance"
                         checked={ignoreMinEtokenBalance}
+                        disabled={typeof tokenInfo === 'undefined'}
                         handleToggle={() =>
                             handleIgnoreMinEtokenBalanceAmt(prev => !prev)
                         }
@@ -440,7 +507,14 @@ const Airdrop = ({ passLoadingStatus }) => {
             <FormRow>
                 <PrimaryButton
                     onClick={() => calculateXecAirdrop()}
-                    disabled={!airdropCalcInputIsValid || !tokenIdIsValid}
+                    disabled={
+                        !airdropCalcInputIsValid ||
+                        !tokenIdIsValid ||
+                        (ignoreMintAddress &&
+                            typeof mintAddress === 'undefined') ||
+                        (ignoreMinEtokenBalance &&
+                            typeof tokenInfo === 'undefined')
+                    }
                 >
                     Calculate Airdrop
                 </PrimaryButton>

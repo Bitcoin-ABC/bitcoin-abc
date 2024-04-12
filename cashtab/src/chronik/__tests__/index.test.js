@@ -7,7 +7,6 @@ import {
     flattenChronikTxHistory,
     sortAndTrimChronikTxHistory,
     parseTx,
-    getMintAddress,
     getTokenGenesisInfo,
     getTokenBalances,
     getHistory,
@@ -29,19 +28,7 @@ import {
     expectedParsedTxHistory,
     noCachedInfoParsedTxHistory,
 } from '../fixtures/mocks';
-import {
-    mintingTxTabCash,
-    mintingAddressTabCash,
-    mintingTxPoW,
-    mintingAddressPoW,
-    mintingTxAlita,
-    mintingAddressAlita,
-    mintingAddressBuxSelfMint,
-    mintingTxBuxSelfMint,
-} from '../fixtures/chronikMintTxs';
 import { cashtabWalletFromJSON } from 'helpers';
-import { ChronikClient } from 'chronik-client';
-import { when } from 'jest-when';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import CashtabCache from 'config/CashtabCache';
 
@@ -50,70 +37,6 @@ describe('Cashtab chronik.js functions', () => {
         expect(
             await flattenChronikTxHistory(mockTxHistoryOfAllAddresses),
         ).toStrictEqual(mockFlatTxHistoryNoUnconfirmed);
-    });
-    it(`getMintAddress successfully parses chronik.tx response to determine mint address for TabCash token`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-
-        chronik.tx = jest.fn();
-
-        when(chronik.tx)
-            .calledWith(mintingTxTabCash.txid)
-            .mockResolvedValue(mintingTxTabCash);
-
-        expect(await getMintAddress(chronik, mintingTxTabCash.txid)).toBe(
-            mintingAddressTabCash,
-        );
-    });
-    it(`getMintAddress successfully parses chronik.tx response to determine mint address for PoW token`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-
-        chronik.tx = jest.fn();
-
-        when(chronik.tx)
-            .calledWith(mintingTxPoW.txid)
-            .mockResolvedValue(mintingTxPoW);
-
-        expect(await getMintAddress(chronik, mintingTxPoW.txid)).toBe(
-            mintingAddressPoW,
-        );
-    });
-    it(`getMintAddress successfully parses chronik.tx response to determine mint address for Alita token`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-
-        chronik.tx = jest.fn();
-
-        when(chronik.tx)
-            .calledWith(mintingTxAlita.txid)
-            .mockResolvedValue(mintingTxAlita);
-
-        expect(await getMintAddress(chronik, mintingTxAlita.txid)).toBe(
-            mintingAddressAlita,
-        );
-    });
-    it(`getMintAddress successfully parses chronik.tx response to determine mint address for a BUX self minted token`, async () => {
-        // Initialize chronik
-        const chronik = new ChronikClient(
-            'https://FakeChronikUrlToEnsureMocksOnly.com',
-        );
-
-        chronik.tx = jest.fn();
-
-        when(chronik.tx)
-            .calledWith(mintingTxBuxSelfMint.txid)
-            .mockResolvedValue(mintingTxBuxSelfMint);
-
-        expect(await getMintAddress(chronik, mintingTxBuxSelfMint.txid)).toBe(
-            mintingAddressBuxSelfMint,
-        );
     });
     describe('Parses supported tx types', () => {
         const { expectedReturns } = vectors.parseTx;
