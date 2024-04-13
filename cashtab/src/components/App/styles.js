@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import styled, { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle, css } from 'styled-components';
 import { ToastContainer } from 'react-toastify';
 
 export const ExtensionFrame = createGlobalStyle`
@@ -41,41 +41,59 @@ export const CustomApp = styled.div`
     background-size: 100px 171px;
     background-image: ${props => props.theme.backgroundImage};
     background-attachment: fixed;
+    min-height: 100vh;
 `;
-
-export const Footer = styled.div`
-    z-index: 2;
-    height: 80px;
-    border-top: 1px solid rgba(255, 255, 255, 0.5);
-    background-color: ${props => props.theme.headerAndFooterBg};
-    position: fixed;
-    bottom: 0;
-    width: 500px;
+export const WalletBody = styled.div`
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0;
+    justify-content: center;
+    width: 100%;
+`;
+const AppPositionCss = css`
+    width: 500px;
+    background: ${props => props.theme.walletBackground};
+    -webkit-box-shadow: 0px 0px 24px 1px ${props => props.theme.shadow};
+    -moz-box-shadow: 0px 0px 24px 1px ${props => props.theme.shadow};
+    box-shadow: 0px 0px 24px 1px ${props => props.theme.shadow};
     @media (max-width: 768px) {
         width: 100%;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
     }
 `;
-
 export const Header = styled.div`
+    ${AppPositionCss}
     position: sticky;
     z-index: 2;
-    background-color: ${props => props.theme.headerAndFooterBg};
-    width: 500px;
     align-items: center;
     justify-content: space-between;
-    @media (max-width: 768px) {
-        width: 100%;
-    }
     box-sizing: border-box;
     *,
     *:before,
     *:after {
         box-sizing: inherit;
     }
+`;
+
+export const WalletCtn = styled.div`
+    ${AppPositionCss}
+    position: relative;
+    padding: 0 0 100px;
+    min-height: calc(100vh - 80px);
+`;
+
+export const Footer = styled.div`
+    ${AppPositionCss}
+    z-index: 2;
+    height: 80px;
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+    position: fixed;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
 `;
 
 export const NavWrapper = styled.div`
@@ -242,35 +260,10 @@ export const NavButton = styled.button`
         }
   `}
 `;
-
-export const WalletBody = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    min-height: 100vh;
-`;
 export const ScreenWrapper = styled.div`
     padding: 0px 30px;
     @media (max-width: 768px) {
         padding: 0px 15px;
-    }
-`;
-
-export const WalletCtn = styled.div`
-    position: relative;
-    width: 500px;
-    min-height: 100vh;
-    padding: 0 0 100px;
-    background: ${props => props.theme.walletBackground};
-    -webkit-box-shadow: 0px 0px 24px 1px ${props => props.theme.shadow};
-    -moz-box-shadow: 0px 0px 24px 1px ${props => props.theme.shadow};
-    box-shadow: 0px 0px 24px 1px ${props => props.theme.shadow};
-    @media (max-width: 768px) {
-        width: 100%;
-        -webkit-box-shadow: none;
-        -moz-box-shadow: none;
-        box-shadow: none;
     }
 `;
 
