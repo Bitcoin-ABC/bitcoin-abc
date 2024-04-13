@@ -144,13 +144,13 @@ const PayButtonImg = styled.img`
     filter: brightness(0) invert(1);
 `;
 export const EncryptedMsgIcon = () => (
-    <img src={CashtabEncrypted} alt="tx-encrypted-msg" />
+    <CashtabEncrypted title="tx-encrypted-msg" />
 );
 export const TokenBurnIcon = () => <TokenBurn title="tx-token-burn" />;
 export const PayButtonIcon = () => (
     <PayButtonImg src={PayButton} alt="tx-paybutton" />
 );
-export const ChatIcon = () => <img src={Chat} alt="tx-chat" />;
+export const ChatIcon = () => <Chat title="tx-chat" />;
 export const MintIcon = () => <Mint title="tx-mint" />;
 export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
 export const AddContactIcon = () => <AddContact title="add-contact" />;

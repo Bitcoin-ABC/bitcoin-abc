@@ -951,7 +951,7 @@ describe('<Tx />', () => {
 
         // Encrypted msg app action
         // We see the encrypted msg icon
-        expect(screen.getByAltText('tx-encrypted-msg')).toBeInTheDocument();
+        expect(screen.getByTitle('tx-encrypted-msg')).toBeInTheDocument();
 
         // We see expected text msg
         expect(screen.getByText('Encrypted Cashtab Msg')).toBeInTheDocument();
@@ -991,7 +991,7 @@ describe('<Tx />', () => {
 
         // Encrypted msg app action
         // We see the encrypted msg icon
-        expect(screen.getByAltText('tx-encrypted-msg')).toBeInTheDocument();
+        expect(screen.getByTitle('tx-encrypted-msg')).toBeInTheDocument();
 
         // We see expected text msg
         expect(screen.getByText('Encrypted Cashtab Msg')).toBeInTheDocument();
@@ -1493,7 +1493,7 @@ describe('<Tx />', () => {
 
         // eCash chat msg app action
         // We see the eCash Chat logo
-        expect(screen.getByAltText('tx-chat')).toBeInTheDocument();
+        expect(screen.getByTitle('tx-chat')).toBeInTheDocument();
 
         // We see expected protocol label
         expect(screen.getByText('eCash Chat')).toBeInTheDocument();
@@ -1547,7 +1547,7 @@ describe('<Tx />', () => {
 
         // eCash chat msg app action
         // We see the eCash Chat logo
-        expect(screen.getByAltText('tx-chat')).toBeInTheDocument();
+        expect(screen.getByTitle('tx-chat')).toBeInTheDocument();
 
         // We see expected protocol label
         expect(screen.getByText('Invalid eCash Chat')).toBeInTheDocument();
