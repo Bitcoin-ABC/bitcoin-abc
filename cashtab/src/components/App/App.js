@@ -77,6 +77,7 @@ import {
 } from 'components/App/styles';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
 import 'react-toastify/dist/ReactToastify.min.css';
+import debounce from 'lodash.debounce';
 
 const App = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -105,6 +106,9 @@ const App = () => {
         setScrollYPosition(window.scrollY);
     };
 
+    // Only execute handleScroll if it has not been called for 25ms
+    const debouncedHandleScroll = debounce(handleScroll, 25);
+
     // To avoid content jump flickering without using overflow-anchor,
     // This cannot exceed the height of the minified wallet menu
     // overflow-anchor css rule is not supported across all browsers and devices
@@ -119,9 +123,9 @@ const App = () => {
             : true;
 
     useEffect(() => {
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', debouncedHandleScroll);
         return () => {
-            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('scroll', debouncedHandleScroll);
         };
     }, []);
 
