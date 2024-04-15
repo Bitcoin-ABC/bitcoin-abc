@@ -49,6 +49,10 @@ const WalletDropdown = styled.select`
     background-color: transparent;
     transition: width 0.2s;
     text-overflow: ellipsis;
+    &:focus-visible {
+        outline: none;
+        text-decoration: underline;
+    }
 `;
 const WalletOption = styled.option`
     text-align: left;
