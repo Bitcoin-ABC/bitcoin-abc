@@ -121,6 +121,15 @@ import "components/output.html" as output %} {% import
                 </div>
 
                 <div class="tx-details-row">
+                    <div>Final</div>
+                    <div>
+                        {% match tx.block %}{% when Some with (block) %}{% if
+                        block.is_final %}Yes{% else %}No{% endif %}{% when None
+                        %}No{% endmatch %}
+                    </div>
+                </div>
+
+                <div class="tx-details-row">
                     <div>Block</div>
                     <div>
                         {% match tx.block %} {% when Some with (block_meta) %}
