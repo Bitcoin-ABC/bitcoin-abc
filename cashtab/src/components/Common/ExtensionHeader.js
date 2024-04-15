@@ -44,10 +44,10 @@ const ExtTabImg = styled.img`
 
 const FlexSpacer = styled.div``;
 
-const ExtensionHeader = ({ selectedKey }) => {
+const ExtensionHeader = ({ path }) => {
     // openInTab is an extension-only method
     const openInTab = () => {
-        window.open(`index.html#/${selectedKey}`);
+        window.open(`index.html#${path}`);
     };
     return (
         <LogoCtn>
@@ -61,7 +61,7 @@ const ExtensionHeader = ({ selectedKey }) => {
 };
 
 ExtensionHeader.propTypes = {
-    selectedKey: PropTypes.string,
+    path: PropTypes.string,
 };
 
 export default ExtensionHeader;

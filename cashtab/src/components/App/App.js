@@ -41,13 +41,7 @@ import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
 import { WalletContext } from 'wallet/context';
 import { getWalletState } from 'utils/cashMethods';
-import {
-    Route,
-    Navigate,
-    Routes,
-    useLocation,
-    useNavigate,
-} from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 // Easter egg imports not used in extension/src/components/App.js
 import TabCash from 'assets/tabcash.png';
 import { hasEnoughToken } from 'wallet';
@@ -131,9 +125,6 @@ const App = () => {
         };
     }, []);
 
-    const selectedKey =
-        location && location.pathname ? location.pathname.substr(1) : '';
-
     // Easter egg boolean not used in extension/src/components/App.js
     const hasTab = validWallet
         ? hasEnoughToken(
@@ -191,9 +182,7 @@ const App = () => {
                                                     .REACT_APP_BUILD_ENV ===
                                                 'extension' ? (
                                                     <ExtensionHeader
-                                                        selectedKey={
-                                                            selectedKey
-                                                        }
+                                                        path={location.pathname}
                                                     />
                                                 ) : (
                                                     <CashtabLogo
@@ -201,39 +190,43 @@ const App = () => {
                                                         alt="cashtab"
                                                     />
                                                 )}
-                                                {selectedKey === 'airdrop' && (
+                                                {location.pathname ===
+                                                    '/airdrop' && (
                                                     <NavHeader>
                                                         Airdrop
                                                         <AirdropIcon />
                                                     </NavHeader>
                                                 )}
-                                                {selectedKey === 'backup' && (
+                                                {location.pathname ===
+                                                    '/backup' && (
                                                     <NavHeader>
                                                         Wallet Backup
                                                         <WalletIcon />
                                                     </NavHeader>
                                                 )}
-                                                {selectedKey === 'contacts' && (
+                                                {location.pathname ===
+                                                    '/contacts' && (
                                                     <NavHeader>
                                                         Contacts
                                                         <ContactsIcon />
                                                     </NavHeader>
                                                 )}
-                                                {selectedKey === 'wallets' && (
+                                                {location.pathname ===
+                                                    '/wallets' && (
                                                     <NavHeader>
                                                         Wallets
                                                         <BankIcon />
                                                     </NavHeader>
                                                 )}
-                                                {selectedKey ===
-                                                    'configure' && (
+                                                {location.pathname ===
+                                                    '/configure' && (
                                                     <NavHeader>
                                                         Settings
                                                         <SettingsIcon />
                                                     </NavHeader>
                                                 )}
-                                                {selectedKey ===
-                                                    'signverifymsg' && (
+                                                {location.pathname ===
+                                                    '/signverifymsg' && (
                                                     <NavHeader>
                                                         {' '}
                                                         Sign & Verify Msg
@@ -244,8 +237,8 @@ const App = () => {
                                                     .REACT_APP_BUILD_ENV !==
                                                     'extension' && (
                                                     <>
-                                                        {selectedKey ===
-                                                            'swap' && (
+                                                        {location.pathname ===
+                                                            '/swap' && (
                                                             <NavHeader>
                                                                 {' '}
                                                                 Swap
@@ -384,12 +377,7 @@ const App = () => {
                                                 )}
                                                 <Route
                                                     path="/"
-                                                    element={
-                                                        <Navigate
-                                                            to="/wallet"
-                                                            replace
-                                                        />
-                                                    }
+                                                    element={<Home />}
                                                 />
                                                 <Route
                                                     path="*"
@@ -405,15 +393,18 @@ const App = () => {
                     {wallet !== false && (
                         <Footer>
                             <NavButton
-                                active={selectedKey === 'wallet'}
-                                onClick={() => navigate('/wallet')}
+                                active={
+                                    location.pathname === '/' ||
+                                    location.pathname === '/wallet'
+                                }
+                                onClick={() => navigate('/')}
                             >
                                 <HomeIcon />
                             </NavButton>
 
                             <NavButton
                                 aria-label="Send Screen"
-                                active={selectedKey === 'send'}
+                                active={location.pathname === '/send'}
                                 onClick={() => navigate('/send')}
                                 style={{ paddingBottom: '10px' }}
                             >
@@ -421,14 +412,14 @@ const App = () => {
                             </NavButton>
                             <NavButton
                                 aria-label="Tokens"
-                                active={selectedKey === 'etokens'}
+                                active={location.pathname === '/etokens'}
                                 onClick={() => navigate('/etokens')}
                             >
                                 <TokensIcon />
                             </NavButton>
                             <NavButton
                                 aria-label="Receive"
-                                active={selectedKey === 'receive'}
+                                active={location.pathname === '/receive'}
                                 onClick={() => navigate('receive')}
                             >
                                 <ReceiveIcon />
@@ -443,7 +434,7 @@ const App = () => {
                                     open={navMenuClicked}
                                 >
                                     <NavItem
-                                        active={selectedKey === 'backup'}
+                                        active={location.pathname === '/backup'}
                                         onClick={() => navigate('/backup')}
                                     >
                                         {' '}
@@ -451,7 +442,9 @@ const App = () => {
                                         <WalletIcon />
                                     </NavItem>
                                     <NavItem
-                                        active={selectedKey === 'wallets'}
+                                        active={
+                                            location.pathname === '/wallets'
+                                        }
                                         onClick={() => navigate('/wallets')}
                                     >
                                         {' '}
@@ -459,7 +452,9 @@ const App = () => {
                                         <BankIcon />
                                     </NavItem>
                                     <NavItem
-                                        active={selectedKey === 'contacts'}
+                                        active={
+                                            location.pathname === '/contacts'
+                                        }
                                         onClick={() => navigate('/contacts')}
                                     >
                                         {' '}
@@ -467,7 +462,9 @@ const App = () => {
                                         <ContactsIcon />
                                     </NavItem>
                                     <NavItem
-                                        active={selectedKey === 'airdrop'}
+                                        active={
+                                            location.pathname === '/airdrop'
+                                        }
                                         onClick={() => navigate('/airdrop')}
                                     >
                                         {' '}
@@ -477,7 +474,9 @@ const App = () => {
                                     {process.env.REACT_APP_BUILD_ENV !==
                                         'extension' && (
                                         <NavItem
-                                            active={selectedKey === 'swap'}
+                                            active={
+                                                location.pathname === '/swap'
+                                            }
                                             onClick={() => navigate('/swap')}
                                         >
                                             {' '}
@@ -486,7 +485,10 @@ const App = () => {
                                         </NavItem>
                                     )}
                                     <NavItem
-                                        active={selectedKey === 'signverifymsg'}
+                                        active={
+                                            location.pathname ===
+                                            '/signverifymsg'
+                                        }
                                         onClick={() =>
                                             navigate('/signverifymsg')
                                         }
@@ -496,7 +498,9 @@ const App = () => {
                                     </NavItem>
                                     {aliasSettings.aliasEnabled && (
                                         <NavItem
-                                            active={selectedKey === 'alias'}
+                                            active={
+                                                location.pathname === '/alias'
+                                            }
                                             onClick={() => navigate('/alias')}
                                         >
                                             {' '}
@@ -505,7 +509,9 @@ const App = () => {
                                         </NavItem>
                                     )}
                                     <NavItem
-                                        active={selectedKey === 'configure'}
+                                        active={
+                                            location.pathname === '/configure'
+                                        }
                                         onClick={() => navigate('/configure')}
                                     >
                                         <p>Settings</p>
