@@ -249,7 +249,7 @@ const Tx = ({
                             <>
                                 <IconAndLabel>
                                     <AirdropIcon />
-                                    <AppDescLabel>Airdrop</AppDescLabel>
+                                    <AppDescLabel>Airdrop (XEC)</AppDescLabel>
                                 </IconAndLabel>
                                 <TokenIcon
                                     size={32}

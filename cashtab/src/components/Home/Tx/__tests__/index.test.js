@@ -855,7 +855,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('(GRP)')).toBeInTheDocument();
 
         // We see airdrop label
-        expect(screen.getByText('Airdrop')).toBeInTheDocument();
+        expect(screen.getByText('Airdrop (XEC)')).toBeInTheDocument();
         // We see the airdrop msg
         expect(
             screen.getByText(
