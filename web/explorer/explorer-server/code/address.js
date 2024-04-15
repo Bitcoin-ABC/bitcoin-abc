@@ -269,7 +269,7 @@ const renderToken = (_value, _type, row) => {
     if (row.token !== null) {
         var ticker =
             ' <a href="/tx/' +
-            row.token.tokenId +
+            row.txHash +
             '">' +
             row.token.tokenTicker +
             '</a>';
