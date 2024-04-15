@@ -511,7 +511,7 @@ export default {
                         script: '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000f080000000000000005',
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                         address: SEND_DESTINATION_ADDRESS,
                     },
                 ],
@@ -574,7 +574,7 @@ export default {
                         script: '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000001e',
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                         address: SEND_DESTINATION_ADDRESS,
                     },
                 ],
@@ -630,7 +630,7 @@ export default {
                         script: '6a04534c500001010453454e44201111111111111111111111111111111111111111111111111111111111111111080000000008f0d180080000000002faf080',
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                         address: SEND_DESTINATION_ADDRESS,
                     },
                 ],
@@ -1267,7 +1267,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                     },
                 ],
             },
@@ -1291,10 +1291,10 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                     },
                 ],
             },
@@ -1318,7 +1318,7 @@ export default {
                         ),
                     },
                     {
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                     },
                 ],
             },

@@ -523,7 +523,7 @@ describe('<App />', () => {
             'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
         );
         // The value field is populated with dust
-        expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.5);
+        expect(screen.getByPlaceholderText('Amount')).toHaveValue(5.46);
     });
     it('If Cashtab starts up with some settings keys missing, the missing keys are migrated to default values', async () => {
         // Note: this is what happens to existing users when we add a new key to cashtabState.settings

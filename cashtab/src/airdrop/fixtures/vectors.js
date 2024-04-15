@@ -225,7 +225,7 @@ export default {
                 excludedAddresses: [],
                 airdropAmountXec: 5,
                 minTokenQtyUndecimalized: '0',
-                err: `6 eligible recipients. Recipients would receive less than 550 sats with a total airdrop amount of 5 XEC. Please increase your airdrop amount or ignore more addresses.`,
+                err: `6 eligible recipients. Recipients would receive less than 546 sats with a total airdrop amount of 5 XEC. Please increase your airdrop amount or ignore more addresses.`,
             },
         ],
     },

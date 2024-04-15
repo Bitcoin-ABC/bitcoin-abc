@@ -42,7 +42,7 @@ describe('slpv1 methods', () => {
                 );
                 // The output at the 1-index is dust to given address
                 expect(calculatedTargetOutputs[1]).toStrictEqual({
-                    value: appConfig.etokenSats,
+                    value: appConfig.dustSats,
                 });
                 if (calculatedTargetOutputs.length > 2) {
                     // If we have a mint baton
@@ -54,7 +54,7 @@ describe('slpv1 methods', () => {
                     // The mint baton is at index 2
                     // eslint-disable-next-line jest/no-conditional-expect
                     expect(calculatedTargetOutputs[2]).toStrictEqual({
-                        value: appConfig.etokenSats,
+                        value: appConfig.dustSats,
                     });
                 }
             });
@@ -118,7 +118,7 @@ describe('slpv1 methods', () => {
 
                 // We will always have the destination output at index 1
                 expect(calculatedTargetOutputs[1].value).toBe(
-                    appConfig.etokenSats,
+                    appConfig.dustSats,
                 );
                 expect(calculatedTargetOutputs[1].address).toBe(
                     SEND_DESTINATION_ADDRESS,
@@ -134,7 +134,7 @@ describe('slpv1 methods', () => {
                     // assert the expected change output
                     // eslint-disable-next-line jest/no-conditional-expect
                     expect(calculatedTargetOutputs[2].value).toBe(
-                        appConfig.etokenSats,
+                        appConfig.dustSats,
                     );
                     // eslint-disable-next-line jest/no-conditional-expect
                     expect('address' in calculatedTargetOutputs[2]).toBe(false);
@@ -204,7 +204,7 @@ describe('slpv1 methods', () => {
 
                 // We will always have the destination output at index 1
                 expect(calculatedTargetOutputs[1].value).toBe(
-                    appConfig.etokenSats,
+                    appConfig.dustSats,
                 );
                 expect(calculatedTargetOutputs[1].address).toBe(
                     SEND_DESTINATION_ADDRESS,
@@ -220,7 +220,7 @@ describe('slpv1 methods', () => {
                     // assert the expected change output
                     // eslint-disable-next-line jest/no-conditional-expect
                     expect(calculatedTargetOutputs[2].value).toBe(
-                        appConfig.etokenSats,
+                        appConfig.dustSats,
                     );
                     // eslint-disable-next-line jest/no-conditional-expect
                     expect('address' in calculatedTargetOutputs[2]).toBe(false);
@@ -294,7 +294,7 @@ describe('slpv1 methods', () => {
                 // BURN txs always have 2 outputs
                 expect(targetOutput.length).toBe(2);
                 // assert the expected change output
-                expect(targetOutput[1].value).toBe(appConfig.etokenSats);
+                expect(targetOutput[1].value).toBe(appConfig.dustSats);
                 expect('address' in targetOutput[1]).toBe(false);
             });
         });
@@ -364,8 +364,8 @@ describe('slpv1 methods', () => {
                 );
                 expect(mintTargetOutputs.length).toBe(3);
                 expect(mintTargetOutputs.splice(1, 3)).toStrictEqual([
-                    { value: appConfig.etokenSats },
-                    { value: appConfig.etokenSats },
+                    { value: appConfig.dustSats },
+                    { value: appConfig.dustSats },
                 ]);
             });
         });

@@ -652,7 +652,7 @@ describe('<SendXec />', () => {
 
         // We get expected addr validation error
         expect(
-            screen.getByText(`Send amount must be at least 5.5 XEC`),
+            screen.getByText(`Send amount must be at least 5.46 XEC`),
         ).toBeInTheDocument();
 
         // The Send button is disabled

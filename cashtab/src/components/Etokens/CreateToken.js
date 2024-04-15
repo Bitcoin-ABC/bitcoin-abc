@@ -37,8 +37,8 @@ const CreateToken = () => {
             {balanceSats < appConfig.dustSats ? (
                 <AlertMsg>
                     You need at least {toXec(appConfig.dustSats).toString()}{' '}
-                    {appConfig.ticker} {minTokenCreationFiatPriceString} to
-                    create a token
+                    spendable {appConfig.ticker}{' '}
+                    {minTokenCreationFiatPriceString} to create a token
                 </AlertMsg>
             ) : (
                 <CreateTokenForm />

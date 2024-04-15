@@ -1597,7 +1597,7 @@ export default {
                 userMultisendInput: `ecash:qplkmuz3rx480u6vc4xgc0qxnza42p0e7vll6p90wr, 1\necash:qqxrrls4u0znxx2q7e5m4en4z2yjrqgqeucckaerq3, 33\necash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y, 55`,
                 balanceSats: 11000,
                 userLocale: appConfig.defaultLocale,
-                returned: `Send amount must be at least 5.5 XEC: check value "1" at line 1`,
+                returned: `Send amount must be at least 5.46 XEC: check value "1" at line 1`,
             },
             {
                 description:

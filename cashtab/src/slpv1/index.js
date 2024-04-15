@@ -63,14 +63,14 @@ export const getSlpGenesisTargetOutput = genesisConfig => {
     // Expected behavior for Cashtab tx building is to add change address to output
     // with no address
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
     });
 
     // If the user specified the creation of a mint baton, add it
     // Note: Cashtab only supports the creation of one mint baton at index 2
     if (mintBatonVout !== null) {
         targetOutputs.push({
-            value: appConfig.etokenSats,
+            value: appConfig.dustSats,
         });
     }
 
@@ -104,7 +104,7 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
 
     // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
         address: destinationAddress,
     });
 
@@ -114,7 +114,7 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
         // Note that change addresses are added after ecash-coinselect by wallet
         // Change output is denoted by lack of address key
         targetOutputs.push({
-            value: appConfig.etokenSats,
+            value: appConfig.dustSats,
         });
     }
 
@@ -244,7 +244,7 @@ export const getSlpBurnTargetOutputs = tokenInputInfo => {
     // burn tx logic separate from ecash tx creation logic
     // But lets just add the min output
 
-    return [{ value: 0, script }, { value: appConfig.etokenSats }];
+    return [{ value: 0, script }, { value: appConfig.dustSats }];
 };
 
 /**
@@ -400,12 +400,12 @@ export const getMintTargetOutputs = (tokenId, decimals, mintQty) => {
 
     // Add mint amount at index 1
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
     });
 
     // Add mint baton at index 2
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
     });
 
     return targetOutputs;
@@ -473,14 +473,14 @@ export const getNftParentGenesisTargetOutputs = genesisConfig => {
     // In Cashtab, we mint genesis txs to our own Path1899 address
     // If an output does not have an address, Cashtab will add its change address
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
     });
 
     // If the user specified the creation of a mint baton, add it
     // Note: Cashtab only supports the creation of one mint baton at index 2
     if (mintBatonVout !== null) {
         targetOutputs.push({
-            value: appConfig.etokenSats,
+            value: appConfig.dustSats,
         });
     }
 
