@@ -74,7 +74,19 @@ footer_classes %}hidden{% endblock %} {% block content %}
 
                             <tr>
                                 <td>Confirmations</td>
-                                <td>{{ confirmations }}</td>
+                                <td>
+                                    {{ confirmations }} {% if
+                                    block_info.is_final %}(Final){% else %}(Not
+                                    final){% endif %}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>Final</td>
+                                <td>
+                                    {% if block_info.is_final %}Yes{% else
+                                    %}No{% endif %}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
