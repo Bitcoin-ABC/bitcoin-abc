@@ -114,9 +114,15 @@ const App = () => {
     // To avoid content jump flickering without using overflow-anchor,
     // This cannot exceed the height of the minified wallet menu
     // overflow-anchor css rule is not supported across all browsers and devices
-    // WalletInfoCtn has max-height set to 90px in styles.js
-    const PIN_MINIFIED_WALLET_MENU_SCROLLY = 42;
-    const minifiedMenu = scrollYPosition >= PIN_MINIFIED_WALLET_MENU_SCROLLY;
+    // WalletInfoCtn has height set to 63px in styles.js
+    const PIN_MINIFIED_WALLET_MENU_SCROLLY = 63;
+    const UNPIN_MINIFIED_WALLET_MENU_SCROLLY = 15;
+    const minifiedMenu =
+        scrollYPosition > PIN_MINIFIED_WALLET_MENU_SCROLLY
+            ? true
+            : scrollYPosition < UNPIN_MINIFIED_WALLET_MENU_SCROLLY
+            ? false
+            : true;
 
     useEffect(() => {
         window.addEventListener('scroll', handleScroll);

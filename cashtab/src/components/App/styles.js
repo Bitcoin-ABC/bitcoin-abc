@@ -336,7 +336,7 @@ export const WalletInfoCtn = styled.div`
         @media (max-width: 768px) {
             width: 100%;
         }
-        max-height: 90px;
+        height: 63px;
         overflow: hidden;
         `}
     background: ${props => props.theme.walletInfoContainer};
