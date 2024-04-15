@@ -16,6 +16,9 @@ export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
 // Cashtab follows the recommendation and will only mint 0-decimal NFT1 parent tokens
 const NFT1_PARENT_DECIMALS = 0;
 
+// For SLPv1 Mint txs, Cashtab always puts the mint baton at mintBatonVout 2
+const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
+
 /**
  * Get targetOutput for a SLP v1 genesis tx
  * @param {object} genesisConfig object containing token info for genesis tx
@@ -380,12 +383,9 @@ export const getMintTargetOutputs = (tokenId, decimals, mintQty) => {
     // Convert to BN as this is what slp-mdm expects
     const mintQtyBigNumber = new BN(tokenSatoshis);
 
-    // Cashtab always puts the mint baton at mintBatonVout 2
-    const CASHTAB_MINTBATON_VOUT = 2;
-
     const script = TokenType1.mint(
         tokenId,
-        CASHTAB_MINTBATON_VOUT,
+        CASHTAB_SLP1_MINT_MINTBATON_VOUT,
         mintQtyBigNumber,
     );
 
@@ -483,6 +483,48 @@ export const getNftParentGenesisTargetOutputs = genesisConfig => {
             value: appConfig.dustSats,
         });
     }
+
+    return targetOutputs;
+};
+
+/**
+ * Get targetOutput(s) for a SLPv1 NFT Parent MINT tx
+ * Note: Cashtab only supports slpv1 mints that preserve the baton at the wallet's address
+ * Note: Cashtab only supports NFT1 parents with decimals of 0
+ * @param {string} tokenId
+ * @param {string} mintQty decimalized string for token qty. Must be an integer.
+ * @throws {error} if invalid input params are passed to TokenType1.mint
+ * @returns {array} targetOutput(s), e.g. [{value: 0, script: <encoded slp send script>}, {value: 546}, {value: 546}]
+ * Note: we always return minted qty at index 1
+ * Note we always return a mint baton at index 2
+ */
+export const getNftParentMintTargetOutputs = (tokenId, mintQty) => {
+    // slp-mdm expects values in token satoshis, so we must undecimalize mintQty
+
+    const script = NFT1.Group.mint(
+        tokenId,
+        CASHTAB_SLP1_MINT_MINTBATON_VOUT,
+        new BN(mintQty),
+    );
+
+    // Build targetOutputs per slpv1 spec
+    // Dust output at v1 receives the minted qty (per spec)
+    // Dust output at v2 for mint baton (per Cashtab)
+
+    // Initialize with OP_RETURN at 0 index, per spec
+    // Note we do not include an address in outputs
+    // Cashtab behavior adds the wallet's change address if no output is added
+    const targetOutputs = [{ value: 0, script }];
+
+    // Add mint amount at index 1
+    targetOutputs.push({
+        value: appConfig.etokenSats,
+    });
+
+    // Add mint baton at index 2
+    targetOutputs.push({
+        value: appConfig.etokenSats,
+    });
 
     return targetOutputs;
 };

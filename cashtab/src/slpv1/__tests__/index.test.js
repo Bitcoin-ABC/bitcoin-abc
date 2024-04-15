@@ -13,6 +13,7 @@ import {
     getMintTargetOutputs,
     getMaxMintAmount,
     getNftParentGenesisTargetOutputs,
+    getNftParentMintTargetOutputs,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
@@ -408,6 +409,31 @@ describe('slpv1 methods', () => {
             it(`getNftParentGenesisTargetOutputs throws error for: ${description}`, () => {
                 expect(() =>
                     getNftParentGenesisTargetOutputs(genesisConfig),
+                ).toThrow(errorMsg);
+            });
+        });
+    });
+    describe('Generate target outputs for an slpv1 nft parent mint tx', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getNftParentMintTargetOutputs;
+
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, tokenId, mintQty, targetOutputs } =
+                expectedReturn;
+            it(`getNftParentMintTargetOutputs: ${description}`, () => {
+                expect(getNftParentMintTargetOutputs(tokenId, mintQty)).toEqual(
+                    targetOutputs,
+                );
+            });
+        });
+
+        // Error cases
+        expectedErrors.forEach(expectedError => {
+            const { description, tokenId, mintQty, errorMsg } = expectedError;
+            it(`getNftParentMintTargetOutputs throws error for: ${description}`, () => {
+                expect(() =>
+                    getNftParentMintTargetOutputs(tokenId, mintQty),
                 ).toThrow(errorMsg);
             });
         });

@@ -1368,4 +1368,58 @@ export default {
             },
         ],
     },
+    getNftParentMintTargetOutputs: {
+        expectedReturns: [
+            {
+                description:
+                    'Generates expected outputs for an NFT1 parent mint',
+                tokenId: MOCK_TOKEN_ID,
+                mintQty: '1000',
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            `6a04534c50000181044d494e5420${MOCK_TOKEN_ID}01020800000000000003e8`,
+                            'hex',
+                        ),
+                    },
+                    { value: 546 },
+                    { value: 546 },
+                ],
+            },
+            {
+                description:
+                    'Can create a target output for the largest mint qty supported by slpv1',
+                tokenId: MOCK_TOKEN_ID,
+                mintQty: '18446744073709551615',
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            `6a04534c50000181044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
+                            'hex',
+                        ),
+                    },
+                    { value: 546 },
+                    { value: 546 },
+                ],
+            },
+        ],
+        expectedErrors: [
+            {
+                description:
+                    'Throws expected error if asked to mint 1 more than slpv1 max qty',
+                tokenId: MOCK_TOKEN_ID,
+                mintQty: '18446744073709551616',
+                error: 'bn outside of range',
+            },
+            {
+                description:
+                    'Throws expected error if asked to mint a non-integer quantity',
+                tokenId: MOCK_TOKEN_ID,
+                mintQty: '100.123',
+                error: 'bn not an integer',
+            },
+        ],
+    },
 };
