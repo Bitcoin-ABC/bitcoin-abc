@@ -421,8 +421,16 @@ impl Server {
                 };
 
                 (
-                    format!("Token Details ({} Transaction)", &action_str)
-                        .into(),
+                    format!(
+                        "Token Details ({}{} Transaction)",
+                        if token_entry.is_invalid {
+                            "Invalid "
+                        } else {
+                            ""
+                        },
+                        &action_str,
+                    )
+                    .into(),
                     action_str.into(),
                     specification.into(),
                 )

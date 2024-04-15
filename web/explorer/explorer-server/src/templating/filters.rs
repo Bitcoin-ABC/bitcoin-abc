@@ -175,6 +175,10 @@ pub fn to_i128<T: Into<i128> + Copy>(value: &T) -> askama::Result<i128> {
     Ok((*value).into())
 }
 
+pub fn string_to_i128(value: &String) -> askama::Result<i128> {
+    Ok(value.parse::<i128>().unwrap())
+}
+
 pub fn render_token_amount(
     base_amount: &i128,
     decimals: &u32,

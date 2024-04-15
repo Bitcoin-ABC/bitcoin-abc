@@ -191,6 +191,37 @@ import "components/output.html" as output %} {% import
             {% call token_info_table::render(tx, slp_genesis_info, slp_meta,
             token_input, token_output, action_str, specification) %}
         </div>
+
+        {% match slp_meta %}{% when Some with(entry) %}{% match slp_genesis_info
+        %}{% when Some with(genesis_info) %} {% if entry.is_invalid %}
+        <h2>Error details</h2>
+        <div class="tx-details-ctn">
+            <table class="ui very basic celled table">
+                <tbody>
+                    <tr>
+                        <td>Total burnt</td>
+                        <td>
+                            {{
+                            entry.actual_burn_amount|string_to_i128|render_token_amount(genesis_info.decimals)|safe
+                            }} {{
+                            genesis_info.token_ticker|string_from_lossy_utf8 }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Burns mint batons</td>
+                        <td>
+                            {% if entry.burns_mint_batons %}Yes{% else %}No{%
+                            endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Error message</td>
+                        <td>{{ entry.burn_summary }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% endif %} {% when None %}{% endmatch %}{% when None %}{% endmatch %}
         {% endif %}
 
         <div class="ui grid">
