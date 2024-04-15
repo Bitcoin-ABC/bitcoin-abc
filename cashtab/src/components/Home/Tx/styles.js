@@ -85,15 +85,22 @@ export const TxDescCol = styled.div`
     flex-direction: row;
 `;
 // Top row of TxDescCol
-export const TxDesc = styled.div`
+export const TxDescSendRcvMsg = styled.div`
     display: inline-block;
+`;
+export const TxDesc = styled.div`
+    display: flex;
+    flex-wrap: wrap;
     text-align: left;
     width: 100%;
+    align-items: center;
+    gap: 6px;
 `;
 // Bottom row of TxDescCol
 export const Timestamp = styled.div`
     display: flex;
     width: 100%;
+    text-align: left;
     color: ${props => props.theme.lightWhite};
 `;
 export const AmountCol = styled.div`
@@ -127,7 +134,7 @@ export const Expand = styled.div`
     height: ${props => (props.showPanel ? '36px' : '0px')};
     visibility: ${props => (props.showPanel ? 'visible' : 'collapse')};
     transition: all 0.5s ease-out;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     gap: 12px;
     svg {
@@ -141,6 +148,18 @@ export const Expand = styled.div`
     g {
         fill: ${props => props.theme.contrast};
     }
+`;
+export const ExpandAvalancheWrapper = styled.div`
+    display: flex;
+    gap: 6px;
+    align-items: center;
+`;
+export const ExpandAvalancheLabel = styled.div`
+    color: ${props => props.theme.eCashBlue};
+    font-style: italic;
+`;
+export const ExpandButtonPanel = styled.div`
+    display: flex;
 `;
 export const PanelButton = styled.button`
     border: none;

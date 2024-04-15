@@ -35,6 +35,7 @@ import {
     getBalanceSats,
     getHashes,
     toXec,
+    hasUnfinalizedTxsInHistory,
 } from 'wallet';
 import { toast } from 'react-toastify';
 import CashtabState from 'config/CashtabState';
@@ -143,17 +144,6 @@ const useWallet = chronik => {
             setApiError(true);
             // Set loading false, as we may not have set it to false by updating the wallet
             setLoading(false);
-        }
-
-        // Get chaintip height in separate try...catch
-        // If we don't get this value, we don't need to throw an API error
-        // Impact is we ignore all coinbase utxos in tx building
-        try {
-            let info = await chronik.blockchainInfo();
-            const { tipHeight } = info;
-            setChaintipBlockheight(tipHeight);
-        } catch (err) {
-            console.error(`Error fetching chaintipBlockheight`, err);
         }
     };
 
@@ -431,6 +421,25 @@ const useWallet = chronik => {
         setCashtabState(cashtabState);
         setCashtabLoaded(true);
 
+        // Get chaintip height
+        // We do not have to lock UI while this is unavailable
+        // Impact of not having this:
+        // 1) txs may not be marked as avalanche finalized until we get it
+        // 2) we ignore all coinbase utxos in tx building
+        try {
+            let info = await chronik.blockchainInfo();
+            const { tipHeight } = info;
+            // See if it is finalized
+            let blockDetails = await chronik.block(tipHeight);
+
+            if (blockDetails.blockInfo.isFinal) {
+                // We only set a chaintip if it is avalanche finalized
+                setChaintipBlockheight(tipHeight);
+            }
+        } catch (err) {
+            console.error(`Error fetching chaintipBlockheight`, err);
+        }
+
         // Initialize the websocket connection
 
         // Initialize onMessage with loaded wallet. fiatPrice may be null.
@@ -557,8 +566,10 @@ const useWallet = chronik => {
 
         // when new blocks are found, refresh alias prices
         if (msgType === 'BLK_FINALIZED') {
-            // Halvening countdown
+            // Handle avalanche finalized block
             const { blockHeight, blockHash } = msg;
+            // Set chaintip height
+            setChaintipBlockheight(blockHeight);
             const HALVING_BLOCKHEIGHT = 840000;
             const blocksRemaining = HALVING_BLOCKHEIGHT - blockHeight;
             toast(
@@ -609,6 +620,19 @@ const useWallet = chronik => {
                     setAliasServerError(err);
                 }
             }
+
+            // If you have unfinalized txs in tx history,
+            // Update cashtab state on avalanche finalized block
+            // This will update tx history and finalize any txs that are now finalized
+            // Do it here instead of from a tx_finalized msg bc you may have several finalized txs
+            // and, at the moment, all txs would only be finalized on a block
+            const { wallets } = cashtabState;
+            if (hasUnfinalizedTxsInHistory(wallets[0])) {
+                // If we have unfinalized txs, update cashtab state to see if they are finalized
+                // by this block
+                update(cashtabState);
+            }
+
             return;
         }
 

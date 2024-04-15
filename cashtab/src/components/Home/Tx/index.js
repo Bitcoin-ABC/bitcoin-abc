@@ -32,6 +32,10 @@ import {
     ActionLink,
     IconAndLabel,
     AddressLink,
+    ExpandButtonPanel,
+    ExpandAvalancheLabel,
+    ExpandAvalancheWrapper,
+    TxDescSendRcvMsg,
 } from 'components/Home/Tx/styles';
 import {
     SendIcon,
@@ -71,6 +75,8 @@ import Modal from 'components/Common/Modal';
 import { ModalInput } from 'components/Common/Inputs';
 import { toast } from 'react-toastify';
 import { getContactNameError } from 'validation';
+import AvalancheFinalized from 'components/Common/AvalancheFinalized';
+import { InlineLoader } from 'components/Common/Spinner';
 
 const Tx = ({
     tx,
@@ -79,6 +85,7 @@ const Tx = ({
     fiatCurrency,
     cashtabState,
     updateCashtabState,
+    chaintipBlockheight,
     userLocale = 'en-US',
 }) => {
     const { txid, timeFirstSeen, block, tokenEntries, inputs, outputs } = tx;
@@ -735,47 +742,65 @@ const Tx = ({
                             )}
                             <TxDescCol>
                                 <TxDesc>
-                                    {xecTxType}
-                                    {typeof replyAddress === 'string' ? (
-                                        <>
-                                            {' from'}
-                                            <AddressLink
-                                                href={`${explorer.blockExplorerUrl}/address/${replyAddress}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                {typeof knownSender ===
-                                                'undefined'
-                                                    ? replyAddressPreview
-                                                    : knownSender.name}
-                                            </AddressLink>
-                                        </>
-                                    ) : xecTxType === 'Sent' &&
-                                      typeof recipients[0] !== 'undefined' ? (
-                                        <>
-                                            {' to'}
-                                            <AddressLink
-                                                href={`${explorer.blockExplorerUrl}/address/${recipients[0]}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                {renderedRecipient}
-                                            </AddressLink>
-                                            {renderedOtherRecipients !== '' && (
+                                    <TxDescSendRcvMsg>
+                                        {xecTxType}
+                                        {typeof replyAddress === 'string' ? (
+                                            <>
+                                                {' from'}
                                                 <AddressLink
-                                                    href={`${explorer.blockExplorerUrl}/tx/${txid}`}
+                                                    href={`${explorer.blockExplorerUrl}/address/${replyAddress}`}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                 >
-                                                    {renderedOtherRecipients}
+                                                    {typeof knownSender ===
+                                                    'undefined'
+                                                        ? replyAddressPreview
+                                                        : knownSender.name}
                                                 </AddressLink>
-                                            )}
-                                        </>
-                                    ) : xecTxType === 'Sent' ||
-                                      xecTxType === 'Received' ? (
-                                        ' to self'
+                                            </>
+                                        ) : xecTxType === 'Sent' &&
+                                          typeof recipients[0] !==
+                                              'undefined' ? (
+                                            <>
+                                                {' to'}
+                                                <AddressLink
+                                                    href={`${explorer.blockExplorerUrl}/address/${recipients[0]}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    {renderedRecipient}
+                                                </AddressLink>
+                                                {renderedOtherRecipients !==
+                                                    '' && (
+                                                    <AddressLink
+                                                        href={`${explorer.blockExplorerUrl}/tx/${txid}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                    >
+                                                        {
+                                                            renderedOtherRecipients
+                                                        }
+                                                    </AddressLink>
+                                                )}
+                                            </>
+                                        ) : xecTxType === 'Sent' ||
+                                          xecTxType === 'Received' ? (
+                                            ' to self'
+                                        ) : (
+                                            ''
+                                        )}
+                                    </TxDescSendRcvMsg>
+                                    {typeof block !== 'undefined' &&
+                                    block.height <= chaintipBlockheight ? (
+                                        <AvalancheFinalized
+                                            displayed={
+                                                typeof block !== 'undefined' &&
+                                                block.height <=
+                                                    chaintipBlockheight
+                                            }
+                                        />
                                     ) : (
-                                        ''
+                                        <InlineLoader />
                                     )}
                                 </TxDesc>
                                 <Timestamp>{renderedTimestamp}</Timestamp>
@@ -810,38 +835,58 @@ const Tx = ({
                     })}
                 </Collapse>
                 <Expand showPanel={showPanel}>
-                    <CopyToClipboard
-                        data={txid}
-                        showToast
-                        customMsg={`Txid "${txid}" copied to clipboard`}
-                    >
-                        <PanelButton>
-                            <CopyPasteIcon />
-                        </PanelButton>
-                    </CopyToClipboard>
-                    <PanelLink
-                        to={`${explorer.blockExplorerUrl}/tx/${txid}`}
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <ThemedLinkSolid />
-                    </PanelLink>
-                    <PanelLink
-                        to={`${explorer.pdfReceiptUrl}/${txid}.pdf`}
-                        target="_blank"
-                        rel="noreferrer"
-                    >
-                        <ThemedPdfSolid />
-                    </PanelLink>
-                    {senderOrRecipientNotInContacts && (
-                        <PanelButton
-                            onClick={() => {
-                                setShowAddNewContactModal(true);
-                            }}
+                    <ExpandAvalancheWrapper>
+                        {typeof block !== 'undefined' &&
+                        block.height <= chaintipBlockheight ? (
+                            <>
+                                <ExpandAvalancheLabel>
+                                    Avalanche Finalized
+                                </ExpandAvalancheLabel>
+                                <AvalancheFinalized displayed={showPanel} />
+                            </>
+                        ) : (
+                            <>
+                                <ExpandAvalancheLabel>
+                                    Confirming
+                                </ExpandAvalancheLabel>
+                                <InlineLoader />
+                            </>
+                        )}
+                    </ExpandAvalancheWrapper>
+                    <ExpandButtonPanel>
+                        <CopyToClipboard
+                            data={txid}
+                            showToast
+                            customMsg={`Txid "${txid}" copied to clipboard`}
                         >
-                            <AddContactIcon />
-                        </PanelButton>
-                    )}
+                            <PanelButton>
+                                <CopyPasteIcon />
+                            </PanelButton>
+                        </CopyToClipboard>
+                        <PanelLink
+                            to={`${explorer.blockExplorerUrl}/tx/${txid}`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <ThemedLinkSolid />
+                        </PanelLink>
+                        <PanelLink
+                            to={`${explorer.pdfReceiptUrl}/${txid}.pdf`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <ThemedPdfSolid />
+                        </PanelLink>
+                        {senderOrRecipientNotInContacts && (
+                            <PanelButton
+                                onClick={() => {
+                                    setShowAddNewContactModal(true);
+                                }}
+                            >
+                                <AddContactIcon />
+                            </PanelButton>
+                        )}
+                    </ExpandButtonPanel>
                 </Expand>
             </TxWrapper>
         </>
@@ -852,7 +897,10 @@ Tx.propTypes = {
     tx: PropTypes.shape({
         txid: PropTypes.string,
         timeFirstSeen: PropTypes.number,
-        block: PropTypes.shape({ timestamp: PropTypes.number }),
+        block: PropTypes.shape({
+            timestamp: PropTypes.number,
+            height: PropTypes.number,
+        }),
         inputs: PropTypes.array,
         outputs: PropTypes.array,
         tokenEntries: PropTypes.array,
@@ -880,6 +928,7 @@ Tx.propTypes = {
         }),
     }),
     updateCashtabState: PropTypes.func,
+    chaintipBlockheight: PropTypes.number,
     userLocale: PropTypes.string,
 };
 

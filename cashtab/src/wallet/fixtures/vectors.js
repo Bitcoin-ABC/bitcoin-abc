@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { walletWithXecAndTokens } from 'components/App/fixtures/mocks';
+
 export const UNSAFE_INTEGER_STRING = '10000000000000000';
 export default {
     getBalanceSatsVectors: {
@@ -481,6 +483,40 @@ export default {
                     'Removes leading zeros and preserves trailing zeros from an arbitrary string',
                 givenString: '00000howaboutthisstring000',
                 returned: 'howaboutthisstring000',
+            },
+        ],
+    },
+    hasUnfinalizedTxsInHistory: {
+        expectedReturns: [
+            {
+                description:
+                    'Returns true if valid wallet history has an unfinalized tx',
+                wallet: { state: { parsedTxHistory: [{ txid: 'test' }] } },
+                returned: true,
+            },
+            {
+                description:
+                    'Returns true for cashtab test wallet mock, which has an unconfirmed tx',
+                wallet: walletWithXecAndTokens,
+                returned: true,
+            },
+            {
+                description:
+                    'Returns false if valid wallet history has no unfinalized txs',
+                wallet: {
+                    state: {
+                        parsedTxHistory: [
+                            { txid: 'test', block: 'not undefined' },
+                        ],
+                    },
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'Returns false if parsedTxHistory is not an array accessible at the state key',
+                wallet: 'notanobject',
+                returned: false,
             },
         ],
     },

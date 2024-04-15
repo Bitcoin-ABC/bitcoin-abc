@@ -309,6 +309,13 @@ export const prepareMockedChronikCallsForWallet = (
             ? new Error('Error fetching blockchainInfo')
             : { tipHeight: CASHTAB_TESTS_TIPHEIGHT },
     });
+    // Mock an avalanche-finalized block details
+    chronikClient.setMock('block', {
+        input: CASHTAB_TESTS_TIPHEIGHT,
+        output: apiError
+            ? new Error('Error fetching block')
+            : { blockInfo: { isFinal: true } },
+    });
 
     // Mock token calls
     // This info is same shape for all wallets supported in these functions

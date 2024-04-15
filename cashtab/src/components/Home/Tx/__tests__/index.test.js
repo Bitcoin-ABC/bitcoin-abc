@@ -75,8 +75,10 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
+const AVALANCHE_FINALIZED_CHAINTIP = 800000;
+
 describe('<Tx />', () => {
-    it('Incoming XEC-only', async () => {
+    it('Incoming XEC-only, avalanche finalized', async () => {
         render(
             <MemoryRouter>
                 <ThemeProvider theme={theme}>
@@ -86,6 +88,7 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -106,6 +109,56 @@ describe('<Tx />', () => {
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // We see the avalanche finalized check (twice, one is in the expand panel)
+        expect(
+            screen.getAllByTitle('Finalized by Avalanche')[1],
+        ).toBeInTheDocument();
+    });
+    it('Incoming XEC-only, not yet finalized by Avalanche', async () => {
+        const AVALANCHE_UNFINALIZED_CHAINTIP = 0;
+
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={incomingXec.tx}
+                        hashes={getHashes(mockParseTxWallet)}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_UNFINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx received icon
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see the tx received label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // For a tx with timeFirstSeen of 0, we render the block timestamp
+        expect(screen.getByText('May 17, 2022, 18:35:28')).toBeInTheDocument();
+
+        // We see the formatted XEC amount
+        expect(screen.getByText('42 XEC')).toBeInTheDocument();
+
+        // We see the formatted fiat amount
+        expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // We do not see the avalanche finalized check
+        expect(
+            screen.queryByTitle('Finalized by Avalanche'),
+        ).not.toBeInTheDocument();
+
+        // We see two inline-loader elements
+        expect(screen.getAllByTitle('Loading')[1]).toBeInTheDocument();
+
+        // We see the 'Confirming' text
+        expect(screen.getByText('Confirming')).toBeInTheDocument();
     });
     it('Outgoing XEC-only', async () => {
         render(
@@ -117,6 +170,7 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -148,6 +202,7 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -180,6 +235,7 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -227,6 +283,7 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -277,6 +334,7 @@ describe('<Tx />', () => {
                         fiatPrice={0.00003}
                         fiatCurrency="usd"
                         cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -320,6 +378,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -374,6 +433,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -429,6 +489,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -483,6 +544,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -538,6 +600,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -595,6 +658,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -653,6 +717,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -705,6 +770,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -758,6 +824,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -817,6 +884,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockLargeTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -886,6 +954,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockLargeTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -928,6 +997,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -968,6 +1038,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1009,6 +1080,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1064,6 +1136,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1122,6 +1195,7 @@ describe('<Tx />', () => {
                             ...new CashtabState(),
                             cashtabCache: { tokens: mockParseTxTokenCache },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1181,6 +1255,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1221,6 +1296,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1261,6 +1337,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1304,6 +1381,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1347,6 +1425,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1390,6 +1469,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1430,6 +1510,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1470,6 +1551,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1527,6 +1609,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1570,6 +1653,7 @@ describe('<Tx />', () => {
                                 tokens: mockTxHistorySupportingTokenCache,
                             },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1627,6 +1711,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1684,6 +1769,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1732,6 +1818,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1789,6 +1876,7 @@ describe('<Tx />', () => {
                                 tokens: mockTxHistorySupportingTokenCache,
                             },
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1839,6 +1927,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1885,6 +1974,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>
@@ -1944,6 +2034,7 @@ describe('<Tx />', () => {
                         cashtabState={{
                             ...new CashtabState(),
                         }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
                     />
                     ,
                 </ThemeProvider>

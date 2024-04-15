@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as React from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
 // Ref https://loading.io/css/
 // Ref https://styled-components.com/docs/basics
@@ -16,23 +16,16 @@ const rotate = keyframes`
     transform: rotate(360deg);
   }
 `;
-const LoaderRing = styled.div`
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+
+const LoaderCss = css`
     box-sizing: border-box;
-    display: inline-block;
     position: relative;
-    width: 80px;
-    height: 80px;
     div {
         box-sizing: border-box;
         display: block;
         position: absolute;
         width: 42px;
         height: 42px;
-        margin: 8px;
         border: 3px solid ${props => props.theme.eCashBlue};
         border-radius: 50%;
         animation: ${rotate} 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
@@ -49,8 +42,30 @@ const LoaderRing = styled.div`
         animation-delay: -0.15s;
     }
 `;
+const LoaderRing = styled.div`
+    ${LoaderCss}
+    width: 20px;
+    height: 20px;
+    div {
+        width: 20px;
+        height: 20px;
+    }
+`;
+const LoaderRingSpinner = styled.div`
+    ${LoaderCss}
+    display: inline-block;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    div {
+        margin: 8px;
+    }
+`;
 
-export const CashtabLoader = () => {
+export const InlineLoader = () => {
     return (
         <LoaderRing title="Loading">
             <div></div>
@@ -58,6 +73,17 @@ export const CashtabLoader = () => {
             <div></div>
             <div></div>
         </LoaderRing>
+    );
+};
+
+export const CashtabLoader = () => {
+    return (
+        <LoaderRingSpinner title="Loading">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </LoaderRingSpinner>
     );
 };
 

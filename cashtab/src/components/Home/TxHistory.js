@@ -13,6 +13,7 @@ const TxHistory = ({
     fiatCurrency,
     cashtabState,
     updateCashtabState,
+    chaintipBlockheight,
     userLocale = 'en-US',
 }) => {
     return (
@@ -26,6 +27,7 @@ const TxHistory = ({
                     fiatCurrency={fiatCurrency}
                     cashtabState={cashtabState}
                     updateCashtabState={updateCashtabState}
+                    chaintipBlockheight={chaintipBlockheight}
                     userLocale={userLocale}
                 />
             ))}
@@ -59,6 +61,7 @@ TxHistory.propTypes = {
     }),
     updateCashtabState: PropTypes.func,
     userLocale: PropTypes.string,
+    chaintipBlockheight: PropTypes.number,
 };
 
 export default TxHistory;

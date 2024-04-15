@@ -385,3 +385,20 @@ export const getHashes = wallet => {
     });
     return hashArray;
 };
+
+/**
+ * Determine if a wallet has unfinalized txs in its state
+ * @param {object} wallet
+ * @returns {boolean}
+ */
+export const hasUnfinalizedTxsInHistory = wallet => {
+    if (!Array.isArray(wallet.state?.parsedTxHistory)) {
+        // If we do not have a valid wallet, we return false
+        // Not expected to ever happen
+        return false;
+    }
+    const unfinalizedTxs = wallet.state.parsedTxHistory.filter(
+        tx => typeof tx.block === 'undefined',
+    );
+    return unfinalizedTxs.length > 0;
+};

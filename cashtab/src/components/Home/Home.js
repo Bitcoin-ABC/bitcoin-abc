@@ -121,8 +121,13 @@ export const AddrSwitchContainer = styled.div`
 
 const Home = () => {
     const ContextValue = React.useContext(WalletContext);
-    const { fiatPrice, apiError, cashtabState, updateCashtabState } =
-        ContextValue;
+    const {
+        fiatPrice,
+        apiError,
+        cashtabState,
+        updateCashtabState,
+        chaintipBlockheight,
+    } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const hashes = getHashes(wallet);
@@ -148,6 +153,7 @@ const Home = () => {
                     cashtabState={cashtabState}
                     updateCashtabState={updateCashtabState}
                     userLocale={userLocale}
+                    chaintipBlockheight={chaintipBlockheight}
                 />
                 {!hasHistory && (
                     <>
