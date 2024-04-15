@@ -383,17 +383,6 @@ const Tx = ({
                                     'utf8',
                                 )}
                             </AppDescMsg>
-                            {xecTxType === 'Received' &&
-                                typeof replyAddress !== 'undefined' && (
-                                    <PanelLink
-                                        to="/send"
-                                        state={{
-                                            replyAddress: replyAddress,
-                                        }}
-                                    >
-                                        <ReplyIcon />
-                                    </PanelLink>
-                                )}
                         </>,
                     );
                 } else {

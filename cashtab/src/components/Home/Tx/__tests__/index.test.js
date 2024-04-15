@@ -1502,6 +1502,9 @@ describe('<Tx />', () => {
         expect(
             screen.getByText('hello from eCash Chat 👍'),
         ).toBeInTheDocument();
+
+        // We do not see a reply icon for a received eCash chat, as Cashtab does not have a utf8-decoding input for them
+        expect(screen.queryByTitle('reply')).not.toBeInTheDocument();
     });
     it('off-spec eCash chat tx', async () => {
         render(
@@ -1916,6 +1919,9 @@ describe('<Tx />', () => {
                 `Merci pour le prix et bonne continuation dans vos projets de développeur... J'ai été censuré sûr télégramme jusqu'au 15 Avril 2024. Réparer le bug observé sur la page eToken Faucet?`,
             ),
         ).toBeInTheDocument();
+
+        // We see a rendered reply icon for a received Cashtab msg
+        expect(screen.getByTitle('reply')).toBeInTheDocument();
     });
     it('off-spec Cashtab msg', async () => {
         render(
