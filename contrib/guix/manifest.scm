@@ -99,7 +99,7 @@ chain for " target " development."))
       (home-page (package-home-page xgcc))
       (license (package-license xgcc)))))
 
-(define base-gcc gcc-12) ;; 12.4.0
+(define base-gcc gcc-13) ;; 13.3.0
 
 (define base-linux-kernel-headers linux-libre-headers-6.1)
 
@@ -569,6 +569,7 @@ inspecting signatures in Mach-O binaries.")
         xz
         zlib
         ;; Build tools
+        gcc-toolchain-13
         cmake-minimal
         ninja
         gnu-make
@@ -577,7 +578,6 @@ inspecting signatures in Mach-O binaries.")
         automake
         pkg-config
         bison
-        gcc-toolchain-12
         (list gcc "lib")
         ;; Scripting
         python-minimal ;; (3.10)
@@ -601,7 +601,7 @@ inspecting signatures in Mach-O binaries.")
                  zip))
           ((string-contains target "-linux-")
            (list
-                 (list gcc-toolchain-12 "static")
+                 (list gcc-toolchain-13 "static")
                  (make-bitcoin-cross-toolchain target)
                  clang-18))
           ((string-contains target "darwin")

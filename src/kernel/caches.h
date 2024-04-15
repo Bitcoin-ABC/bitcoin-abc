@@ -8,6 +8,7 @@
 #include <util/byte_units.h>
 
 #include <algorithm>
+#include <cstdint>
 
 //! Suggested default amount of cache reserved for the kernel (bytes)
 static constexpr int64_t DEFAULT_KERNEL_CACHE{1024_MiB};
