@@ -1,7 +1,7 @@
 # Maintainer: Josh Ellithorpe <quest@mac.com>
 
 pkgname=bitcoin-abc-qt
-pkgver=0.29.1
+pkgver=0.29.2
 pkgrel=0
 pkgdesc="Bitcoin ABC with bitcoind, bitcoin-cli, bitcoin-tx, bitcoin-seeder and bitcoin-qt"
 arch=('i686' 'x86_64')
