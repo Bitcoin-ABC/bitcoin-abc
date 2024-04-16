@@ -38,6 +38,10 @@ void TxDownloadManager::BlockConnected(
 void TxDownloadManager::BlockDisconnected() {
     m_impl->BlockDisconnected();
 }
+bool TxDownloadManager::AlreadyHaveTx(const TxId &txid,
+                                      bool include_reconsiderable) {
+    return m_impl->AlreadyHaveTx(txid, include_reconsiderable);
+}
 
 // TxDownloadManagerImpl
 void TxDownloadManagerImpl::ActiveTipChange() {
@@ -70,5 +74,33 @@ void TxDownloadManagerImpl::BlockDisconnected() {
     // presumably the most common case of relaying a confirmed transaction
     // should be just after a new block containing it is found.
     RecentConfirmedTransactionsFilter().reset();
+}
+
+bool TxDownloadManagerImpl::AlreadyHaveTx(const TxId &txid,
+                                          bool include_reconsiderable) {
+    if (m_opts.m_mempool.withOrphanage([&txid](const TxOrphanage &orphanage) {
+            return orphanage.HaveTx(txid);
+        })) {
+        return true;
+    }
+
+    if (m_opts.m_mempool.withConflicting(
+            [&txid](const TxConflicting &conflicting) {
+                return conflicting.HaveTx(txid);
+            })) {
+        return true;
+    }
+
+    if (include_reconsiderable &&
+        RecentRejectsPackageReconsiderableFilter().contains(txid)) {
+        return true;
+    }
+
+    if (RecentConfirmedTransactionsFilter().contains(txid)) {
+        return true;
+    }
+
+    return RecentRejectsFilter().contains(txid) ||
+           m_opts.m_mempool.exists(txid);
 }
 } // namespace node

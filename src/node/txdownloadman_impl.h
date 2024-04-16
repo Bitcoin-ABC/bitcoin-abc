@@ -92,6 +92,8 @@ public:
     void ActiveTipChange();
     void BlockConnected(const std::shared_ptr<const CBlock> &pblock);
     void BlockDisconnected();
+
+    bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H

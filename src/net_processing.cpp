@@ -1345,17 +1345,6 @@ private:
         BLOCK_STALLING_TIMEOUT_DEFAULT};
 
     /**
-     * Check whether we already have this txid in:
-     *  - mempool
-     *  - orphanage
-     *  - m_recent_rejects
-     *  - m_recent_rejects_package_reconsiderable (if
-     *    include_reconsiderable = true)
-     *  - m_recent_confirmed_transactions
-     */
-    bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable)
-        EXCLUSIVE_LOCKS_REQUIRED(m_tx_download_mutex);
-    /**
      * For sending `inv`s to inbound peers, we use a single (exponentially
      * distributed) timer for all peers. If we used a separate timer for each
      * peer, a spy node could make multiple inbound connections to us to
@@ -3127,36 +3116,6 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 //
 // Messages
 //
-
-bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
-                                    bool include_reconsiderable) {
-    AssertLockHeld(m_tx_download_mutex);
-
-    if (m_mempool.withOrphanage([&txid](const TxOrphanage &orphanage) {
-            return orphanage.HaveTx(txid);
-        })) {
-        return true;
-    }
-
-    if (m_mempool.withConflicting([&txid](const TxConflicting &conflicting) {
-            return conflicting.HaveTx(txid);
-        })) {
-        return true;
-    }
-
-    if (include_reconsiderable &&
-        m_txdownloadman.RecentRejectsPackageReconsiderableFilter().contains(
-            txid)) {
-        return true;
-    }
-
-    if (m_txdownloadman.RecentConfirmedTransactionsFilter().contains(txid)) {
-        return true;
-    }
-
-    return m_txdownloadman.RecentRejectsFilter().contains(txid) ||
-           m_mempool.exists(txid);
-}
 
 bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
     return m_chainman.m_blockman.LookupBlockIndex(block_hash) != nullptr;
@@ -5537,8 +5496,8 @@ void PeerManagerImpl::ProcessMessage(
             if (inv.IsMsgTx()) {
                 LOCK2(cs_main, m_tx_download_mutex);
                 const TxId txid(inv.hash);
-                const bool fAlreadyHave =
-                    AlreadyHaveTx(txid, /*include_reconsiderable=*/true);
+                const bool fAlreadyHave = m_txdownloadman.AlreadyHaveTx(
+                    txid, /*include_reconsiderable=*/true);
                 logInv(inv, fAlreadyHave);
 
                 AddKnownTx(*peer, txid);
@@ -5918,7 +5877,8 @@ void PeerManagerImpl::ProcessMessage(
             m_txdownloadman.GetTxRequestRef().ReceivedResponse(pfrom.GetId(),
                                                                txid);
 
-            if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
+            if (m_txdownloadman.AlreadyHaveTx(
+                    txid, /*include_reconsiderable=*/true)) {
                 if (pfrom.HasPermission(NetPermissionFlags::ForceRelay)) {
                     // Always relay transactions received from peers with
                     // forcerelay permission, even if they were already in the
@@ -6051,8 +6011,9 @@ void PeerManagerImpl::ProcessMessage(
                         // Exclude m_recent_rejects_package_reconsiderable: the
                         // missing parent may have been previously rejected for
                         // being too low feerate. This orphan might CPFP it.
-                        if (!AlreadyHaveTx(parent_txid,
-                                           /*include_reconsiderable=*/false)) {
+                        if (!m_txdownloadman.AlreadyHaveTx(
+                                parent_txid,
+                                /*include_reconsiderable=*/false)) {
                             AddTxAnnouncement(pfrom, parent_txid, current_time);
                         }
                     }
@@ -9371,7 +9332,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                 // Exclude m_recent_rejects_package_reconsiderable: we may be
                 // requesting a missing parent that was previously rejected for
                 // being too low feerate.
-                if (!AlreadyHaveTx(txid, /*include_reconsiderable=*/false)) {
+                if (!m_txdownloadman.AlreadyHaveTx(
+                        txid, /*include_reconsiderable=*/false)) {
                     addGetDataAndMaybeFlush(MSG_TX, txid);
                     m_txdownloadman.GetTxRequestRef().RequestedData(
                         pto->GetId(), txid,
