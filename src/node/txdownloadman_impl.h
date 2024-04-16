@@ -12,6 +12,8 @@
 #include <primitives/block.h>
 #include <primitives/txid.h>
 
+#include <map>
+
 class CTxMemPool;
 namespace node {
 class TxDownloadManagerImpl {
@@ -89,11 +91,29 @@ public:
 
     TxDownloadManagerImpl(const TxDownloadOptions &options) : m_opts{options} {}
 
+    struct PeerInfo {
+        /** Information relevant to scheduling tx requests. */
+        const TxDownloadConnectionInfo m_connection_info;
+
+        PeerInfo(const TxDownloadConnectionInfo &info)
+            : m_connection_info{info} {}
+    };
+
+    /**
+     * Information for all of the peers we may download transactions from. This
+     * is not necessarily all peers we are connected to (no block-relay-only
+     * and temporary connections).
+     */
+    std::map<NodeId, PeerInfo> m_peer_info;
+
     void ActiveTipChange();
     void BlockConnected(const std::shared_ptr<const CBlock> &pblock);
     void BlockDisconnected();
 
     bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable);
+
+    void ConnectedPeer(NodeId nodeid, const TxDownloadConnectionInfo &info);
+    void DisconnectedPeer(NodeId nodeid);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H

@@ -42,6 +42,13 @@ bool TxDownloadManager::AlreadyHaveTx(const TxId &txid,
                                       bool include_reconsiderable) {
     return m_impl->AlreadyHaveTx(txid, include_reconsiderable);
 }
+void TxDownloadManager::ConnectedPeer(NodeId nodeid,
+                                      const TxDownloadConnectionInfo &info) {
+    m_impl->ConnectedPeer(nodeid, info);
+}
+void TxDownloadManager::DisconnectedPeer(NodeId nodeid) {
+    m_impl->DisconnectedPeer(nodeid);
+}
 
 // TxDownloadManagerImpl
 void TxDownloadManagerImpl::ActiveTipChange() {
@@ -102,5 +109,25 @@ bool TxDownloadManagerImpl::AlreadyHaveTx(const TxId &txid,
 
     return RecentRejectsFilter().contains(txid) ||
            m_opts.m_mempool.exists(txid);
+}
+
+void TxDownloadManagerImpl::ConnectedPeer(
+    NodeId nodeid, const TxDownloadConnectionInfo &info) {
+    // If already connected (shouldn't happen in practice), exit early.
+    if (m_peer_info.contains(nodeid)) {
+        return;
+    }
+
+    m_peer_info.try_emplace(nodeid, info);
+}
+
+void TxDownloadManagerImpl::DisconnectedPeer(NodeId nodeid) {
+    m_opts.m_mempool.withOrphanage(
+        [nodeid](TxOrphanage &orphanage) { orphanage.EraseForPeer(nodeid); });
+    m_txrequest.DisconnectedPeer(nodeid);
+
+    if (auto it = m_peer_info.find(nodeid); it != m_peer_info.end()) {
+        m_peer_info.erase(it);
+    }
 }
 } // namespace node

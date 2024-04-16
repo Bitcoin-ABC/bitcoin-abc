@@ -2554,10 +2554,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
         }
         {
             LOCK(m_tx_download_mutex);
-            m_mempool.withOrphanage([nodeid](TxOrphanage &orphanage) {
-                orphanage.EraseForPeer(nodeid);
-            });
-            m_txdownloadman.GetTxRequestRef().DisconnectedPeer(nodeid);
+            m_txdownloadman.DisconnectedPeer(nodeid);
         }
         m_num_preferred_download_peers -= state->fPreferredDownload;
         m_peers_downloading_from -= (!state->vBlocksInFlight.empty());
@@ -5257,6 +5254,17 @@ void PeerManagerImpl::ProcessMessage(
             Assume(WITH_LOCK(tx_relay->m_tx_inventory_mutex,
                              return tx_relay->m_tx_inventory_to_send.empty() &&
                                     tx_relay->m_next_inv_send_time == 0s));
+        }
+
+        {
+            LOCK2(::cs_main, m_tx_download_mutex);
+            const CNodeState *state = State(pfrom.GetId());
+            m_txdownloadman.ConnectedPeer(
+                pfrom.GetId(), node::TxDownloadConnectionInfo{
+                                   .m_preferred = state->fPreferredDownload,
+                                   .m_relay_permissions = pfrom.HasPermission(
+                                       NetPermissionFlags::Relay),
+                               });
         }
 
         pfrom.fSuccessfullyConnected = true;
