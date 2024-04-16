@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as assert from 'assert';
-// TODO install as module when type declarations are exported
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
 import { getHistoryAfterTimestamp } from '../../src/chronik/clientHandler';
 import vectors from '../vectors';

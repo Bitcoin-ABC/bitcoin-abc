@@ -50,6 +50,7 @@ export function getWalletFromSeed(mnemonic: string): ServerWallet {
  * Get latest utxo set for given ServerWallet
  * @param chronik
  * @param wallet
+ * @throws if error in chronik call
  */
 export async function syncWallet(
     chronik: ChronikClientNode,

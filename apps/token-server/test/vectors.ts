@@ -13,7 +13,10 @@ import {
     TokenType,
 } from 'chronik-client';
 import { ServerWallet } from '../src/wallet';
-import { SlpInputsAndOutputs } from '../src/transactions';
+import {
+    SlpInputsAndOutputs,
+    RewardBroadcastSuccess,
+} from '../src/transactions';
 import { Request } from 'express';
 
 const IFP_ADDRESS = 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
@@ -34,8 +37,14 @@ const MOCK_REWARD_TOKENID =
 const MOCK_OTHER_TOKENID =
     'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7';
 
-const MOCK_OUTPOINT: OutPoint = {
-    txid: 'n/a',
+const MOCK_WALLET = {
+    address: 'ecash:qzj6laqtj74j59dd6qv9hhx5e5868htmrqrttcqzxn',
+    wif: 'L4Uzq3XgvhUfDrH3v9QN4kCcJe5pqJuuBbgXBydvJNUpuzyyARik',
+    utxos: [],
+};
+
+export const MOCK_OUTPOINT: OutPoint = {
+    txid: '1111111111111111111111111111111111111111111111111111111111111111',
     outIdx: 0,
 };
 
@@ -66,7 +75,7 @@ const MOCK_TX_INNODE: Tx_InNode = {
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
 };
 
-const MOCK_SCRIPT_UTXO: ScriptUtxo_InNode = {
+export const MOCK_SCRIPT_UTXO: ScriptUtxo_InNode = {
     outpoint: MOCK_OUTPOINT,
     blockHeight: 800000,
     isCoinbase: false,
@@ -79,13 +88,13 @@ const MOCK_TOKEN_TYPE: TokenType = {
     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
     number: 1,
 };
-const MOCK_UTXO_TOKEN: Token_InNode = {
+export const MOCK_UTXO_TOKEN: Token_InNode = {
     tokenId: MOCK_TOKENID_ONES,
     tokenType: MOCK_TOKEN_TYPE,
     amount: '1',
     isMintBaton: false,
 };
-const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo_InNode = {
+export const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo_InNode = {
     ...MOCK_SCRIPT_UTXO,
     token: MOCK_UTXO_TOKEN,
 };
@@ -256,6 +265,32 @@ interface GetSlpInputsAndOutputsError {
     error: Error;
 }
 
+interface SendRewardVector {
+    returns: SendRewardReturn[];
+    errors: SendRewardError[];
+}
+
+interface SendRewardReturn {
+    description: string;
+    wallet: ServerWallet;
+    utxos: ScriptUtxo_InNode[];
+    feeRate: number;
+    tokenId: string;
+    rewardAmountTokenSats: string;
+    destinationAddress: string;
+    returned: RewardBroadcastSuccess;
+}
+interface SendRewardError {
+    description: string;
+    wallet: ServerWallet;
+    utxos: Error | ScriptUtxo_InNode[];
+    feeRate: number;
+    tokenId: string;
+    rewardAmountTokenSats: string;
+    destinationAddress: string;
+    error: Error;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
@@ -266,6 +301,7 @@ interface TestVectors {
     getWalletFromSeed: GetWalletFromSeedVector;
     syncWallet: SyncWalletVector;
     getSlpInputsAndOutputs: GetSlpInputsAndOutputsVector;
+    sendReward: SendRewardVector;
 }
 
 const vectors: TestVectors = {
@@ -945,6 +981,81 @@ const vectors: TestVectors = {
                         },
                     },
                 ],
+                error: new Error('Insufficient token utxos'),
+            },
+        ],
+    },
+    sendReward: {
+        returns: [
+            {
+                description: 'Token reward tx with no token change',
+                wallet: MOCK_WALLET,
+                utxos: [
+                    { ...MOCK_SCRIPT_UTXO, value: 10000 },
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                    },
+                ],
+                feeRate: 1,
+                tokenId: MOCK_TOKENID_ONES,
+                rewardAmountTokenSats: '1',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                returned: {
+                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006b483045022100d616263a36c882c89c8207de954668d6c944813e5cd485a46c359c81328edda4022073e7c67a0d5dfe4fac891d1afb55a599082892f0858725a57dbcf71ca4e3e7f241210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111000000006a47304402200b77335a47d4ed5298ee357068b874319eaf1d22dccf41d3cc16684c89d51ad502204dc61965484e81644e58b8ba7e36482abd2a2e3ea1fc3a5177fe83caae9d808741210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff030000000000000000376a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000122020000000000001976a914000000000000000000000000000000000000000088ac5a250000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
+                    response: {
+                        txid: 'cfbdf827b5ada9967afe31908ebf4e4e78f770bf4001772fce010de75d90a04f',
+                    },
+                },
+            },
+            {
+                description: 'Token reward tx with change',
+                wallet: MOCK_WALLET,
+                utxos: [
+                    { ...MOCK_SCRIPT_UTXO, value: 10000 },
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                        token: { ...MOCK_UTXO_TOKEN, amount: '10' },
+                    },
+                ],
+                feeRate: 1,
+                tokenId: MOCK_TOKENID_ONES,
+                rewardAmountTokenSats: '5',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                returned: {
+                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006b483045022100c246de1abd07b66823eb6e3d1cca9217be715e8b8d3ff08497d22c61c0ea50c9022006206c3b0616301c6ce92e9f825cddde2ded2eaf39db1b11c5afc26a909aff9a41210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111000000006a47304402206eb7dd1887cc54f5dca9f454d43b6f30c4df772345c22a11ab4c39343001fc7102201209dd72f5befd0beedd216765c689b33bc42a9ecbf98e06959f52344da1df3541210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff040000000000000000406a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000508000000000000000522020000000000001976a914000000000000000000000000000000000000000088ac22020000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac0d230000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
+                    response: {
+                        txid: '2a9cd1ed5fdd98e76dace90dd53f06a4e85854902efe8f0dab5b089ba7b221ab',
+                    },
+                },
+            },
+        ],
+        errors: [
+            {
+                description: 'Expected error if wallet fails to sync utxo set',
+                wallet: MOCK_WALLET,
+                utxos: new Error('Some chronik error trying to fetch utxos'),
+                feeRate: 1,
+                tokenId: MOCK_TOKENID_ONES,
+                rewardAmountTokenSats: '100',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                error: new Error('Some chronik error trying to fetch utxos'),
+            },
+            {
+                description: 'Expected error if insufficient token balance',
+                wallet: MOCK_WALLET,
+                utxos: [
+                    { ...MOCK_SCRIPT_UTXO, value: 10000 },
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                    },
+                ],
+                feeRate: 1,
+                tokenId: MOCK_TOKENID_ONES,
+                rewardAmountTokenSats: '2',
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error('Insufficient token utxos'),
             },
         ],

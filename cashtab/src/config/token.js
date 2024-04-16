@@ -9,4 +9,5 @@ export const token = {
     tokenIconsUrl: 'https://icons.etokens.cash',
     tokenDbUrl: 'https://tokendb.kingbch.com',
     newTokenDefaultUrl: 'cashtab.com',
+    rewardsServerBaseUrl: 'https://rewards.etokens.cash',
 };

@@ -346,6 +346,16 @@ describe('<App />', () => {
 
         // Now we see the Wallets screen
         expect(screen.getByTitle('Wallets')).toBeInTheDocument();
+
+        // Navigate to Rewards screen
+        await user.click(
+            screen.getByRole('button', {
+                name: /Rewards/i,
+            }),
+        );
+
+        // Now we see the Rewards screen
+        expect(screen.getByTitle('Rewards')).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

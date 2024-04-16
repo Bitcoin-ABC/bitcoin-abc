@@ -49,8 +49,12 @@ See `test/` for usage.
 
 -   Support input param `tokenInputs` to create txs with user-specified inputs [diff](https://reviews.bitcoinabc.org/D15520)
 
-2.1.0
+2.2.0
 
 -   Export new function `getMaxSendAmountSatoshis` [diff](https://reviews.bitcoinabc.org/D15555)
+
+2.2.1
+
+-   Add stub type declarations file so `ecash-coinselect` can be used by typescript projects [diff](https://reviews.bitcoinabc.org/D15997)
 
 ## License [MIT](LICENSE)

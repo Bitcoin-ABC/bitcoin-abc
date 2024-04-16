@@ -11,9 +11,20 @@ import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import TelegramBot from 'node-telegram-bot-api';
 import { createFsFromVolume, vol } from 'memfs';
 import sharp from 'sharp';
+import secrets from '../secrets';
+import {
+    MOCK_SCRIPT_UTXO,
+    MOCK_SPENDABLE_TOKEN_UTXO,
+    MOCK_OUTPOINT,
+    MOCK_UTXO_TOKEN,
+} from './vectors';
 
 describe('routes.js', async function () {
     let app: http.Server;
+    const SERVER_WALLET_ADDRESS = secrets.prod.wallet.address;
+    const SERVER_WALLET_OUTPUTSCRIPT = cashaddr.getOutputScriptFromAddress(
+        SERVER_WALLET_ADDRESS,
+    );
     const ELIGIBLE_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
     const ELIGIBLE_OUTPUTSCRIPT =
         cashaddr.getOutputScriptFromAddress(ELIGIBLE_ADDRESS);
@@ -21,7 +32,12 @@ describe('routes.js', async function () {
         'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
     const INELIGIBLE_OUTPUTSCRIPT =
         cashaddr.getOutputScriptFromAddress(INELIGIBLE_ADDRESS);
-    const ERROR_ADDRESS = 'ecash:erroraddress';
+    const INVALID_ADDRESS = 'ecash:erroraddress';
+    const ERROR_ADDRESS = cashaddr.encode(
+        'ecash',
+        'p2pkh',
+        '0000000000000000000000000000000000000000',
+    );
     let mockedChronikClient = new MockChronikClient();
     // Set an eligible mock
     // Seen ~ 2x before the amount of time required
@@ -31,7 +47,7 @@ describe('routes.js', async function () {
     mockedChronikClient.setTxHistoryByAddress(ELIGIBLE_ADDRESS, [
         {
             timeFirstSeen: eligibleTimeFirstSeen,
-            inputs: [{ outputScript: config.serverOutputScript }],
+            inputs: [{ outputScript: SERVER_WALLET_OUTPUTSCRIPT }],
             outputs: [
                 {
                     outputScript: ELIGIBLE_OUTPUTSCRIPT,
@@ -40,6 +56,34 @@ describe('routes.js', async function () {
             ],
         },
     ]);
+
+    mockedChronikClient.setAddress(SERVER_WALLET_ADDRESS);
+    mockedChronikClient.setUtxosByAddress(SERVER_WALLET_ADDRESS, {
+        outputScript: SERVER_WALLET_OUTPUTSCRIPT,
+        utxos: [
+            { ...MOCK_SCRIPT_UTXO, value: 10000 },
+            {
+                ...MOCK_SPENDABLE_TOKEN_UTXO,
+                outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                token: {
+                    ...MOCK_UTXO_TOKEN,
+                    tokenId: config.rewardsTokenId,
+                    // Note, can change this to '10' or something less than config.rewardAmountTokenSats
+                    // to test behavior of server if it is out of tokens
+                    // Bad ROI on adding this test outright as we need lots of scripting
+                    // to overcome the need for multiple mocked server wallets
+                    amount: config.rewardAmountTokenSats,
+                },
+            },
+            ,
+        ],
+    });
+    mockedChronikClient.setMock('broadcastTx', {
+        input: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006a473044022077c0f7bcaf84b8ed1eb56f633f7e055237df780b9807237ff098ad63de3111de0220755dde78b5255c6934f9ba1270e62e771120fd119e21c06ccf79a418b59c115841210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff1111111111111111111111111111111111111111111111111111111111111111000000006b483045022100953c76d9605bd522feef785afbbbf47bf0ebf40a0d34fbcbdf947e9dd726d872022040b4f0f0b8b352c712d4610f34c882e2678b0c6ae3f95b2c33c763852be64fe141210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac5a250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
+        output: {
+            txid: '3b15da50052e8884a9d089920bc23d4a05da44e3c20c41eba954bf4ce3326d59',
+        },
+    });
     // Set an ineligible mock
     // Seen just now
     const ineligibleTimeFirstSeen = Math.ceil(Date.now() / 1000);
@@ -47,7 +91,7 @@ describe('routes.js', async function () {
     mockedChronikClient.setTxHistoryByAddress(INELIGIBLE_ADDRESS, [
         {
             timeFirstSeen: ineligibleTimeFirstSeen,
-            inputs: [{ outputScript: config.serverOutputScript }],
+            inputs: [{ outputScript: SERVER_WALLET_OUTPUTSCRIPT }],
             outputs: [
                 {
                     outputScript: INELIGIBLE_OUTPUTSCRIPT,
@@ -117,13 +161,67 @@ describe('routes.js', async function () {
             .expect('Content-Type', /json/)
             .expect({ address: ELIGIBLE_ADDRESS, isEligible: true });
     });
-    it('/is-eligible/:address returns expected error status on chronik error', function () {
+    it('/is-eligible/:address returns expected error status if called with invalid address', function () {
+        return request(app)
+            .get(`/is-eligible/${INVALID_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: INVALID_ADDRESS,
+                error: 'Invalid eCash address',
+            });
+    });
+    it('/is-eligible/:address returns expected error status on chronik error determining eligibility', function () {
         return request(app)
             .get(`/is-eligible/${ERROR_ADDRESS}`)
             .expect(500)
             .expect('Content-Type', /json/)
             .expect({
-                error: 'Error fetching /is-eligible/ecash:erroraddress',
+                address: ERROR_ADDRESS,
+                error: 'chronik error determining address eligibility',
+            });
+    });
+    it('/claim/:address returns expected status for an ineligible address', function () {
+        return request(app)
+            .get(`/claim/${INELIGIBLE_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: INELIGIBLE_ADDRESS,
+                error: `Address is not yet eligible for token rewards`,
+                becomesEligible:
+                    ineligibleTimeFirstSeen + config.eligibilityResetSeconds,
+            });
+    });
+    it('/claim/:address returns expected error status if called with invalid address', function () {
+        return request(app)
+            .get(`/claim/${INVALID_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: INVALID_ADDRESS,
+                error: 'Invalid eCash address',
+            });
+    });
+    it('/claim/:address returns expected error status on chronik error', function () {
+        return request(app)
+            .get(`/claim/${ERROR_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ERROR_ADDRESS,
+                error: 'chronik error building token reward',
+            });
+    });
+    it('/claim/:address returns expected status for an eligible address', function () {
+        return request(app)
+            .get(`/claim/${ELIGIBLE_ADDRESS}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ELIGIBLE_ADDRESS,
+                msg: 'Success',
+                txid: '3b15da50052e8884a9d089920bc23d4a05da44e3c20c41eba954bf4ce3326d59',
             });
     });
     it('We get a rendered blockie for a valid token image request', function () {

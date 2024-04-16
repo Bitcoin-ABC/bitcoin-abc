@@ -8,6 +8,12 @@ Server to manage Cashtab rewards tokens. May be modified to support other token 
 
 Note: you will have to adjust the `imageDir` param in `config` to test serving of static image files
 
+## Note on secrets.ts
+
+You will need a secrets.ts file if you plan to run the server locally (or deployed). If you run `npm test` without a `secrets.ts` file, token-server will use `secrets.sample.ts`.
+
+Some secrets are needed for integration testing. These are included in `secrets.sample.ts`. However, if you have your own `secrets.ts` file, then the tests will reference it (and fail if its `prod` key differs from `secrets.sample.ts`).
+
 ## Production
 
 Before running `token-server` in production, you must first set up the file system on your desired server (see "Setting up the file system", below).

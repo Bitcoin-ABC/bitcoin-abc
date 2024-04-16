@@ -16,6 +16,7 @@ import {
     ThemedUserProfileIcon,
     SwapIcon,
     TokensIcon,
+    RewardIcon,
 } from 'components/Common/CustomIcons';
 import Spinner from 'components/Common/Spinner';
 import { ThemeProvider } from 'styled-components';
@@ -34,6 +35,7 @@ import Etokens from 'components/Etokens/Etokens';
 import Configure from 'components/Configure/Configure';
 import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Swap from 'components/Swap/Swap';
+import Rewards from 'components/Rewards';
 import NotFound from 'components/App/NotFound';
 import OnBoarding from 'components/OnBoarding/OnBoarding';
 import { LoadingCtn } from 'components/Common/Atoms';
@@ -237,6 +239,14 @@ const App = () => {
                                                         <ThemedSignAndVerifyMsg />
                                                     </NavHeader>
                                                 )}
+                                                {location.pathname ===
+                                                    '/rewards' && (
+                                                    <NavHeader>
+                                                        {' '}
+                                                        Rewards
+                                                        <RewardIcon />
+                                                    </NavHeader>
+                                                )}
                                                 {process.env
                                                     .REACT_APP_BUILD_ENV !==
                                                     'extension' && (
@@ -386,6 +396,10 @@ const App = () => {
                                                     />
                                                 )}
                                                 <Route
+                                                    path="/rewards"
+                                                    element={<Rewards />}
+                                                />
+                                                <Route
                                                     path="/"
                                                     element={<Home />}
                                                 />
@@ -480,6 +494,16 @@ const App = () => {
                                         {' '}
                                         <p>Airdrop</p>
                                         <AirdropIcon />
+                                    </NavItem>
+                                    <NavItem
+                                        active={
+                                            location.pathname === '/rewards'
+                                        }
+                                        onClick={() => navigate('/rewards')}
+                                    >
+                                        {' '}
+                                        <p>Rewards</p>
+                                        <RewardIcon />
                                     </NavItem>
                                     {process.env.REACT_APP_BUILD_ENV !==
                                         'extension' && (
