@@ -5660,11 +5660,9 @@ void PeerManagerImpl::ProcessMessage(
         {
             LOCK2(cs_main, m_tx_download_mutex);
 
-            m_txdownloadman.GetTxRequestRef().ReceivedResponse(pfrom.GetId(),
-                                                               txid);
-
-            if (m_txdownloadman.AlreadyHaveTx(
-                    txid, /*include_reconsiderable=*/true)) {
+            const auto &[should_validate, reconsiderable_package] =
+                m_txdownloadman.ReceivedTx(pfrom.GetId(), ptx);
+            if (!should_validate) {
                 if (pfrom.HasPermission(NetPermissionFlags::ForceRelay)) {
                     // Always relay transactions received from peers with
                     // forcerelay permission, even if they were already in the
@@ -5682,54 +5680,27 @@ void PeerManagerImpl::ProcessMessage(
                     }
                 }
 
-                if (m_txdownloadman.RecentRejectsPackageReconsiderableFilter()
-                        .contains(txid)) {
-                    // When a transaction is already in
-                    // m_recent_rejects_package_reconsiderable, we shouldn't
-                    // submit it by itself again. However, look for a matching
-                    // child in the orphanage, as it is possible that they
-                    // succeed as a package.
-                    LogDebug(
-                        BCLog::TXPACKAGES,
-                        "found tx %s in reconsiderable rejects, looking for "
-                        "child in orphanage\n",
-                        txid.ToString());
-                    if (auto package_to_validate{
-                            m_txdownloadman.Find1P1CPackage(ptx,
-                                                            pfrom.GetId())}) {
-                        const auto package_result{ProcessNewPackage(
-                            m_chainman.ActiveChainstate(), m_mempool,
-                            package_to_validate->m_txns,
-                            /*test_accept=*/false)};
-                        LogDebug(BCLog::TXPACKAGES,
-                                 "package evaluation for %s: %s (%s)\n",
-                                 package_to_validate->ToString(),
-                                 package_result.m_state.IsValid()
-                                     ? "package accepted"
-                                     : "package rejected",
-                                 package_result.m_state.ToString());
-                        ProcessPackageResult(package_to_validate.value(),
-                                             package_result);
-                    }
+                if (reconsiderable_package) {
+                    const auto package_result{ProcessNewPackage(
+                        m_chainman.ActiveChainstate(), m_mempool,
+                        reconsiderable_package->m_txns,
+                        /*test_accept=*/false)};
+                    LogDebug(BCLog::TXPACKAGES,
+                             "package evaluation for %s: %s (%s)\n",
+                             reconsiderable_package->ToString(),
+                             package_result.m_state.IsValid()
+                                 ? "package accepted"
+                                 : "package rejected",
+                             package_result.m_state.ToString());
+                    ProcessPackageResult(reconsiderable_package.value(),
+                                         package_result);
                 }
-                // If a tx is detected by m_recent_rejects it is ignored.
-                // Because we haven't submitted the tx to our mempool, we won't
-                // have computed a DoS score for it or determined exactly why we
-                // consider it invalid.
-                //
-                // This means we won't penalize any peer subsequently relaying a
-                // DoSy tx (even if we penalized the first peer who gave it to
-                // us) because we have to account for m_recent_rejects showing
-                // false positives. In other words, we shouldn't penalize a peer
-                // if we aren't *sure* they submitted a DoSy tx.
-                //
-                // Note that m_recent_rejects doesn't just record DoSy or
-                // invalid transactions, but any tx not accepted by the mempool,
-                // which may be due to node policy (vs. consensus). So we can't
-                // blanket penalize a peer simply for relaying a tx that our
-                // m_recent_rejects has caught, regardless of false positives.
                 return;
             }
+
+            // ReceivedTx should not be telling us to validate the tx and a
+            // package.
+            Assume(!reconsiderable_package.has_value());
 
             const MempoolAcceptResult result =
                 m_chainman.ProcessTransaction(ptx);

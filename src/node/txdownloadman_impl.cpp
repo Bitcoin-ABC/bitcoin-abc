@@ -26,10 +26,6 @@ InvRequestTracker<TxId> &TxDownloadManager::GetTxRequestRef() {
 CRollingBloomFilter &TxDownloadManager::RecentRejectsFilter() {
     return m_impl->RecentRejectsFilter();
 }
-CRollingBloomFilter &
-TxDownloadManager::RecentRejectsPackageReconsiderableFilter() {
-    return m_impl->RecentRejectsPackageReconsiderableFilter();
-}
 CRollingBloomFilter &TxDownloadManager::RecentConfirmedTransactionsFilter() {
     return m_impl->RecentConfirmedTransactionsFilter();
 }
@@ -83,6 +79,10 @@ TxDownloadManager::MempoolRejectedTx(const CTransactionRef &ptx,
 }
 void TxDownloadManager::MempoolRejectedPackage(const Package &package) {
     m_impl->MempoolRejectedPackage(package);
+}
+std::pair<bool, std::optional<PackageToValidate>>
+TxDownloadManager::ReceivedTx(NodeId nodeid, const CTransactionRef &ptx) {
+    return m_impl->ReceivedTx(nodeid, ptx);
 }
 
 // TxDownloadManagerImpl
@@ -464,5 +464,47 @@ RejectedTxTodo TxDownloadManagerImpl::MempoolRejectedTx(
 
 void TxDownloadManagerImpl::MempoolRejectedPackage(const Package &package) {
     RecentRejectsPackageReconsiderableFilter().insert(GetPackageHash(package));
+}
+
+std::pair<bool, std::optional<PackageToValidate>>
+TxDownloadManagerImpl::ReceivedTx(NodeId nodeid, const CTransactionRef &ptx) {
+    const TxId &txid = ptx->GetId();
+
+    // Mark that we have received a response
+    m_txrequest.ReceivedResponse(nodeid, txid);
+
+    // First check if we should drop this tx.
+    if (AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
+        if (RecentRejectsPackageReconsiderableFilter().contains(txid)) {
+            // When a transaction is already in
+            // m_recent_rejects_package_reconsiderable, we shouldn't submit it
+            // by itself again. However, look for a matching child in the
+            // orphanage, as it is possible that they succeed as a package.
+            LogDebug(BCLog::TXPACKAGES,
+                     "found tx %s in reconsiderable rejects, looking for "
+                     "child in orphanage\n",
+                     txid.ToString());
+            return std::make_pair(false, Find1P1CPackage(ptx, nodeid));
+        }
+
+        // If a tx is detected by m_recent_rejects it is ignored. Because we
+        // haven't submitted the tx to our mempool, we won't have computed a
+        // DoS score for it or determined exactly why we consider it invalid.
+        //
+        // This means we won't penalize any peer subsequently relaying a DoSy
+        // tx (even if we penalized the first peer who gave it to us) because
+        // we have to account for m_recent_rejects showing false positives. In
+        // other words, we shouldn't penalize a peer if we aren't *sure* they
+        // submitted a DoSy tx.
+        //
+        // Note that m_recent_rejects doesn't just record DoSy or invalid
+        // transactions, but any tx not accepted by the mempool, which may be
+        // due to node policy (vs. consensus). So we can't blanket penalize a
+        // peer simply for relaying a tx that our m_recent_rejects has caught,
+        // regardless of false positives.
+        return {false, std::nullopt};
+    }
+
+    return {true, std::nullopt};
 }
 } // namespace node
