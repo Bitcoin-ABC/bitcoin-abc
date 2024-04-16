@@ -141,7 +141,7 @@ const AliasAddressPreviewLabel = styled.div`
     white-space: nowrap;
 `;
 
-const SendToken = () => {
+const Token = () => {
     let navigate = useNavigate();
     const { apiError, cashtabState, chronik, chaintipBlockheight, loading } =
         React.useContext(WalletContext);
@@ -1121,4 +1121,4 @@ const SendToken = () => {
     );
 };
 
-export default SendToken;
+export default Token;

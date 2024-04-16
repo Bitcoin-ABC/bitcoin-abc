@@ -150,7 +150,7 @@ const CreateTokenForm = () => {
             return;
         }
         if (typeof tokens.get(createdTokenId) !== 'undefined') {
-            navigate(`/send-token/${createdTokenId}`);
+            navigate(`/token/${createdTokenId}`);
         }
     }, [createdTokenId, tokens]);
 

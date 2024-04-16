@@ -127,7 +127,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -158,7 +158,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -187,7 +187,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -217,7 +217,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -275,7 +275,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -298,7 +298,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -323,7 +323,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -368,7 +368,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -406,7 +406,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -442,7 +442,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -484,7 +484,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -550,7 +550,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
-                route={`/send-token/${SEND_TOKEN_TOKENID}`}
+                route={`/token/${SEND_TOKEN_TOKENID}`}
             />,
         );
 
@@ -656,7 +656,7 @@ describe('<SendToken />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mintMockedChronik}
-                route={`/send-token/${mockTokenId}`}
+                route={`/token/${mockTokenId}`}
             />,
         );
 

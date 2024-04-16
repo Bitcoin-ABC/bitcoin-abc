@@ -15,10 +15,7 @@ const TokenLink = styled(Link)`
 
 const TokenList = ({ tokens, tokenCache, userLocale }) => {
     return Array.from(tokens).map(keyValueArray => (
-        <TokenLink
-            key={keyValueArray[0]}
-            to={`/send-token/${keyValueArray[0]}`}
-        >
+        <TokenLink key={keyValueArray[0]} to={`/token/${keyValueArray[0]}`}>
             <TokenListItem
                 tokenId={keyValueArray[0]}
                 balance={decimalizedTokenQtyToLocaleFormat(
