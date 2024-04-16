@@ -813,17 +813,14 @@ public:
 
     /** Overridden from CValidationInterface. */
     void ActiveTipChange(const CBlockIndex &new_tip, bool) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
-                                 !m_tx_download_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_tx_download_mutex);
     void BlockConnected(ChainstateRole role,
                         const std::shared_ptr<const CBlock> &pblock,
                         const CBlockIndex *pindexConnected) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
-                                 !m_tx_download_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_tx_download_mutex);
     void BlockDisconnected(const std::shared_ptr<const CBlock> &block,
                            const CBlockIndex *pindex) override
-        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
-                                 !m_tx_download_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_tx_download_mutex);
     void UpdatedBlockTip(const CBlockIndex *pindexNew,
                          const CBlockIndex *pindexFork,
                          bool fInitialDownload) override
@@ -846,13 +843,13 @@ public:
     bool ProcessMessages(const Config &config, CNode *pfrom,
                          std::atomic<bool> &interrupt) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
-                                 !m_recent_confirmed_transactions_mutex,
+
                                  !m_most_recent_block_mutex, !cs_proofrequest,
                                  !m_headers_presync_mutex, g_msgproc_mutex,
                                  !m_tx_download_mutex);
     bool SendMessages(const Config &config, CNode *pto) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
-                                 !m_recent_confirmed_transactions_mutex,
+
                                  !m_most_recent_block_mutex, !cs_proofrequest,
                                  g_msgproc_mutex, !m_tx_download_mutex);
 
@@ -880,7 +877,7 @@ public:
                         const std::chrono::microseconds time_received,
                         const std::atomic<bool> &interruptMsgProc) override
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex,
-                                 !m_recent_confirmed_transactions_mutex,
+
                                  !m_most_recent_block_mutex, !cs_proofrequest,
                                  !m_headers_presync_mutex, g_msgproc_mutex,
                                  !m_tx_download_mutex);
@@ -1269,7 +1266,7 @@ private:
      * - Each data structure's limits hold (m_orphanage max size, m_txrequest
      * per-peer limits, etc).
      */
-    Mutex m_tx_download_mutex ACQUIRED_BEFORE(m_mempool.cs);
+    mutable Mutex m_tx_download_mutex ACQUIRED_BEFORE(m_mempool.cs);
     InvRequestTracker<TxId> m_txrequest GUARDED_BY(m_tx_download_mutex);
 
     Mutex cs_proofrequest;
@@ -1355,8 +1352,7 @@ private:
      *  - m_recent_confirmed_transactions
      */
     bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
-                                 m_tx_download_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(m_tx_download_mutex);
     /**
      * Filter for transactions that were recently rejected by the mempool.
      * These are not rerequested until the chain tip changes, at which point
@@ -1412,9 +1408,8 @@ private:
      * We use this to avoid requesting transactions that have already been
      * confirmed.
      */
-    mutable Mutex m_recent_confirmed_transactions_mutex;
     CRollingBloomFilter m_recent_confirmed_transactions
-        GUARDED_BY(m_recent_confirmed_transactions_mutex){24'000, 0.000'001};
+        GUARDED_BY(m_tx_download_mutex){24'000, 0.000'001};
 
     /**
      * For sending `inv`s to inbound peers, we use a single (exponentially
@@ -1723,9 +1718,7 @@ private:
      */
     uint32_t GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                                    const TxId &id) const
-        EXCLUSIVE_LOCKS_REQUIRED(!m_mempool.cs,
-                                 !m_recent_confirmed_transactions_mutex,
-                                 m_tx_download_mutex);
+        EXCLUSIVE_LOCKS_REQUIRED(!m_mempool.cs, m_tx_download_mutex);
 
     /**
      * Checks if address relay is permitted with peer. If needed, initializes
@@ -3037,16 +3030,9 @@ void PeerManagerImpl::BlockConnected(
         conflicting.EraseForBlock(*pblock);
     });
 
-    {
-        LOCK(m_recent_confirmed_transactions_mutex);
-        for (const CTransactionRef &ptx : pblock->vtx) {
-            m_recent_confirmed_transactions.insert(ptx->GetId());
-        }
-    }
-    {
-        for (const auto &ptx : pblock->vtx) {
-            m_txrequest.ForgetInvId(ptx->GetId());
-        }
+    for (const CTransactionRef &ptx : pblock->vtx) {
+        m_recent_confirmed_transactions.insert(ptx->GetId());
+        m_txrequest.ForgetInvId(ptx->GetId());
     }
 }
 
@@ -3060,7 +3046,7 @@ void PeerManagerImpl::BlockDisconnected(
     // block's worth of transactions in it, but that should be fine, since
     // presumably the most common case of relaying a confirmed transaction
     // should be just after a new block containing it is found.
-    LOCK(m_recent_confirmed_transactions_mutex);
+    LOCK(m_tx_download_mutex);
     m_recent_confirmed_transactions.reset();
 }
 
@@ -3234,11 +3220,8 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
         return true;
     }
 
-    {
-        LOCK(m_recent_confirmed_transactions_mutex);
-        if (m_recent_confirmed_transactions.contains(txid)) {
-            return true;
-        }
+    if (m_recent_confirmed_transactions.contains(txid)) {
+        return true;
     }
 
     return m_recent_rejects.contains(txid) || m_mempool.exists(txid);
@@ -4846,9 +4829,10 @@ PeerManagerImpl::GetAvalancheVoteForBlock(const BlockHash &hash) const {
 uint32_t
 PeerManagerImpl::GetAvalancheVoteForTx(const avalanche::Processor &avalanche,
                                        const TxId &id) const {
+    AssertLockHeld(m_tx_download_mutex);
+    AssertLockNotHeld(m_mempool.cs);
     // Recently confirmed
-    if (WITH_LOCK(m_recent_confirmed_transactions_mutex,
-                  return m_recent_confirmed_transactions.contains(id))) {
+    if (m_recent_confirmed_transactions.contains(id)) {
         return 0;
     }
 
