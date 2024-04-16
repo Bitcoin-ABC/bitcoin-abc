@@ -66,4 +66,14 @@ bool IsChildWithParents(const Package &package);
  * parents depend on each other (the package is a "tree").
  */
 bool IsChildWithParentsTree(const Package &package);
+
+/*
+ * Get the hash of these transactions' txids, concatenated in lexicographical
+ * order (treating the txids as little endian encoded uint256, smallest to
+ * largest).
+ *
+ * TODO Create a PackageHash class so we are type safe
+ */
+uint256 GetPackageHash(const Package &package);
+
 #endif // BITCOIN_POLICY_PACKAGES_H

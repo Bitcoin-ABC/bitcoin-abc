@@ -9,7 +9,9 @@
 #include <primitives/transaction.h>
 #include <script/script.h>
 #include <script/standard.h>
+#include <streams.h>
 #include <txmempool.h>
+#include <util/strencodings.h>
 #include <validation.h>
 
 #include <test/util/random.h>
@@ -40,6 +42,104 @@ inline CTransactionRef create_placeholder_tx(size_t num_inputs,
         mtx.vout[o].scriptPubKey = random_script;
     }
     return MakeTransactionRef(mtx);
+}
+
+// Create a TxId from a hex string
+inline TxId TxIdFromString(std::string_view str) {
+    return TxId(uint256S(str.data()));
+}
+
+BOOST_FIXTURE_TEST_CASE(package_hash_tests, TestChain100Setup) {
+    // Random real transaction
+    CDataStream stream_1{
+        ParseHex(
+            "0100000001750606002715da1314335c5150ee310a60b270e8e7e96878f3646ea6"
+            "389b48a7000000008c493046022100bf870aeee6f40a1ec8d16d94cca59e9923d2"
+            "80c2ed3efe508d64fb4b332cb116022100d8bcc14b47083e840a3b30099b030d4b"
+            "f0fc2fecd3c52a8e532e1a097909545901410434666b37c97cae7d7d6b0e5178d7"
+            "8b27471ca88fc014e4719f410952484efd7145bce0dce4c1a0f63232f63a5cba7b"
+            "e726b3189dcc1c52957d0b69822613775fffffffff0221bd831d010000001976a9"
+            "14fe91e42445fc4862e1b5566206b928764d9fc6b888ac5fad1502000000001976"
+            "a914f883e595eb29b156edf2b0c2939a9e834a58e98f88ac00000000"),
+        SER_NETWORK, PROTOCOL_VERSION
+
+    };
+    CTransaction tx_1(deserialize, stream_1);
+    CTransactionRef ptx_1{MakeTransactionRef(tx_1)};
+
+    // Random real transaction
+    CDataStream stream_2{
+        ParseHex(
+            "01000000010b26e9b7735eb6aabdf358bab62f9816a21ba9ebdb719d5299e88607"
+            "d722c190000000008b4830450220070aca44506c5cef3a16ed519d7c3c39f8aab1"
+            "92c4e1c90d065f37b8a4af6141022100a8e160b856c2d43d27d8fba71e5aef6405"
+            "b8643ac4cb7cb3c462aced7f14711a0141046d11fee51b0e60666d5049a9101a72"
+            "741df480b96ee26488a4d3466b95c9a40ac5eeef87e10a5cd336c19a84565f80fa"
+            "6c547957b7700ff4dfbdefe76036c339ffffffff021bff3d11000000001976a914"
+            "04943fdd508053c75000106d3bc6e2754dbcff1988ac2f15de00000000001976a9"
+            "14a266436d2965547608b9e15d9032a7b9d64fa43188ac00000000"),
+        SER_NETWORK, PROTOCOL_VERSION
+
+    };
+    CTransaction tx_2(deserialize, stream_2);
+    CTransactionRef ptx_2{MakeTransactionRef(tx_2)};
+
+    // Random real transaction
+    CDataStream stream_3{
+        ParseHex(
+            "01000000019d2149f3070ce44482b931988e34a8c185ca1b0dd9d0ef7745c1a14c"
+            "0e5d260a010000008a473044022013d37787511163ccf1c2cc02521e0bd6ba32b0"
+            "e60c47ffd1ffb8138184baa89102206bda0248965fb2b2d106c0fa40cb60747997"
+            "df998d0940030dda69d11566bebc014104207a4f69b8fd04fa571a3d70105618cf"
+            "7c71f7cb7f0753d660f0170139a92319705e94f2c6941bd8b9384bf392beaf72e5"
+            "a33b5df5e29c726fa53b9a5816b286ffffffff0200477e25010000001976a914c7"
+            "ff9b23b7c620df1617eb5f9a8a973c6eff693c88ac0068b63a010000001976a914"
+            "3fcea20063968cb44c8afeea332223523f43d81788ac00000000"),
+        SER_NETWORK, PROTOCOL_VERSION
+
+    };
+    CTransaction tx_3(deserialize, stream_3);
+    CTransactionRef ptx_3{MakeTransactionRef(tx_3)};
+
+    // It's easy to see that txids are sorted in lexicographical order:
+    TxId txid_1{TxIdFromString(
+        "0x679c453b9f260ba4b74cd5168615f39b4bb2508e44982c4e93e49e44bb274339")};
+    TxId txid_2{TxIdFromString(
+        "0xb4749f017444b051c44dfd2720e88f314ff94f3dd6d56d40ef65854fcd7fff6b")};
+    TxId txid_3{TxIdFromString(
+        "0xfc073689bfb493026d6a618ab07f9f008bd90e1748663c2728211675fb9e234c")};
+    BOOST_CHECK_EQUAL(tx_1.GetId(), txid_1);
+    BOOST_CHECK_EQUAL(tx_2.GetId(), txid_2);
+    BOOST_CHECK_EQUAL(tx_3.GetId(), txid_3);
+
+    BOOST_CHECK(txid_1 < txid_2);
+    BOOST_CHECK(txid_2 < txid_3);
+    // This test is not useful in itself but is here to demonstrate that our
+    // codebase use the same ordering as Bitcoin Core. It only happens that the
+    // uint256 comparison has been fixed to use the correct endianness in our
+    // codebase so we don't have to use an expensive string conversion to do
+    // the comparison.
+    BOOST_CHECK(txid_1.GetHex() < txid_2.GetHex());
+    BOOST_CHECK(txid_2.GetHex() < txid_3.GetHex());
+
+    // All permutations of the package containing ptx_1, ptx_2, ptx_3 have the
+    // same package hash
+    std::vector<CTransactionRef> package_123{ptx_1, ptx_2, ptx_3};
+    std::vector<CTransactionRef> package_132{ptx_1, ptx_3, ptx_2};
+    std::vector<CTransactionRef> package_231{ptx_2, ptx_3, ptx_1};
+    std::vector<CTransactionRef> package_213{ptx_2, ptx_1, ptx_3};
+    std::vector<CTransactionRef> package_312{ptx_3, ptx_1, ptx_2};
+    std::vector<CTransactionRef> package_321{ptx_3, ptx_2, ptx_1};
+
+    uint256 calculated_hash_123 =
+        (HashWriter{} << txid_1 << txid_2 << txid_3).GetSHA256();
+
+    BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_123));
+    BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_132));
+    BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_231));
+    BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_213));
+    BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_312));
+    BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_321));
 }
 
 BOOST_FIXTURE_TEST_CASE(package_sanitization_tests, TestChain100Setup) {

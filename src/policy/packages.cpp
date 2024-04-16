@@ -5,6 +5,7 @@
 #include <consensus/validation.h>
 #include <policy/packages.h>
 #include <primitives/transaction.h>
+#include <primitives/txid.h>
 #include <util/hasher.h>
 
 #include <numeric>
@@ -123,4 +124,23 @@ bool IsChildWithParentsTree(const Package &package) {
             }
             return true;
         });
+}
+
+uint256 GetPackageHash(const Package &package) {
+    // Create a vector of the txids.
+    std::vector<TxId> txids_copy;
+    std::transform(package.cbegin(), package.cend(),
+                   std::back_inserter(txids_copy),
+                   [](const auto &tx) { return tx->GetId(); });
+
+    // Sort in ascending order
+    std::sort(txids_copy.begin(), txids_copy.end(),
+              [](const auto &lhs, const auto &rhs) { return lhs < rhs; });
+
+    // Get (single) sha256 hash of the txids concatenated in this order
+    HashWriter hashwriter;
+    for (const auto &txid : txids_copy) {
+        hashwriter << txid;
+    }
+    return hashwriter.GetSHA256();
 }
