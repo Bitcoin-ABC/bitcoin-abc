@@ -5,6 +5,7 @@
 #include <node/txdownloadman.h>
 #include <node/txdownloadman_impl.h>
 
+#include <consensus/validation.h>
 #include <logging.h>
 #include <random.h>
 #include <txconflicting.h>
@@ -73,6 +74,12 @@ TxDownloadManager::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
 }
 void TxDownloadManager::MempoolAcceptedTx(const CTransactionRef &tx) {
     m_impl->MempoolAcceptedTx(tx);
+}
+RejectedTxTodo
+TxDownloadManager::MempoolRejectedTx(const CTransactionRef &ptx,
+                                     const TxValidationState &state,
+                                     NodeId nodeid, bool first_time_failure) {
+    return m_impl->MempoolRejectedTx(ptx, state, nodeid, first_time_failure);
 }
 
 // TxDownloadManagerImpl
@@ -161,6 +168,10 @@ bool TxDownloadManagerImpl::AddTxAnnouncement(NodeId peer, const TxId &txid,
                                               bool p2p_inv) {
     // If this is an inv received from a peer and we already have it, we can
     // drop it.
+    // If this is a request for the parent of an orphan, we don't drop
+    // transactions that we already have. In particular, we *do* want to request
+    // parents that are in m_recent_rejects_package_reconsiderable, since they
+    // can be CPFP'd.
     if (p2p_inv && AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
         return true;
     }
@@ -299,5 +310,152 @@ void TxDownloadManagerImpl::MempoolAcceptedTx(const CTransactionRef &tx) {
         // txorphanage.
         orphanage.EraseTx(tx->GetId());
     });
+}
+
+RejectedTxTodo TxDownloadManagerImpl::MempoolRejectedTx(
+    const CTransactionRef &ptx, const TxValidationState &state, NodeId nodeid,
+    bool first_time_failure) {
+    const CTransaction &tx{*ptx};
+    const TxId &txid = ptx->GetId();
+    // Results returned to caller
+    // Whether we should call AddToCompactExtraTransactions at the end
+    bool add_extra_compact_tx{first_time_failure};
+    // Hashes to pass to AddKnownTx later
+    std::vector<TxId> unique_parents;
+    // Populated if failure is reconsiderable and eligible package is found.
+    std::optional<PackageToValidate> package_to_validate;
+
+    if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
+        // Only process a new orphan if this is a first time failure, as
+        // otherwise it must be either already in orphanage or from 1p1c
+        // processing.
+        if (first_time_failure) {
+            // It may be the case that the orphans parents have all been
+            // rejected.
+            bool fRejectedParents = false;
+
+            // Deduplicate parent txids, so that we don't have to loop over
+            // the same parent txid more than once down below.
+            unique_parents.reserve(tx.vin.size());
+            for (const CTxIn &txin : tx.vin) {
+                // We start with all parents, and then remove duplicates
+                // below.
+                unique_parents.push_back(txin.prevout.GetTxId());
+            }
+            std::sort(unique_parents.begin(), unique_parents.end());
+            unique_parents.erase(
+                std::unique(unique_parents.begin(), unique_parents.end()),
+                unique_parents.end());
+
+            // Distinguish between parents in m_recent_rejects and
+            // m_recent_rejects_package_reconsiderable. We can tolerate
+            // having up to 1 parent in
+            // m_recent_rejects_package_reconsiderable since we submit 1p1c
+            // packages. However, fail immediately if any are in
+            // m_recent_rejects.
+            std::optional<TxId> rejected_parent_reconsiderable;
+            for (const TxId &parent_txid : unique_parents) {
+                if (RecentRejectsFilter().contains(parent_txid)) {
+                    fRejectedParents = true;
+                    break;
+                }
+
+                if (RecentRejectsPackageReconsiderableFilter().contains(
+                        parent_txid) &&
+                    !m_opts.m_mempool.exists(parent_txid)) {
+                    // More than 1 parent in
+                    // m_recent_rejects_package_reconsiderable:
+                    // 1p1c will not be sufficient to accept this package,
+                    // so just give up here.
+                    if (rejected_parent_reconsiderable.has_value()) {
+                        fRejectedParents = true;
+                        break;
+                    }
+                    rejected_parent_reconsiderable = parent_txid;
+                }
+            }
+            if (!fRejectedParents) {
+                const auto current_time{GetTime<std::chrono::microseconds>()};
+
+                for (const TxId &parent_txid : unique_parents) {
+                    // Exclude m_recent_rejects_package_reconsiderable: the
+                    // missing parent may have been previously rejected for
+                    // being too low feerate. This orphan might CPFP it.
+                    if (!AlreadyHaveTx(parent_txid,
+                                       /*include_reconsiderable=*/false)) {
+                        AddTxAnnouncement(nodeid, parent_txid, current_time,
+                                          /*p2p_inv=*/false);
+                    }
+                }
+
+                unsigned int nEvicted =
+                    m_opts.m_mempool.withOrphanage([&](TxOrphanage &orphanage) {
+                        // Potentially flip add_extra_compact_tx to false if
+                        // AddTx returns false because the tx was already there
+                        add_extra_compact_tx &= orphanage.AddTx(ptx, nodeid);
+                        return orphanage.LimitTxs(m_opts.m_max_orphan_txs,
+                                                  m_opts.m_rng);
+                    });
+                if (nEvicted > 0) {
+                    LogDebug(BCLog::TXPACKAGES,
+                             "orphanage overflow, removed %u tx\n", nEvicted);
+                }
+
+                // Once added to the orphan pool, a tx is considered
+                // AlreadyHave, and we shouldn't request it anymore.
+                m_txrequest.ForgetInvId(tx.GetId());
+
+            } else {
+                unique_parents.clear();
+                LogDebug(BCLog::MEMPOOL,
+                         "not keeping orphan with rejected parents %s\n",
+                         tx.GetId().ToString());
+                // We will continue to reject this tx since it has rejected
+                // parents so avoid re-requesting it from other peers.
+                RecentRejectsFilter().insert(tx.GetId());
+                m_txrequest.ForgetInvId(tx.GetId());
+            }
+        }
+    } else {
+        if (state.GetResult() ==
+            TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
+            // If the result is TX_PACKAGE_RECONSIDERABLE, add it to
+            // m_recent_rejects_package_reconsiderable because we should not
+            // download or submit this transaction by itself again, but may
+            // submit it as part of a package later.
+            RecentRejectsPackageReconsiderableFilter().insert(txid);
+
+            if (first_time_failure) {
+                // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look
+                // for a matching child in the orphanage, as it is possible that
+                // they succeed as a package.
+                LogDebug(
+                    BCLog::TXPACKAGES,
+                    "tx %s failed but reconsiderable, looking for child in "
+                    "orphanage\n",
+                    txid.ToString());
+                package_to_validate = Find1P1CPackage(ptx, nodeid);
+            }
+        } else {
+            RecentRejectsFilter().insert(txid);
+        }
+        m_txrequest.ForgetInvId(txid);
+    }
+
+    // If the tx failed in ProcessOrphanTx, it should be removed from the
+    // orphanage unless the tx was still missing inputs. If the tx was not in
+    // the orphanage, EraseTx does nothing and returns 0.
+    if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS &&
+        m_opts.m_mempool.withOrphanage([&txid](TxOrphanage &orphanage) {
+            return orphanage.EraseTx(txid);
+        }) > 0) {
+        LogDebug(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
+                 txid.ToString());
+    }
+
+    return RejectedTxTodo{.m_should_add_extra_compact_tx = add_extra_compact_tx,
+                          .m_unique_parents = std::move(unique_parents),
+                          .m_package_to_validate =
+                              std::move(package_to_validate)};
 }
 } // namespace node

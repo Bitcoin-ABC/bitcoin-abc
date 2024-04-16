@@ -22,6 +22,7 @@ class CBlock;
 class CRollingBloomFilter;
 class CTxMemPool;
 class FastRandomContext;
+class TxValidationState;
 struct TxId;
 
 namespace node {
@@ -43,6 +44,8 @@ struct TxDownloadOptions {
     /** RNG provided by caller. */
     // fixme: backport core##36077 before core#35986
     FastRandomContext &m_rng;
+    /** Maximum number of transactions allowed in orphanage. */
+    const uint32_t m_max_orphan_txs;
 };
 struct TxDownloadConnectionInfo {
     /** Whether this peer is preferred for transaction download. */
@@ -63,6 +66,8 @@ struct PackageToValidate {
     PackageToValidate(PackageToValidate &&other)
         : m_txns{std::move(other.m_txns)},
           m_senders{std::move(other.m_senders)} {}
+    // Copy ctor
+    PackageToValidate(const PackageToValidate &other) = default;
 
     // Move assignment
     PackageToValidate &operator=(PackageToValidate &&other) {
@@ -77,6 +82,11 @@ struct PackageToValidate {
                          m_txns.front()->GetId().ToString(), m_senders.front(),
                          m_txns.back()->GetId().ToString(), m_senders.back());
     }
+};
+struct RejectedTxTodo {
+    bool m_should_add_extra_compact_tx;
+    std::vector<TxId> m_unique_parents;
+    std::optional<PackageToValidate> m_package_to_validate;
 };
 
 /**
@@ -170,6 +180,11 @@ public:
 
     /** Respond to successful transaction submission to mempool */
     void MempoolAcceptedTx(const CTransactionRef &tx);
+
+    /** Respond to transaction rejected from mempool */
+    RejectedTxTodo MempoolRejectedTx(const CTransactionRef &ptx,
+                                     const TxValidationState &state,
+                                     NodeId nodeid, bool first_time_failure);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_H
