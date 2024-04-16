@@ -518,12 +518,12 @@ export const getNftParentMintTargetOutputs = (tokenId, mintQty) => {
 
     // Add mint amount at index 1
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
     });
 
     // Add mint baton at index 2
     targetOutputs.push({
-        value: appConfig.etokenSats,
+        value: appConfig.dustSats,
     });
 
     return targetOutputs;
