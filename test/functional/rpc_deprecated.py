@@ -37,7 +37,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
                 "-avalanchestakingrewards=1",
-                "-deprecatedrpc=getavalancheinfo_sharing",
                 "-deprecatedrpc=getstakingreward",
             ],
         ]
@@ -64,14 +63,6 @@ class DeprecatedRpcTest(BitcoinTestFramework):
 
         self.restart_node(0, extra_args=self.extra_args[0] + proof_args)
         self.restart_node(1, extra_args=self.extra_args[1] + proof_args)
-
-        info0 = self.nodes[0].getavalancheinfo()
-        info1 = self.nodes[1].getavalancheinfo()
-
-        assert "local" in info0
-        assert "local" in info1
-        assert "sharing" not in info0["local"]
-        assert "sharing" in info1["local"]
 
         self.connect_nodes(0, 1)
 
