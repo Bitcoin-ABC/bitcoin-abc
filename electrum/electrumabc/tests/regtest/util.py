@@ -1,3 +1,4 @@
+import contextlib
 import os
 import platform
 import shutil
@@ -225,7 +226,12 @@ def fulcrum_service(docker_services: Any) -> Generator[None, None, None]:
         yield
         stop_ec_daemon(electrum_datadir)
     finally:
-        shutil.rmtree(electrum_datadir)
+        # Remove the data directory, ignore race conditions caused by tmp wallet files
+        # created and deleted in WalletStorage._write while the daemon process is
+        # stopping
+        # See https://github.com/python/cpython/pull/14064
+        with contextlib.suppress(FileNotFoundError):
+            shutil.rmtree(electrum_datadir)
 
 
 def wait_for_len(json_req, expected_len: int, timeout=DEFAULT_TIMEOUT):
