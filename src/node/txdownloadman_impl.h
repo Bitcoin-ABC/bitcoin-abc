@@ -9,6 +9,7 @@
 
 #include <common/bloom.h>
 #include <invrequest.h>
+#include <primitives/block.h>
 #include <primitives/txid.h>
 
 class CTxMemPool;
@@ -87,6 +88,10 @@ public:
     }
 
     TxDownloadManagerImpl(const TxDownloadOptions &options) : m_opts{options} {}
+
+    void ActiveTipChange();
+    void BlockConnected(const std::shared_ptr<const CBlock> &pblock);
+    void BlockDisconnected();
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H
