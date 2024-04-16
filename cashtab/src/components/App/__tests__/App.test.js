@@ -260,7 +260,7 @@ describe('<App />', () => {
 
         // Now we see these items
         expect(screen.queryByTitle('Other Screens')).toHaveStyle(
-            `max-height: 100rem`,
+            `max-height: 100vh`,
         );
 
         // Navigate to Airdrop screen

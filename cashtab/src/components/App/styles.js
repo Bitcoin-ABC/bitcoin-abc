@@ -151,18 +151,16 @@ export const NavIcon = styled.span`
 
 export const NavMenu = styled.div`
     position: fixed;
-    float: right;
-    margin-right: 30px;
-    bottom: 5rem;
+    margin-right: 125px;
+    bottom: 80px;
     display: flex;
-    width: 8.23rem;
+    width: 225px;
     flex-direction: column;
     border: ${props => (props.open ? '1px solid' : '0px solid')};
     border-color: ${props =>
         props.open ? props.theme.contrast : 'transparent'};
     justify-content: center;
     align-items: center;
-
     @media (max-width: 768px) {
         right: 0;
         margin-right: 0;
@@ -172,20 +170,20 @@ export const NavMenu = styled.div`
         props.open
             ? 'max-height 1000ms ease-in-out , border-color 800ms ease-in-out, border-width 800ms ease-in-out'
             : 'max-height 300ms cubic-bezier(0, 1, 0, 1), border-color 600ms ease-in-out, border-width 800ms ease-in-out'};
-    max-height: ${props => (props.open ? '100rem' : '0')};
+    max-height: ${props => (props.open ? '100vh' : '0')};
 `;
 
 export const NavItem = styled.button`
     display: flex;
     justify-content: space-between;
-    margin-left: 3px;
     text-align: left;
+    font-size: 24px;
+    padding: 12px;
     align-items: center;
     width: 100%;
     white-space: nowrap;
-    height: 3rem;
     background-color: ${props => props.theme.walletBackground};
-    border: none;
+    border: 1px solid ${props => props.theme.walletBackground};
     color: ${props => props.theme.contrast};
     gap: 6px;
     cursor: pointer;
