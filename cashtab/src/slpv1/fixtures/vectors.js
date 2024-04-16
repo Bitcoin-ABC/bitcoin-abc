@@ -1422,4 +1422,226 @@ export default {
             },
         ],
     },
+    getNftParentFanInputs: {
+        expectedReturns: [
+            {
+                description: 'Gets NFT1 parent spendable utxo with qty !== 1',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '100',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '100',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'Ignores NFT1 parent spendable utxo with qty === 1',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [],
+            },
+            {
+                description:
+                    'Returns multiple utxos at multiple amounts and ignores amount === 1',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '1',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '2',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '3',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '2',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '3',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'Ignores a utxo if it has the right tokenId, the right amount, but is a mint baton for some reason (not expected to ever happen)',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    [
+                        { value: 546 },
+                        {
+                            token: {
+                                tokenId: MOCK_TOKEN_ID,
+                                amount: '2',
+                                isMintBaton: true,
+                            },
+                        },
+                    ],
+                ],
+                returned: [],
+            },
+            {
+                description:
+                    'Ignores a utxo if it has the right amount, is not a mint baton, but has the wrong token id',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    [
+                        { value: 546 },
+                        {
+                            token: {
+                                tokenId:
+                                    '2222222222222222222222222222222222222222222222222222222222222222',
+                                amount: '100',
+                                isMintBaton: false,
+                            },
+                        },
+                    ],
+                ],
+                returned: [],
+            },
+        ],
+    },
+    getNftParentFanTxTargetOutputs: {
+        expectedReturns: [
+            {
+                description:
+                    'Gets 19 fan outputs for an NFT1 parent fan tx for max outputs and no change',
+                fanInputs: [
+                    {
+                        outpoint: {
+                            txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                            outIdx: 0,
+                        },
+                        value: 546,
+                        token: { tokenId: MOCK_TOKEN_ID, amount: '19' },
+                        path: 1899,
+                    },
+                ],
+                returned: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001810453454e44201111111111111111111111111111111111111111111111111111111111111111080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001',
+                            'hex',
+                        ),
+                    },
+                ].concat(Array(19).fill({ value: appConfig.dustSats })),
+                rawTx: {
+                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006a473044022053fa3c2142b89d1d9accc3151077f14932aba7fb420679e853ea9ee963e6643c022009db94090c322d36e13b773ba4e6c6aa23ac0070039b26a0de50a5bb28d8e709412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006a47304402204ec14c28dc99ca0935730e6f1ac583d9840c9315afca383115be3470c23c6cd60220356e3eb98d0d5646ceab1658338df2eeb095e054f2cd784eb2fc4a715a0d7aca412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff150000000000000000d96a04534c500001810453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000122020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac20170f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+                    txid: '80af1add3a89d32cd836cdbeace7afbb8ee6f4b9a888f60e736e511b23689ba3',
+                },
+            },
+            {
+                description:
+                    'Gets 18 fan outputs for an NFT1 parent fan tx for max outputs if we have change',
+                fanInputs: [
+                    {
+                        outpoint: {
+                            txid: '1111111111111111111111111111111111111111111111111111111111111112',
+                            outIdx: 0,
+                        },
+                        value: 546,
+                        token: { tokenId: MOCK_TOKEN_ID, amount: '100' },
+                        path: 1899,
+                    },
+                ],
+                returned: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001810453454e44201111111111111111111111111111111111111111111111111111111111111111080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000051',
+                            'hex',
+                        ),
+                    },
+                ].concat(Array(19).fill({ value: appConfig.dustSats })),
+                rawTx: {
+                    hex: '02000000021211111111111111111111111111111111111111111111111111111111111111000000006b483045022100a4011a1788dffca772bed4182823cd190f7674bcf5c57d5e8c762e805e9ac22d022013250011c63fdb68315ea5a2b80fbf123a46562f1ec927c867410ab3ee4755b5412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006a47304402206091174f82d36d71666f6fab1f43360f14c142ad4b27ce137e121ffc9bcbd18f02201d963d5c304ea960b07386c420aefd41ba34d338ce0233b419db0bb9f2252650412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff150000000000000000d96a04534c500001810453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000005122020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac20170f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+                    txid: '499056f011f10fc7f96552aac58dbcf689c9863bcb6554811a3604f04921dddf',
+                },
+            },
+            {
+                description:
+                    'Gets token amount fan outputs for an NFT1 parent fan tx if user has less than 19 of this token left',
+                fanInputs: [
+                    {
+                        outpoint: {
+                            txid: '1111111111111111111111111111111111111111111111111111111111111114',
+                            outIdx: 0,
+                        },
+                        value: 546,
+                        token: { tokenId: MOCK_TOKEN_ID, amount: '12' },
+                        path: 1899,
+                    },
+                ],
+                returned: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001810453454e44201111111111111111111111111111111111111111111111111111111111111111080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001080000000000000001',
+                            'hex',
+                        ),
+                    },
+                ].concat(Array(12).fill({ value: appConfig.dustSats })),
+                rawTx: {
+                    hex: '02000000021411111111111111111111111111111111111111111111111111111111111111000000006a473044022022fe48be7588746a1b7b9d2d51bc3444faf0b9287f2696e40d64452781f6d579022038334e277efe4df55fae355c4e00b294ff66bcdf3d4ec9d674c3535039510549412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff4b451a9cdbc0ee92420e5b8179b432fa9af11a9fa835c4aefcd1a5d3882365a8000000006b483045022100d2a5579cfc4aaf75d6b3c0c76fb48492e350e8d0ca0bc4452a5450fb0bdd8da20220621dbf3f4965ee43898926a35f4b4488ca7bebd96056644b7eba373246c56967412103b9fefe35855c7bf75f3132718b2107bb30d0d1f0193fdb8a11f9cb781fc7c921ffffffff0e00000000000000009a6a04534c500001810453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000108000000000000000122020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac22020000000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac3b270f00000000001976a914c38232a045a85c84e5733d60e867dcee9ad4b18d88ac00000000',
+                    txid: 'bf0124bae03f652aa464a1edab48696dc7372543e596ad0161273077dcfbd732',
+                },
+            },
+        ],
+        expectedErrors: [
+            {
+                description: 'Throws error if called with no fanInputs',
+                fanInputs: [],
+                error: new Error(
+                    'No eligible inputs for this NFT parent fan tx',
+                ),
+            },
+        ],
+    },
 };

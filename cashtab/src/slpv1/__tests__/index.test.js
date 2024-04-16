@@ -14,6 +14,8 @@ import {
     getMaxMintAmount,
     getNftParentGenesisTargetOutputs,
     getNftParentMintTargetOutputs,
+    getNftParentFanInputs,
+    getNftParentFanTxTargetOutputs,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
@@ -435,6 +437,40 @@ describe('slpv1 methods', () => {
                 expect(() =>
                     getNftParentMintTargetOutputs(tokenId, mintQty),
                 ).toThrow(errorMsg);
+            });
+        });
+    });
+    describe('Gets required inputs for an NFT1 parent fan-out tx, if present in given slpUtxos', () => {
+        const { expectedReturns } = vectors.getNftParentFanInputs;
+        expectedReturns.forEach(vector => {
+            const { description, tokenId, slpUtxos, returned } = vector;
+            it(`getNftParentFanInputs: ${description}`, () => {
+                expect(getNftParentFanInputs(tokenId, slpUtxos)).toStrictEqual(
+                    returned,
+                );
+            });
+        });
+    });
+    describe('Generate target outputs for an NFT1 parent fan-out tx', () => {
+        const { expectedReturns, expectedErrors } =
+            vectors.getNftParentFanTxTargetOutputs;
+
+        // Successfully created targetOutputs
+        expectedReturns.forEach(expectedReturn => {
+            const { description, fanInputs, returned } = expectedReturn;
+            it(`getNftParentFanTxTargetOutputs: ${description}`, () => {
+                expect(getNftParentFanTxTargetOutputs(fanInputs)).toEqual(
+                    returned,
+                );
+            });
+        });
+
+        expectedErrors.forEach(expectedError => {
+            const { description, fanInputs, error } = expectedError;
+            it(`getNftParentFanTxTargetOutputs throws error for: ${description}`, () => {
+                expect(() => getNftParentFanTxTargetOutputs(fanInputs)).toThrow(
+                    error,
+                );
             });
         });
     });

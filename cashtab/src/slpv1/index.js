@@ -11,6 +11,13 @@ import { undecimalizeTokenAmount } from 'wallet';
 
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+// SLP1 supports up to 19 outputs
+// https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send--transfer
+// This value is defined by the spec, i.e. an SLP1 SEND tx with more outputs is invalid
+// Rationale behind spec decision: OP_RETURN is limited to 223 bytes. A 19-output SLP Send tx requires
+// 217 bytes in the OP_RETURN. Each output requires an additional 9 bytes (1 byte pushdata, 8 bytes value)
+// So any more than 19 would be over the currently prevailing 223-byte OP_RETURN limit
+const SLP1_SEND_MAX_OUTPUTS = 19;
 
 // Note: NFT1 spec supports non-zero decimals, but 0 is recommended
 // Cashtab follows the recommendation and will only mint 0-decimal NFT1 parent tokens
@@ -18,6 +25,10 @@ const NFT1_PARENT_DECIMALS = 0;
 
 // For SLPv1 Mint txs, Cashtab always puts the mint baton at mintBatonVout 2
 const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
+
+// To mint NFTs in a Collection (i.e. NFT Child from NFT Parent), you must spend this qty of NFT Parent
+// This is a spec value
+const SLP1_NFT_CHILD_GENESIS_AMOUNT = '1';
 
 /**
  * Get targetOutput for a SLP v1 genesis tx
@@ -525,6 +536,100 @@ export const getNftParentMintTargetOutputs = (tokenId, mintQty) => {
     targetOutputs.push({
         value: appConfig.dustSats,
     });
+
+    return targetOutputs;
+};
+
+/**
+ * Get inputs to make an NFT parent fan tx
+ * We need to make fan txs as minting an NFT1 child nft requires burning exactly 1 of the parent
+ * Well, the spec will let you do it if you burn more than one. But our users can be expected
+ * to appreciate our economy in this regard. *
+ * In practice, we are getting token utxos for tokenId that are not mint batons and have qty > 1
+ * @param {string} tokenId tokenId of NFT1 Parent (aka Group aka Collection) token we want to mint child NFTs for
+ * @param {CashtabUtxo[]} slpUtxos What Cashtab stores at the wallet.state.slpUtxos key
+ * @returns {CashtabUtxo[]}
+ */
+export const getNftParentFanInputs = (tokenId, slpUtxos) => {
+    return slpUtxos.filter(utxo => {
+        // UTXO matches the token ID
+        return (
+            utxo.token?.tokenId === tokenId &&
+            // UTXO is not already of the correct qty to be an NftParentFanInput
+            // Note: not expected to ever have this amount be '0' unless we have a mint baton
+            // If we do (somehow) get a 0 amount, no harm using it as an input...should
+            // consolidate it away anyhow
+            utxo.token?.amount !== SLP1_NFT_CHILD_GENESIS_AMOUNT &&
+            // UTXO is not a minting baton
+            utxo.token?.isMintBaton === false
+        );
+    });
+};
+
+/**
+ * Get target outputs for an NFT 1 parent fan tx,
+ * i.e. a tx that creates as many token utxos as possible with amount === 1
+ * @param {CashtabUtxo[]} fanInputs result from getNftParentFanUtxos
+ * @returns {Array} array of target outputs, including script output at index 0, and dust outputs after
+ * as many as 19 dust outputs
+ */
+export const getNftParentFanTxTargetOutputs = fanInputs => {
+    if (fanInputs.length === 0) {
+        throw new Error('No eligible inputs for this NFT parent fan tx');
+    }
+    // Iterate over eligible nft parent fan utxos (the output of getNftParentFanUtxos)
+    // Create as many minting utxos as possible in one tx (per spec, 19)
+    const fanInputsThisTx = [];
+    let totalInputAmount = new BN(0);
+    let maxOutputs = false;
+    for (const input of fanInputs) {
+        fanInputsThisTx.push(input);
+        // Note that all fanInputs have token.amount
+        totalInputAmount = totalInputAmount.plus(new BN(input.token.amount));
+        if (totalInputAmount.gte(SLP1_SEND_MAX_OUTPUTS)) {
+            maxOutputs = true;
+            // We have enough inputs to create max outputs
+            break;
+        }
+    }
+    // Note we may also get here with a qty less than SLP1_SEND_MAX_OUTPUTS
+    // The user might not have 19 NFTs left to mint for this token
+    // Note we do not need a BN for fanOutputs. totalInputAmount needs BN because it could be enormous.
+    // But here, fanOutputs will be less than or equal to 19
+    const fanOutputs = maxOutputs
+        ? SLP1_SEND_MAX_OUTPUTS
+        : totalInputAmount.toNumber();
+
+    // We only expect change if we have totalInputAmount of > 19
+    const change = maxOutputs
+        ? totalInputAmount.minus(SLP1_SEND_MAX_OUTPUTS)
+        : new BN(0);
+    const hasChange = change.gt(0);
+
+    // We send amount 1 to as many outputs as we can
+    // If we have change and maxOutputs === true, this is 18
+    // Otherwise it's fanOutputs, which could be 19, or less if the user does not have 19 of this token left
+    const MAX_OUTPUTS_IF_CHANGE = SLP1_SEND_MAX_OUTPUTS - 1;
+    const sendAmounts = Array(
+        hasChange && maxOutputs ? MAX_OUTPUTS_IF_CHANGE : fanOutputs,
+    ).fill(new BN(1));
+    if (hasChange) {
+        // Add change as the last output bc it feels weird adding it first
+        sendAmounts.push(change);
+    }
+
+    const targetOutputs = [];
+    const script = NFT1.Group.send(fanInputs[0].token.tokenId, sendAmounts);
+
+    // Add OP_RETURN output at index 0
+    targetOutputs.push({ value: 0, script });
+
+    // Add dust outputs
+    // Note that Cashtab will add the creating wallet's change address
+    // to any output not including an address or script key
+    for (let i = 0; i < fanOutputs; i += 1) {
+        targetOutputs.push({ value: appConfig.dustSats });
+    }
 
     return targetOutputs;
 };
