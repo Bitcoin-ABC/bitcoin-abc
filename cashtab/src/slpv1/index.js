@@ -28,7 +28,7 @@ const CASHTAB_SLP1_MINT_MINTBATON_VOUT = 2;
 
 // To mint NFTs in a Collection (i.e. NFT Child from NFT Parent), you must spend this qty of NFT Parent
 // This is a spec value
-const SLP1_NFT_CHILD_GENESIS_AMOUNT = '1';
+export const SLP1_NFT_CHILD_GENESIS_AMOUNT = '1';
 
 /**
  * Get targetOutput for a SLP v1 genesis tx
@@ -632,4 +632,97 @@ export const getNftParentFanTxTargetOutputs = fanInputs => {
     }
 
     return targetOutputs;
+};
+
+/**
+ * We need to get a parent utxo with qty of exactly 1
+ * This is burned to mint a child nft
+ * Ref https://github.com/simpleledger/slp-specifications/blob/master/slp-nft-1.md
+ * If we cannot find any utxos with qty of exactly 1, will need to create some with a fan-out tx
+ * This is handled by a separate function
+ * @param {string} tokenId tokenId of the parent aka Group
+ * @param {CashtabUtxo[]} slpUtxos What Cashtab stores at the wallet.state.slpUtxos key
+ * @returns {[CashtabUtxo] | []} Array of ONLY ONE cashtab utxo where tokenId === tokenId and token.amount === 1, if it exists
+ * Otherwise an empty array
+ */
+export const getNftChildGenesisInput = (tokenId, slpUtxos) => {
+    // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
+    // because in this case we only want exactly 1 utxo
+    for (const utxo of slpUtxos) {
+        if (
+            utxo.token?.tokenId === tokenId &&
+            utxo.token?.isMintBaton === false &&
+            utxo.token?.amount === SLP1_NFT_CHILD_GENESIS_AMOUNT
+        ) {
+            return [utxo];
+        }
+    }
+    // We have not found a utxo that meets our conditions
+    // Return empty array
+    return [];
+};
+
+/**
+ * Get target outputs for minting an NFT
+ * Note that we get these inputs separately, from getNftChildGenesisInput and, if that fails,
+ * from making a fan-out tx
+ * Note we do not need the group tokenId, as this is implied in the tx by the input
+ * @param {object} childGenesisInfo
+ */
+export const getNftChildGenesisTargetOutputs = childGenesisConfig => {
+    const { ticker, name, documentUrl, documentHash } = childGenesisConfig;
+    const script = NFT1.Child.genesis(ticker, name, documentUrl, documentHash);
+    // We always mint exactly 1 NFT per child genesis tx, so no change is expected
+    // Will always have exactly 1 dust utxo at index 1 to hold this NFT
+    return [{ value: 0, script }, { value: appConfig.dustSats }];
+};
+
+/**
+ * We are effectively getting this NFT
+ * The NFT is stored at a dust utxo from a previous NFT Child send tx or its NFT Child genesis tx
+ * Because this is an NFT, "there can be only one" of these utxos. The wallet either has it or it does not.
+ * @param {string} tokenId tokenId of the NFT (SLP1 NFT Child)
+ * @param {CashtabUtxo[]} slpUtxos What Cashtab stores at the wallet.state.slpUtxos key
+ * @returns {[CashtabUtxo] | []} Array of ONLY ONE cashtab utxo where tokenId === tokenId
+ * Otherwise an empty array
+ *
+ * Function could be called "getNftChildSendInput" -- however, we will probably use this function
+ * for more than simply getting the required input for sending an NFT
+ *
+ * NOTE
+ * We do not "check" to see if we have more than one utxo of this NFT
+ * This is not expected to happen -- though it could happen if this function is used in the wrong context,
+ * for example called with a tokenId of a token that is not an NFT1 child
+ * Dev responsibly -- imo it is not worth performing this check every time the function is called
+ * Only use this function when sending a type1 NFT child
+ */
+export const getNft = (tokenId, slpUtxos) => {
+    // Note that we do not use .filter() as we do in most "getInput" functions for SLP,
+    // because in this case we only want exactly 1 utxo
+    for (const utxo of slpUtxos) {
+        if (utxo.token?.tokenId === tokenId) {
+            return [utxo];
+        }
+    }
+    // We have not found a utxo that meets our conditions
+    // Return empty array
+    return [];
+};
+
+/**
+ * Cashtab only supports sending one NFT1 child at a time
+ * Which child is sent is determined by input selection
+ * So, the user interface for input selection is what mostly drives this tx
+ * @param {string} tokenId tokenId of the Parent (aka Group)
+ */
+export const getNftChildSendTargetOutputs = tokenId => {
+    // slp-mdm accepts an array of BN for send amounts
+    const SEND_ONE_CHILD = [new BN(1)];
+    const script = NFT1.Child.send(tokenId, SEND_ONE_CHILD);
+
+    // Implementation notes
+    // - Cashtab only supports sending one NFT at a time
+    // - All NFT Child inputs will have amount of 1
+    // Therefore, we will have no change, and every send tx will have only one token utxo output
+    return [{ value: 0, script }, { value: 546 }];
 };

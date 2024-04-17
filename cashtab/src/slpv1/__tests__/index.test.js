@@ -16,6 +16,10 @@ import {
     getNftParentMintTargetOutputs,
     getNftParentFanInputs,
     getNftParentFanTxTargetOutputs,
+    getNftChildGenesisInput,
+    getNftChildGenesisTargetOutputs,
+    getNft,
+    getNftChildSendTargetOutputs,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
@@ -471,6 +475,47 @@ describe('slpv1 methods', () => {
                 expect(() => getNftParentFanTxTargetOutputs(fanInputs)).toThrow(
                     error,
                 );
+            });
+        });
+    });
+    describe('Gets required input for an NFT1 child genesis tx, if present in given slpUtxos', () => {
+        const { expectedReturns } = vectors.getNftChildGenesisInput;
+        expectedReturns.forEach(vector => {
+            const { description, tokenId, slpUtxos, returned } = vector;
+            it(`getNftChildGenesisInput: ${description}`, () => {
+                expect(
+                    getNftChildGenesisInput(tokenId, slpUtxos),
+                ).toStrictEqual(returned);
+            });
+        });
+    });
+    describe('Get targetOutputs for an NFT1 child genesis tx', () => {
+        const { expectedReturns } = vectors.getNftChildGenesisTargetOutputs;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, childGenesisConfig, returned } =
+                expectedReturn;
+            it(`getNftChildGenesisTargetOutputs: ${description}`, () => {
+                expect(
+                    getNftChildGenesisTargetOutputs(childGenesisConfig),
+                ).toEqual(returned);
+            });
+        });
+    });
+    describe('Gets NFT utxo for an NFT 1 child', () => {
+        const { expectedReturns } = vectors.getNft;
+        expectedReturns.forEach(vector => {
+            const { description, tokenId, slpUtxos, returned } = vector;
+            it(`getNft: ${description}`, () => {
+                expect(getNft(tokenId, slpUtxos)).toStrictEqual(returned);
+            });
+        });
+    });
+    describe('Get targetOutputs for an NFT1 child send tx', () => {
+        const { expectedReturns } = vectors.getNftChildSendTargetOutputs;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, tokenId, returned } = expectedReturn;
+            it(`getNftChildSendTargetOutputs: ${description}`, () => {
+                expect(getNftChildSendTargetOutputs(tokenId)).toEqual(returned);
             });
         });
     });

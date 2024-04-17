@@ -6,7 +6,10 @@
 import appConfig from 'config/app';
 import { mockBurnOpReturnTokenUtxos, mockBurnAllTokenUtxos } from './mocks';
 import { BN } from 'slp-mdm';
-import { MAX_MINT_AMOUNT_TOKEN_SATOSHIS } from 'slpv1';
+import {
+    MAX_MINT_AMOUNT_TOKEN_SATOSHIS,
+    SLP1_NFT_CHILD_GENESIS_AMOUNT,
+} from 'slpv1';
 
 const GENESIS_MINT_ADDRESS = 'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y';
 export const SEND_DESTINATION_ADDRESS =
@@ -1641,6 +1644,228 @@ export default {
                 error: new Error(
                     'No eligible inputs for this NFT parent fan tx',
                 ),
+            },
+        ],
+    },
+    getNftChildGenesisInput: {
+        expectedReturns: [
+            {
+                description:
+                    'Returns a single utxo of amount 1 if it exists in given utxo set',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'Does not return a single utxo of amount 1 if it exists in given utxo set and is a mint baton (not expected to ever happen)',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: true,
+                        },
+                    },
+                ],
+                returned: [],
+            },
+            {
+                description:
+                    'Returns a single utxo of amount 1 even if more than 1 eligible utxos exist in given utxo set',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: SLP1_NFT_CHILD_GENESIS_AMOUNT,
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'Returns an empty array even if parent token utxos exist but do not have amount === 1',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                            amount: '2',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [],
+            },
+            {
+                description:
+                    'Returns an empty array if no utxos of correct tokenId and amount exist',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId:
+                                '2222222222222222222222222222222222222222222222222222222222222222',
+                            amount: '1',
+                            isMintBaton: false,
+                        },
+                    },
+                ],
+                returned: [],
+            },
+        ],
+    },
+    getNftChildGenesisTargetOutputs: {
+        expectedReturns: [
+            {
+                description:
+                    'We can generate the correct targetOutput for minting an NFT child genesis tx with data in all available fields',
+                childGenesisConfig: {
+                    ticker: 'TEST',
+                    name: 'My favorite NFT',
+                    documentUrl: 'cashtab.com',
+                    documentHash:
+                        '3333333333333333333333333333333333333333333333333333333333333333',
+                },
+                returned: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001410747454e4553495304544553540f4d79206661766f72697465204e46540b636173687461622e636f6d20333333333333333333333333333333333333333333333333333333333333333301004c00080000000000000001',
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.dustSats,
+                    },
+                ],
+            },
+            {
+                description:
+                    'We can generate the correct targetOutput for minting an NFT child genesis tx with no data in any available fields',
+                childGenesisConfig: {
+                    ticker: '',
+                    name: '',
+                    documentUrl: '',
+                    documentHash: '',
+                },
+                returned: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001410747454e455349534c004c004c004c0001004c00080000000000000001',
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.dustSats,
+                    },
+                ],
+            },
+        ],
+    },
+    getNft: {
+        expectedReturns: [
+            {
+                description: 'Returns the NFT if it exists in given utxo set',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                        },
+                    },
+                ],
+                returned: [
+                    {
+                        token: {
+                            tokenId: MOCK_TOKEN_ID,
+                        },
+                    },
+                ],
+            },
+            {
+                description:
+                    'Returns an empty array if no utxos of correct tokenId are in this utxo set',
+                tokenId: MOCK_TOKEN_ID,
+                slpUtxos: [
+                    { value: 546 },
+                    {
+                        token: {
+                            tokenId:
+                                '2222222222222222222222222222222222222222222222222222222222222222',
+                        },
+                    },
+                ],
+                returned: [],
+            },
+        ],
+    },
+    getNftChildSendTargetOutputs: {
+        expectedReturns: [
+            {
+                description: 'We can get the target outputs for sending an NFT',
+                tokenId: MOCK_TOKEN_ID,
+                returned: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            `6a04534c500001410453454e4420${MOCK_TOKEN_ID}080000000000000001`,
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.dustSats,
+                    },
+                ],
             },
         ],
     },
