@@ -6,7 +6,7 @@ import React from 'react';
 import { WalletContext } from 'wallet/context';
 import { getWalletState } from 'utils/cashMethods';
 import { toXec } from 'wallet';
-import CreateTokenForm from './CreateTokenForm';
+import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import { AlertMsg } from 'components/Common/Atoms';
 import ApiError from 'components/Common/ApiError';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';

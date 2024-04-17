@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import React, { useState, useCallback, useEffect } from 'react';
-import styled from 'styled-components';
 import Modal from 'components/Common/Modal';
 import { WalletContext } from 'wallet/context';
 import {
@@ -38,81 +37,22 @@ import { hasEnoughToken } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
 import { useNavigate } from 'react-router-dom';
-
-const Form = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-const SwitchRow = styled.div`
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-    align-items: center;
-`;
-const SwitchLabel = styled.div`
-    text-align: left;
-    color: ${props => props.theme.contrast};
-    font-size: 18px;
-`;
-const EditIcon = styled.div`
-    cursor: pointer;
-    color: ${props => props.theme.contrast};
-    &:hover {
-        color: ${props => props.theme.eCashBlue};
-    }
-    word-wrap: break-word;
-`;
-
-const TokenCreatedLink = styled.a`
-    color: ${props => props.theme.walletBackground};
-    text-decoration: none;
-`;
-
-const IconModalForm = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    justify-content: center;
-`;
-const IconModalRow = styled.div`
-    display: flex;
-    width: 100%;
-    gap: 3px;
-`;
-const SliderLabel = styled.div`
-    color: ${props => props.theme.contrast};
-`;
-const SliderBox = styled.div`
-    width: 100%;
-`;
-const CropperContainer = styled.div`
-    height: 200px;
-    position: relative;
-`;
-
-const CreateTokenTitle = styled.h3`
-    color: ${props => props.theme.contrast};
-`;
-
-const TokenCreationSummaryTable = styled.div`
-    color: ${props => props.theme.contrast};
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 3px;
-`;
-const SummaryRow = styled.div`
-    display: flex;
-    gap: 12px;
-    justify-content: flex-start;
-    align-items: start;
-    width: 100%;
-`;
-const TokenParam = styled.div`
-    word-break: break-word;
-`;
+import {
+    Form,
+    SwitchRow,
+    SwitchLabel,
+    EditIcon,
+    TokenCreatedLink,
+    IconModalForm,
+    IconModalRow,
+    SliderLabel,
+    SliderBox,
+    CropperContainer,
+    CreateTokenTitle,
+    TokenCreationSummaryTable,
+    SummaryRow,
+    TokenParam,
+} from 'components/Etokens/CreateTokenForm/styles';
 
 const CreateTokenForm = () => {
     const navigate = useNavigate();
