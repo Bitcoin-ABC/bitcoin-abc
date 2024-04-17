@@ -44,7 +44,7 @@ export const getSlpGenesisTargetOutput = genesisConfig => {
         documentHash,
         decimals,
         mintBatonVout,
-        initialQty,
+        genesisQty,
     } = genesisConfig;
 
     if (mintBatonVout !== null && mintBatonVout !== 2) {
@@ -65,7 +65,7 @@ export const getSlpGenesisTargetOutput = genesisConfig => {
         mintBatonVout,
         // Per spec, this must be BN of an integer
         // It may actually be a decimal value, but this is determined by the decimals param
-        new BN(initialQty).times(10 ** decimals),
+        new BN(genesisQty).times(10 ** decimals),
     );
 
     // Per SLP v1 spec, OP_RETURN must be at index 0
@@ -452,7 +452,7 @@ export const getNftParentGenesisTargetOutputs = genesisConfig => {
         documentUrl,
         documentHash,
         mintBatonVout,
-        initialQty,
+        genesisQty,
     } = genesisConfig;
 
     if (mintBatonVout !== null && mintBatonVout !== 2) {
@@ -472,8 +472,8 @@ export const getNftParentGenesisTargetOutputs = genesisConfig => {
         NFT1_PARENT_DECIMALS,
         mintBatonVout,
         // Per spec, this must be BN of an integer
-        // This function will throw an error if initialQty is not an integer
-        new BN(initialQty),
+        // This function will throw an error if genesisQty is not an integer
+        new BN(genesisQty),
     );
 
     // Per SLP v1 spec, OP_RETURN must be at index 0

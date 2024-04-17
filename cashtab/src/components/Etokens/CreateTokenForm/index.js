@@ -75,13 +75,38 @@ const CreateTokenForm = () => {
     const [imageUrl, setImageUrl] = useState(false);
     const [showCropModal, setShowCropModal] = useState(false);
     const [roundSelection, setRoundSelection] = useState(true);
-    const [createWithMintBatonAtIndexTwo, setCreateWithMintBatonAtIndexTwo] =
-        useState(false);
-
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [rotation, setRotation] = useState(0);
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+
+    // Modal settings
+    const [showConfirmCreateToken, setShowConfirmCreateToken] = useState(false);
+
+    // Token form items
+    const emptyFormData = {
+        name: '',
+        ticker: '',
+        decimals: '',
+        genesisQty: '',
+        url: '',
+        createWithMintBatonAtIndexTwo: false,
+    };
+    const initialFormDataErrors = {
+        name: false,
+        ticker: false,
+        decimals: false,
+        genesisQty: false,
+        url: false,
+    };
+    const [formData, setFormData] = useState(emptyFormData);
+    const [formDataErrors, setFormDataErrors] = useState(initialFormDataErrors);
+    // This switch is form data, but since it is a bool and not a string, keep it with its own state field
+    const [createWithMintBatonAtIndexTwo, setCreateWithMintBatonAtIndexTwo] =
+        useState(false);
+
+    // Note: We do not include a UI input for token document hash
+    // Questionable value to casual users and requires significant complication
 
     useEffect(() => {
         // After the user has created a token, we wait until the wallet has updated its balance
@@ -240,182 +265,136 @@ const CreateTokenForm = () => {
         }
     };
 
-    // Token name
-    const [name, setName] = useState('');
-    const [newTokenNameIsValid, setNewTokenNameIsValid] = useState(null);
-    const [newTokenNameIsProbablyNotAScam, setNewTokenNameIsProbablyNotAScam] =
-        useState(null);
-    const [tokenNameError, setTokenNameError] = useState(false);
-    const handleNewTokenNameInput = e => {
-        const { value } = e.target;
-        // validation
-        const validTokenName = isValidTokenName(value);
-        const probablyNotScam = isProbablyNotAScam(value);
+    const handleInput = e => {
+        const { name, value } = e.target;
+        switch (name) {
+            case 'name': {
+                // Handle validation and state updates for new token name
+                // validation
+                const validTokenName = isValidTokenName(value);
+                const probablyNotScam = isProbablyNotAScam(value);
+                setFormDataErrors(previous => ({
+                    ...previous,
+                    [name]: !validTokenName
+                        ? `Token name must be a valid string between 1 and 68 characters long.`
+                        : !probablyNotScam
+                        ? 'Token name must not conflict with existing crypto or fiat'
+                        : false,
+                }));
+                break;
+            }
+            case 'ticker': {
+                // validation
+                const validTokenTicker = isValidTokenTicker(value);
+                const probablyNotScamTicker = isProbablyNotAScam(value);
+                setFormDataErrors(previous => ({
+                    ...previous,
+                    [name]: !validTokenTicker
+                        ? `Token ticker must be a valid string between 1 and 12 characters long`
+                        : !probablyNotScamTicker
+                        ? 'Token ticker must not conflict with existing crypto or fiat'
+                        : false,
+                }));
+                break;
+            }
+            case 'decimals': {
+                setFormDataErrors(previous => ({
+                    ...previous,
+                    [name]: isValidTokenDecimals(value)
+                        ? false
+                        : 'Token decimals must be an integer between 0 and 9',
+                }));
 
-        setNewTokenNameIsValid(validTokenName);
-        setNewTokenNameIsProbablyNotAScam(probablyNotScam);
-
-        if (!validTokenName) {
-            setTokenNameError(
-                'Token name must be a valid string between 1 and 68 characters long.',
-            );
+                // Also validate the supply here if the form has been touched
+                // Supply validation may change when decimals changes
+                if (formData.genesisQty !== '') {
+                    const isValidOrStringErrorMsg = isValidTokenMintAmount(
+                        formData.genesisQty,
+                        // Note that, in this code block, value is formData.decimals
+                        parseInt(value),
+                    );
+                    setFormDataErrors(previous => ({
+                        ...previous,
+                        genesisQty:
+                            typeof isValidOrStringErrorMsg === 'string'
+                                ? isValidOrStringErrorMsg
+                                : false,
+                    }));
+                }
+                break;
+            }
+            case 'genesisQty': {
+                const isValidOrStringErrorMsg = isValidTokenMintAmount(
+                    value,
+                    // If user has not yet input decimals, assume 0 decimals
+                    formData.decimals === '' ? 0 : parseInt(formData.decimals),
+                );
+                setFormDataErrors(previous => ({
+                    ...previous,
+                    [name]:
+                        typeof isValidOrStringErrorMsg === 'string'
+                            ? isValidOrStringErrorMsg
+                            : false,
+                }));
+                break;
+            }
+            case 'url': {
+                setFormDataErrors(previous => ({
+                    ...previous,
+                    [name]: isValidTokenDocumentUrl(value)
+                        ? false
+                        : 'Must be a valid URL. Cannot exceed 68 characters.',
+                }));
+                break;
+            }
+            default:
+                break;
         }
-        if (!probablyNotScam) {
-            setTokenNameError(
-                'Token name must not conflict with existing crypto or fiat',
-            );
-        }
-        if (validTokenName && probablyNotScam) {
-            setTokenNameError(false);
-        }
-
-        setName(value);
-    };
-
-    // New Token Ticker
-    const [ticker, setTicker] = useState('');
-    const [newTokenTickerIsValid, setNewTokenTickerIsValid] = useState(null);
-    const [
-        newTokenTickerIsProbablyNotAScam,
-        setNewTokenTickerIsProbablyNotAScam,
-    ] = useState(null);
-    const [tokenTickerError, setTokenTickerError] = useState(false);
-    const handleNewTokenTickerInput = e => {
-        const { value } = e.target;
-        // validation
-        const validTokenTicker = isValidTokenTicker(value);
-        const probablyNotScamTicker = isProbablyNotAScam(value);
-        setNewTokenTickerIsValid(validTokenTicker);
-        setNewTokenTickerIsProbablyNotAScam(probablyNotScamTicker);
-
-        if (!validTokenTicker) {
-            setTokenTickerError(
-                'Ticker must be a valid string between 1 and 12 characters long',
-            );
-        }
-        if (!probablyNotScamTicker) {
-            setTokenTickerError(
-                'Token ticker must not conflict with existing crypto or fiat',
-            );
-        }
-        if (validTokenTicker && probablyNotScamTicker) {
-            setTokenTickerError(false);
-        }
-
-        setTicker(value);
-    };
-
-    // New Token Decimals
-    const [decimals, setDecimals] = useState('');
-    const [decimalsError, setDecimalsError] = useState(false);
-    const handleNewTokenDecimalsInput = e => {
-        const { value } = e.target;
-        // validation
-        setDecimalsError(
-            isValidTokenDecimals(value)
-                ? false
-                : 'Token decimals must be an integer between 0 and 9',
-        );
-
-        // Also validate the supply here if the form has been touched
-        // Supply validation may change when decimals changes
-        if (initialQty !== '') {
-            const isValidOrErrorMsg = isValidTokenMintAmount(
-                initialQty,
-                parseInt(value),
-            );
-            setGenesisSupplyError(
-                typeof isValidOrErrorMsg === 'string'
-                    ? isValidOrErrorMsg
-                    : false,
-            );
-        }
-
-        setDecimals(value);
+        setFormData(previous => ({
+            ...previous,
+            [name]: value,
+        }));
     };
 
     const onMaxGenesis = () => {
         // Use 0 for decimals if user has not input decimals yet
-        const usedDecimals = decimals === '' ? 0 : parseInt(decimals);
+        const usedDecimals =
+            formData.decimals === '' ? 0 : parseInt(formData.decimals);
         const maxGenesisAmount = getMaxMintAmount(usedDecimals);
 
-        handleNewTokenInitialQtyInput({
+        handleInput({
             target: {
-                name: 'initialQty',
+                name: 'genesisQty',
                 value: maxGenesisAmount,
             },
         });
     };
 
-    // New Token Initial Quantity
-    const [initialQty, setInitialQty] = useState('');
-    const [genesisSupplyError, setGenesisSupplyError] = useState(null);
-    const handleNewTokenInitialQtyInput = e => {
-        const { value } = e.target;
-        // If user has not yet input decimals, assume 0 decimals
-        const usedDecimalsValue = decimals === '' ? 0 : parseInt(decimals);
-
-        // validation
-        const isValidOrErrorMsg = isValidTokenMintAmount(
-            value,
-            usedDecimalsValue,
-        );
-        setGenesisSupplyError(
-            typeof isValidOrErrorMsg === 'string' ? isValidOrErrorMsg : false,
-        );
-        setInitialQty(value);
-    };
-    // New Token document URL
-    const [url, setUrl] = useState('');
-    const [urlError, setUrlError] = useState(false);
-
-    const handleNewTokenDocumentUrlInput = e => {
-        const { value } = e.target;
-        // validation
-        setUrlError(
-            isValidTokenDocumentUrl(value)
-                ? false
-                : 'Must be a valid URL. Cannot exceed 68 characters.',
-        );
-        setUrl(value);
-    };
-
-    // New Token fixed supply
-    // Only allow creation of fixed supply tokens until Minting support is added
-
-    // New Token document hash
-    // Do not include this; questionable value to casual users and requires significant complication
-
     // Only enable CreateToken button if all form entries are valid
     let tokenGenesisDataIsValid =
-        newTokenNameIsValid &&
-        newTokenTickerIsValid &&
-        !decimalsError &&
-        !genesisSupplyError &&
-        !urlError &&
-        newTokenNameIsProbablyNotAScam &&
-        newTokenTickerIsProbablyNotAScam;
-
-    // Modal settings
-    const [showConfirmCreateToken, setShowConfirmCreateToken] = useState(false);
+        formDataErrors.name === false &&
+        formDataErrors.ticker === false &&
+        formDataErrors.decimals === false &&
+        formDataErrors.genesisQty === false &&
+        formDataErrors.url === false;
 
     const submitTokenIcon = async tokenId => {
-        let formData = new FormData();
+        let submittedFormData = new FormData();
 
         const data = {
-            name,
-            ticker,
-            decimals,
-            url,
-            initialQty,
+            name: formData.name,
+            ticker: formData.ticker,
+            decimals: formData.decimals,
+            url: formData.url,
+            genesisQty: formData.genesisQty,
             tokenIcon,
         };
         for (let key in data) {
-            formData.append(key, data[key]);
+            submittedFormData.append(key, data[key]);
         }
 
         // This function is called after the genesis tx is broadcast, using tokenId as a calling param
-        formData.append('tokenId', tokenId);
+        submittedFormData.append('tokenId', tokenId);
 
         try {
             const tokenIconApprovalResponse = await fetch(
@@ -426,7 +405,7 @@ const CreateTokenForm = () => {
                     headers: {
                         Accept: 'application/json',
                     },
-                    body: formData,
+                    body: submittedFormData,
                 },
             );
 
@@ -463,11 +442,14 @@ const CreateTokenForm = () => {
 
         // data must be valid and user reviewed to get here
         const configObj = {
-            name,
-            ticker,
-            documentUrl: url === '' ? tokenConfig.newTokenDefaultUrl : url,
-            decimals,
-            initialQty,
+            name: formData.name,
+            ticker: formData.ticker,
+            decimals: formData.decimals,
+            documentUrl:
+                formData.url === ''
+                    ? tokenConfig.newTokenDefaultUrl
+                    : formData.url,
+            genesisQty: formData.genesisQty,
             documentHash: '',
             mintBatonVout: createWithMintBatonAtIndexTwo ? 2 : null,
         };
@@ -530,26 +512,26 @@ const CreateTokenForm = () => {
                     <TokenCreationSummaryTable>
                         <SummaryRow>
                             <TokenParamLabel>Name:</TokenParamLabel>
-                            <TokenParam>{name}</TokenParam>
+                            <TokenParam>{formData.name}</TokenParam>
                         </SummaryRow>
                         <SummaryRow>
                             <TokenParamLabel>Ticker:</TokenParamLabel>{' '}
-                            <TokenParam>{ticker}</TokenParam>
+                            <TokenParam>{formData.ticker}</TokenParam>
                         </SummaryRow>
                         <SummaryRow>
                             <TokenParamLabel>Decimals:</TokenParamLabel>
-                            <TokenParam> {decimals}</TokenParam>
+                            <TokenParam> {formData.decimals}</TokenParam>
                         </SummaryRow>
                         <SummaryRow>
                             <TokenParamLabel>Supply:</TokenParamLabel>
-                            <TokenParam>{initialQty}</TokenParam>
+                            <TokenParam>{formData.genesisQty}</TokenParam>
                         </SummaryRow>
                         <SummaryRow>
                             <TokenParamLabel>URL:</TokenParamLabel>
                             <TokenParam>
-                                {url === ''
+                                {formData.url === ''
                                     ? tokenConfig.newTokenDefaultUrl
-                                    : url}
+                                    : formData.url}
                             </TokenParam>
                         </SummaryRow>
                     </TokenCreationSummaryTable>
@@ -561,41 +543,41 @@ const CreateTokenForm = () => {
                 <Input
                     placeholder="Enter a name for your token"
                     name="name"
-                    value={name}
-                    handleInput={handleNewTokenNameInput}
-                    error={tokenNameError}
+                    value={formData.name}
+                    handleInput={handleInput}
+                    error={formDataErrors.name}
                 />
                 <Input
                     placeholder="Enter a ticker for your token"
                     name="ticker"
-                    value={ticker}
-                    handleInput={handleNewTokenTickerInput}
-                    error={tokenTickerError}
+                    value={formData.ticker}
+                    handleInput={handleInput}
+                    error={formDataErrors.ticker}
                 />
                 <Input
                     placeholder="Enter number of decimal places"
                     name="decimals"
                     type="number"
-                    value={decimals}
-                    handleInput={handleNewTokenDecimalsInput}
-                    error={decimalsError}
+                    value={formData.decimals}
+                    handleInput={handleInput}
+                    error={formDataErrors.decimals}
                 />
                 <SendTokenInput
                     placeholder="Enter the supply of your token"
-                    name="initialQty"
+                    name="genesisQty"
                     type="string"
-                    value={initialQty}
-                    decimals={decimals}
-                    handleInput={handleNewTokenInitialQtyInput}
-                    error={genesisSupplyError}
+                    value={formData.genesisQty}
+                    decimals={formData.decimals}
+                    handleInput={handleInput}
+                    error={formDataErrors.genesisQty}
                     handleOnMax={onMaxGenesis}
                 />
                 <Input
                     placeholder="Enter a website for your token"
                     name="url"
-                    value={url}
-                    handleInput={handleNewTokenDocumentUrlInput}
-                    error={urlError}
+                    value={formData.url}
+                    handleInput={handleInput}
+                    error={formDataErrors.url}
                 />
                 <SwitchRow>
                     <Switch

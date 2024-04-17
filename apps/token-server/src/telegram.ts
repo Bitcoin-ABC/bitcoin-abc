@@ -143,7 +143,7 @@ interface TokenInfo {
     ticker: string;
     decimals: number;
     url: string;
-    initialQty: string;
+    genesisQty: string;
     tokenId: string;
 }
 

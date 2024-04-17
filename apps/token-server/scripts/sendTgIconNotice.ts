@@ -21,7 +21,7 @@ const TOKEN_INFO = {
     ticker: 'TEST',
     decimals: 0,
     url: 'https://cashtab.com/',
-    initialQty: '1000000000',
+    genesisQty: '1000000000',
     tokenId: '1111111111111111111111111111111111111111111111111111111111111111',
 };
 
