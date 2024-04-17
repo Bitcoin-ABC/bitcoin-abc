@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 const OpenInTabBtn = styled.button`
     background: none;
     border: none;
+    cursor: pointer;
 `;
 
 const CashtabLogo = styled.img`
