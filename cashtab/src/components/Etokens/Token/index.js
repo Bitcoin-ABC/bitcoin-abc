@@ -22,7 +22,6 @@ import {
     isValidTokenMintAmount,
 } from 'validation';
 import { formatDate } from 'utils/formatting';
-import styled from 'styled-components';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { explorer } from 'config/explorer';
 import { queryAliasServer } from 'alias';
@@ -51,95 +50,21 @@ import {
 import { QuestionIcon } from 'components/Common/CustomIcons';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 import Switch from 'components/Common/Switch';
-
-const DataAndQuestionButton = styled.div`
-    display: flex;
-    align-items: center;
-`;
-const TokenIconExpandButton = styled.button`
-    cursor: pointer;
-    border: none;
-    background-color: transparent;
-`;
-const SendTokenForm = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: 12px;
-`;
-const SendTokenFormRow = styled.div`
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 3px;
-`;
-const InputRow = styled.div`
-    width: 100%;
-`;
-
-const TokenStatsTable = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    color: ${props => props.theme.contrast};
-    gap: 12px;
-    margin-bottom: 12px;
-`;
-const TokenStatsRow = styled.div`
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    gap: 3px;
-`;
-const TokenStatsCol = styled.div`
-    align-items: center;
-    flex-wrap: wrap;
-`;
-const TokenStatsTableRow = styled.div`
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 3px;
-`;
-
-const TokenStatsLabel = styled.div`
-    font-weight: bold;
-    justify-content: flex-end;
-    text-align: right;
-    display: flex;
-    width: 106px;
-`;
-const SwitchHolder = styled.div`
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    gap: 12px;
-    align-content: center;
-    align-items: center;
-    margin: 12px;
-`;
-
-const TokenSentLink = styled.a`
-    color: ${props => props.theme.walletBackground};
-    text-decoration: none;
-`;
-
-const AliasAddressPreviewLabel = styled.div`
-    text-align: center;
-    color: ${props => props.theme.forms.text};
-    padding-left: 1px;
-    white-space: nowrap;
-`;
+import {
+    DataAndQuestionButton,
+    TokenIconExpandButton,
+    SendTokenForm,
+    SendTokenFormRow,
+    InputRow,
+    TokenStatsTable,
+    TokenStatsRow,
+    TokenStatsCol,
+    TokenStatsTableRow,
+    TokenStatsLabel,
+    SwitchHolder,
+    TokenSentLink,
+    AliasAddressPreviewLabel,
+} from 'components/Etokens/Token/styled';
 
 const Token = () => {
     let navigate = useNavigate();
