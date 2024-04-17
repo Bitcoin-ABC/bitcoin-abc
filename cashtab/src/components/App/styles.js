@@ -168,8 +168,8 @@ export const NavMenu = styled.div`
     overflow: hidden;
     transition: ${props =>
         props.open
-            ? 'max-height 1000ms ease-in-out , border-color 800ms ease-in-out, border-width 800ms ease-in-out'
-            : 'max-height 300ms cubic-bezier(0, 1, 0, 1), border-color 600ms ease-in-out, border-width 800ms ease-in-out'};
+            ? 'max-height 250ms ease-in-out , border-color 250ms ease-in-out, border-width 250ms ease-in-out'
+            : 'max-height 250ms cubic-bezier(0, 1, 0, 1), border-color 250ms ease-in-out, border-width 250ms ease-in-out'};
     max-height: ${props => (props.open ? '100vh' : '0')};
 `;
 
