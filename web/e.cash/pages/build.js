@@ -1,14 +1,92 @@
-// Copyright (c) 2023 The Bitcoin developers
+// Copyright (c) 2024 The Bitcoin developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Layout from '/components/layout';
 import SubPageHero from '/components/sub-page-hero';
 import H3 from '/components/h3';
-import Link from 'next/link';
 import { Container, GradientSpacer } from '/components/atoms';
+import ExternalLink from '/components/external-link';
 import coinupdown from '/public/animations/coin-up-down.json';
+import {
+    LinkSection,
+    BuildLinkCtn,
+    InnerBuildLinkCtn,
+    LinkArrow,
+} from '/styles/pages/build.js';
 
-function Build(props) {
+const devLinks = [
+    {
+        sectionTitle: 'How to contribute',
+        anchor: 'contributions',
+        links: [
+            {
+                title: 'Contributions guide',
+                description:
+                    'Learn more about contributing to the Bitcoin ABC repo',
+                link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md',
+            },
+        ],
+    },
+    {
+        sectionTitle: 'Libraries',
+        anchor: 'libraries',
+        links: [
+            {
+                title: 'chronik-client',
+                description:
+                    'Interact with the eCash blockchain through the chronik indexer',
+                link: 'https://www.npmjs.com/package/chronik-client',
+            },
+            {
+                title: 'BitGo utxo-lib',
+                description:
+                    'Create a wallet, build eCash transactions, manage utxos',
+                link: 'https://www.npmjs.com/package/@bitgo/utxo-lib',
+            },
+            {
+                title: 'ecashaddrjs',
+                description: 'Tools for working with eCash addresses',
+                link: 'https://www.npmjs.com/package/ecashaddrjs',
+            },
+            {
+                title: 'ecash-script',
+                description: 'Tools for parsing OP_RETURN transactions',
+                link: 'https://www.npmjs.com/package/ecash-script',
+            },
+        ],
+    },
+    {
+        sectionTitle: 'Examples',
+        anchor: 'examples',
+        links: [
+            {
+                title: 'App dev examples',
+                description:
+                    'Series of example code to serve as a reference guide for app developers',
+                link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/apps/examples',
+            },
+            {
+                title: 'Cashtab codebase',
+                description: 'Public repo for the CashTab wallet',
+                link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab',
+            },
+        ],
+    },
+    {
+        sectionTitle: 'DevHub',
+        anchor: 'devhub',
+        links: [
+            {
+                title: 'eCash Devs and Builders',
+                description:
+                    'Telegram group for more info, and to connect with other developers',
+                link: 'https://t.me/eCashBuilders',
+            },
+        ],
+    },
+];
+
+function Build() {
     return (
         <Layout>
             <SubPageHero
@@ -16,6 +94,18 @@ function Build(props) {
                 h2subtext="Developers"
                 h2text="Build on eCash"
             >
+                <p>
+                    The eCash blockchain is instantly accessible to app
+                    developers with simple, powerful, open-source libraries.
+                    Developers can build feature-dense apps that send and
+                    receive money instantly. Rapid prototyping is a key strength
+                    of the eCash network and its dev tools --- MVP apps can be
+                    built and deployed in minutes.
+                </p>
+            </SubPageHero>
+            <GradientSpacer />
+            <Container narrow>
+                <H3 text="Our Philosophy" />
                 <p>
                     &ldquo;Building&rdquo; is one of the great filters in
                     cryptocurrency. In eCash, it&apos;s also uniquely
@@ -33,109 +123,34 @@ function Build(props) {
                     the cycle time of this process is critical. This is called
                     rapid prototyping.
                 </p>
-                <p>
-                    eCash has some of the most impressive rapid prototyping on
-                    the market. Today, interested developers can build powerful
-                    apps that send and receive money instantly. It can take less
-                    than a few hours to get an MVP online and available to
-                    users.
-                </p>
-            </SubPageHero>
-            <GradientSpacer />
-            <Container narrow>
-                <H3 text="How to contribute" id="contributions" />
-                <ul>
-                    <li>
-                        <Link
-                            href="https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/CONTRIBUTING.md"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Contributions guide
-                        </Link>
-                    </li>
-                </ul>
-                <H3 text="Libraries" id="libraries" />
-                <ul>
-                    <li>
-                        <Link
-                            href="https://www.npmjs.com/package/chronik-client"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            chronik-client
-                        </Link>
-                        , interact with the eCash blockchain through the chronik
-                        indexer
-                    </li>
-                    <li>
-                        <Link
-                            href="https://www.npmjs.com/package/@bitgo/utxo-lib"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            BitGo utxo-lib
-                        </Link>
-                        , create a wallet, build eCash transactions, manage
-                        utxos
-                    </li>
-                    <li>
-                        <Link
-                            href="https://www.npmjs.com/package/ecashaddrjs"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            ecashaddrjs
-                        </Link>
-                        , tools for working with eCash addresses
-                    </li>
-                    <li>
-                        <Link
-                            href="https://www.npmjs.com/package/ecash-script"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            ecash-script
-                        </Link>
-                        , tools for parsing OP_RETURN transactions
-                    </li>
-                </ul>
-                <H3 text="Examples" id="examples" />
-                <ul>
-                    <li>
-                        <Link
-                            href="https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/apps/examples"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            App dev examples
-                        </Link>
-                    </li>
-                    <li>
-                        <Link
-                            href="https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            Cashtab codebase
-                        </Link>
-                    </li>
-                </ul>
-                <H3 text="DevHub" id="devhub" />
-                <ul>
-                    <li>
-                        Join the{' '}
-                        <Link
-                            href="https://t.me/eCashBuilders"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            eCash Devs and Builders
-                        </Link>{' '}
-                        Telegram group for more info, and to connect with other
-                        developers.
-                    </li>
-                </ul>
+                {devLinks.map((item, index) => (
+                    <LinkSection key={index}>
+                        <H3 text={item.sectionTitle} id={item.anchor} />
+                        {item.links.map((link, i) => (
+                            <ExternalLink key={i} href={link.link}>
+                                <BuildLinkCtn>
+                                    <InnerBuildLinkCtn>
+                                        <h4>{link.title}</h4>
+                                        <p>{link.description}</p>
+                                        <LinkArrow>
+                                            <H3 text=">" />
+                                        </LinkArrow>
+                                    </InnerBuildLinkCtn>
+                                </BuildLinkCtn>
+                            </ExternalLink>
+                        ))}
+                    </LinkSection>
+                ))}
+
+                <LinkSection>
+                    <H3 text="Coming Soon!" id="coming-soon" />
+                    <BuildLinkCtn>
+                        <InnerBuildLinkCtn>
+                            <h4>ecash-lib</h4>
+                            <p>Full-feature ecash native tx building</p>
+                        </InnerBuildLinkCtn>
+                    </BuildLinkCtn>
+                </LinkSection>
             </Container>
         </Layout>
     );
