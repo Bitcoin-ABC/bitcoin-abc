@@ -51,7 +51,7 @@ window.matchMedia = query => ({
     dispatchEvent: jest.fn(),
 });
 
-describe('<TokenActions />', () => {
+describe('<Token /> available actions rendered', () => {
     let mockedChronik;
     beforeEach(async () => {
         // Mock the app with context at the Send screen
@@ -151,16 +151,8 @@ describe('<TokenActions />', () => {
         // The Burn switch is present
         expect(screen.getByTitle('Toggle Burn')).toBeInTheDocument();
 
-        // The Mint switch is present but disabled
-        expect(screen.getByTitle('Toggle Mint')).toHaveProperty(
-            'disabled',
-            true,
-        );
-
-        // We have expected mint disabled label
-        expect(
-            screen.getByText('Mint (disabled, no mint baton in wallet)'),
-        ).toBeInTheDocument();
+        // The Mint switch is not rendered
+        expect(screen.queryByTitle('Toggle Mint')).not.toBeInTheDocument();
     });
     it('SLP1 variable supply token with mint baton', async () => {
         render(

@@ -1063,28 +1063,25 @@ const Token = () => {
                                         </InputFlex>
                                     </TokenStatsRow>
                                 )}
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Toggle Mint"
-                                        on="⚗️"
-                                        off="⚗️"
-                                        disabled={mintBatons.length === 0}
-                                        checked={switches.showMint}
-                                        handleToggle={() =>
-                                            // We turn everything else off, whether we are turning this one on or off
-                                            setSwitches({
-                                                ...switchesOff,
-                                                showMint: !switches.showMint,
-                                            })
-                                        }
-                                    />
-                                    <SwitchLabel>
-                                        Mint
-                                        {mintBatons.length === 0
-                                            ? ' (disabled, no mint baton in wallet)'
-                                            : ''}
-                                    </SwitchLabel>
-                                </SwitchHolder>
+                                {mintBatons.length > 0 && (
+                                    <SwitchHolder>
+                                        <Switch
+                                            name="Toggle Mint"
+                                            on="⚗️"
+                                            off="⚗️"
+                                            checked={switches.showMint}
+                                            handleToggle={() =>
+                                                // We turn everything else off, whether we are turning this one on or off
+                                                setSwitches({
+                                                    ...switchesOff,
+                                                    showMint:
+                                                        !switches.showMint,
+                                                })
+                                            }
+                                        />
+                                        <SwitchLabel>Mint</SwitchLabel>
+                                    </SwitchHolder>
+                                )}
                                 {switches.showMint && (
                                     <TokenStatsRow>
                                         <InputFlex>

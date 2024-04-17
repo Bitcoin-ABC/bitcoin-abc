@@ -514,10 +514,6 @@ describe('<SendToken />', () => {
             'checked',
             false,
         );
-        expect(screen.getByTitle('Toggle Mint')).toHaveProperty(
-            'checked',
-            false,
-        );
 
         await user.type(screen.getByPlaceholderText('Burn Amount'), '1');
 
@@ -557,15 +553,8 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        // The mint switch is disabled
-        expect(screen.getByTitle('Toggle Mint')).toHaveProperty(
-            'disabled',
-            true,
-        );
-
-        expect(
-            screen.getByText(/(disabled, no mint baton in wallet)/),
-        ).toBeInTheDocument();
+        // The mint switch is not rendered
+        expect(screen.queryByTitle('Toggle Mint')).not.toBeInTheDocument();
     });
     it('We can mint an slpv1 token if we have a mint baton', async () => {
         // Mock context with a mint baton utxo
@@ -663,9 +652,9 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
 
-        // The mint switch is enabled
+        // The mint switch is rendered
         const mintSwitch = screen.getByTitle('Toggle Mint');
-        expect(mintSwitch).toHaveProperty('disabled', false);
+        expect(mintSwitch).toBeInTheDocument();
 
         // Click the mint switch
         await user.click(mintSwitch);
