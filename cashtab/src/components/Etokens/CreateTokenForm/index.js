@@ -10,7 +10,7 @@ import {
     isValidTokenTicker,
     isValidTokenDecimals,
     isValidTokenMintAmount,
-    isValidTokenDocumentUrl,
+    getTokenDocumentUrlError,
     isProbablyNotAScam,
 } from 'validation';
 import PrimaryButton from 'components/Common/Buttons';
@@ -341,9 +341,7 @@ const CreateTokenForm = () => {
             case 'url': {
                 setFormDataErrors(previous => ({
                     ...previous,
-                    [name]: isValidTokenDocumentUrl(value)
-                        ? false
-                        : 'Must be a valid URL. Cannot exceed 68 characters.',
+                    [name]: getTokenDocumentUrlError(value),
                 }));
                 break;
             }

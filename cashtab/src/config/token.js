@@ -8,5 +8,5 @@ export const token = {
     tokenIconSubmitApi: 'https://api.etokens.cash/new',
     tokenIconsUrl: 'https://icons.etokens.cash',
     tokenDbUrl: 'https://tokendb.kingbch.com',
-    newTokenDefaultUrl: 'https://cashtab.com/',
+    newTokenDefaultUrl: 'cashtab.com',
 };

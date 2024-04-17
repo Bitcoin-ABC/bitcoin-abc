@@ -6,7 +6,7 @@ import {
     isValidTokenName,
     isValidTokenTicker,
     isValidTokenDecimals,
-    isValidTokenDocumentUrl,
+    getTokenDocumentUrlError,
     isValidCashtabSettings,
     isValidXecSendAmount,
     isValidTokenId,
@@ -31,6 +31,7 @@ import {
     getContactNameError,
     getContactAddressError,
     getWalletNameError,
+    TOKEN_DOCUMENT_URL_MAX_CHARACTERS,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -124,39 +125,41 @@ describe('Cashtab validation functions', () => {
     it(`Rejects tokenDecimals if non-integer`, () => {
         expect(isValidTokenDecimals('1.7')).toBe(false);
     });
-    it(`Accepts a valid ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('cashtabapp.com')).toBe(true);
+    it(`No error for a valid ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('cashtabapp.com')).toBe(false);
     });
-    it(`Accepts a valid ${appConfig.tokenTicker} token document URL including special URL characters`, () => {
-        expect(isValidTokenDocumentUrl('https://cashtabapp.com/')).toBe(true);
+    it(`No error for a valid ${appConfig.tokenTicker} token document URL including special URL characters`, () => {
+        expect(getTokenDocumentUrlError('https://cashtabapp.com/')).toBe(false);
     });
-    it(`Accepts a blank string as a valid ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('')).toBe(true);
+    it(`No error for a blank string as a valid ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('')).toBe(false);
     });
-    it(`Rejects ${appConfig.tokenTicker} token name if longer than 68 characters`, () => {
+    it(`Expected error for valid url longer than 68 characters`, () => {
         expect(
-            isValidTokenDocumentUrl(
+            getTokenDocumentUrlError(
                 'http://www.ThisTokenDocumentUrlIsActuallyMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchMuchTooLong.com/',
             ),
-        ).toBe(false);
+        ).toBe(
+            `URL must be less than ${TOKEN_DOCUMENT_URL_MAX_CHARACTERS} characters.`,
+        );
     });
-    it(`Accepts a domain input with https protocol as ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('https://google.com')).toBe(true);
+    it(`No error for a domain input with https protocol as ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('https://google.com')).toBe(false);
     });
-    it(`Accepts a domain input with http protocol as ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('http://test.com')).toBe(true);
+    it(`No error for a domain input with http protocol as ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('http://test.com')).toBe(false);
     });
-    it(`Accepts a domain input with a primary and secondary top level domain as ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('http://test.co.uk')).toBe(true);
+    it(`No error for a domain input with a primary and secondary top level domain as ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('http://test.co.uk')).toBe(false);
     });
-    it(`Accepts a domain input with just a subdomain as ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('www.test.co.uk')).toBe(true);
+    it(`No error for a domain input with just a subdomain as ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('www.test.co.uk')).toBe(false);
     });
-    it(`Rejects a domain input with no top level domain, protocol or subdomain  ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl('mywebsite')).toBe(false);
+    it(`Expected error for a domain input with no top level domain, protocol or subdomain  ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError('mywebsite')).toBe('Invalid URL');
     });
-    it(`Rejects a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
-        expect(isValidTokenDocumentUrl(12345)).toBe(false);
+    it(`Expected error for a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
+        expect(getTokenDocumentUrlError(12345)).toBe('Invalid URL');
     });
     it(`isValidTokenId accepts valid token ID that is 64 chars in length`, () => {
         const testValidTokenId =

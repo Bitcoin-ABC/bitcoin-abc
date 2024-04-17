@@ -220,25 +220,41 @@ export const isValidTokenDecimals = tokenDecimals => {
     );
 };
 
-export const isValidTokenDocumentUrl = tokenDocumentUrl => {
-    const urlPattern = new RegExp(
-        '^(https?:\\/\\/)?' + // protocol
-            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
-            '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-            '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-            '(\\#[-a-z\\d_]*)?$',
-        'i',
-    ); // fragment locator
+const TOKEN_DOCUMENT_URL_REGEX = new RegExp(
+    '^(https?:\\/\\/)?' + // protocol (optional)
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
+        '(\\#[-a-z\\d_]*)?$',
+    'i',
+); // fragment locator
 
-    const urlTestResult = urlPattern.test(tokenDocumentUrl);
-    return (
-        tokenDocumentUrl === '' ||
-        (typeof tokenDocumentUrl === 'string' &&
-            tokenDocumentUrl.length >= 0 &&
-            tokenDocumentUrl.length < 68 &&
-            urlTestResult)
-    );
+// Spec has no space limitation. Limitation is actually on available bytes in the genesis tx
+// This value is chosen arbitrarily to ensure sum of all fields does not break the limit
+// Since the URL must pass regex, we cannot have emojis or special characters
+// So a max length of 68 corresponds to 34 bytes
+export const TOKEN_DOCUMENT_URL_MAX_CHARACTERS = 68;
+
+/**
+ * Validate user input for token document URL of genesis tx for SLP1 token
+ * @param {string} url
+ * @returns {string | false} error msg as string or false as bool if no error
+ */
+export const getTokenDocumentUrlError = url => {
+    // This is an optional input field, so a blank string is valid (no error)
+    if (url === '') {
+        return false;
+    }
+    const isValidUrl = TOKEN_DOCUMENT_URL_REGEX.test(url);
+    if (!isValidUrl) {
+        return `Invalid URL`;
+    }
+    if (url.length > TOKEN_DOCUMENT_URL_MAX_CHARACTERS) {
+        return `URL must be less than ${TOKEN_DOCUMENT_URL_MAX_CHARACTERS} characters.`;
+    }
+    // No error
+    return false;
 };
 
 export const isValidCashtabSettings = settings => {
