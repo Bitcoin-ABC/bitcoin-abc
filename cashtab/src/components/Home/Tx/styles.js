@@ -188,6 +188,7 @@ export const AppAction = styled.div`
     border-radius: 9px;
     background-color: ${props => props.theme.panel};
     flex-wrap: wrap;
+    word-break: break-all;
 `;
 export const AppDescLabel = styled.div`
     font-weight: bold;

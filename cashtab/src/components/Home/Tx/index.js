@@ -293,7 +293,10 @@ const Tx = ({
                                         target="_blank"
                                         rel="noreferrer"
                                     >
-                                        {airdroppedTokenId}
+                                        {`${airdroppedTokenId.slice(
+                                            0,
+                                            3,
+                                        )}...${airdroppedTokenId.slice(-3)}`}
                                     </ActionLink>
                                 </AppDescLabel>
                             </IconAndLabel>

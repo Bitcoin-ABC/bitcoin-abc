@@ -865,11 +865,8 @@ describe('<Tx />', () => {
                 'evc token service holders air drop🥇🌐🥇❤👌🛬🛬🍗🤴',
             ),
         ).toBeInTheDocument();
-        expect(
-            screen.getByText(
-                'bdb3b4215ca0622e0c4c07655522c376eaa891838a82f0217fa453bb0595a37c',
-            ),
-        ).toBeInTheDocument();
+        // The token icon itself is abbreviated to show first and last 3 chars
+        expect(screen.getByText('bdb...37c')).toBeInTheDocument();
     });
     it('Sent airdrop with msg with token info in cache', async () => {
         render(
