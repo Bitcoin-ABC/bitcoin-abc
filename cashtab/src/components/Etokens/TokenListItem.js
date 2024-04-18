@@ -6,6 +6,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import TokenIcon from './TokenIcon';
+import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 
 const TokenIconWrapper = styled.div`
     margin-right: 10px;
@@ -19,7 +20,7 @@ const TokenNameCtn = styled.div`
 const Wrapper = styled.div`
     display: flex;
     align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     color: ${props => props.theme.contrast};
     padding: 10px 0;
     justify-content: space-between;
@@ -41,30 +42,36 @@ const Wrapper = styled.div`
  * All tokens should be cached when this screen is rendered
  * But, in case it isn't for any reason, handle this case
  */
-const TokenListItem = ({ tokenId, balance, cachedTokenInfo }) => {
+const TokenListItem = ({ tokenId, tokenInfo, userLocale }) => {
     return (
-        <Wrapper>
+        <Wrapper title="Token List Item">
             <TokenNameCtn>
                 <TokenIconWrapper>
                     <TokenIcon size={32} tokenId={tokenId} />
                 </TokenIconWrapper>
                 <h4>
-                    {typeof cachedTokenInfo !== 'undefined'
-                        ? cachedTokenInfo.genesisInfo.tokenTicker
+                    {typeof tokenInfo !== 'undefined'
+                        ? tokenInfo.genesisInfo.tokenTicker
                         : 'UNCACHED'}
                 </h4>
             </TokenNameCtn>
 
-            <h4>{balance}</h4>
+            <h4>
+                {decimalizedTokenQtyToLocaleFormat(
+                    tokenInfo.balance,
+                    userLocale,
+                )}
+            </h4>
         </Wrapper>
     );
 };
 
 TokenListItem.propTypes = {
-    ticker: PropTypes.string,
+    userLocale: PropTypes.string,
     balance: PropTypes.string,
     tokenId: PropTypes.string,
-    cachedTokenInfo: PropTypes.shape({
+    tokenInfo: PropTypes.shape({
+        balance: PropTypes.string,
         block: PropTypes.shape({
             hash: PropTypes.string,
             height: PropTypes.number,

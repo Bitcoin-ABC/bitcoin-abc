@@ -6,31 +6,26 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import TokenListItem from './TokenListItem';
 import { Link } from 'react-router-dom';
-import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 import styled from 'styled-components';
 
 const TokenLink = styled(Link)`
     text-decoration: none;
 `;
 
-const TokenList = ({ tokens, tokenCache, userLocale }) => {
-    return Array.from(tokens).map(keyValueArray => (
+const TokenList = ({ tokensKvArray, userLocale }) => {
+    return tokensKvArray.map(keyValueArray => (
         <TokenLink key={keyValueArray[0]} to={`/token/${keyValueArray[0]}`}>
             <TokenListItem
                 tokenId={keyValueArray[0]}
-                balance={decimalizedTokenQtyToLocaleFormat(
-                    keyValueArray[1],
-                    userLocale,
-                )}
-                cachedTokenInfo={tokenCache.get(keyValueArray[0])}
+                tokenInfo={keyValueArray[1]}
+                userLocale={userLocale}
             />
         </TokenLink>
     ));
 };
 
 TokenList.propTypes = {
-    tokens: PropTypes.instanceOf(Map),
-    tokenCache: PropTypes.instanceOf(Map),
+    tokensKvArray: PropTypes.array,
     userLocale: PropTypes.string,
 };
 
