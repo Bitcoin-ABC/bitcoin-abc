@@ -1223,7 +1223,7 @@ private:
 
     // All of the following cache a recent block, and are protected by
     // m_most_recent_block_mutex
-    Mutex m_most_recent_block_mutex;
+    mutable Mutex m_most_recent_block_mutex;
     std::shared_ptr<const CBlock>
         m_most_recent_block GUARDED_BY(m_most_recent_block_mutex);
     std::shared_ptr<const CBlockHeaderAndShortTxIDs>
@@ -6240,6 +6240,30 @@ void PeerManagerImpl::ProcessMessage(
                             LOCK(cs_main);
                             m_chainman.ActiveChainstate().UnparkBlock(pindex);
                         }
+
+                        if (fPreConsensus) {
+                            // First check if the block is cached before reading
+                            // from disk.
+                            auto pblock = WITH_LOCK(m_most_recent_block_mutex,
+                                                    return m_most_recent_block);
+
+                            if (!pblock ||
+                                pblock->GetHash() != pindex->GetBlockHash()) {
+                                std::shared_ptr<CBlock> pblockRead =
+                                    std::make_shared<CBlock>();
+                                if (!ReadBlockFromDisk(
+                                        *pblockRead, pindex,
+                                        m_chainparams.GetConsensus())) {
+                                    assert(!"cannot load block from disk");
+                                }
+                                pblock = pblockRead;
+                            }
+                            assert(pblock);
+
+                            LOCK(m_mempool.cs);
+                            m_mempool.removeForFinalizedBlock(pblock->vtx);
+                        }
+
                         m_chainman.ActiveChainstate().AvalancheFinalizeBlock(
                             pindex);
                     } break;

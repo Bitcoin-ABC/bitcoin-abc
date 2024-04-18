@@ -192,6 +192,8 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     // even if not directly reported below.
     uint64_t mempool_sequence = GetAndIncrementSequence();
 
+    const TxId &txid = (*it)->GetTx().GetId();
+
     if (reason != MemPoolRemovalReason::BLOCK) {
         // Notify clients that a transaction has been removed from the mempool
         // for any reason except being included in a block. Clients interested
@@ -199,6 +201,8 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
         // BlockConnected notification.
         GetMainSignals().TransactionRemovedFromMempool(
             (*it)->GetSharedTx(), reason, mempool_sequence);
+
+        finalizedTxs.remove(txid);
     }
 
     for (const CTxIn &txin : (*it)->GetTx().vin) {
@@ -206,10 +210,7 @@ void CTxMemPool::removeUnchecked(txiter it, MemPoolRemovalReason reason) {
     }
 
     /* add logging because unchecked */
-    const TxId &txid = (*it)->GetTx().GetId();
     RemoveUnbroadcastTx(txid, true);
-
-    finalizedTxs.remove(txid);
 
     totalTxSize -= (*it)->GetTxSize();
     m_total_fee -= (*it)->GetFee();
@@ -308,6 +309,19 @@ void CTxMemPool::updateFeeForBlock() {
 
     lastRollingFeeUpdate = GetTime();
     blockSinceLastRollingFeeBump = true;
+}
+
+void CTxMemPool::removeForFinalizedBlock(
+    const std::vector<CTransactionRef> &vtx) {
+    AssertLockHeld(cs);
+
+    for (const auto &tx : vtx) {
+        // If the tx has a parent, it will be in the block as well or the block
+        // is invalid. If the tx has a child, it can remain in the tree for the
+        // next block. So we can simply remove the txs from the block with no
+        // further check.
+        finalizedTxs.remove(tx->GetId());
+    }
 }
 
 void CTxMemPool::_clear() {

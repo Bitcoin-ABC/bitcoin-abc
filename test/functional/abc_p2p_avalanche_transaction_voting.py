@@ -195,6 +195,26 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         assert txid in node.getrawmempool()
 
         tip = self.generate(node, 1)[0]
+
+        self.log.info("The transaction remains finalized after it's mined")
+
+        assert node.isfinaltransaction(txid, tip)
+        assert txid not in node.getrawmempool()
+
+        self.log.info("The transaction remains finalized even when reorg'ed")
+
+        node.parkblock(tip)
+        assert node.getbestblockhash() != tip
+        assert node.isfinaltransaction(txid)
+        assert txid in node.getrawmempool()
+
+        node.unparkblock(tip)
+        assert_equal(node.getbestblockhash(), tip)
+        assert node.isfinaltransaction(txid, tip)
+        assert txid not in node.getrawmempool()
+
+        self.log.info("The transaction remains finalized after the block is finalized")
+
         self.wait_until(lambda: has_finalized_block(tip))
         assert node.isfinaltransaction(txid, tip)
         assert txid not in node.getrawmempool()

@@ -365,6 +365,8 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
     void removeConflicts(const CTransaction &tx) EXCLUSIVE_LOCKS_REQUIRED(cs);
     void updateFeeForBlock() EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void removeForFinalizedBlock(const std::vector<CTransactionRef> &vtx)
+        EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     void clear();
     // lock free

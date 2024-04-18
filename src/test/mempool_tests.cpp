@@ -581,4 +581,57 @@ BOOST_AUTO_TEST_CASE(CompareTxMemPoolEntryByModifiedFeeRateTest) {
     checkOrdering(entryB, entryA);
 }
 
+BOOST_AUTO_TEST_CASE(remove_for_finalized_block) {
+    CTxMemPool &pool = *Assert(m_node.mempool);
+    TestMemPoolEntryHelper entry;
+
+    LOCK2(cs_main, pool.cs);
+
+    std::vector<CTransactionRef> txs;
+    txs.reserve(100);
+    for (size_t i = 0; i < 100; i++) {
+        CTransactionRef tx = make_tx({int64_t(i + 1) * COIN});
+        const TxId &txid = tx->GetId();
+        auto mempoolEntry = entry.FromTx(tx);
+
+        pool.addUnchecked(mempoolEntry);
+        BOOST_CHECK(pool.exists(txid));
+
+        BOOST_CHECK(pool.setAvalancheFinalized(mempoolEntry));
+        BOOST_CHECK(pool.isAvalancheFinalized(txid));
+
+        txs.push_back(std::move(tx));
+    }
+
+    std::vector<CTransactionRef> minedTxs(txs.begin(), txs.begin() + 50);
+    pool.removeForFinalizedBlock(minedTxs);
+
+    for (const auto &tx : minedTxs) {
+        // No longer in the radix tree
+        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+    }
+    // Other txs are still there
+    for (size_t i = 50; i < 100; i++) {
+        BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
+    }
+
+    // Repeat is no op
+    pool.removeForFinalizedBlock(minedTxs);
+    for (const auto &tx : minedTxs) {
+        // No longer in the radix tree
+        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+    }
+    // Other txs are still there
+    for (size_t i = 50; i < 100; i++) {
+        BOOST_CHECK(pool.isAvalancheFinalized(txs[i]->GetId()));
+    }
+
+    // Remove them all
+    pool.removeForFinalizedBlock(txs);
+    for (const auto &tx : txs) {
+        // No longer in the radix tree
+        BOOST_CHECK(!pool.isAvalancheFinalized(tx->GetId()));
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
