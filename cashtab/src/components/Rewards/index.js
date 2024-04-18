@@ -72,6 +72,9 @@ const Rewards = () => {
                 throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
             }
             toast.success('Rewards claimed!');
+
+            // Reset rewards eligibility
+            getIsEligible(address);
         } catch (err) {
             console.error(err);
             toast.error(`${err}`);
