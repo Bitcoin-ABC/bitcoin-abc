@@ -74,7 +74,7 @@ const SEND_AMOUNT_VALIDATION_ERRORS_TOKEN = [
     `This token only supports ${SEND_TOKEN_DECIMALS} decimal places`,
 ];
 
-describe('<SendToken />', () => {
+describe('<Token />', () => {
     let user, mockedChronik;
     beforeEach(async () => {
         // Mock the app with context at the Send screen
@@ -134,7 +134,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
         const amountInputEl = screen.getByPlaceholderText('Amount');
 
         // Input fields are rendered
@@ -165,7 +171,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         // The user enters a valid address
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
@@ -194,7 +206,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         // The user enters a valid address
         const addressInput =
@@ -224,7 +242,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         const alias = 'twelvechar12';
         const expectedResolvedAddress =
@@ -282,7 +306,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         // The user enters an invalid address
         const addressInput = 'not a valid address';
@@ -305,7 +335,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         // The user enters a potentially valid alias without .xec suffix
         const addressInput = 'chicken';
@@ -330,7 +366,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         const alias = 'notregistered';
 
@@ -375,7 +417,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         const alias = 'servererror';
 
@@ -413,7 +461,13 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
 
         // The user enters an ivalid address
         const addressInput =
@@ -449,8 +503,14 @@ describe('<SendToken />', () => {
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
 
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
+
         // The user enters a valid address and send amount
-        const addressInputEl = screen.getByPlaceholderText('Address');
+        const addressInputEl = screen.getByPlaceholderText(/Address/);
         const addressInput = 'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6';
         const amountInputEl = screen.getByPlaceholderText('Amount');
         const amountInput = '1';
@@ -490,6 +550,12 @@ describe('<SendToken />', () => {
 
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
+
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
 
         // The send switch is turned on by default
         expect(screen.getByTitle('Toggle Send')).toHaveProperty(
@@ -552,6 +618,12 @@ describe('<SendToken />', () => {
 
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/BEAR/))[0]).toBeInTheDocument();
+
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
 
         // The mint switch is not rendered
         expect(screen.queryByTitle('Toggle Mint')).not.toBeInTheDocument();
@@ -651,6 +723,12 @@ describe('<SendToken />', () => {
 
         // Wait for element to get token info and load
         expect((await screen.findAllByText(/CACHET/))[0]).toBeInTheDocument();
+
+        // Wait for Cashtab to recognize this is an SLP1 fungible token and enable Send
+        expect(await screen.findByTitle('Toggle Send')).toHaveProperty(
+            'checked',
+            true,
+        );
 
         // The mint switch is rendered
         const mintSwitch = screen.getByTitle('Toggle Mint');
