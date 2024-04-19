@@ -254,6 +254,7 @@ class AvalancheQuorumTest(BitcoinTestFramework):
             for peer in avapeers[7:]:
                 peer.peer_disconnect()
                 peer.wait_for_disconnect()
+            self.wait_until(lambda: node.getavalancheinfo()["ready_to_poll"] is False)
             poll_and_assert_response(node, AvalancheVoteError.UNKNOWN)
 
             # Add a node back and check it resumes the quorum status
