@@ -1336,6 +1336,7 @@ module.exports = {
         // Define newsworthy types of txs in parsedTxs
         // These arrays will be used to present txs in batches by type
         const genesisTxTgMsgLines = [];
+        let cashtabTokenRewards = 0;
         const tokenSendTxTgMsgLines = [];
         const tokenBurnTxTgMsgLines = [];
         const opReturnTxTgMsgLines = [];
@@ -1507,6 +1508,21 @@ module.exports = {
                         undecimalizedTokenReceivedAmount.toString(),
                         decimals,
                     );
+
+                // Special handling for Cashtab rewards
+                if (
+                    // CACHET token id
+                    tokenId ===
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1' &&
+                    // outputScript of token-server
+                    xecSendingOutputScripts.values().next().value ===
+                        '76a914821407ac2993f8684227004f4086082f3f801da788ac'
+                ) {
+                    cashtabTokenRewards += 1;
+                    // No further parsing for this tx
+                    continue;
+                }
+
                 tokenSendMsg = `${emojis.tokenSend} <a href="${config.blockExplorer}/tx/${txid}">${decimalizedTokenReceivedAmount}</a> <a href="${config.blockExplorer}/tx/${tokenId}">${tokenTicker}</a>`;
 
                 tokenSendTxTgMsgLines.push(tokenSendMsg);
@@ -1739,8 +1755,23 @@ module.exports = {
             tgMsg = tgMsg.concat(genesisTxTgMsgLines);
         }
 
-        // eToken Send txs
+        // Cashtab rewards
+        if (cashtabTokenRewards > 0) {
+            tgMsg.push('');
+
+            // 1 Cashtab CACHET reward:
+            // or
+            // <n> Cashtab CACHET rewards:
+            tgMsg.push(
+                `<b>${cashtabTokenRewards} Cashtab <a href="${
+                    config.blockExplorer
+                }/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> reward${
+                    cashtabTokenRewards > 1 ? `s` : ''
+                }</b>`,
+            );
+        }
         if (tokenSendTxTgMsgLines.length > 0) {
+            // eToken Send txs
             // Line break for new section
             tgMsg.push('');
 

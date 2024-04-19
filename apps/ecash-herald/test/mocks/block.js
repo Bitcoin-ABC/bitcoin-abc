@@ -8,7 +8,7 @@ module.exports = {
         blockInfo: {
             hash: '0000000000000000000000000000000000000000000000000000000000000000',
             height: 819346,
-            numTxs: 20,
+            numTxs: 24,
         },
         txs: [
             {
@@ -2827,6 +2827,370 @@ module.exports = {
                 isCoinbase: false,
                 network: 'XEC',
             },
+            {
+                txid: '004e018dd98520aa722ee76c608771dd578a044f38103a8298f25e6ffbc7c3ba',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '825bd04c60b27ef652a5ec706cecaf9cec4dc10ce0010f468f8f3bbef6e1539a',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '47304402202edcaf6fad2b7789b54ae9283db93f8028249dab78455653f4a1765aae29ca48022060f44bb9fcc82233ba64b4ba1725bfd1d451babb7f96d13c2ef8d833e972946941210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        value: '546',
+                        sequenceNo: 4294967295,
+                        slpToken: {
+                            amount: '92940000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        prevOut: {
+                            txid: '825bd04c60b27ef652a5ec706cecaf9cec4dc10ce0010f468f8f3bbef6e1539a',
+                            outIdx: 3,
+                        },
+                        inputScript:
+                            '483045022100917c49035cd87aea0c004121561ec5c7488badbfc9ee51e9c7684c0717306bea02206a197976706fc6d6d05590f14482264e90ca080e561978257ba7df451debffd541210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        value: '14274406',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271008000000000589ffd0',
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
+                        slpToken: {
+                            amount: '10000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        slpToken: {
+                            amount: '92930000',
+                            isMintBaton: false,
+                        },
+                        spentBy: {
+                            txid: '4852929bc3809bb1b6fa5b607f4856df1d0cf13816e01c93a3b32f6a59647f73',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        value: '14273379',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        spentBy: {
+                            txid: '4852929bc3809bb1b6fa5b607f4856df1d0cf13816e01c93a3b32f6a59647f73',
+                            outIdx: 1,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                slpTxData: {
+                    slpMeta: {
+                        tokenType: 'FUNGIBLE',
+                        txType: 'SEND',
+                        tokenId:
+                            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    },
+                },
+                block: {
+                    height: 840667,
+                    hash: '00000000000000000292a87c1b0a07399bbeceec747e15b63b3d4b44837d0e3f',
+                    timestamp: '1713484694',
+                },
+                timeFirstSeen: '1713483767',
+                size: 480,
+                isCoinbase: false,
+                network: 'XEC',
+            },
+            {
+                txid: '0110cd886ecd2d9570e98b7501cd039f4e5352d69659a46f1a49cc19c1869701',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '76cf25e029ad119042f956605f9386d82b640b2786fd19a8be22383e71c63066',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '4830450221008295a1f9391cdcd4b6ce64e3667e50fbd4c2ce37abc15840cc686bb2ad9970bf022006a16801d509b6f72eca4393731604ee0f28ba0d6ce55dcd4c3b706c374eca8341210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        value: '546',
+                        sequenceNo: 4294967295,
+                        slpToken: {
+                            amount: '92640000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        prevOut: {
+                            txid: '76cf25e029ad119042f956605f9386d82b640b2786fd19a8be22383e71c63066',
+                            outIdx: 3,
+                        },
+                        inputScript:
+                            '47304402204fd42db620084ff54f32c60fb5cded7040255fdef7b6ba80a1a5a3b9f7c4fef1022042acf826a81e39c4224de432e92a24c1ee11c2a85d6f6f45f8e88cdbb081f4c441210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        value: '14243596',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005856bf0',
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
+                        slpToken: {
+                            amount: '10000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        slpToken: {
+                            amount: '92630000',
+                            isMintBaton: false,
+                        },
+                        spentBy: {
+                            txid: 'a998c6bdd2d4755b4be7537a5ba064cc19428ce3a47d0c069ee4241a1a83058e',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        value: '14242569',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        spentBy: {
+                            txid: 'a998c6bdd2d4755b4be7537a5ba064cc19428ce3a47d0c069ee4241a1a83058e',
+                            outIdx: 1,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                slpTxData: {
+                    slpMeta: {
+                        tokenType: 'FUNGIBLE',
+                        txType: 'SEND',
+                        tokenId:
+                            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    },
+                },
+                block: {
+                    height: 840667,
+                    hash: '00000000000000000292a87c1b0a07399bbeceec747e15b63b3d4b44837d0e3f',
+                    timestamp: '1713484694',
+                },
+                timeFirstSeen: '1713484515',
+                size: 480,
+                isCoinbase: false,
+                network: 'XEC',
+            },
+            {
+                txid: '327101f6f3b740280a6e9fbd8edc41f4f0500633672975a5974a4147c94016a5',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'ddb98796d80acad3a291913e015cfbe30612be00d921533c67513e5d61e8bda5',
+                            outIdx: 2,
+                        },
+                        inputScript:
+                            '47304402207223b7e969380eb1c83569a6c217f2d6350f2b3f241d30af9446c04bc36d109f022049bcc4d0a9327f839618a8174af837ac61d6cea1d30962f2866c1dfb4a9d3e8041210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        value: '546',
+                        sequenceNo: 4294967295,
+                        slpToken: {
+                            amount: '92560000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        prevOut: {
+                            txid: 'ddb98796d80acad3a291913e015cfbe30612be00d921533c67513e5d61e8bda5',
+                            outIdx: 3,
+                        },
+                        inputScript:
+                            '483045022100f5b0ca73d4d81cba5abf91d9d3531085768ef71b173b1a1701bbefc6cefad65202201540deb6e8c7c3ca96889ef6965abcc61c9c1e3e3ada3d70be1bed146f48bfe341210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        value: '14235380',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005843370',
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
+                        slpToken: {
+                            amount: '10000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        slpToken: {
+                            amount: '92550000',
+                            isMintBaton: false,
+                        },
+                        spentBy: {
+                            txid: '0a77eb6a5b08bc91a60a8ed8752ac2d3dc477e0c94624c486fcef7429be47d0d',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        value: '14234353',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        spentBy: {
+                            txid: '0a77eb6a5b08bc91a60a8ed8752ac2d3dc477e0c94624c486fcef7429be47d0d',
+                            outIdx: 1,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                slpTxData: {
+                    slpMeta: {
+                        tokenType: 'FUNGIBLE',
+                        txType: 'SEND',
+                        tokenId:
+                            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    },
+                },
+                block: {
+                    height: 840667,
+                    hash: '00000000000000000292a87c1b0a07399bbeceec747e15b63b3d4b44837d0e3f',
+                    timestamp: '1713484694',
+                },
+                timeFirstSeen: '1713484590',
+                size: 480,
+                isCoinbase: false,
+                network: 'XEC',
+            },
+            {
+                txid: 'aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517',
+                version: 2,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: 'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '483045022100f7f2eac186605f5d37a038b17367a4b6fc5458ca7485ce6b77baf19b4160bcd8022029b5ef41a2ebb4642e9802d32a1649d84c7daf2e978c32ebc7342b90e9427cc1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                        outputScript:
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        value: '546',
+                        sequenceNo: 4294967295,
+                        slpToken: {
+                            amount: '10000000',
+                            isMintBaton: false,
+                        },
+                    },
+                    {
+                        prevOut: {
+                            txid: 'd8a081bed886b085194410fd879286393734f428c9f64d9ece1c0afffb2695a2',
+                            outIdx: 1,
+                        },
+                        inputScript:
+                            '483045022100b0404d5d553867df9ed190ce52ec13565aaf6e3c8986b712c150acac6d3853f70220727abe6d27a333f72249a08f3b40cd15346c6096466b6118248f92279201b5f7412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                        outputScript:
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        value: '3899',
+                        sequenceNo: 4294967295,
+                    },
+                ],
+                outputs: [
+                    {
+                        value: '0',
+                        outputScript:
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000000986f70',
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        slpToken: {
+                            amount: '10000',
+                            isMintBaton: false,
+                        },
+                        spentBy: {
+                            txid: '80baab3dc64a3922c8d3ca11bacc6af4f05b103e15e18e9ea7592d926612c829',
+                            outIdx: 0,
+                        },
+                    },
+                    {
+                        value: '546',
+                        outputScript:
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        slpToken: {
+                            amount: '9990000',
+                            isMintBaton: false,
+                        },
+                        spentBy: {
+                            txid: '4fb3b37c25c8a5cb43f0130435eb33c19b2fdaf4be98b113e580a66ec9340435',
+                            outIdx: 3,
+                        },
+                    },
+                    {
+                        value: '2872',
+                        outputScript:
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        spentBy: {
+                            txid: 'fb6086e1e98f88fdef7abab312dfb68449d1b43d511e1f15c488a8cb804f1c51',
+                            outIdx: 0,
+                        },
+                    },
+                ],
+                lockTime: 0,
+                slpTxData: {
+                    slpMeta: {
+                        tokenType: 'FUNGIBLE',
+                        txType: 'SEND',
+                        tokenId:
+                            'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    },
+                },
+                block: {
+                    height: 840499,
+                    hash: '000000000000000035b621834b4408d0b1a8da7d975cb14c0b9330d1e2398d8b',
+                    timestamp: '1713384866',
+                },
+                timeFirstSeen: '1713384505',
+                size: 481,
+                isCoinbase: false,
+                network: 'XEC',
+            },
         ],
     },
     parsedBlock: {
@@ -2837,7 +3201,7 @@ module.exports = {
             staker: 'ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt',
             reward: 62500000,
         },
-        numTxs: 20,
+        numTxs: 24,
         parsedTxs: [
             {
                 txid: '4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035',
@@ -3730,6 +4094,250 @@ module.exports = {
                 tokenBurnInfo: false,
             },
             {
+                txid: '004e018dd98520aa722ee76c608771dd578a044f38103a8298f25e6ffbc7c3ba',
+                genesisInfo: false,
+                opReturnInfo: false,
+                txFee: 481,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271008000000000589ffd0',
+                            0,
+                        ],
+                        [
+                            '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
+                            546,
+                        ],
+                    ],
+                },
+                totalSatsSent: 546,
+                tokenSendInfo: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '92930000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '10000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        ],
+                    },
+                },
+                tokenBurnInfo: false,
+            },
+            {
+                txid: '0110cd886ecd2d9570e98b7501cd039f4e5352d69659a46f1a49cc19c1869701',
+                genesisInfo: false,
+                opReturnInfo: false,
+                txFee: 481,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005856bf0',
+                            0,
+                        ],
+                        [
+                            '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
+                            546,
+                        ],
+                    ],
+                },
+                totalSatsSent: 546,
+                tokenSendInfo: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '92630000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '10000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        ],
+                    },
+                },
+                tokenBurnInfo: false,
+            },
+            {
+                txid: '327101f6f3b740280a6e9fbd8edc41f4f0500633672975a5974a4147c94016a5',
+                genesisInfo: false,
+                opReturnInfo: false,
+                txFee: 481,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000005843370',
+                            0,
+                        ],
+                        [
+                            '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
+                            546,
+                        ],
+                    ],
+                },
+                totalSatsSent: 546,
+                tokenSendInfo: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '92550000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '10000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                        ],
+                    },
+                },
+                tokenBurnInfo: false,
+            },
+            {
+                txid: 'aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517',
+                genesisInfo: false,
+                opReturnInfo: false,
+                txFee: 481,
+                xecSendingOutputScripts: {
+                    dataType: 'Set',
+                    value: [
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    ],
+                },
+                xecReceivingOutputs: {
+                    dataType: 'Map',
+                    value: [
+                        [
+                            '6a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1080000000000002710080000000000986f70',
+                            0,
+                        ],
+                        [
+                            '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                            546,
+                        ],
+                    ],
+                },
+                totalSatsSent: 546,
+                tokenSendInfo: {
+                    tokenId:
+                        'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                    tokenChangeOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '9990000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenReceivingOutputs: {
+                        dataType: 'Map',
+                        value: [
+                            [
+                                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                                {
+                                    dataType: 'BigNumberReplacer',
+                                    value: '10000',
+                                },
+                            ],
+                        ],
+                    },
+                    tokenSendingOutputScripts: {
+                        dataType: 'Set',
+                        value: [
+                            '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        ],
+                    },
+                },
+                tokenBurnInfo: false,
+            },
+            {
                 txid: '0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17',
                 genesisInfo: false,
                 opReturnInfo: false,
@@ -3937,6 +4545,7 @@ module.exports = {
                 '98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48',
                 '7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d',
                 'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
                 '7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5',
                 'aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c',
             ],
@@ -3968,6 +4577,10 @@ module.exports = {
                 '76a914dadf34cde9c774fdd6340cd2916a9b9c5d57cf4388ac',
                 'a914ea826cc1a3a981d048cd78b66711222bece8ebf287',
                 '76a91472a92e48c5ab72566959db1dbf1b8dce83afabb788ac',
+                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
+                '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
+                '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
                 '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
                 '76a914104e67d912a7aab2a159bba141477e5867c04bfd88ac',
                 '76a9144bb6f659b8dafd99527e0c0a3289f121b0a0209f88ac',
@@ -4038,6 +4651,14 @@ module.exports = {
                 {
                     tokenTicker: 'GRP',
                     tokenName: 'Grumpy',
+                    decimals: 2,
+                },
+            ],
+            [
+                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+                {
+                    tokenTicker: 'CACHET',
+                    tokenName: 'Cachet',
                     decimals: 2,
                 },
             ],
@@ -4495,6 +5116,78 @@ module.exports = {
                 },
             ],
             [
+                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                {
+                    emoji: '',
+                    balanceSats: 10000,
+                    utxos: [
+                        {
+                            outputScript:
+                                '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                            utxos: [
+                                {
+                                    value: '10000',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [
+                '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
+                {
+                    emoji: '',
+                    balanceSats: 10000,
+                    utxos: [
+                        {
+                            outputScript:
+                                '76a914dcc535261a43835ca12352d0926ba06cf07cbe8388ac',
+                            utxos: [
+                                {
+                                    value: '10000',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [
+                '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
+                {
+                    emoji: '',
+                    balanceSats: 10000,
+                    utxos: [
+                        {
+                            outputScript:
+                                '76a91469724b96df46096cc95b1a6d408a4240ea80d85588ac',
+                            utxos: [
+                                {
+                                    value: '10000',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [
+                '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
+                {
+                    emoji: '',
+                    balanceSats: 10000,
+                    utxos: [
+                        {
+                            outputScript:
+                                '76a91458cddba2449285814dae43d4ed4a1c9998f3693e88ac',
+                            utxos: [
+                                {
+                                    value: '10000',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [
                 '76a9146d69b5cbe7c85d87628473c43620c0daa9a8102988ac',
                 {
                     emoji: '',
@@ -4587,10 +5280,11 @@ module.exports = {
         ],
     },
     blockSummaryTgMsgs: [
-        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 20 txs | anon e0\n⏰ 20,654 blocks until eCash halving\n💰$63 to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a> | 🚀\n1 XEC = $0.0001\n1 BTC = $30,000\n1 ETH = $2,000\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>4 eToken send txs</b>\n🎟 <a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">55</a> <a href="https://explorer.e.cash/tx/98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48">DVV</a>\n🎟 <a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">10.9876543</a> <a href="https://explorer.e.cash/tx/7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d">WDT</a>\n🎟 <a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5,000,000.00</a> <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a>\n🎟 <a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">356.6918</a> <a href="https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5">BUX</a>\n\n<b>1 eToken burn tx</b>\n🔥qp9...et0 <a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">burned</a> 1.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> \n\n<b>11 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused $1k from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped $5 to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">STUB</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, $1 for $0.0005:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> ALP:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and $0.002 to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> ALP:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">STUB</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC',
-        '🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>2 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">$584k for $0.0003</a> 🐳 Binance ➡️ itself\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">$107k for $0.003</a> qp7...sr4 ➡️ 🦀qzj...ksg',
+        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 24 txs | anon e0\n⏰ 20,654 blocks until eCash halving\n💰$63 to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a> | 🚀\n1 XEC = $0.0001\n1 BTC = $30,000\n1 ETH = $2,000\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>3 Cashtab <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a> rewards</b>\n\n<b>5 eToken send txs</b>\n🎟 <a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">55</a> <a href="https://explorer.e.cash/tx/98183238638ecb4ddc365056e22de0e8a05448c1e6084bae247fae5a74ad4f48">DVV</a>\n🎟 <a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">10.9876543</a> <a href="https://explorer.e.cash/tx/7443f7c831cdf2b2b04d5f0465ed0bcf348582675b0e4f17906438c232c22f3d">WDT</a>\n🎟 <a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5,000,000.00</a> <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a>\n🎟 <a href="https://explorer.e.cash/tx/aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517">100.00</a> <a href="https://explorer.e.cash/tx/aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1">CACHET</a>\n🎟 <a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">356.6918</a> <a href="https://explorer.e.cash/tx/7e7dacd72dcdb14e00a03dd3aff47f019ed51a6f1f4e4f532ae50692f62bc4e5">BUX</a>\n\n<b>1 eToken burn tx</b>\n🔥qp9...et0 <a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">burned</a> 1.00 <a href="https://explorer.e.cash/tx/fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa">GRP</a> \n\n<b>11 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused $1k from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped $5 to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">STUB</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, $1 for $0.0005:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> ALP:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and $0.002 to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> ALP:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0',
+        '🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">STUB</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>2 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">$584k for $0.0003</a> 🐳 Binance ➡️ itself\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">$107k for $0.003</a> qp7...sr4 ➡️ 🦀qzj...ksg',
     ],
     blockSummaryTgMsgsApiFailure: [
-        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 20 txs | anon e0\n⏰ 20,654 blocks until eCash halving\n💰625k XEC to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a>\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>11 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused 13M XEC from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped 45k XEC to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">b76...84a</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, 10k XEC for 4.79 XEC:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> ALP:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and 20 XEC to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> ALP:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">Unknown Token</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>7 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">6B XEC for 2.6 XEC</a>\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">1B XEC for 29 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">0 XEC for 16 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">0 XEC for 11 XEC</a>',
+        '📦<a href="https://explorer.e.cash/block/0000000000000000000000000000000000000000000000000000000000000000">819346</a> | 24 txs | anon e0\n⏰ 20,654 blocks until eCash halving\n💰625k XEC to <a href="https://explorer.e.cash/address/ecash:qrpkjsd0fjxd7m332mmlu9px6pwkzaufpcn2u7jcwt">qrp...cwt</a>\n\n<b>1 new eToken created</b>\n🧪<a href="https://explorer.e.cash/tx/010114b9bbe776def1a512ad1e96a4a06ec4c34fc79bcb5d908845f5102f6b0f">LOLLY</a> (Lolly) <a href="https://cashtab.com/">[doc]</a>\n\n<b>11 app txs</b>\n⚛️<a href="https://explorer.e.cash/tx/d5be7a4b483f9fdbbe3bf46cfafdd0100d5dbeee0b972f4dabc8ae9d9962fa55">CashFusion:</a> Fused 13M XEC from 64 inputs into 63 outputs\n❓<a href="https://explorer.e.cash/tx/b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e">unknown:</a> 0x663ddd99990bcd9699...\n❓<a href="https://explorer.e.cash/tx/9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1">unknown:</a> =:ETH.ETH:0xa9aaF30F65955C69c16B3345B51D426D9B88Ba87:841321:tr:0\n🪂<a href="https://explorer.e.cash/tx/7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be">Airdrop:</a> qru...jys airdropped 45k XEC to 13 holders of <a href="https://explorer.e.cash/tx/b76878b29eff39c8c28aaed7d18a166c20057c43beeb90b630264470983c984a">b76...84a</a>|Stay with us, eCash Africa is the next big community in the African cryptosphere. \n🖋<a href="https://explorer.e.cash/tx/d02d94a1a520877c60d1e3026c3e85f8995d48d7b90140f83e24ede592c30306">Cashtab Msg, 10k XEC for 4.79 XEC:</a> I like eCash\n❓<a href="https://explorer.e.cash/tx/45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc">EMPP:</a> ALP:SEND|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|1.9673\n🔏<a href="https://explorer.e.cash/tx/1083da7ead4779fbab5c5e8291bb7a37abaf4f97f5ff99ee654759b2eaee445b">Cashtab Encrypted:</a> qq9...fgx sent an encrypted message and 20 XEC to qzv...fed\n👾<a href="https://explorer.e.cash/tx/22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9">Alias (beta):</a> doge2\n❓<a href="https://explorer.e.cash/tx/413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8">EMPP:</a> ALP:MINT|<a href="https://explorer.e.cash/tx/cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145">CRD</a>|0.0\n🤳<a href="https://explorer.e.cash/tx/ad44bf5e214ab71bb60a2eee165f368c139cd49c2380c3352f0a4fffc746b36a">SWaP:</a> Signal|SLP Atomic Swap|<a href="https://explorer.e.cash/tx/aebcae9afe88d61d8b8ed7b8c83c7c2a555583bf8f8591c94a2c9eb82f34816c">Unknown Token</a>|SELL for 159,883.54 XEC|Min trade: 0 XEC\n🗞<a href="https://explorer.e.cash/tx/a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a">memo:</a> Reply to memo|<a href="https://explorer.e.cash/tx/eae5710aba50a0a22b266ddbb445e05b7348d15c88cbc2e012a91a09bec3861a">memo</a>|Twitter keeps turning their API on and off. Sometimes it works, sometimes it doesn\'t. Feature to create tweets from memo may work again at some point.\n\n<b>11 eCash txs</b>\n💸<a href="https://explorer.e.cash/tx/4f33c81d95641eb0f80e793dc96c58a2438f9bb1f18750d8fb3b56c28cd25035">6B XEC for 2.6 XEC</a>\n💸<a href="https://explorer.e.cash/tx/f5d4c112cfd22701226ba050cacfacc3aff570964c6196f67e326fc3224300a2">1B XEC for 29 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6ffcc83e76226bd32821cc6862ce9b363b22594247a4e73ccf3701b0023592b2">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/fb70df00c07749082756054522d3f08691fd9caccd0e0abf736df23d22845a6e">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7">5.46 XEC for 11 XEC</a>\n💸<a href="https://explorer.e.cash/tx/004e018dd98520aa722ee76c608771dd578a044f38103a8298f25e6ffbc7c3ba">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0110cd886ecd2d9570e98b7501cd039f4e5352d69659a46f1a49cc19c1869701">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/327101f6f3b740280a6e9fbd8edc41f4f0500633672975a5974a4147c94016a5">5.46 XEC for 4.81 XEC</a>',
+        '💸<a href="https://explorer.e.cash/tx/aa13c6f214ff58f36ed5e108a7f36d8f98729c50186b27a53b989c7f36fbf517">5.46 XEC for 4.81 XEC</a>\n💸<a href="https://explorer.e.cash/tx/0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17">0 XEC for 16 XEC</a>\n💸<a href="https://explorer.e.cash/tx/6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79">0 XEC for 11 XEC</a>',
     ],
 };
