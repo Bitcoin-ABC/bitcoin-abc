@@ -275,4 +275,19 @@ module.exports = [
             '76a91478b7743efa732c16c1b956f19fd5ec623e71981388ac',
         parsed: 'Cminors-Pools',
     },
+    {
+        height: '840619',
+        coinbaseHex:
+            '03abd30c00046a362166046994e2100c601f21668868440000000000204d696e65642062792077697468204f6d20506f776572202f416e616e6472616a53696e676820506f6f6c2f0d20f09f8f86f09f8f86f09f8f86',
+        payoutOutputScript:
+            '76a914c5c9fb1bef0c5c6a0df37a4bf41e186b6980c43b88ac',
+        parsed: 'AnandrajSingh Pool',
+    },
+    {
+        height: '840619',
+        coinbaseHex:
+            '03abd30c00046a362166046994e2100c601f21668868440000000000204d696e65642062792077697468204f6d20506f776572202f416e616e6472616a53696e676820506f6f6c2f0d20f09f8f86f09f8f86f09f8f86',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'AnandrajSingh Pool',
+    },
 ];

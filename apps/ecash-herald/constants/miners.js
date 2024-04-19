@@ -106,5 +106,12 @@ module.exports = {
                 coinbaseHexFragment: '436d696e6f72732d506f6f6c73', // ascii Cminors-Pools
             },
         ],
+        [
+            '76a914c5c9fb1bef0c5c6a0df37a4bf41e186b6980c43b88ac',
+            {
+                miner: 'AnandrajSingh Pool',
+                coinbaseHexFragment: '416e616e6472616a53696e676820506f6f6c', // ascii AnandrajSingh Pool
+            },
+        ],
     ],
 };
