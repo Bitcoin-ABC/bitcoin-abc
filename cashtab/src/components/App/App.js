@@ -95,7 +95,8 @@ const App = () => {
     const walletState = getWalletState(wallet);
     const { balanceSats } = walletState;
     const [navMenuClicked, setNavMenuClicked] = useState(false);
-    const [scrollYPosition, setScrollYPosition] = React.useState(0);
+    const [scrollY, setScrollY] = useState(0);
+    const [minifiedMenu, setMinifiedMenu] = useState(false);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
     // If wallet is unmigrated, do not show page until it has migrated
     // An invalid wallet will be validated/populated after the next API call, ETA 10s
@@ -103,25 +104,28 @@ const App = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
+    const PIN_MINIFIED_WALLET_MENU_SCROLLY = 63;
+    const UNPIN_MINIFIED_WALLET_MENU_SCROLLY = 15;
     const handleScroll = () => {
-        setScrollYPosition(window.scrollY);
+        setScrollY(window.scrollY);
     };
+    useEffect(() => {
+        if (scrollY > PIN_MINIFIED_WALLET_MENU_SCROLLY && !minifiedMenu) {
+            // If the user has scrolled DOWN past PIN_MINIFIED_WALLET_MENU_SCROLLY and the menu IS NOT minified
+            // Minify the menu
+            setMinifiedMenu(true);
+        } else if (
+            scrollY < UNPIN_MINIFIED_WALLET_MENU_SCROLLY &&
+            minifiedMenu
+        ) {
+            // If the user has scrolled UP past UNPIN_MINIFIED_WALLET_MENU_SCROLLY and the menu IS minified
+            // Unminify the menu
+            setMinifiedMenu(false);
+        }
+    }, [scrollY, minifiedMenu]);
 
     // Only execute handleScroll if it has not been called for 25ms
     const debouncedHandleScroll = debounce(handleScroll, 25);
-
-    // To avoid content jump flickering without using overflow-anchor,
-    // This cannot exceed the height of the minified wallet menu
-    // overflow-anchor css rule is not supported across all browsers and devices
-    // WalletInfoCtn has height set to 63px in styles.js
-    const PIN_MINIFIED_WALLET_MENU_SCROLLY = 63;
-    const UNPIN_MINIFIED_WALLET_MENU_SCROLLY = 15;
-    const minifiedMenu =
-        scrollYPosition > PIN_MINIFIED_WALLET_MENU_SCROLLY
-            ? true
-            : scrollYPosition < UNPIN_MINIFIED_WALLET_MENU_SCROLLY
-            ? false
-            : true;
 
     useEffect(() => {
         window.addEventListener('scroll', debouncedHandleScroll);
