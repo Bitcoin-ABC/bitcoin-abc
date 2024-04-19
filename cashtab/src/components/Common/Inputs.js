@@ -151,6 +151,7 @@ export const Input = ({
     placeholder = '',
     name = '',
     value = '',
+    disabled = false,
     handleInput,
     error = false,
 }) => {
@@ -161,6 +162,7 @@ export const Input = ({
                     name={name}
                     value={value}
                     placeholder={placeholder}
+                    disabled={disabled}
                     invalid={typeof error === 'string'}
                     onChange={e => handleInput(e)}
                 />
@@ -174,6 +176,7 @@ Input.propTypes = {
     placeholder: PropTypes.string,
     name: PropTypes.string,
     value: PropTypes.string,
+    disabled: PropTypes.bool,
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     handleInput: PropTypes.func,
 };

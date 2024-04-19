@@ -10,7 +10,7 @@ import TokenList from './TokenList';
 import { getWalletState } from 'utils/cashMethods';
 import appConfig from 'config/app';
 import { getUserLocale } from 'helpers';
-import { PrimaryLink } from 'components/Common/Buttons';
+import { PrimaryLink, SecondaryLink } from 'components/Common/Buttons';
 import { Input } from 'components/Common/Inputs';
 
 const EtokensCtn = styled.div`
@@ -107,13 +107,17 @@ const Etokens = () => {
             ) : (
                 <EtokensCtn title="Wallet Tokens">
                     <ButtonHolder title="Create eToken">
-                        <PrimaryLink
-                            to={{
-                                pathname: `/create-token`,
-                            }}
-                        >
+                        <PrimaryLink to="/create-token">
                             Create eToken
                         </PrimaryLink>
+                    </ButtonHolder>
+                    <ButtonHolder title="Create NFT Collection">
+                        <SecondaryLink
+                            to="/create-nft-collection"
+                            state={{ createNftCollection: true }}
+                        >
+                            Create NFT Collection
+                        </SecondaryLink>
                     </ButtonHolder>
                     {Array.isArray(tokensInWallet) &&
                     tokensInWallet.length > 0 ? (

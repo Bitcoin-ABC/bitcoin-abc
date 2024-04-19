@@ -8,7 +8,7 @@ import {
     MOCK_CHRONIK_TOKEN_CALL,
     MOCK_CHRONIK_GENESIS_TX_CALL,
 } from 'components/App/fixtures/mocks';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { explorer } from 'config/explorer';
@@ -98,6 +98,13 @@ describe('<CreateTokenForm />', () => {
             />,
         );
 
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
         // The user enters valid token metadata
         await user.type(
             await screen.findByPlaceholderText('Enter a name for your token'),
@@ -114,9 +121,7 @@ describe('<CreateTokenForm />', () => {
             '2',
         );
         await user.type(
-            await screen.findByPlaceholderText(
-                'Enter the supply of your token',
-            ),
+            await screen.findByPlaceholderText('Enter initial token supply'),
             '600000',
         );
         await user.type(
@@ -192,6 +197,13 @@ describe('<CreateTokenForm />', () => {
             />,
         );
 
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
         // The user enters valid token metadata
         await user.type(
             await screen.findByPlaceholderText('Enter a name for your token'),
@@ -208,9 +220,7 @@ describe('<CreateTokenForm />', () => {
             '2',
         );
         await user.type(
-            await screen.findByPlaceholderText(
-                'Enter the supply of your token',
-            ),
+            await screen.findByPlaceholderText('Enter initial token supply'),
             '600000',
         );
         await user.type(
@@ -237,5 +247,81 @@ describe('<CreateTokenForm />', () => {
 
         // We are sent to its token-action page
         expect(await screen.findByTitle('Token Stats')).toBeInTheDocument();
+    });
+    it('User can create an NFT collection', async () => {
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithXecAndTokens,
+            localforage,
+        );
+        // Add tx mock to mockedChronik
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022064d8618b1b6131f6d1b611d67107d0962f7c1d951a5cadcccf3f502952a1723002202f9fd50a185b683475fb9c0a394fef4b6aaaf188cdb3747a1c38d4366571a3614121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000006e6a04534c500001810747454e45534953033448432454686520466f75722048616c662d436f696e73206f66204a696e2d71756120283448432925656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c294c0001004c0008000000000000000422020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac387f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            'ed6e5838af475cf2d35e537abb06cb497bb9e69ba071ba06a678d35764a39c9a';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        // Load component with create-nft-collection route
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                route="/create-nft-collection"
+            />,
+        );
+
+        // Wait for Cashtab to load
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // The user enters valid token metadata
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter a name for your NFT collection',
+            ),
+            'The Four Half-Coins of Jin-qua (4HC)',
+        );
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter a ticker for your NFT collection',
+            ),
+            '4HC',
+        );
+
+        // The decimals input is disabled
+        const decimalsInput = screen.getByPlaceholderText(
+            'Enter number of decimal places',
+        );
+        expect(decimalsInput).toHaveProperty('disabled', true);
+
+        // Decimals is set to 0
+        expect(decimalsInput).toHaveValue('0');
+        await user.type(
+            await screen.findByPlaceholderText('Enter NFT collection size'),
+            '4',
+        );
+        await user.type(
+            await screen.findByPlaceholderText(
+                'Enter a website for your NFT collection',
+            ),
+            'en.wikipedia.org/wiki/Tai-Pan_(novel)',
+        );
+
+        // Click the Create eToken button
+        await user.click(
+            screen.getByRole('button', { name: /Create NFT Collection/ }),
+        );
+
+        // Click OK on confirmation modal
+        await user.click(screen.getByText('OK'));
+
+        // Verify notification triggered
+        expect(
+            await screen.findByText('NFT Collection created!'),
+        ).toHaveAttribute('href', `${explorer.blockExplorerUrl}/tx/${txid}`);
     });
 });

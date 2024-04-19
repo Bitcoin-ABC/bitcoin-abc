@@ -10,7 +10,7 @@ import PrimaryButton, {
     IconButton,
     CopyIconButton,
 } from 'components/Common/Buttons';
-import { TxLink, SwitchLabel } from 'components/Common/Atoms';
+import { TxLink, SwitchLabel, Info } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
 import { Event } from 'components/Common/GoogleAnalytics';
@@ -816,6 +816,12 @@ const Token = () => {
                         </TokenStatsTable>
 
                         {apiError && <ApiError />}
+                        {renderedTokenType === 'SLP NFT Collection' && (
+                            <Info>
+                                ℹ️ Cashtab support for minting NFTs is coming
+                                soon
+                            </Info>
+                        )}
 
                         {isSupportedToken && (
                             <SendTokenForm title="Token Actions">

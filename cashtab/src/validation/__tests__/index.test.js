@@ -158,6 +158,13 @@ describe('Cashtab validation functions', () => {
     it(`Expected error for a domain input with no top level domain, protocol or subdomain  ${appConfig.tokenTicker} token document URL`, () => {
         expect(getTokenDocumentUrlError('mywebsite')).toBe('Invalid URL');
     });
+    it(`Accepts a common wikipedia URL convention (underscore and parenthesis)`, () => {
+        expect(
+            getTokenDocumentUrlError(
+                'https://en.wikipedia.org/wiki/Tai-Pan_(novel)',
+            ),
+        ).toBe(false);
+    });
     it(`Expected error for a domain input as numbers ${appConfig.tokenTicker} token document URL`, () => {
         expect(getTokenDocumentUrlError(12345)).toBe('Invalid URL');
     });

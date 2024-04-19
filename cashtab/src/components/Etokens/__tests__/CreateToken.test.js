@@ -88,7 +88,7 @@ describe('<CreateToken />', () => {
         );
 
         // Renders CreateTokenForm, as this wallet has sufficient balance to create a token
-        expect(await screen.findByText('Create a Token')).toBeInTheDocument();
+        expect(await screen.findByText('Create Token')).toBeInTheDocument();
 
         // Does not render insufficient balance alert
         expect(
@@ -127,7 +127,7 @@ describe('<CreateToken />', () => {
         expect(await screen.findByText('0.00 XEC')).toBeInTheDocument();
 
         // We do not see the Create a Token form
-        expect(screen.queryByText('Create a Token')).not.toBeInTheDocument();
+        expect(screen.queryByText('Create Token')).not.toBeInTheDocument();
 
         // Renders expected alert
         // Note: the component is expected to load before fiatPrice loads

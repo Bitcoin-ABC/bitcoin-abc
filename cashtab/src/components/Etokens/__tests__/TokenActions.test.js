@@ -228,7 +228,6 @@ describe('<Token /> available actions rendered', () => {
             ).not.toBeInTheDocument(),
         );
 
-        screen.debug(null, Infinity);
         // Wait for element to get token info and load
         expect(
             (await screen.findAllByText(new RegExp(tokenName)))[0],
@@ -252,6 +251,13 @@ describe('<Token /> available actions rendered', () => {
 
         // The supply is correctly rendered
         expect(screen.getByText('100 (var.)')).toBeInTheDocument();
+
+        // We see a "Coming soon" notice
+        expect(
+            screen.getByText(
+                'ℹ️ Cashtab support for minting NFTs is coming soon',
+            ),
+        ).toBeInTheDocument();
 
         // No token actions are available
         expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();

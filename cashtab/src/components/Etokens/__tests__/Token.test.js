@@ -123,7 +123,7 @@ describe('<Token />', () => {
         await clearLocalForage(localforage);
     });
 
-    it('Renders the SendToken screen with send address input', async () => {
+    it('Renders the Token screen with send address input', async () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}

@@ -28,7 +28,11 @@ import getRoundImg from 'components/Etokens/icons/roundImage';
 import getResizedImage from 'components/Etokens/icons/resizeImage';
 import { token as tokenConfig } from 'config/token';
 import appConfig from 'config/app';
-import { getSlpGenesisTargetOutput, getMaxMintAmount } from 'slpv1';
+import {
+    getSlpGenesisTargetOutput,
+    getMaxMintAmount,
+    getNftParentGenesisTargetOutputs,
+} from 'slpv1';
 import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
@@ -36,7 +40,7 @@ import { getWalletState } from 'utils/cashMethods';
 import { hasEnoughToken } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Form,
     SwitchRow,
@@ -53,9 +57,11 @@ import {
     SummaryRow,
     TokenParam,
 } from 'components/Etokens/CreateTokenForm/styles';
+import { sha256 } from 'js-sha256';
 
 const CreateTokenForm = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { chronik, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
@@ -80,6 +86,9 @@ const CreateTokenForm = () => {
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
+    // NFT handling
+    const [createNftCollection, setCreateNftCollection] = useState(false);
+
     // Modal settings
     const [showConfirmCreateToken, setShowConfirmCreateToken] = useState(false);
 
@@ -90,6 +99,7 @@ const CreateTokenForm = () => {
         decimals: '',
         genesisQty: '',
         url: '',
+        hash: '',
         createWithMintBatonAtIndexTwo: false,
     };
     const initialFormDataErrors = {
@@ -98,6 +108,7 @@ const CreateTokenForm = () => {
         decimals: false,
         genesisQty: false,
         url: false,
+        // No error for hash as this is only generated
     };
     const [formData, setFormData] = useState(emptyFormData);
     const [formDataErrors, setFormDataErrors] = useState(initialFormDataErrors);
@@ -109,6 +120,13 @@ const CreateTokenForm = () => {
     // Questionable value to casual users and requires significant complication
 
     useEffect(() => {
+        // If we routed here from the Create NFT Collection link, toggle NFT switch to true
+        if (location?.pathname?.includes('create-nft-collection')) {
+            setCreateNftCollection(true);
+        }
+    }, []);
+
+    useEffect(() => {
         // After the user has created a token, we wait until the wallet has updated its balance
         // and the page is available, then we navigate to the page
         if (createdTokenId === null) {
@@ -118,6 +136,16 @@ const CreateTokenForm = () => {
             navigate(`/token/${createdTokenId}`);
         }
     }, [createdTokenId, tokens]);
+
+    useEffect(() => {
+        if (createNftCollection === true) {
+            // Cashtab only creates NFT1 Parent tokens (aka NFT Collections) with 0 decimals
+            setFormData(previous => ({
+                ...previous,
+                decimals: '0',
+            }));
+        }
+    }, [createNftCollection]);
 
     const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
         setCroppedAreaPixels(croppedAreaPixels);
@@ -165,6 +193,24 @@ const CreateTokenForm = () => {
         new Promise((resolve, reject) => {
             setLoading(true);
             try {
+                // Get the sha256 hash of the user's original uploaded file
+                // For an NFT, this will be set as the document hash
+                // Note that this will not match the hash of the image on the token server due to resizing
+                // and renaming
+                // The hash should be of the creator's original file
+                const hashreader = new FileReader();
+                hashreader.readAsArrayBuffer(imgFile);
+                hashreader.addEventListener('load', () => {
+                    // Handle Input expects an event with key target
+                    // target to have keys name and hash
+                    handleInput({
+                        target: {
+                            name: 'hash',
+                            value: sha256(hashreader.result),
+                        },
+                    });
+                });
+
                 const reader = new FileReader();
 
                 const width = 512;
@@ -345,6 +391,11 @@ const CreateTokenForm = () => {
                 }));
                 break;
             }
+            case 'hash': {
+                // Do nothing, we disable user input for this field
+                // Input can only come from a user uploaded image
+                break;
+            }
             default:
                 break;
         }
@@ -448,14 +499,17 @@ const CreateTokenForm = () => {
                     ? tokenConfig.newTokenDefaultUrl
                     : formData.url,
             genesisQty: formData.genesisQty,
-            documentHash: '',
+            // Support documentHash for NFT Collection, but only for uploaded image file
+            documentHash: createNftCollection ? formData.hash : '',
             mintBatonVout: createWithMintBatonAtIndexTwo ? 2 : null,
         };
 
-        // create token with data in state fields
+        // Create type 1 slp token per specified user data
         try {
             // Get target outputs for an SLP v1 genesis tx
-            const targetOutputs = getSlpGenesisTargetOutput(configObj);
+            const targetOutputs = createNftCollection
+                ? getNftParentGenesisTargetOutputs(configObj)
+                : getSlpGenesisTargetOutput(configObj);
             const { response } = await sendXec(
                 chronik,
                 wallet,
@@ -480,7 +534,7 @@ const CreateTokenForm = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    Token created!
+                    {createNftCollection ? 'NFT Collection' : 'Token'} created!
                 </TokenCreatedLink>,
                 {
                     icon: TokenNotificationIcon,
@@ -501,7 +555,9 @@ const CreateTokenForm = () => {
         <>
             {showConfirmCreateToken && (
                 <Modal
-                    title={`Your Token`}
+                    title={`Your ${
+                        createNftCollection ? 'NFT Collection' : 'Token'
+                    }`}
                     handleOk={createPreviewedToken}
                     handleCancel={() => setShowConfirmCreateToken(false)}
                     showCancelButton
@@ -532,21 +588,33 @@ const CreateTokenForm = () => {
                                     : formData.url}
                             </TokenParam>
                         </SummaryRow>
+                        {createNftCollection && (
+                            <SummaryRow>
+                                <TokenParamLabel>Hash:</TokenParamLabel>
+                                <TokenParam>{formData.hash}</TokenParam>
+                            </SummaryRow>
+                        )}
                     </TokenCreationSummaryTable>
                 </Modal>
             )}
-            <CreateTokenTitle>Create a Token</CreateTokenTitle>
+            <CreateTokenTitle>
+                Create {createNftCollection ? 'NFT Collection' : 'Token'}
+            </CreateTokenTitle>
 
             <Form>
                 <Input
-                    placeholder="Enter a name for your token"
+                    placeholder={`Enter a name for your ${
+                        createNftCollection ? 'NFT collection' : 'token'
+                    }`}
                     name="name"
                     value={formData.name}
                     handleInput={handleInput}
                     error={formDataErrors.name}
                 />
                 <Input
-                    placeholder="Enter a ticker for your token"
+                    placeholder={`Enter a ticker for your ${
+                        createNftCollection ? 'NFT collection' : 'token'
+                    }`}
                     name="ticker"
                     value={formData.ticker}
                     handleInput={handleInput}
@@ -556,12 +624,17 @@ const CreateTokenForm = () => {
                     placeholder="Enter number of decimal places"
                     name="decimals"
                     type="number"
+                    disabled={createNftCollection}
                     value={formData.decimals}
                     handleInput={handleInput}
                     error={formDataErrors.decimals}
                 />
                 <SendTokenInput
-                    placeholder="Enter the supply of your token"
+                    placeholder={`Enter ${
+                        createNftCollection
+                            ? 'NFT collection size'
+                            : 'initial token supply'
+                    }`}
                     name="genesisQty"
                     type="string"
                     value={formData.genesisQty}
@@ -571,12 +644,23 @@ const CreateTokenForm = () => {
                     handleOnMax={onMaxGenesis}
                 />
                 <Input
-                    placeholder="Enter a website for your token"
+                    placeholder={`Enter a website for your ${
+                        createNftCollection ? 'NFT collection' : 'token'
+                    }`}
                     name="url"
                     value={formData.url}
                     handleInput={handleInput}
                     error={formDataErrors.url}
                 />
+                {createNftCollection && (
+                    <Input
+                        placeholder={`Upload a jpg or png to generate document hash`}
+                        name="hash"
+                        value={formData.hash}
+                        disabled={true}
+                        handleInput={handleInput}
+                    />
+                )}
                 <SwitchRow>
                     <Switch
                         name="Toggle Mint Baton"
@@ -591,7 +675,11 @@ const CreateTokenForm = () => {
                             );
                         }}
                     />
-                    <SwitchLabel>Token supply</SwitchLabel>
+                    <SwitchLabel>
+                        {createNftCollection
+                            ? 'NFT Collection Size'
+                            : 'Token supply'}
+                    </SwitchLabel>
                 </SwitchRow>
                 <CashtabDragger
                     name="Cashtab Dragger"
@@ -681,7 +769,7 @@ const CreateTokenForm = () => {
                     disabled={!tokenGenesisDataIsValid}
                     style={{ marginTop: '30px' }}
                 >
-                    Create eToken
+                    Create {createNftCollection ? 'NFT Collection' : 'eToken'}
                 </PrimaryButton>
             </Form>
         </>

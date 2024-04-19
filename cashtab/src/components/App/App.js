@@ -325,6 +325,11 @@ const App = () => {
                                                 />
 
                                                 <Route
+                                                    path="/create-nft-collection"
+                                                    element={<CreateToken />}
+                                                />
+
+                                                <Route
                                                     path="/send"
                                                     element={<SendXec />}
                                                 />
