@@ -137,6 +137,7 @@ const CurrencyOption = styled.option`
 const ErrorMsg = styled.div`
     font-size: 14px;
     color: ${props => props.theme.forms.error};
+    word-break: break-all;
 `;
 
 export const InputFlex = styled.div`
@@ -224,6 +225,7 @@ const TextAreaErrorMsg = styled.div`
     order: 0;
     font-size: 14px;
     color: ${props => props.theme.forms.error};
+    word-break: break-all;
 `;
 
 export const TextArea = ({
