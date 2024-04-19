@@ -20,10 +20,8 @@ from test_framework.wallet import MiniWallet
 # MAX_MONEY as a string is "21000000000000.00 XEC"
 MAX_AMOUNT_LENGTH = 22
 
-utxocache_changes_program = """
+utxocache_changes_add_spent_program = """
 #include <uapi/linux/ptrace.h>
-
-typedef signed long long i64;
 
 #define MAX_AMOUNT_LENGTH 22
 
@@ -59,6 +57,21 @@ int trace_utxocache_spent(struct pt_regs *ctx) {
     utxocache_spent.perf_submit(ctx, &spent, sizeof(spent));
     return 0;
 }
+"""
+
+utxocache_changes_uncache_program = """
+#include <uapi/linux/ptrace.h>
+
+#define MAX_AMOUNT_LENGTH 22
+
+struct utxocache_change
+{
+    char        txid[32];
+    u32         index;
+    u32         height;
+    char        value[MAX_AMOUNT_LENGTH];
+    bool        is_coinbase;
+};
 
 BPF_PERF_OUTPUT(utxocache_uncache);
 int trace_utxocache_uncache(struct pt_regs *ctx) {
@@ -191,7 +204,7 @@ class UTXOCacheTracepointTest(BitcoinTestFramework):
         self.log.info("hooking into the utxocache:uncache tracepoint")
         ctx = USDT(pid=self.nodes[0].process.pid)
         ctx.enable_probe(probe="utxocache:uncache", fn_name="trace_utxocache_uncache")
-        bpf = BPF(text=utxocache_changes_program, usdt_contexts=[ctx], debug=0)
+        bpf = BPF(text=utxocache_changes_uncache_program, usdt_contexts=[ctx], debug=0)
 
         # The handle_* function is a ctypes callback function called from C. When
         # we assert in the handle_* function, the AssertError doesn't propagate
@@ -256,7 +269,9 @@ class UTXOCacheTracepointTest(BitcoinTestFramework):
         ctx = USDT(pid=self.nodes[0].process.pid)
         ctx.enable_probe(probe="utxocache:add", fn_name="trace_utxocache_add")
         ctx.enable_probe(probe="utxocache:spent", fn_name="trace_utxocache_spent")
-        bpf = BPF(text=utxocache_changes_program, usdt_contexts=[ctx], debug=0)
+        bpf = BPF(
+            text=utxocache_changes_add_spent_program, usdt_contexts=[ctx], debug=0
+        )
 
         # The handle_* function is a ctypes callback function called from C. When
         # we assert in the handle_* function, the AssertError doesn't propagate
