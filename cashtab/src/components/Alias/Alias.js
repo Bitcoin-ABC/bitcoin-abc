@@ -5,7 +5,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
-import PropTypes from 'prop-types';
 import { AlertMsg } from 'components/Common/Atoms';
 import PrimaryButton from 'components/Common/Buttons';
 import { getWalletState } from 'utils/cashMethods';
@@ -24,6 +23,7 @@ import { toast } from 'react-toastify';
 import { AliasInput, Input } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import Modal from 'components/Common/Modal';
+import Spinner from 'components/Common/Spinner';
 
 const AliasWrapper = styled.div`
     color: ${props => props.theme.contrast};
@@ -113,7 +113,7 @@ export const NamespaceCtn = styled.div`
     white-space: pre-wrap;
 `;
 
-const Alias = ({ passLoadingStatus }) => {
+const Alias = () => {
     const ContextValue = React.useContext(WalletContext);
     const {
         chronik,
@@ -135,6 +135,7 @@ const Alias = ({ passLoadingStatus }) => {
         aliasName: '',
         aliasAddress: defaultAddress,
     });
+    const [waitingForServer, setWaitingForServer] = useState(false);
     const [registerActiveWallet, setRegisterActiveWallet] = useState(true);
     const [isValidAliasInput, setIsValidAliasInput] = useState(false); // tracks whether to activate the registration button
     const [isValidAliasAddressInput, setIsValidAliasAddressInput] =
@@ -149,7 +150,7 @@ const Alias = ({ passLoadingStatus }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     useEffect(() => {
-        passLoadingStatus(false);
+        setWaitingForServer(false);
     }, [balanceSats]);
 
     useEffect(() => {
@@ -185,7 +186,7 @@ const Alias = ({ passLoadingStatus }) => {
                 setAliasValidationError(
                     `Failed to fetch alias price information from server. Alias registration disabled. Refresh page to try again.`,
                 );
-                passLoadingStatus(false);
+                setWaitingForServer(false);
             }
         }
 
@@ -214,13 +215,13 @@ const Alias = ({ passLoadingStatus }) => {
                         setAliasValidationError(
                             `Failed to check alias availability from server. Alias registration disabled. Refresh page to try again.`,
                         );
-                        passLoadingStatus(false);
+                        setWaitingForServer(false);
                     }
                 }
             }, aliasSettings.aliasKeyUpTimeoutMs);
         });
 
-        passLoadingStatus(false);
+        setWaitingForServer(false);
     };
 
     useEffect(() => {
@@ -228,9 +229,9 @@ const Alias = ({ passLoadingStatus }) => {
         if (wallet === false || typeof wallet === 'undefined') {
             return;
         }
-        passLoadingStatus(true);
+        setWaitingForServer(true);
 
-        // passLoadingStatus(false) will be called after awaiting expected methods
+        // setWaitingForServer(false) will be called after awaiting expected methods
         handleAliasWalletChange();
     }, [wallet.name]);
 
@@ -244,7 +245,7 @@ const Alias = ({ passLoadingStatus }) => {
     };
 
     const preparePreviewModal = async () => {
-        passLoadingStatus(true);
+        setWaitingForServer(true);
 
         // Retrieve alias details
         let aliasDetailsResp;
@@ -277,7 +278,7 @@ const Alias = ({ passLoadingStatus }) => {
             console.error(`preparePreviewModal(): ${errorMsg}`, err);
             // Using a pop up notification since this is a modal block
             toast.error(`${errorMsg}`);
-            passLoadingStatus(false);
+            setWaitingForServer(false);
             return;
         }
 
@@ -302,7 +303,7 @@ const Alias = ({ passLoadingStatus }) => {
             );
             setAliasDetails(false);
         }
-        passLoadingStatus(false);
+        setWaitingForServer(false);
     };
 
     const handleOk = () => {
@@ -315,7 +316,7 @@ const Alias = ({ passLoadingStatus }) => {
     };
 
     const registerAlias = async () => {
-        passLoadingStatus(true);
+        setWaitingForServer(true);
 
         // note: input already validated via handleAliasNameInput()
         const aliasInput = formData.aliasName;
@@ -388,7 +389,7 @@ const Alias = ({ passLoadingStatus }) => {
                 `Alias "${aliasInput}" has already been taken, please try another alias.`,
             );
         }
-        passLoadingStatus(false);
+        setWaitingForServer(false);
     };
 
     const handleAliasNameInput = e => {
@@ -454,6 +455,7 @@ const Alias = ({ passLoadingStatus }) => {
 
     return (
         <>
+            {waitingForServer && <Spinner />}
             {isModalVisible && (
                 <Modal
                     title={
@@ -619,23 +621,6 @@ const Alias = ({ passLoadingStatus }) => {
             </AliasWrapper>
         </>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in Alias.test.js
-
-status => {console.info(status)} is an arbitrary stub function
-*/
-
-Alias.defaultProps = {
-    passLoadingStatus: status => {
-        console.info(status);
-    },
-};
-
-Alias.propTypes = {
-    passLoadingStatus: PropTypes.func,
 };
 
 export default Alias;

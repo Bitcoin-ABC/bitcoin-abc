@@ -94,7 +94,6 @@ const App = () => {
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
     const { balanceSats } = walletState;
-    const [spinner, setSpinner] = useState(false);
     const [navMenuClicked, setNavMenuClicked] = useState(false);
     const [scrollYPosition, setScrollYPosition] = React.useState(0);
     const handleNavMenuClick = () => setNavMenuClicked(!navMenuClicked);
@@ -139,7 +138,6 @@ const App = () => {
               1,
           )
         : false;
-
     return (
         <ThemeProvider theme={theme}>
             <GlobalStyle />
@@ -155,9 +153,7 @@ const App = () => {
                 </>
             )}
 
-            {loading ||
-                spinner ||
-                (wallet !== false && !validWallet && <Spinner />)}
+            {loading || (wallet !== false && !validWallet && <Spinner />)}
             <CustomApp>
                 <CashtabNotification
                     position="top-right"
@@ -342,13 +338,7 @@ const App = () => {
                                                 </Route>
                                                 <Route
                                                     path="/airdrop"
-                                                    element={
-                                                        <Airdrop
-                                                            passLoadingStatus={
-                                                                setSpinner
-                                                            }
-                                                        />
-                                                    }
+                                                    element={<Airdrop />}
                                                 />
                                                 <Route
                                                     path="/backup"
@@ -374,13 +364,7 @@ const App = () => {
                                                 {aliasSettings.aliasEnabled && (
                                                     <Route
                                                         path="/alias"
-                                                        element={
-                                                            <Alias
-                                                                passLoadingStatus={
-                                                                    setSpinner
-                                                                }
-                                                            />
-                                                        }
+                                                        element={<Alias />}
                                                     />
                                                 )}
                                                 <Route

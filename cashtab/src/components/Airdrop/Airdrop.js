@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { BN } from 'slp-mdm';
 import styled from 'styled-components';
 import { WalletContext } from 'wallet/context';
@@ -24,6 +23,7 @@ import { Input, TextArea, InputFlex } from 'components/Common/Inputs';
 import { CopyPasteIcon } from 'components/Common/CustomIcons';
 import { getTokenGenesisInfo } from 'chronik';
 import cashaddr from 'ecashaddrjs';
+import Spinner from 'components/Common/Spinner';
 
 const AirdropForm = styled.div`
     margin-top: 24px;
@@ -54,13 +54,14 @@ const AirdropTitle = styled.div`
     justify-content: center;
 `;
 
-const Airdrop = ({ passLoadingStatus }) => {
+const Airdrop = () => {
     const ContextValue = React.useContext(WalletContext);
     const { chronik, cashtabState, updateCashtabState } = ContextValue;
     const { wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const location = useLocation();
 
+    const [calculatingAirdrop, setCalculatingAirdrop] = useState(false);
     const [formData, setFormData] = useState({
         tokenId: '',
         totalAirdrop: '',
@@ -230,7 +231,7 @@ const Airdrop = ({ passLoadingStatus }) => {
     const calculateXecAirdrop = async () => {
         // Airdrop txs are instant for most tokens, but can take some time for
         // tokens with a large amount of holders
-        passLoadingStatus(true);
+        setCalculatingAirdrop(true);
         // hide any previous airdrop outputs
         setShowAirdropOutputs(false);
 
@@ -242,7 +243,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             toast.error('Error retrieving airdrop recipients');
             // Clear result field from earlier calc, if present, on any error
             setAirdropRecipients('');
-            return passLoadingStatus(false);
+            return setCalculatingAirdrop(false);
         }
 
         const excludedAddresses = [];
@@ -257,7 +258,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                 );
                 // Clear result field from earlier calc, if present, on any error
                 setAirdropRecipients('');
-                return passLoadingStatus(false);
+                return setCalculatingAirdrop(false);
             }
             excludedAddresses.push(mintAddress);
         }
@@ -278,7 +279,7 @@ const Airdrop = ({ passLoadingStatus }) => {
                 );
                 // Clear result field from earlier calc, if present, on any error
                 setAirdropRecipients('');
-                return passLoadingStatus(false);
+                return setCalculatingAirdrop(false);
             }
             undecimalizedMinTokenAmount = new BN(ignoreMinEtokenBalanceAmount)
                 .times(10 ** tokenInfo.genesisInfo.decimals)
@@ -310,7 +311,7 @@ const Airdrop = ({ passLoadingStatus }) => {
             setAirdropRecipients('');
             toast.error(`${err}`);
         }
-        return passLoadingStatus(false);
+        return setCalculatingAirdrop(false);
     };
 
     const handleIgnoreMinEtokenBalanceAmt = e => {
@@ -381,201 +382,187 @@ const Airdrop = ({ passLoadingStatus }) => {
     }
 
     return (
-        <AirdropForm>
-            <FormRow>
-                <InputFlex>
-                    <Input
-                        placeholder="Enter the eToken ID"
-                        name="tokenId"
-                        value={formData.tokenId}
-                        handleInput={handleTokenIdInput}
-                        error={
-                            tokenIdIsValid === false
-                                ? 'Invalid eToken ID'
-                                : false
-                        }
-                    />
-                </InputFlex>
-            </FormRow>
-            <FormRow>
-                <InputFlex>
-                    <Input
-                        placeholder="Enter the total XEC airdrop"
-                        name="totalAirdrop"
-                        type="number"
-                        value={formData.totalAirdrop}
-                        handleInput={handleTotalAirdropInput}
-                        error={
-                            totalAirdropIsValid === false
-                                ? 'Invalid total XEC airdrop'
-                                : false
-                        }
-                    />
-                </InputFlex>
-            </FormRow>
-
-            <FormRow>
-                <SwitchHolder>
-                    <CashtabSwitch
-                        name="Toggle Communism"
-                        on="Pro-Rata"
-                        width={120}
-                        right={86}
-                        bgImageOff={Communist}
-                        checked={!equalDistributionRatio}
-                        handleToggle={() => {
-                            setEqualDistributionRatio(prev => !prev);
-                        }}
-                    />
-                    <SwitchLabel>
-                        {equalDistributionRatio
-                            ? ` Airdrop
-                                the same for everyone`
-                            : ` Airdrop
-                                scaled to token balance`}
-                    </SwitchLabel>
-                </SwitchHolder>
-            </FormRow>
-            <FormRow>
-                <SwitchHolder>
-                    <CashtabSwitch
-                        name="ignoreOwnAddress"
-                        checked={ignoreOwnAddress}
-                        handleToggle={() =>
-                            handleIgnoreOwnAddress(prev => !prev)
-                        }
-                    />
-                    <SwitchLabel>Ignore my own address</SwitchLabel>
-                </SwitchHolder>
-            </FormRow>
-            <FormRow>
-                <SwitchHolder>
-                    <CashtabSwitch
-                        name="Toggle Ignore Mint Address"
-                        checked={ignoreMintAddress}
-                        disabled={typeof mintAddress === 'undefined'}
-                        handleToggle={() =>
-                            handleIgnoreMintAddress(prev => !prev)
-                        }
-                    />
-                    <SwitchLabel>Ignore eToken minter address</SwitchLabel>
-                </SwitchHolder>
-            </FormRow>
-            <FormRow>
-                <SwitchHolder>
-                    <CashtabSwitch
-                        name="Toggle Minimum Token Balance"
-                        checked={ignoreMinEtokenBalance}
-                        disabled={typeof tokenInfo === 'undefined'}
-                        handleToggle={() =>
-                            handleIgnoreMinEtokenBalanceAmt(prev => !prev)
-                        }
-                    />
-                    <SwitchLabel>Minimum eToken holder balance</SwitchLabel>
-                </SwitchHolder>
-                {ignoreMinEtokenBalance && (
-                    <Input
-                        error={ignoreMinEtokenBalanceAmountError}
-                        placeholder="Minimum eToken balance"
-                        handleInput={handleMinEtokenBalanceChange}
-                        value={ignoreMinEtokenBalanceAmount}
-                    />
-                )}
-            </FormRow>
-            <FormRow>
-                <SwitchHolder>
-                    <CashtabSwitch
-                        name="Toggle Ignore Custom Addresses"
-                        checked={ignoreCustomAddresses}
-                        handleToggle={() =>
-                            handleIgnoreCustomAddresses(prev => !prev)
-                        }
-                    />
-                    <SwitchLabel>Ignore custom addresses</SwitchLabel>
-                </SwitchHolder>
-                {ignoreCustomAddresses && (
-                    <TextArea
-                        placeholder={`If more than one XEC address, separate them by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed`}
-                        error={ignoreCustomAddressListError}
-                        value={ignoreCustomAddressesList}
-                        name="address"
-                        handleInput={handleIgnoreCustomAddressesList}
-                        disabled={!ignoreCustomAddresses}
-                    />
-                )}
-            </FormRow>
-            <FormRow>
-                <PrimaryButton
-                    onClick={() => calculateXecAirdrop()}
-                    disabled={
-                        !airdropCalcInputIsValid ||
-                        !tokenIdIsValid ||
-                        (ignoreMintAddress &&
-                            typeof mintAddress === 'undefined') ||
-                        (ignoreMinEtokenBalance &&
-                            typeof tokenInfo === 'undefined')
-                    }
-                >
-                    Calculate Airdrop
-                </PrimaryButton>
-            </FormRow>
-            {showAirdropOutputs && (
-                <>
-                    <FormRow>
-                        <AirdropTitle>
-                            One to Many Airdrop Payment Outputs
-                            <CopyToClipboard
-                                data={airdropRecipients}
-                                showToast
-                                customMsg={
-                                    'Airdrop recipients copied to clipboard'
-                                }
-                            >
-                                <CopyPasteIcon />
-                            </CopyToClipboard>
-                        </AirdropTitle>
-                        <TextArea
-                            name="airdropRecipients"
-                            placeholder="Please input parameters above."
-                            value={airdropRecipients}
-                            rows="10"
-                            readOnly
+        <>
+            {calculatingAirdrop && <Spinner />}
+            <AirdropForm>
+                <FormRow>
+                    <InputFlex>
+                        <Input
+                            placeholder="Enter the eToken ID"
+                            name="tokenId"
+                            value={formData.tokenId}
+                            handleInput={handleTokenIdInput}
+                            error={
+                                tokenIdIsValid === false
+                                    ? 'Invalid eToken ID'
+                                    : false
+                            }
                         />
-                    </FormRow>
-                    <FormRow>
-                        <SecondaryLink
-                            type="text"
-                            to="/send"
-                            state={{
-                                airdropRecipients: airdropRecipients,
-                                airdropTokenId: formData.tokenId,
+                    </InputFlex>
+                </FormRow>
+                <FormRow>
+                    <InputFlex>
+                        <Input
+                            placeholder="Enter the total XEC airdrop"
+                            name="totalAirdrop"
+                            type="number"
+                            value={formData.totalAirdrop}
+                            handleInput={handleTotalAirdropInput}
+                            error={
+                                totalAirdropIsValid === false
+                                    ? 'Invalid total XEC airdrop'
+                                    : false
+                            }
+                        />
+                    </InputFlex>
+                </FormRow>
+
+                <FormRow>
+                    <SwitchHolder>
+                        <CashtabSwitch
+                            name="Toggle Communism"
+                            on="Pro-Rata"
+                            width={120}
+                            right={86}
+                            bgImageOff={Communist}
+                            checked={!equalDistributionRatio}
+                            handleToggle={() => {
+                                setEqualDistributionRatio(prev => !prev);
                             }}
-                            disabled={!airdropRecipients}
-                        >
-                            Copy to Send screen
-                        </SecondaryLink>
-                    </FormRow>
-                </>
-            )}
-        </AirdropForm>
+                        />
+                        <SwitchLabel>
+                            {equalDistributionRatio
+                                ? ` Airdrop
+                                the same for everyone`
+                                : ` Airdrop
+                                scaled to token balance`}
+                        </SwitchLabel>
+                    </SwitchHolder>
+                </FormRow>
+                <FormRow>
+                    <SwitchHolder>
+                        <CashtabSwitch
+                            name="ignoreOwnAddress"
+                            checked={ignoreOwnAddress}
+                            handleToggle={() =>
+                                handleIgnoreOwnAddress(prev => !prev)
+                            }
+                        />
+                        <SwitchLabel>Ignore my own address</SwitchLabel>
+                    </SwitchHolder>
+                </FormRow>
+                <FormRow>
+                    <SwitchHolder>
+                        <CashtabSwitch
+                            name="Toggle Ignore Mint Address"
+                            checked={ignoreMintAddress}
+                            disabled={typeof mintAddress === 'undefined'}
+                            handleToggle={() =>
+                                handleIgnoreMintAddress(prev => !prev)
+                            }
+                        />
+                        <SwitchLabel>Ignore eToken minter address</SwitchLabel>
+                    </SwitchHolder>
+                </FormRow>
+                <FormRow>
+                    <SwitchHolder>
+                        <CashtabSwitch
+                            name="Toggle Minimum Token Balance"
+                            checked={ignoreMinEtokenBalance}
+                            disabled={typeof tokenInfo === 'undefined'}
+                            handleToggle={() =>
+                                handleIgnoreMinEtokenBalanceAmt(prev => !prev)
+                            }
+                        />
+                        <SwitchLabel>Minimum eToken holder balance</SwitchLabel>
+                    </SwitchHolder>
+                    {ignoreMinEtokenBalance && (
+                        <Input
+                            error={ignoreMinEtokenBalanceAmountError}
+                            placeholder="Minimum eToken balance"
+                            handleInput={handleMinEtokenBalanceChange}
+                            value={ignoreMinEtokenBalanceAmount}
+                        />
+                    )}
+                </FormRow>
+                <FormRow>
+                    <SwitchHolder>
+                        <CashtabSwitch
+                            name="Toggle Ignore Custom Addresses"
+                            checked={ignoreCustomAddresses}
+                            handleToggle={() =>
+                                handleIgnoreCustomAddresses(prev => !prev)
+                            }
+                        />
+                        <SwitchLabel>Ignore custom addresses</SwitchLabel>
+                    </SwitchHolder>
+                    {ignoreCustomAddresses && (
+                        <TextArea
+                            placeholder={`If more than one XEC address, separate them by comma \ne.g. \necash:qpatql05s9jfavnu0tv6lkjjk25n6tmj9gkpyrlwu8,ecash:qzvydd4n3lm3xv62cx078nu9rg0e3srmqq0knykfed`}
+                            error={ignoreCustomAddressListError}
+                            value={ignoreCustomAddressesList}
+                            name="address"
+                            handleInput={handleIgnoreCustomAddressesList}
+                            disabled={!ignoreCustomAddresses}
+                        />
+                    )}
+                </FormRow>
+                <FormRow>
+                    <PrimaryButton
+                        onClick={() => calculateXecAirdrop()}
+                        disabled={
+                            !airdropCalcInputIsValid ||
+                            !tokenIdIsValid ||
+                            (ignoreMintAddress &&
+                                typeof mintAddress === 'undefined') ||
+                            (ignoreMinEtokenBalance &&
+                                typeof tokenInfo === 'undefined')
+                        }
+                    >
+                        Calculate Airdrop
+                    </PrimaryButton>
+                </FormRow>
+                {showAirdropOutputs && (
+                    <>
+                        <FormRow>
+                            <AirdropTitle>
+                                One to Many Airdrop Payment Outputs
+                                <CopyToClipboard
+                                    data={airdropRecipients}
+                                    showToast
+                                    customMsg={
+                                        'Airdrop recipients copied to clipboard'
+                                    }
+                                >
+                                    <CopyPasteIcon />
+                                </CopyToClipboard>
+                            </AirdropTitle>
+                            <TextArea
+                                name="airdropRecipients"
+                                placeholder="Please input parameters above."
+                                value={airdropRecipients}
+                                rows="10"
+                                readOnly
+                            />
+                        </FormRow>
+                        <FormRow>
+                            <SecondaryLink
+                                type="text"
+                                to="/send"
+                                state={{
+                                    airdropRecipients: airdropRecipients,
+                                    airdropTokenId: formData.tokenId,
+                                }}
+                                disabled={!airdropRecipients}
+                            >
+                                Copy to Send screen
+                            </SecondaryLink>
+                        </FormRow>
+                    </>
+                )}
+            </AirdropForm>
+        </>
     );
-};
-
-/*
-passLoadingStatus must receive a default prop that is a function
-in order to pass the rendering unit test in Airdrop.test.js
-
-status => {console.info(status)} is an arbitrary stub function
-*/
-
-Airdrop.defaultProps = {
-    passLoadingStatus: status => {
-        console.info(status);
-    },
-};
-
-Airdrop.propTypes = {
-    passLoadingStatus: PropTypes.func,
 };
 
 export default Airdrop;
