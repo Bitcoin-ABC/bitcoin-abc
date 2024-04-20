@@ -24,6 +24,8 @@ mod ffi_inner {
         pub wipe_db: bool,
         /// Whether Chronik should index SLP/ALP token transactions
         pub enable_token_index: bool,
+        /// Whether Chronik should index transactions by LOKAD ID
+        pub enable_lokad_id_index: bool,
         /// Whether pausing Chronik indexing is allowed
         pub is_pause_allowed: bool,
         /// Whether to output Chronik performance statistics into a perf/

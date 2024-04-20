@@ -108,6 +108,32 @@ class ChronikTokenIdClient:
         return self.client._request_get(f"/token-id/{self.token_id}/utxos", pb.Utxos)
 
 
+class ChronikLokadIdClient:
+    def __init__(self, client: "ChronikClient", lokad_id: str) -> None:
+        self.client = client
+        self.lokad_id = lokad_id
+
+    def confirmed_txs(self, page=None, page_size=None):
+        query = _page_query_params(page, page_size)
+        return self.client._request_get(
+            f"/lokad-id/{self.lokad_id}/confirmed-txs{query}",
+            pb.TxHistoryPage,
+        )
+
+    def history(self, page=None, page_size=None):
+        query = _page_query_params(page, page_size)
+        return self.client._request_get(
+            f"/lokad-id/{self.lokad_id}/history{query}",
+            pb.TxHistoryPage,
+        )
+
+    def unconfirmed_txs(self):
+        return self.client._request_get(
+            f"/lokad-id/{self.lokad_id}/unconfirmed-txs",
+            pb.TxHistoryPage,
+        )
+
+
 class ChronikWs:
     def __init__(self, client: "ChronikClient", **kwargs) -> None:
         self.messages: List[pb.WsMsg] = []
@@ -200,6 +226,13 @@ class ChronikWs:
         sub = pb.WsSub(
             is_unsub=is_unsub,
             token_id=pb.WsSubTokenId(token_id=token_id),
+        )
+        self.send_bytes(sub.SerializeToString())
+
+    def sub_lokad_id(self, lokad_id: bytes, *, is_unsub=False) -> None:
+        sub = pb.WsSub(
+            is_unsub=is_unsub,
+            lokad_id=pb.WsSubLokadId(lokad_id=lokad_id),
         )
         self.send_bytes(sub.SerializeToString())
 
@@ -320,6 +353,9 @@ class ChronikClient:
 
     def token_id(self, token_id: str) -> ChronikTokenIdClient:
         return ChronikTokenIdClient(self, token_id)
+
+    def lokad_id(self, lokad_id_hex: str) -> ChronikLokadIdClient:
+        return ChronikLokadIdClient(self, lokad_id_hex)
 
     def pause(self) -> ChronikResponse:
         return self._request_get("/pause", pb.Empty)

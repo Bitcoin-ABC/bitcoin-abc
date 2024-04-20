@@ -13,8 +13,9 @@ use thiserror::Error;
 use crate::{
     db::Db,
     groups::{
-        MempoolScriptHistory, MempoolScriptUtxos, MempoolTokenIdHistory,
-        MempoolTokenIdUtxos, ScriptGroup, TokenIdGroup, TokenIdGroupAux,
+        LokadIdGroup, MempoolLokadIdHistory, MempoolScriptHistory,
+        MempoolScriptUtxos, MempoolTokenIdHistory, MempoolTokenIdUtxos,
+        ScriptGroup, TokenIdGroup, TokenIdGroupAux,
     },
     mem::{MempoolSpentBy, MempoolTokens},
 };
@@ -31,7 +32,9 @@ pub struct Mempool {
     tokens: MempoolTokens,
     token_id_history: MempoolTokenIdHistory,
     token_id_utxos: MempoolTokenIdUtxos,
+    lokad_id_history: MempoolLokadIdHistory,
     is_token_index_enabled: bool,
+    is_lokad_id_index_enabled: bool,
 }
 
 /// Result after adding a tx to the mempool
@@ -68,7 +71,11 @@ use self::MempoolError::*;
 
 impl Mempool {
     /// Create a new [`Mempool`].
-    pub fn new(script_group: ScriptGroup, enable_token_index: bool) -> Self {
+    pub fn new(
+        script_group: ScriptGroup,
+        enable_token_index: bool,
+        is_lokad_id_index_enabled: bool,
+    ) -> Self {
         Mempool {
             txs: HashMap::new(),
             script_history: MempoolScriptHistory::new(script_group.clone()),
@@ -77,7 +84,9 @@ impl Mempool {
             tokens: MempoolTokens::default(),
             token_id_history: MempoolTokenIdHistory::new(TokenIdGroup),
             token_id_utxos: MempoolTokenIdUtxos::new(TokenIdGroup),
+            lokad_id_history: MempoolLokadIdHistory::new(LokadIdGroup),
             is_token_index_enabled: enable_token_index,
+            is_lokad_id_index_enabled,
         }
     }
 
@@ -109,6 +118,9 @@ impl Mempool {
             )?;
         } else {
             token_id_aux = TokenIdGroupAux::default();
+        }
+        if self.is_lokad_id_index_enabled {
+            self.lokad_id_history.insert(&mempool_tx, &());
         }
         if self.txs.insert(txid, mempool_tx).is_some() {
             return Err(DuplicateTx(txid).into());
@@ -146,6 +158,9 @@ impl Mempool {
         } else {
             token_id_aux = TokenIdGroupAux::default();
         }
+        if self.is_lokad_id_index_enabled {
+            self.lokad_id_history.remove(&mempool_tx, &());
+        }
         Ok(MempoolResult {
             mempool_tx: Cow::Owned(mempool_tx),
             token_id_aux,
@@ -164,6 +179,9 @@ impl Mempool {
                 self.token_id_history.remove(&mempool_tx, &token_id_aux);
                 self.token_id_utxos.remove_mined(&mempool_tx, &token_id_aux);
                 self.tokens.remove(txid);
+            }
+            if self.is_lokad_id_index_enabled {
+                self.lokad_id_history.remove(&mempool_tx, &());
             }
             return Ok(Some(mempool_tx));
         }
@@ -203,5 +221,10 @@ impl Mempool {
     /// Tx history of UTXOs by token ID in the mempool.
     pub fn token_id_utxos(&self) -> &MempoolTokenIdUtxos {
         &self.token_id_utxos
+    }
+
+    /// Tx history of LOKAD IDs in the mempool.
+    pub fn lokad_id_history(&self) -> &MempoolLokadIdHistory {
+        &self.lokad_id_history
     }
 }

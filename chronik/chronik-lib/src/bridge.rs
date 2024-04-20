@@ -77,6 +77,7 @@ fn try_setup_chronik(
         datadir_net: params.datadir_net.into(),
         wipe_db: params.wipe_db,
         enable_token_index: params.enable_token_index,
+        enable_lokad_id_index: params.enable_lokad_id_index,
         enable_perf_stats: params.enable_perf_stats,
         tx_num_cache: TxNumCacheSettings {
             bucket_size: params.tx_num_cache.bucket_size,

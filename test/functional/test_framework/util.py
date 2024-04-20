@@ -664,6 +664,13 @@ def chronik_sub_token_id(ws, node, token_id: str, *, is_unsub=False) -> None:
         ws.sub_token_id(token_id, is_unsub=is_unsub)
 
 
+def chronik_sub_lokad_id(ws, node, lokad_id: bytes, *, is_unsub=False) -> None:
+    """Subscribe to LOKAD ID events and make sure the subscription is active before returning"""
+    subscribe_log = "unsubscribe from" if is_unsub else "subscribe to"
+    with node.assert_debug_log([f"WS {subscribe_log} LOKAD ID {lokad_id.hex()}"]):
+        ws.sub_lokad_id(lokad_id, is_unsub=is_unsub)
+
+
 class TestFrameworkUtil(unittest.TestCase):
     def test_modinv(self):
         test_vectors = [

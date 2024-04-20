@@ -9,7 +9,7 @@ use std::{collections::HashMap, time::Duration};
 use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
 use bitcoinsuite_core::script::ScriptVariant;
-use bitcoinsuite_slp::token_id::TokenId;
+use bitcoinsuite_slp::{lokad_id::LokadId, token_id::TokenId};
 use chronik_indexer::{
     subs::{BlockMsg, BlockMsgType},
     subs_group::{TxMsg, TxMsgType},
@@ -23,7 +23,7 @@ use tokio::sync::broadcast;
 
 use crate::{
     error::report_status_error,
-    parse::parse_script_variant,
+    parse::{parse_lokad_id, parse_script_variant},
     server::{ChronikIndexerRef, ChronikSettings},
 };
 
@@ -57,16 +57,19 @@ enum WsSubType {
     Blocks,
     Script(ScriptVariant),
     TokenId(TokenId),
+    LokadId(LokadId),
 }
 
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
 type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
 type SubRecvTokenId = HashMap<TokenId, broadcast::Receiver<TxMsg>>;
+type SubRecvLokadId = HashMap<LokadId, broadcast::Receiver<TxMsg>>;
 
 struct SubRecv {
     blocks: SubRecvBlocks,
     scripts: SubRecvScripts,
     token_ids: SubRecvTokenId,
+    lokad_ids: SubRecvLokadId,
     ws_ping_interval: Duration,
 }
 
@@ -77,6 +80,7 @@ impl SubRecv {
             action = Self::recv_blocks(&mut self.blocks) => action,
             action = Self::recv_scripts(&mut self.scripts) => action,
             action = Self::recv_token_ids(&mut self.token_ids) => action,
+            action = Self::recv_lokad_ids(&mut self.lokad_ids) => action,
             action = Self::schedule_ping(self.ws_ping_interval) => action,
         }
     }
@@ -115,6 +119,22 @@ impl SubRecv {
                     .map(|receiver| Box::pin(receiver.recv())),
             );
             let (tx_msg, _, _) = token_ids_receivers.await;
+            sub_tx_msg_action(tx_msg)
+        }
+    }
+
+    async fn recv_lokad_ids(
+        lokad_ids: &mut SubRecvLokadId,
+    ) -> Result<WsAction> {
+        if lokad_ids.is_empty() {
+            futures::future::pending().await
+        } else {
+            let lokad_ids_receivers = select_all(
+                lokad_ids
+                    .values_mut()
+                    .map(|receiver| Box::pin(receiver.recv())),
+            );
+            let (tx_msg, _, _) = lokad_ids_receivers.await;
             sub_tx_msg_action(tx_msg)
         }
     }
@@ -166,6 +186,24 @@ impl SubRecv {
                     self.token_ids.insert(token_id, recv);
                 }
             }
+            WsSubType::LokadId(lokad_id) => {
+                if sub.is_unsub {
+                    log_chronik!(
+                        "WS unsubscribe from LOKAD ID {}\n",
+                        hex::encode(lokad_id)
+                    );
+                    std::mem::drop(self.lokad_ids.remove(&lokad_id));
+                    subs.subs_lokad_id_mut().unsubscribe_from_member(&lokad_id)
+                } else {
+                    log_chronik!(
+                        "WS subscribe to LOKAD ID {}\n",
+                        hex::encode(lokad_id)
+                    );
+                    let recv =
+                        subs.subs_lokad_id_mut().subscribe_to_member(&lokad_id);
+                    self.lokad_ids.insert(lokad_id, recv);
+                }
+            }
         }
     }
 
@@ -208,6 +246,9 @@ fn sub_client_msg_action(
                     Some(SubType::TokenId(token_id)) => WsSubType::TokenId(
                         token_id.token_id.parse::<TokenId>()?,
                     ),
+                    Some(SubType::LokadId(lokad_id)) => {
+                        WsSubType::LokadId(parse_lokad_id(&lokad_id.lokad_id)?)
+                    }
                 },
             }))
         }
@@ -276,6 +317,7 @@ pub async fn handle_subscribe_socket(
         blocks: Default::default(),
         scripts: Default::default(),
         token_ids: Default::default(),
+        lokad_ids: Default::default(),
         ws_ping_interval: settings.ws_ping_interval,
     };
     let mut last_msg = None;

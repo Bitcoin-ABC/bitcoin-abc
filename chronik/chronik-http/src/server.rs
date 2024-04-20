@@ -206,6 +206,18 @@ impl ChronikServer {
                 "/token-id/:token_id/utxos",
                 routing::get(handle_token_id_utxos),
             )
+            .route(
+                "/lokad-id/:lokad_id/confirmed-txs",
+                routing::get(handle_lokad_id_confirmed_txs),
+            )
+            .route(
+                "/lokad-id/:lokad_id/history",
+                routing::get(handle_lokad_id_history),
+            )
+            .route(
+                "/lokad-id/:lokad_id/unconfirmed-txs",
+                routing::get(handle_lokad_id_unconfirmed_txs),
+            )
             .route("/ws", routing::get(handle_ws))
             .route("/pause", routing::get(handle_pause))
             .route("/resume", routing::get(handle_resume))
@@ -485,6 +497,58 @@ async fn handle_token_id_utxos(
     let indexer = indexer.read().await;
     Ok(Protobuf(
         handlers::handle_token_id_utxos(&token_id_hex, &indexer).await?,
+    ))
+}
+
+async fn handle_lokad_id_confirmed_txs(
+    Path(lokad_id_hex): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_lokad_id_confirmed_txs(
+            &lokad_id_hex,
+            &query_params,
+            &indexer,
+            &node,
+        )
+        .await?,
+    ))
+}
+
+async fn handle_lokad_id_history(
+    Path(lokad_id_hex): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_lokad_id_history(
+            &lokad_id_hex,
+            &query_params,
+            &indexer,
+            &node,
+        )
+        .await?,
+    ))
+}
+
+async fn handle_lokad_id_unconfirmed_txs(
+    Path(lokad_id_hex): Path<String>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+) -> Result<Protobuf<proto::TxHistoryPage>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_lokad_id_unconfirmed_txs(
+            &lokad_id_hex,
+            &indexer,
+            &node,
+        )
+        .await?,
     ))
 }
 

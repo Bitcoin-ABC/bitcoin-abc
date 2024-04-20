@@ -4,8 +4,10 @@
 
 //! Collection of group implementations to group transactions by when indexing.
 
+mod lokad_id;
 mod script;
 mod token_id;
 
+pub use self::lokad_id::*;
 pub use self::script::*;
 pub use self::token_id::*;

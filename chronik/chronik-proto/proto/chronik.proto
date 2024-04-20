@@ -408,6 +408,8 @@ message WsSub {
         WsSubScript script = 3;
         // Subscription to a token ID
         WsSubTokenId token_id = 4;
+        // Subscription to a lokad ID
+        WsSubLokadId lokad_id = 5;
     }
 }
 
@@ -433,6 +435,15 @@ message WsSubScript {
 message WsSubTokenId {
     // Hex token ID to subscribe to.
     string token_id = 1;
+}
+
+// Subscription to a LOKAD ID. They will be sent every time a tx matches the given LOKAD ID in one of the following ways:
+// - `OP_RETURN <LOKAD ID> ...`: The first output has an OP_RETURN with the given LOKAD ID as first pushop
+// - `OP_RETURN OP_RESERVED "<LOKAD_ID>..." "<LOKAD_ID>..." ...`: The first output has an eMPP encoded OP_RETURN, and one (or more) of the pushops has the LOKAD ID as prefix.
+// - `<LOKAD ID> ...`: An input's scriptSig has the given LOKAD ID as the first pushop
+message WsSubLokadId {
+    // 4-byte LOKAD ID.
+    bytes lokad_id = 1;
 }
 
 // Message coming from the WebSocket

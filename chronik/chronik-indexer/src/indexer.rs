@@ -15,8 +15,9 @@ use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
     groups::{
-        ScriptGroup, ScriptHistoryWriter, ScriptUtxoWriter, TokenIdGroup,
-        TokenIdGroupAux, TokenIdHistoryWriter, TokenIdUtxoWriter,
+        LokadIdGroup, LokadIdHistoryWriter, ScriptGroup, ScriptHistoryWriter,
+        ScriptUtxoWriter, TokenIdGroup, TokenIdGroupAux, TokenIdHistoryWriter,
+        TokenIdUtxoWriter,
     },
     index_tx::{
         prepare_indexed_txs_cached, PrepareUpdateMode, TxNumCacheSettings,
@@ -56,6 +57,10 @@ pub struct ChronikIndexerParams {
     pub wipe_db: bool,
     /// Whether Chronik should index SLP/ALP token txs.
     pub enable_token_index: bool,
+    /// Whether Chronik should index txs by LOKAD ID.
+    /// This will be overridden to `true` if the DB is empty and
+    /// `enable_lokad_id_index_specified` is false.
+    pub enable_lokad_id_index: bool,
     /// Whether to output Chronik performance statistics into a perf/ folder
     pub enable_perf_stats: bool,
     /// Settings for tuning TxNumCache.
@@ -73,6 +78,10 @@ pub struct ChronikIndexer {
     subs: RwLock<Subs>,
     perf_path: Option<PathBuf>,
     is_token_index_enabled: bool,
+    is_lokad_id_index_enabled: bool,
+    /// Whether the LOKAD ID index needs to be reindexed, will be set to
+    /// `false` after it caught up with the rest of Chronik.
+    needs_lokad_id_reindex: bool,
 }
 
 /// Access to the bitcoind node.
@@ -183,11 +192,21 @@ impl ChronikIndexer {
 
         log_chronik!("Opening Chronik at {}\n", db_path.to_string_lossy());
         let db = Db::open(&db_path)?;
+        let is_db_empty = db.is_db_empty()?;
         let schema_version = verify_schema_version(&db)?;
         verify_enable_token_index(&db, params.enable_token_index)?;
+        let needs_lokad_id_reindex = verify_lokad_id_index(
+            &db,
+            is_db_empty,
+            params.enable_lokad_id_index,
+        )?;
         upgrade_db_if_needed(&db, schema_version, params.enable_token_index)?;
 
-        let mempool = Mempool::new(ScriptGroup, params.enable_token_index);
+        let mempool = Mempool::new(
+            ScriptGroup,
+            params.enable_token_index,
+            params.enable_lokad_id_index,
+        );
         Ok(ChronikIndexer {
             db,
             mempool,
@@ -199,6 +218,8 @@ impl ChronikIndexer {
             subs: RwLock::new(Subs::new(ScriptGroup)),
             perf_path: params.enable_perf_stats.then_some(perf_path),
             is_token_index_enabled: params.enable_token_index,
+            is_lokad_id_index_enabled: params.enable_token_index,
+            needs_lokad_id_reindex,
         })
     }
 
@@ -243,6 +264,10 @@ impl ChronikIndexer {
                 -1
             }
         };
+        if self.needs_lokad_id_reindex {
+            self.reindex_lokad_id_index(bridge, node_tip_index, start_height)?;
+            self.needs_lokad_id_reindex = false;
+        }
         let tip_height = node_tip_info.height;
         for height in start_height + 1..=tip_height {
             if bridge.shutdown_requested() {
@@ -315,6 +340,64 @@ impl ChronikIndexer {
         Ok(fork_info.height)
     }
 
+    fn reindex_lokad_id_index(
+        &mut self,
+        bridge: &ffi::ChronikBridge,
+        node_tip_index: &ffi::CBlockIndex,
+        end_height: BlockHeight,
+    ) -> Result<()> {
+        let lokad_id_writer =
+            LokadIdHistoryWriter::new(&self.db, LokadIdGroup)?;
+        let tx_reader = TxReader::new(&self.db)?;
+        let metadata_writer = MetadataWriter::new(&self.db)?;
+
+        // First, wipe the LOKAD ID index
+        let mut batch = WriteBatch::default();
+        lokad_id_writer.wipe(&mut batch);
+        self.db.write_batch(batch)?;
+
+        for height in 0..=end_height {
+            if bridge.shutdown_requested() {
+                log!("Stopped reindexing LOKAD ID index\n");
+                return Ok(());
+            }
+            let block_index = ffi::get_block_ancestor(node_tip_index, height)?;
+            let block = self.load_chronik_block(bridge, block_index)?;
+            let first_tx_num = tx_reader
+                .first_tx_num_by_block(block.db_block.height)?
+                .unwrap();
+            let index_txs = prepare_indexed_txs_cached(
+                &self.db,
+                first_tx_num,
+                &block.txs,
+                &mut self.mem_data.tx_num_cache,
+                PrepareUpdateMode::Add,
+            )?;
+            let hash = block.db_block.hash.clone();
+            let mut batch = WriteBatch::default();
+            lokad_id_writer.insert(
+                &mut batch,
+                &index_txs,
+                &(),
+                &mut GroupHistoryMemData::default(),
+            )?;
+            self.db.write_batch(batch)?;
+            if height % 100 == 0 {
+                log!(
+                    "Synced Chronik LOKAD ID index up to block {hash} at \
+                     height {height}/{end_height} (-chroniklokadidindex=0 to \
+                     disable)\n"
+                );
+            }
+        }
+
+        let mut batch = WriteBatch::default();
+        metadata_writer.update_is_lokad_id_index_enabled(&mut batch, true)?;
+        self.db.write_batch(batch)?;
+
+        Ok(())
+    }
+
     /// Add transaction to the indexer's mempool.
     pub fn handle_tx_added_to_mempool(
         &mut self,
@@ -362,6 +445,8 @@ impl ChronikIndexer {
             TokenIdHistoryWriter::new(&self.db, TokenIdGroup)?;
         let token_id_utxo_writer =
             TokenIdUtxoWriter::new(&self.db, TokenIdGroup)?;
+        let lokad_id_history_writer =
+            LokadIdHistoryWriter::new(&self.db, LokadIdGroup)?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(
             &mut batch,
@@ -394,6 +479,14 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
+        if self.is_lokad_id_index_enabled {
+            lokad_id_history_writer.insert(
+                &mut batch,
+                &index_txs,
+                &(),
+                &mut GroupHistoryMemData::default(),
+            )?;
+        }
         let token_id_aux;
         if self.is_token_index_enabled {
             let processed_token_batch =
@@ -453,6 +546,8 @@ impl ChronikIndexer {
             TokenIdHistoryWriter::new(&self.db, TokenIdGroup)?;
         let token_id_utxo_writer =
             TokenIdUtxoWriter::new(&self.db, TokenIdGroup)?;
+        let lokad_id_history_writer =
+            LokadIdHistoryWriter::new(&self.db, LokadIdGroup)?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(
             &mut batch,
@@ -484,6 +579,17 @@ impl ChronikIndexer {
             &index_txs,
             &mut self.mem_data.spent_by,
         )?;
+        if self.is_lokad_id_index_enabled {
+            // Skip delete if rewinding indexer; will be wiped later anyway
+            if !self.needs_lokad_id_reindex {
+                lokad_id_history_writer.delete(
+                    &mut batch,
+                    &index_txs,
+                    &(),
+                    &mut GroupHistoryMemData::default(),
+                )?;
+            }
+        }
         if self.is_token_index_enabled {
             let token_id_aux = TokenIdGroupAux::from_db(&index_txs, &self.db)?;
             token_id_history_writer.delete(
@@ -640,6 +746,23 @@ impl ChronikIndexer {
             mempool_utxos: self.mempool.token_id_utxos(),
             group: TokenIdGroup,
             utxo_mapper: UtxoProtobufOutput,
+            is_token_index_enabled: self.is_token_index_enabled,
+        }
+    }
+
+    /// Return [`QueryGroupHistory`] for LOKAD IDs to query the tx history of
+    /// LOKAD IDs.
+    pub fn lokad_id_history<'a>(
+        &'a self,
+        node: &'a Node,
+    ) -> QueryGroupHistory<'a, LokadIdGroup> {
+        QueryGroupHistory {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
+            mempool_history: self.mempool.lokad_id_history(),
+            group: LokadIdGroup,
+            node,
             is_token_index_enabled: self.is_token_index_enabled,
         }
     }
@@ -805,6 +928,43 @@ fn upgrade_10_to_11(db: &Db, enable_token_index: bool) -> Result<()> {
     Ok(())
 }
 
+/// Verify user config and DB are in sync. Returns whether the LOKAD ID index
+/// needs to be reindexed.
+fn verify_lokad_id_index(
+    db: &Db,
+    is_db_empty: bool,
+    enable: bool,
+) -> Result<bool> {
+    let metadata_reader = MetadataReader::new(db)?;
+    let metadata_writer = MetadataWriter::new(db)?;
+    let lokad_id_writer = LokadIdHistoryWriter::new(db, LokadIdGroup)?;
+    let is_enabled_db = metadata_reader
+        .is_lokad_id_index_enabled()?
+        .unwrap_or(false);
+    let mut batch = WriteBatch::default();
+    if !is_db_empty {
+        if enable && !is_enabled_db {
+            // DB non-empty without LOKAD ID index, but index enabled -> reindex
+            return Ok(true);
+        }
+        if !enable && is_enabled_db {
+            // Otherwise, the LOKAD ID index has been enabled and now
+            // specified to be disabled, so we wipe the index.
+            log!(
+                "Warning: Wiping existing LOKAD ID index, since \
+                 -chroniklokadidindex=0\n"
+            );
+            log!(
+                "You will need to specify -chroniklokadidindex=1 to restore\n"
+            );
+            lokad_id_writer.wipe(&mut batch);
+        }
+    }
+    metadata_writer.update_is_lokad_id_index_enabled(&mut batch, enable)?;
+    db.write_batch(batch)?;
+    Ok(false)
+}
+
 impl Node {
     /// If `result` is [`Err`], logs and aborts the node.
     pub fn ok_or_abort<T>(&self, func_name: &str, result: Result<T>) {
@@ -851,6 +1011,7 @@ mod tests {
             datadir_net: datadir_net.clone(),
             wipe_db: false,
             enable_token_index: false,
+            enable_lokad_id_index: false,
             enable_perf_stats: false,
             tx_num_cache: Default::default(),
         };
@@ -920,6 +1081,7 @@ mod tests {
             datadir_net: dir.path().to_path_buf(),
             wipe_db: false,
             enable_token_index: false,
+            enable_lokad_id_index: false,
             enable_perf_stats: false,
             tx_num_cache: Default::default(),
         };

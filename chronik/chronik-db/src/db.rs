@@ -15,8 +15,8 @@ use thiserror::Error;
 
 use crate::{
     groups::{
-        ScriptHistoryWriter, ScriptUtxoWriter, TokenIdHistoryWriter,
-        TokenIdUtxoWriter,
+        LokadIdHistoryWriter, ScriptHistoryWriter, ScriptUtxoWriter,
+        TokenIdHistoryWriter, TokenIdUtxoWriter,
     },
     io::{
         token::TokenWriter, BlockStatsWriter, BlockWriter, MetadataWriter,
@@ -35,6 +35,10 @@ pub const CF_BLK_STATS: &str = "blk_stats";
 /// Column family for the block height of the first tx_num of that block. Used
 /// to get the block height of a tx.
 pub const CF_FIRST_TX_BY_BLK: &str = "first_tx_by_blk";
+/// Column family to store tx history by LOKAD ID.
+pub const CF_LOKAD_ID_HISTORY: &str = "lokad_id_history";
+/// Column family to store number of txs by LOKAD ID.
+pub const CF_LOKAD_ID_HISTORY_NUM_TXS: &str = "lokad_id_history_num_txs";
 /// Column family to lookup a block by its hash.
 pub const CF_LOOKUP_BLK_BY_HASH: &str = "lookup_blk_by_hash";
 /// Column family to lookup a tx by its hash.
@@ -103,6 +107,7 @@ impl Db {
         TokenWriter::add_cfs(&mut cfs);
         TokenIdHistoryWriter::add_cfs(&mut cfs);
         TokenIdUtxoWriter::add_cfs(&mut cfs);
+        LokadIdHistoryWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 

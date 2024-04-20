@@ -111,6 +111,14 @@ pub struct Coin {
     pub is_coinbase: bool,
 }
 
+/// Empty tx, serializes to 00000000000000000000.
+pub static EMPTY_TX: TxMut = TxMut {
+    version: 0,
+    inputs: vec![],
+    outputs: vec![],
+    locktime: 0,
+};
+
 impl Tx {
     /// Create a new [`Tx`] with a given [`TxId`] and [`TxMut`].
     ///

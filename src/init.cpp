@@ -660,6 +660,9 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg("-chroniktokenindex",
                    "Enable token indexing in Chronik (default: 1)",
                    ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
+    argsman.AddArg("-chroniklokadidindex",
+                   "Enable LOKAD ID indexing in Chronik (default: 1)",
+                   ArgsManager::ALLOW_BOOL, OptionsCategory::CHRONIK);
     argsman.AddArg("-chronikreindex",
                    "Reindex the Chronik indexer from genesis, but leave the "
                    "other indexes untouched",

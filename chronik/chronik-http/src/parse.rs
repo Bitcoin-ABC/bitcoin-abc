@@ -9,6 +9,7 @@ use bitcoinsuite_core::{
     error::DataError,
     script::{ScriptType, ScriptTypeError, ScriptVariant},
 };
+use bitcoinsuite_slp::lokad_id::LokadId;
 use thiserror::Error;
 
 /// Errors indicating parsing failed.
@@ -25,6 +26,10 @@ pub enum ChronikParseError {
     /// Script payload invalid for script_type
     #[error("400: Invalid payload for {0:?}: {1}")]
     InvalidScriptPayload(ScriptType, DataError),
+
+    /// LOKAD ID must be 4 bytes
+    #[error("400: Invalid LOKAD ID length: expected 4 but got {0}")]
+    InvalidLokadIdLength(usize),
 }
 
 use self::ChronikParseError::*;
@@ -52,4 +57,16 @@ pub fn parse_script_variant(
         .map_err(InvalidScriptType)?;
     Ok(ScriptVariant::from_type_and_payload(script_type, payload)
         .map_err(|err| InvalidScriptPayload(script_type, err))?)
+}
+
+/// Parse LOKAD ID hex string
+pub fn parse_lokad_id_hex(lokad_id_hex: &str) -> Result<LokadId> {
+    let lokad_id = parse_hex(lokad_id_hex)?;
+    parse_lokad_id(&lokad_id)
+}
+
+/// Parse LOKAD ID bytestring
+pub fn parse_lokad_id(lokad_id: &[u8]) -> Result<LokadId> {
+    Ok(LokadId::try_from(lokad_id)
+        .map_err(|_| InvalidLokadIdLength(lokad_id.len()))?)
 }

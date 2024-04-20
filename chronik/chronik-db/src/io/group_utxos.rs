@@ -306,6 +306,11 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         Ok(())
     }
 
+    /// Clear all UTXO data from the DB
+    pub fn wipe(&self, batch: &mut WriteBatch) {
+        batch.delete_range_cf(self.col.cf, [].as_ref(), &[0xff; 16]);
+    }
+
     /// Upgrade the DB from version 10 to version 11
     pub fn upgrade_10_to_11(&self) -> Result<()> {
         log!(

@@ -314,6 +314,12 @@ impl<'a, G: Group> GroupHistoryWriter<'a, G> {
         Ok(())
     }
 
+    /// Clear all history data from the DB
+    pub fn wipe(&self, batch: &mut WriteBatch) {
+        batch.delete_range_cf(self.col.cf_page, [].as_ref(), &[0xff; 16]);
+        batch.delete_range_cf(self.col.cf_num_txs, [].as_ref(), &[0xff; 16]);
+    }
+
     fn fetch_members_num_txs<'tx>(
         &self,
         txs: &'tx [IndexTx<'tx>],

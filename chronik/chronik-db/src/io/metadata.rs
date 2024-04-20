@@ -19,6 +19,9 @@ pub const FIELD_SCHEMA_VERSION: &[u8] = b"SCHEMA_VERSION";
 /// Field in the `meta` cf storing whether Chronik had the token index enabled
 pub const FIELD_TOKEN_INDEX_ENABLED: &[u8] = b"TOKEN_INDEX_ENABLED";
 
+/// Field in the `meta` cf whether Chronik had the LOKAD ID index enabled
+pub const FIELD_LOKAD_ID_INDEX_ENABLED: &[u8] = b"LOKAD_ID_INDEX_ENABLED";
+
 /// Write database metadata
 pub struct MetadataWriter<'a> {
     cf: &'a CF,
@@ -65,6 +68,20 @@ impl<'a> MetadataWriter<'a> {
         Ok(())
     }
 
+    /// Update the flag storing whether the LOKAD ID index is enabled in the DB
+    pub fn update_is_lokad_id_index_enabled(
+        &self,
+        batch: &mut rocksdb::WriteBatch,
+        is_lokad_id_index_enabled: bool,
+    ) -> Result<()> {
+        batch.put_cf(
+            self.cf,
+            FIELD_LOKAD_ID_INDEX_ENABLED,
+            db_serialize::<bool>(&is_lokad_id_index_enabled)?,
+        );
+        Ok(())
+    }
+
     pub(crate) fn add_cfs(columns: &mut Vec<ColumnFamilyDescriptor>) {
         columns.push(ColumnFamilyDescriptor::new(
             CF_META,
@@ -104,6 +121,16 @@ impl<'a> MetadataReader<'a> {
             }
             // By default, the token index is enabled
             None => Ok(true),
+        }
+    }
+
+    /// Read whether the LOKAD ID index is enabled, or None if unspecified
+    pub fn is_lokad_id_index_enabled(&self) -> Result<Option<bool>> {
+        match self.db.get(self.cf, FIELD_LOKAD_ID_INDEX_ENABLED)? {
+            Some(ser_token_index) => {
+                Ok(Some(db_deserialize::<bool>(&ser_token_index)?))
+            }
+            None => Ok(None),
         }
     }
 }
