@@ -58,10 +58,13 @@ import {
     TokenParam,
 } from 'components/Etokens/CreateTokenForm/styles';
 import { sha256 } from 'js-sha256';
+import { getUserLocale } from 'helpers';
+import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
 
 const CreateTokenForm = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const userLocale = getUserLocale(navigator);
     const { chronik, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
@@ -578,7 +581,15 @@ const CreateTokenForm = () => {
                         </SummaryRow>
                         <SummaryRow>
                             <TokenParamLabel>Supply:</TokenParamLabel>
-                            <TokenParam>{formData.genesisQty}</TokenParam>
+                            <TokenParam>
+                                {decimalizedTokenQtyToLocaleFormat(
+                                    formData.genesisQty,
+                                    userLocale,
+                                )}
+                                {createWithMintBatonAtIndexTwo
+                                    ? ' (variable)'
+                                    : ' (fixed)'}
+                            </TokenParam>
                         </SummaryRow>
                         <SummaryRow>
                             <TokenParamLabel>URL:</TokenParamLabel>

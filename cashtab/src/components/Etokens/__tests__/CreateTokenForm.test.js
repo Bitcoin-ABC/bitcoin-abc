@@ -134,6 +134,9 @@ describe('<CreateTokenForm />', () => {
         // Click the Create eToken button
         await user.click(screen.getByRole('button', { name: /Create eToken/ }));
 
+        // We see the formatted supply and fixed label in the preview modal
+        expect(screen.getByText('600,000 (fixed)')).toBeInTheDocument();
+
         // Click OK on confirmation modal
         await user.click(screen.getByText('OK'));
 
@@ -235,6 +238,9 @@ describe('<CreateTokenForm />', () => {
 
         // Click the Create eToken button
         await user.click(screen.getByRole('button', { name: /Create eToken/ }));
+
+        // We see the formatted supply and variable label in the preview modal
+        expect(screen.getByText('600,000 (variable)')).toBeInTheDocument();
 
         // Click OK on confirmation modal
         await user.click(screen.getByText('OK'));
