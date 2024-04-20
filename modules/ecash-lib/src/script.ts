@@ -55,6 +55,11 @@ export class Script {
         return new ScriptOpIter(new Bytes(this.bytecode));
     }
 
+    /** Create a deep copy of this Script */
+    public copy(): Script {
+        return new Script(new Uint8Array(this.bytecode));
+    }
+
     /**
      * Find the n-th OP_CODESEPARATOR (0-based) and cut out the bytecode
      * following it. Required for signing BIP143 scripts that have an

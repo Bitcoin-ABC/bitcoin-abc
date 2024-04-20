@@ -22,6 +22,41 @@ describe('Tx', () => {
             'efbeadde000078563412',
         );
 
+        // inputs have defaults
+        checkTx(
+            new Tx({
+                version: 1,
+                inputs: [
+                    {
+                        prevOut: {
+                            txid: '0123456789abcdef99887766554433220000000000000000f1e2d3c4b5a69788',
+                            outIdx: 0xdeadbeef,
+                        },
+                    },
+                    {
+                        prevOut: {
+                            txid: new Uint8Array([...Array(32).keys()]),
+                            outIdx: 0x76757473,
+                        },
+                    },
+                ],
+                outputs: [],
+                locktime: 0,
+            }),
+            '01000000' + // version
+                '02' + // num inputs
+                '8897a6b5c4d3e2f100000000000000002233445566778899efcdab8967452301' +
+                'efbeadde' + // 0th input outpoint
+                '00' + // script
+                'ffffffff' + // sequence
+                '000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f' +
+                '73747576' + // 1st input outpoint
+                '00' + // script
+                'ffffffff' + // sequence
+                '00' + // num outputs
+                '00000000', // locktime
+        );
+
         checkTx(
             new Tx({
                 version: 0xfacefeed,

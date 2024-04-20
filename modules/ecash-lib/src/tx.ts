@@ -9,6 +9,16 @@ import { WriterBytes } from './io/writerbytes.js';
 import { WriterLength } from './io/writerlength.js';
 import { Script } from './script.js';
 
+/**
+ * Default value for nSequence of inputs if left undefined; this opts out of
+ * BIP68 relative lock-time, and if all inputs have this value, nLockTime is
+ * disabled, too.
+ *
+ * This is chosen as the default as it's the default in the node too,
+ * see CTxIn in /src/primitives/transaction.h.
+ **/
+export const DEFAULT_SEQUENCE = 0xffffffff;
+
 /** COutPoint, pointing to a coin being spent. */
 export interface OutPoint {
     /**
@@ -24,10 +34,10 @@ export interface OutPoint {
 export interface TxInput {
     /** Points to an output being spent. */
     prevOut: OutPoint;
-    /** scriptSig unlocking the output. */
-    script: Script;
-    /** nSequence. */
-    sequence: number;
+    /** scriptSig unlocking the output, defaults to the empty Script. */
+    script?: Script;
+    /** nSequence, defaults to 0xffffffff if unspecified. */
+    sequence?: number;
     /** Sign data required to sign an input */
     signData?: SignData;
 }
@@ -118,12 +128,40 @@ export function writeOutPoint(outpoint: OutPoint, writer: Writer): void {
 /** Write a TxInput to a Writer */
 export function writeTxInput(input: TxInput, writer: Writer): void {
     writeOutPoint(input.prevOut, writer);
-    input.script.writeWithSize(writer);
-    writer.putU32(input.sequence);
+    (input.script ?? new Script()).writeWithSize(writer);
+    writer.putU32(input.sequence ?? DEFAULT_SEQUENCE);
 }
 
 /** Write a TxOutput to a Writer */
 export function writeTxOutput(output: TxOutput, writer: Writer): void {
     writer.putU64(output.value);
     output.script.writeWithSize(writer);
+}
+
+/** Create a deep copy of the TxInput */
+export function copyTxInput(input: TxInput): TxInput {
+    return {
+        prevOut: {
+            txid:
+                typeof input.prevOut.txid === 'string'
+                    ? input.prevOut.txid
+                    : new Uint8Array(input.prevOut.txid),
+            outIdx: input.prevOut.outIdx,
+        },
+        script: input.script?.copy(),
+        sequence: input.sequence,
+        signData: input.signData && {
+            value: input.signData.value,
+            outputScript: input.signData.outputScript?.copy(),
+            redeemScript: input.signData.redeemScript?.copy(),
+        },
+    };
+}
+
+/** Create a deep copy of the TxOutput */
+export function copyTxOutput(output: TxOutput): TxOutput {
+    return {
+        value: output.value,
+        script: output.script.copy(),
+    };
 }

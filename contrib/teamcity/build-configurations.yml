@@ -65,6 +65,8 @@ templates:
   #    the mock-chronik-client library, otherwise unset
   #  - DEPENDS_ECASH_LIB_WASM: "true" if these tests require ecash-lib-wasm
   #    to be built, otherwise unset
+  #  - DEPENDS_CHRONIK_CLIENT: "true" if these tests require chronik-client
+  #    to be build, otherwise unset
   js-mocha:
     artifacts:
       coverage.tar.gz: coverage.tar.gz
@@ -95,6 +97,14 @@ templates:
         echo "Test depends on ecash-lib-wasm. Building WebAssembly..."
         pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
         ./build-wasm.sh
+      fi
+
+      if [ -z "${DEPENDS_CHRONIK_CLIENT+x}" ] ; then
+        echo "Test does not depend on chronik-client"
+      else
+        echo "Test depends on chronik-client. Building TypeScript..."
+        pushd "${TOPLEVEL}/modules/chronik-client"
+        npm ci
       fi
 
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
@@ -157,6 +167,23 @@ templates:
 
       PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
       TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
+
+      # Build ecash-lib-wasm for ecash-lib's WebAssembly part
+      if [ -z "${DEPENDS_ECASH_LIB_WASM+x}" ] ; then
+        echo "Test does not depend on ecash-lib-wasm, skipping"
+      else
+        echo "Test depends on ecash-lib-wasm. Building WebAssembly..."
+        pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
+        ./build-wasm.sh
+      fi
+
+      if [ -z "${DEPENDS_CHRONIK_CLIENT+x}" ] ; then
+        echo "Test does not depend on chronik-client"
+      else
+        echo "Test depends on chronik-client. Building TypeScript..."
+        pushd "${TOPLEVEL}/modules/chronik-client"
+        npm ci
+      fi
 
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
@@ -836,8 +863,25 @@ builds:
       JS_PROJECT_ROOT: modules/ecash-lib
       RUN_NPM_BUILD: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
     templates:
       - js-mocha
+
+  ecash-lib-integration-tests:
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+    targets:
+      - - all
+    runOnDiffRegex:
+      - chronik/
+      - modules/chronik-client/
+      - modules/ecash-lib/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-lib
+      DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
+    templates:
+      - js-mocha-integration-tests
 
   chronik-client-integration-tests:
     cmake_flags:

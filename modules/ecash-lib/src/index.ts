@@ -9,6 +9,7 @@ export * from './opcode.js';
 export * from './script.js';
 export * from './sigHashType.js';
 export * from './tx.js';
+export * from './txBuilder.js';
 export * from './unsignedTx.js';
 export * from './io/bytes.js';
 export * from './io/hex.js';

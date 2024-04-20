@@ -13,7 +13,14 @@ import {
     SigHashTypeOutputs,
     SigHashTypeVariant,
 } from './sigHashType.js';
-import { SignData, Tx, TxInput, writeOutPoint, writeTxOutput } from './tx.js';
+import {
+    DEFAULT_SEQUENCE,
+    SignData,
+    Tx,
+    TxInput,
+    writeOutPoint,
+    writeTxOutput,
+} from './tx.js';
 
 /** An unsigned tx, which helps us build the sighash preimage we need to sign */
 export class UnsignedTx {
@@ -154,7 +161,7 @@ export class UnsignedTxInput {
             writeOutPoint(input.prevOut, writer);
             scriptCode.writeWithSize(writer);
             writer.putU64(signData.value);
-            writer.putU32(input.sequence);
+            writer.putU32(input.sequence ?? DEFAULT_SEQUENCE);
             writer.putBytes(hashOutputs);
             writer.putU32(tx.locktime);
             writer.putU32(sigHashType.toInt());
@@ -213,7 +220,7 @@ function writePrevouts(tx: Tx, writer: Writer) {
 
 function writeSequences(tx: Tx, writer: Writer) {
     for (const input of tx.inputs) {
-        writer.putU32(input.sequence);
+        writer.putU32(input.sequence ?? DEFAULT_SEQUENCE);
     }
 }
 
