@@ -635,7 +635,7 @@ describe('<App />', () => {
             ).toEqual(expectedCashtabCacheTokens),
         );
     });
-    it('A new user can import a mnemonic', async () => {
+    it('A new user can import a mnemonic of a wallet with a balance', async () => {
         // Initialize for new user with wallet = false, so localstorage gets defaults
         const mockedChronik = await initializeCashtabStateForTests(
             false,
@@ -657,14 +657,14 @@ describe('<App />', () => {
             }),
         );
 
-        // Mnemonic input field is rendered
+        // A modal is opened with input for the mnemonic
         expect(
             screen.getByPlaceholderText('mnemonic (seed phrase)'),
         ).toBeInTheDocument();
 
         // The import button is disabled if no mnemonic is entered
         const importButton = screen.getByRole('button', {
-            name: 'Import',
+            name: 'OK',
         });
         expect(importButton).toHaveAttribute('disabled');
 
@@ -675,11 +675,6 @@ describe('<App />', () => {
             screen.getByPlaceholderText('mnemonic (seed phrase)'),
             VALID_MNEMONIC,
         );
-
-        // The validation msg is not in the document
-        expect(
-            screen.queryByText('Valid mnemonic seed phrase required'),
-        ).not.toBeInTheDocument();
 
         // The import button is no longer disabled
         expect(importButton).not.toHaveAttribute('disabled');

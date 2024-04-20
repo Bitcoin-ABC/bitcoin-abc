@@ -37,7 +37,7 @@ import SignVerifyMsg from 'components/SignVerifyMsg/SignVerifyMsg';
 import Swap from 'components/Swap/Swap';
 import Rewards from 'components/Rewards';
 import NotFound from 'components/App/NotFound';
-import OnBoarding from 'components/OnBoarding/OnBoarding';
+import OnBoarding from 'components/OnBoarding';
 import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
