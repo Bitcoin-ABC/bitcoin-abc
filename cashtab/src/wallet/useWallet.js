@@ -41,12 +41,6 @@ import { toast } from 'react-toastify';
 import CashtabState from 'config/CashtabState';
 import TokenIcon from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
-import {
-    BlockNotification,
-    BlockNotificationLink,
-    BlockNotificationDesc,
-} from 'components/Common/Atoms';
-import { explorer } from 'config/explorer';
 import { toFormattedXec } from 'utils/formatting';
 
 const useWallet = chronik => {
@@ -567,34 +561,9 @@ const useWallet = chronik => {
         // when new blocks are found, refresh alias prices
         if (msgType === 'BLK_FINALIZED') {
             // Handle avalanche finalized block
-            const { blockHeight, blockHash } = msg;
+            const { blockHeight } = msg;
             // Set chaintip height
             setChaintipBlockheight(blockHeight);
-            const HALVING_BLOCKHEIGHT = 840000;
-            const blocksRemaining = HALVING_BLOCKHEIGHT - blockHeight;
-            toast(
-                <BlockNotification>
-                    <BlockNotificationLink
-                        href={`${explorer.blockExplorerUrl}/block/${blockHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        {`📦 ${blockHeight.toLocaleString()} finalized by Avalanche`}
-                    </BlockNotificationLink>
-                    {blocksRemaining > 0 && (
-                        <BlockNotificationDesc>
-                            ⏰ {blocksRemaining.toLocaleString()} blocks until
-                            eCash halving.
-                        </BlockNotificationDesc>
-                    )}
-                    {blocksRemaining === 0 && (
-                        <BlockNotificationDesc>
-                            🎉🎉🎉 eCash block reward reduced by 50% 🎉🎉🎉
-                        </BlockNotificationDesc>
-                    )}
-                </BlockNotification>,
-                { autoClose: blocksRemaining === 0 ? false : 5000 },
-            );
 
             if (aliasesEnabled) {
                 try {
