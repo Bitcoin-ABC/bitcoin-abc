@@ -521,3 +521,30 @@ std::unique_ptr<const CChainParams>
 CChainParams::TestNet(const ChainOptions &options) {
     return std::make_unique<const CTestNetParams>(options);
 }
+
+std::vector<int> CChainParams::GetAvailableSnapshotHeights() const {
+    std::vector<int> heights;
+    heights.reserve(m_assumeutxo_data.size());
+
+    for (const auto &data : m_assumeutxo_data) {
+        heights.emplace_back(data.height);
+    }
+    return heights;
+}
+
+std::optional<ChainType>
+GetNetworkForMagic(CMessageHeader::MessageMagic &message) {
+    CChainParams::ChainOptions opts{};
+    const auto mainnet_msg = CChainParams::Main(opts)->DiskMagic();
+    const auto testnet_msg = CChainParams::TestNet(opts)->DiskMagic();
+    const auto regtest_msg = CChainParams::RegTest(opts)->DiskMagic();
+
+    if (std::equal(message.begin(), message.end(), mainnet_msg.data())) {
+        return ChainType::MAIN;
+    } else if (std::equal(message.begin(), message.end(), testnet_msg.data())) {
+        return ChainType::TESTNET;
+    } else if (std::equal(message.begin(), message.end(), regtest_msg.data())) {
+        return ChainType::REGTEST;
+    }
+    return std::nullopt;
+}

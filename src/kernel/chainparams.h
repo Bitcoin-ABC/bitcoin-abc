@@ -107,6 +107,7 @@ public:
         return a.SetSpecial(addr) ? GetDefaultPort(a.GetNetwork())
                                   : GetDefaultPort();
     }
+    std::vector<int> GetAvailableSnapshotHeights() const;
 
     const CBlock &GenesisBlock() const { return genesis; }
     /** Default value for -checkmempool and -checkblockindex argument */
@@ -197,5 +198,8 @@ protected:
 };
 
 const CCheckpointData &CheckpointData(const ChainType chain);
+
+std::optional<ChainType>
+GetNetworkForMagic(CMessageHeader::MessageMagic &pchMessageStart);
 
 #endif // BITCOIN_KERNEL_CHAINPARAMS_H

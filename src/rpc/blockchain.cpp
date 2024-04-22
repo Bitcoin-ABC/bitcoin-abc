@@ -2726,7 +2726,8 @@ UniValue CreateUTXOSnapshot(NodeContext &node, Chainstate &chainstate,
                   tip->nHeight, tip->GetBlockHash().ToString(),
                   fs::PathToString(path), fs::PathToString(temppath)));
 
-    SnapshotMetadata metadata{tip->GetBlockHash(), maybe_stats->coins_count};
+    SnapshotMetadata metadata{tip->GetBlockHash(), tip->nHeight,
+                              maybe_stats->coins_count};
 
     afile << metadata;
 
@@ -2846,18 +2847,32 @@ static RPCHelpMan loadtxoutset() {
             }
 
             SnapshotMetadata metadata;
-            afile >> metadata;
+            try {
+                afile >> metadata;
+            } catch (const std::ios_base::failure &e) {
+                throw JSONRPCError(
+                    RPC_DESERIALIZATION_ERROR,
+                    strprintf("Unable to parse metadata: %s", e.what()));
+            }
 
             BlockHash base_blockhash = metadata.m_base_blockhash;
+            int base_blockheight = metadata.m_base_blockheight;
             if (!chainman.GetParams()
                      .AssumeutxoForBlockhash(base_blockhash)
                      .has_value()) {
+                auto available_heights =
+                    chainman.GetParams().GetAvailableSnapshotHeights();
+                std::string heights_formatted =
+                    Join(available_heights, ", ",
+                         [&](const auto &i) { return ToString(i); });
                 throw JSONRPCError(
                     RPC_INTERNAL_ERROR,
                     strprintf("Unable to load UTXO snapshot, "
                               "assumeutxo block hash in snapshot metadata not "
-                              "recognized (%s)",
-                              base_blockhash.ToString()));
+                              "recognized (hash: %s, height: %s). The "
+                              "following snapshot heights are available: %s.",
+                              base_blockhash.ToString(), base_blockheight,
+                              heights_formatted));
             }
             CBlockIndex *snapshot_start_block = WITH_LOCK(
                 ::cs_main,
