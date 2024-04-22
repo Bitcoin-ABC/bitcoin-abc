@@ -25,3 +25,4 @@ yarn-error.log*
 
 # This file is generated in CI with the latest version of Bitcoin ABC
 .abclatestversion
+

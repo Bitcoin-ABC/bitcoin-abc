@@ -942,7 +942,6 @@ builds:
   preview-chronik.e.cash:
     docker:
       context: modules/
-      port: 3000
       build_args:
         - "NGINX_CONF=nginx-preview.conf"
 

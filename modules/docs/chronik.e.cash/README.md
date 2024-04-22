@@ -11,3 +11,5 @@ The latest version of Bitcoin ABC is needed to generate appropriate download lin
 In order to run docusaurus locally, you will need this file in place.
 
 `cp .abclatestversion.sample .abclatestversion`
+
+For deployment, it should be overwritten with the latest version.
