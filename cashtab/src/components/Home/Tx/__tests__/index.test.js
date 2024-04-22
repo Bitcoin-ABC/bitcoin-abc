@@ -43,6 +43,8 @@ import {
     mockParseTxTokenCache,
     mockLargeTokenCache,
     mockTxHistorySupportingTokenCache,
+    SlpNftParentFanTx,
+    SlpNftMint,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -408,7 +410,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -463,7 +465,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(
@@ -519,7 +521,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -574,7 +576,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(
@@ -607,22 +609,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        // Note: slpv1 genesis is a "self send" tx
-        // Subject how we want to present this to the user
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx received label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Sep 26, 2022, 21:11:49')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -635,7 +635,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-genesis')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('UpdateTest')).toBeInTheDocument();
@@ -665,22 +665,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        // Note: slpv1 genesis is a "self send" tx
-        // Subject how we want to present this to the user
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx received label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Sep 26, 2022, 21:11:49')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -693,7 +691,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-genesis')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(screen.queryByText('UpdateTest')).not.toBeInTheDocument();
@@ -747,7 +745,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('CashTabBits')).toBeInTheDocument();
@@ -800,7 +798,7 @@ describe('<Tx />', () => {
         ).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(screen.queryByText('CashTabBits')).not.toBeInTheDocument();
@@ -1084,20 +1082,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx sent label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Oct 4, 2022, 22:11:00')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -1110,7 +1108,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('Lambda Variant Variants')).toBeInTheDocument();
@@ -1140,20 +1138,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx sent label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Oct 4, 2022, 22:11:00')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -1166,7 +1164,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(
@@ -1199,20 +1197,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx sent label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Oct 4, 2022, 22:46:25')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-5.46 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -1225,7 +1223,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We see the token name
         expect(
@@ -1259,20 +1257,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see expected icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
         // We see expected label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Apr 8, 2024, 24:18:59')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-26.56 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // SWaP msg app action
         // We see the SWaP icon
@@ -1657,22 +1655,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        // Note: slpv1 mint is a "self send" tx
-        // Subject how we want to present this to the user
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx received label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Mar 31, 2024, 05:10:19')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-33.72 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -1685,7 +1681,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-mint')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getAllByText('SLP 1')[0]).toBeInTheDocument();
+        expect(screen.getAllByText('SLP')[0]).toBeInTheDocument();
 
         // We see the token name
         expect(screen.getByText('Cachet')).toBeInTheDocument();
@@ -1715,22 +1711,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see the tx sent icon
-        // Note: slpv1 mint is a "self send" tx
-        // Subject how we want to present this to the user
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
-        // We see the tx received label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Mar 31, 2024, 05:10:19')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-33.72 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // We see the token icon
         expect(
@@ -1743,7 +1737,7 @@ describe('<Tx />', () => {
         expect(screen.getByTitle('tx-mint')).toBeInTheDocument();
 
         // We see the token type
-        expect(screen.getByText('SLP 1')).toBeInTheDocument();
+        expect(screen.getByText('SLP')).toBeInTheDocument();
 
         // We do not see the token name
         expect(screen.queryByText('Cachet')).not.toBeInTheDocument();
@@ -1822,20 +1816,20 @@ describe('<Tx />', () => {
             </MemoryRouter>,
         );
 
-        // We see expected icon
-        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
         // We see expected label
-        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
 
         // We render the timestamp
         expect(screen.getByText('Jan 11, 2024, 08:28:45')).toBeInTheDocument();
 
-        // We see the formatted XEC amount
-        expect(screen.getByText('-33.08 XEC')).toBeInTheDocument();
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
 
-        // We see the formatted fiat amount
-        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
 
         // Unknown msg app action
         // We see the Unknown logo
@@ -2059,5 +2053,133 @@ describe('<Tx />', () => {
 
         // We see expected protocol label
         expect(screen.getByText('Invalid Cashtab Msg')).toBeInTheDocument();
+    });
+    it('SLP1 NFT Parent fan-out tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={SlpNftParentFanTx.tx}
+                        hashes={[SlpNftParentFanTx.tx.outputs[1].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(SlpNftParentFanTx.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see the tx received label
+        expect(screen.getByText(/to self/)).toBeInTheDocument();
+
+        // We render locale timestamp
+        expect(screen.getByText('Apr 22, 2024, 22:44:01')).toBeInTheDocument();
+
+        // We see "-" as the amount for a self-send tx
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We do not see a formatted fiat amount for a self-send tx
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
+
+        // We see the token icon
+        expect(
+            screen.getByAltText(
+                'icon for 12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+            ),
+        ).toBeInTheDocument();
+
+        // Rendered token type for SLP1 NFT Parent is NFT Collection
+        expect(screen.getByText('NFT Collection')).toBeInTheDocument();
+
+        // We see the token name
+        expect(
+            screen.getByText('The Four Half-Coins of Jin-qua'),
+        ).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(4HC)')).toBeInTheDocument();
+
+        // We see the Fan Out icon
+        expect(screen.getByTitle('Fan Out')).toBeInTheDocument();
+
+        // We see the expected token action text for a received SLPv1 fungible token tx
+        // TODO this should be 'Fanned out'
+        // TODO calculate how many fan-out outputs were create
+        expect(
+            screen.getByText('Created 4 NFT Mint Inputs'),
+        ).toBeInTheDocument();
+    });
+    it('Genesis tx of an SLP1 Child Token (i.e. "minting an NFT")', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={SlpNftMint.tx}
+                        hashes={[SlpNftMint.tx.outputs[1].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(SlpNftMint.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Apr 22, 2024, 23:23:17')).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for fcab9a929a15ef91b5c5ca38b638e4d3f5fc49deb36fbc5c63de1fa900c8bcda',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the NFT mint icon
+        expect(screen.getByTitle('Mint NFT')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(screen.getByText('Wu Fang Choi')).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(WFC)')).toBeInTheDocument();
+
+        // We see the expected token action text for a received SLPv1 fungible token tx
+        expect(screen.getByText('Minted 1 WFC')).toBeInTheDocument();
+
+        // We see a second token action for burning the NFT Mint Input
+        expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
+        expect(screen.getByText('Burned 1 NFT Mint Input')).toBeInTheDocument();
     });
 });

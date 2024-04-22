@@ -39,6 +39,8 @@ import {
     mockSortedFlatTxHistoryWithAllUnconfirmed,
     AlpTx,
     SlpV1Mint,
+    SlpNftParentFanTx,
+    SlpNftMint,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -185,6 +187,20 @@ export default {
                 // Mock this as a received tx
                 hashes: [AlpTx.tx.outputs[1].outputScript],
                 parsed: AlpTx.parsed,
+            },
+            {
+                description: 'SLP1 NFT Parent Fan-out tx',
+                tx: SlpNftParentFanTx.tx,
+                // Mock this as a received tx
+                hashes: [SlpNftParentFanTx.tx.outputs[1].outputScript],
+                parsed: SlpNftParentFanTx.parsed,
+            },
+            {
+                description: 'SLP1 NFT Mint',
+                tx: SlpNftMint.tx,
+                // Mock this as a received tx
+                hashes: [SlpNftMint.tx.outputs[1].outputScript],
+                parsed: SlpNftMint.parsed,
             },
             {
                 description: 'External msg received from eCash Chat',

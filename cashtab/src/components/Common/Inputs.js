@@ -547,7 +547,7 @@ const TokenIconPreview = styled.img`
     width: 242px;
     height: 242px;
 `;
-export const CashtabDragger = ({ name, handleFile, imageUrl }) => {
+export const CashtabDragger = ({ name, handleFile, imageUrl, nft = false }) => {
     // drag state
     const [dragActive, setDragActive] = useState(false);
 
@@ -604,7 +604,8 @@ export const CashtabDragger = ({ name, handleFile, imageUrl }) => {
                 ) : (
                     <DragHolder>
                         <DragText>
-                            Drag and drop a png or jpg for your token icon
+                            Drag and drop a png or jpg for your{' '}
+                            {nft ? 'NFT' : 'token icon'}
                         </DragText>
                         <UploadText>or click to upload</UploadText>
                     </DragHolder>
@@ -626,6 +627,7 @@ CashtabDragger.propTypes = {
     name: PropTypes.string,
     handleFile: PropTypes.func,
     imageUrl: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
+    nft: PropTypes.bool,
 };
 
 export const CurrencySelect = ({ name = 'select', value, handleSelect }) => {

@@ -36,6 +36,9 @@ import {
     getMintBatons,
     getMintTargetOutputs,
     getMaxMintAmount,
+    getNftChildGenesisInput,
+    getNftParentFanInputs,
+    getNftParentFanTxTargetOutputs,
 } from 'slpv1';
 import { sendXec } from 'transactions';
 import { hasEnoughToken, decimalizeTokenAmount } from 'wallet';
@@ -59,12 +62,23 @@ import {
     TokenStatsTable,
     TokenStatsRow,
     TokenStatsCol,
+    TokenUrlCol,
     TokenStatsTableRow,
     TokenStatsLabel,
     SwitchHolder,
     TokenSentLink,
     AliasAddressPreviewLabel,
+    InfoModalParagraph,
+    ButtonDisabledMsg,
+    ButtonDisabledSpan,
+    NftTitle,
+    NftTable,
+    NftRow,
+    NftCol,
+    NftTokenIdAndCopyIcon,
 } from 'components/Etokens/Token/styled';
+import CreateTokenForm from 'components/Etokens/CreateTokenForm';
+import { getAllTxHistoryByTokenId, getChildNftsFromParent } from 'chronik';
 
 const Token = () => {
     let navigate = useNavigate();
@@ -98,9 +112,10 @@ const Token = () => {
               };
 
     const { tokenType, genesisInfo, genesisSupply } = cachedInfo;
-    const { tokenName, tokenTicker, url, decimals } = genesisInfo;
+    const { tokenName, tokenTicker, url, hash, decimals } = genesisInfo;
 
     let isSupportedToken = false;
+    let isNftParent = false;
 
     // Assign default values which will be presented for any token without explicit support
     let renderedTokenType = `${tokenType.protocol} ${tokenType.number} ${tokenType.type}`;
@@ -117,10 +132,17 @@ const Token = () => {
                     break;
                 }
                 case 'SLP_TOKEN_TYPE_NFT1_GROUP': {
-                    renderedTokenType = 'SLP NFT Collection';
+                    renderedTokenType = 'NFT Collection';
                     renderedTokenDescription =
                         'The parent tokens for an NFT collection. Can be used to mint NFTs. No decimal places. The supply of this token is the potential quantity of NFTs which could be minted. If no mint batons exist, the supply is fixed.';
-                    // TODO set isSupportedToken = true when we add token action support for NFT parent
+                    isSupportedToken = true;
+                    isNftParent = true;
+                    break;
+                }
+                case 'SLP_TOKEN_TYPE_NFT1_CHILD': {
+                    renderedTokenType = 'NFT';
+                    renderedTokenDescription =
+                        'eCash NFT. NFT supply is always 1. This NFT may belong to an NFT collection.';
                     break;
                 }
                 default: {
@@ -141,7 +163,13 @@ const Token = () => {
         }
     }
 
+    const [nftTokenIds, setNftTokenIds] = useState([]);
+    const [nftChildGenesisInput, setNftChildGenesisInput] = useState([]);
+    const [nftFanInputs, setNftFanInputs] = useState([]);
+    const [availableNftInputs, setAvailableNftInputs] = useState(0);
     const [showTokenTypeInfo, setShowTokenTypeInfo] = useState(false);
+    const [showFanoutInfo, setShowFanoutInfo] = useState(false);
+    const [showMintNftInfo, setShowMintNftInfo] = useState(false);
     const [sendTokenAddressError, setSendTokenAddressError] = useState(false);
     const [sendTokenAmountError, setSendTokenAmountError] = useState(false);
     const [showConfirmBurnEtoken, setShowConfirmBurnEtoken] = useState(false);
@@ -160,9 +188,12 @@ const Token = () => {
         showAirdrop: false,
         showBurn: false,
         showMint: false,
+        showFanout: false,
+        showMintNft: false,
     };
     const [switches, setSwitches] = useState(switchesOff);
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
+    const [showLargeNftIcon, setShowLargeNftIcon] = useState('');
     const defaultUncachedTokenInfo = {
         circulatingSupply: null,
         mintBatons: null,
@@ -228,10 +259,6 @@ const Token = () => {
         }
         // Get token info that is not practical to cache as it is subject to change
         getUncachedTokenInfo();
-
-        // Set the Send switch to on by default
-        // TODO handle other token types and other default settings
-        setSwitches(prev => ({ ...prev, showSend: true }));
     }, [cashtabCache.tokens.get(tokenId)]);
 
     useEffect(() => {
@@ -248,6 +275,71 @@ const Token = () => {
             navigate('/');
         }
     }, [loading, tokenBalance, cashtabCache]);
+
+    useEffect(() => {
+        // This useEffect block works as a de-facto "on load" block,
+        // for after we have the tokenId from the url params of this page
+        if (isSupportedToken) {
+            if (!isNftParent) {
+                // Supported token that is not an NFT parent
+                // Default action is send
+                setSwitches(prev => ({ ...prev, showSend: true }));
+            }
+        }
+    }, [tokenId]);
+
+    const getNfts = async tokenId => {
+        const nftParentTxHistory = await getAllTxHistoryByTokenId(
+            chronik,
+            tokenId,
+        );
+        const childNfts = getChildNftsFromParent(tokenId, nftParentTxHistory);
+        setNftTokenIds(childNfts);
+    };
+
+    useEffect(() => {
+        // On change of wallet token utxo set
+
+        if (isNftParent) {
+            // If this is an SLP1 NFT Parent
+            // Update nft fan inputs
+            setNftFanInputs(
+                getNftParentFanInputs(tokenId, wallet.state.slpUtxos),
+            );
+            // Update nft child genesis input
+            // Note this is always an array, either empty or of 1 qty-1 utxo
+            setNftChildGenesisInput(
+                getNftChildGenesisInput(tokenId, wallet.state.slpUtxos),
+            );
+            // Update the child NFTs
+            getNfts(tokenId);
+            // Get total amount of child genesis inputs
+            const availableNftMintInputs = wallet.state.slpUtxos.filter(
+                slpUtxo =>
+                    slpUtxo?.token?.tokenId === tokenId &&
+                    slpUtxo?.token?.amount === '1',
+            );
+            setAvailableNftInputs(availableNftMintInputs.length);
+        }
+    }, [wallet.state.slpUtxos]);
+
+    useEffect(() => {
+        if (nftChildGenesisInput.length > 0) {
+            // If we have inputs to mint an NFT, NFT1 default action should be Mint NFT
+            setSwitches({
+                ...switchesOff,
+                showMintNft: true,
+            });
+        } else if (nftFanInputs.length > 0) {
+            // If we have no nftChildGenesisInput but we do have nftFanInputs
+            // default action should be a fan-out tx to get these inputs
+            setSwitches({
+                ...switchesOff,
+                showFanout: true,
+            });
+        }
+        // Otherwise all switches are off
+    }, [nftFanInputs, nftChildGenesisInput]);
 
     // Clears address and amount fields following a send token notification
     const clearInputForms = () => {
@@ -331,6 +423,53 @@ const Token = () => {
             clearInputForms();
         } catch (e) {
             console.error(`Error sending token`, e);
+            toast.error(`${e}`);
+        }
+    }
+
+    /**
+     * Create SLP1 NFT Mint Fan Inputs
+     * Function may only be called if nftFanInputs is not an empty array
+     * Note the only button that calls this function is disabled if nftFanInputs.length === 0
+     */
+    async function createNftMintInputs() {
+        try {
+            // Get targetOutputs for an slpv1 nft parent fan-out tx
+            const nftFanTargetOutputs =
+                getNftParentFanTxTargetOutputs(nftFanInputs);
+
+            // Build and broadcast the tx
+            const { response } = await sendXec(
+                chronik,
+                wallet,
+                nftFanTargetOutputs,
+                settings.minFeeSends &&
+                    hasEnoughToken(
+                        tokens,
+                        appConfig.vipSettingsTokenId,
+                        appConfig.vipSettingsTokenQty,
+                    )
+                    ? appConfig.minFee
+                    : appConfig.defaultFee,
+                chaintipBlockheight,
+                nftFanInputs,
+            );
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${response.txid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    NFT Mint inputs created
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+            clearInputForms();
+        } catch (e) {
+            console.error(`Error creating NFT mint inputs`, e);
             toast.error(`${e}`);
         }
     }
@@ -651,6 +790,58 @@ const Token = () => {
                                 handleCancel={() => setShowTokenTypeInfo(false)}
                             />
                         )}
+                        {showFanoutInfo && (
+                            <Modal
+                                title="Creating NFT mint inputs"
+                                handleOk={() => setShowFanoutInfo(false)}
+                                handleCancel={() => setShowFanoutInfo(false)}
+                                height={300}
+                            >
+                                <InfoModalParagraph>
+                                    A genesis tx for an NFT collection
+                                    determines the size of your NFT collection.
+                                </InfoModalParagraph>
+                                <InfoModalParagraph>
+                                    For example, if you created an NFT
+                                    Collection with a supply of 100, you can
+                                    mint 100 NFTs.{' '}
+                                </InfoModalParagraph>
+                                <InfoModalParagraph>
+                                    However, each NFT must be minted from an
+                                    input UTXO with qty 1. Cashtab creates these
+                                    by splitting your original UTXO into utxos
+                                    with qty 1.{' '}
+                                </InfoModalParagraph>
+                                <InfoModalParagraph>
+                                    These qty 1 NFT Collection utxos can be used
+                                    to mint NFTs.
+                                </InfoModalParagraph>
+                            </Modal>
+                        )}
+                        {showMintNftInfo && (
+                            <Modal
+                                title="Minting an NFT"
+                                handleOk={() => setShowMintNftInfo(false)}
+                                handleCancel={() => setShowMintNftInfo(false)}
+                                height={300}
+                            >
+                                <InfoModalParagraph>
+                                    You can use an NFT Mint Input (a qty-1 utxo
+                                    from an NFT Collection token) to mint an
+                                    NFT.
+                                </InfoModalParagraph>
+                                <InfoModalParagraph>
+                                    NFTs from the same Collection are usually
+                                    related somehow. They will be indexed by the
+                                    tokenId of the NFT Collection.
+                                </InfoModalParagraph>
+                                <InfoModalParagraph>
+                                    For example, popular NFT Collections include
+                                    Cryptopunks and Bored Apes. Each individual
+                                    Cryptopunk or Bored Ape is its own NFT.
+                                </InfoModalParagraph>
+                            </Modal>
+                        )}
                         {showLargeIconModal && (
                             <Modal
                                 height={275}
@@ -660,6 +851,18 @@ const Token = () => {
                                 }
                             >
                                 <TokenIcon size={256} tokenId={tokenId} />
+                            </Modal>
+                        )}
+                        {showLargeNftIcon !== '' && (
+                            <Modal
+                                height={275}
+                                showButtons={false}
+                                handleCancel={() => setShowLargeNftIcon('')}
+                            >
+                                <TokenIcon
+                                    size={256}
+                                    tokenId={showLargeNftIcon}
+                                />
                             </Modal>
                         )}
                         {isModalVisible && (
@@ -750,22 +953,37 @@ const Token = () => {
                                         />
                                     </TokenStatsCol>
                                 </TokenStatsTableRow>
-                                <TokenStatsTableRow>
-                                    <TokenStatsLabel>decimals:</TokenStatsLabel>
-                                    <TokenStatsCol>{decimals}</TokenStatsCol>
-                                </TokenStatsTableRow>
-                                {url && url.startsWith('https://') && (
+                                {renderedTokenType !== 'NFT' &&
+                                    renderedTokenType !== 'NFT Collection' && (
+                                        <TokenStatsTableRow>
+                                            <TokenStatsLabel>
+                                                decimals:
+                                            </TokenStatsLabel>
+                                            <TokenStatsCol>
+                                                {decimals}
+                                            </TokenStatsCol>
+                                        </TokenStatsTableRow>
+                                    )}
+                                {url !== '' && (
                                     <TokenStatsTableRow>
                                         <TokenStatsLabel>url:</TokenStatsLabel>
-                                        <TokenStatsCol>
+                                        <TokenUrlCol>
                                             <a
-                                                href={url}
+                                                href={
+                                                    url.startsWith('https://')
+                                                        ? url
+                                                        : `https://${url}`
+                                                }
                                                 target="_blank"
                                                 rel="noreferrer"
                                             >
-                                                {`${url.slice(8, 19)}...`}
+                                                {`${url.slice(
+                                                    url.startsWith('https://')
+                                                        ? 8
+                                                        : 0,
+                                                )}`}
                                             </a>
-                                        </TokenStatsCol>
+                                        </TokenUrlCol>
                                     </TokenStatsTableRow>
                                 )}
                                 <TokenStatsTableRow>
@@ -782,135 +1000,348 @@ const Token = () => {
                                               )}
                                     </TokenStatsCol>
                                 </TokenStatsTableRow>
-                                <TokenStatsTableRow>
-                                    <TokenStatsLabel>
-                                        Genesis Qty:
-                                    </TokenStatsLabel>
-                                    <TokenStatsCol>
-                                        {decimalizedTokenQtyToLocaleFormat(
-                                            genesisSupply,
-                                            userLocale,
-                                        )}
-                                    </TokenStatsCol>
-                                </TokenStatsTableRow>
-                                <TokenStatsTableRow>
-                                    <TokenStatsLabel>Supply:</TokenStatsLabel>
-                                    <TokenStatsCol>
-                                        {typeof uncachedTokenInfo.circulatingSupply ===
-                                        'string'
-                                            ? `${decimalizedTokenQtyToLocaleFormat(
-                                                  uncachedTokenInfo.circulatingSupply,
-                                                  userLocale,
-                                              )}${
-                                                  uncachedTokenInfo.mintBatons ===
-                                                  0
-                                                      ? ' (fixed)'
-                                                      : ' (var.)'
-                                              }`
-                                            : uncachedTokenInfoError
-                                            ? 'Error fetching supply'
-                                            : 'Loading...'}
-                                    </TokenStatsCol>
-                                </TokenStatsTableRow>
+                                {renderedTokenType !== 'NFT' && (
+                                    <TokenStatsTableRow>
+                                        <TokenStatsLabel>
+                                            Genesis Qty:
+                                        </TokenStatsLabel>
+                                        <TokenStatsCol>
+                                            {decimalizedTokenQtyToLocaleFormat(
+                                                genesisSupply,
+                                                userLocale,
+                                            )}
+                                        </TokenStatsCol>
+                                    </TokenStatsTableRow>
+                                )}
+                                {renderedTokenType !== 'NFT' && (
+                                    <TokenStatsTableRow>
+                                        <TokenStatsLabel>
+                                            Supply:
+                                        </TokenStatsLabel>
+                                        <TokenStatsCol>
+                                            {typeof uncachedTokenInfo.circulatingSupply ===
+                                            'string'
+                                                ? `${decimalizedTokenQtyToLocaleFormat(
+                                                      uncachedTokenInfo.circulatingSupply,
+                                                      userLocale,
+                                                  )}${
+                                                      uncachedTokenInfo.mintBatons ===
+                                                      0
+                                                          ? ' (fixed)'
+                                                          : ' (var.)'
+                                                  }`
+                                                : uncachedTokenInfoError
+                                                ? 'Error fetching supply'
+                                                : 'Loading...'}
+                                        </TokenStatsCol>
+                                    </TokenStatsTableRow>
+                                )}
+                                {typeof hash !== 'undefined' && hash !== '' && (
+                                    <TokenStatsTableRow>
+                                        <TokenStatsLabel>hash:</TokenStatsLabel>
+                                        <TokenStatsCol>
+                                            {hash.slice(0, 3)}...
+                                            {hash.slice(-3)}
+                                        </TokenStatsCol>
+                                        <TokenStatsCol>
+                                            <CopyIconButton
+                                                data={hash}
+                                                showToast
+                                                customMsg={`Token document hash "${hash}" copied to clipboard`}
+                                            />
+                                        </TokenStatsCol>
+                                    </TokenStatsTableRow>
+                                )}
                             </TokenStatsCol>
                         </TokenStatsTable>
 
+                        {isNftParent && nftTokenIds.length > 0 && (
+                            <>
+                                <NftTitle>NFTs in this Collection</NftTitle>
+                                <NftTable>
+                                    {nftTokenIds.map(nftTokenId => {
+                                        const cachedNftInfo =
+                                            cashtabCache.tokens.get(nftTokenId);
+                                        return (
+                                            <NftCol key={nftTokenId}>
+                                                <NftRow>
+                                                    <TokenIconExpandButton
+                                                        onClick={() =>
+                                                            setShowLargeNftIcon(
+                                                                nftTokenId,
+                                                            )
+                                                        }
+                                                    >
+                                                        <TokenIcon
+                                                            size={64}
+                                                            tokenId={nftTokenId}
+                                                        />
+                                                    </TokenIconExpandButton>
+                                                </NftRow>
+                                                <NftRow>
+                                                    <NftTokenIdAndCopyIcon>
+                                                        <a
+                                                            href={`${explorer.blockExplorerUrl}/tx/${nftTokenId}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            {nftTokenId.slice(
+                                                                0,
+                                                                3,
+                                                            )}
+                                                            ...
+                                                            {nftTokenId.slice(
+                                                                -3,
+                                                            )}
+                                                        </a>
+                                                        <CopyIconButton
+                                                            data={nftTokenId}
+                                                            showToast
+                                                            customMsg={`NFT Token ID "${nftTokenId}" copied to clipboard`}
+                                                        />
+                                                    </NftTokenIdAndCopyIcon>
+                                                </NftRow>
+                                                {typeof cachedNftInfo !==
+                                                    'undefined' && (
+                                                    <>
+                                                        <NftRow>
+                                                            <Link
+                                                                to={`/token/${nftTokenId}`}
+                                                            >
+                                                                {
+                                                                    cachedNftInfo
+                                                                        .genesisInfo
+                                                                        .tokenName
+                                                                }
+                                                            </Link>
+                                                        </NftRow>
+                                                    </>
+                                                )}
+                                            </NftCol>
+                                        );
+                                    })}
+                                </NftTable>
+                            </>
+                        )}
                         {apiError && <ApiError />}
-                        {renderedTokenType === 'SLP NFT Collection' && (
-                            <Info>
-                                ℹ️ Cashtab support for minting NFTs is coming
-                                soon
-                            </Info>
+                        {renderedTokenType === 'NFT' && (
+                            <Info>ℹ️ NFT actions coming soon</Info>
                         )}
 
                         {isSupportedToken && (
                             <SendTokenForm title="Token Actions">
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Toggle Send"
-                                        on="➡️"
-                                        off="➡️"
-                                        checked={switches.showSend}
-                                        handleToggle={() => {
-                                            // We turn everything else off, whether we are turning this one on or off
-                                            setSwitches({
-                                                ...switchesOff,
-                                                showSend: !switches.showSend,
-                                            });
-                                        }}
-                                    />
-                                    <SwitchLabel>
-                                        Send {tokenName} ({tokenTicker})
-                                    </SwitchLabel>
-                                </SwitchHolder>
-                                {switches.showSend && (
+                                {!isNftParent && (
                                     <>
-                                        <SendTokenFormRow>
-                                            <InputRow>
-                                                <InputWithScanner
-                                                    placeholder={
-                                                        aliasSettings.aliasEnabled
-                                                            ? `Address or Alias`
-                                                            : `Address`
-                                                    }
-                                                    name="address"
-                                                    value={formData.address}
-                                                    handleInput={
-                                                        handleTokenAddressChange
-                                                    }
-                                                    error={
-                                                        sendTokenAddressError
-                                                    }
-                                                    loadWithScannerOpen={
-                                                        openWithScanner
-                                                    }
-                                                />
-                                                <AliasAddressPreviewLabel>
-                                                    <TxLink
-                                                        key={aliasInputAddress}
-                                                        href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                    >
-                                                        {aliasInputAddress &&
-                                                            `${aliasInputAddress.slice(
-                                                                0,
-                                                                10,
-                                                            )}...${aliasInputAddress.slice(
-                                                                -5,
-                                                            )}`}
-                                                    </TxLink>
-                                                </AliasAddressPreviewLabel>
-                                            </InputRow>
-                                        </SendTokenFormRow>
-                                        <SendTokenFormRow>
-                                            <SendTokenInput
-                                                name="amount"
-                                                value={formData.amount}
-                                                error={sendTokenAmountError}
-                                                placeholder="Amount"
-                                                decimals={decimals}
-                                                handleInput={
-                                                    handleSlpAmountChange
-                                                }
-                                                handleOnMax={onMax}
+                                        <SwitchHolder>
+                                            <Switch
+                                                name="Toggle Send"
+                                                on="➡️"
+                                                off="➡️"
+                                                checked={switches.showSend}
+                                                handleToggle={() => {
+                                                    // We turn everything else off, whether we are turning this one on or off
+                                                    setSwitches({
+                                                        ...switchesOff,
+                                                        showSend:
+                                                            !switches.showSend,
+                                                    });
+                                                }}
                                             />
-                                        </SendTokenFormRow>
-                                        <SendTokenFormRow>
-                                            <PrimaryButton
-                                                style={{ marginTop: '24px' }}
+                                            <SwitchLabel>
+                                                Send {tokenName} ({tokenTicker})
+                                            </SwitchLabel>
+                                        </SwitchHolder>
+                                        {switches.showSend && (
+                                            <>
+                                                <SendTokenFormRow>
+                                                    <InputRow>
+                                                        <InputWithScanner
+                                                            placeholder={
+                                                                aliasSettings.aliasEnabled
+                                                                    ? `Address or Alias`
+                                                                    : `Address`
+                                                            }
+                                                            name="address"
+                                                            value={
+                                                                formData.address
+                                                            }
+                                                            handleInput={
+                                                                handleTokenAddressChange
+                                                            }
+                                                            error={
+                                                                sendTokenAddressError
+                                                            }
+                                                            loadWithScannerOpen={
+                                                                openWithScanner
+                                                            }
+                                                        />
+                                                        <AliasAddressPreviewLabel>
+                                                            <TxLink
+                                                                key={
+                                                                    aliasInputAddress
+                                                                }
+                                                                href={`${explorer.blockExplorerUrl}/address/${aliasInputAddress}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                {aliasInputAddress &&
+                                                                    `${aliasInputAddress.slice(
+                                                                        0,
+                                                                        10,
+                                                                    )}...${aliasInputAddress.slice(
+                                                                        -5,
+                                                                    )}`}
+                                                            </TxLink>
+                                                        </AliasAddressPreviewLabel>
+                                                    </InputRow>
+                                                </SendTokenFormRow>
+                                                <SendTokenFormRow>
+                                                    <SendTokenInput
+                                                        name="amount"
+                                                        value={formData.amount}
+                                                        error={
+                                                            sendTokenAmountError
+                                                        }
+                                                        placeholder="Amount"
+                                                        decimals={decimals}
+                                                        handleInput={
+                                                            handleSlpAmountChange
+                                                        }
+                                                        handleOnMax={onMax}
+                                                    />
+                                                </SendTokenFormRow>
+                                                <SendTokenFormRow>
+                                                    <PrimaryButton
+                                                        style={{
+                                                            marginTop: '24px',
+                                                        }}
+                                                        disabled={
+                                                            apiError ||
+                                                            sendTokenAmountError ||
+                                                            sendTokenAddressError
+                                                        }
+                                                        onClick={() =>
+                                                            checkForConfirmationBeforeSendEtoken()
+                                                        }
+                                                    >
+                                                        Send {tokenTicker}
+                                                    </PrimaryButton>
+                                                </SendTokenFormRow>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+                                {isNftParent && (
+                                    <>
+                                        <SwitchHolder>
+                                            <Switch
+                                                name="Toggle NFT Parent Fan-out"
+                                                checked={switches.showFanout}
+                                                handleToggle={() =>
+                                                    // We turn everything else off, whether we are turning this one on or off
+                                                    setSwitches({
+                                                        ...switchesOff,
+                                                        showFanout:
+                                                            !switches.showFanout,
+                                                    })
+                                                }
+                                            />
+                                            <SwitchLabel>
+                                                <DataAndQuestionButton>
+                                                    Create NFT mint inputs
+                                                    <IconButton
+                                                        name={`Click for more info about NFT Collection fan-out txs`}
+                                                        icon={<QuestionIcon />}
+                                                        onClick={() =>
+                                                            setShowFanoutInfo(
+                                                                true,
+                                                            )
+                                                        }
+                                                    />
+                                                </DataAndQuestionButton>
+                                            </SwitchLabel>
+                                        </SwitchHolder>
+                                        {switches.showFanout && (
+                                            <TokenStatsRow>
+                                                <SecondaryButton
+                                                    style={{
+                                                        marginTop: '12px',
+                                                        marginBottom: '0px',
+                                                    }}
+                                                    disabled={
+                                                        nftFanInputs.length ===
+                                                        0
+                                                    }
+                                                    onClick={
+                                                        createNftMintInputs
+                                                    }
+                                                >
+                                                    Create NFT Mint Inputs
+                                                </SecondaryButton>
+                                                <ButtonDisabledMsg>
+                                                    {nftFanInputs.length === 0
+                                                        ? 'No token utxos exist with qty !== 1'
+                                                        : ''}
+                                                </ButtonDisabledMsg>
+                                            </TokenStatsRow>
+                                        )}
+                                        <SwitchHolder>
+                                            <Switch
+                                                name="Toggle Mint NFT"
+                                                checked={switches.showMintNft}
                                                 disabled={
-                                                    apiError ||
-                                                    sendTokenAmountError ||
-                                                    sendTokenAddressError
+                                                    nftChildGenesisInput.length ===
+                                                    0
                                                 }
-                                                onClick={() =>
-                                                    checkForConfirmationBeforeSendEtoken()
+                                                handleToggle={() =>
+                                                    // We turn everything else off, whether we are turning this one on or off
+                                                    setSwitches({
+                                                        ...switchesOff,
+                                                        showMintNft:
+                                                            !switches.showMintNft,
+                                                    })
                                                 }
-                                            >
-                                                Send {tokenTicker}
-                                            </PrimaryButton>
-                                        </SendTokenFormRow>
+                                            />
+                                            <SwitchLabel>
+                                                <DataAndQuestionButton>
+                                                    Mint NFT{' '}
+                                                    {availableNftInputs ===
+                                                    0 ? (
+                                                        <ButtonDisabledSpan>
+                                                            &nbsp;(no NFT mint
+                                                            inputs)
+                                                        </ButtonDisabledSpan>
+                                                    ) : (
+                                                        <p>
+                                                            &nbsp; (
+                                                            {availableNftInputs}{' '}
+                                                            input
+                                                            {availableNftInputs >
+                                                            1
+                                                                ? 's'
+                                                                : ''}{' '}
+                                                            available)
+                                                        </p>
+                                                    )}
+                                                    <IconButton
+                                                        name={`Click for more info about minting an NFT`}
+                                                        icon={<QuestionIcon />}
+                                                        onClick={() =>
+                                                            setShowMintNftInfo(
+                                                                true,
+                                                            )
+                                                        }
+                                                    />
+                                                </DataAndQuestionButton>
+                                            </SwitchLabel>
+                                        </SwitchHolder>
+                                        {switches.showMintNft && (
+                                            <CreateTokenForm
+                                                nftChildGenesisInput={
+                                                    nftChildGenesisInput
+                                                }
+                                            />
+                                        )}
                                     </>
                                 )}
                                 <SwitchHolder>
@@ -949,50 +1380,62 @@ const Token = () => {
                                         </Link>
                                     </TokenStatsRow>
                                 )}
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Toggle Burn"
-                                        on="🔥"
-                                        off="🔥"
-                                        checked={switches.showBurn}
-                                        handleToggle={() =>
-                                            // We turn everything else off, whether we are turning this one on or off
-                                            setSwitches({
-                                                ...switchesOff,
-                                                showBurn: !switches.showBurn,
-                                            })
-                                        }
-                                    />
-                                    <SwitchLabel>
-                                        Burn {tokenTicker}
-                                    </SwitchLabel>
-                                </SwitchHolder>
-                                {switches.showBurn && (
-                                    <TokenStatsRow>
-                                        <InputFlex>
-                                            <SendTokenInput
-                                                name="burnAmount"
-                                                value={formData.burnAmount}
-                                                error={burnTokenAmountError}
-                                                placeholder="Burn Amount"
-                                                decimals={decimals}
-                                                handleInput={
-                                                    handleEtokenBurnAmountChange
+                                {!isNftParent && (
+                                    <>
+                                        <SwitchHolder>
+                                            <Switch
+                                                name="Toggle Burn"
+                                                on="🔥"
+                                                off="🔥"
+                                                checked={switches.showBurn}
+                                                handleToggle={() =>
+                                                    // We turn everything else off, whether we are turning this one on or off
+                                                    setSwitches({
+                                                        ...switchesOff,
+                                                        showBurn:
+                                                            !switches.showBurn,
+                                                    })
                                                 }
-                                                handleOnMax={onMaxBurn}
                                             />
-
-                                            <SecondaryButton
-                                                onClick={handleBurnAmountInput}
-                                                disabled={
-                                                    burnTokenAmountError ||
-                                                    formData.burnAmount === ''
-                                                }
-                                            >
+                                            <SwitchLabel>
                                                 Burn {tokenTicker}
-                                            </SecondaryButton>
-                                        </InputFlex>
-                                    </TokenStatsRow>
+                                            </SwitchLabel>
+                                        </SwitchHolder>
+                                        {switches.showBurn && (
+                                            <TokenStatsRow>
+                                                <InputFlex>
+                                                    <SendTokenInput
+                                                        name="burnAmount"
+                                                        value={
+                                                            formData.burnAmount
+                                                        }
+                                                        error={
+                                                            burnTokenAmountError
+                                                        }
+                                                        placeholder="Burn Amount"
+                                                        decimals={decimals}
+                                                        handleInput={
+                                                            handleEtokenBurnAmountChange
+                                                        }
+                                                        handleOnMax={onMaxBurn}
+                                                    />
+
+                                                    <SecondaryButton
+                                                        onClick={
+                                                            handleBurnAmountInput
+                                                        }
+                                                        disabled={
+                                                            burnTokenAmountError ||
+                                                            formData.burnAmount ===
+                                                                ''
+                                                        }
+                                                    >
+                                                        Burn {tokenTicker}
+                                                    </SecondaryButton>
+                                                </InputFlex>
+                                            </TokenStatsRow>
+                                        )}
+                                    </>
                                 )}
                                 {mintBatons.length > 0 && (
                                     <SwitchHolder>

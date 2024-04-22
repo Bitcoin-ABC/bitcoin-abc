@@ -11,6 +11,8 @@ import {
     getTokenBalances,
     getHistory,
     getUtxos,
+    getAllTxHistoryByTokenId,
+    getChildNftsFromParent,
 } from 'chronik';
 import vectors from '../fixtures/vectors';
 import {
@@ -27,6 +29,8 @@ import {
     tokensInHistory,
     expectedParsedTxHistory,
     noCachedInfoParsedTxHistory,
+    NftParentGenesisTx,
+    NftChildGenesisTx,
 } from '../fixtures/mocks';
 import { cashtabWalletFromJSON } from 'helpers';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
@@ -363,6 +367,93 @@ describe('Cashtab chronik.js functions', () => {
 
             // Expect correct tx history
             expect(parsedTxHistory).toStrictEqual(noCachedInfoParsedTxHistory);
+        });
+    });
+    describe('We can get tx history by tokenId', () => {
+        it('We can get tx history if total txs are less than one page', async () => {
+            // Initialize chronik mock with history info
+            const mockedChronik = new MockChronikClient();
+            const tokenId =
+                '1111111111111111111111111111111111111111111111111111111111111111';
+            mockedChronik.setTokenId(tokenId);
+            mockedChronik.setTxHistoryByTokenId(tokenId, [
+                { txid: 'deadbeef' },
+            ]);
+            expect(
+                await getAllTxHistoryByTokenId(mockedChronik, tokenId),
+            ).toStrictEqual([{ txid: 'deadbeef' }]);
+        });
+        it('We can get tx history if we need to fetch multiple pages', async () => {
+            // Initialize chronik mock with history info
+            const mockedChronik = new MockChronikClient();
+            const tokenId =
+                '1111111111111111111111111111111111111111111111111111111111111111';
+            mockedChronik.setTokenId(tokenId);
+            mockedChronik.setTxHistoryByTokenId(
+                tokenId,
+                [
+                    { txid: 'deadbeef' },
+                    { txid: 'deadbeef' },
+                    { txid: 'deadbeef' },
+                ],
+                1,
+            );
+            expect(
+                await getAllTxHistoryByTokenId(mockedChronik, tokenId),
+            ).toStrictEqual([
+                { txid: 'deadbeef' },
+                { txid: 'deadbeef' },
+                { txid: 'deadbeef' },
+            ]);
+        });
+        it('We get an empty array if the token has no tx history', async () => {
+            // Initialize chronik mock with history info
+            const mockedChronik = new MockChronikClient();
+            const tokenId =
+                '1111111111111111111111111111111111111111111111111111111111111111';
+            mockedChronik.setTokenId(tokenId);
+            mockedChronik.setTxHistoryByTokenId(tokenId, []);
+            expect(
+                await getAllTxHistoryByTokenId(mockedChronik, tokenId),
+            ).toStrictEqual([]);
+        });
+    });
+    describe('We can get NFTs from the tx history of an NFT Parent tokenId', () => {
+        const PARENT_TOKENID =
+            '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3';
+        it('We return an empty array if history includes only the parent genesis tx', () => {
+            expect(
+                getChildNftsFromParent(PARENT_TOKENID, [NftParentGenesisTx]),
+            ).toStrictEqual([]);
+        });
+        it('We return an NFT if history includes NFT and parent genesis tx', () => {
+            expect(
+                getChildNftsFromParent(PARENT_TOKENID, [
+                    NftChildGenesisTx,
+                    NftParentGenesisTx,
+                ]),
+            ).toStrictEqual([NftChildGenesisTx.tokenEntries[0].tokenId]);
+        });
+        it('We return multiple NFTs if history includes them', () => {
+            expect(
+                getChildNftsFromParent(PARENT_TOKENID, [
+                    NftChildGenesisTx,
+                    {
+                        ...NftChildGenesisTx,
+                        tokenEntries: [
+                            {
+                                ...NftChildGenesisTx.tokenEntries[0],
+                                tokenId:
+                                    '2222222222222222222222222222222222222222222222222222222222222222',
+                            },
+                        ],
+                    },
+                    NftParentGenesisTx,
+                ]),
+            ).toStrictEqual([
+                NftChildGenesisTx.tokenEntries[0].tokenId,
+                '2222222222222222222222222222222222222222222222222222222222222222',
+            ]);
         });
     });
 });

@@ -12,6 +12,8 @@ import {
     undecimalizeTokenAmount,
 } from 'wallet';
 
+const CHRONIK_MAX_PAGE_SIZE = 200;
+
 export const getTxHistoryPage = async (chronik, hash160, page = 0) => {
     let txHistoryPage;
     try {
@@ -523,4 +525,80 @@ export const getTokenBalances = async (chronik, slpUtxos, tokenCache) => {
     }
 
     return walletStateTokens;
+};
+
+/**
+ *
+ * @param {ChronikClientNode} chronik
+ * @param {string} tokenId
+ * @param {number} pageSize usually 200, the chronik max, but accept a parameter to simplify unit testing
+ * @returns
+ */
+export const getAllTxHistoryByTokenId = async (
+    chronik,
+    tokenId,
+    pageSize = CHRONIK_MAX_PAGE_SIZE,
+) => {
+    // We will throw an error if we get an error from chronik fetch
+    const firstPageResponse = await chronik
+        .tokenId(tokenId)
+        // call with page=0 (to get first page) and max page size, as we want all the history
+        .history(0, pageSize);
+    const { txs, numPages } = firstPageResponse;
+    // Get tx history from all pages
+    // We start with i = 1 because we already have the data from page 0
+    const tokenHistoryPromises = [];
+    for (let i = 1; i < numPages; i += 1) {
+        tokenHistoryPromises.push(
+            new Promise((resolve, reject) => {
+                chronik
+                    .tokenId(tokenId)
+                    .history(i, CHRONIK_MAX_PAGE_SIZE)
+                    .then(
+                        result => {
+                            resolve(result.txs);
+                        },
+                        err => {
+                            reject(err);
+                        },
+                    );
+            }),
+        );
+    }
+    // Get rest of txHistory using Promise.all() to execute requests in parallel
+    const restOfTxHistory = await Promise.all(tokenHistoryPromises);
+    // Flatten so we have an array of tx objects, and not an array of arrays of tx objects
+    const flatTxHistory = restOfTxHistory.flat();
+    // Combine with the first page
+    const allHistory = txs.concat(flatTxHistory);
+
+    return allHistory;
+};
+
+/**
+ * Get all child NFTs from a given parent tokenId
+ * i.e. get all NFTs in an NFT collection *
+ * @param {string} parentTokenId
+ * @param {Tx_InNode[]} allParentTokenTxHistory
+ */
+export const getChildNftsFromParent = (
+    parentTokenId,
+    allParentTokenTxHistory,
+) => {
+    const childNftsFromThisParent = [];
+    for (const tx of allParentTokenTxHistory) {
+        // Check tokenEntries
+        const { tokenEntries } = tx;
+        for (const tokenEntry of tokenEntries) {
+            const { txType } = tokenEntry;
+            if (
+                txType === 'GENESIS' &&
+                typeof tokenEntry.groupTokenId !== 'undefined' &&
+                tokenEntry.groupTokenId === parentTokenId
+            ) {
+                childNftsFromThisParent.push(tokenEntry.tokenId);
+            }
+        }
+    }
+    return childNftsFromThisParent;
 };

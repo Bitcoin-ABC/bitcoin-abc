@@ -4,6 +4,10 @@
 
 import styled from 'styled-components';
 
+export const InfoModalParagraph = styled.p`
+    color: ${props => props.theme.contrast};
+    text-align: left;
+`;
 export const DataAndQuestionButton = styled.div`
     display: flex;
     align-items: center;
@@ -55,6 +59,12 @@ export const TokenStatsCol = styled.div`
     align-items: center;
     flex-wrap: wrap;
 `;
+export const TokenUrlCol = styled(TokenStatsCol)`
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 120px;
+    white-space: nowrap;
+`;
 export const TokenStatsTableRow = styled.div`
     width: 100%;
     display: flex;
@@ -89,4 +99,67 @@ export const AliasAddressPreviewLabel = styled.div`
     color: ${props => props.theme.forms.text};
     padding-left: 1px;
     white-space: nowrap;
+`;
+
+export const ButtonDisabledMsg = styled.div`
+    font-size: 14px;
+    color: ${props => props.theme.forms.error};
+    word-break: break-all;
+`;
+export const ButtonDisabledSpan = styled.span`
+    color: ${props => props.theme.forms.error};
+`;
+export const NftTitle = styled.div`
+    color: ${props => props.theme.contrast};
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+`;
+export const NftTable = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    background-color: ${props => props.theme.panel}
+    border-radius: 9px;
+    color: ${props => props.theme.contrast};
+    max-height: 220px;
+    overflow: auto;
+    &::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    &::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+        background-color: ${props => props.theme.eCashBlue};
+        border-radius: 10px;
+        height: 80%;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        color: ${props => props.theme.eCashBlue};
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+    }
+`;
+export const NftRow = styled.div`
+    display: flex;
+    flex-direction: row;
+    gap: 3px;
+    align-items: center;
+    justify-content: center;
+`;
+export const NftTokenIdAndCopyIcon = styled.div`
+    display: flex;
+    align-items: center;
+`;
+export const NftCol = styled.div`
+    display: flex;
+    flex-direction: column;
+    svg {
+        width: 18px;
+        height: 18px;
+    }
+    gap: 6px;
 `;

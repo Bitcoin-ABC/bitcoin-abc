@@ -9,6 +9,10 @@ import { opReturn } from 'config/opreturn';
 import * as utxolib from '@bitgo/utxo-lib';
 import { undecimalizeTokenAmount } from 'wallet';
 
+// Constants for SLP 1 token types as returned by chronik-client
+export const SLP_1_PROTOCOL_NUMBER = 1;
+export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
+export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
 // SLP1 supports up to 19 outputs
@@ -601,15 +605,15 @@ export const getNftParentFanTxTargetOutputs = fanInputs => {
         : totalInputAmount.toNumber();
 
     // We only expect change if we have totalInputAmount of > 19
-    const change = maxOutputs
-        ? totalInputAmount.minus(SLP1_SEND_MAX_OUTPUTS)
-        : new BN(0);
-    const hasChange = change.gt(0);
-
     // We send amount 1 to as many outputs as we can
     // If we have change and maxOutputs === true, this is 18
     // Otherwise it's fanOutputs, which could be 19, or less if the user does not have 19 of this token left
     const MAX_OUTPUTS_IF_CHANGE = SLP1_SEND_MAX_OUTPUTS - 1;
+    const change = maxOutputs
+        ? totalInputAmount.minus(MAX_OUTPUTS_IF_CHANGE)
+        : new BN(0);
+    const hasChange = change.gt(0);
+
     const sendAmounts = Array(
         hasChange && maxOutputs ? MAX_OUTPUTS_IF_CHANGE : fanOutputs,
     ).fill(new BN(1));

@@ -57,6 +57,9 @@ import {
     ThemedLinkSolid,
     AddContactIcon,
     ReplyIcon,
+    SelfSendIcon,
+    FanOutIcon,
+    MintNftIcon,
 } from 'components/Common/CustomIcons';
 import PropTypes from 'prop-types';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
@@ -77,6 +80,11 @@ import { toast } from 'react-toastify';
 import { getContactNameError } from 'validation';
 import AvalancheFinalized from 'components/Common/AvalancheFinalized';
 import { InlineLoader } from 'components/Common/Spinner';
+import {
+    SLP_1_PROTOCOL_NUMBER,
+    SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER,
+    SLP_1_NFT_PROTOCOL_NUMBER,
+} from 'slpv1';
 
 const Tx = ({
     tx,
@@ -483,12 +491,48 @@ const Tx = ({
 
         // Every token entry has a token type
         // We parse it to be more human friendly (...less dev friendly 🤔) in tx history
-        const parsedTokenType = `${protocol}${
-            protocol !== 'ALP' ? ` ${number}` : ''
-        }`;
+        let parsedTokenType = '';
+        switch (protocol) {
+            case 'ALP': {
+                parsedTokenType = 'ALP';
+                break;
+            }
+            case 'SLP': {
+                if (number === SLP_1_PROTOCOL_NUMBER) {
+                    parsedTokenType = 'SLP';
+                } else if (number === SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER) {
+                    parsedTokenType = 'NFT Collection';
+                } else if (number === SLP_1_NFT_PROTOCOL_NUMBER) {
+                    parsedTokenType = 'NFT';
+                }
+                break;
+            }
+            default: {
+                parsedTokenType = `${protocol} ${number}`;
+                break;
+            }
+        }
 
         // Ref TokenTxType in ChronikClientNode
         if (txType === 'NONE' || txType === 'UNKNOWN') {
+            // Handle special case of burning qty 1 NFT Parent token utxo for an NFT mint
+            // Assume when you see txType === 'NONE' for an SLP 1 NFT Parent, that this is burning an NFT mint
+            // In Cashtab, this is the only case
+            if (parsedTokenType === 'NFT Collection') {
+                tokenActions.push(
+                    <TokenAction>
+                        <IconAndLabel>
+                            <TokenBurnIcon />
+                            {tokenIcon}
+                        </IconAndLabel>
+                        <TokenType>{parsedTokenType}</TokenType>
+                        <TokenDesc>Burned 1 NFT Mint Input</TokenDesc>
+                    </TokenAction>,
+                );
+                // No more parsing for this token action
+                continue;
+            }
+
             // Render a token entry row for this
             // Exercise for the user to figure out what is going on with this tx
             tokenActions.push(
@@ -506,20 +550,32 @@ const Tx = ({
 
         const cachedTokenInfo = cashtabCache.tokens.get(tokenId);
         const renderedTxType =
-            txType === 'SEND' && !isUnintentionalBurn
+            txType === 'SEND' &&
+            !isUnintentionalBurn &&
+            parsedTokenType !== 'NFT Collection'
                 ? xecTxType
-                : txType === 'GENESIS'
+                : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
+                parsedTokenType === 'NFT Collection'
+                ? 'Fan-out'
+                : txType === 'GENESIS' && parsedTokenType !== 'NFT'
                 ? 'Created'
                 : isUnintentionalBurn || txType === 'BURN'
                 ? 'Burned'
-                : txType === 'MINT'
+                : txType === 'MINT' ||
+                  (txType === 'GENESIS' && parsedTokenType === 'NFT')
                 ? 'Minted'
                 : txType;
         if (typeof cachedTokenInfo === 'undefined') {
             tokenActions.push(
                 <TokenAction tokenTxType={renderedTxType}>
                     <IconAndLabel>
-                        {txType === 'GENESIS' && <GenesisIcon />}
+                        {renderedTxType === 'Fan-out' && <FanOutIcon />}
+                        {txType === 'GENESIS' && parsedTokenType !== 'NFT' && (
+                            <GenesisIcon />
+                        )}
+                        {txType === 'GENESIS' && parsedTokenType === 'NFT' && (
+                            <MintNftIcon />
+                        )}
                         {txType === 'MINT' && <MintIcon />}
                         {(isUnintentionalBurn || txType === 'BURN') && (
                             <TokenBurnIcon />
@@ -539,6 +595,9 @@ const Tx = ({
                 cachedTokenInfo.genesisInfo;
             let amountTotal = BigInt(0);
             let amountThisWallet = BigInt(0);
+            // Special case for NFT1 Parent Fan-out tx
+            // This can only be a number between 0 and 19, so we do not need BigInt
+            let qtyOneInputsCreated = 0;
             // For unexpected burns, we do not need to iterate over outputs
             // Enough info is available in the burnSummary key
             if (isUnintentionalBurn) {
@@ -557,6 +616,9 @@ const Tx = ({
                         for (const hash of hashes) {
                             if (output.outputScript.includes(hash)) {
                                 amountThisWallet += BigInt(output.token.amount);
+                                if (output.token.amount === '1') {
+                                    qtyOneInputsCreated += 1;
+                                }
                             }
                         }
                     }
@@ -586,7 +648,13 @@ const Tx = ({
             tokenActions.push(
                 <TokenAction tokenTxType={renderedTxType}>
                     <IconAndLabel>
-                        {txType === 'GENESIS' && <GenesisIcon />}
+                        {txType === 'GENESIS' && parsedTokenType !== 'NFT' && (
+                            <GenesisIcon />
+                        )}
+                        {txType === 'GENESIS' && parsedTokenType === 'NFT' && (
+                            <MintNftIcon />
+                        )}
+                        {renderedTxType === 'Fan-out' && <FanOutIcon />}
                         {txType === 'MINT' && <MintIcon />}
                         {(isUnintentionalBurn || txType === 'BURN') && (
                             <TokenBurnIcon />
@@ -594,7 +662,11 @@ const Tx = ({
                         {tokenIcon}
                         <TokenInfoCol>
                             <TokenType>{parsedTokenType}</TokenType>
-                            <TokenType>{txType}</TokenType>
+                            <TokenType>
+                                {renderedTxType !== 'Fan-out'
+                                    ? txType
+                                    : renderedTxType}
+                            </TokenType>
                         </TokenInfoCol>
                     </IconAndLabel>
 
@@ -603,7 +675,11 @@ const Tx = ({
                         <TokenTicker>({tokenTicker})</TokenTicker>
                     </TokenInfoCol>
                     <TokenDesc>
-                        {renderedTxType} {formattedAmount} {tokenTicker}
+                        {renderedTxType === 'Fan-out'
+                            ? `Created ${qtyOneInputsCreated} NFT Mint Input${
+                                  qtyOneInputsCreated > 1 ? 's' : ''
+                              }`
+                            : `${renderedTxType} ${formattedAmount} ${tokenTicker}`}
                     </TokenDesc>
                 </TokenAction>,
             );
@@ -707,6 +783,8 @@ const Tx = ({
             typeof knownRecipient === 'undefined' &&
             typeof recipients[0] !== 'undefined');
 
+    const isSelfSendTx = typeof recipients[0] === 'undefined';
+
     return (
         <>
             {showAddNewContactModal && (
@@ -736,10 +814,12 @@ const Tx = ({
                 <Collapse onClick={() => setShowPanel(!showPanel)}>
                     <MainRow type={xecTxType}>
                         <MainRowLeft>
-                            {xecTxType === 'Received' ? (
+                            {xecTxType === 'Received' && !isSelfSendTx ? (
                                 <ReceiveIcon />
-                            ) : xecTxType === 'Sent' ? (
+                            ) : xecTxType === 'Sent' && !isSelfSendTx ? (
                                 <SendIcon />
+                            ) : isSelfSendTx ? (
+                                <SelfSendIcon />
                             ) : (
                                 <MinedIcon />
                             )}
@@ -762,8 +842,7 @@ const Tx = ({
                                                 </AddressLink>
                                             </>
                                         ) : xecTxType === 'Sent' &&
-                                          typeof recipients[0] !==
-                                              'undefined' ? (
+                                          !isSelfSendTx ? (
                                             <>
                                                 {' to'}
                                                 <AddressLink
@@ -811,18 +890,38 @@ const Tx = ({
                         </MainRowLeft>
                         <AmountCol>
                             <AmountTop>
-                                {xecTxType === 'Sent' ? '-' : ''}
-                                {toFormattedXec(satoshisSent, userLocale)} XEC
+                                {isSelfSendTx ? (
+                                    '-'
+                                ) : (
+                                    <>
+                                        {xecTxType === 'Sent' ? '-' : ''}
+                                        {toFormattedXec(
+                                            satoshisSent,
+                                            userLocale,
+                                        )}{' '}
+                                        XEC
+                                    </>
+                                )}
                             </AmountTop>
                             <AmountBottom>
-                                {xecTxType === 'Sent' ? '-' : ''}
-                                {supportedFiatCurrencies[fiatCurrency].symbol}
-                                {(
-                                    fiatPrice * toXec(satoshisSent)
-                                ).toLocaleString(userLocale, {
-                                    maximumFractionDigits: 2,
-                                    minimumFractionDigits: 2,
-                                })}
+                                {isSelfSendTx ? (
+                                    ''
+                                ) : (
+                                    <>
+                                        {xecTxType === 'Sent' ? '-' : ''}
+                                        {
+                                            supportedFiatCurrencies[
+                                                fiatCurrency
+                                            ].symbol
+                                        }
+                                        {(
+                                            fiatPrice * toXec(satoshisSent)
+                                        ).toLocaleString(userLocale, {
+                                            maximumFractionDigits: 2,
+                                            minimumFractionDigits: 2,
+                                        })}
+                                    </>
+                                )}
                             </AmountBottom>
                         </AmountCol>
                     </MainRow>

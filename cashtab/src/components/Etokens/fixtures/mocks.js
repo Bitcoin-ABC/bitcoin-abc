@@ -183,6 +183,7 @@ export const tokenTestWallet = {
                     amount: '100',
                     isMintBaton: false,
                 },
+                path: 1899,
             },
             {
                 outpoint: {
@@ -204,6 +205,29 @@ export const tokenTestWallet = {
                     amount: '0',
                     isMintBaton: true,
                 },
+                path: 1899,
+            },
+            {
+                outpoint: {
+                    txid: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                    outIdx: 1,
+                },
+                blockHeight: 841509,
+                isCoinbase: false,
+                value: 546,
+                isFinal: true,
+                token: {
+                    tokenId:
+                        '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                },
+                path: 1899,
             },
         ],
         nonSlpUtxos: [
@@ -1100,7 +1124,8 @@ export const tokenTestWallet = {
             {
                 address: 'ecash:qqq9f9z3uhpzkxrgdjkd7dxuuey7tmpmugpmnw0kue',
                 hash: '00549451e5c22b18686cacdf34dce649e5ec3be2',
-                wif: '',
+                // Same as Transaction Fixtures in App/fixtures/mocks
+                wif: 'KywWPgaLDwvW1tWUtUvs13jgqaaWMoNANLVYoKcK9Ddbpnch7Cmw',
             },
         ],
     ]),
@@ -1613,7 +1638,7 @@ export const slp1VarMocks = {
     ],
 };
 
-// SLP 1 NFT Parent
+// SLP 1 NFT Parent with no children
 export const slp1NftParentMocks = {
     tokenId: '0c66493127382882053f3eb6e2e05eccff7f67378ebf5e84660a958656a304cc',
     token: {
@@ -1774,6 +1799,311 @@ export const slp1NftParentMocks = {
     ],
 };
 
+// SLP1 NFT Parent with children
+export const slp1NftParentWithChildrenMocks = {
+    tokenId: '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+    token: {
+        tokenId:
+            '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+            number: 129,
+        },
+        timeFirstSeen: 1713551159,
+        genesisInfo: {
+            tokenTicker: '4HC',
+            tokenName: 'The Four Half-Coins of Jin-qua',
+            url: 'en.wikipedia.org/wiki/Tai-Pan_(novel)',
+            decimals: 0,
+            hash: '2a6585a404fae1c33a43322b723b9dbd926cb07244ae9bea888add8f471511e0',
+        },
+        block: {
+            height: 840791,
+            hash: '00000000000000000be1576bcb0bf1c035bba940d5c696d7bb8a0d53c16076c5',
+            timestamp: 1713551526,
+        },
+    },
+    tx: {
+        txid: '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '3dff51c3a8a78dcd56ef77dcf041aa5167e719ebd6d8c4f6cacb6e06d0b851f4',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '483045022100b8fdd47dd19070801a6e5ef306463fa0b21e88405fcb381a7983f13b268128f102202434a3ca71f00b9d8a98c170679cd90cf0b81c9c416c8b24e957adfb9c6e3ec3412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 32773546,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001810747454e45534953033448431e54686520466f75722048616c662d436f696e73206f66204a696e2d71756125656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29202a6585a404fae1c33a43322b723b9dbd926cb07244ae9bea888add8f471511e001004c00080000000000000004',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '4',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: 'faaba128601942a858abcce56d0da002c1f1d95e8c49ba4105c3d08aa76959d8',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 32772256,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                spentBy: {
+                    txid: '6ee862c41f8cf37bfd30b7a2e5ddf6bbad60b87753c6b810dd76527d97c10de4',
+                    outIdx: 1,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1713551159,
+        size: 370,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 840791,
+            hash: '00000000000000000be1576bcb0bf1c035bba940d5c696d7bb8a0d53c16076c5',
+            timestamp: 1713551526,
+        },
+    },
+    utxos: [
+        // NFT Mint Input
+        {
+            outpoint: {
+                txid: 'faaba128601942a858abcce56d0da002c1f1d95e8c49ba4105c3d08aa76959d8',
+                outIdx: 4,
+            },
+            blockHeight: 841414,
+            isCoinbase: false,
+            value: 546,
+            isFinal: true,
+            token: {
+                tokenId:
+                    '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                amount: '1',
+                isMintBaton: false,
+            },
+            path: 1899,
+        },
+    ],
+};
+
+// SLP 1 NFT Child
+export const slp1NftChildMocks = {
+    tokenId: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+    token: {
+        tokenId:
+            '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+        tokenType: {
+            protocol: 'SLP',
+            type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+            number: 65,
+        },
+        timeFirstSeen: 1713910791,
+        genesisInfo: {
+            tokenTicker: 'GC',
+            tokenName: 'Gordon Chen',
+            url: 'https://en.wikipedia.org/wiki/Tai-Pan_(novel)',
+            decimals: 0,
+            hash: '8247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d72',
+        },
+        block: {
+            height: 841509,
+            hash: '000000000000000003f0e8a3f0a4de0689311c5708d26b25851bb24a44027753',
+            timestamp: 1713913313,
+        },
+    },
+    tx: {
+        txid: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'faaba128601942a858abcce56d0da002c1f1d95e8c49ba4105c3d08aa76959d8',
+                    outIdx: 3,
+                },
+                inputScript:
+                    '483045022100e394332d19812c6b78ac39484dd755473348cc11920ceaea00c9185dc36cac9302203f04fbb661cd9137d5536667f03f89f2096b487a95b7a9eddbf2a33c7fb12d93412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 546,
+                sequenceNo: 4294967295,
+                token: {
+                    tokenId:
+                        '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 1,
+                },
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+            {
+                prevOut: {
+                    txid: '5478bbf6ebe4a0f0ac05994608b4b980264ba1225259f7f6c0f573e998be98e6',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '47304402200dd2615f8545e57157d0cba016db42d4e25688a265155c7c332cf049eec4300202206cc96ee2f25141302f5e2aaade959ef9d972739f054585cf5dedb6bfec2f5928412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 32767046,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001410747454e455349530247430b476f72646f6e204368656e2d68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29208247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d7201004c00080000000000000001',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    amount: '1',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+            },
+            {
+                value: 32766028,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1713910791,
+        size: 505,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+                groupTokenId:
+                    '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+            },
+            {
+                tokenId:
+                    '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                txType: 'NONE',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 841509,
+            hash: '000000000000000003f0e8a3f0a4de0689311c5708d26b25851bb24a44027753',
+            timestamp: 1713913313,
+        },
+    },
+    utxos: [
+        {
+            outpoint: {
+                txid: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                outIdx: 1,
+            },
+            blockHeight: 841509,
+            isCoinbase: false,
+            value: 546,
+            isFinal: true,
+            token: {
+                tokenId:
+                    '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                    number: 65,
+                },
+                amount: '1',
+                isMintBaton: false,
+            },
+            path: 1899,
+        },
+    ],
+};
+
 // ALP
 // 7cd7cd7c54167d306e770f972b564584c44cb412ee45839b4b97bb6e724c8849
 export const alpMocks = {
@@ -1914,6 +2244,8 @@ export const supportedTokens = [
     slp1FixedMocks,
     slp1VarMocks,
     slp1NftParentMocks,
+    slp1NftParentWithChildrenMocks,
+    slp1NftChildMocks,
     alpMocks,
 ];
 

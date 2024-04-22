@@ -41,6 +41,9 @@ import { ReactComponent as Tokens } from 'assets/tokens.svg';
 import { ReactComponent as Github } from 'assets/github.svg';
 import { ReactComponent as Question } from 'assets/question.svg';
 import { ReactComponent as Reward } from 'assets/reward.svg';
+import { ReactComponent as SelfSend } from 'assets/selfsend.svg';
+import { ReactComponent as FanOut } from 'assets/fanout.svg';
+import { ReactComponent as MintNft } from 'assets/mintnft.svg';
 
 import appConfig from 'config/app';
 
@@ -193,6 +196,9 @@ export const ContactsIcon = () => <Contacts title="Contact List" />;
 export const TokensIcon = () => <Tokens title="Tokens" />;
 export const QuestionIcon = () => <Question title="More Info" />;
 export const RewardIcon = () => <Reward title="Cashtab Rewards" />;
+export const SelfSendIcon = () => <SelfSend title="Self Send" />;
+export const FanOutIcon = () => <FanOut title="Fan Out" />;
+export const MintNftIcon = () => <MintNft title="Mint NFT" />;
 
 const GithubIconWrapper = styled.div`
     svg {

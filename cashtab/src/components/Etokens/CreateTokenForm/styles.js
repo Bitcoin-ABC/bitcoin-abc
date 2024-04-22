@@ -74,3 +74,8 @@ export const SummaryRow = styled.div`
 export const TokenParam = styled.div`
     word-break: break-word;
 `;
+export const ButtonDisabledMsg = styled.div`
+    font-size: 14px;
+    color: ${props => props.theme.forms.error};
+    word-break: break-all;
+`;
