@@ -131,6 +131,10 @@ export const ImageTextCtn = styled(motion.div).attrs(() =>
             width: 100%;
             margin-bottom: 50px;
         }
+        a {
+            z-index: 99;
+            position: relative;
+        }
     }
 
     > :nth-child(2) {
