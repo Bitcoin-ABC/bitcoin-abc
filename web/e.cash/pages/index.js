@@ -108,10 +108,10 @@ export default function Home() {
                             <YouTubeVideo>
                                 <div>
                                     <iframe
-                                        src="https://www.youtube.com/embed/2kR6Bx0Y2TE?rel=1&amp;controls=0&amp;autoplay=0&amp;mute=0&amp;start=0"
+                                        src="https://www.youtube.com/embed/tAl6sPRFQgk?rel=1&amp;controls=0&amp;autoplay=0&amp;mute=0&amp;start=0"
                                         allow="autoplay; encrypted-media"
                                         allowFullScreen
-                                        title="eCash - Future Technology"
+                                        title="eCash - Wealth Redefined"
                                     ></iframe>
                                 </div>
                             </YouTubeVideo>
