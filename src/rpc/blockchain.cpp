@@ -1730,6 +1730,7 @@ static void ReconsiderBlock(ChainstateManager &chainman,
         }
 
         chainman.ActiveChainstate().ResetBlockFailureFlags(pblockindex);
+        chainman.RecalculateBestHeader();
     }
 
     BlockValidationState state;

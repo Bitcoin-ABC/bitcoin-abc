@@ -89,6 +89,11 @@ class InvalidateTest(BitcoinTestFramework):
         self.nodes[1].reconsiderblock(blocks[-4])
         # Should be back at the tip by now
         assert_equal(self.nodes[1].getbestblockhash(), blocks[-1])
+        # Should report consistent blockchain info
+        assert_equal(
+            self.nodes[1].getblockchaininfo()["headers"],
+            self.nodes[1].getblockchaininfo()["blocks"],
+        )
 
 
 if __name__ == "__main__":

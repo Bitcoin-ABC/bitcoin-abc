@@ -1642,6 +1642,11 @@ public:
     std::optional<int> GetSnapshotBaseHeight() const
         EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
 
+    //! If, due to invalidation / reconsideration of blocks, the previous
+    //! best header is no longer valid / guaranteed to be the most-work
+    //! header in our block-index not known to be invalid, recalculate it.
+    void RecalculateBestHeader() EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
     /** Dump the recent block headers reception time to a file. */
     bool DumpRecentHeadersTime(const fs::path &filePath) const
         EXCLUSIVE_LOCKS_REQUIRED(GetMutex());
