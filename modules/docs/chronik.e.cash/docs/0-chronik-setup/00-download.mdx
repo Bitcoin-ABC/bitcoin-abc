@@ -16,7 +16,8 @@ You can already get started by using one of our pre-synced instances:
 :::
 
 import CodeBlock from '@theme/CodeBlock';
-import version from '!!raw-loader!../../.abclatestversion';
+import rawVersion from '!!raw-loader!../../.abclatestversion';
+export const version = rawVersion.trim();
 export const downloadUrl = 'https://download.bitcoinabc.org';
 export const files = {
     linux: {
