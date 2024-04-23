@@ -973,6 +973,10 @@ public:
     bool IsBlockAvalancheFinalized(const CBlockIndex *pindex) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_avalancheFinalizedBlockIndex);
 
+    /** Set invalidity status to all descendants of a block */
+    void SetBlockFailureFlags(CBlockIndex *pindex)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main);
+
     /** Remove invalidity status from a block and its descendants. */
     void ResetBlockFailureFlags(CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main);

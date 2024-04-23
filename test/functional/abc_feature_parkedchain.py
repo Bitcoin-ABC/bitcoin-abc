@@ -110,10 +110,7 @@ class ParkedChainTest(BitcoinTestFramework):
         node.parkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="parked")
         node.invalidateblock(bad_tip)
-        # NOTE: Intuitively, other_tip_status would be "invalid", but because
-        # only valid (unparked) chains are walked, child blocks' statuses are
-        # not updated, so the "parked" state remains.
-        self.only_valid_tip(tip, other_tip_status="parked")
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="parked")
         node.unparkblock(bad_tip)
@@ -147,10 +144,7 @@ class ParkedChainTest(BitcoinTestFramework):
         node.parkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="parked")
         node.invalidateblock(bad_tip)
-        # NOTE: Intuitively, other_tip_status would be "invalid", but because
-        # only valid (unparked) chains are walked, child blocks' statuses are
-        # not updated, so the "parked" state remains.
-        self.only_valid_tip(tip, other_tip_status="parked")
+        self.only_valid_tip(tip, other_tip_status="invalid")
         node.unparkblock(bad_tip)
         self.only_valid_tip(tip, other_tip_status="invalid")
         node.reconsiderblock(bad_tip)
