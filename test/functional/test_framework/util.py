@@ -316,7 +316,7 @@ MAX_NODES = 64
 # default testnet port)
 PORT_MIN = int(os.getenv("TEST_RUNNER_PORT_MIN", default=20000))
 # The number of ports to "reserve" for p2p and rpc, each
-PORT_RANGE = 5000
+PORT_RANGE = 4000
 # The number of times we increment the port counters and test it again before
 # giving up.
 MAX_PORT_RETRY = 5
