@@ -5,19 +5,32 @@
 #ifndef BITCOIN_NODE_TXDOWNLOADMAN_H
 #define BITCOIN_NODE_TXDOWNLOADMAN_H
 
+#include <invrequest.h>
 #include <net.h>
+#include <net_permissions.h>
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 class CBlock;
 class CRollingBloomFilter;
 class CTxMemPool;
 struct TxId;
-template <class InvId> class InvRequestTracker;
 
 namespace node {
 class TxDownloadManagerImpl;
+
+/** Parameters for the tx requests, see DataRequestParameters. */
+static constexpr DataRequestParameters TX_REQUEST_PARAMS{
+    .max_peer_request_in_flight = 100,
+    .max_peer_announcements = 5000,
+    .nonpref_peer_delay = std::chrono::seconds{2},
+    .overloaded_peer_delay = std::chrono::seconds{2},
+    .getdata_interval = std::chrono::seconds{60},
+    .bypass_request_limits_permissions = NetPermissionFlags::Relay,
+};
 
 struct TxDownloadOptions {
     /** Read-only reference to mempool. */
@@ -90,6 +103,22 @@ public:
 
     /** Deletes all txrequest announcements and orphans for a given peer. */
     void DisconnectedPeer(NodeId nodeid);
+
+    /**
+     * Consider adding this tx hash to txrequest. Should be called whenever a
+     * new inv has been received. Also called internally when a transaction is
+     * missing parents so that we can request them.
+     * @param[in] p2p_inv     When true, only add this announcement if we don't
+     *                        already have the tx.
+     * Returns true if this was a dropped inv (p2p_inv=true and we already have
+     * the tx), false otherwise.
+     */
+    bool AddTxAnnouncement(NodeId peer, const TxId &txid,
+                           std::chrono::microseconds now, bool p2p_inv);
+
+    /** Get getdata requests to send. */
+    std::vector<TxId> GetRequestsToSend(NodeId nodeid,
+                                        std::chrono::microseconds current_time);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_H

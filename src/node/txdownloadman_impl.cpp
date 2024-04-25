@@ -5,6 +5,7 @@
 #include <node/txdownloadman.h>
 #include <node/txdownloadman_impl.h>
 
+#include <logging.h>
 #include <txconflicting.h>
 #include <txmempool.h>
 #include <txorphanage.h>
@@ -48,6 +49,16 @@ void TxDownloadManager::ConnectedPeer(NodeId nodeid,
 }
 void TxDownloadManager::DisconnectedPeer(NodeId nodeid) {
     m_impl->DisconnectedPeer(nodeid);
+}
+bool TxDownloadManager::AddTxAnnouncement(NodeId peer, const TxId &txid,
+                                          std::chrono::microseconds now,
+                                          bool p2p_inv) {
+    return m_impl->AddTxAnnouncement(peer, txid, now, p2p_inv);
+}
+std::vector<TxId>
+TxDownloadManager::GetRequestsToSend(NodeId nodeid,
+                                     std::chrono::microseconds current_time) {
+    return m_impl->GetRequestsToSend(nodeid, current_time);
 }
 
 // TxDownloadManagerImpl
@@ -129,5 +140,66 @@ void TxDownloadManagerImpl::DisconnectedPeer(NodeId nodeid) {
     if (auto it = m_peer_info.find(nodeid); it != m_peer_info.end()) {
         m_peer_info.erase(it);
     }
+}
+
+bool TxDownloadManagerImpl::AddTxAnnouncement(NodeId peer, const TxId &txid,
+                                              std::chrono::microseconds now,
+                                              bool p2p_inv) {
+    // If this is an inv received from a peer and we already have it, we can
+    // drop it.
+    if (p2p_inv && AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
+        return true;
+    }
+
+    auto it = m_peer_info.find(peer);
+    if (it == m_peer_info.end()) {
+        return false;
+    }
+    const auto &info = it->second.m_connection_info;
+    if (TooManyAnnouncements(m_txrequest, peer, TX_REQUEST_PARAMS,
+                             /*bypass_limits=*/info.m_relay_permissions)) {
+        // Too many queued announcements for this peer
+        return false;
+    }
+    // Decide the InvRequestTracker parameters for this announcement:
+    // - "preferred": if fPreferredDownload is set (= outbound, or
+    //   NetPermissionFlags::NoBan permission)
+    // - "reqtime": current time plus delays, see ComputeRequestTime
+    const auto reqtime = ComputeRequestTime(
+        m_txrequest, peer, TX_REQUEST_PARAMS, now, info.m_preferred,
+        /*bypass_limits=*/info.m_relay_permissions);
+
+    m_txrequest.ReceivedInv(peer, txid, info.m_preferred, reqtime);
+
+    return false;
+}
+
+std::vector<TxId> TxDownloadManagerImpl::GetRequestsToSend(
+    NodeId nodeid, std::chrono::microseconds current_time) {
+    std::vector<TxId> requests;
+    std::vector<std::pair<NodeId, TxId>> expired;
+    auto requestable =
+        m_txrequest.GetRequestable(nodeid, current_time, &expired);
+    for (const auto &entry : expired) {
+        LogDebug(BCLog::NET, "timeout of inflight tx %s from peer=%d\n",
+                 entry.second.ToString(), entry.first);
+    }
+    for (const TxId &txid : requestable) {
+        // Exclude m_recent_rejects_package_reconsiderable: we may be
+        // requesting a missing parent that was previously rejected for being
+        // too low feerate.
+        if (!AlreadyHaveTx(txid, /*include_reconsiderable=*/false)) {
+            requests.emplace_back(txid);
+            m_txrequest.RequestedData(nodeid, txid,
+                                      current_time +
+                                          TX_REQUEST_PARAMS.getdata_interval);
+        } else {
+            // We have already seen this transaction, no need to download. This
+            // is just a belt-and-suspenders, as this should already be called
+            // whenever a transaction becomes AlreadyHaveTx().
+            m_txrequest.ForgetInvId(txid);
+        }
+    }
+    return requests;
 }
 } // namespace node

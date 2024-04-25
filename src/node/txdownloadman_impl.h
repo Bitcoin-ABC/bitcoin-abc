@@ -114,6 +114,18 @@ public:
 
     void ConnectedPeer(NodeId nodeid, const TxDownloadConnectionInfo &info);
     void DisconnectedPeer(NodeId nodeid);
+
+    /**
+     * Consider adding this tx hash to txrequest. Should be called whenever a
+     * new inv has been received. Also called internally when a transaction is
+     * missing parents so that we can request them.
+     */
+    bool AddTxAnnouncement(NodeId peer, const TxId &txid,
+                           std::chrono::microseconds now, bool p2p_inv);
+
+    /** Get getdata requests to send. */
+    std::vector<TxId> GetRequestsToSend(NodeId nodeid,
+                                        std::chrono::microseconds current_time);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H

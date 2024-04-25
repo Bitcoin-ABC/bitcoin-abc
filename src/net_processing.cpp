@@ -148,15 +148,6 @@ static constexpr auto AVALANCHE_AVAPROOFS_TIMEOUT{2min};
 /// Maximum number of stalled avalanche txids to store per peer.
 static constexpr size_t MAX_AVALANCHE_STALLED_TXIDS_PER_PEER{100};
 
-static constexpr DataRequestParameters TX_REQUEST_PARAMS{
-    .max_peer_request_in_flight = 100,
-    .max_peer_announcements = 5000,
-    .nonpref_peer_delay = 2s,
-    .overloaded_peer_delay = 2s,
-    .getdata_interval = 60s,
-    .bypass_request_limits_permissions = NetPermissionFlags::Relay,
-};
-
 static constexpr DataRequestParameters PROOF_REQUEST_PARAMS{
     .max_peer_request_in_flight = 100,
     .max_peer_announcements = 5000,
@@ -1127,15 +1118,6 @@ private:
 
     void SendBlockTransactions(CNode &pfrom, Peer &peer, const CBlock &block,
                                const BlockTransactionsRequest &req);
-
-    /**
-     * Register with InvRequestTracker that a TX INV has been received from a
-     * peer. The announcement parameters are decided in PeerManager and then
-     * passed to InvRequestTracker.
-     */
-    void AddTxAnnouncement(const CNode &node, const TxId &txid,
-                           std::chrono::microseconds current_time)
-        EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_tx_download_mutex);
 
     /**
      * Register with InvRequestTracker that a PROOF INV has been received from a
@@ -2202,30 +2184,6 @@ void PeerManagerImpl::PushNodeVersion(const Config &config, CNode &pnode,
                  "txrelay=%d, peer=%d\n",
                  PROTOCOL_VERSION, nNodeStartingHeight, tx_relay, nodeid);
     }
-}
-
-void PeerManagerImpl::AddTxAnnouncement(
-    const CNode &node, const TxId &txid,
-    std::chrono::microseconds current_time) {
-    // For state
-    AssertLockHeld(::cs_main);
-    // For m_txrequest
-    AssertLockHeld(m_tx_download_mutex);
-
-    const bool bypass_limits =
-        node.HasPermission(TX_REQUEST_PARAMS.bypass_request_limits_permissions);
-    if (TooManyAnnouncements(m_txdownloadman.GetTxRequestRef(), node.GetId(),
-                             TX_REQUEST_PARAMS, bypass_limits)) {
-        return;
-    }
-
-    const bool preferred = isPreferredDownloadPeer(node);
-    auto reqtime = ComputeRequestTime(m_txdownloadman.GetTxRequestRef(),
-                                      node.GetId(), TX_REQUEST_PARAMS,
-                                      current_time, preferred, bypass_limits);
-
-    m_txdownloadman.GetTxRequestRef().ReceivedInv(node.GetId(), txid, preferred,
-                                                  reqtime);
 }
 
 void PeerManagerImpl::AddProofAnnouncement(
@@ -5443,12 +5401,10 @@ void PeerManagerImpl::ProcessMessage(
                 }
 
                 if (!m_chainman.IsInitialBlockDownload()) {
-                    const bool fAlreadyHave = m_txdownloadman.AlreadyHaveTx(
-                        txid, /*include_reconsiderable=*/true);
+                    const bool fAlreadyHave{m_txdownloadman.AddTxAnnouncement(
+                        pfrom.GetId(), txid, current_time,
+                        /*p2p_inv=*/true)};
                     logInv(inv, fAlreadyHave);
-                    if (!fAlreadyHave) {
-                        AddTxAnnouncement(pfrom, txid, current_time);
-                    }
                 }
 
                 continue;
@@ -5952,7 +5908,9 @@ void PeerManagerImpl::ProcessMessage(
                         if (!m_txdownloadman.AlreadyHaveTx(
                                 parent_txid,
                                 /*include_reconsiderable=*/false)) {
-                            AddTxAnnouncement(pfrom, parent_txid, current_time);
+                            m_txdownloadman.AddTxAnnouncement(
+                                pfrom.GetId(), parent_txid, current_time,
+                                /*p2p_inv=*/false);
                         }
                     }
 
@@ -7892,7 +7850,7 @@ void PeerManagerImpl::ProcessMessage(
         vRecv >> vInv;
         // A peer might send up to 1 notfound per getdata request, but no more
         if (vInv.size() <= PROOF_REQUEST_PARAMS.max_peer_announcements +
-                               TX_REQUEST_PARAMS.max_peer_announcements +
+                               node::TX_REQUEST_PARAMS.max_peer_announcements +
                                MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             for (CInv &inv : vInv) {
                 if (inv.IsMsgTx()) {
@@ -9259,32 +9217,11 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
         LOCK(cs_main);
         {
             LOCK(m_tx_download_mutex);
-            std::vector<std::pair<NodeId, TxId>> expired;
-            auto requestable = m_txdownloadman.GetTxRequestRef().GetRequestable(
-                pto->GetId(), current_time, &expired);
-            for (const auto &entry : expired) {
-                LogDebug(BCLog::NET, "timeout of inflight tx %s from peer=%d\n",
-                         entry.second.ToString(), entry.first);
+            for (const TxId &txid : m_txdownloadman.GetRequestsToSend(
+                     pto->GetId(), current_time)) {
+                addGetDataAndMaybeFlush(MSG_TX, txid);
             }
-            for (const TxId &txid : requestable) {
-                // Exclude m_recent_rejects_package_reconsiderable: we may be
-                // requesting a missing parent that was previously rejected for
-                // being too low feerate.
-                if (!m_txdownloadman.AlreadyHaveTx(
-                        txid, /*include_reconsiderable=*/false)) {
-                    addGetDataAndMaybeFlush(MSG_TX, txid);
-                    m_txdownloadman.GetTxRequestRef().RequestedData(
-                        pto->GetId(), txid,
-                        current_time + TX_REQUEST_PARAMS.getdata_interval);
-                } else {
-                    // We have already seen this transaction, no need to
-                    // download. This is just a belt-and-suspenders, as this
-                    // should already be called whenever a transaction becomes
-                    // AlreadyHaveTx().
-                    m_txdownloadman.GetTxRequestRef().ForgetInvId(txid);
-                }
-            }
-        } // release m_tx_download_mutex
+        }
         if (!vGetData.empty()) {
             MakeAndPushMessage(*pto, NetMsgType::GETDATA, vGetData);
         }
