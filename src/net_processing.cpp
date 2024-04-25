@@ -7848,18 +7848,14 @@ void PeerManagerImpl::ProcessMessage(
     if (msg_type == NetMsgType::NOTFOUND) {
         std::vector<CInv> vInv;
         vRecv >> vInv;
+        std::vector<TxId> tx_invs;
         // A peer might send up to 1 notfound per getdata request, but no more
         if (vInv.size() <= PROOF_REQUEST_PARAMS.max_peer_announcements +
                                node::TX_REQUEST_PARAMS.max_peer_announcements +
                                MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             for (CInv &inv : vInv) {
                 if (inv.IsMsgTx()) {
-                    // If we receive a NOTFOUND message for a tx we requested,
-                    // mark the announcement for it as completed in
-                    // InvRequestTracker.
-                    LOCK(m_tx_download_mutex);
-                    m_txdownloadman.GetTxRequestRef().ReceivedResponse(
-                        pfrom.GetId(), TxId(inv.hash));
+                    tx_invs.emplace_back(inv.hash);
                     continue;
                 }
                 if (inv.IsMsgProof()) {
@@ -7872,6 +7868,8 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
         }
+        LOCK(m_tx_download_mutex);
+        m_txdownloadman.ReceivedNotFound(pfrom.GetId(), tx_invs);
         return;
     }
 

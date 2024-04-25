@@ -60,6 +60,10 @@ TxDownloadManager::GetRequestsToSend(NodeId nodeid,
                                      std::chrono::microseconds current_time) {
     return m_impl->GetRequestsToSend(nodeid, current_time);
 }
+void TxDownloadManager::ReceivedNotFound(NodeId nodeid,
+                                         const std::vector<TxId> &txids) {
+    m_impl->ReceivedNotFound(nodeid, txids);
+}
 
 // TxDownloadManagerImpl
 void TxDownloadManagerImpl::ActiveTipChange() {
@@ -201,5 +205,14 @@ std::vector<TxId> TxDownloadManagerImpl::GetRequestsToSend(
         }
     }
     return requests;
+}
+
+void TxDownloadManagerImpl::ReceivedNotFound(NodeId nodeid,
+                                             const std::vector<TxId> &txids) {
+    for (const auto &txid : txids) {
+        // If we receive a NOTFOUND message for a tx we requested, mark the
+        // announcement for it as completed in InvRequestTracker.
+        m_txrequest.ReceivedResponse(nodeid, txid);
+    }
 }
 } // namespace node

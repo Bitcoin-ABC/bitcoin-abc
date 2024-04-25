@@ -126,6 +126,9 @@ public:
     /** Get getdata requests to send. */
     std::vector<TxId> GetRequestsToSend(NodeId nodeid,
                                         std::chrono::microseconds current_time);
+
+    /** Marks a tx as ReceivedResponse in txrequest. */
+    void ReceivedNotFound(NodeId nodeid, const std::vector<TxId> &txids);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H
