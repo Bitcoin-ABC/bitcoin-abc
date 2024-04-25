@@ -95,6 +95,8 @@ corrosion_import_crate(
     FLAGS
         ${CHRONIK_CARGO_FLAGS}
         ${CHRONIK_FEATURE_FLAGS}
+    CRATES
+        chronik-lib
 )
 
 set(Rust_TRIPLE
