@@ -69,6 +69,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
     const isNftMint = Array.isArray(nftChildGenesisInput);
     const NFT_DECIMALS = 0;
     const NFT_GENESIS_QTY = '1';
+    const ICON_MAX_UPLOAD_BYTES = 1000000;
     const navigate = useNavigate();
     const location = useLocation();
     const userLocale = getUserLocale(navigator);
@@ -442,7 +443,9 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         // Name must not be empty
         formData.name !== '' &&
         // If this is an nft mint, we need an NFT Mint Input
-        ((isNftMint && nftChildGenesisInput.length === 1) || !isNftMint);
+        ((isNftMint && nftChildGenesisInput.length === 1) || !isNftMint) &&
+        (tokenIcon === '' ||
+            (tokenIcon !== '' && tokenIcon.size <= ICON_MAX_UPLOAD_BYTES));
 
     const submitTokenIcon = async tokenId => {
         let submittedFormData = new FormData();
@@ -868,17 +871,22 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                         ? 'Mint NFT'
                         : 'Create eToken'}
                 </PrimaryButton>
-                <ButtonDisabledMsg>
-                    {!tokenGenesisDataIsValid
-                        ? `${
-                              isNftMint
-                                  ? 'NFT'
-                                  : createNftCollection
-                                  ? 'NFT Collection'
-                                  : 'Token'
-                          } must have a name`
-                        : ''}
-                </ButtonDisabledMsg>
+                {formData.name === '' && (
+                    <ButtonDisabledMsg>
+                        {isNftMint
+                            ? 'NFT'
+                            : createNftCollection
+                            ? 'NFT Collection'
+                            : 'Token'}{' '}
+                        must have a name
+                    </ButtonDisabledMsg>
+                )}
+                {tokenIcon !== '' && tokenIcon.size > ICON_MAX_UPLOAD_BYTES && (
+                    <ButtonDisabledMsg>
+                        Icon exceeds max upload size of{' '}
+                        {ICON_MAX_UPLOAD_BYTES.toLocaleString()} bytes
+                    </ButtonDisabledMsg>
+                )}
             </Form>
         </>
     );

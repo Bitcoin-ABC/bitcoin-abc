@@ -31,7 +31,7 @@ const config: TokenServerConfig = {
     // See Production Step 3 in README.md
     imageDir: '/token-server/token-icons',
     rejectedDir: '/token-server/rejected',
-    maxUploadSize: 500000, // max upload size in bytes
+    maxUploadSize: 1000000, // max upload size in bytes
     // We support uploading image files from these origins
     whitelist: [
         'http://localhost:3000',
