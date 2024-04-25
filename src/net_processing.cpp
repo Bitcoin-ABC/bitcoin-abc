@@ -922,36 +922,6 @@ private:
      */
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
-    struct PackageToValidate {
-        Package m_txns;
-        std::vector<NodeId> m_senders;
-        /** Construct a 1-parent-1-child package. */
-        explicit PackageToValidate(const CTransactionRef &parent,
-                                   const CTransactionRef &child,
-                                   NodeId parent_sender, NodeId child_sender)
-            : m_txns{parent, child}, m_senders{parent_sender, child_sender} {}
-
-        // Move ctor
-        PackageToValidate(PackageToValidate &&other)
-            : m_txns{std::move(other.m_txns)},
-              m_senders{std::move(other.m_senders)} {}
-
-        // Move assignment
-        PackageToValidate &operator=(PackageToValidate &&other) {
-            this->m_txns = std::move(other.m_txns);
-            this->m_senders = std::move(other.m_senders);
-            return *this;
-        }
-
-        std::string ToString() const {
-            Assume(m_txns.size() == 2);
-            return strprintf(
-                "parent %s (sender=%d) + child %s (sender=%d)",
-                m_txns.front()->GetId().ToString(), m_senders.front(),
-                m_txns.back()->GetId().ToString(), m_senders.back());
-        }
-    };
-
     /**
      * Handle a transaction whose result was not
      * MempoolAcceptResult::ResultType::VALID.
@@ -972,7 +942,7 @@ private:
      * @returns a PackageToValidate if this transaction has a reconsiderable
      * failure and an eligible package was found, or std::nullopt otherwise.
      */
-    std::optional<PackageToValidate>
+    std::optional<node::PackageToValidate>
     ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
                      const TxValidationState &result, bool first_time_failure)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
@@ -992,19 +962,9 @@ private:
      * ProcessInvalidTx for individual transactions, and caches rejection for
      * the package as a group.
      */
-    void ProcessPackageResult(const PackageToValidate &package_to_validate,
-                              const PackageMempoolAcceptResult &package_result)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
-                                 m_tx_download_mutex);
-
-    /**
-     * Look for a child of this transaction in the orphanage to form a
-     * 1-parent-1-child package, skipping any combinations that have already
-     * been tried. Return the resulting package along with the senders of its
-     * respective transactions, or std::nullopt if no package is found.
-     */
-    std::optional<PackageToValidate> Find1P1CPackage(const CTransactionRef &ptx,
-                                                     NodeId nodeid)
+    void
+    ProcessPackageResult(const node::PackageToValidate &package_to_validate,
+                         const PackageMempoolAcceptResult &package_result)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
                                  m_tx_download_mutex);
 
@@ -2772,7 +2732,7 @@ PeerManagerImpl::PeerManagerImpl(CConnman &connman, AddrMan &addrman,
       m_chainparams(chainman.GetParams()), m_connman(connman),
       m_addrman(addrman), m_banman(banman), m_chainman(chainman),
       m_mempool(pool), m_avalanche(avalanche),
-      m_txdownloadman(node::TxDownloadOptions{pool}), m_opts{opts} {}
+      m_txdownloadman(node::TxDownloadOptions{pool, m_rng}), m_opts{opts} {}
 
 void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
     // Stale tip checking and peer eviction are on two different timers, but we
@@ -4137,7 +4097,7 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
     HeadersDirectFetchBlocks(config, pfrom, *pindexLast);
 }
 
-std::optional<PeerManagerImpl::PackageToValidate>
+std::optional<node::PackageToValidate>
 PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                                   const TxValidationState &state,
                                   bool first_time_failure) {
@@ -4159,7 +4119,7 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
     // Hashes to pass to AddKnownTx later
     std::vector<TxId> unique_parents;
     // Populated if failure is reconsiderable and eligible package is found.
-    std::optional<PackageToValidate> package_to_validate;
+    std::optional<node::PackageToValidate> package_to_validate;
 
     if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
         // Only process a new orphan if this is a first time failure, as
@@ -4280,7 +4240,8 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                     "tx %s failed but reconsiderable, looking for child in "
                     "orphanage\n",
                     txid.ToString());
-                package_to_validate = Find1P1CPackage(ptx, nodeid);
+                package_to_validate =
+                    m_txdownloadman.Find1P1CPackage(ptx, nodeid);
             }
         } else {
             m_txdownloadman.RecentRejectsFilter().insert(txid);
@@ -4341,7 +4302,7 @@ void PeerManagerImpl::ProcessValidTx(NodeId nodeid, const CTransactionRef &tx) {
 }
 
 void PeerManagerImpl::ProcessPackageResult(
-    const PackageToValidate &package_to_validate,
+    const node::PackageToValidate &package_to_validate,
     const PackageMempoolAcceptResult &package_result) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
@@ -4399,74 +4360,6 @@ void PeerManagerImpl::ProcessPackageResult(
         package_iter++;
         senders_iter++;
     }
-}
-
-std::optional<PeerManagerImpl::PackageToValidate>
-PeerManagerImpl::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
-    AssertLockNotHeld(m_peer_mutex);
-    AssertLockHeld(g_msgproc_mutex);
-    AssertLockHeld(m_tx_download_mutex);
-
-    const auto &parent_txid{ptx->GetId()};
-
-    Assume(m_txdownloadman.RecentRejectsPackageReconsiderableFilter().contains(
-        parent_txid));
-
-    // Prefer children from this peer. This helps prevent censorship attempts in
-    // which an attacker sends lots of fake children for the parent, and we
-    // (unluckily) keep selecting the fake children instead of the real one
-    // provided by the honest peer.
-    const auto cpfp_candidates_same_peer{
-        m_mempool.withOrphanage([&ptx, nodeid](const TxOrphanage &orphanage) {
-            return orphanage.GetChildrenFromSamePeer(ptx, nodeid);
-        })};
-
-    // These children should be sorted from newest to oldest.
-    for (const auto &child : cpfp_candidates_same_peer) {
-        Package maybe_cpfp_package{ptx, child};
-        if (!m_txdownloadman.RecentRejectsPackageReconsiderableFilter()
-                 .contains(GetPackageHash(maybe_cpfp_package))) {
-            return PeerManagerImpl::PackageToValidate{ptx, child, nodeid,
-                                                      nodeid};
-        }
-    }
-
-    // If no suitable candidate from the same peer is found, also try children
-    // that were provided by a different peer. This is useful because sometimes
-    // multiple peers announce both transactions to us, and we happen to
-    // download them from different peers (we wouldn't have known that these 2
-    // transactions are related). We still want to find 1p1c packages then.
-    //
-    // If we start tracking all announcers of orphans, we can restrict this
-    // logic to parent + child pairs in which both were provided by the same
-    // peer, i.e. delete this step.
-    const auto cpfp_candidates_different_peer{
-        m_mempool.withOrphanage([&ptx, nodeid](const TxOrphanage &orphanage) {
-            return orphanage.GetChildrenFromDifferentPeer(ptx, nodeid);
-        })};
-
-    // Find the first 1p1c that hasn't already been rejected. We randomize the
-    // order to not create a bias that attackers can use to delay package
-    // acceptance.
-    //
-    // Create a random permutation of the indices.
-    std::vector<size_t> tx_indices(cpfp_candidates_different_peer.size());
-    std::iota(tx_indices.begin(), tx_indices.end(), 0);
-    Shuffle(tx_indices.begin(), tx_indices.end(), m_rng);
-
-    for (const auto index : tx_indices) {
-        // If we already tried a package and failed for any reason, the combined
-        // hash was cached in m_recent_rejects_package_reconsiderable.
-        const auto [child_tx, child_sender] =
-            cpfp_candidates_different_peer.at(index);
-        Package maybe_cpfp_package{ptx, child_tx};
-        if (!m_txdownloadman.RecentRejectsPackageReconsiderableFilter()
-                 .contains(GetPackageHash(maybe_cpfp_package))) {
-            return PeerManagerImpl::PackageToValidate{ptx, child_tx, nodeid,
-                                                      child_sender};
-        }
-    }
-    return std::nullopt;
 }
 
 bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
@@ -5947,7 +5840,8 @@ void PeerManagerImpl::ProcessMessage(
                         "child in orphanage\n",
                         txid.ToString());
                     if (auto package_to_validate{
-                            Find1P1CPackage(ptx, pfrom.GetId())}) {
+                            m_txdownloadman.Find1P1CPackage(ptx,
+                                                            pfrom.GetId())}) {
                         const auto package_result{ProcessNewPackage(
                             m_chainman.ActiveChainstate(), m_mempool,
                             package_to_validate->m_txns,

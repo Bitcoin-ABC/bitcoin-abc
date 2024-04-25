@@ -8,15 +8,20 @@
 #include <invrequest.h>
 #include <net.h>
 #include <net_permissions.h>
+#include <policy/packages.h>
+#include <util/check.h>
 
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
 class CBlock;
 class CRollingBloomFilter;
 class CTxMemPool;
+class FastRandomContext;
 struct TxId;
 
 namespace node {
@@ -35,12 +40,43 @@ static constexpr DataRequestParameters TX_REQUEST_PARAMS{
 struct TxDownloadOptions {
     /** Read-only reference to mempool. */
     const CTxMemPool &m_mempool;
+    /** RNG provided by caller. */
+    // fixme: backport core##36077 before core#35986
+    FastRandomContext &m_rng;
 };
 struct TxDownloadConnectionInfo {
     /** Whether this peer is preferred for transaction download. */
     const bool m_preferred;
     /** Whether this peer has Relay permissions. */
     const bool m_relay_permissions;
+};
+struct PackageToValidate {
+    Package m_txns;
+    std::vector<NodeId> m_senders;
+    /** Construct a 1-parent-1-child package. */
+    explicit PackageToValidate(const CTransactionRef &parent,
+                               const CTransactionRef &child,
+                               NodeId parent_sender, NodeId child_sender)
+        : m_txns{parent, child}, m_senders{parent_sender, child_sender} {}
+
+    // Move ctor
+    PackageToValidate(PackageToValidate &&other)
+        : m_txns{std::move(other.m_txns)},
+          m_senders{std::move(other.m_senders)} {}
+
+    // Move assignment
+    PackageToValidate &operator=(PackageToValidate &&other) {
+        this->m_txns = std::move(other.m_txns);
+        this->m_senders = std::move(other.m_senders);
+        return *this;
+    }
+
+    std::string ToString() const {
+        Assume(m_txns.size() == 2);
+        return strprintf("parent %s (sender=%d) + child %s (sender=%d)",
+                         m_txns.front()->GetId().ToString(), m_senders.front(),
+                         m_txns.back()->GetId().ToString(), m_senders.back());
+    }
 };
 
 /**
@@ -122,6 +158,15 @@ public:
 
     /** Should be called when a notfound for a tx has been received. */
     void ReceivedNotFound(NodeId nodeid, const std::vector<TxId> &txids);
+
+    /**
+     * Look for a child of this transaction in the orphanage to form a
+     * 1-parent-1-child package, skipping any combinations that have already
+     * been tried. Return the resulting package along with the senders of its
+     * respective transactions, or std::nullopt if no package is found.
+     */
+    std::optional<PackageToValidate> Find1P1CPackage(const CTransactionRef &ptx,
+                                                     NodeId nodeid);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_H

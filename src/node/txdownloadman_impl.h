@@ -129,6 +129,9 @@ public:
 
     /** Marks a tx as ReceivedResponse in txrequest. */
     void ReceivedNotFound(NodeId nodeid, const std::vector<TxId> &txids);
+
+    std::optional<PackageToValidate> Find1P1CPackage(const CTransactionRef &ptx,
+                                                     NodeId nodeid);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H
