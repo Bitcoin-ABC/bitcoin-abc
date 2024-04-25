@@ -5,7 +5,6 @@
 // These files are generated in "ecash-lib-wasm" via build-wasm.sh or
 // dockerbuild.sh.
 import * as ffi from './ffi/ecash_lib_wasm.js';
-import __wbg_init from './ffi/ecash_lib_wasm.js';
 
 /** Interface to abstract over Elliptic Curve Cryptography */
 export interface Ecc {
@@ -21,8 +20,6 @@ export interface Ecc {
 
 /** Ecc implementation using WebAssembly */
 export const EccWasm = ffi.Ecc;
-/** Download and initialize the WASM module, or use the provided buffer */
-export const initWasm = __wbg_init;
 
 /** Dummy Ecc impl that always returns 0, useful for measuring tx size */
 export class EccDummy implements Ecc {

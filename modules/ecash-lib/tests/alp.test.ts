@@ -5,7 +5,6 @@
 import { expect, use } from 'chai';
 import { ChildProcess, spawn } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
-import fs from 'node:fs/promises';
 
 import { ChronikClientNode } from 'chronik-client';
 
@@ -144,7 +143,7 @@ describe('TxBuilder', () => {
         });
 
         // Can't use `fetch` for local file so we have to read it using `fs`
-        await initWasm(fs.readFile('./src/ffi/ecash_lib_wasm_bg.wasm'));
+        await initWasm();
         ecc = new EccWasm();
 
         // We got the coins, can fan out now

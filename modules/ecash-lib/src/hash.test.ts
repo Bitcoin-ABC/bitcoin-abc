@@ -3,10 +3,9 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import fs from 'node:fs/promises';
 
 import { fromHex, toHex, toHexRev } from './io/hex.js';
-import { initWasm } from './ecc.js';
+import { initWasm } from './init.js';
 import { sha256, sha256d, shaRmd160 } from './hash.js';
 
 const GENESIS_HEADER_HEX =
@@ -17,7 +16,7 @@ const GENESIS_HEADER_HEX =
 
 describe('Ecc', async () => {
     // Can't use `fetch` for local file so we have to read it using `fs`
-    await initWasm(fs.readFile('./src/ffi/ecash_lib_wasm_bg.wasm'));
+    await initWasm();
 
     it('sha256', () => {
         expect(toHex(sha256(new Uint8Array()))).to.equal(

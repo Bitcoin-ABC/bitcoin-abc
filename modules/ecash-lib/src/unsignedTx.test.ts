@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import fs from 'node:fs/promises';
 
 import { fromHex, toHex } from './io/hex.js';
 import { Script } from './script.js';
@@ -19,7 +18,7 @@ import {
     SINGLE_ANYONECANPAY_BIP143,
     SINGLE_BIP143,
 } from './sigHashType.js';
-import { initWasm } from './ecc.js';
+import { initWasm } from './init.js';
 
 const TX = new Tx({
     version: 0xfacefeed,
@@ -88,7 +87,7 @@ const LOCKTIME_HEX = 'beba0df0';
 
 describe('UnsignedTx', async () => {
     // Can't use `fetch` for local file so we have to read it using `fs`
-    await initWasm(fs.readFile('./src/ffi/ecash_lib_wasm_bg.wasm'));
+    await initWasm();
 
     it('UnsignedTx.dummyFromTx', () => {
         const dummy = UnsignedTx.dummyFromTx(new Tx());

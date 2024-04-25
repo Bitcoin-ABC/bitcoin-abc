@@ -4,6 +4,7 @@
 
 export * from './ecc.js';
 export * from './hash.js';
+export * from './init.js';
 export * from './op.js';
 export * from './opcode.js';
 export * from './script.js';

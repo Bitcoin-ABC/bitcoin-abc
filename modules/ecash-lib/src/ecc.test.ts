@@ -3,14 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import fs from 'node:fs/promises';
 
 import { fromHex, toHex } from './io/hex.js';
-import { EccDummy, EccWasm, initWasm } from './ecc.js';
+import { EccDummy, EccWasm } from './ecc.js';
+import { initWasm } from './init.js';
 
 describe('Ecc', async () => {
     // Can't use `fetch` for local file so we have to read it using `fs`
-    await initWasm(fs.readFile('./src/ffi/ecash_lib_wasm_bg.wasm'));
+    await initWasm();
 
     it('EccWasm', () => {
         const ecc = new EccWasm();
