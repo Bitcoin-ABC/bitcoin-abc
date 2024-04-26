@@ -157,6 +157,9 @@ public:
 
     std::pair<bool, std::optional<PackageToValidate>>
     ReceivedTx(NodeId nodeid, const CTransactionRef &ptx);
+
+    bool HaveMoreWork(NodeId nodeid);
+    CTransactionRef GetTxToReconsider(NodeId nodeid);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H

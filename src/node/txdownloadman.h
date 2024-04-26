@@ -174,6 +174,12 @@ public:
      */
     std::pair<bool, std::optional<PackageToValidate>>
     ReceivedTx(NodeId nodeid, const CTransactionRef &ptx);
+
+    /** Whether there are any orphans to reconsider for this peer. */
+    bool HaveMoreWork(NodeId nodeid) const;
+
+    /** Returns next orphan tx to consider, or nullptr if none exist. */
+    CTransactionRef GetTxToReconsider(NodeId nodeid);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_H

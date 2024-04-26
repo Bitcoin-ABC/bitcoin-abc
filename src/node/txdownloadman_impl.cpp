@@ -76,6 +76,12 @@ std::pair<bool, std::optional<PackageToValidate>>
 TxDownloadManager::ReceivedTx(NodeId nodeid, const CTransactionRef &ptx) {
     return m_impl->ReceivedTx(nodeid, ptx);
 }
+bool TxDownloadManager::HaveMoreWork(NodeId nodeid) const {
+    return m_impl->HaveMoreWork(nodeid);
+}
+CTransactionRef TxDownloadManager::GetTxToReconsider(NodeId nodeid) {
+    return m_impl->GetTxToReconsider(nodeid);
+}
 
 // TxDownloadManagerImpl
 void TxDownloadManagerImpl::ActiveTipChange() {
@@ -498,5 +504,17 @@ TxDownloadManagerImpl::ReceivedTx(NodeId nodeid, const CTransactionRef &ptx) {
     }
 
     return {true, std::nullopt};
+}
+
+bool TxDownloadManagerImpl::HaveMoreWork(NodeId nodeid) {
+    return m_opts.m_mempool.withOrphanage([nodeid](TxOrphanage &orphanage) {
+        return orphanage.HaveTxToReconsider(nodeid);
+    });
+}
+
+CTransactionRef TxDownloadManagerImpl::GetTxToReconsider(NodeId nodeid) {
+    return m_opts.m_mempool.withOrphanage([nodeid](TxOrphanage &orphanage) {
+        return orphanage.GetTxToReconsider(nodeid);
+    });
 }
 } // namespace node

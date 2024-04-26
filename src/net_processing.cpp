@@ -4222,9 +4222,7 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     LOCK2(::cs_main, m_tx_download_mutex);
 
     while (CTransactionRef porphanTx =
-               m_mempool.withOrphanage([&peer](TxOrphanage &orphanage) {
-                   return orphanage.GetTxToReconsider(peer.m_id);
-               })) {
+               m_txdownloadman.GetTxToReconsider(peer.m_id)) {
         const MempoolAcceptResult result =
             m_chainman.ProcessTransaction(porphanTx);
         const TxValidationState &state = result.m_state;
@@ -7756,9 +7754,7 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         // another peer that was already processed; in that case, the extra work
         // may not be noticed, possibly resulting in an unnecessary 100ms delay)
         LOCK(m_tx_download_mutex);
-        if (m_mempool.withOrphanage([&peer](TxOrphanage &orphanage) {
-                return orphanage.HaveTxToReconsider(peer->m_id);
-            })) {
+        if (m_txdownloadman.HaveMoreWork(peer->m_id)) {
             fMoreWork = true;
         }
     } catch (const std::exception &e) {
