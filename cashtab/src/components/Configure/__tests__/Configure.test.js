@@ -6,6 +6,7 @@ import React from 'react';
 import {
     walletWithXecAndTokens,
     vipTokenChronikTokenMocks,
+    cachetTokenAndTx,
     freshWalletWithOneIncomingCashtabMsg,
     requiredUtxoThisToken,
 } from 'components/App/fixtures/mocks';
@@ -22,6 +23,7 @@ import {
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
+import { undecimalizeTokenAmount } from 'wallet';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -220,6 +222,191 @@ describe('<Configure />', () => {
             ),
         );
     });
+    it('"ABSOLUTE MINIMUM fees" setting is unavailable if wallet holds 0.01 less than required balance of Cachet', async () => {
+        const CACHET_DECIMALS = 2;
+        // Modify walletWithXecAndTokens to have the required token for this feature
+        const walletWithVipToken = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    {
+                        ...requiredUtxoThisToken,
+                        token: {
+                            ...requiredUtxoThisToken.token,
+                            tokenId: appConfig.vipTokens.cachet.tokenId,
+                            amount: undecimalizeTokenAmount(
+                                '999.99',
+                                CACHET_DECIMALS,
+                            ),
+                        },
+                    },
+                ],
+            },
+        };
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithVipToken,
+            localforage,
+        );
+
+        // Make sure the app can get this token's genesis info by calling a mock
+        mockedChronik.setMock('token', {
+            input: appConfig.vipTokens.cachet.tokenId,
+            output: cachetTokenAndTx.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: appConfig.vipTokens.cachet.tokenId,
+            output: cachetTokenAndTx.tx,
+        });
+
+        // Can verify in Electrum that this tx is sent at 1.0 sat/byte
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022043679b2fcde0099b0cd29bfbca382e92e3b871c079a0db7d73c39440d067f5bb02202e2ab2d5d83b70911da2758afd9e56eaaaa989050f35e4cc4d28d20afc29778a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb26d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '6d2e157e2e2b1fa47cc63ede548375213942e29c090f5d9cbc2722258f720c08';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Default route is home
+        await screen.findByTitle('Tx History');
+
+        // Click the hamburger menu
+        await user.click(screen.queryByTitle('Show Other Screens'));
+
+        await user.click(
+            screen.getByRole('button', {
+                name: /Settings/i,
+            }),
+        );
+
+        // Now we see the Settings screen
+        expect(screen.getByTitle('Settings')).toBeInTheDocument();
+
+        // We DO NOT see VIP settings
+        expect(screen.queryByText('VIP Settings')).not.toBeInTheDocument();
+
+        // We DO NOT see the CACHET token icon
+        expect(
+            screen.queryByAltText(
+                `icon for ${appConfig.vipTokens.cachet.tokenId}`,
+            ),
+        ).not.toBeInTheDocument();
+    });
+    it('"ABSOLUTE MINIMUM fees" setting is available and effective if wallet holds exactly required balance of Cachet', async () => {
+        const CACHET_DECIMALS = 2;
+        // Modify walletWithXecAndTokens to have the required token for this feature
+        const walletWithVipToken = {
+            ...walletWithXecAndTokens,
+            state: {
+                ...walletWithXecAndTokens.state,
+                slpUtxos: [
+                    ...walletWithXecAndTokens.state.slpUtxos,
+                    {
+                        ...requiredUtxoThisToken,
+                        token: {
+                            ...requiredUtxoThisToken.token,
+                            tokenId: appConfig.vipTokens.cachet.tokenId,
+                            amount: undecimalizeTokenAmount(
+                                appConfig.vipTokens.cachet.vipBalance,
+                                CACHET_DECIMALS,
+                            ),
+                        },
+                    },
+                ],
+            },
+        };
+
+        const mockedChronik = await initializeCashtabStateForTests(
+            walletWithVipToken,
+            localforage,
+        );
+
+        // Make sure the app can get this token's genesis info by calling a mock
+        mockedChronik.setMock('token', {
+            input: appConfig.vipTokens.cachet.tokenId,
+            output: cachetTokenAndTx.token,
+        });
+        mockedChronik.setMock('tx', {
+            input: appConfig.vipTokens.cachet.tokenId,
+            output: cachetTokenAndTx.tx,
+        });
+
+        // Can verify in Electrum that this tx is sent at 1.0 sat/byte
+        const hex =
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022043679b2fcde0099b0cd29bfbca382e92e3b871c079a0db7d73c39440d067f5bb02202e2ab2d5d83b70911da2758afd9e56eaaaa989050f35e4cc4d28d20afc29778a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb26d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+        const txid =
+            '6d2e157e2e2b1fa47cc63ede548375213942e29c090f5d9cbc2722258f720c08';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Default route is home
+        await screen.findByTitle('Tx History');
+
+        // Click the hamburger menu
+        await user.click(screen.queryByTitle('Show Other Screens'));
+
+        await user.click(
+            screen.getByRole('button', {
+                name: /Settings/i,
+            }),
+        );
+
+        // Now we see the Settings screen
+        expect(screen.getByTitle('Settings')).toBeInTheDocument();
+
+        // We see VIP settings
+        expect(screen.getByText('VIP Settings')).toBeInTheDocument();
+        // We see the CACHET token icon
+        expect(
+            screen.getByAltText(
+                `icon for ${appConfig.vipTokens.cachet.tokenId}`,
+            ),
+        ).toBeInTheDocument();
+
+        // Send confirmations are disabled by default
+
+        // Enable min fee sends
+        await user.click(screen.getByTitle('Toggle minimum fee sends'));
+
+        // Navigate to the Send screen
+        await user.click(
+            screen.getByRole('button', {
+                name: /Send Screen/i,
+            }),
+        );
+
+        // Now we see the Send screen
+        expect(screen.getByTitle('Toggle Multisend')).toBeInTheDocument();
+
+        // Fill out to and amount
+        await user.type(
+            screen.getByPlaceholderText('Address'),
+            'ecash:qphlhe78677sz227k83hrh542qeehh8el5lcjwk72y',
+        );
+        await user.type(screen.getByPlaceholderText('Amount'), '55');
+
+        // click send to broadcast the tx
+        await user.click(screen.getByRole('button', { name: 'Send' }));
+
+        // Notification is rendered with expected txid
+        const txSuccessNotification = await screen.findByText('eCash sent');
+        await waitFor(() =>
+            expect(txSuccessNotification).toHaveAttribute(
+                'href',
+                `${explorer.blockExplorerUrl}/tx/${txid}`,
+            ),
+        );
+    });
     it('Setting "ABSOLUTE MINIMUM fees" settings will reduce fees to absolute min', async () => {
         // Modify walletWithXecAndTokens to have the required token for this feature
         const walletWithVipToken = {
@@ -240,11 +427,11 @@ describe('<Configure />', () => {
 
         // Make sure the app can get this token's genesis info by calling a mock
         mockedChronik.setMock('token', {
-            input: appConfig.vipSettingsTokenId,
+            input: appConfig.vipTokens.grumpy.tokenId,
             output: vipTokenChronikTokenMocks.token,
         });
         mockedChronik.setMock('tx', {
-            input: appConfig.vipSettingsTokenId,
+            input: appConfig.vipTokens.grumpy.tokenId,
             output: vipTokenChronikTokenMocks.tx,
         });
 

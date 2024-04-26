@@ -25,9 +25,20 @@ const appConfig = {
     tokenLogo: tokenLogo,
     localStorageMaxCharacters: 24,
     monitorExtension: false,
-    vipSettingsTokenId:
-        'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa', // GRP
-    vipSettingsTokenQty: '1000000',
+    vipTokens: {
+        grumpy: {
+            tokenId:
+                'fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa',
+            // decimalized string, i.e. one million GRP tokens
+            vipBalance: '1000000',
+        },
+        cachet: {
+            tokenId:
+                'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
+            // decimalized string, i.e. one thousand CACHET tokens
+            vipBalance: '1000',
+        },
+    },
     defaultLocale: 'en-US',
 };
 

@@ -397,11 +397,16 @@ const Token = () => {
                 wallet,
                 tokenSendTargetOutputs,
                 settings.minFeeSends &&
-                    hasEnoughToken(
+                    (hasEnoughToken(
                         tokens,
-                        appConfig.vipSettingsTokenId,
-                        appConfig.vipSettingsTokenQty,
-                    )
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
@@ -444,11 +449,16 @@ const Token = () => {
                 wallet,
                 nftFanTargetOutputs,
                 settings.minFeeSends &&
-                    hasEnoughToken(
+                    (hasEnoughToken(
                         tokens,
-                        appConfig.vipSettingsTokenId,
-                        appConfig.vipSettingsTokenQty,
-                    )
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
@@ -672,11 +682,16 @@ const Token = () => {
                 wallet,
                 tokenBurnTargetOutputs,
                 settings.minFeeSends &&
-                    hasEnoughToken(
+                    (hasEnoughToken(
                         tokens,
-                        appConfig.vipSettingsTokenId,
-                        appConfig.vipSettingsTokenQty,
-                    )
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
@@ -730,11 +745,16 @@ const Token = () => {
                 wallet,
                 mintTargetOutputs,
                 settings.minFeeSends &&
-                    hasEnoughToken(
+                    (hasEnoughToken(
                         tokens,
-                        appConfig.vipSettingsTokenId,
-                        appConfig.vipSettingsTokenQty,
-                    )
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,

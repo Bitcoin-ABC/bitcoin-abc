@@ -493,11 +493,16 @@ const SendXec = () => {
                 wallet,
                 targetOutputs,
                 settings.minFeeSends &&
-                    hasEnoughToken(
+                    (hasEnoughToken(
                         tokens,
-                        appConfig.vipSettingsTokenId,
-                        appConfig.vipSettingsTokenQty,
-                    )
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
@@ -728,11 +733,16 @@ const SendXec = () => {
             maxSendSatoshis = getMaxSendAmountSatoshis(
                 spendableUtxos,
                 settings.minFeeSends &&
-                    hasEnoughToken(
+                    (hasEnoughToken(
                         tokens,
-                        appConfig.vipSettingsTokenId,
-                        appConfig.vipSettingsTokenQty,
-                    )
+                        appConfig.vipTokens.grumpy.tokenId,
+                        appConfig.vipTokens.grumpy.vipBalance,
+                    ) ||
+                        hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 intendedTargetOutputs,

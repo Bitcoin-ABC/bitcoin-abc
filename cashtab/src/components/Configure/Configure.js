@@ -182,19 +182,40 @@ const Configure = () => {
                 )}
             </Switches>
 
-            {hasEnoughToken(
+            {(hasEnoughToken(
                 tokens,
-                appConfig.vipSettingsTokenId,
-                appConfig.vipSettingsTokenQty,
-            ) && (
+                appConfig.vipTokens.grumpy.tokenId,
+                appConfig.vipTokens.grumpy.vipBalance,
+            ) ||
+                hasEnoughToken(
+                    tokens,
+                    appConfig.vipTokens.cachet.tokenId,
+                    appConfig.vipTokens.cachet.vipBalance,
+                )) && (
                 <>
                     <StyledSpacer />
                     <HeadlineAndIcon>
                         {' '}
-                        <TokenIcon
-                            size={64}
-                            tokenId={appConfig.vipSettingsTokenId}
-                        />
+                        {hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.grumpy.tokenId,
+                            appConfig.vipTokens.grumpy.vipBalance,
+                        ) && (
+                            <TokenIcon
+                                size={64}
+                                tokenId={appConfig.vipTokens.grumpy.tokenId}
+                            />
+                        )}
+                        {hasEnoughToken(
+                            tokens,
+                            appConfig.vipTokens.cachet.tokenId,
+                            appConfig.vipTokens.cachet.vipBalance,
+                        ) && (
+                            <TokenIcon
+                                size={64}
+                                tokenId={appConfig.vipTokens.cachet.tokenId}
+                            />
+                        )}
                         <Headline>VIP Settings</Headline>
                     </HeadlineAndIcon>
                     <GeneralSettingsItem>
