@@ -356,16 +356,16 @@ impl Server {
                                 "NFT1 Child BURN"
                             }
                             (SlpTokenType::MintVault, TokenTxType::Genesis) => {
-                                "SLPv2 GENESIS"
+                                "SLP Type2 GENESIS"
                             }
                             (SlpTokenType::MintVault, TokenTxType::Mint) => {
-                                "SLPv2 MINT"
+                                "SLP Type2 MINT"
                             }
                             (SlpTokenType::MintVault, TokenTxType::Send) => {
-                                "SLPv2 SEND"
+                                "SLP Type2 SEND"
                             }
                             (SlpTokenType::MintVault, TokenTxType::Burn) => {
-                                "SLPv2 BURN"
+                                "SLP Type2 BURN"
                             }
                             _ => "SLP Unknown",
                         }
