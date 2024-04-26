@@ -25,6 +25,8 @@ import {
     slp1NftParentWithChildrenMocks,
     slp1NftChildMocks,
 } from 'components/Etokens/fixtures/mocks';
+import CashtabCache from 'config/CashtabCache';
+import { cashtabCacheToJSON } from 'helpers';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -606,6 +608,14 @@ describe('<Token /> available actions rendered', () => {
         expect(screen.getByText('Gordon Chen')).toBeInTheDocument();
     });
     it('SLP1 NFT', async () => {
+        const hex =
+            '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006a47304402205421a0ab0fa58e20fbe2632e58cbcee64e27f680c21675353b96a541f0576e39022019000e6aee98a49953c8581e2f04a140e983ea249d7884560ecc99b5ec6a87774121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006a47304402207a1bce20f7f66ee2a4125c52a8f23b9a561269c0e87aad435ec33358e681233f02206d080cd78170257710afa02d29d61844c7450333db87e1b6a13268cc49228fde4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac68330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            'b2c53165d7a6b0d39a0d0939e4ffd47db2441941ecbaac9c053323deaef08a20';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
@@ -641,16 +651,168 @@ describe('<Token /> available actions rendered', () => {
         // Close out of the info modal
         await userEvent.click(screen.getByText('OK'));
 
-        // The wallet balance of this NFT is rendered along with token name and ticker
-        expect(screen.getByText('1 Gordon Chen (GC)')).toBeInTheDocument();
+        // For an NFT, we render the NFT name, not balance, as it is always 1 if we can see this page
+        expect(screen.getByText('Gordon Chen')).toBeInTheDocument();
 
-        // Token actions are not yet available for NFTs
-        expect(screen.queryByTitle('Token Actions')).not.toBeInTheDocument();
-
-        // We see an info notice that actions will be coming soon
+        // We see what collection this NFT is from
+        expect(screen.getByText(/NFT from collection/)).toBeInTheDocument();
         expect(
-            screen.getByText('ℹ️ NFT actions coming soon'),
+            screen.getByText('The Four Half-Coins of Jin-qua'),
         ).toBeInTheDocument();
+
+        // Token actions are available for NFTs
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // We see an address input field
+        const addrInput = screen.getByPlaceholderText('Address');
+        expect(addrInput).toBeInTheDocument();
+
+        // Send button is disabled before address entry
+        const sendButton = screen.getByRole('button', {
+            name: /Send GC/,
+        });
+        expect(sendButton).toHaveProperty('disabled', true);
+
+        // We can enter an address
+        await userEvent.type(
+            addrInput,
+            'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+        );
+
+        // Now the button is enabled
+        expect(sendButton).toHaveProperty('disabled', false);
+
+        // We can send an NFT
+        await userEvent.click(sendButton);
+
+        expect(await screen.findByText('NFT sent')).toBeInTheDocument();
+    });
+    it('SLP1 NFT page will update cashtab token cache for the NFT if it does not include groupTokenId, and for its parent if it is not in cache', async () => {
+        // Use wallet with nft utxo as only utxo
+        // Preset a cache without groupTokenId
+        // Use existing tx and token mocks
+
+        // We need to use a unique mockedChronik for this test, with a minted NFT utxo but no parent utxo
+
+        // The user actions available for the child NFTs depend on whether or not the NFTs exist in the user's wallet
+        const renderChildNftsMockedChronik =
+            await initializeCashtabStateForTests(
+                {
+                    ...tokenTestWallet,
+                    state: {
+                        ...tokenTestWallet.state,
+                        slpUtxos: [
+                            // Only a child NFT in the utxo set
+                            slp1NftChildMocks.utxos[0],
+                        ],
+                        tokens: new Map([
+                            [
+                                '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                                '1',
+                            ],
+                        ]),
+                    },
+                },
+                localforage,
+            );
+        const mockCashtabCacheWithNft = new CashtabCache([
+            [
+                slp1NftChildMocks.tokenId,
+                {
+                    // note that this mock DOES NOT include groupTokenId
+                    ...slp1NftChildMocks.token,
+                    genesisSupply: '1',
+                    genesisOutputScripts: [
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    ],
+                    genesisMintBatons: 0,
+                },
+            ],
+        ]);
+
+        await localforage.setItem(
+            'cashtabCache',
+            cashtabCacheToJSON(mockCashtabCacheWithNft),
+        );
+
+        // Build chronik mocks that Cashtab would use to add token info to cache
+        for (const tokenMock of supportedTokens) {
+            renderChildNftsMockedChronik.setMock('token', {
+                input: tokenMock.tokenId,
+                output: tokenMock.token,
+            });
+            renderChildNftsMockedChronik.setMock('tx', {
+                input: tokenMock.tokenId,
+                output: tokenMock.tx,
+            });
+            renderChildNftsMockedChronik.setTokenId(tokenMock.tokenId);
+            renderChildNftsMockedChronik.setUtxosByTokenId(tokenMock.tokenId, {
+                tokenId: tokenMock.tokenId,
+                utxos: tokenMock.utxos,
+            });
+            // Set tx history of parent tokenId to empty
+            renderChildNftsMockedChronik.setTxHistoryByTokenId(
+                tokenMock.tokenId,
+                [],
+            );
+        }
+
+        // Set tx history of parent tokenId to include an NFT
+        renderChildNftsMockedChronik.setTxHistoryByTokenId(
+            slp1NftParentWithChildrenMocks.tokenId,
+            [slp1NftChildMocks.tx],
+        );
+
+        render(
+            <CashtabTestWrapper
+                chronik={renderChildNftsMockedChronik}
+                route={`/token/${slp1NftChildMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = slp1NftChildMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // NFT image is rendered
+        expect(
+            screen.getByAltText(`icon for ${slp1NftChildMocks.tokenId}`),
+        ).toBeInTheDocument();
+
+        // We can click an info icon to learn more about this token type
+        await userEvent.click(
+            await screen.findByRole('button', {
+                name: 'Click for more info about this token type',
+            }),
+        );
+
+        expect(
+            screen.getByText(
+                `eCash NFT. NFT supply is always 1. This NFT may belong to an NFT collection.`,
+            ),
+        ).toBeInTheDocument();
+
+        // Close out of the info modal
+        await userEvent.click(screen.getByText('OK'));
+
+        // The NFT Token name is the title
+        expect(screen.getByText('Gordon Chen')).toBeInTheDocument();
+
+        // We see what collection this NFT is from
+        expect(screen.getByText(/NFT from collection/)).toBeInTheDocument();
+        expect(
+            screen.getByText('The Four Half-Coins of Jin-qua'),
+        ).toBeInTheDocument();
+
+        // Token actions are available for NFTs
+        expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
+
+        // We see an address input field
+        const addrInput = screen.getByPlaceholderText('Address');
+        expect(addrInput).toBeInTheDocument();
     });
     it('ALP token', async () => {
         render(

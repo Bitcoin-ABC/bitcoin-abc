@@ -473,6 +473,18 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
         tokenCache.block = tokenInfo.block;
     }
 
+    if (tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+        // If this is an SLP1 NFT
+        // Get the groupTokenId
+        // This is available from the .tx() call and will never change, so it should also be cached
+        for (const tokenEntry of genesisTxInfo.tokenEntries) {
+            const { txType } = tokenEntry;
+            if (txType === 'GENESIS') {
+                const { groupTokenId } = tokenEntry;
+                tokenCache.groupTokenId = groupTokenId;
+            }
+        }
+    }
     // Note: if it is not confirmed, we can update the cache later when we try to use this value
 
     return tokenCache;

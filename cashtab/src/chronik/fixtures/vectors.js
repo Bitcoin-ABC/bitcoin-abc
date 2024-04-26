@@ -1071,6 +1071,178 @@ export default {
                     genesisSupply: '0.0000',
                 },
             },
+            {
+                description: 'slpv1 NFT child',
+                tokenId:
+                    '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                tokenInfo: {
+                    tokenId:
+                        '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    timeFirstSeen: 1713910791,
+                    genesisInfo: {
+                        tokenTicker: 'GC',
+                        tokenName: 'Gordon Chen',
+                        url: 'https://en.wikipedia.org/wiki/Tai-Pan_(novel)',
+                        decimals: 0,
+                        hash: '8247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d72',
+                    },
+                    block: {
+                        height: 841509,
+                        hash: '000000000000000003f0e8a3f0a4de0689311c5708d26b25851bb24a44027753',
+                        timestamp: 1713913313,
+                    },
+                },
+                genesisTx: {
+                    txid: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                    version: 2,
+                    inputs: [
+                        {
+                            prevOut: {
+                                txid: 'faaba128601942a858abcce56d0da002c1f1d95e8c49ba4105c3d08aa76959d8',
+                                outIdx: 3,
+                            },
+                            inputScript:
+                                '483045022100e394332d19812c6b78ac39484dd755473348cc11920ceaea00c9185dc36cac9302203f04fbb661cd9137d5536667f03f89f2096b487a95b7a9eddbf2a33c7fb12d93412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            value: 546,
+                            sequenceNo: 4294967295,
+                            token: {
+                                tokenId:
+                                    '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                                tokenType: {
+                                    protocol: 'SLP',
+                                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                                    number: 129,
+                                },
+                                amount: '1',
+                                isMintBaton: false,
+                                entryIdx: 1,
+                            },
+                            outputScript:
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        },
+                        {
+                            prevOut: {
+                                txid: '5478bbf6ebe4a0f0ac05994608b4b980264ba1225259f7f6c0f573e998be98e6',
+                                outIdx: 2,
+                            },
+                            inputScript:
+                                '47304402200dd2615f8545e57157d0cba016db42d4e25688a265155c7c332cf049eec4300202206cc96ee2f25141302f5e2aaade959ef9d972739f054585cf5dedb6bfec2f5928412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                            value: 32767046,
+                            sequenceNo: 4294967295,
+                            outputScript:
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        },
+                    ],
+                    outputs: [
+                        {
+                            value: 0,
+                            outputScript:
+                                '6a04534c500001410747454e455349530247430b476f72646f6e204368656e2d68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c29208247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d7201004c00080000000000000001',
+                        },
+                        {
+                            value: 546,
+                            outputScript:
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                            token: {
+                                tokenId:
+                                    '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                                tokenType: {
+                                    protocol: 'SLP',
+                                    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                                    number: 65,
+                                },
+                                amount: '1',
+                                isMintBaton: false,
+                                entryIdx: 0,
+                            },
+                        },
+                        {
+                            value: 32766028,
+                            outputScript:
+                                '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                        },
+                    ],
+                    lockTime: 0,
+                    timeFirstSeen: 1713910791,
+                    size: 505,
+                    isCoinbase: false,
+                    tokenEntries: [
+                        {
+                            tokenId:
+                                '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                                number: 65,
+                            },
+                            txType: 'GENESIS',
+                            isInvalid: false,
+                            burnSummary: '',
+                            failedColorings: [],
+                            actualBurnAmount: '0',
+                            intentionalBurn: '0',
+                            burnsMintBatons: false,
+                            groupTokenId:
+                                '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                        },
+                        {
+                            tokenId:
+                                '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                            tokenType: {
+                                protocol: 'SLP',
+                                type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                                number: 129,
+                            },
+                            txType: 'NONE',
+                            isInvalid: false,
+                            burnSummary: '',
+                            failedColorings: [],
+                            actualBurnAmount: '0',
+                            intentionalBurn: '0',
+                            burnsMintBatons: false,
+                        },
+                    ],
+                    tokenFailedParsings: [],
+                    tokenStatus: 'TOKEN_STATUS_NORMAL',
+                    block: {
+                        height: 841509,
+                        hash: '000000000000000003f0e8a3f0a4de0689311c5708d26b25851bb24a44027753',
+                        timestamp: 1713913313,
+                    },
+                },
+                returned: {
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+                        number: 65,
+                    },
+                    timeFirstSeen: 1713910791,
+                    genesisInfo: {
+                        tokenTicker: 'GC',
+                        tokenName: 'Gordon Chen',
+                        url: 'https://en.wikipedia.org/wiki/Tai-Pan_(novel)',
+                        decimals: 0,
+                        hash: '8247001da3bf5680011e26628228761b994a9e0a4ba3f1fdd826ddbf044e5d72',
+                    },
+                    groupTokenId:
+                        '12a049d0da64652b4e8db68b6052ad0cda43cf0269190fe81040bed65ca926a3',
+                    block: {
+                        height: 841509,
+                        hash: '000000000000000003f0e8a3f0a4de0689311c5708d26b25851bb24a44027753',
+                        timestamp: 1713913313,
+                    },
+                    genesisMintBatons: 0,
+                    genesisOutputScripts: [
+                        '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                    ],
+                    genesisSupply: '1',
+                },
+            },
         ],
         expectedErrors: [
             {

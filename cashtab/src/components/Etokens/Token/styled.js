@@ -163,3 +163,13 @@ export const NftCol = styled.div`
     }
     gap: 6px;
 `;
+export const NftNameTitle = styled.div`
+    margin-top: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    color: ${props => props.theme.contrast};
+`;
+export const NftCollectionTitle = styled.div`
+    font-size: 18px;
+    color: ${props => props.theme.contrast};
+`;

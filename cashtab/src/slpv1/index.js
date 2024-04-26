@@ -719,7 +719,7 @@ export const getNft = (tokenId, slpUtxos) => {
  * So, the user interface for input selection is what mostly drives this tx
  * @param {string} tokenId tokenId of the Parent (aka Group)
  */
-export const getNftChildSendTargetOutputs = tokenId => {
+export const getNftChildSendTargetOutputs = (tokenId, destinationAddress) => {
     // slp-mdm accepts an array of BN for send amounts
     const SEND_ONE_CHILD = [new BN(1)];
     const script = NFT1.Child.send(tokenId, SEND_ONE_CHILD);
@@ -728,5 +728,8 @@ export const getNftChildSendTargetOutputs = tokenId => {
     // - Cashtab only supports sending one NFT at a time
     // - All NFT Child inputs will have amount of 1
     // Therefore, we will have no change, and every send tx will have only one token utxo output
-    return [{ value: 0, script }, { value: 546 }];
+    return [
+        { value: 0, script },
+        { address: destinationAddress, value: 546 },
+    ];
 };

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
 import PrimaryButton, {
@@ -10,7 +10,7 @@ import PrimaryButton, {
     IconButton,
     CopyIconButton,
 } from 'components/Common/Buttons';
-import { TxLink, SwitchLabel, Info } from 'components/Common/Atoms';
+import { TxLink, SwitchLabel } from 'components/Common/Atoms';
 import BalanceHeaderToken from 'components/Common/BalanceHeaderToken';
 import { useNavigate } from 'react-router-dom';
 import { Event } from 'components/Common/GoogleAnalytics';
@@ -39,6 +39,8 @@ import {
     getNftChildGenesisInput,
     getNftParentFanInputs,
     getNftParentFanTxTargetOutputs,
+    getNft,
+    getNftChildSendTargetOutputs,
 } from 'slpv1';
 import { sendXec } from 'transactions';
 import { hasEnoughToken, decimalizeTokenAmount } from 'wallet';
@@ -76,14 +78,26 @@ import {
     NftRow,
     NftCol,
     NftTokenIdAndCopyIcon,
+    NftNameTitle,
+    NftCollectionTitle,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
-import { getAllTxHistoryByTokenId, getChildNftsFromParent } from 'chronik';
+import {
+    getAllTxHistoryByTokenId,
+    getChildNftsFromParent,
+    getTokenGenesisInfo,
+} from 'chronik';
 
 const Token = () => {
     let navigate = useNavigate();
-    const { apiError, cashtabState, chronik, chaintipBlockheight, loading } =
-        React.useContext(WalletContext);
+    const {
+        apiError,
+        cashtabState,
+        updateCashtabState,
+        chronik,
+        chaintipBlockheight,
+        loading,
+    } = useContext(WalletContext);
     const { settings, wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
@@ -116,6 +130,7 @@ const Token = () => {
 
     let isSupportedToken = false;
     let isNftParent = false;
+    let isNftChild = false;
 
     // Assign default values which will be presented for any token without explicit support
     let renderedTokenType = `${tokenType.protocol} ${tokenType.number} ${tokenType.type}`;
@@ -143,6 +158,8 @@ const Token = () => {
                     renderedTokenType = 'NFT';
                     renderedTokenDescription =
                         'eCash NFT. NFT supply is always 1. This NFT may belong to an NFT collection.';
+                    isSupportedToken = true;
+                    isNftChild = true;
                     break;
                 }
                 default: {
@@ -249,6 +266,43 @@ const Token = () => {
         }
     };
 
+    const updateNftCachedInfo = async tokenId => {
+        const cachedInfoWithGroupTokenId = await getTokenGenesisInfo(
+            chronik,
+            tokenId,
+        );
+        cashtabCache.tokens.set(tokenId, cachedInfoWithGroupTokenId);
+        updateCashtabState('cashtabCache', cashtabCache);
+    };
+    const addNftCollectionToCache = async nftParentTokenId => {
+        const nftParentCachedInfo = await getTokenGenesisInfo(
+            chronik,
+            nftParentTokenId,
+        );
+        cashtabCache.tokens.set(nftParentTokenId, nftParentCachedInfo);
+        updateCashtabState('cashtabCache', cashtabCache);
+    };
+
+    useEffect(() => {
+        if (cachedInfo.tokenType.type === 'SLP_TOKEN_TYPE_NFT1_CHILD') {
+            // Check if we have its groupTokenId
+            if (typeof cachedInfo.groupTokenId === 'undefined') {
+                // If this is an NFT and its groupTokenId is not cached
+                // Update this tokens cached info
+                updateNftCachedInfo(tokenId);
+            } else {
+                // If we do have a groupTokenId, check if we have cached token info about the group
+                const nftCollectionCachedInfo = cashtabCache.tokens.get(
+                    cachedInfo.groupTokenId,
+                );
+                if (typeof nftCollectionCachedInfo === 'undefined') {
+                    // If we do not have the NFT collection token info in cache, add it
+                    addNftCollectionToCache(cachedInfo.groupTokenId);
+                }
+            }
+        }
+    }, [tokenId, cachedInfo]);
+
     useEffect(() => {
         if (typeof cashtabCache.tokens.get(tokenId) === 'undefined') {
             // Wait for token info to be available from cache
@@ -321,7 +375,7 @@ const Token = () => {
             );
             setAvailableNftInputs(availableNftMintInputs.length);
         }
-    }, [wallet.state.slpUtxos]);
+    }, [wallet.state.slpUtxos, isNftParent]);
 
     useEffect(() => {
         if (nftChildGenesisInput.length > 0) {
@@ -348,19 +402,6 @@ const Token = () => {
     };
 
     async function sendToken() {
-        setFormData({
-            ...formData,
-        });
-
-        if (
-            !formData.address ||
-            !formData.amount ||
-            Number(formData.amount <= 0) ||
-            sendTokenAmountError
-        ) {
-            return;
-        }
-
         // Track number of SLPA send transactions and
         // SLPA token IDs
         Event('SendToken.js', 'Send', tokenId);
@@ -378,18 +419,19 @@ const Token = () => {
 
         try {
             // Get input utxos for slpv1 send tx
-            const tokenInputInfo = getSendTokenInputs(
-                wallet.state.slpUtxos,
-                tokenId,
-                amount,
-                decimals,
-            );
+            const tokenInputInfo = !isNftChild
+                ? getSendTokenInputs(
+                      wallet.state.slpUtxos,
+                      tokenId,
+                      amount,
+                      decimals,
+                  )
+                : undefined;
 
             // Get targetOutputs for an slpv1 send tx
-            const tokenSendTargetOutputs = getSlpSendTargetOutputs(
-                tokenInputInfo,
-                cleanAddress,
-            );
+            const tokenSendTargetOutputs = isNftChild
+                ? getNftChildSendTargetOutputs(tokenId, cleanAddress)
+                : getSlpSendTargetOutputs(tokenInputInfo, cleanAddress);
 
             // Build and broadcast the tx
             const { response } = await sendXec(
@@ -410,7 +452,9 @@ const Token = () => {
                     ? appConfig.minFee
                     : appConfig.defaultFee,
                 chaintipBlockheight,
-                tokenInputInfo.tokenInputs,
+                isNftChild
+                    ? getNft(tokenId, wallet.state.slpUtxos)
+                    : tokenInputInfo.tokenInputs,
             );
 
             toast(
@@ -419,7 +463,7 @@ const Token = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    eToken sent
+                    {isNftChild ? 'NFT sent' : 'eToken sent'}
                 </TokenSentLink>,
                 {
                     icon: <TokenIcon size={32} tokenId={tokenId} />,
@@ -427,7 +471,7 @@ const Token = () => {
             );
             clearInputForms();
         } catch (e) {
-            console.error(`Error sending token`, e);
+            console.error(`Error sending ${isNftChild ? 'NFT' : 'token'}`, e);
             toast.error(`${e}`);
         }
     }
@@ -921,14 +965,39 @@ const Token = () => {
                                 />
                             </Modal>
                         )}
-                        <BalanceHeaderToken
-                            formattedDecimalizedTokenBalance={decimalizedTokenQtyToLocaleFormat(
-                                tokenBalance,
-                                userLocale,
-                            )}
-                            ticker={tokenTicker}
-                            name={tokenName}
-                        />
+                        {renderedTokenType === 'NFT' ? (
+                            <>
+                                <NftNameTitle>{tokenName}</NftNameTitle>
+                                {typeof cachedInfo.groupTokenId !==
+                                    'undefined' &&
+                                    typeof cashtabCache.tokens.get(
+                                        cachedInfo.groupTokenId,
+                                    ) !== 'undefined' && (
+                                        <NftCollectionTitle>
+                                            NFT from collection &quot;
+                                            <Link
+                                                to={`/token/${cachedInfo.groupTokenId}`}
+                                            >
+                                                {
+                                                    cashtabCache.tokens.get(
+                                                        cachedInfo.groupTokenId,
+                                                    ).genesisInfo.tokenName
+                                                }
+                                            </Link>
+                                            &quot;
+                                        </NftCollectionTitle>
+                                    )}
+                            </>
+                        ) : (
+                            <BalanceHeaderToken
+                                formattedDecimalizedTokenBalance={decimalizedTokenQtyToLocaleFormat(
+                                    tokenBalance,
+                                    userLocale,
+                                )}
+                                ticker={tokenTicker}
+                                name={tokenName}
+                            />
+                        )}
                         <TokenStatsTable title="Token Stats">
                             <TokenStatsCol>
                                 <TokenIconExpandButton
@@ -1125,15 +1194,24 @@ const Token = () => {
                                                     'undefined' && (
                                                     <>
                                                         <NftRow>
-                                                            <Link
-                                                                to={`/token/${nftTokenId}`}
-                                                            >
-                                                                {
-                                                                    cachedNftInfo
-                                                                        .genesisInfo
-                                                                        .tokenName
-                                                                }
-                                                            </Link>
+                                                            {typeof tokens.get(
+                                                                nftTokenId,
+                                                            ) !==
+                                                            'undefined' ? (
+                                                                <Link
+                                                                    to={`/token/${nftTokenId}`}
+                                                                >
+                                                                    {
+                                                                        cachedNftInfo
+                                                                            .genesisInfo
+                                                                            .tokenName
+                                                                    }
+                                                                </Link>
+                                                            ) : (
+                                                                cachedNftInfo
+                                                                    .genesisInfo
+                                                                    .tokenName
+                                                            )}
                                                         </NftRow>
                                                     </>
                                                 )}
@@ -1144,9 +1222,6 @@ const Token = () => {
                             </>
                         )}
                         {apiError && <ApiError />}
-                        {renderedTokenType === 'NFT' && (
-                            <Info>ℹ️ NFT actions coming soon</Info>
-                        )}
 
                         {isSupportedToken && (
                             <SendTokenForm title="Token Actions">
@@ -1215,30 +1290,39 @@ const Token = () => {
                                                         </AliasAddressPreviewLabel>
                                                     </InputRow>
                                                 </SendTokenFormRow>
-                                                <SendTokenFormRow>
-                                                    <SendTokenInput
-                                                        name="amount"
-                                                        value={formData.amount}
-                                                        error={
-                                                            sendTokenAmountError
-                                                        }
-                                                        placeholder="Amount"
-                                                        decimals={decimals}
-                                                        handleInput={
-                                                            handleSlpAmountChange
-                                                        }
-                                                        handleOnMax={onMax}
-                                                    />
-                                                </SendTokenFormRow>
+                                                {!isNftChild && (
+                                                    <SendTokenFormRow>
+                                                        <SendTokenInput
+                                                            name="amount"
+                                                            value={
+                                                                formData.amount
+                                                            }
+                                                            error={
+                                                                sendTokenAmountError
+                                                            }
+                                                            placeholder="Amount"
+                                                            decimals={decimals}
+                                                            handleInput={
+                                                                handleSlpAmountChange
+                                                            }
+                                                            handleOnMax={onMax}
+                                                        />
+                                                    </SendTokenFormRow>
+                                                )}
                                                 <SendTokenFormRow>
                                                     <PrimaryButton
                                                         style={{
-                                                            marginTop: '24px',
+                                                            marginTop: '12px',
                                                         }}
                                                         disabled={
                                                             apiError ||
                                                             sendTokenAmountError ||
-                                                            sendTokenAddressError
+                                                            sendTokenAddressError ||
+                                                            formData.address ===
+                                                                '' ||
+                                                            (!isNftChild &&
+                                                                formData.amount ===
+                                                                    '')
                                                         }
                                                         onClick={() =>
                                                             checkForConfirmationBeforeSendEtoken()
@@ -1364,43 +1448,51 @@ const Token = () => {
                                         )}
                                     </>
                                 )}
-                                <SwitchHolder>
-                                    <Switch
-                                        name="Toggle Airdrop"
-                                        on="🪂"
-                                        off="🪂"
-                                        checked={switches.showAirdrop}
-                                        handleToggle={() =>
-                                            // We turn everything else off, whether we are turning this one on or off
-                                            setSwitches({
-                                                ...switchesOff,
-                                                showAirdrop:
-                                                    !switches.showAirdrop,
-                                            })
-                                        }
-                                    />
-                                    <SwitchLabel>
-                                        Airdrop XEC to {tokenTicker} holders
-                                    </SwitchLabel>
-                                </SwitchHolder>
-                                {switches.showAirdrop && (
-                                    <TokenStatsRow>
-                                        <Link
-                                            style={{ width: '100%' }}
-                                            to="/airdrop"
-                                            state={{
-                                                airdropEtokenId: tokenId,
-                                            }}
-                                        >
-                                            <SecondaryButton
-                                                style={{ marginTop: '12px' }}
-                                            >
-                                                Airdrop Calculator
-                                            </SecondaryButton>
-                                        </Link>
-                                    </TokenStatsRow>
+                                {!isNftChild && (
+                                    <>
+                                        <SwitchHolder>
+                                            <Switch
+                                                name="Toggle Airdrop"
+                                                on="🪂"
+                                                off="🪂"
+                                                checked={switches.showAirdrop}
+                                                handleToggle={() =>
+                                                    // We turn everything else off, whether we are turning this one on or off
+                                                    setSwitches({
+                                                        ...switchesOff,
+                                                        showAirdrop:
+                                                            !switches.showAirdrop,
+                                                    })
+                                                }
+                                            />
+                                            <SwitchLabel>
+                                                Airdrop XEC to {tokenTicker}{' '}
+                                                holders
+                                            </SwitchLabel>
+                                        </SwitchHolder>
+                                        {switches.showAirdrop && (
+                                            <TokenStatsRow>
+                                                <Link
+                                                    style={{ width: '100%' }}
+                                                    to="/airdrop"
+                                                    state={{
+                                                        airdropEtokenId:
+                                                            tokenId,
+                                                    }}
+                                                >
+                                                    <SecondaryButton
+                                                        style={{
+                                                            marginTop: '12px',
+                                                        }}
+                                                    >
+                                                        Airdrop Calculator
+                                                    </SecondaryButton>
+                                                </Link>
+                                            </TokenStatsRow>
+                                        )}
+                                    </>
                                 )}
-                                {!isNftParent && (
+                                {!isNftParent && !isNftChild && (
                                     <>
                                         <SwitchHolder>
                                             <Switch

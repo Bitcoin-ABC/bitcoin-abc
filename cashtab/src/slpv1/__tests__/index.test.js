@@ -513,9 +513,12 @@ describe('slpv1 methods', () => {
     describe('Get targetOutputs for an NFT1 child send tx', () => {
         const { expectedReturns } = vectors.getNftChildSendTargetOutputs;
         expectedReturns.forEach(expectedReturn => {
-            const { description, tokenId, returned } = expectedReturn;
+            const { description, tokenId, destinationAddress, returned } =
+                expectedReturn;
             it(`getNftChildSendTargetOutputs: ${description}`, () => {
-                expect(getNftChildSendTargetOutputs(tokenId)).toEqual(returned);
+                expect(
+                    getNftChildSendTargetOutputs(tokenId, destinationAddress),
+                ).toEqual(returned);
             });
         });
     });

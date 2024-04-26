@@ -1854,6 +1854,7 @@ export default {
             {
                 description: 'We can get the target outputs for sending an NFT',
                 tokenId: MOCK_TOKEN_ID,
+                destinationAddress: SEND_DESTINATION_ADDRESS,
                 returned: [
                     {
                         value: 0,
@@ -1863,6 +1864,7 @@ export default {
                         ),
                     },
                     {
+                        address: SEND_DESTINATION_ADDRESS,
                         value: appConfig.dustSats,
                     },
                 ],
