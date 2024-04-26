@@ -41,6 +41,7 @@ import {
     SlpV1Mint,
     SlpNftParentFanTx,
     SlpNftMint,
+    SlpParentGenesisTxMock,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -201,6 +202,12 @@ export default {
                 // Mock this as a received tx
                 hashes: [SlpNftMint.tx.outputs[1].outputScript],
                 parsed: SlpNftMint.parsed,
+            },
+            {
+                description: 'SLP1 Parent Genesis',
+                tx: SlpParentGenesisTxMock.tx,
+                hashes: [SlpParentGenesisTxMock.tx.outputs[1].outputScript],
+                parsed: SlpParentGenesisTxMock.parsed,
             },
             {
                 description: 'External msg received from eCash Chat',

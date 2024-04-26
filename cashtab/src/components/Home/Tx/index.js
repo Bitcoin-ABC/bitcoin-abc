@@ -555,7 +555,7 @@ const Tx = ({
             parsedTokenType !== 'NFT Collection'
                 ? xecTxType
                 : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
-                parsedTokenType === 'NFT Collection'
+                txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
                 ? 'Fan-out'
                 : txType === 'GENESIS' && parsedTokenType !== 'NFT'
                 ? 'Created'

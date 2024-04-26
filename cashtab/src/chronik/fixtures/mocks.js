@@ -10769,6 +10769,140 @@ export const SlpNftMint = {
     ],
 };
 
+export const SlpParentGenesisTxMock = {
+    tx: {
+        txid: 'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: '5d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326',
+                    outIdx: 2,
+                },
+                inputScript:
+                    '483045022100eb2e68c7d02eda2dd64c22a079d832c5c85f34f1ced264cd3b37658d4cd0b89e02203e204cd625a05c8ba59291567bc14d0bfa193a9a37cbc00aec804a224dc910d1412103771805b54969a9bea4e3eb14a82851c67592156ddb5e52d3d53677d14a40fba6',
+                value: 32766028,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a04534c500001810747454e455349530348534d0b54686520486569736d616e2c68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f486569736d616e5f54726f7068792073229094743335d380cd7ce479fb38c9dfe77cdd97668aa0c4d9183855fcb97601004c00080000000000000059',
+            },
+            {
+                value: 546,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                token: {
+                    tokenId:
+                        'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+                    tokenType: {
+                        protocol: 'SLP',
+                        type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                        number: 129,
+                    },
+                    amount: '89',
+                    isMintBaton: false,
+                    entryIdx: 0,
+                },
+                spentBy: {
+                    txid: '1f2f9a37767586320a8af6afadda56bdf5446034910e27d537f26777ad95e0d5',
+                    outIdx: 0,
+                },
+            },
+            {
+                value: 32764762,
+                outputScript:
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                spentBy: {
+                    txid: '1f2f9a37767586320a8af6afadda56bdf5446034910e27d537f26777ad95e0d5',
+                    outIdx: 1,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1714048251,
+        size: 358,
+        isCoinbase: false,
+        tokenEntries: [
+            {
+                tokenId:
+                    'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                txType: 'GENESIS',
+                isInvalid: false,
+                burnSummary: '',
+                failedColorings: [],
+                actualBurnAmount: '0',
+                intentionalBurn: '0',
+                burnsMintBatons: false,
+            },
+        ],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NORMAL',
+        block: {
+            height: 841852,
+            hash: '00000000000000000cea344b4130a2de214200266ad0d67253eea01eeb34a48d',
+            timestamp: 1714048284,
+        },
+    },
+    parsed: {
+        recipients: [],
+        satoshisSent: 32765308,
+        stackArray: [
+            '534c5000',
+            '81',
+            '47454e45534953',
+            '48534d',
+            '54686520486569736d616e',
+            '68747470733a2f2f656e2e77696b6970656469612e6f72672f77696b692f486569736d616e5f54726f706879',
+            '73229094743335d380cd7ce479fb38c9dfe77cdd97668aa0c4d9183855fcb976',
+            '00',
+            '',
+            '0000000000000059',
+        ],
+        xecTxType: 'Sent',
+    },
+    cache: [
+        [
+            'd2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+            {
+                tokenType: {
+                    protocol: 'SLP',
+                    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+                    number: 129,
+                },
+                timeFirstSeen: 1714048251,
+                genesisInfo: {
+                    tokenTicker: 'HSM',
+                    tokenName: 'The Heisman',
+                    url: 'https://en.wikipedia.org/wiki/Heisman_Trophy',
+                    decimals: 0,
+                    hash: '73229094743335d380cd7ce479fb38c9dfe77cdd97668aa0c4d9183855fcb976',
+                },
+                block: {
+                    height: 841852,
+                    hash: '00000000000000000cea344b4130a2de214200266ad0d67253eea01eeb34a48d',
+                    timestamp: 1714048284,
+                },
+                genesisSupply: '89',
+                genesisOutputScripts: [
+                    '76a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac',
+                ],
+                genesisMintBatons: 0,
+            },
+        ],
+    ],
+};
+
 /**
  * Mock chronik.token(tokenId) and chronik.tx(tokenId) for
  * several slpv1 tokens

@@ -45,6 +45,7 @@ import {
     mockTxHistorySupportingTokenCache,
     SlpNftParentFanTx,
     SlpNftMint,
+    SlpParentGenesisTxMock,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -2181,5 +2182,69 @@ describe('<Tx />', () => {
         // We see a second token action for burning the NFT Mint Input
         expect(screen.getByTitle('tx-token-burn')).toBeInTheDocument();
         expect(screen.getByText('Burned 1 NFT Mint Input')).toBeInTheDocument();
+    });
+    it('Genesis tx of an SLP1 Parent Token (i.e. "Creating an NFT Collection")', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={SlpParentGenesisTxMock.tx}
+                        hashes={[
+                            SlpParentGenesisTxMock.tx.outputs[1].outputScript,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                            cashtabCache: {
+                                tokens: new Map(SlpParentGenesisTxMock.cache),
+                            },
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We render the timestamp
+        expect(screen.getByText('Apr 25, 2024, 12:30:51')).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We do not see the a fiat amount
+        expect(screen.queryByText('$')).not.toBeInTheDocument();
+
+        // We see the NFT associated image
+        expect(
+            screen.getByAltText(
+                'icon for d2bfffd48c289cd5d43920f4f95a88ac4b9572d39d54d874394682608f56bf4a',
+            ),
+        ).toBeInTheDocument();
+
+        // We see the genesis icon
+        expect(screen.getByTitle('tx-genesis')).toBeInTheDocument();
+
+        // We see the genesis action
+        expect(screen.getByText('GENESIS')).toBeInTheDocument();
+
+        // We see the token type
+        expect(screen.getAllByText('NFT Collection')[0]).toBeInTheDocument();
+
+        // We see the token name
+        expect(screen.getByText('The Heisman')).toBeInTheDocument();
+
+        // We see the token ticker in parenthesis in the summary column
+        expect(screen.getByText('(HSM)')).toBeInTheDocument();
+
+        // We see the expected token action text for a received SLPv1 fungible token tx
+        expect(screen.getByText('Created 89 HSM')).toBeInTheDocument();
     });
 });
