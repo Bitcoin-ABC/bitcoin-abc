@@ -50,6 +50,7 @@ pub struct TransactionTemplate<'a> {
     pub token_output: i128,
     pub action_str: &'a str,
     pub specification: &'a str,
+    pub token_type: &'a str,
 }
 
 #[derive(Template)]

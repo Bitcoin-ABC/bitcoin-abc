@@ -302,7 +302,8 @@ impl Server {
 
         let token_hex = token_id.as_ref().map(|token| token.to_hex_be());
 
-        let (token_section_title, action_str, specification): (
+        let (token_section_title, action_str, token_type_str, specification): (
+            Cow<str>,
             Cow<str>,
             Cow<str>,
             Cow<str>,
@@ -391,32 +392,44 @@ impl Server {
                     }
                 };
 
-                let specification = match token_type {
+                let (token_type_str, specification) = match token_type {
                     token_type::TokenType::Slp(slp) => {
                         let slp_token_type = SlpTokenType::from_i32(slp)
                             .ok_or_else(|| eyre!("Malformed SlpTokenType"))?;
                         match slp_token_type {
                             SlpTokenType::Fungible => {
-                                "https://github.com/simpleledger/\
-                                 slp-specifications/blob/master/\
-                                 slp-token-type-1.md"
+                                (
+                                    "SLP Type 1",
+                                    "https://github.com/simpleledger/\
+                                    slp-specifications/blob/master/\
+                                    slp-token-type-1.md"
+                                )
                             }
                             SlpTokenType::MintVault => {
-                                "https://github.com/badger-cash/\
-                                 slp-specifications/blob/master/\
-                                 slp-token-type-2.md"
+                                (
+                                    "SLP Type 2",
+                                    "https://github.com/badger-cash/\
+                                    slp-specifications/blob/master/\
+                                    slp-token-type-2.md"
+                                )
                             }
                             SlpTokenType::Nft1Group
                             | SlpTokenType::Nft1Child => {
-                                "https://github.com/simpleledger/\
-                                 slp-specifications/blob/master/slp-nft-1.md"
+                                (
+                                    "SLP NFT-1",
+                                    "https://github.com/simpleledger/\
+                                    slp-specifications/blob/master/slp-nft-1.md"
+                                )
                             }
-                            _ => "Unknown",
+                            _ => ("Unknown", "Unknown")
                         }
                     }
                     token_type::TokenType::Alp(_) => {
-                        "https://ecashbuilders.notion.site/\
-                         ALP-a862a4130877448387373b9e6a93dd97"
+                        (
+                            "ALP",
+                            "https://ecashbuilders.notion.site/\
+                            ALP-a862a4130877448387373b9e6a93dd97"
+                        )
                     }
                 };
 
@@ -432,6 +445,7 @@ impl Server {
                     )
                     .into(),
                     action_str.into(),
+                    token_type_str.into(),
                     specification.into(),
                 )
             }
@@ -441,9 +455,15 @@ impl Server {
                         "Token Details (Invalid Transaction)".into(),
                         "Unknown".into(),
                         "Unknown".into(),
+                        "Unknown".into(),
                     )
                 } else {
-                    ("".into(), "Unknown".into(), "Unknown".into())
+                    (
+                        "".into(),
+                        "Unknown".into(),
+                        "Unknown".into(),
+                        "Unknown".into(),
+                    )
                 }
             }
         };
@@ -486,6 +506,7 @@ impl Server {
             timestamp,
             action_str: &action_str,
             specification: &specification,
+            token_type: &token_type_str,
         };
 
         Ok(transaction_template.render().unwrap())

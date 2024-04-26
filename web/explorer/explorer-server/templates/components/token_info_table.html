@@ -14,7 +14,9 @@ action_str, specification) %} {% match slp_genesis_info %} {% when Some with
 
     <div class="tx-details-row">
         <div>Token Type</div>
-        <div>{{ specification }}</div>
+        <div>
+            <a href="{{ specification }}" target="_blank">{{ token_type }}</a>
+        </div>
     </div>
 
     <div class="tx-details-row">
