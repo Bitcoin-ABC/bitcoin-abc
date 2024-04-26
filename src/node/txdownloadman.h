@@ -9,6 +9,7 @@
 #include <net.h>
 #include <net_permissions.h>
 #include <policy/packages.h>
+#include <txorphanage.h>
 #include <util/check.h>
 
 #include <chrono>
@@ -115,9 +116,8 @@ public:
     explicit TxDownloadManager(const TxDownloadOptions &options);
     ~TxDownloadManager();
 
-    // Get references to internal data structures. Outside access to these data
-    // structures should be temporary and removed later once logic has been
-    // moved internally.
+    // Get references to internal data structures. These are only used by the
+    // avalanche logic in PeerManager.
     InvRequestTracker<TxId> &GetTxRequestRef();
     CRollingBloomFilter &RecentRejectsFilter();
     CRollingBloomFilter &RecentConfirmedTransactionsFilter();
@@ -180,6 +180,18 @@ public:
 
     /** Returns next orphan tx to consider, or nullptr if none exist. */
     CTransactionRef GetTxToReconsider(NodeId nodeid);
+
+    /** Check that all data structures are empty. */
+    void CheckIsEmpty() const;
+
+    /**
+     * Check that all data structures that track per-peer information have
+     * nothing for this peer.
+     */
+    void CheckIsEmpty(NodeId nodeid) const;
+
+    /** Wrapper for TxOrphanage::GetOrphanTransactions */
+    std::vector<TxOrphanage::PoolTx> GetOrphanTransactions() const;
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_H

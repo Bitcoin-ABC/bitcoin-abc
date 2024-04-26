@@ -2205,10 +2205,7 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
                                    std::forward_as_tuple(nodeid),
                                    std::forward_as_tuple(node.IsInboundConn()));
     }
-    {
-        LOCK(m_tx_download_mutex);
-        assert(m_txdownloadman.GetTxRequestRef().Count(nodeid) == 0);
-    }
+    WITH_LOCK(m_tx_download_mutex, m_txdownloadman.CheckIsEmpty(nodeid));
 
     if (NetPermissions::HasFlag(node.m_permission_flags,
                                 NetPermissionFlags::BloomFilter)) {
@@ -2437,11 +2434,7 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
             assert(m_num_preferred_download_peers == 0);
             assert(m_peers_downloading_from == 0);
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
-            LOCK(m_tx_download_mutex);
-            assert(m_txdownloadman.GetTxRequestRef().Size() == 0);
-            assert(m_mempool.withOrphanage([](const TxOrphanage &orphanage) {
-                return orphanage.Size();
-            }) == 0);
+            WITH_LOCK(m_tx_download_mutex, m_txdownloadman.CheckIsEmpty());
         }
     }
 
@@ -2545,9 +2538,7 @@ bool PeerManagerImpl::GetNodeStateStats(NodeId nodeid,
 
 std::vector<TxOrphanage::PoolTx> PeerManagerImpl::GetOrphanTransactions() {
     LOCK(m_tx_download_mutex);
-    return m_mempool.withOrphanage([](const TxOrphanage &orphanage) {
-        return orphanage.GetOrphanTransactions();
-    });
+    return m_txdownloadman.GetOrphanTransactions();
 }
 
 void PeerManagerImpl::AddToCompactExtraTransactions(const CTransactionRef &tx) {
