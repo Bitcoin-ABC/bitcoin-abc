@@ -42,6 +42,7 @@ import {
     SlpNftParentFanTx,
     SlpNftMint,
     SlpParentGenesisTxMock,
+    oneOutputReceivedTx,
 } from './mocks';
 import { mockChronikUtxos, mockOrganizedUtxosByType } from './chronikUtxos';
 import { getHashes } from 'wallet';
@@ -220,6 +221,12 @@ export default {
                 tx: SlpV1Mint.tx,
                 hashes: ['95e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d'],
                 parsed: SlpV1Mint.parsed,
+            },
+            {
+                description: 'received xec tx with no change',
+                tx: oneOutputReceivedTx.tx,
+                hashes: ['601efc2aa406fe9eaedd41d2b5d95d1f4db9041d'],
+                parsed: oneOutputReceivedTx.parsed,
             },
         ],
     },

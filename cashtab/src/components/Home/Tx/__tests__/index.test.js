@@ -46,6 +46,7 @@ import {
     SlpNftParentFanTx,
     SlpNftMint,
     SlpParentGenesisTxMock,
+    oneOutputReceivedTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -151,6 +152,49 @@ describe('<Tx />', () => {
 
         // We see the formatted fiat amount
         expect(screen.getByText('$0.00')).toBeInTheDocument();
+
+        // We do not see the avalanche finalized check
+        expect(
+            screen.queryByTitle('Finalized by Avalanche'),
+        ).not.toBeInTheDocument();
+
+        // We see two inline-loader elements
+        expect(screen.getAllByTitle('Loading')[1]).toBeInTheDocument();
+
+        // We see the 'Confirming' text
+        expect(screen.getByText('Confirming')).toBeInTheDocument();
+    });
+    it('Incoming XEC no change', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={oneOutputReceivedTx.tx}
+                        hashes={['601efc2aa406fe9eaedd41d2b5d95d1f4db9041d']}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={new CashtabState()}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx received icon
+        expect(screen.getByTitle('tx-received')).toBeInTheDocument();
+
+        // We see the tx received label
+        expect(screen.getByText(/Received from/)).toBeInTheDocument();
+
+        // For a tx with timeFirstSeen of 0, we render the block timestamp
+        expect(screen.getByText('Apr 26, 2024, 13:38:10')).toBeInTheDocument();
+
+        // We see the formatted XEC amount
+        expect(screen.getByText('456.54M XEC')).toBeInTheDocument();
+
+        // We see the formatted fiat amount
+        expect(screen.getByText('$13,696.17')).toBeInTheDocument();
 
         // We do not see the avalanche finalized check
         expect(

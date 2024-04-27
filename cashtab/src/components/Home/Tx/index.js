@@ -783,7 +783,8 @@ const Tx = ({
             typeof knownRecipient === 'undefined' &&
             typeof recipients[0] !== 'undefined');
 
-    const isSelfSendTx = typeof recipients[0] === 'undefined';
+    const isSelfSendTx =
+        typeof recipients[0] === 'undefined' && xecTxType !== 'Received';
 
     return (
         <>

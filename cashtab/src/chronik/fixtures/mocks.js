@@ -10903,6 +10903,68 @@ export const SlpParentGenesisTxMock = {
     ],
 };
 
+export const oneOutputReceivedTx = {
+    tx: {
+        txid: '0edd96775cc1dbc4c36dbf5f1773f937de3bdadd572265ad78bae931fec3f431',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'cd5731b4f5ec4ff2e12fe3187e37ce3dc544f5419df8f6c36f649e1236d7dcee',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '41246058dcfab4114536db638d064612e12e0cfff613b568535c278e544ec68ec3e02ffc94d09a0ffe0f4e6fd9ff9608b01aad46cad3765059c3fe45ea09898abe4121029bd5d9d9565b734188493dfd3b0fe985ccd55bb6bc1544cf6ed25a46076f045f',
+                value: 45553900000,
+                sequenceNo: 4294967294,
+                outputScript:
+                    '76a914bb3f3669824acaf67902cbc8477f75ae5b139a0f88ac',
+            },
+            {
+                prevOut: {
+                    txid: '3719ef3aa2739da328a1a2916a422931fb7b0fa897183f3fd8f3c26864285e34',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '415d1ee0074f11a0adf5c35039167a731d008656eb0a33b5eec9144dd8614419e88866779cce3da0de8c9f839ddbb8d8ee8d24c82526a8900730ea8af8ef102c6d4121020b5c467c0276678df5f50cc932e81abf259f40477f815ed11f4d0fecab39f2d6',
+                value: 100000000,
+                sequenceNo: 4294967294,
+                outputScript:
+                    '76a91409c388abff6922c7e97ef8ea58e9697b6637910c88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 45653899320,
+                outputScript:
+                    '76a914601efc2aa406fe9eaedd41d2b5d95d1f4db9041d88ac',
+                spentBy: {
+                    txid: 'b9aab1e26381457b390ad689c7577962cef1ec48de3a83d87db68968afb7e4cf',
+                    outIdx: 54,
+                },
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1714138690,
+        size: 326,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 842022,
+            hash: '00000000000000000c331ba563d903d20ff670b18afd0d6cd4aadca854d294a6',
+            timestamp: 1714139968,
+        },
+    },
+    parsed: {
+        recipients: [],
+        satoshisSent: 45653899320,
+        stackArray: [],
+        xecTxType: 'Received',
+    },
+};
+
 /**
  * Mock chronik.token(tokenId) and chronik.tx(tokenId) for
  * several slpv1 tokens
