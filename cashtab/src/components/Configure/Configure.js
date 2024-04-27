@@ -4,7 +4,6 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 import { WalletContext } from 'wallet/context';
 import {
     DollarIcon,
@@ -22,7 +21,6 @@ import { isMobile } from 'helpers';
 import { hasEnoughToken } from 'wallet';
 import { CurrencySelect } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
-import { Info } from 'components/Common/Atoms';
 
 const VersionContainer = styled.div`
     color: ${props => props.theme.contrast};
@@ -79,12 +77,6 @@ const GeneralSettingsItem = styled.div`
     color: ${props => props.theme.lightWhite};
 `;
 
-const NoticeHolder = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
 const Configure = () => {
     const ContextValue = React.useContext(WalletContext);
     const { updateCashtabState, cashtabState } = ContextValue;
@@ -120,24 +112,6 @@ const Configure = () => {
 
     return (
         <StyledConfigure title="Settings">
-            <NoticeHolder>
-                <Info>
-                    ℹ️ Backup wallet has moved
-                    <br />
-                    <br /> Go to the <Link to="/backup">
-                        Backup Wallet
-                    </Link>{' '}
-                    screen to see your seed phrase
-                </Info>
-                <Info>
-                    ℹ️ Contacts have moved to the{' '}
-                    <Link to="/contacts">Contacts</Link> screen
-                </Info>
-                <Info>
-                    ℹ️ Wallets have moved to the{' '}
-                    <Link to="/wallets">Wallets</Link> screen
-                </Info>
-            </NoticeHolder>
             <HeadlineAndIcon>
                 <ConfigIconWrapper>
                     <DollarIcon />
