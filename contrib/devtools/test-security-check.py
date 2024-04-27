@@ -76,14 +76,13 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-zexecstack",
-                        "-fno-stack-protector",
                         "-Wl,-znorelro",
                         "-no-pie",
                         "-fno-PIE",
                         "-Wl,-z,separate-code",
                     ],
                 ),
-                (1, executable + ": failed PIE NX RELRO Canary CONTROL_FLOW"),
+                (1, executable + ": failed PIE NX RELRO CONTROL_FLOW"),
             )
             self.assertEqual(
                 call_security_check(
@@ -92,23 +91,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fno-stack-protector",
-                        "-Wl,-znorelro",
-                        "-no-pie",
-                        "-fno-PIE",
-                        "-Wl,-z,separate-code",
-                    ],
-                ),
-                (1, executable + ": failed PIE RELRO Canary CONTROL_FLOW"),
-            )
-            self.assertEqual(
-                call_security_check(
-                    cc,
-                    source,
-                    executable,
-                    [
-                        "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-znorelro",
                         "-no-pie",
                         "-fno-PIE",
@@ -124,7 +106,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-znorelro",
                         "-pie",
                         "-fPIE",
@@ -140,7 +121,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-zrelro",
                         "-Wl,-z,now",
                         "-pie",
@@ -157,7 +137,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-zrelro",
                         "-Wl,-z,now",
                         "-pie",
@@ -174,7 +153,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-zrelro",
                         "-Wl,-z,now",
                         "-pie",
@@ -193,14 +171,13 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-zexecstack",
-                        "-fno-stack-protector",
                         "-Wl,-znorelro",
                         "-no-pie",
                         "-fno-PIE",
                         "-Wl,-z,separate-code",
                     ],
                 ),
-                (1, executable + ": failed PIE NX RELRO Canary"),
+                (1, executable + ": failed PIE NX RELRO"),
             )
             self.assertEqual(
                 call_security_check(
@@ -209,23 +186,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fno-stack-protector",
-                        "-Wl,-znorelro",
-                        "-no-pie",
-                        "-fno-PIE",
-                        "-Wl,-z,separate-code",
-                    ],
-                ),
-                (1, executable + ": failed PIE RELRO Canary"),
-            )
-            self.assertEqual(
-                call_security_check(
-                    cc,
-                    source,
-                    executable,
-                    [
-                        "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-znorelro",
                         "-no-pie",
                         "-fno-PIE",
@@ -241,7 +201,21 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
+                        "-Wl,-znorelro",
+                        "-no-pie",
+                        "-fno-PIE",
+                        "-Wl,-z,separate-code",
+                    ],
+                ),
+                (1, executable + ": failed PIE RELRO"),
+            )
+            self.assertEqual(
+                call_security_check(
+                    cc,
+                    source,
+                    executable,
+                    [
+                        "-Wl,-znoexecstack",
                         "-Wl,-znorelro",
                         "-pie",
                         "-fPIE",
@@ -257,7 +231,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-zrelro",
                         "-Wl,-z,now",
                         "-pie",
@@ -274,7 +247,6 @@ class TestSecurityChecks(unittest.TestCase):
                     executable,
                     [
                         "-Wl,-znoexecstack",
-                        "-fstack-protector-all",
                         "-Wl,-zrelro",
                         "-Wl,-z,now",
                         "-pie",
