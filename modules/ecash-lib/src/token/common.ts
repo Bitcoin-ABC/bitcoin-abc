@@ -19,6 +19,10 @@ export interface GenesisInfo {
     tokenName?: string;
     /** URL of the token */
     url?: string;
+    /** token_document_hash of the token (only on SLP) */
+    hash?: string;
+    /** mint_vault_scripthash (only on SLP V2 Mint Vault) */
+    mintVaultScripthash?: string;
     /** Arbitray payload data of the token (only on ALP) */
     data?: Uint8Array;
     /** auth_pubkey of the token (only on ALP) */

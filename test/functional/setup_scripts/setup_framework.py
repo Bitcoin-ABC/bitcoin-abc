@@ -7,6 +7,7 @@ Extend the test framework to run IPC messaging stepped setup scripts.
 
 import pathmagic  # noqa
 from ipc import ready, receive_ipc_messages, send_ipc_message
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 
 IPC_RECEIVE_DEFAULT_TIMEOUT = 60
@@ -59,6 +60,8 @@ class SetupFramework(BitcoinTestFramework):
                         self.log.info("Got a next message but no more step, exiting")
                         running = False
                         break
+                elif cmd == "generate":
+                    self.generatetoaddress(self.nodes[0], 1, ADDRESS_ECREG_UNSPENDABLE)
                 elif cmd == "stop":
                     self.log.info("Received a stop message, exiting")
                     running = False

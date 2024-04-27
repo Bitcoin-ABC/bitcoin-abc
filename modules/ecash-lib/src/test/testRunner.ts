@@ -181,6 +181,10 @@ export class TestRunner {
         return (await this.chronik.broadcastTx(setupTx.ser())).txid;
     }
 
+    public generate() {
+        this.runner.send('generate');
+    }
+
     public stop() {
         this.runner.send('stop');
     }
