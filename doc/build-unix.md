@@ -37,7 +37,6 @@ Optional dependencies:
  Library     | Purpose          | Description
  ------------|------------------|----------------------
  miniupnpc   | UPnP Support     | Firewall-jumping support
- libnatpmp   | NAT-PMP Support  | Firewall-jumping support
  libdb       | Berkeley DB      | Wallet storage (only needed when wallet enabled)
  libsqlite3  | SQLite 3         | Wallet storage (only needed when wallet enabled)
  jemalloc    | Memory allocator | Library to enhance the memory allocation and improve performances
@@ -108,9 +107,9 @@ BerkeleyDB 5.3 or later and SQLite 3.7 or later are required for the wallet. The
 
 See the section "Disable-wallet mode" to build Bitcoin ABC without wallet.
 
-Port mapping dependencies MiniUPnPc and NAT-PMP (can be disabled by passing `-DENABLE_UPNP=OFF` and `-DENABLE_NATPMP=OFF` on the cmake command line):
+Port mapping dependency MiniUPnPc (can be disabled by passing `-DENABLE_UPNP=OFF` on the cmake command line):
 
-    sudo apt-get install libminiupnpc-dev libnatpmp-dev
+    sudo apt-get install libminiupnpc-dev
 
 ZMQ dependencies (provides ZMQ API, can be disabled by passing `-DBUILD_ZMQ=OFF` on the cmake command line):
 
@@ -152,9 +151,9 @@ Build requirements:
 
     sudo dnf install boost-devel cmake gcc-c++ libdb-cxx-devel libdb-devel libevent-devel ninja-build openssl-devel python3
 
-Port mapping dependencies MiniUPnPc and NAT-PMP (can be disabled by passing `-DENABLE_UPNP=OFF` and `-DENABLE_NATPMP=OFF` on the cmake command line):
+Port mapping dependency MiniUPnPc (can be disabled by passing `-DENABLE_UPNP=OFF` on the cmake command line):
 
-    sudo dnf install miniupnpc-devel libnatpmp-devel
+    sudo dnf install miniupnpc-devel
 
 ZMQ dependencies (can be disabled by passing `-DBUILD_ZMQ=OFF` on the cmake command line):
 
@@ -190,15 +189,6 @@ https://miniupnp.tuxfamily.org/files/).  UPnP support is compiled in and
 turned off by default.  See the cmake options for UPnP behavior desired:
 
     ENABLE_UPNP            Enable UPnP support (miniupnp required, default ON)
-
-libnatpmp
----------
-
-[libnatpmp](https://miniupnp.tuxfamily.org/libnatpmp.html) may be used for NAT-PMP port mapping. It can be downloaded
-from [here](https://miniupnp.tuxfamily.org/files/). NAT-PMP support is compiled in and
-turned off by default. See the configure options for NAT-PMP behavior desired:
-
-    ENABLE_NATPMP          NAT-PMP support (libnatpmp required, default ON)
 
 Boost
 -----

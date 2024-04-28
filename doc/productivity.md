@@ -45,7 +45,6 @@ You can disable features to save on compilation time. A few common flags:
 
 ```sh
 -DENABLE_UPNP=OFF
--DENABLE_NATPMP=OFF
 -DBUILD_WALLET=OFF
 -DBUILD_QT=OFF
 ```

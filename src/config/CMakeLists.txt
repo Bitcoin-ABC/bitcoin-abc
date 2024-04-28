@@ -209,11 +209,6 @@ if(ENABLE_UPNP)
 	set(USE_UPNP 1 CACHE INTERNAL "UPnP is supported")
 endif()
 
-# Try to find natpmp
-if(ENABLE_NATPMP)
-	set(USE_NATPMP 1 CACHE INTERNAL "NAT-PMP is supported")
-endif()
-
 if(ENABLE_DBUS_NOTIFICATIONS)
 	set(USE_DBUS 1)
 endif()

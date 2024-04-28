@@ -1049,15 +1049,11 @@ void SetupServerArgs(NodeContext &node) {
 #else
     hidden_args.emplace_back("-upnp");
 #endif
-#ifdef USE_NATPMP
     argsman.AddArg(
         "-natpmp",
-        strprintf("Use NAT-PMP to map the listening port (default: %u)",
+        strprintf("Use PCP or NAT-PMP to map the listening port (default: %u)",
                   DEFAULT_NATPMP),
         ArgsManager::ALLOW_ANY, OptionsCategory::CONNECTION);
-#else
-    hidden_args.emplace_back("-natpmp");
-#endif // USE_NATPMP
     argsman.AddArg(
         "-whitebind=<[permissions@]addr>",
         "Bind to the given address and add permission flags to the peers "
@@ -3017,7 +3013,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         node.peerman->SetBestHeight(chain_active_height);
     }
 
-    // Map ports with UPnP or NAT-PMP.
+    // Map ports with UPnP or NAT-PMP
     StartMapPort(args.GetBoolArg("-upnp", DEFAULT_UPNP),
                  args.GetBoolArg("-natpmp", DEFAULT_NATPMP));
 

@@ -61,6 +61,11 @@ static inline uint64_t ReadBE64(const uint8_t *ptr) {
     return be64toh_internal(x);
 }
 
+static inline void WriteBE16(uint8_t *ptr, uint16_t x) {
+    uint16_t v = htobe16_internal(x);
+    memcpy(ptr, &v, 2);
+}
+
 static inline void WriteBE32(uint8_t *ptr, uint32_t x) {
     uint32_t v = htobe32_internal(x);
     memcpy(ptr, (char *)&v, 4);

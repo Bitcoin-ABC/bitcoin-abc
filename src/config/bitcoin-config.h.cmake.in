@@ -65,9 +65,6 @@
 /* UPnP support not compiled if undefined */
 #cmakedefine USE_UPNP
 
-/* NAT-PMP support not compiled if undefined */
-#cmakedefine USE_NATPMP
-
 /* Define if QtDBus support should be enabled */
 #cmakedefine USE_DBUS 1
 

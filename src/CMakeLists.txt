@@ -29,7 +29,6 @@ option(ENABLE_REDUCE_EXPORTS "Reduce the amount of exported symbols" OFF)
 option(ENABLE_STATIC_LIBSTDCXX "Statically link libstdc++" OFF)
 option(ENABLE_QRCODE "Enable QR code display" ON)
 option(ENABLE_UPNP "Enable UPnP support" ON)
-option(ENABLE_NATPMP "Enable NAT-PMP support" ON)
 option(ENABLE_CLANG_TIDY "Enable clang-tidy checks for Bitcoin ABC" OFF)
 option(ENABLE_PROFILING "Select the profiling tool to use" OFF)
 option(ENABLE_TRACING "Enable eBPF user static defined tracepoints" OFF)
@@ -84,7 +83,6 @@ native_add_cmake_flags(
 	"-DBUILD_QT=OFF"
 	"-DBUILD_ZMQ=OFF"
 	"-DENABLE_QRCODE=OFF"
-	"-DENABLE_NATPMP=OFF"
 	"-DENABLE_UPNP=OFF"
 	"-DUSE_JEMALLOC=OFF"
 	"-DENABLE_CLANG_TIDY=OFF"
@@ -522,6 +520,7 @@ add_library(common
 	common/configfile.cpp
 	common/messages.cpp
 	common/netif.cpp
+	common/pcp.cpp
 	common/signmessage.cpp
 	common/system.cpp
 	cashaddr.cpp
@@ -740,18 +739,6 @@ if(ENABLE_UPNP)
 		target_compile_definitions(server
 			PUBLIC -DSTATICLIB
 			PUBLIC -DMINIUPNP_STATICLIB
-		)
-	endif()
-endif()
-
-if(ENABLE_NATPMP)
-	find_package(NATPMP REQUIRED)
-	target_link_libraries(server NATPMP::natpmp)
-
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-		target_compile_definitions(server
-			PUBLIC -DSTATICLIB
-			PUBLIC -DNATPMP_STATICLIB
 		)
 	endif()
 endif()

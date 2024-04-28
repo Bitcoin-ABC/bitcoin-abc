@@ -18,7 +18,6 @@ sqlite_packages=sqlite
 zmq_packages=zeromq
 
 upnp_packages=miniupnpc
-natpmp_packages=libnatpmp
 
 jemalloc_packages = jemalloc
 

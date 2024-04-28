@@ -340,11 +340,7 @@ QVariant OptionsModel::data(const QModelIndex &index, int role) const {
                 return false;
 #endif // USE_UPNP
             case MapPortNatpmp:
-#ifdef USE_NATPMP
                 return settings.value("fUseNatpmp");
-#else
-                return false;
-#endif // USE_NATPMP
             case MinimizeOnClose:
                 return fMinimizeOnClose;
 
