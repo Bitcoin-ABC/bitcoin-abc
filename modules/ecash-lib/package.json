@@ -5,7 +5,7 @@
     "main": "./dist/index.js",
     "type": "module",
     "scripts": {
-        "build": "tsc && cp -r ./src/ffi ./dist",
+        "build": "tsc && tsc -p ./tsconfig.build.json && cp -r ./src/ffi ./dist",
         "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts",
         "integration-tests": "mocha --import=tsx ./tests/*.test.ts --timeout 60000",
         "coverage": "nyc npm run test",

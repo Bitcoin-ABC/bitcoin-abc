@@ -1,0 +1,13 @@
+/** tsconfig for building the actual library */
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": false,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "./dist"
+    },
+    "include": ["./src/**/*"],
+    "exclude": ["./**/*.test.ts"]
+}

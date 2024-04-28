@@ -8,14 +8,12 @@
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
         /* Emit */
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true,
-        "outDir": "./dist",
+        "noEmit": true,
         /* Interop Constraints */
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         /* Type Checking */
         "strict": true
-    }
+    },
+    "include": ["src/**/*", "tests/**/*"]
 }
