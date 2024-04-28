@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.38.0",
+    "version": "2.38.1",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -30,7 +30,7 @@
         "bip39": "^3.0.2",
         "bip66": "^1.1.5",
         "bitcoinjs-message": "^2.2.0",
-        "chronik-client": "^0.26.1",
+        "chronik-client": "^0.26.2",
         "ecash-coinselect": "^2.2.0",
         "ecash-script": "^2.1.2",
         "ecashaddrjs": "^1.5.4",
