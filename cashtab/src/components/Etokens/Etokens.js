@@ -77,7 +77,7 @@ const Etokens = () => {
 
         // Initialize rendered  tokens as all tokens
         setRenderedTokens(walletTokensKeyValueArray);
-    }, [wallet.state.tokens]);
+    }, [tokens]);
 
     const handleTokenSearchInput = e => {
         const { value } = e.target;
