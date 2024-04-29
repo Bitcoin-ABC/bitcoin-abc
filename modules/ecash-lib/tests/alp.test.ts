@@ -2,46 +2,32 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { expect, use } from 'chai';
-import { ChildProcess, spawn } from 'node:child_process';
-import { EventEmitter, once } from 'node:events';
+import { expect } from 'chai';
 
 import { ChronikClientNode } from 'chronik-client';
 
 import {
     ALL_BIP143,
     Ecc,
-    EccWasm,
-    OP_1,
-    OP_RETURN,
-    OutPoint,
     P2PKHSignatory,
     Script,
-    Tx,
     TxBuilder,
     fromHex,
     initWasm,
-    pushBytesOp,
     shaRmd160,
     toHex,
 } from '../src/index.js';
-import { emppScript } from '../src/token/empp.js';
+import { TestRunner } from '../src/test/testRunner.js';
 import {
     ALP_STANDARD,
     alpGenesis,
     alpMint,
     alpSend,
 } from '../src/token/alp.js';
+import { emppScript } from '../src/token/empp.js';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000;
-const OP_TRUE_SCRIPT = Script.fromOps([OP_1]);
-const OP_TRUE_SCRIPT_SIG = Script.fromOps([
-    pushBytesOp(OP_TRUE_SCRIPT.bytecode),
-]);
-// Like OP_TRUE_SCRIPT but much bigger to avoid undersize
-const ANYONE_SCRIPT = Script.fromOps([pushBytesOp(fromHex('01'.repeat(100)))]);
-const ANYONE_SCRIPT_SIG = Script.fromOps([pushBytesOp(ANYONE_SCRIPT.bytecode)]);
 
 const ALP_TOKEN_TYPE_STANDARD = {
     number: 0,
@@ -49,139 +35,21 @@ const ALP_TOKEN_TYPE_STANDARD = {
     type: 'ALP_TOKEN_TYPE_STANDARD',
 };
 
-describe('TxBuilder', () => {
-    let testRunner: ChildProcess;
+describe('ALP', () => {
+    let runner: TestRunner;
     let chronik: ChronikClientNode;
     let ecc: Ecc;
-    let coinsTxid: string;
-    let outputIdx: number = 0;
-
-    function getOutpoint(): OutPoint {
-        return {
-            txid: coinsTxid,
-            outIdx: outputIdx++, // use value, then increment
-        };
-    }
-
-    async function sendToScript(
-        value: number,
-        script: Script,
-    ): Promise<string> {
-        const setupTx = new Tx({
-            inputs: [
-                {
-                    prevOut: getOutpoint(),
-                    script: ANYONE_SCRIPT_SIG,
-                    sequence: 0xffffffff,
-                },
-            ],
-            outputs: [{ value, script }],
-        });
-        return (await chronik.broadcastTx(setupTx.ser())).txid;
-    }
 
     before(async () => {
-        const statusEvent = new EventEmitter();
-
-        testRunner = spawn(
-            'python3',
-            [
-                'test/functional/test_runner.py',
-                // Place the setup in the python file
-                'setup_scripts/ecash-lib_base',
-            ],
-            {
-                stdio: ['ipc'],
-                // Needs to be set dynamically and the Bitcoin ABC
-                // node has to be built first.
-                cwd: process.env.BUILD_DIR || '.',
-            },
-        );
-        // Redirect stdout so we can see the messages from the test runner
-        testRunner?.stdout?.pipe(process.stdout);
-
-        testRunner.on('error', function (error) {
-            console.log('Test runner error, aborting: ' + error);
-            testRunner.kill();
-            process.exit(-1);
-        });
-
-        testRunner.on('exit', function (code, signal) {
-            // The test runner failed, make sure to propagate the error
-            if (code !== null && code !== undefined && code != 0) {
-                console.log('Test runner completed with code ' + code);
-                process.exit(code);
-            }
-
-            // The test runner was aborted by a signal, make sure to return an
-            // error
-            if (signal !== null && signal !== undefined) {
-                console.log('Test runner aborted by signal ' + signal);
-                process.exit(-2);
-            }
-
-            // In all other cases, let the test return its own status as
-            // expected
-        });
-
-        testRunner.on('spawn', function () {
-            console.log('Test runner started');
-        });
-
-        testRunner.on('message', function (message: any) {
-            if (message && message.test_info && message.test_info.chronik) {
-                console.log(
-                    'Setting chronik url to ',
-                    message.test_info.chronik,
-                );
-                chronik = new ChronikClientNode(message.test_info.chronik);
-            }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
-        });
-
-        // Can't use `fetch` for local file so we have to read it using `fs`
+        runner = await TestRunner.setup();
+        chronik = runner.chronik;
+        ecc = runner.ecc;
         await initWasm();
-        ecc = new EccWasm();
-
-        // We got the coins, can fan out now
-        await once(statusEvent, 'ready');
-
-        const opTrueScriptHash = shaRmd160(OP_TRUE_SCRIPT.bytecode);
-        const utxo = (
-            await chronik.script('p2sh', toHex(opTrueScriptHash)).utxos()
-        ).utxos[0];
-        const anyoneScriptHash = shaRmd160(ANYONE_SCRIPT.bytecode);
-        const anyoneP2sh = Script.p2sh(anyoneScriptHash);
-        const tx = new Tx({
-            inputs: [
-                {
-                    prevOut: utxo.outpoint,
-                    script: OP_TRUE_SCRIPT_SIG,
-                    sequence: 0xffffffff,
-                },
-            ],
-        });
-        for (let i = 0; i < NUM_COINS; ++i) {
-            tx.outputs.push({
-                value: COIN_VALUE,
-                script: anyoneP2sh,
-            });
-        }
-        tx.outputs.push({
-            value: 0,
-            script: Script.fromOps([OP_RETURN]),
-        });
-        tx.outputs[tx.outputs.length - 1].value =
-            utxo.value - NUM_COINS * COIN_VALUE - tx.serSize();
-
-        coinsTxid = (await chronik.broadcastTx(tx.ser())).txid;
+        await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
     after(() => {
-        testRunner.send('stop');
+        runner.stop();
     });
 
     it('TxBuilder P2PKH ALP', async () => {
@@ -205,7 +73,7 @@ describe('TxBuilder', () => {
         const pkh4 = shaRmd160(pk4);
         const p2pkh4 = Script.p2pkh(pkh4);
 
-        await sendToScript(50000, p2pkh1);
+        await runner.sendToScript(50000, p2pkh1);
 
         const utxos = await chronik.script('p2pkh', toHex(pkh1)).utxos();
         expect(utxos.utxos.length).to.equal(1);
