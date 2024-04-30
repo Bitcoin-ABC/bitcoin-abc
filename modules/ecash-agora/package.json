@@ -1,0 +1,52 @@
+{
+    "name": "ecash-agora",
+    "version": "0.1.0",
+    "description": "Library for interacting with the eCash Agora protocol",
+    "main": "./dist/index.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsc && tsc -p ./tsconfig.build.json",
+        "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts",
+        "integration-tests": "mocha --import=tsx ./tests/*.test.ts --timeout 60000",
+        "coverage": "nyc npm run test",
+        "junit": "npm run test --reporter mocha-junit-reporter"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Bitcoin-ABC/bitcoin-abc.git",
+        "directory": "modules/ecash-agora"
+    },
+    "keywords": [
+        "ecash",
+        "xec",
+        "bitcoin"
+    ],
+    "author": "Bitcoin ABC",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/Bitcoin-ABC/bitcoin-abc/issues"
+    },
+    "homepage": "https://github.com/Bitcoin-ABC/bitcoin-abc#readme",
+    "devDependencies": {
+        "@istanbuljs/nyc-config-typescript": "^1.0.2",
+        "@types/chai": "^4.3.14",
+        "@types/chai-as-promised": "^7.1.8",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.12.7",
+        "chai": "^4.4.1",
+        "chai-as-promised": "^7.1.1",
+        "chronik-client": "file:../chronik-client",
+        "eslint-plugin-header": "^3.1.1",
+        "mocha": "^10.4.0",
+        "mocha-junit-reporter": "^2.2.1",
+        "nyc": "^15.1.0",
+        "source-map-support": "^0.5.21",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.7.2",
+        "typescript": "^5.4.3",
+        "typescript-eslint": "^7.6.0"
+    },
+    "dependencies": {
+        "ecash-lib": "file:../ecash-lib"
+    }
+}

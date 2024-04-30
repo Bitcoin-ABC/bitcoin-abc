@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        /* Language and Environment */
+        "target": "es2020",
+        /* ES2020 for bigint, DOM for WebAssemby */
+        "lib": ["ES2020", "DOM"],
+        /* Modules */
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        /* Emit */
+        "noEmit": true,
+        /* Interop Constraints */
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        /* Type Checking */
+        "strict": true
+    },
+    "include": ["src/**/*", "tests/**/*"]
+}

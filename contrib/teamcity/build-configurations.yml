@@ -185,6 +185,15 @@ templates:
         npm ci
       fi
 
+      if [ -z "${DEPENDS_ECASH_LIB+x}" ] ; then
+        echo "Test does not depend on ecash-lib"
+      else
+        echo "Test depends on ecash-lib. Building TypeScript..."
+        pushd "${TOPLEVEL}/modules/ecash-lib"
+        npm ci
+        npm run build
+      fi
+
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
       MOCHA_JUNIT_DIR="test_results"
@@ -866,6 +875,24 @@ builds:
       DEPENDS_CHRONIK_CLIENT: "true"
     templates:
       - js-mocha
+
+  ecash-agora-integration-tests:
+    cmake_flags:
+      - '-DBUILD_BITCOIN_CHRONIK=ON'
+    targets:
+      - - all
+    runOnDiffRegex:
+      - chronik/
+      - modules/chronik-client/
+      - modules/ecash-agora/
+      - modules/ecash-lib/
+    env:
+      JS_PROJECT_ROOT: modules/ecash-agora
+      DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
+      DEPENDS_ECASH_LIB: "true"
+    templates:
+      - js-mocha-integration-tests
 
   ecash-lib-integration-tests:
     cmake_flags:

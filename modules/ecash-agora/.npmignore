@@ -1,0 +1,8 @@
+# Included in sourcemaps already
+/src
+
+# Don't publish tests
+*.test.d.ts
+*.test.d.ts.map
+*.test.js
+*.test.js.map

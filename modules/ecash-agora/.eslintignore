@@ -1,0 +1,8 @@
+# Dependency directories
+node_modules/*
+
+# artifact from testing CI locally
+test_results/*
+
+# compiled ts
+dist/*
