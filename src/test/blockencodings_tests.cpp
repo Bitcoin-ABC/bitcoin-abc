@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
         expectUseCount(pool, block_txid2, 1);
 
         size_t poolSize = pool.size();
-        pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::REPLACED);
+        pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::CONFLICT);
         BOOST_CHECK_EQUAL(pool.size(), poolSize - 1);
 
         CBlock block2;

@@ -156,8 +156,6 @@ enum class MemPoolRemovalReason {
     BLOCK,
     //! Removed for conflict with in-block transaction
     CONFLICT,
-    //! Removed for replacement
-    REPLACED,
     //! Removed by avalanche vote
     AVALANCHE,
 };

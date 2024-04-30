@@ -20,7 +20,7 @@
 
 BOOST_FIXTURE_TEST_SUITE(mempool_tests, TestingSetup)
 
-static constexpr auto REMOVAL_REASON_DUMMY = MemPoolRemovalReason::REPLACED;
+static constexpr auto REMOVAL_REASON_DUMMY = MemPoolRemovalReason::CONFLICT;
 
 BOOST_AUTO_TEST_CASE(MempoolRemoveTest) {
     // Test CTxMemPool::remove functionality
