@@ -33,6 +33,8 @@ mod ffi_inner {
         pub enable_perf_stats: bool,
         /// Duration between WebSocket pings initiated by Chronik.
         pub ws_ping_interval_secs: u64,
+        /// Enable permissive CORS on Chronik's HTTP endpoint
+        pub enable_cors: bool,
         /// Tuning settings for the TxNumCache.
         pub tx_num_cache: TxNumCacheSettings,
     }

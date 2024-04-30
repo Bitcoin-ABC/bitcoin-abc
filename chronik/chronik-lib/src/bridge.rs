@@ -108,6 +108,7 @@ fn try_setup_chronik(
                     ws_ping_interval: Duration::from_secs(
                         params.ws_ping_interval_secs,
                     ),
+                    enable_cors: params.enable_cors,
                 },
             })
         }

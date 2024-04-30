@@ -59,6 +59,7 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
                 params.NetworkIDString() == CBaseChainParams::REGTEST
                     ? uint64_t(count_seconds(WS_PING_INTERVAL_REGTEST))
                     : uint64_t(count_seconds(WS_PING_INTERVAL_DEFAULT)),
+            .enable_cors = gArgs.GetBoolArg("-chronikcors", false),
             .tx_num_cache =
                 {
                     .num_buckets =

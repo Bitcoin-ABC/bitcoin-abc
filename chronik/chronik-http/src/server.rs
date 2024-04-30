@@ -24,6 +24,7 @@ use chronik_indexer::{
 use chronik_proto::proto;
 use thiserror::Error;
 use tokio::sync::RwLock;
+use tower_http::cors::{AllowMethods, AllowOrigin, CorsLayer};
 
 use crate::{
     error::ReportError, handlers, protobuf::Protobuf,
@@ -42,6 +43,8 @@ pub type PauseNotifyRef = Arc<PauseNotify>;
 pub struct ChronikSettings {
     /// Duration between WebSocket pings initiated by Chronik.
     pub ws_ping_interval: Duration,
+    /// Enable CORS headers
+    pub enable_cors: bool,
 }
 
 /// Params defining what and where to serve for [`ChronikServer`].
@@ -150,7 +153,8 @@ impl ChronikServer {
         pause_notify: PauseNotifyRef,
         settings: ChronikSettings,
     ) -> Router {
-        Router::new()
+        let enable_cors = settings.enable_cors;
+        let mut router = Router::new()
             .route("/blockchain-info", routing::get(handle_blockchain_info))
             .route("/block/:hash_or_height", routing::get(handle_block))
             .route("/block-txs/:hash_or_height", routing::get(handle_block_txs))
@@ -225,7 +229,15 @@ impl ChronikServer {
             .layer(Extension(indexer))
             .layer(Extension(node))
             .layer(Extension(pause_notify))
-            .layer(Extension(settings))
+            .layer(Extension(settings));
+        if enable_cors {
+            router = router.layer(
+                CorsLayer::new()
+                    .allow_origin(AllowOrigin::any())
+                    .allow_methods(AllowMethods::any()),
+            );
+        }
+        router
     }
 }
 

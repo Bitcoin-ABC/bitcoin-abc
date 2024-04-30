@@ -447,6 +447,7 @@ void SetupServerArgs(NodeContext &node) {
         "-replayprotectionactivationtime",
         "-enableminerfund",
         "-chronikallowpause",
+        "-chronikcors",
         // GUI args. These will be overwritten by SetupUIArgs for the GUI
         "-allowselfsignedrootcertificates",
         "-choosedatadir",

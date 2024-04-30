@@ -19,8 +19,9 @@ class UnexpectedContentType(Exception):
 
 
 class ChronikResponse:
-    def __init__(self, status: int, *, ok_proto=None, error_proto=None) -> None:
-        self.status = status
+    def __init__(self, response, *, ok_proto=None, error_proto=None) -> None:
+        self.response = response
+        self.status = response.status
         self.ok_proto = ok_proto
         self.error_proto = error_proto
 
@@ -284,11 +285,11 @@ class ChronikClient:
         if response.status != 200:
             proto_error = pb.Error()
             proto_error.ParseFromString(body)
-            return ChronikResponse(response.status, error_proto=proto_error)
+            return ChronikResponse(response, error_proto=proto_error)
 
         ok_proto = pb_type()
         ok_proto.ParseFromString(body)
-        return ChronikResponse(response.status, ok_proto=ok_proto)
+        return ChronikResponse(response, ok_proto=ok_proto)
 
     def blockchain_info(self) -> ChronikResponse:
         return self._request_get("/blockchain-info", pb.BlockchainInfo)
