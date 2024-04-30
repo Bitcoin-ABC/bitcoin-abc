@@ -5,6 +5,7 @@
 import { WsSubScriptClient } from './ChronikClientNode';
 
 const VALID_HEX_REGEX = new RegExp(/^[a-f0-9]+$/);
+const VALID_LOKADID_REGEX = new RegExp(/^[a-f0-9]{8}$/);
 
 export const isValidWsSubscription = (
     subscription: WsSubScriptClient,
@@ -45,5 +46,13 @@ export const isValidWsSubscription = (
         default:
             // Unsupported type
             return `Invalid scriptType: ${scriptType}`;
+    }
+};
+
+export const verifyLokadId = (lokadId: string) => {
+    if (!VALID_LOKADID_REGEX.test(lokadId)) {
+        throw new Error(
+            `Invalid lokadId: "${lokadId}". lokadId must be 4 bytes (8 chars) of lowercase hex.`,
+        );
     }
 };

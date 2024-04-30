@@ -9,7 +9,7 @@ import * as proto from '../proto/chronikNode';
 import { BlockchainInfo, OutPoint } from './ChronikClient';
 import { FailoverProxy } from './failoverProxy';
 import { fromHex, toHex, toHexRev } from './hex';
-import { isValidWsSubscription } from './validation';
+import { isValidWsSubscription, verifyLokadId } from './validation';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
@@ -153,6 +153,11 @@ export class ChronikClientNode {
     /** Create object that allows fetching info about a given token */
     public tokenId(tokenId: string): TokenIdEndpoint {
         return new TokenIdEndpoint(this._proxyInterface, tokenId);
+    }
+
+    /** Create object that allows fetching info about a given lokadId */
+    public lokadId(lokadId: string): LokadIdEndpoint {
+        return new LokadIdEndpoint(this._proxyInterface, lokadId);
     }
 
     /** Create object that allows fetching script history or UTXOs. */
@@ -365,6 +370,77 @@ export class TokenIdEndpoint {
     }
 }
 
+/** Allows fetching lokadId confirmedTxs, unconfirmedTxs, and history. */
+export class LokadIdEndpoint {
+    private _proxyInterface: FailoverProxy;
+    private _lokadId: string;
+
+    constructor(proxyInterface: FailoverProxy, lokadId: string) {
+        this._proxyInterface = proxyInterface;
+        this._lokadId = lokadId;
+    }
+
+    /**
+     * Fetches the tx history of this tokenId, in anti-chronological order.
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async history(
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/lokad-id/${this._lokadId}/history?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
+     * Fetches the confirmed tx history of this tokenId, in the order they appear on the blockchain.
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async confirmedTxs(
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/lokad-id/${this._lokadId}/confirmed-txs?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+
+    /**
+     * Fetches the unconfirmed tx history of this tokenId, in chronological order.
+     * @param page Page index of the tx history.
+     * @param pageSize Number of txs per page.
+     */
+    public async unconfirmedTxs(
+        page = 0, // Get the first page if unspecified
+        pageSize = 25, // Must be less than 200, let server handle error as server setting could change
+    ): Promise<TxHistoryPage_InNode> {
+        const data = await this._proxyInterface.get(
+            `/lokad-id/${this._lokadId}/unconfirmed-txs?page=${page}&page_size=${pageSize}`,
+        );
+        const historyPage = proto.TxHistoryPage.decode(data);
+        return {
+            txs: historyPage.txs.map(convertToTx),
+            numPages: historyPage.numPages,
+            numTxs: historyPage.numTxs,
+        };
+    }
+}
+
 /** Config for a WebSocket connection to Chronik. */
 export interface WsConfig_InNode {
     /** Fired when a message is sent from the WebSocket. */
@@ -432,7 +508,7 @@ export class WsEndpoint_InNode {
         this.autoReconnect =
             config.autoReconnect !== undefined ? config.autoReconnect : true;
         this.manuallyClosed = false;
-        this.subs = { scripts: [], tokens: [], blocks: false };
+        this.subs = { scripts: [], tokens: [], lokadIds: [], blocks: false };
         this._proxyInterface = proxyInterface;
     }
 
@@ -536,6 +612,43 @@ export class WsEndpoint_InNode {
     }
 
     /**
+     * Subscribe to a lokadId
+     * Receive updates when token txs including this lokadId are broadcast
+     */
+    public subscribeToLokadId(lokadId: string) {
+        verifyLokadId(lokadId);
+
+        // Update ws.subs to include this lokadId
+        this.subs.lokadIds.push(lokadId);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send subscribe msg to chronik server
+            this._subUnsubLokadId(false, lokadId);
+        }
+    }
+
+    /** Unsubscribe from the given lokadId */
+    public unsubscribeFromLokadId(lokadId: string) {
+        // Find the requested unsub lokadId and remove it
+        const unsubIndex = this.subs.lokadIds.findIndex(
+            thisLokadId => thisLokadId === lokadId,
+        );
+        if (unsubIndex === -1) {
+            // If we cannot find this subscription in this.subs.lokadIds, throw an error
+            // We do not want an app developer thinking they have unsubscribed from something if no action happened
+            throw new Error(`No existing sub at lokadId "${lokadId}"`);
+        }
+
+        // Remove the requested lokadId subscription from this.subs.lokadIds
+        this.subs.lokadIds.splice(unsubIndex, 1);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send unsubscribe msg to chronik server
+            this._subUnsubLokadId(true, lokadId);
+        }
+    }
+
+    /**
      * Close the WebSocket connection and prevent any future reconnection
      * attempts.
      */
@@ -564,6 +677,23 @@ export class WsEndpoint_InNode {
             script: {
                 scriptType: (subscription as WsSubScriptClient).scriptType,
                 payload: fromHex((subscription as WsSubScriptClient).payload),
+            },
+        }).finish();
+
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+
+        this.ws.send(encodedSubscription);
+    }
+
+    private _subUnsubLokadId(isUnsub: boolean, lokadId: string) {
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            lokadId: {
+                // User input for lokadId is string
+                // Chronik expects bytes
+                lokadId: fromHex(lokadId),
             },
         }).finish();
 
@@ -1504,6 +1634,8 @@ interface WsSubscriptions {
     scripts: WsSubScriptClient[];
     /** Subscriptions to tokens by tokenId */
     tokens: string[];
+    /** Subscriptions to lokadIds */
+    lokadIds: string[];
     /** Subscription to blocks */
     blocks: boolean;
 }

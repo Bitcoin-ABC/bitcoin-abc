@@ -289,12 +289,16 @@ export class FailoverProxy {
                         : new Promise(resolve => {
                               // WsEndpoint_InNode has a slightly different API vs NNG
                               ws.onopen = msg => {
-                                  // Subscribe to all previously-subscribed endpoints
+                                  // Subscribe to all previously-subscribed scripts
                                   wsEndpoint.subs.scripts.forEach(sub =>
                                       wsEndpoint.subscribeToScript(
                                           sub.scriptType,
                                           sub.payload,
                                       ),
+                                  );
+                                  // Subscribe to all previously-subscribed lokadIds
+                                  wsEndpoint.subs.lokadIds.forEach(lokadId =>
+                                      wsEndpoint.subscribeToLokadId(lokadId),
                                   );
                                   // TODO subscribe to all tokenIds in subs.tokens
 

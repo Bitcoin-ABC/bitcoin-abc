@@ -657,6 +657,8 @@ export interface WsSub {
     script?: WsSubScript | undefined;
     /** Subscription to a token ID */
     tokenId?: WsSubTokenId | undefined;
+    /** Subscription to a lokad ID */
+    lokadId?: WsSubLokadId | undefined;
 }
 
 /**
@@ -689,6 +691,17 @@ export interface WsSubScript {
 export interface WsSubTokenId {
     /** Hex token ID to subscribe to. */
     tokenId: string;
+}
+
+/**
+ * Subscription to a LOKAD ID. They will be sent every time a tx matches the given LOKAD ID in one of the following ways:
+ * - `OP_RETURN <LOKAD ID> ...`: The first output has an OP_RETURN with the given LOKAD ID as first pushop
+ * - `OP_RETURN OP_RESERVED "<LOKAD_ID>..." "<LOKAD_ID>..." ...`: The first output has an eMPP encoded OP_RETURN, and one (or more) of the pushops has the LOKAD ID as prefix.
+ * - `<LOKAD ID> ...`: An input's scriptSig has the given LOKAD ID as the first pushop
+ */
+export interface WsSubLokadId {
+    /** 4-byte LOKAD ID. */
+    lokadId: Uint8Array;
 }
 
 /** Message coming from the WebSocket */
@@ -4236,6 +4249,7 @@ function createBaseWsSub(): WsSub {
         blocks: undefined,
         script: undefined,
         tokenId: undefined,
+        lokadId: undefined,
     };
 }
 
@@ -4263,6 +4277,12 @@ export const WsSub = {
             WsSubTokenId.encode(
                 message.tokenId,
                 writer.uint32(34).fork(),
+            ).ldelim();
+        }
+        if (message.lokadId !== undefined) {
+            WsSubLokadId.encode(
+                message.lokadId,
+                writer.uint32(42).fork(),
             ).ldelim();
         }
         return writer;
@@ -4313,6 +4333,16 @@ export const WsSub = {
                         reader.uint32(),
                     );
                     continue;
+                case 5:
+                    if (tag !== 42) {
+                        break;
+                    }
+
+                    message.lokadId = WsSubLokadId.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -4336,6 +4366,9 @@ export const WsSub = {
             tokenId: isSet(object.tokenId)
                 ? WsSubTokenId.fromJSON(object.tokenId)
                 : undefined,
+            lokadId: isSet(object.lokadId)
+                ? WsSubLokadId.fromJSON(object.lokadId)
+                : undefined,
         };
     },
 
@@ -4352,6 +4385,9 @@ export const WsSub = {
         }
         if (message.tokenId !== undefined) {
             obj.tokenId = WsSubTokenId.toJSON(message.tokenId);
+        }
+        if (message.lokadId !== undefined) {
+            obj.lokadId = WsSubLokadId.toJSON(message.lokadId);
         }
         return obj;
     },
@@ -4373,6 +4409,10 @@ export const WsSub = {
         message.tokenId =
             object.tokenId !== undefined && object.tokenId !== null
                 ? WsSubTokenId.fromPartial(object.tokenId)
+                : undefined;
+        message.lokadId =
+            object.lokadId !== undefined && object.lokadId !== null
+                ? WsSubLokadId.fromPartial(object.lokadId)
                 : undefined;
         return message;
     },
@@ -4580,6 +4620,75 @@ export const WsSubTokenId = {
     ): WsSubTokenId {
         const message = createBaseWsSubTokenId();
         message.tokenId = object.tokenId ?? '';
+        return message;
+    },
+};
+
+function createBaseWsSubLokadId(): WsSubLokadId {
+    return { lokadId: new Uint8Array(0) };
+}
+
+export const WsSubLokadId = {
+    encode(
+        message: WsSubLokadId,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.lokadId.length !== 0) {
+            writer.uint32(10).bytes(message.lokadId);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): WsSubLokadId {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseWsSubLokadId();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.lokadId = reader.bytes();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): WsSubLokadId {
+        return {
+            lokadId: isSet(object.lokadId)
+                ? bytesFromBase64(object.lokadId)
+                : new Uint8Array(0),
+        };
+    },
+
+    toJSON(message: WsSubLokadId): unknown {
+        const obj: any = {};
+        if (message.lokadId.length !== 0) {
+            obj.lokadId = base64FromBytes(message.lokadId);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<WsSubLokadId>, I>>(
+        base?: I,
+    ): WsSubLokadId {
+        return WsSubLokadId.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<WsSubLokadId>, I>>(
+        object: I,
+    ): WsSubLokadId {
+        const message = createBaseWsSubLokadId();
+        message.lokadId = object.lokadId ?? new Uint8Array(0);
         return message;
     },
 };
