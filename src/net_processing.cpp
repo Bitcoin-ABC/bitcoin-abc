@@ -4153,6 +4153,11 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
 
     LogDebug(BCLog::MEMPOOLREJ, "%s from peer=%d was not accepted: %s\n",
              txid.ToString(), nodeid, state.ToString());
+
+    // Whether we should call AddToCompactExtraTransactions at the end
+    bool add_extra_compact_tx{first_time_failure};
+    // Hashes to pass to AddKnownTx later
+    std::vector<TxId> unique_parents;
     // Populated if failure is reconsiderable and eligible package is found.
     std::optional<PackageToValidate> package_to_validate;
 
@@ -4167,7 +4172,6 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
 
             // Deduplicate parent txids, so that we don't have to loop over
             // the same parent txid more than once down below.
-            std::vector<TxId> unique_parents;
             unique_parents.reserve(tx.vin.size());
             for (const CTxIn &txin : tx.vin) {
                 // We start with all parents, and then remove duplicates
@@ -4211,10 +4215,6 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                 const auto current_time{GetTime<std::chrono::microseconds>()};
 
                 for (const TxId &parent_txid : unique_parents) {
-                    // FIXME: MSG_TX should use a TxHash, not a TxId.
-                    if (peer) {
-                        AddKnownTx(*peer, parent_txid);
-                    }
                     // Exclude m_recent_rejects_package_reconsiderable: the
                     // missing parent may have been previously rejected for
                     // being too low feerate. This orphan might CPFP it.
@@ -4227,19 +4227,16 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                     }
                 }
 
-                // NO_THREAD_SAFETY_ANALYSIS because we can't annotate for
-                // g_msgproc_mutex
-                if (unsigned int nEvicted =
-                        m_mempool.withOrphanage(
-                            [&](TxOrphanage &orphanage)
-                                NO_THREAD_SAFETY_ANALYSIS {
-                                    if (orphanage.AddTx(ptx, nodeid) &&
-                                        RecursiveDynamicUsage(*ptx) < 100000) {
-                                        AddToCompactExtraTransactions(ptx);
-                                    }
-                                    return orphanage.LimitTxs(
-                                        m_opts.max_orphan_txs, m_rng);
-                                }) > 0) {
+                // NO_THREAD_SAFETY_ANALYSIS because of g_msgproc_mutex required
+                // in the lambda for m_rng
+                unsigned int nEvicted = m_mempool.withOrphanage(
+                    [&](TxOrphanage &orphanage) NO_THREAD_SAFETY_ANALYSIS {
+                        // Potentially flip add_extra_compact_tx to false if
+                        // AddTx returns false because the tx was already there
+                        add_extra_compact_tx &= orphanage.AddTx(ptx, nodeid);
+                        return orphanage.LimitTxs(m_opts.max_orphan_txs, m_rng);
+                    });
+                if (nEvicted > 0) {
                     LogDebug(BCLog::TXPACKAGES,
                              "orphanage overflow, removed %u tx\n", nEvicted);
                 }
@@ -4249,6 +4246,7 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                 m_txdownloadman.GetTxRequestRef().ForgetInvId(tx.GetId());
 
             } else {
+                unique_parents.clear();
                 LogDebug(BCLog::MEMPOOL,
                          "not keeping orphan with rejected parents %s\n",
                          tx.GetId().ToString());
@@ -4258,39 +4256,47 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
                 m_txdownloadman.GetTxRequestRef().ForgetInvId(tx.GetId());
             }
         }
+    } else if (m_avalanche &&
+               m_avalanche->isPreconsensusActivated(m_chainman.ActiveTip()) &&
+               state.GetResult() ==
+                   TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
         return std::nullopt;
-    }
-
-    if (m_avalanche &&
-        m_avalanche->isPreconsensusActivated(m_chainman.ActiveTip()) &&
-        state.GetResult() == TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
-        return std::nullopt;
-    }
-
-    if (state.GetResult() == TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
-        // If the result is TX_PACKAGE_RECONSIDERABLE, add it to
-        // m_recent_rejects_package_reconsiderable because we should not
-        // download or submit this transaction by itself again, but may submit
-        // it as part of a package later.
-        m_txdownloadman.RecentRejectsPackageReconsiderableFilter().insert(txid);
-
-        if (first_time_failure) {
-            // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look for
-            // a matching child in the orphanage, as it is possible that they
-            // succeed as a package.
-            LogDebug(BCLog::TXPACKAGES,
-                     "tx %s failed but reconsiderable, looking for child in "
-                     "orphanage\n",
-                     txid.ToString());
-            package_to_validate = Find1P1CPackage(ptx, nodeid);
-        }
     } else {
-        m_txdownloadman.RecentRejectsFilter().insert(txid);
-    }
-    m_txdownloadman.GetTxRequestRef().ForgetInvId(txid);
+        if (state.GetResult() ==
+            TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
+            // If the result is TX_PACKAGE_RECONSIDERABLE, add it to
+            // m_recent_rejects_package_reconsiderable because we should not
+            // download or submit this transaction by itself again, but may
+            // submit it as part of a package later.
+            m_txdownloadman.RecentRejectsPackageReconsiderableFilter().insert(
+                txid);
 
-    if (first_time_failure && RecursiveDynamicUsage(*ptx) < 100000) {
+            if (first_time_failure) {
+                // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look
+                // for a matching child in the orphanage, as it is possible that
+                // they succeed as a package.
+                LogDebug(
+                    BCLog::TXPACKAGES,
+                    "tx %s failed but reconsiderable, looking for child in "
+                    "orphanage\n",
+                    txid.ToString());
+                package_to_validate = Find1P1CPackage(ptx, nodeid);
+            }
+        } else {
+            m_txdownloadman.RecentRejectsFilter().insert(txid);
+        }
+        m_txdownloadman.GetTxRequestRef().ForgetInvId(txid);
+    }
+
+    if (add_extra_compact_tx && RecursiveDynamicUsage(*ptx) < 100000) {
         AddToCompactExtraTransactions(ptx);
+    }
+
+    if (peer) {
+        for (const TxId &parent_txid : unique_parents) {
+            // FIXME: MSG_TX should use a TxHash, not a TxId.
+            AddKnownTx(*peer, parent_txid);
+        }
     }
 
     MaybePunishNodeForTx(nodeid, state);
@@ -4298,7 +4304,8 @@ PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
     // If the tx failed in ProcessOrphanTx, it should be removed from the
     // orphanage unless the tx was still missing inputs. If the tx was not in
     // the orphanage, EraseTx does nothing and returns 0.
-    if (m_mempool.withOrphanage([&txid](TxOrphanage &orphanage) {
+    if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS &&
+        m_mempool.withOrphanage([&txid](TxOrphanage &orphanage) {
             return orphanage.EraseTx(txid);
         }) > 0) {
         LogDebug(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
