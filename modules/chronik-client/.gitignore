@@ -1,5 +1,6 @@
 # packaged dependencies
 /node_modules
+/coverage
 
 # generated files
 /dist
