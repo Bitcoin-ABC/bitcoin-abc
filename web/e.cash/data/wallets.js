@@ -71,6 +71,13 @@ export const wallets = [
         availableOn: ['iOS', 'Android'],
     },
     {
+        name: 'Guarda Wallet',
+        text: 'Guarda Wallet is a secure and user-friendly multi-coin wallet for managing cryptocurrencies and tokens in a non-custodial manner. Available for web, desktop, Apple, and Android.',
+        image: '/images/guarda-wallet.png',
+        link: 'https://guarda.com/coins/ecash-wallet/',
+        availableOn: ['iOS', 'Android', 'Desktop', 'Web App'],
+    },
+    {
         name: 'Satochip',
         text: 'Satochip is an open source and super-secure multi-crypto hardware wallet that natively supports storing eCash (XEC). Satochip cold wallet offers state-of-the-art security for storing & managing your XEC coins.',
         image: '/images/satochip.svg',
