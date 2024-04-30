@@ -38,7 +38,6 @@ class ChronikClientTokenAlp(SetupFramework):
         self.setup_clean_chain = True
         self.num_nodes = 1
         self.extra_args = [["-chronik"]]
-        self.ipc_timeout = 10
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_chronik()
