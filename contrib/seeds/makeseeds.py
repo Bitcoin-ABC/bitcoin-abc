@@ -36,7 +36,7 @@ def parseline(line: str) -> Union[dict, None]:
     or `None`, if the line could not be parsed.
     """
     sline = line.split()
-    if len(sline) < 11:
+    if len(sline) < 12:
         # line too short to be valid, skip it.
         return None
 
