@@ -8,7 +8,14 @@ import { WriterBytes } from './io/writerbytes.js';
 import { pushBytesOp } from './op.js';
 import { Script } from './script.js';
 import { SigHashType } from './sigHashType.js';
-import { Tx, TxInput, TxOutput, copyTxInput, copyTxOutput } from './tx.js';
+import {
+    DEFAULT_TX_VERSION,
+    Tx,
+    TxInput,
+    TxOutput,
+    copyTxInput,
+    copyTxOutput,
+} from './tx.js';
 import { UnsignedTx, UnsignedTxInput } from './unsignedTx.js';
 
 /**
@@ -64,7 +71,7 @@ export class TxBuilder {
         outputs?: TxBuilderOutput[];
         locktime?: number;
     }) {
-        this.version = params?.version ?? 1;
+        this.version = params?.version ?? DEFAULT_TX_VERSION;
         this.inputs = params?.inputs ?? [];
         this.outputs = params?.outputs ?? [];
         this.locktime = params?.locktime ?? 0;

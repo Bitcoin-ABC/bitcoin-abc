@@ -204,7 +204,7 @@ describe('TxBuilder', () => {
                                 txid,
                                 outIdx: 0,
                             },
-                            sequence: 0x12345678,
+                            sequence: 0x92345678,
                             signData: {
                                 value: 90000,
                                 outputScript: p2pk,

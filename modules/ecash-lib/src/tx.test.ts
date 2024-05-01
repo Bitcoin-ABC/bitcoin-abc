@@ -15,7 +15,7 @@ const checkTx = (tx: Tx, rawHex: string) => {
 
 describe('Tx', () => {
     it('checkTx', () => {
-        checkTx(new Tx(), '01000000000000000000');
+        checkTx(new Tx(), '02000000000000000000');
 
         checkTx(
             new Tx({ version: 0xdeadbeef, locktime: 0x12345678 }),

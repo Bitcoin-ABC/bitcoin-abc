@@ -19,6 +19,9 @@ import { Script } from './script.js';
  **/
 export const DEFAULT_SEQUENCE = 0xffffffff;
 
+/** Current tx version, see CTransaction in /stc/primitives/transaction.h */
+export const DEFAULT_TX_VERSION = 2;
+
 /** COutPoint, pointing to a coin being spent. */
 export interface OutPoint {
     /**
@@ -80,7 +83,7 @@ export class Tx {
         outputs?: TxOutput[];
         locktime?: number;
     }) {
-        this.version = params?.version ?? 1;
+        this.version = params?.version ?? DEFAULT_TX_VERSION;
         this.inputs = params?.inputs ?? [];
         this.outputs = params?.outputs ?? [];
         this.locktime = params?.locktime ?? 0;

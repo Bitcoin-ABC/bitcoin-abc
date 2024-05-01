@@ -267,7 +267,7 @@ describe('ALP', () => {
         const multiProtoTx = await chronik.tx(multiTxid);
         expect(multiProtoTx).to.deep.equal({
             txid: multiTxid,
-            version: 1,
+            version: 2,
             inputs: [
                 {
                     inputScript: toHex(multiTx.inputs[0].script!.bytecode),

@@ -265,7 +265,7 @@ describe('SLP Integration Test', () => {
         const sendProtoTx = await chronik.tx(sendTxid);
         expect(sendProtoTx).to.deep.equal({
             txid: sendTxid,
-            version: 1,
+            version: 2,
             inputs: [
                 {
                     inputScript: toHex(sendTx.inputs[0].script!.bytecode),
@@ -373,7 +373,7 @@ describe('SLP Integration Test', () => {
         const burnProtoTx = await chronik.tx(burnTxid);
         expect(burnProtoTx).to.deep.equal({
             txid: burnTxid,
-            version: 1,
+            version: 2,
             inputs: [
                 {
                     inputScript: toHex(burnTx.inputs[0].script!.bytecode),
@@ -626,7 +626,7 @@ describe('SLP Integration Test', () => {
         const sendProtoTx = await chronik.tx(sendTxid);
         expect(sendProtoTx).to.deep.equal({
             txid: sendTxid,
-            version: 1,
+            version: 2,
             inputs: [
                 {
                     inputScript: toHex(sendTx.inputs[0].script!.bytecode),
@@ -896,7 +896,7 @@ describe('SLP Integration Test', () => {
         const sendProtoTx = await chronik.tx(sendTxid);
         expect(sendProtoTx).to.deep.equal({
             txid: sendTxid,
-            version: 1,
+            version: 2,
             inputs: [
                 {
                     inputScript: toHex(sendTx.inputs[0].script!.bytecode),
@@ -1061,7 +1061,7 @@ describe('SLP Integration Test', () => {
         const childSendProtoTx = await chronik.tx(childSendTxid);
         expect(childSendProtoTx).to.deep.equal({
             txid: childSendTxid,
-            version: 1,
+            version: 2,
             inputs: [
                 {
                     inputScript: toHex(childSendTx.inputs[0].script!.bytecode),
