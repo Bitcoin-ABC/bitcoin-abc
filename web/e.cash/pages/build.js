@@ -38,10 +38,10 @@ const devLinks = [
                 link: 'https://www.npmjs.com/package/chronik-client',
             },
             {
-                title: 'BitGo utxo-lib',
+                title: 'ecash-lib',
                 description:
-                    'Create a wallet, build eCash transactions, manage utxos',
-                link: 'https://www.npmjs.com/package/@bitgo/utxo-lib',
+                    'Full-featured eCash-native transaction building library',
+                link: 'https://www.npmjs.com/package/ecash-lib',
             },
             {
                 title: 'ecashaddrjs',
@@ -141,16 +141,6 @@ function Build() {
                         ))}
                     </LinkSection>
                 ))}
-
-                <LinkSection>
-                    <H3 text="Coming Soon!" id="coming-soon" />
-                    <BuildLinkCtn>
-                        <InnerBuildLinkCtn>
-                            <h4>ecash-lib</h4>
-                            <p>Full-feature ecash native tx building</p>
-                        </InnerBuildLinkCtn>
-                    </BuildLinkCtn>
-                </LinkSection>
             </Container>
         </Layout>
     );
