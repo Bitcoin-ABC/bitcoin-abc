@@ -43,10 +43,6 @@ describe('Get blocktxs and tx', () => {
                     resolve(message.txs_and_rawtxs);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

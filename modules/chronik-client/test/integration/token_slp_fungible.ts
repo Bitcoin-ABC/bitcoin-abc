@@ -64,10 +64,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
                     resolve(message.slp_fungible_genesis_empty_txid);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

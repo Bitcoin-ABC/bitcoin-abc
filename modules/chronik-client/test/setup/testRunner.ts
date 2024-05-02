@@ -63,6 +63,14 @@ function initializeTestRunner(testName: string, statusEvent: EventEmitter) {
         console.log(`Test runner for ${scriptName} started`);
     });
 
+    testRunner.on('message', async function (message: any) {
+        if (message && message.status) {
+            while (!statusEvent.emit(message.status)) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+    });
+
     return testRunner;
 }
 

@@ -57,10 +57,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
                     resolve(message.slp_vault_mint_txid);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

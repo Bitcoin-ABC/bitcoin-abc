@@ -75,10 +75,6 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
                     resolve(message.tx3_txid);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

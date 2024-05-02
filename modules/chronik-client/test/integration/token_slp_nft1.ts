@@ -64,10 +64,6 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
                     resolve(message.slp_nft1_child_genesis1_txid);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

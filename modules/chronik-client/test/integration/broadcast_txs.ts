@@ -93,10 +93,6 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
                     resolve(message.alp_burn_2_txid);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

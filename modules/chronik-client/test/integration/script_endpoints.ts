@@ -113,10 +113,6 @@ describe('Get script().history and script().utxos()', () => {
                     resolve(message.mixed_output_txid);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

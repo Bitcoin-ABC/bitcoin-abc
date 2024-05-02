@@ -37,10 +37,6 @@ describe('/block and /blocks', () => {
                     resolve(message.test_info);
                 });
             }
-
-            if (message && message.status) {
-                statusEvent.emit(message.status);
-            }
         });
 
         await once(statusEvent, 'ready');

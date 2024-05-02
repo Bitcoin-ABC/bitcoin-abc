@@ -95,7 +95,7 @@ export class TestRunner {
         });
 
         let chronik: ChronikClientNode | undefined = undefined;
-        runner.on('message', function (message: any) {
+        runner.on('message', async function (message: any) {
             if (message && message.test_info && message.test_info.chronik) {
                 console.log(
                     'Setting chronik url to ',
@@ -105,7 +105,9 @@ export class TestRunner {
             }
 
             if (message && message.status) {
-                statusEvent.emit(message.status);
+                while (!statusEvent.emit(message.status)) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
             }
         });
 
