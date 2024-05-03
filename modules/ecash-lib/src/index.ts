@@ -14,6 +14,7 @@ export * from './unsignedTx.js';
 export * from './io/bytes.js';
 export * from './io/hex.js';
 export * from './io/int.js';
+export * from './io/str.js';
 export * from './io/varsize.js';
 export * from './io/writer.js';
 export * from './io/writerbytes.js';

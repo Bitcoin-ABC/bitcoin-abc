@@ -5,6 +5,7 @@
 import {
     ALL_ANYONECANPAY_BIP143,
     ALL_BIP143,
+    Bytes,
     Ecc,
     OP_0,
     OP_1,
@@ -13,10 +14,12 @@ import {
     OP_CAT,
     OP_CHECKDATASIGVERIFY,
     OP_CHECKSIG,
+    OP_CHECKSIGVERIFY,
     OP_CODESEPARATOR,
     OP_DROP,
     OP_ELSE,
     OP_ENDIF,
+    OP_EQUAL,
     OP_EQUALVERIFY,
     OP_HASH256,
     OP_IF,
@@ -34,10 +37,14 @@ import {
     WriterBytes,
     WriterLength,
     flagSignature,
+    isPushOp,
     pushBytesOp,
+    readTxOutput,
     sha256d,
+    strToBytes,
     writeTxOutput,
 } from 'ecash-lib';
+import { AGORA_LOKAD_ID } from './consts.js';
 
 /**
  * Agora offer that has to be accepted in "one shot", i.e. all or nothing.
@@ -55,6 +62,8 @@ import {
  *    and also saves 100 bytes or so (depending on the enforced outputs).
  **/
 export class AgoraOneshot {
+    public static COVENANT_VARIANT = 'ONESHOT';
+
     public enforcedOutputs: TxOutput[];
     public cancelPk: Uint8Array;
 
@@ -135,6 +144,79 @@ export class AgoraOneshot {
             OP_CHECKSIG,
         ]);
     }
+
+    public static fromRedeemScript(
+        redeemScript: Script,
+        opreturnScript: Script,
+    ): AgoraOneshot {
+        const ops = redeemScript.ops();
+        const outputsSerOp = ops.next();
+        if (!isPushOp(outputsSerOp)) {
+            throw new Error('Op 0 expected to be pushop for outputsSer');
+        }
+        if (ops.next() !== OP_DROP) {
+            throw new Error('Op 1 expected to be OP_DROP');
+        }
+        const cancelPkOp = ops.next();
+        if (!isPushOp(cancelPkOp)) {
+            throw new Error('Op 2 expected to be pushop for cancelPk');
+        }
+        if (cancelPkOp.data.length != 33) {
+            throw new Error(`Expected cancelPk to be 33 bytes`);
+        }
+        if (ops.next() !== OP_CHECKSIGVERIFY) {
+            throw new Error('Op 3 expected to be OP_CHECKSIGVERIFY');
+        }
+        const covenantVariantOp = ops.next();
+        if (!isPushOp(covenantVariantOp)) {
+            throw new Error('Op 4 expected to be pushop for covenantVariant');
+        }
+        if (ops.next() !== OP_EQUALVERIFY) {
+            throw new Error('Op 5 expected to be OP_CHECKSIGVERIFY');
+        }
+        const lokadIdOp = ops.next();
+        if (!isPushOp(lokadIdOp)) {
+            throw new Error('Op 6 expected to be pushop for covenantVariant');
+        }
+        const outputsSerBytes = new Bytes(outputsSerOp.data);
+        const enforcedOutputs: TxOutput[] = [
+            {
+                value: BigInt(0),
+                script: opreturnScript,
+            },
+        ];
+        while (outputsSerBytes.data.length > outputsSerBytes.idx) {
+            enforcedOutputs.push(readTxOutput(outputsSerBytes));
+        }
+        return new AgoraOneshot({
+            enforcedOutputs,
+            cancelPk: cancelPkOp.data,
+        });
+    }
+
+    public adScript(): Script {
+        const serOutputs = (writer: Writer) => {
+            for (const output of this.enforcedOutputs.slice(1)) {
+                writeTxOutput(output, writer);
+            }
+        };
+        const writerLength = new WriterLength();
+        serOutputs(writerLength);
+        const writer = new WriterBytes(writerLength.length);
+        serOutputs(writer);
+        const outputsSer = writer.data;
+
+        return Script.fromOps([
+            pushBytesOp(outputsSer),
+            OP_DROP,
+            pushBytesOp(this.cancelPk),
+            OP_CHECKSIGVERIFY,
+            pushBytesOp(strToBytes(AgoraOneshot.COVENANT_VARIANT)),
+            OP_EQUALVERIFY,
+            pushBytesOp(AGORA_LOKAD_ID),
+            OP_EQUAL,
+        ]);
+    }
 }
 
 export const AgoraOneshotSignatory = (
@@ -181,6 +263,23 @@ export const AgoraOneshotCancelSignatory = (cancelSk: Uint8Array) => {
         return Script.fromOps([
             pushBytesOp(cancelSig),
             OP_0, // is_accept = false
+            pushBytesOp(preimage.redeemScript.bytecode),
+        ]);
+    };
+};
+
+export const AgoraOneshotAdSignatory = (cancelSk: Uint8Array) => {
+    return (ecc: Ecc, input: UnsignedTxInput): Script => {
+        const preimage = input.sigHashPreimage(ALL_BIP143);
+        const sighash = sha256d(preimage.bytes);
+        const cancelSig = flagSignature(
+            ecc.schnorrSign(cancelSk, sighash),
+            ALL_BIP143,
+        );
+        return Script.fromOps([
+            pushBytesOp(AGORA_LOKAD_ID),
+            pushBytesOp(strToBytes(AgoraOneshot.COVENANT_VARIANT)),
+            pushBytesOp(cancelSig),
             pushBytesOp(preimage.redeemScript.bytecode),
         ]);
     };

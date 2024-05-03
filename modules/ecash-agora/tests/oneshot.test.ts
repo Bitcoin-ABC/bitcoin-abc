@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { expect, assert, use } from 'chai';
+import { assert, expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChronikClientNode } from 'chronik-client';
 import {
@@ -22,9 +22,11 @@ import {
     toHex,
 } from 'ecash-lib';
 import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
-
+import { parseAgoraTx } from '../src/ad.js';
+import { AGORA_LOKAD_ID } from '../src/consts.js';
 import {
     AgoraOneshot,
+    AgoraOneshotAdSignatory,
     AgoraOneshotCancelSignatory,
     AgoraOneshotSignatory,
 } from '../src/oneshot.js';
@@ -67,10 +69,15 @@ describe('SLP', () => {
         // Tests the Agora Oneshot Script using SLP NFT1 tokens:
         // 1. Seller creates an NFT1 GROUP token
         // 2. Seller creates an NFT1 CHILD token using the group token
-        // 3. Seller sends the NFT to an Agora Oneshot covenant that asks for 80000 sats
-        // 4. Buyer attempts to buy the NFT using 79999 sats, which is rejected
-        // 5. Seller cancels the trade and changes the price to 70000 sats
-        // 6. Buyer successfully buys the NFT for 70000 sats
+        // 3. Seller sends the NFT to an ad setup output for an Agora Oneshot
+        //    covenant that asks for 80000 sats
+        // 4. Seller finishes offer setup + sends NFT to the advertised P2SH
+        // 5. Buyer searches for NFT trades, finds the advertised one
+        // 6. Buyer attempts to buy the NFT using 79999 sats, which is rejected
+        // 7. Seller cancels the trade and changes the price to 70000 sats,
+        //    with a new advertisement
+        // 8. Buyer searches for NFT trades again, finding both, one spent
+        // 9. Buyer successfully accepts advertized NFT offer for 70000 sats
 
         const sellerSk = fromHex('11'.repeat(32));
         const sellerPk = ecc.derivePubkey(sellerSk);
@@ -185,18 +192,22 @@ describe('SLP', () => {
             timeFirstSeen: 1300000000,
         });
 
-        // 3. Seller sends the NFT to an Agora Oneshot covenant that asks for 80000 sats
+        // 3. Seller sends the NFT to an ad setup output for an Agora Oneshot
+        //    covenant that asks for 80000 sats
         const enforcedOutputs: TxOutput[] = [
-            { value: 0, script: slpSend(childTokenId, SLP_NFT1_CHILD, [0, 1]) },
-            { value: 80000, script: sellerP2pkh },
+            {
+                value: BigInt(0),
+                script: slpSend(childTokenId, SLP_NFT1_CHILD, [0, 1]),
+            },
+            { value: BigInt(80000), script: sellerP2pkh },
         ];
         const agoraOneshot = new AgoraOneshot({
             enforcedOutputs,
             cancelPk: sellerPk,
         });
-        const agoraScript = agoraOneshot.script();
-        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
-        const txBuildOffer = new TxBuilder({
+        const agoraAdScript = agoraOneshot.adScript();
+        const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
+        const txBuildAdSetup = new TxBuilder({
             inputs: [
                 {
                     input: {
@@ -217,32 +228,87 @@ describe('SLP', () => {
                     value: 0,
                     script: slpSend(childTokenId, SLP_NFT1_CHILD, [1]),
                 },
+                { value: 7000, script: agoraAdP2sh },
+            ],
+        });
+        const adSetupTx = txBuildAdSetup.sign(ecc);
+        const adSetupTxid = (await chronik.broadcastTx(adSetupTx.ser())).txid;
+
+        // 4. Seller finishes offer setup + sends NFT to the advertised P2SH
+        const agoraScript = agoraOneshot.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+        const txBuildOffer = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid: adSetupTxid,
+                            outIdx: 1,
+                        },
+                        signData: {
+                            value: 7000,
+                            redeemScript: agoraAdScript,
+                        },
+                    },
+                    signatory: AgoraOneshotAdSignatory(sellerSk),
+                },
+            ],
+            outputs: [
+                {
+                    value: 0,
+                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [1]),
+                },
                 { value: 546, script: agoraP2sh },
             ],
         });
         const offerTx = txBuildOffer.sign(ecc);
         const offerTxid = (await chronik.broadcastTx(offerTx.ser())).txid;
 
-        // 4. Buyer attempts to buy the NFT using 79999 sats, which is rejected
+        // 5. Buyer searches for NFT trades, finds the advertised one
+        const agoraTxs = (
+            await chronik.lokadId(toHex(AGORA_LOKAD_ID)).history()
+        ).txs;
+        expect(agoraTxs.length).to.be.equal(1);
+        const agoraTx = agoraTxs[0];
+        expect(agoraTx.inputs.length).to.be.equal(1);
+        const parsedAd = parseAgoraTx(agoraTx);
+        if (parsedAd === undefined) {
+            throw 'Parsing agora tx failed';
+        }
+        if (parsedAd.type !== 'ONESHOT') {
+            throw 'Expected ONESHOT offer in this test';
+        }
+        expect(parsedAd).to.be.deep.equal({
+            type: 'ONESHOT',
+            params: agoraOneshot,
+            outpoint: {
+                txid: offerTxid,
+                outIdx: 1,
+            },
+            spentBy: undefined,
+            txBuilderInput: {
+                prevOut: {
+                    txid: offerTxid,
+                    outIdx: 1,
+                },
+                signData: {
+                    redeemScript: agoraScript,
+                    value: 546,
+                },
+            },
+        });
+
+        // 6. Buyer attempts to buy the NFT using 79999 sats, which is rejected
         const buyerSatsTxid = await runner.sendToScript(90000, buyerP2pkh);
         const txBuildAcceptFail = new TxBuilder({
             version: 2,
             inputs: [
                 {
-                    input: {
-                        prevOut: {
-                            txid: offerTxid,
-                            outIdx: 1,
-                        },
-                        signData: {
-                            value: 546,
-                            redeemScript: agoraScript,
-                        },
-                    },
+                    input: parsedAd.txBuilderInput,
                     signatory: AgoraOneshotSignatory(
                         buyerSk,
                         buyerPk,
-                        enforcedOutputs.length,
+                        parsedAd.params.enforcedOutputs.length,
                     ),
                 },
                 {
@@ -275,11 +341,14 @@ describe('SLP', () => {
         // OP_EQUALVERIFY failed
         assert.isRejected(chronik.broadcastTx(acceptFailTx.ser()));
 
-        // 5. Seller cancels the trade and changes the price to 70000 sats
-        // Cancel offer, create new offer which asks for only 70000
+        // 7. Seller cancels the trade and changes the price to 70000 sats,
+        //    with a new advertisement
         const newEnforcedOutputs: TxOutput[] = [
-            { value: 0, script: slpSend(childTokenId, SLP_NFT1_CHILD, [0, 1]) },
-            { value: 70000, script: sellerP2pkh },
+            {
+                value: BigInt(0),
+                script: slpSend(childTokenId, SLP_NFT1_CHILD, [0, 1]),
+            },
+            { value: BigInt(70000), script: sellerP2pkh },
         ];
         const newAgoraOneshot = new AgoraOneshot({
             enforcedOutputs: newEnforcedOutputs,
@@ -287,9 +356,26 @@ describe('SLP', () => {
         });
         const newAgoraScript = newAgoraOneshot.script();
         const newAgoraP2sh = Script.p2sh(shaRmd160(newAgoraScript.bytecode));
-        const fuelSatsTxid = await runner.sendToScript(2000, sellerP2pkh);
+        const newAgoraAdScript = newAgoraOneshot.adScript();
+        const newAdSetupTxid = await runner.sendToScript(
+            2000,
+            Script.p2sh(shaRmd160(newAgoraAdScript.bytecode)),
+        );
         const txBuildCancel = new TxBuilder({
             inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid: newAdSetupTxid,
+                            outIdx: 0,
+                        },
+                        signData: {
+                            value: 2000,
+                            redeemScript: newAgoraAdScript,
+                        },
+                    },
+                    signatory: AgoraOneshotAdSignatory(sellerSk),
+                },
                 {
                     input: {
                         prevOut: {
@@ -302,19 +388,6 @@ describe('SLP', () => {
                         },
                     },
                     signatory: AgoraOneshotCancelSignatory(sellerSk),
-                },
-                {
-                    input: {
-                        prevOut: {
-                            txid: fuelSatsTxid,
-                            outIdx: 0,
-                        },
-                        signData: {
-                            value: 2000,
-                            outputScript: sellerP2pkh,
-                        },
-                    },
-                    signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143),
                 },
             ],
             outputs: [
@@ -329,26 +402,68 @@ describe('SLP', () => {
         const cancelTx = txBuildCancel.sign(ecc);
         const newOfferTxid = (await chronik.broadcastTx(cancelTx.ser())).txid;
 
-        // 6. Buyer successfully buys the NFT for 70000 sats
-        // Sending 70000 to seller allows buyer to accept the tx
+        // 8. Buyer searches for NFT trades again, finding both, one spent
+        const newAgoraTxs = (
+            await chronik.lokadId(toHex(AGORA_LOKAD_ID)).history()
+        ).txs;
+        expect(newAgoraTxs.length).to.equal(2);
+        const parsedAds = newAgoraTxs.map(parseAgoraTx);
+        parsedAds.sort((a, b) => +!a?.spentBy - +!b?.spentBy);
+        expect(parsedAds).to.deep.equal([
+            {
+                type: 'ONESHOT',
+                params: agoraOneshot,
+                outpoint: {
+                    txid: offerTxid,
+                    outIdx: 1,
+                },
+                txBuilderInput: {
+                    prevOut: {
+                        txid: offerTxid,
+                        outIdx: 1,
+                    },
+                    signData: {
+                        redeemScript: agoraScript,
+                        value: 546,
+                    },
+                },
+                spentBy: {
+                    txid: newOfferTxid,
+                    outIdx: 1,
+                },
+            },
+            {
+                type: 'ONESHOT',
+                params: newAgoraOneshot,
+                outpoint: {
+                    txid: newOfferTxid,
+                    outIdx: 1,
+                },
+                txBuilderInput: {
+                    prevOut: {
+                        txid: newOfferTxid,
+                        outIdx: 1,
+                    },
+                    signData: {
+                        redeemScript: newAgoraScript,
+                        value: 546,
+                    },
+                },
+                spentBy: undefined,
+            },
+        ]);
+        const newParsedAd = parsedAds[1]!;
+
+        // 9. Buyer successfully accepts advertized NFT offer for 70000 sats
         const txBuildAcceptSuccess = new TxBuilder({
             version: 2,
             inputs: [
                 {
-                    input: {
-                        prevOut: {
-                            txid: newOfferTxid,
-                            outIdx: 1,
-                        },
-                        signData: {
-                            value: 546,
-                            redeemScript: newAgoraScript,
-                        },
-                    },
+                    input: newParsedAd.txBuilderInput,
                     signatory: AgoraOneshotSignatory(
                         buyerSk,
                         buyerPk,
-                        newEnforcedOutputs.length,
+                        newParsedAd.params.enforcedOutputs.length,
                     ),
                 },
                 {
@@ -366,12 +481,7 @@ describe('SLP', () => {
                 },
             ],
             outputs: [
-                {
-                    value: 0,
-                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [0, 1]),
-                },
-                // success: sending exactly 70000 sats
-                { value: 70000, script: sellerP2pkh },
+                ...newParsedAd.params.enforcedOutputs,
                 { value: 546, script: buyerP2pkh },
             ],
         });

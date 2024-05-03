@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+import { Bytes } from './io/bytes.js';
 import { fromHexRev } from './io/hex.js';
 import { writeVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
@@ -116,6 +117,15 @@ export class Tx {
         }
         writer.putU32(this.locktime);
     }
+}
+
+export function readTxOutput(bytes: Bytes): TxOutput {
+    const value = bytes.readU64();
+    const script = Script.readWithSize(bytes);
+    return {
+        value,
+        script,
+    };
 }
 
 /** Write an outpoint to a Writer */

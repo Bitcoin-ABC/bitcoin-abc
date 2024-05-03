@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { writeVarSize } from './io/varsize.js';
+import { readVarSize, writeVarSize } from './io/varsize.js';
 import { Writer } from './io/writer.js';
 import { WriterLength } from './io/writerlength.js';
 import { WriterBytes } from './io/writerbytes.js';
@@ -33,6 +33,11 @@ export class Script {
     public writeWithSize(writer: Writer) {
         writeVarSize(this.bytecode.length, writer);
         writer.putBytes(this.bytecode);
+    }
+
+    public static readWithSize(bytes: Bytes) {
+        const size = readVarSize(bytes);
+        return new Script(bytes.readBytes(Number(size)));
     }
 
     /** Build a Script from the given Script Ops */
