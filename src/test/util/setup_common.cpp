@@ -633,3 +633,9 @@ CBlock getBlock13b8a() {
     stream >> block;
     return block;
 }
+
+DummyConfig::DummyConfig()
+    : chainParams(CreateChainParams(CBaseChainParams::REGTEST)) {}
+
+DummyConfig::DummyConfig(std::string net)
+    : chainParams(CreateChainParams(net)) {}

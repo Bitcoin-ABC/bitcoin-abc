@@ -300,4 +300,21 @@ private:
     const std::string m_reason;
 };
 
+// Dummy for subclassing in unittests
+class DummyConfig : public Config {
+public:
+    DummyConfig();
+    explicit DummyConfig(std::string net);
+    bool SetMaxBlockSize(uint64_t maxBlockSize) override { return false; }
+    uint64_t GetMaxBlockSize() const override { return 32'000'000; }
+
+    const CChainParams &GetChainParams() const override { return *chainParams; }
+
+    void SetCashAddrEncoding(bool) override {}
+    bool UseCashAddrEncoding() const override { return false; }
+
+private:
+    std::unique_ptr<CChainParams> chainParams;
+};
+
 #endif // BITCOIN_TEST_UTIL_SETUP_COMMON_H

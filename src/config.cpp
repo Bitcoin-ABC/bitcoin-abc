@@ -41,9 +41,3 @@ void GlobalConfig::SetCashAddrEncoding(bool c) {
 bool GlobalConfig::UseCashAddrEncoding() const {
     return useCashAddr;
 }
-
-DummyConfig::DummyConfig()
-    : chainParams(CreateChainParams(CBaseChainParams::REGTEST)) {}
-
-DummyConfig::DummyConfig(std::string net)
-    : chainParams(CreateChainParams(net)) {}

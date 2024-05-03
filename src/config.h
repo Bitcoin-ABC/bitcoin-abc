@@ -43,23 +43,6 @@ private:
     uint64_t nMaxBlockSize;
 };
 
-// Dummy for subclassing in unittests
-class DummyConfig : public Config {
-public:
-    DummyConfig();
-    explicit DummyConfig(std::string net);
-    bool SetMaxBlockSize(uint64_t maxBlockSize) override { return false; }
-    uint64_t GetMaxBlockSize() const override { return 32'000'000; }
-
-    const CChainParams &GetChainParams() const override { return *chainParams; }
-
-    void SetCashAddrEncoding(bool) override {}
-    bool UseCashAddrEncoding() const override { return false; }
-
-private:
-    std::unique_ptr<CChainParams> chainParams;
-};
-
 // Temporary woraround.
 const Config &GetConfig();
 

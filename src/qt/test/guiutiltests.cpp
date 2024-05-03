@@ -4,6 +4,8 @@
 
 #include <qt/test/guiutiltests.h>
 
+#include <test/util/setup_common.h>
+
 #include <chainparams.h>
 #include <config.h>
 #include <key_io.h>
