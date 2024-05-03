@@ -41,7 +41,7 @@ static void testPastActivation(ActivationFun func,
 }
 
 BOOST_AUTO_TEST_CASE(test_previous_activations_by_height) {
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     const auto consensus = params->GetConsensus();
 
     // Static cast to select the correct overload

@@ -55,7 +55,8 @@ static void TestBlockSubsidyHalvings(int nSubsidyHalvingInterval) {
 }
 
 BOOST_AUTO_TEST_CASE(block_subsidy_test) {
-    const auto chainParams = CreateChainParams(CBaseChainParams::MAIN);
+    const auto chainParams =
+        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     // As in main
     TestBlockSubsidyHalvings(chainParams->GetConsensus());
     // As in regtest
@@ -65,7 +66,8 @@ BOOST_AUTO_TEST_CASE(block_subsidy_test) {
 }
 
 BOOST_AUTO_TEST_CASE(subsidy_limit_test) {
-    const auto chainParams = CreateChainParams(CBaseChainParams::MAIN);
+    const auto chainParams =
+        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     Amount nSum = Amount::zero();
     for (int nHeight = 0; nHeight < 14000000; nHeight += 1000) {
         Amount nSubsidy = GetBlockSubsidy(nHeight, chainParams->GetConsensus());
@@ -134,7 +136,8 @@ BOOST_AUTO_TEST_CASE(validation_load_external_block_file) {
 
 //! Test retrieval of valid assumeutxo values.
 BOOST_AUTO_TEST_CASE(test_assumeutxo) {
-    const auto params = CreateChainParams(CBaseChainParams::REGTEST);
+    const auto params =
+        CreateChainParams(*m_node.args, CBaseChainParams::REGTEST);
 
     // These heights don't have assumeutxo configurations associated, per the
     // contents of chainparams.cpp.

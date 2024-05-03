@@ -74,7 +74,7 @@ CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits,
  */
 class CMainParams : public CChainParams {
 public:
-    CMainParams() {
+    explicit CMainParams(const ChainOptions &opts) {
         strNetworkID = CBaseChainParams::MAIN;
         consensus.nSubsidyHalvingInterval = 210000;
         // 00000000000000ce80a7e057163a4db1d5ad7b20fb6f598c9597b9665c8fb0d4 -
@@ -193,8 +193,7 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 128);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
-        cashaddrPrefix =
-            gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? "ecash" : "bitcoincash";
+        cashaddrPrefix = opts.ecash ? "ecash" : "bitcoincash";
 
         vFixedSeeds = std::vector<SeedSpec6>(std::begin(pnSeed6_main),
                                              std::end(pnSeed6_main));
@@ -230,7 +229,7 @@ public:
  */
 class CTestNetParams : public CChainParams {
 public:
-    CTestNetParams() {
+    explicit CTestNetParams(const ChainOptions &opts) {
         strNetworkID = CBaseChainParams::TESTNET;
         consensus.nSubsidyHalvingInterval = 210000;
         // 00000000040b4e986385315e14bee30ad876d8b47f748025b26683116d21aa65
@@ -340,8 +339,7 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-        cashaddrPrefix =
-            gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? "ectest" : "bchtest";
+        cashaddrPrefix = opts.ecash ? "ectest" : "bchtest";
 
         vFixedSeeds = std::vector<SeedSpec6>(std::begin(pnSeed6_test),
                                              std::end(pnSeed6_test));
@@ -369,7 +367,7 @@ public:
  */
 class CRegTestParams : public CChainParams {
 public:
-    CRegTestParams() {
+    explicit CRegTestParams(const ChainOptions &opts) {
         strNetworkID = CBaseChainParams::REGTEST;
         consensus.nSubsidyHalvingInterval = 150;
         // always enforce P2SH BIP16 on regtest
@@ -446,7 +444,7 @@ public:
         netMagic[2] = 0xbf;
         netMagic[3] = 0xfa;
         nDefaultPort = 18444;
-        nPruneAfterHeight = gArgs.GetBoolArg("-fastprune", false) ? 100 : 1000;
+        nPruneAfterHeight = opts.fastprune ? 100 : 1000;
         m_assumed_blockchain_size = 0;
         m_assumed_chain_state_size = 0;
 
@@ -493,29 +491,53 @@ public:
         base58Prefixes[SECRET_KEY] = std::vector<uint8_t>(1, 239);
         base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
         base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
-        cashaddrPrefix =
-            gArgs.GetBoolArg("-ecash", DEFAULT_ECASH) ? "ecregtest" : "bchreg";
+        cashaddrPrefix = opts.ecash ? "ecregtest" : "bchreg";
     }
 };
 
-static std::unique_ptr<CChainParams> globalChainParams;
+static std::unique_ptr<const CChainParams> globalChainParams;
 
 const CChainParams &Params() {
     assert(globalChainParams);
     return *globalChainParams;
 }
 
-std::unique_ptr<CChainParams> CreateChainParams(const std::string &chain) {
+void ReadChainArgs(const ArgsManager &args,
+                   CChainParams::ChainOptions &options) {
+    options.ecash = args.GetBoolArg("-ecash", DEFAULT_ECASH);
+    // Only relevant for REGTEST
+    options.fastprune = args.GetBoolArg("-fastprune", false);
+}
+
+std::unique_ptr<const CChainParams>
+CChainParams::RegTest(const ChainOptions &options) {
+    return std::make_unique<const CRegTestParams>(options);
+}
+
+std::unique_ptr<const CChainParams>
+CChainParams::Main(const ChainOptions &options) {
+    return std::make_unique<const CMainParams>(options);
+}
+
+std::unique_ptr<const CChainParams>
+CChainParams::TestNet(const ChainOptions &options) {
+    return std::make_unique<const CTestNetParams>(options);
+}
+
+std::unique_ptr<const CChainParams>
+CreateChainParams(const ArgsManager &args, const std::string &chain) {
+    auto opts = CChainParams::ChainOptions{};
+    ReadChainArgs(args, opts);
     if (chain == CBaseChainParams::MAIN) {
-        return std::make_unique<CMainParams>();
+        return CChainParams::Main(opts);
     }
 
     if (chain == CBaseChainParams::TESTNET) {
-        return std::make_unique<CTestNetParams>();
+        return CChainParams::TestNet(opts);
     }
 
     if (chain == CBaseChainParams::REGTEST) {
-        return std::make_unique<CRegTestParams>();
+        return CChainParams::RegTest(opts);
     }
 
     throw std::runtime_error(
@@ -524,5 +546,5 @@ std::unique_ptr<CChainParams> CreateChainParams(const std::string &chain) {
 
 void SelectParams(const std::string &network) {
     SelectBaseParams(network);
-    globalChainParams = CreateChainParams(network);
+    globalChainParams = CreateChainParams(gArgs, network);
 }

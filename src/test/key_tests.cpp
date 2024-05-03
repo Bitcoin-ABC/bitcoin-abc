@@ -86,9 +86,12 @@ BOOST_AUTO_TEST_CASE(internal_test) {
 }
 
 BOOST_AUTO_TEST_CASE(encode_decode_secret_test) {
-    const auto mainParams = CreateChainParams(CBaseChainParams::MAIN);
-    const auto testParams = CreateChainParams(CBaseChainParams::TESTNET);
-    const auto regParams = CreateChainParams(CBaseChainParams::TESTNET);
+    const auto mainParams =
+        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
+    const auto testParams =
+        CreateChainParams(*m_node.args, CBaseChainParams::TESTNET);
+    const auto regParams =
+        CreateChainParams(*m_node.args, CBaseChainParams::TESTNET);
 
     {
         // Check the mainnet base58 key

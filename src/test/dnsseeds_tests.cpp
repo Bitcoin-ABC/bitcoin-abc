@@ -12,7 +12,7 @@ BOOST_FIXTURE_TEST_SUITE(dnsseeds_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(override_dns_seed) {
     // No override should always provide some DNS seeds
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     BOOST_CHECK(GetRandomizedDNSSeeds(*params).size() > 0);
 
     // Overriding should only return that DNS seed

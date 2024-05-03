@@ -551,7 +551,8 @@ BOOST_AUTO_TEST_CASE(asert_activation_anchor_test) {
     // Make a custom chain params based on mainnet, activating the cw144 DAA
     // at a lower height than usual, so we don't need to waste time making a
     // 504000-long chain.
-    const auto mainChainParams = CreateChainParams(CBaseChainParams::MAIN);
+    const auto mainChainParams =
+        CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     const int asertActivationHeight = 4000;
     const ChainParamsWithCustomActivation chainParams(*mainChainParams, 2016,
                                                       asertActivationHeight);

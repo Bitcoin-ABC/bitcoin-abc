@@ -29,7 +29,9 @@ Amount GetMinerFundAmount(const Consensus::Params &params,
 }
 
 static CTxDestination BuildDestination(const std::string &dest) {
-    const auto mainNetParams = CreateChainParams(CBaseChainParams::MAIN);
+    const ArgsManager unused_argsman{};
+    const auto mainNetParams =
+        CreateChainParams(unused_argsman, CBaseChainParams::MAIN);
     return DecodeDestination(dest, *mainNetParams);
 }
 

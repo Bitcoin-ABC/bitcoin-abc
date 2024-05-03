@@ -27,7 +27,7 @@
 BOOST_FIXTURE_TEST_SUITE(checkpoints_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(sanity) {
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     const CCheckpointData &checkpoints = params->Checkpoints();
     BlockHash p11111 = BlockHash::fromHex(
         "0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d");

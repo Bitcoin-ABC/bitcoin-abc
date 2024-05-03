@@ -73,8 +73,8 @@ FUZZ_TARGET_INIT(transaction, initialize_transaction) {
     if (is_standard_without_permit_bare_multisig) {
         assert(is_standard_with_permit_bare_multisig);
     }
-    std::unique_ptr<CChainParams> params =
-        CreateChainParams(CBaseChainParams::REGTEST);
+    std::unique_ptr<const CChainParams> params =
+        CreateChainParams(ArgsManager{}, CBaseChainParams::REGTEST);
     (void)tx.GetHash();
     (void)tx.GetTotalSize();
     try {

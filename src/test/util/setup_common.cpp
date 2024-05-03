@@ -635,7 +635,8 @@ CBlock getBlock13b8a() {
 }
 
 DummyConfig::DummyConfig()
-    : chainParams(CreateChainParams(CBaseChainParams::REGTEST)) {}
+    : chainParams(CreateChainParams(ArgsManager{}, CBaseChainParams::REGTEST)) {
+}
 
 DummyConfig::DummyConfig(std::string net)
-    : chainParams(CreateChainParams(net)) {}
+    : chainParams(CreateChainParams(ArgsManager{}, net)) {}

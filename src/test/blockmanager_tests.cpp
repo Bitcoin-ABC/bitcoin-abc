@@ -20,7 +20,7 @@ using node::OpenBlockFile;
 BOOST_FIXTURE_TEST_SUITE(blockmanager_tests, BasicTestingSetup)
 
 BOOST_AUTO_TEST_CASE(blockmanager_find_block_pos) {
-    const auto params{CreateChainParams(CBaseChainParams::MAIN)};
+    const auto params{CreateChainParams(*m_node.args, CBaseChainParams::MAIN)};
     node::BlockManager::Options blockman_opts{
         .chainparams = *params,
     };

@@ -110,7 +110,7 @@ BOOST_AUTO_TEST_CASE(encode_decode) {
 
     for (auto dst : toTest) {
         for (auto net : GetNetworks()) {
-            const auto netParams = CreateChainParams(net);
+            const auto netParams = CreateChainParams(*m_node.args, net);
             std::string encoded = EncodeCashAddr(dst, *netParams);
             CTxDestination decoded = DecodeCashAddr(encoded, *netParams);
             BOOST_CHECK(dst == decoded);
@@ -129,10 +129,11 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
                 continue;
             }
 
-            const auto netParams = CreateChainParams(net);
+            const auto netParams = CreateChainParams(*m_node.args, net);
             std::string encoded = EncodeCashAddr(dst, *netParams);
 
-            const auto otherNetParams = CreateChainParams(otherNet);
+            const auto otherNetParams =
+                CreateChainParams(*m_node.args, otherNet);
             CTxDestination decoded = DecodeCashAddr(encoded, *otherNetParams);
             BOOST_CHECK(!std::holds_alternative<PKHash>(decoded));
             BOOST_CHECK(decoded == invalidDst);
@@ -142,7 +143,7 @@ BOOST_AUTO_TEST_CASE(invalid_on_wrong_network) {
 
 BOOST_AUTO_TEST_CASE(random_dst) {
     const size_t NUM_TESTS = 5000;
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
 
     for (size_t i = 0; i < NUM_TESTS; ++i) {
         uint160 hash = InsecureRand160();
@@ -181,7 +182,7 @@ BOOST_AUTO_TEST_CASE(check_padding) {
     BOOST_CHECK_EQUAL(data.size(), 34UL);
 
     const CTxDestination nodst = CNoDestination{};
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
 
     for (uint8_t i = 0; i < 32; i++) {
         data[data.size() - 1] = i;
@@ -264,7 +265,7 @@ BOOST_AUTO_TEST_CASE(check_size) {
 }
 
 BOOST_AUTO_TEST_CASE(test_encode_address) {
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
 
     std::vector<std::vector<uint8_t>> hash{
         {118, 160, 64,  83, 189, 160, 168, 139, 218, 81,

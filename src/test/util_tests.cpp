@@ -2694,7 +2694,7 @@ BOOST_AUTO_TEST_CASE(message_sign) {
 }
 
 BOOST_AUTO_TEST_CASE(message_verify) {
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params = CreateChainParams(*m_node.args, CBaseChainParams::MAIN);
     BOOST_CHECK_EQUAL(MessageVerify(*params, "invalid address",
                                     "signature should be irrelevant",
                                     "message too"),

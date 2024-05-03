@@ -99,14 +99,14 @@ static std::string ipcParseURI(const QString &arg, const CChainParams &params,
 
 static bool ipcCanParseCashAddrURI(const QString &arg,
                                    const std::string &network) {
-    auto tempChainParams = CreateChainParams(network);
+    auto tempChainParams = CreateChainParams(ArgsManager{}, network);
     std::string addr = ipcParseURI(arg, *tempChainParams, true);
     return IsValidDestinationString(addr, *tempChainParams);
 }
 
 static bool ipcCanParseLegacyURI(const QString &arg,
                                  const std::string &network) {
-    auto tempChainParams = CreateChainParams(network);
+    auto tempChainParams = CreateChainParams(ArgsManager{}, network);
     std::string addr = ipcParseURI(arg, *tempChainParams, false);
     return IsValidDestinationString(addr, *tempChainParams);
 }

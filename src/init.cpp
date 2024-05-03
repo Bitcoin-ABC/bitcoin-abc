@@ -431,11 +431,12 @@ void SetupServerArgs(NodeContext &node) {
         CreateBaseChainParams(CBaseChainParams::TESTNET);
     const auto regtestBaseParams =
         CreateBaseChainParams(CBaseChainParams::REGTEST);
-    const auto defaultChainParams = CreateChainParams(CBaseChainParams::MAIN);
+    const auto defaultChainParams =
+        CreateChainParams(argsman, CBaseChainParams::MAIN);
     const auto testnetChainParams =
-        CreateChainParams(CBaseChainParams::TESTNET);
+        CreateChainParams(argsman, CBaseChainParams::TESTNET);
     const auto regtestChainParams =
-        CreateChainParams(CBaseChainParams::REGTEST);
+        CreateChainParams(argsman, CBaseChainParams::REGTEST);
 
     // Hidden Options
     std::vector<std::string> hidden_args = {

@@ -314,7 +314,7 @@ public:
     bool UseCashAddrEncoding() const override { return false; }
 
 private:
-    std::unique_ptr<CChainParams> chainParams;
+    std::unique_ptr<const CChainParams> chainParams;
 };
 
 #endif // BITCOIN_TEST_UTIL_SETUP_COMMON_H

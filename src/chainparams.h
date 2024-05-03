@@ -133,6 +133,18 @@ public:
 
     const ChainTxData &TxData() const { return chainTxData; }
 
+    struct ChainOptions {
+        bool ecash{true};
+        bool fastprune{false};
+    };
+
+    static std::unique_ptr<const CChainParams>
+    RegTest(const ChainOptions &options);
+    static std::unique_ptr<const CChainParams>
+    Main(const ChainOptions &options);
+    static std::unique_ptr<const CChainParams>
+    TestNet(const ChainOptions &options);
+
 protected:
     CChainParams() {}
 
@@ -166,7 +178,8 @@ protected:
  * @returns a CChainParams* of the chosen chain.
  * @throws a std::runtime_error if the chain is not supported.
  */
-std::unique_ptr<CChainParams> CreateChainParams(const std::string &chain);
+std::unique_ptr<const CChainParams> CreateChainParams(const ArgsManager &args,
+                                                      const std::string &chain);
 
 CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits,
                           int32_t nVersion, const Amount genesisReward);

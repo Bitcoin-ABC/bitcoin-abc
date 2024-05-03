@@ -6,11 +6,13 @@
 #include <qt/test/bitcoinaddressvalidatortests.h>
 
 #include <chainparams.h>
+#include <util/system.h>
 
 #include <QValidator>
 
 void BitcoinAddressValidatorTests::inputTests() {
-    const auto params = CreateChainParams(CBaseChainParams::MAIN);
+    const auto params =
+        CreateChainParams(ArgsManager{}, CBaseChainParams::MAIN);
     const std::string prefix = params->CashAddrPrefix();
     BitcoinAddressEntryValidator v(prefix, nullptr);
 
