@@ -29,6 +29,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
                 "-avaminavaproofsnodecount=0",
                 "-persistavapeers=0",
                 "-acceptnonstdtxn=1",
+                "-whitelist=noban@127.0.0.1",
             ]
         ]
 
@@ -178,6 +179,7 @@ class ChronikClient_Websocket_Setup(SetupFramework):
 
         self.log.info("Step 8: Finalize the block containing these txs with Avalanche")
         next_cb_txid = node.getblock(next_blockhash)["tx"][0]
+        assert not node.isfinalblock(next_blockhash)
         with node.assert_debug_log([f"Avalanche finalized block {next_blockhash}"]):
             self.wait_until(lambda: is_finalblock(next_blockhash))
         assert_equal(node.getblockcount(), finalized_height + 1)
