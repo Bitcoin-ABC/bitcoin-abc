@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
 import { Script } from './script.js';
-import { SignData, Tx, TxInput } from './tx.js';
+import { Tx } from './tx.js';
 import { SighashPreimage, UnsignedTx } from './unsignedTx.js';
 import { sha256d } from './hash.js';
 import {
@@ -18,7 +18,7 @@ import {
     SINGLE_ANYONECANPAY_BIP143,
     SINGLE_BIP143,
 } from './sigHashType.js';
-import { initWasm } from './init.js';
+import { initWasm } from './initNodeJs.js';
 
 const TX = new Tx({
     version: 0xfacefeed,
@@ -86,7 +86,6 @@ const OUTPUTS_HEX = OUTPUT0_HEX + OUTPUT1_HEX + OUTPUT2_HEX;
 const LOCKTIME_HEX = 'beba0df0';
 
 describe('UnsignedTx', async () => {
-    // Can't use `fetch` for local file so we have to read it using `fs`
     await initWasm();
 
     it('UnsignedTx.dummyFromTx', () => {

@@ -6,19 +6,14 @@ import { expect } from 'chai';
 import { ChronikClientNode } from 'chronik-client';
 import { EventEmitter, once } from 'node:events';
 
-import {
-    ALL_BIP143,
-    Ecc,
-    OP_10,
-    P2PKHSignatory,
-    Script,
-    TxBuilder,
-    fromHex,
-    initWasm,
-    pushBytesOp,
-    shaRmd160,
-    toHex,
-} from '../src/index.js';
+import { Ecc } from '../src/ecc.js';
+import { shaRmd160 } from '../src/hash.js';
+import { initWasm } from '../src/initNodeJs.js';
+import { fromHex, toHex } from '../src/io/hex.js';
+import { pushBytesOp } from '../src/op.js';
+import { OP_10 } from '../src/opcode.js';
+import { Script } from '../src/script.js';
+import { ALL_BIP143 } from '../src/sigHashType.js';
 import { TestRunner } from '../src/test/testRunner.js';
 import {
     SLP_FUNGIBLE,
@@ -31,6 +26,7 @@ import {
     slpMintVault,
     slpSend,
 } from '../src/token/slp.js';
+import { P2PKHSignatory, TxBuilder } from '../src/txBuilder.js';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000;
@@ -65,10 +61,10 @@ describe('SLP Integration Test', () => {
     let ecc: Ecc;
 
     before(async () => {
+        await initWasm();
         runner = await TestRunner.setup();
         chronik = runner.chronik;
         ecc = runner.ecc;
-        await initWasm();
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 

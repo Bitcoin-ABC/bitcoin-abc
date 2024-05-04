@@ -2,10 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-// These files are generated in "ecash-lib-wasm" via build-wasm.sh or
-// dockerbuild.sh.
-import * as ffi from './ffi/ecash_lib_wasm.js';
-
 /** Interface to abstract over Elliptic Curve Cryptography */
 export interface Ecc {
     /** Derive a public key from secret key. */
@@ -19,7 +15,7 @@ export interface Ecc {
 }
 
 /** Ecc implementation using WebAssembly */
-export const EccWasm = ffi.Ecc;
+export let Ecc: { new (): Ecc };
 
 /** Dummy Ecc impl that always returns 0, useful for measuring tx size */
 export class EccDummy implements Ecc {
@@ -34,4 +30,8 @@ export class EccDummy implements Ecc {
     schnorrSign(_seckey: Uint8Array, _msg: Uint8Array): Uint8Array {
         return new Uint8Array(64);
     }
+}
+
+export function __setEcc(ecc: { new (): Ecc }) {
+    Ecc = ecc;
 }

@@ -6,32 +6,34 @@ import { expect } from 'chai';
 
 import { ChronikClientNode } from 'chronik-client';
 
+import { Ecc } from '../src/ecc.js';
+import { sha256d, shaRmd160 } from '../src/hash.js';
+import { initWasm } from '../src/initNodeJs.js';
+import { fromHex, toHex } from '../src/io/hex.js';
+import { pushBytesOp } from '../src/op.js';
 import {
-    ALL_ANYONECANPAY_BIP143,
-    ALL_BIP143,
-    Ecc,
-    NONE_ANYONECANPAY_BIP143,
-    NONE_BIP143,
     OP_CHECKSIG,
     OP_CHECKSIGVERIFY,
     OP_CODESEPARATOR,
     OP_REVERSEBYTES,
-    P2PKHSignatory,
-    P2PKSignatory,
+} from '../src/opcode.js';
+import { Script } from '../src/script.js';
+import {
+    ALL_ANYONECANPAY_BIP143,
+    ALL_BIP143,
+    NONE_ANYONECANPAY_BIP143,
+    NONE_BIP143,
     SINGLE_ANYONECANPAY_BIP143,
     SINGLE_BIP143,
-    Script,
-    TxBuilder,
-    UnsignedTxInput,
-    flagSignature,
-    fromHex,
-    initWasm,
-    pushBytesOp,
-    sha256d,
-    shaRmd160,
-    toHex,
-} from '../src/index.js';
+} from '../src/sigHashType.js';
 import { TestRunner } from '../src/test/testRunner.js';
+import {
+    P2PKHSignatory,
+    P2PKSignatory,
+    TxBuilder,
+    flagSignature,
+} from '../src/txBuilder.js';
+import { UnsignedTxInput } from '../src/unsignedTx.js';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000;
@@ -51,10 +53,10 @@ describe('TxBuilder', () => {
     let ecc: Ecc;
 
     before(async () => {
+        await initWasm();
         runner = await TestRunner.setup();
         chronik = runner.chronik;
         ecc = runner.ecc;
-        await initWasm();
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 

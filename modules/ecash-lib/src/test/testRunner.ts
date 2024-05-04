@@ -5,9 +5,8 @@
 import type { ChronikClientNode } from 'chronik-client';
 import type { ChildProcess } from 'node:child_process';
 
-import { Ecc, EccWasm } from '../ecc.js';
+import { Ecc } from '../ecc.js';
 import { shaRmd160 } from '../hash.js';
-import { initWasm } from '../init.js';
 import { fromHex, toHex } from '../io/hex.js';
 import { pushBytesOp } from '../op.js';
 import { OP_1, OP_RETURN } from '../opcode.js';
@@ -111,8 +110,7 @@ export class TestRunner {
             }
         });
 
-        await initWasm();
-        const ecc = new EccWasm();
+        const ecc = new Ecc();
 
         // We got the coins, can fan out now
         await (events as any).once(statusEvent, 'ready');

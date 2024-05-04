@@ -5,8 +5,7 @@
         /* ES2020 for bigint, DOM for WebAssemby */
         "lib": ["ES2020", "DOM"],
         /* Modules */
-        "module": "NodeNext",
-        "moduleResolution": "NodeNext",
+        "module": "CommonJS",
         /* Emit */
         "noEmit": true,
         /* Interop Constraints */

@@ -2,8 +2,24 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import * as ffi from './ffi/ecash_lib_wasm.js';
+interface EcashLibHashes {
+    sha256: (data: Uint8Array) => Uint8Array;
+    sha256d: (data: Uint8Array) => Uint8Array;
+    shaRmd160: (data: Uint8Array) => Uint8Array;
+}
 
-export const sha256 = ffi.sha256;
-export const sha256d = ffi.sha256d;
-export const shaRmd160 = ffi.shaRmd160;
+let HASHES: EcashLibHashes;
+
+export function sha256(data: Uint8Array): Uint8Array {
+    return HASHES.sha256(data);
+}
+export function sha256d(data: Uint8Array): Uint8Array {
+    return HASHES.sha256d(data);
+}
+export function shaRmd160(data: Uint8Array): Uint8Array {
+    return HASHES.shaRmd160(data);
+}
+
+export function __setHashes(hashes: EcashLibHashes) {
+    HASHES = hashes;
+}

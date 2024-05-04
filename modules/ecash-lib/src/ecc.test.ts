@@ -5,15 +5,14 @@
 import { expect } from 'chai';
 
 import { fromHex, toHex } from './io/hex.js';
-import { EccDummy, EccWasm } from './ecc.js';
-import { initWasm } from './init.js';
+import { Ecc, EccDummy } from './ecc.js';
+import { initWasm } from './initNodeJs.js';
 
 describe('Ecc', async () => {
-    // Can't use `fetch` for local file so we have to read it using `fs`
     await initWasm();
 
     it('EccWasm', () => {
-        const ecc = new EccWasm();
+        const ecc = new Ecc();
         const sk = fromHex(
             '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
         );

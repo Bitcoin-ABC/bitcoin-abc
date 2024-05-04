@@ -5,7 +5,6 @@
 import { expect, assert, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { ChronikClientNode } from 'chronik-client';
-import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
 import {
     ALL_BIP143,
     Ecc,
@@ -22,6 +21,8 @@ import {
     slpSend,
     toHex,
 } from 'ecash-lib';
+import { TestRunner } from 'ecash-lib/dist/test/testRunner.js';
+
 import {
     AgoraOneshot,
     AgoraOneshotCancelSignatory,
@@ -51,10 +52,10 @@ describe('SLP', () => {
     let ecc: Ecc;
 
     before(async () => {
+        await initWasm();
         runner = await TestRunner.setup();
         chronik = runner.chronik;
         ecc = runner.ecc;
-        await initWasm();
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
     });
 
