@@ -114,6 +114,8 @@ static leveldb::Options GetOptions(size_t nCacheSize) {
         // Only trigger error on corruption in later versions.
         options.paranoid_checks = true;
     }
+    options.max_file_size =
+        std::max(options.max_file_size, DBWRAPPER_MAX_FILE_SIZE);
     SetMaxOpenFiles(&options);
     return options;
 }
