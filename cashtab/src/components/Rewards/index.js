@@ -15,9 +15,11 @@ const Rewards = () => {
     const { cashtabState } = ContextValue;
     const { wallets } = cashtabState;
     const address = wallets[0].paths.get(1899).address;
+    const ELAPSED_TIMER = { hours: '00', minutes: '00', seconds: '00' };
     const [isEligible, setIsEligible] = useState(null);
     const [eligibleAgainTimestamp, setEligibleAgainTimestamp] = useState(null);
     const [timeRemainingMs, setTimeRemainingMs] = useState(null);
+    const [countdownInterval, setCountdownInterval] = useState(null);
 
     const getIsEligible = async address => {
         let serverResponse;
@@ -83,33 +85,45 @@ const Rewards = () => {
 
     const getParsedTimeRemaining = timeRemainingMs => {
         if (timeRemainingMs === null) {
-            return { hours: 0, minutes: 0, seconds: 0 };
+            return ELAPSED_TIMER;
+        }
+        if (timeRemainingMs <= 1000) {
+            handleCountdownExpiration();
+            return ELAPSED_TIMER;
         }
         // Note: Token rewards are available every 24 hrs, so we do not need days
         let hours = Math.floor(
             (timeRemainingMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-        );
-        if (hours < 10) {
-            hours = `0${hours}`;
-        }
+        )
+            .toString()
+            .padStart(2, '0');
         let minutes = Math.floor(
             (timeRemainingMs % (1000 * 60 * 60)) / (1000 * 60),
-        );
-        if (minutes < 10) {
-            minutes = `0${minutes}`;
-        }
-        let seconds = Math.floor((timeRemainingMs % (1000 * 60)) / 1000);
-        if (seconds < 10) {
-            seconds = `0${seconds}`;
-        }
+        )
+            .toString()
+            .padStart(2, '0');
+
+        let seconds = Math.floor((timeRemainingMs % (1000 * 60)) / 1000)
+            .toString()
+            .padStart(2, '0');
 
         return { hours, minutes, seconds };
+    };
+
+    const handleCountdownExpiration = () => {
+        if (countdownInterval !== null) {
+            clearInterval(countdownInterval);
+            setCountdownInterval(null);
+        }
+        if (!isEligible) {
+            setIsEligible(true);
+        }
     };
 
     const { hours, minutes, seconds } =
         timeRemainingMs !== null
             ? getParsedTimeRemaining(timeRemainingMs)
-            : { hours: 0, minutes: 0, seconds: 0 };
+            : ELAPSED_TIMER;
 
     useEffect(() => {
         // execute when address variable changes
@@ -136,6 +150,9 @@ const Rewards = () => {
                 1000 * eligibleAgainTimestamp - new Date().getTime(),
             );
         }, 1000);
+
+        // Keep it in state so we can clear it when it gets to 0
+        setCountdownInterval(interval);
 
         return () => clearInterval(interval);
     }, [eligibleAgainTimestamp]);

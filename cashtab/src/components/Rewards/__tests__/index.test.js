@@ -169,7 +169,7 @@ describe('<Rewards />', () => {
                         address,
                         isEligible: false,
                         becomesEligible: Math.floor(
-                            (new Date().getTime() + 10000000) / 1000,
+                            (new Date().getTime() + 3000) / 1000,
                         ),
                     }),
             });
@@ -206,6 +206,22 @@ describe('<Rewards />', () => {
 
         // The Claim button is disabled
         expect(claimButton).toHaveProperty('disabled', true);
+
+        // Button is still enabled after enough time has passed
+        // Advance timer long enough for the countdown to be populated
+        act(() => {
+            jest.advanceTimersByTime(2000);
+        });
+
+        // The Claim button is no longer disabled
+        expect(claimButton).toHaveProperty('disabled', false);
+
+        // The Claim button is labeled 'Claim'
+        expect(
+            await screen.findByRole('button', {
+                name: /Claim/,
+            }),
+        ).toBeInTheDocument();
 
         // Return to normal timers
         // Ref https://testing-library.com/docs/using-fake-timers/
