@@ -18,6 +18,17 @@ export const VideoCtn = styled.div`
         ${props => props.theme.filters.grayscale};
     }
 
+    .static_frame_mobile {
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: absolute;
+        margin: auto;
+        z-index: -100;
+    }
+
     .video_gradient {
         background: ${props => props.theme.colors.videocover};
         width: 100%;
