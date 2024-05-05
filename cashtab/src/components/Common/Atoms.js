@@ -59,6 +59,7 @@ export const SwitchLabel = styled.div`
     text-align: left;
     color: ${props => props.theme.contrast};
     font-size: 18px;
+    word-break: break-all;
 `;
 
 export const Alert = styled.div`

@@ -168,8 +168,10 @@ export const NftNameTitle = styled.div`
     font-size: 24px;
     font-weight: bold;
     color: ${props => props.theme.contrast};
+    word-break: break-all;
 `;
 export const NftCollectionTitle = styled.div`
     font-size: 18px;
     color: ${props => props.theme.contrast};
+    word-break: break-all;
 `;
