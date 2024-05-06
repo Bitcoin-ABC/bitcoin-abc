@@ -171,6 +171,12 @@ void log_print_chronik(const rust::Str logging_function,
     }
 }
 
+ChronikBridge::ChronikBridge(const node::NodeContext &node) : m_node{node} {
+    // This class relies on these two members not being nullptr
+    Assert(m_node.chainman);
+    Assert(m_node.mempool);
+}
+
 const CBlockIndex &ChronikBridge::get_chain_tip() const {
     const CBlockIndex *tip =
         WITH_LOCK(cs_main, return m_node.chainman->ActiveTip());
@@ -195,7 +201,8 @@ ChronikBridge::lookup_block_index(std::array<uint8_t, 32> hash) const {
 std::unique_ptr<CBlock>
 ChronikBridge::load_block(const CBlockIndex &bindex) const {
     CBlock block;
-    if (!node::ReadBlockFromDisk(block, &bindex, m_consensus)) {
+    if (!node::ReadBlockFromDisk(block, &bindex,
+                                 m_node.chainman->GetConsensus())) {
         throw std::runtime_error("Reading block data failed");
     }
     return std::make_unique<CBlock>(std::move(block));
@@ -332,10 +339,8 @@ bool ChronikBridge::shutdown_requested() const {
     return ShutdownRequested();
 }
 
-std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
-                                           const node::NodeContext &node) {
-    return std::make_unique<ChronikBridge>(
-        config.GetChainParams().GetConsensus(), node);
+std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node) {
+    return std::make_unique<ChronikBridge>(node);
 }
 
 chronik_bridge::Block bridge_block(const CBlock &block,

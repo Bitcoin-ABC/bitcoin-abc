@@ -50,13 +50,10 @@ void log_print_chronik(const rust::Str logging_function,
  * Bridge to bitcoind to access the node.
  */
 class ChronikBridge {
-    const Consensus::Params &m_consensus;
     const node::NodeContext &m_node;
 
 public:
-    ChronikBridge(const Consensus::Params &consensus,
-                  const node::NodeContext &node)
-        : m_consensus(consensus), m_node(node) {}
+    ChronikBridge(const node::NodeContext &node);
 
     const CBlockIndex &get_chain_tip() const;
 
@@ -85,8 +82,7 @@ public:
     bool shutdown_requested() const;
 };
 
-std::unique_ptr<ChronikBridge> make_bridge(const Config &config,
-                                           const node::NodeContext &node);
+std::unique_ptr<ChronikBridge> make_bridge(const node::NodeContext &node);
 
 Tx bridge_tx(const CTransaction &tx, const std::vector<Coin> &spent_coins);
 

@@ -70,7 +70,7 @@ bool Start(const Config &config, const node::NodeContext &node, bool fWipe) {
                         DEFAULT_TX_NUM_CACHE_BUCKET_SIZE),
                 },
         },
-        config, node);
+        node);
 }
 
 void Stop() {

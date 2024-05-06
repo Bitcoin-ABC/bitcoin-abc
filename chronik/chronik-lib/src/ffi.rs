@@ -52,7 +52,6 @@ mod ffi_inner {
         type Chronik;
         fn setup_chronik(
             params: SetupParams,
-            config: &Config,
             node: &NodeContext,
         ) -> bool;
 

@@ -25,35 +25,33 @@ BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_empty, ChainTestingSetup) {
     }
     // Chain has no blocks yet:
     // get_chain_tip throws block_index_not_found
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     BOOST_CHECK_THROW(bridge.get_chain_tip(),
                       chronik_bridge::block_index_not_found);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_genesis, TestingSetup) {
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     // Check for genesis block
     const CBlockIndex &bindex = bridge.get_chain_tip();
-    BOOST_CHECK_EQUAL(bindex.GetBlockHash(), params.GenesisBlock().GetHash());
+    BOOST_CHECK_EQUAL(bindex.GetBlockHash(),
+                      m_node.chainman->GetParams().GenesisBlock().GetHash());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_chain_tip_100, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
     // Generate new block (at height 101)
     CBlock tip_block = CreateAndProcessBlock(
         {}, CScript() << std::vector<uint8_t>(33) << OP_CHECKSIG);
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     // Check if block is 101th
     const CBlockIndex &bindex = bridge.get_chain_tip();
     BOOST_CHECK_EQUAL(bindex.GetBlockHash(), tip_block.GetHash());
 }
 
 BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
-    BlockHash genesis_hash = params.GenesisBlock().GetHash();
+    const chronik_bridge::ChronikBridge bridge(m_node);
+    BlockHash genesis_hash =
+        m_node.chainman->GetParams().GenesisBlock().GetHash();
     const CBlockIndex &bindex_genesis =
         bridge.lookup_block_index(chronik::util::HashToArray(genesis_hash));
     BOOST_CHECK_EQUAL(bindex_genesis.GetBlockHash(), genesis_hash);
@@ -72,8 +70,7 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_block_index, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
     CBlockIndex *tip = chainman.ActiveTip();
 
@@ -82,7 +79,7 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
                       tip->GetBlockHash());
     // Fork of the genesis block is the genesis block
     BOOST_CHECK_EQUAL(bridge.find_fork(*tip->GetAncestor(0)).GetBlockHash(),
-                      params.GenesisBlock().GetHash());
+                      chainman.GetParams().GenesisBlock().GetHash());
 
     // Invalidate block in the middle of the chain
     BlockValidationState state;
@@ -99,8 +96,7 @@ BOOST_FIXTURE_TEST_CASE(test_find_fork, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     LOCK(cs_main);
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     CCoinsViewCache &coins_cache = chainman.ActiveChainstate().CoinsTip();
 
     CScript anyoneScript = CScript() << OP_1;
@@ -198,8 +194,7 @@ BOOST_FIXTURE_TEST_CASE(test_lookup_spent_coin, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_load_block, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const CBlockIndex &tip = *chainman.ActiveTip();
 
@@ -208,14 +203,13 @@ BOOST_FIXTURE_TEST_CASE(test_load_block, TestChain100Setup) {
     {
         CDataStream expected(SER_NETWORK, PROTOCOL_VERSION);
         CDataStream actual(SER_NETWORK, PROTOCOL_VERSION);
-        expected << params.GenesisBlock();
+        expected << chainman.GetParams().GenesisBlock();
         actual << *bridge.load_block(*tip.GetAncestor(0));
         BOOST_CHECK_EQUAL(HexStr(actual), HexStr(expected));
     }
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const CBlockIndex &tip = *chainman.ActiveTip();
 
@@ -231,7 +225,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
 
     // Genesis block is block 0
     BOOST_CHECK_EQUAL(chronik_bridge::get_block_ancestor(tip, 0).GetBlockHash(),
-                      params.GenesisBlock().GetHash());
+                      chainman.GetParams().GenesisBlock().GetHash());
 
     // Block -1 doesn't exist
     BOOST_CHECK_THROW(chronik_bridge::get_block_ancestor(tip, -1),
@@ -243,13 +237,13 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_ancestor, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_block_info, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const CBlockIndex &tip = *chainman.ActiveTip();
 
     chronik_bridge::BlockInfo expected_genesis_info{
-        .hash = chronik::util::HashToArray(params.GenesisBlock().GetHash()),
+        .hash = chronik::util::HashToArray(
+            chainman.GetParams().GenesisBlock().GetHash()),
         .height = 0};
     BOOST_CHECK(chronik_bridge::get_block_info(*tip.GetAncestor(0)) ==
                 expected_genesis_info);
@@ -262,8 +256,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_info, TestChain100Setup) {
 
 BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
 
     CScript anyoneScript = CScript() << OP_1;
     CScript anyoneP2sh = GetScriptForDestination(ScriptHash(anyoneScript));

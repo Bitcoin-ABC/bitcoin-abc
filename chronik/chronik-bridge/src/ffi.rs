@@ -187,7 +187,6 @@ mod ffi_inner {
 
         /// Make the bridge given the NodeContext
         fn make_bridge(
-            config: &Config,
             node: &NodeContext,
         ) -> UniquePtr<ChronikBridge>;
 

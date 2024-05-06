@@ -111,12 +111,11 @@ void CheckMatchesDisk(const CBlock &block,
 BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
     LOCK(cs_main);
 
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
+    const chronik_bridge::ChronikBridge bridge(m_node);
 
     CBlockIndex *pgenesis = chainman.ActiveTip()->GetAncestor(0);
-    const CBlock &genesisBlock = params.GenesisBlock();
+    const CBlock &genesisBlock = chainman.GetParams().GenesisBlock();
 
     // Loading genesis unblock data returns an empty undo
     std::unique_ptr<CBlockUndo> genesisBlockUndo =
@@ -184,8 +183,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_genesis, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
     LOCK(cs_main);
 
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
     CBlock coinsBlock = CreateAndProcessBlock({}, CScript() << OP_1,
@@ -341,9 +339,8 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_detailled, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_bridge_bad, TestChain100Setup) {
     LOCK(cs_main);
 
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
     ChainstateManager &chainman = *Assert(m_node.chainman);
+    const chronik_bridge::ChronikBridge bridge(m_node);
 
     // Incompatible CBlock and CBlockUndo:
     // CBlock has a tx that the CBlockUndo doesn't have.
@@ -393,10 +390,8 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_bad, TestChain100Setup) {
 BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
     LOCK(cs_main);
 
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
-
     ChainstateManager &chainman = *Assert(m_node.chainman);
+    const chronik_bridge::ChronikBridge bridge(m_node);
 
     std::vector<size_t> testNumTxsCases = {
         0,   1,   2,   3,   10,  62,  63,  64,  65,  126, 127, 128,
@@ -456,8 +451,7 @@ BOOST_FIXTURE_TEST_CASE(test_bridge_big, TestChain100Setup) {
 }
 
 BOOST_FIXTURE_TEST_CASE(test_load_tx_bad, TestChain100Setup) {
-    const CChainParams &params = GetConfig().GetChainParams();
-    const chronik_bridge::ChronikBridge bridge(params.GetConsensus(), m_node);
+    const chronik_bridge::ChronikBridge bridge(m_node);
 
     BOOST_CHECK_EXCEPTION(
         bridge.load_tx(0x7fffffff, 0, 0), std::runtime_error,

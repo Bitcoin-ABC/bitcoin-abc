@@ -41,10 +41,9 @@ use self::ChronikError::*;
 /// Setup the Chronik bridge. Returns a ChronikIndexer object.
 pub fn setup_chronik(
     params: ffi::SetupParams,
-    config: &ffi::Config,
     node: &ffi::NodeContext,
 ) -> bool {
-    match try_setup_chronik(params, config, node) {
+    match try_setup_chronik(params, node) {
         Ok(()) => true,
         Err(report) => {
             log_chronik!("{report:?}\n");
@@ -55,7 +54,6 @@ pub fn setup_chronik(
 
 fn try_setup_chronik(
     params: ffi::SetupParams,
-    config: &ffi::Config,
     node_context: &ffi::NodeContext,
 ) -> Result<()> {
     abc_rust_error::install();
@@ -70,7 +68,7 @@ fn try_setup_chronik(
         .collect::<Result<Vec<_>>>()?;
     PluginContext::setup()?;
     log!("Starting Chronik bound to {:?}\n", hosts);
-    let bridge = chronik_bridge::ffi::make_bridge(config, node_context);
+    let bridge = chronik_bridge::ffi::make_bridge(node_context);
     let bridge_ref = expect_unique_ptr("make_bridge", &bridge);
     let (pause, pause_notify) = Pause::new_pair(params.is_pause_allowed);
     let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
