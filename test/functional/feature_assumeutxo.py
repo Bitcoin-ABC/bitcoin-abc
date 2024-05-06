@@ -27,6 +27,7 @@ Interesting starting states could be loading a snapshot when the current chain t
 - TODO: Not an ancestor or a descendant of the snapshot block and has more work
 
 """
+import os
 from dataclasses import dataclass
 
 from test_framework.messages import CTransaction, FromHex
@@ -200,6 +201,17 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.restart_node(2, extra_args=self.extra_args[2])
 
+    def test_invalid_file_path(self):
+        self.log.info("Test bitcoind should fail when file path is invalid.")
+        node = self.nodes[0]
+        path = os.path.join(node.datadir, self.chain, "invalid", "path")
+        assert_raises_rpc_error(
+            -8,
+            f"Couldn't open file {path} for reading.",
+            node.loadtxoutset,
+            path,
+        )
+
     def run_test(self):
         """
         Bring up two (disconnected) nodes, mine some new blocks on the first,
@@ -287,6 +299,7 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.test_invalid_mempool_state(dump_output["path"])
         self.test_invalid_snapshot_scenarios(dump_output["path"])
+        self.test_invalid_file_path()
 
         self.log.info(f"Loading snapshot into second node from {dump_output['path']}")
         loaded = n1.loadtxoutset(dump_output["path"])
