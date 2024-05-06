@@ -891,9 +891,8 @@ BOOST_AUTO_TEST_CASE(test_IsStandard) {
     g_bare_multi = DEFAULT_PERMIT_BAREMULTISIG;
 }
 
-BOOST_AUTO_TEST_CASE(txsize_activation_test) {
-    const Config &config = GetConfig();
-    const Consensus::Params &params = config.GetChainParams().GetConsensus();
+BOOST_FIXTURE_TEST_CASE(txsize_activation_test, ChainTestingSetup) {
+    const Consensus::Params &params = m_node.chainman->GetConsensus();
     const int32_t magneticAnomalyActivationHeight =
         params.magneticAnomalyHeight;
 

@@ -87,7 +87,7 @@ BOOST_FIXTURE_TEST_CASE(coinstatsindex_initial_sync, TestChain100Setup) {
 // make sure index is not corrupted and is able to reload.
 BOOST_FIXTURE_TEST_CASE(coinstatsindex_unclean_shutdown, TestChain100Setup) {
     Chainstate &chainstate = Assert(m_node.chainman)->ActiveChainstate();
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
     {
         CoinStatsIndex index{1 << 20};
         BOOST_REQUIRE(index.Start(chainstate));

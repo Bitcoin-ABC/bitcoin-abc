@@ -143,7 +143,7 @@ static const CBlockIndex *NextSyncBlock(const CBlockIndex *pindex_prev,
 void BaseIndex::ThreadSync() {
     const CBlockIndex *pindex = m_best_block_index.load();
     if (!m_synced) {
-        auto &consensus_params = GetConfig().GetChainParams().GetConsensus();
+        auto &consensus_params = m_chainstate->m_chainman.GetConsensus();
 
         int64_t last_log_time = 0;
         int64_t last_locator_write_time = 0;

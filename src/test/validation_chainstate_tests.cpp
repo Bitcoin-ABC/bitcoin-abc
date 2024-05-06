@@ -129,7 +129,7 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
     BlockValidationState state;
     bool newblock = false;
 
-    const Config &config = GetConfig();
+    const Config &config = chainman.GetConfig();
     // TODO: much of this is inlined from ProcessNewBlock(); just reuse PNB()
     // once it is changed to support multiple chainstates.
     {

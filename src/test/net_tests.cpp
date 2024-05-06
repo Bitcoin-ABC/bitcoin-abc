@@ -1097,7 +1097,8 @@ BOOST_AUTO_TEST_CASE(avalanche_statistics) {
 }
 
 BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
-    CConnmanTest connman(GetConfig(), 0x1337, 0x1337, *m_node.addrman);
+    CConnmanTest connman(m_node.chainman->GetConfig(), 0x1337, 0x1337,
+                         *m_node.addrman);
 
     auto checkExtraFullOutboundCount = [&](size_t fullOutboundCount,
                                            size_t avalancheOutboundCount,
@@ -1139,8 +1140,8 @@ BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
 }
 
 BOOST_FIXTURE_TEST_CASE(net_group_limit, TestChain100Setup) {
-    m_node.connman = std::make_unique<CConnmanTest>(GetConfig(), 0x1337, 0x1337,
-                                                    *m_node.addrman);
+    m_node.connman = std::make_unique<CConnmanTest>(
+        m_node.chainman->GetConfig(), 0x1337, 0x1337, *m_node.addrman);
     m_node.peerman =
         PeerManager::make(*m_node.connman, *m_node.addrman, m_node.banman.get(),
                           *m_node.chainman, *m_node.mempool, false);
@@ -1310,7 +1311,7 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
         *static_cast<TestChainState *>(&m_node.chainman->ActiveChainstate());
     chainstate.JumpOutOfIbd();
 
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
 
     m_node.peerman->InitializeNode(config, peer, NODE_NETWORK);
 
@@ -1376,7 +1377,8 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
 }
 
 BOOST_AUTO_TEST_CASE(already_connected_to_address) {
-    CConnmanTest connman(GetConfig(), 0x1337, 0x1337, *m_node.addrman);
+    CConnmanTest connman(m_node.chainman->GetConfig(), 0x1337, 0x1337,
+                         *m_node.addrman);
 
     CNetAddr ip1 = ip(GetRand<uint32_t>());
     CNetAddr ip2 = ip(GetRand<uint32_t>());

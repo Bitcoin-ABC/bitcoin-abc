@@ -293,8 +293,8 @@ struct SnapshotTestSetup : TestChain100Setup {
             BOOST_CHECK(!chainman.ActiveChain().Genesis()->IsAssumedValid());
         }
 
-        const AssumeutxoData &au_data = *ExpectedAssumeutxo(
-            snapshot_height, ::GetConfig().GetChainParams());
+        const AssumeutxoData &au_data =
+            *ExpectedAssumeutxo(snapshot_height, chainman.GetParams());
         const CBlockIndex *tip =
             WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip());
 
@@ -397,7 +397,7 @@ struct SnapshotTestSetup : TestChain100Setup {
             chainman.ResetChainstates();
             BOOST_CHECK_EQUAL(chainman.GetAll().size(), 0);
             const ChainstateManager::Options chainman_opts{
-                .config = ::GetConfig(),
+                .config = chainman.GetConfig(),
                 .datadir = m_args.GetDataDirNet(),
                 .adjusted_time_callback = GetAdjustedTime,
             };

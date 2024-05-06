@@ -71,7 +71,7 @@ static bool CheckFilterLookups(BlockFilterIndex &filter_index,
 CBlock BuildChainTestingSetup::CreateBlock(
     const CBlockIndex *prev, const std::vector<CMutableTransaction> &txns,
     const CScript &scriptPubKey) {
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
     std::unique_ptr<CBlockTemplate> pblocktemplate =
         BlockAssembler{config, m_node.chainman->ActiveChainstate(),
                        m_node.mempool.get()}

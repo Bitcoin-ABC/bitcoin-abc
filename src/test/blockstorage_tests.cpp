@@ -36,7 +36,7 @@ void CheckReadTxUndo(FlatFilePos pos, const std::vector<Coin> &expected) {
 
 BOOST_AUTO_TEST_CASE(read_tx_data_from_disk) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    const CChainParams &params = GetConfig().GetChainParams();
+    const CChainParams &params = chainman.GetParams();
 
     // Read 100 existing coinbase txs
     auto active_tip =

@@ -15,8 +15,8 @@
 #include <vector>
 
 static void AssembleBlock(benchmark::Bench &bench) {
-    const Config &config = GetConfig();
     const auto test_setup = MakeNoLogFileContext<const TestingSetup>();
+    const Config &config = test_setup->m_node.chainman->GetConfig();
 
     const CScript redeemScript = CScript() << OP_DROP << OP_TRUE;
     const CScript SCRIPT_PUB =

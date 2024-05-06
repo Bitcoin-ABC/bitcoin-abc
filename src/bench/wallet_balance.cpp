@@ -7,6 +7,7 @@
 #include <consensus/amount.h>
 #include <interfaces/chain.h>
 #include <node/context.h>
+#include <validation.h>
 #include <validationinterface.h>
 #include <wallet/receive.h>
 #include <wallet/wallet.h>
@@ -23,7 +24,7 @@ static void WalletBalance(benchmark::Bench &bench, const bool set_dirty,
 
     const auto &ADDRESS_WATCHONLY = ADDRESS_ECREG_UNSPENDABLE;
 
-    const Config &config = GetConfig();
+    const Config &config = test_setup->m_node.chainman->GetConfig();
 
     CWallet wallet{test_setup->m_node.chain.get(), "",
                    CreateMockWalletDatabase()};

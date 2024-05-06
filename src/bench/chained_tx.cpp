@@ -327,7 +327,7 @@ benchEviction(const Config &, benchmark::Bench &bench,
 /// Tests a chain of 50 1-input-1-output transactions.
 static void MempoolAcceptance50ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     const std::vector<CTransactionRef> chainedTxs = oneInOneOutChain(
         config, createUTXOs(config, 1, test_setup.m_node).back(), 50);
     benchATMP(test_setup.m_node, bench, chainedTxs);
@@ -336,7 +336,7 @@ static void MempoolAcceptance50ChainedTxs(benchmark::Bench &bench) {
 /// Tests a chain of 500 1-input-1-output transactions.
 static void MempoolAcceptance500ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     const std::vector<CTransactionRef> chainedTxs = oneInOneOutChain(
         config, createUTXOs(config, 1, test_setup.m_node).back(), 500);
     benchATMP(test_setup.m_node, bench, chainedTxs);
@@ -345,7 +345,7 @@ static void MempoolAcceptance500ChainedTxs(benchmark::Bench &bench) {
 /// Test a tree of 63 2-inputs-1-output transactions
 static void MempoolAcceptance63TxTree(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     const std::vector<CTransactionRef> chainedTxs =
         twoInOneOutTree(config, test_setup.m_node, 5);
     assert(chainedTxs.size() == 63);
@@ -355,7 +355,7 @@ static void MempoolAcceptance63TxTree(benchmark::Bench &bench) {
 /// Test a tree of 511 2-inputs-1-output transactions
 static void MempoolAcceptance511TxTree(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     const std::vector<CTransactionRef> chainedTxs =
         twoInOneOutTree(config, test_setup.m_node, 8);
     assert(chainedTxs.size() == 511);
@@ -366,7 +366,7 @@ static void MempoolAcceptance511TxTree(benchmark::Bench &bench) {
 /// 1-input-1-output chain.
 static void Reorg10BlocksWith50TxChain(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     benchReorg(config, test_setup.m_node, bench, 10, 50, true);
 }
 
@@ -374,7 +374,7 @@ static void Reorg10BlocksWith50TxChain(benchmark::Bench &bench) {
 /// 1-input-1-output chain.
 static void Reorg10BlocksWith500TxChain(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     benchReorg(config, test_setup.m_node, bench, 10, 500, true);
 }
 
@@ -383,7 +383,7 @@ static void Reorg10BlocksWith500TxChain(benchmark::Bench &bench) {
 /// the mempool during re-connect.
 static void Reorg10BlocksWith50TxChainSkipMempool(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     benchReorg(config, test_setup.m_node, bench, 10, 50, false);
 }
 
@@ -392,14 +392,14 @@ static void Reorg10BlocksWith50TxChainSkipMempool(benchmark::Bench &bench) {
 /// the mempool during re-connect.
 static void Reorg10BlocksWith500TxChainSkipMempool(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     benchReorg(config, test_setup.m_node, bench, 10, 500, false);
 }
 
 /// Generate a block with 50 1-input-1-output transactions
 static void GenerateBlock50ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     const CTxIn utxo = createUTXOs(config, 1, test_setup.m_node).back();
     benchGenerateNewBlock(config, test_setup.m_node, bench,
                           {oneInOneOutChain(config, std::move(utxo), 50)});
@@ -408,7 +408,7 @@ static void GenerateBlock50ChainedTxs(benchmark::Bench &bench) {
 /// Generate a block with 500 1-input-1-output transactions
 static void GenerateBlock500ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     const CTxIn utxo = createUTXOs(config, 1, test_setup.m_node).back();
     benchGenerateNewBlock(config, test_setup.m_node, bench,
                           {oneInOneOutChain(config, std::move(utxo), 500)});
@@ -418,7 +418,7 @@ static void GenerateBlock500ChainedTxs(benchmark::Bench &bench) {
 /// CTxMemPool version, in order of increasing fee
 static void EvictChained50Tx(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     // create 2000 chains of 50 1-in-1-out each
     std::vector<std::vector<CTransactionRef>> chains;
     constexpr int NChains = 2000;
@@ -433,7 +433,7 @@ static void EvictChained50Tx(benchmark::Bench &bench) {
 /// CTxMemPool version, in order of decreasing fee
 static void EvictChained50TxRev(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
-    const Config &config = GetConfig();
+    const Config &config = test_setup.m_node.chainman->GetConfig();
     // create 2000 chains of 50 1-in-1-out each
     std::vector<std::vector<CTransactionRef>> chains;
     constexpr int NChains = 2000;

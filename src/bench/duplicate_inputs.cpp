@@ -21,7 +21,8 @@ static void DuplicateInputs(benchmark::Bench &bench) {
 
     const CScript SCRIPT_PUB{CScript(OP_TRUE)};
 
-    const CChainParams &chainParams = Params();
+    const Config &config = testing_setup->m_node.chainman->GetConfig();
+    const CChainParams &chainParams = config.GetChainParams();
     const Consensus::Params &consensusParams = chainParams.GetConsensus();
 
     CBlock block{};
@@ -63,7 +64,7 @@ static void DuplicateInputs(benchmark::Bench &bench) {
     bench.run([&] {
         BlockValidationState cvstate{};
         assert(!CheckBlock(block, cvstate, consensusParams,
-                           BlockValidationOptions(GetConfig())
+                           BlockValidationOptions(config)
                                .withCheckPoW(false)
                                .withCheckMerkleRoot(false)));
         assert(cvstate.GetRejectReason() == "bad-txns-inputs-duplicate");

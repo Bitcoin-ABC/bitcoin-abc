@@ -10,6 +10,7 @@
 #include <pow/pow.h>
 #include <streams.h>
 #include <txmempool.h>
+#include <validation.h>
 
 #include <test/util/setup_common.h>
 
@@ -92,7 +93,8 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
+        PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
+                                              &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
@@ -196,7 +198,8 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
+        PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
+                                              &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(!partialBlock.IsTxAvailable(0));
@@ -279,7 +282,8 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
+        PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
+                                              &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));
@@ -344,7 +348,8 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {
         CBlockHeaderAndShortTxIDs shortIDs2;
         stream >> shortIDs2;
 
-        PartiallyDownloadedBlock partialBlock(GetConfig(), &pool);
+        PartiallyDownloadedBlock partialBlock(m_node.chainman->GetConfig(),
+                                              &pool);
         BOOST_CHECK(partialBlock.InitData(shortIDs2, extra_txn) ==
                     READ_STATUS_OK);
         BOOST_CHECK(partialBlock.IsTxAvailable(0));

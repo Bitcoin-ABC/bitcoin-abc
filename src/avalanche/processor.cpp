@@ -851,8 +851,7 @@ bool Processor::isQuorumEstablished() {
     // Attempt to compute the staking rewards winner now so we don't have to
     // wait for a block if we already have all the prerequisites.
     const CBlockIndex *pprev = WITH_LOCK(cs_main, return chainman.ActiveTip());
-    if (pprev && IsStakingRewardsActivated(
-                     GetConfig().GetChainParams().GetConsensus(), pprev)) {
+    if (pprev && IsStakingRewardsActivated(chainman.GetConsensus(), pprev)) {
         computeStakingReward(pprev);
     }
 

@@ -64,7 +64,7 @@ BOOST_FIXTURE_TEST_SUITE(denialofservice_tests, TestingSetup)
 BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     LOCK(NetEventsInterface::g_msgproc_mutex);
 
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
 
     ConnmanTestMsg &connman = static_cast<ConnmanTestMsg &>(*m_node.connman);
     // Disable inactivity checks for this test to avoid interference
@@ -147,7 +147,7 @@ static void AddRandomOutboundPeer(const Config &config,
 }
 
 BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
 
     auto connman =
         std::make_unique<CConnmanTest>(config, 0x1337, 0x1337, *m_node.addrman);
@@ -232,7 +232,7 @@ BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
 BOOST_AUTO_TEST_CASE(peer_discouragement) {
     LOCK(NetEventsInterface::g_msgproc_mutex);
 
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
 
     auto banman = std::make_unique<BanMan>(
         m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(peer_discouragement) {
 BOOST_AUTO_TEST_CASE(DoS_bantime) {
     LOCK(NetEventsInterface::g_msgproc_mutex);
 
-    const Config &config = GetConfig();
+    const Config &config = m_node.chainman->GetConfig();
 
     auto banman = std::make_unique<BanMan>(
         m_args.GetDataDirBase() / "banlist.dat", config.GetChainParams(),
