@@ -39,6 +39,7 @@ import {
 import { getUserLocale } from 'helpers';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { toFormattedXec } from 'utils/formatting';
+import debounce from 'lodash.debounce';
 
 const Wallets = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -443,9 +444,14 @@ const Wallets = () => {
                                         </SvgButtonPanel>
                                         <ActivateButton
                                             aria-label={`Activate ${wallet.name}`}
-                                            onClick={() =>
-                                                activateWallet(wallet, wallets)
-                                            }
+                                            onClick={debounce(
+                                                () =>
+                                                    activateWallet(
+                                                        wallet,
+                                                        wallets,
+                                                    ),
+                                                500,
+                                            )}
                                         >
                                             Activate
                                         </ActivateButton>
