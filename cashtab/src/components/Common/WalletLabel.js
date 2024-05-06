@@ -9,8 +9,15 @@ import { getWalletsForNewActiveWallet } from 'wallet';
 import { Event } from 'components/Common/GoogleAnalytics';
 import { getTextWidth } from 'helpers';
 import WalletHeaderActions from 'components/Common/WalletHeaderActions';
+import { toFormattedXec } from 'utils/formatting';
 
 const LabelCtn = styled.div`
+    position: sticky;
+    top: 0px;
+    padding: 12px 20px;
+    ${props => !props.minified && `padding-bottom: 0px;`};
+    z-index: 2;
+    background: ${props => props.theme.walletInfoContainer};
     display: flex;
     align-items: center;
     justify-content: ${props => (props.minified ? 'space-between' : 'center')};
@@ -62,8 +69,22 @@ const WalletOption = styled.option`
         background-color: ${props => props.theme.walletInfoContainer};
     }
 `;
-
-const WalletLabel = ({ wallets, settings, updateCashtabState, minified }) => {
+const MinfiedBalanceXec = styled.div`
+    width: 100%;
+    font-size: 16px;
+    margin-bottom: 0px;
+    font-weight: bold;
+    color: ${props =>
+        props.balanceVisible ? 'transparent' : props.theme.contrast};
+    text-shadow: ${props => (props.balanceVisible ? '0 0 15px #fff' : 'none')};
+`;
+const WalletLabel = ({
+    wallets,
+    settings,
+    updateCashtabState,
+    minified,
+    userLocale = 'en-US',
+}) => {
     const address = wallets[0].paths.get(1899).address;
 
     const handleSelectWallet = e => {
@@ -107,13 +128,18 @@ const WalletLabel = ({ wallets, settings, updateCashtabState, minified }) => {
                     </WalletOption>
                 ))}
             </WalletDropdown>
-            {!minified && (
-                <WalletHeaderActions
-                    address={address}
-                    settings={settings}
-                    updateCashtabState={updateCashtabState}
-                />
+            {minified && (
+                <MinfiedBalanceXec
+                    balanceVisible={settings.balanceVisible === false}
+                >
+                    {toFormattedXec(wallets[0].state.balanceSats, userLocale)}
+                </MinfiedBalanceXec>
             )}
+            <WalletHeaderActions
+                address={address}
+                settings={settings}
+                updateCashtabState={updateCashtabState}
+            />
         </LabelCtn>
     );
 };
@@ -145,6 +171,7 @@ WalletLabel.propTypes = {
     ]),
     updateCashtabState: PropTypes.func,
     minified: PropTypes.bool,
+    userLocale: PropTypes.string,
 };
 
 export default WalletLabel;

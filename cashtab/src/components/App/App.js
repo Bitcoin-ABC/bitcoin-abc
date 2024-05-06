@@ -62,7 +62,6 @@ import {
     CashtabNotification,
     CustomApp,
     Footer,
-    Header,
     NavWrapper,
     NavItem,
     NavIcon,
@@ -75,9 +74,8 @@ import {
     CashtabLogo,
     EasterEgg,
     NavHeader,
-    WalletInfoCtn,
+    BalanceHeaderContainer,
 } from 'components/App/styles';
-import WalletHeaderActions from 'components/Common/WalletHeaderActions';
 import 'react-toastify/dist/ReactToastify.min.css';
 import debounce from 'lodash.debounce';
 
@@ -182,132 +180,114 @@ const App = () => {
                                     <OnBoarding />
                                 ) : (
                                     <>
-                                        <Header>
-                                            <HeaderCtn>
-                                                {process.env
-                                                    .REACT_APP_BUILD_ENV ===
-                                                'extension' ? (
-                                                    <ExtensionHeader
-                                                        path={location.pathname}
-                                                    />
-                                                ) : (
-                                                    <CashtabLogo
-                                                        src={Cashtab}
-                                                        alt="cashtab"
-                                                    />
-                                                )}
-                                                {location.pathname ===
-                                                    '/airdrop' && (
-                                                    <NavHeader>
-                                                        Airdrop
-                                                        <AirdropIcon />
-                                                    </NavHeader>
-                                                )}
-                                                {location.pathname ===
-                                                    '/backup' && (
-                                                    <NavHeader>
-                                                        Wallet Backup
-                                                        <WalletIcon />
-                                                    </NavHeader>
-                                                )}
-                                                {location.pathname ===
-                                                    '/contacts' && (
-                                                    <NavHeader>
-                                                        Contacts
-                                                        <ContactsIcon />
-                                                    </NavHeader>
-                                                )}
-                                                {location.pathname ===
-                                                    '/wallets' && (
-                                                    <NavHeader>
-                                                        Wallets
-                                                        <BankIcon />
-                                                    </NavHeader>
-                                                )}
-                                                {location.pathname ===
-                                                    '/configure' && (
-                                                    <NavHeader>
-                                                        Settings
-                                                        <SettingsIcon />
-                                                    </NavHeader>
-                                                )}
-                                                {location.pathname ===
-                                                    '/signverifymsg' && (
-                                                    <NavHeader>
-                                                        {' '}
-                                                        Sign & Verify Msg
-                                                        <ThemedSignAndVerifyMsg />
-                                                    </NavHeader>
-                                                )}
-                                                {location.pathname ===
-                                                    '/rewards' && (
-                                                    <NavHeader>
-                                                        {' '}
-                                                        Rewards
-                                                        <RewardIcon />
-                                                    </NavHeader>
-                                                )}
-                                                {process.env
-                                                    .REACT_APP_BUILD_ENV !==
-                                                    'extension' && (
-                                                    <>
-                                                        {location.pathname ===
-                                                            '/swap' && (
-                                                            <NavHeader>
-                                                                {' '}
-                                                                Swap
-                                                                <SwapIcon />
-                                                            </NavHeader>
-                                                        )}
-                                                    </>
-                                                )}
-                                                {process.env
-                                                    .REACT_APP_BUILD_ENV !==
-                                                    'extension' && (
-                                                    <>
-                                                        {hasTab && (
-                                                            <EasterEgg
-                                                                src={TabCash}
-                                                                alt="tabcash"
-                                                            />
-                                                        )}
-                                                    </>
-                                                )}
-                                            </HeaderCtn>
-                                            <WalletInfoCtn
-                                                title="Wallet Info"
-                                                minified={minifiedMenu}
-                                            >
-                                                <WalletLabel
-                                                    wallets={wallets}
-                                                    settings={settings}
-                                                    updateCashtabState={
-                                                        updateCashtabState
-                                                    }
-                                                    minified={minifiedMenu}
-                                                ></WalletLabel>
-                                                <BalanceHeader
-                                                    balanceSats={balanceSats}
-                                                    settings={settings}
-                                                    fiatPrice={fiatPrice}
-                                                    locale={navigator.language}
-                                                    minified={minifiedMenu}
+                                        <HeaderCtn>
+                                            {process.env.REACT_APP_BUILD_ENV ===
+                                            'extension' ? (
+                                                <ExtensionHeader
+                                                    path={location.pathname}
                                                 />
-                                                {minifiedMenu && (
-                                                    <WalletHeaderActions
-                                                        address={
-                                                            wallets[0].paths.get(
-                                                                1899,
-                                                            ).address
-                                                        }
-                                                        settings={settings}
-                                                        updateCashtabState={
-                                                            updateCashtabState
-                                                        }
-                                                    />
-                                                )}
-                                            </WalletInfoCtn>
-                                        </Header>
+                                            ) : (
+                                                <CashtabLogo
+                                                    src={Cashtab}
+                                                    alt="cashtab"
+                                                />
+                                            )}
+                                            {location.pathname ===
+                                                '/airdrop' && (
+                                                <NavHeader>
+                                                    Airdrop
+                                                    <AirdropIcon />
+                                                </NavHeader>
+                                            )}
+                                            {location.pathname ===
+                                                '/backup' && (
+                                                <NavHeader>
+                                                    Wallet Backup
+                                                    <WalletIcon />
+                                                </NavHeader>
+                                            )}
+                                            {location.pathname ===
+                                                '/contacts' && (
+                                                <NavHeader>
+                                                    Contacts
+                                                    <ContactsIcon />
+                                                </NavHeader>
+                                            )}
+                                            {location.pathname ===
+                                                '/wallets' && (
+                                                <NavHeader>
+                                                    Wallets
+                                                    <BankIcon />
+                                                </NavHeader>
+                                            )}
+                                            {location.pathname ===
+                                                '/configure' && (
+                                                <NavHeader>
+                                                    Settings
+                                                    <SettingsIcon />
+                                                </NavHeader>
+                                            )}
+                                            {location.pathname ===
+                                                '/signverifymsg' && (
+                                                <NavHeader>
+                                                    {' '}
+                                                    Sign & Verify Msg
+                                                    <ThemedSignAndVerifyMsg />
+                                                </NavHeader>
+                                            )}
+                                            {location.pathname ===
+                                                '/rewards' && (
+                                                <NavHeader>
+                                                    {' '}
+                                                    Rewards
+                                                    <RewardIcon />
+                                                </NavHeader>
+                                            )}
+                                            {process.env.REACT_APP_BUILD_ENV !==
+                                                'extension' && (
+                                                <>
+                                                    {location.pathname ===
+                                                        '/swap' && (
+                                                        <NavHeader>
+                                                            {' '}
+                                                            Swap
+                                                            <SwapIcon />
+                                                        </NavHeader>
+                                                    )}
+                                                </>
+                                            )}
+                                            {process.env.REACT_APP_BUILD_ENV !==
+                                                'extension' && (
+                                                <>
+                                                    {hasTab && (
+                                                        <EasterEgg
+                                                            src={TabCash}
+                                                            alt="tabcash"
+                                                        />
+                                                    )}
+                                                </>
+                                            )}
+                                        </HeaderCtn>
+                                        <WalletLabel
+                                            wallets={wallets}
+                                            settings={settings}
+                                            updateCashtabState={
+                                                updateCashtabState
+                                            }
+                                            minified={minifiedMenu}
+                                            userLocale={navigator.language}
+                                        ></WalletLabel>
+                                        <BalanceHeaderContainer
+                                            title="Wallet Info"
+                                            minified={minifiedMenu}
+                                        >
+                                            <BalanceHeader
+                                                balanceSats={balanceSats}
+                                                settings={settings}
+                                                fiatPrice={fiatPrice}
+                                                userLocale={navigator.language}
+                                            />
+                                        </BalanceHeaderContainer>
                                         <ScreenWrapper>
                                             <Routes>
                                                 <Route

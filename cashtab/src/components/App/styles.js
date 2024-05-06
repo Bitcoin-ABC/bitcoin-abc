@@ -42,6 +42,12 @@ export const CustomApp = styled.div`
     background-image: ${props => props.theme.backgroundImage};
     background-attachment: fixed;
     min-height: 100vh;
+    box-sizing: border-box;
+    *,
+    *:before,
+    *:after {
+        box-sizing: inherit;
+    }
 `;
 export const WalletBody = styled.div`
     display: flex;
@@ -60,19 +66,6 @@ const AppPositionCss = css`
         -webkit-box-shadow: none;
         -moz-box-shadow: none;
         box-shadow: none;
-    }
-`;
-export const Header = styled.div`
-    ${AppPositionCss}
-    position: sticky;
-    z-index: 2;
-    align-items: center;
-    justify-content: space-between;
-    box-sizing: border-box;
-    *,
-    *:before,
-    *:after {
-        box-sizing: inherit;
     }
 `;
 
@@ -322,24 +315,15 @@ export const NavHeader = styled.div`
     }
 `;
 
-export const WalletInfoCtn = styled.div`
+export const BalanceHeaderContainer = styled.div`
     ${props =>
-        props.minified &&
-        `display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: fixed;
-        top: 0;
-        width: 500px;
-        @media (max-width: 768px) {
-            width: 100%;
-        }
-        height: 63px;
-        overflow: hidden;
-        `}
-    background: ${props => props.theme.walletInfoContainer};
+        props.minified
+            ? `background-image: linear-gradient(to bottom, ${props.theme.walletBackground}, ${props.theme.walletInfoContainer})`
+            : `background: ${props.theme.walletInfoContainer}`};
     padding: 12px 20px;
+    padding-top: 0px;
     box-sizing: border-box;
+    transition: all 0.5s ease-in-out;
     *,
     *:before,
     *:after {

@@ -12,20 +12,15 @@ import appConfig from 'config/app';
 import { toXec } from 'wallet';
 import { CashtabLoader } from 'components/Common/Spinner';
 import PropTypes from 'prop-types';
-import { toFormattedXec } from 'utils/formatting';
 
 export const BalanceXec = styled.div`
     width: 100%;
-    font-size: ${props => (props.minified ? '16px' : '28px')};
-    ${props =>
-        props.minified &&
-        `text-align: center;
-        `}
+    font-size: 28px;
     margin-bottom: 0px;
     font-weight: bold;
     line-height: 1.4em;
     @media (max-width: 768px) {
-        font-size: ${props => (props.minified ? '16px' : '24px')};
+        font-size: 24px;
     }
     color: ${props =>
         props.balanceVisible ? 'transparent' : props.theme.contrast};
@@ -56,13 +51,12 @@ const BalanceHeader = ({
     settings = new CashtabSettings(),
     fiatPrice = null,
     userLocale = 'en-US',
-    minified = false,
 }) => {
     // If navigator.language is undefined, default to en-US
     userLocale = typeof userLocale === 'undefined' ? 'en-US' : userLocale;
 
     const renderBalanceHeader = Number.isInteger(balanceSats);
-    const renderFiatValues = typeof fiatPrice === 'number' && !minified;
+    const renderFiatValues = typeof fiatPrice === 'number';
 
     let balanceXec,
         formattedBalanceXec,
@@ -72,12 +66,10 @@ const BalanceHeader = ({
         // Display XEC balance formatted for user's browser locale
         balanceXec = toXec(balanceSats);
 
-        formattedBalanceXec = minified
-            ? toFormattedXec(balanceSats, userLocale)
-            : balanceXec.toLocaleString(userLocale, {
-                  minimumFractionDigits: appConfig.cashDecimals,
-                  maximumFractionDigits: appConfig.cashDecimals,
-              });
+        formattedBalanceXec = balanceXec.toLocaleString(userLocale, {
+            minimumFractionDigits: appConfig.cashDecimals,
+            maximumFractionDigits: appConfig.cashDecimals,
+        });
 
         if (renderFiatValues) {
             // Display fiat balance formatted for user's browser locale
@@ -105,7 +97,6 @@ const BalanceHeader = ({
             <BalanceXec
                 title="Balance in XEC"
                 balanceVisible={settings.balanceVisible === false}
-                minified={minified}
             >
                 {formattedBalanceXec} {appConfig.ticker}{' '}
             </BalanceXec>
@@ -145,7 +136,6 @@ BalanceHeader.propTypes = {
     ]),
     fiatPrice: PropTypes.number,
     userLocale: PropTypes.string,
-    minified: PropTypes.bool,
 };
 
 export default BalanceHeader;
