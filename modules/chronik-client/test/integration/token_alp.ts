@@ -13,6 +13,8 @@ import {
     Token_InNode,
     TxHistoryPage_InNode,
     Tx_InNode,
+    WsEndpoint_InNode,
+    WsMsgClient,
 } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
@@ -39,6 +41,8 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
     let setupScriptTermination: ReturnType<typeof setTimeout>;
+    // Collect websocket msgs in an array for analysis in each step
+    let msgCollector: Array<WsMsgClient> = [];
 
     before(async function () {
         // Initialize testRunner before mocha tests
@@ -131,6 +135,9 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     });
 
     afterEach(() => {
+        // Reset msgCollector after each step
+        msgCollector = [];
+
         testRunner.send('next');
     });
 
@@ -208,10 +215,61 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
     let confirmedTxsForAlpGenesisTxid: TxHistoryPage_InNode;
 
+    let ws: WsEndpoint_InNode;
+
+    const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
+        type: 'Tx',
+        msgType: 'TX_ADDED_TO_MEMPOOL',
+        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
+    const BASE_CONFIRMED_WSMSG: WsMsgClient = {
+        type: 'Tx',
+        msgType: 'TX_CONFIRMED',
+        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
+    const MSG_WAIT_MSECS = 1000;
+
     it('Gets an ALP genesis tx from the mempool', async () => {
         const chronik = new ChronikClientNode(chronikUrl);
 
         alpGenesisTxid = await get_alp_genesis_txid;
+
+        // Connect to the websocket with a testable onMessage handler
+        ws = chronik.ws({
+            onMessage: msg => {
+                return msgCollector.push(msg);
+            },
+        });
+        await ws.waitForOpen();
+
+        // We can subscribe to an alp token by tokenId
+        ws.subscribeToTokenId(alpGenesisTxid);
+
+        // ws.subs.tokens is updated to include the tokenId
+        expect(ws.subs.tokens).to.deep.equal([alpGenesisTxid]);
+
+        // We cannot unsubscribe from something not in this.subs.tokens
+        expect(() =>
+            ws.unsubscribeFromTokenId(
+                '1111111111111111111111111111111111111111111111111111111111111111',
+            ),
+        ).to.throw(
+            `No existing sub at tokenId "1111111111111111111111111111111111111111111111111111111111111111"`,
+        );
+
+        // We can unsubscribe from an alp token by tokenId
+        ws.unsubscribeFromTokenId(alpGenesisTxid);
+
+        // ws.subs.tokens is updated so that this txid (tokenId) is removed
+        expect(ws.subs.tokens).to.deep.equal([]);
+
+        // We cannot subscribe to an invalid tokenId
+        expect(() => ws.subscribeToTokenId('not a tokenid')).to.throw(
+            `Invalid tokenId: "not a tokenid". tokenId must be 64 characters of lowercase hex.`,
+        );
+
+        // Resubscribe to an alp token by tokenId to listen for msgs
+        ws.subscribeToTokenId(alpGenesisTxid);
 
         // We can get an alp genesis tx from the mempool
         alpGenesis = await chronik.tx(alpGenesisTxid);
@@ -393,6 +451,16 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         // We can get an alp mint tx from the mempool
         alpMintTxid = await get_alp_mint_txid;
 
+        // We see alpMintTxid from our websocket subscription to tokenId alpGenesisTxid
+        while (msgCollector.length < 1) {
+            // Wait for expected ws msg
+            // If it does not come in, test will time out
+            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+        }
+        expect(msgCollector).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: alpMintTxid },
+        ]);
+
         alpMint = await chronik.tx(alpMintTxid);
 
         // We get expected inputs including expected Token data
@@ -473,6 +541,16 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
         // We can get an alp send tx from the mempool
         alpSendTxid = await get_alp_send_txid;
+
+        // We see the alpSendTxid from our websocket subscription to tokenId alpGenesisTxid
+        while (msgCollector.length < 1) {
+            // Wait for expected ws msg
+            // If it does not come in, test will time out
+            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+        }
+        expect(msgCollector).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: alpSendTxid },
+        ]);
 
         alpSend = await chronik.tx(alpSendTxid);
 
@@ -559,6 +637,9 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         // We can get another alp genesis tx from the mempool
         alpNextGenesisTxid = await get_alp_genesis2_txid;
 
+        // We DO NOT see alpNextGenesisTxid as we are not subscribed to this tokenid
+        expect(msgCollector).to.deep.equal([]);
+
         alpNextGenesis = await chronik.tx(alpNextGenesisTxid);
 
         // We get expected inputs including expected Token data
@@ -639,6 +720,16 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
 
         // We can get an ALP GENESIS + MINT + SEND all in one tx from the mempool
         alpMultiTxid = await get_alp_multi_txid;
+
+        // We see alpMultiTxid in the websocket from our subscription to alpGenesisTxid
+        while (msgCollector.length < 1) {
+            // Wait for expected ws msg
+            // If it does not come in, test will time out
+            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+        }
+        expect(msgCollector).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: alpMultiTxid },
+        ]);
 
         alpMulti = await chronik.tx(alpMultiTxid);
 
@@ -1189,6 +1280,21 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
                 confirmedTxsForAlpGenesisTxid.txs[i].tokenEntries,
             ).to.deep.equal(broadcastAlpTxsOfAlpGenesisTokenId[i].tokenEntries);
         }
+
+        // We get expected websocket msgs for this event
+        while (msgCollector.length < 5) {
+            // Wait for expected ws msg
+            // If it does not come in, test will time out
+            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+        }
+        // The TX_CONFIRMED ws msgs come in block order, i.e. alphabetical by txid
+        expect(msgCollector).to.deep.equal([
+            { ...BASE_CONFIRMED_WSMSG, txid: alpMintTxid }, // 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f
+            { ...BASE_CONFIRMED_WSMSG, txid: alpMegaTxid }, // 72101f535470e0a6de7db9ba0ba115845566f738cc5124255b472347b5927565
+            { ...BASE_CONFIRMED_WSMSG, txid: alpGenesisTxid }, // bb4d71aa6c0a92144f854402f2677975ad86d3a72cb7b0fb48d02473a88fc6e2
+            { ...BASE_CONFIRMED_WSMSG, txid: alpMultiTxid }, // e3c47f14d7ba3ab9a6f32a0fa8fcac41d06d3af595ebb5bab77ad03633a52eba
+            { ...BASE_CONFIRMED_WSMSG, txid: alpSendTxid }, // e623ab8971c93fa1a831a4310da65554c8dfd811c16cd5d41c6612268cb5dd5f
+        ]);
     });
     it('Can get confirmed and unconfirmed txs from tokenId.history()', async () => {
         const chronik = new ChronikClientNode(chronikUrl);

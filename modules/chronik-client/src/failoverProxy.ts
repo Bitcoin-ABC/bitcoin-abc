@@ -300,7 +300,10 @@ export class FailoverProxy {
                                   wsEndpoint.subs.lokadIds.forEach(lokadId =>
                                       wsEndpoint.subscribeToLokadId(lokadId),
                                   );
-                                  // TODO subscribe to all tokenIds in subs.tokens
+                                  // Subscribe to all previously-subscribed tokenIds
+                                  wsEndpoint.subs.tokens.forEach(tokenId =>
+                                      wsEndpoint.subscribeToTokenId(tokenId),
+                                  );
 
                                   // Subscribe to blocks method, if previously subscribed
                                   if (wsEndpoint.subs.blocks === true) {

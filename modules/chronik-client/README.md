@@ -108,3 +108,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   0.26.1 - If websocket takes longer than 5s to connect, try the next ws
 -   0.26.2 - Return type `number` for `timeFirstSeen` from `chronik.token()` endpoint in `ChronikClientNode`
 -   0.27.0 - Support for `lokadId` endpoints and websocket subscriptions
+-   0.28.0 - Support for websocket subscriptions by `tokenID`

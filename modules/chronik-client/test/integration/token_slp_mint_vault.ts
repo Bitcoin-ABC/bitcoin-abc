@@ -7,7 +7,12 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode, Tx_InNode } from '../../index';
+import {
+    ChronikClientNode,
+    Tx_InNode,
+    WsEndpoint_InNode,
+    WsMsgClient,
+} from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -24,10 +29,13 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     let get_vault_setup_txid: Promise<string>;
     let get_slp_vault_genesis_txid: Promise<string>;
     let get_slp_vault_mint_txid: Promise<string>;
+    let get_slp_mint_vault_mint_tx_valid_txid: Promise<string>;
     const statusEvent = new EventEmitter();
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
     let setupScriptTermination: ReturnType<typeof setTimeout>;
+    // Collect websocket msgs in an array for analysis in each step
+    let msgCollector: Array<WsMsgClient> = [];
 
     before(async function () {
         // Initialize testRunner before mocha tests
@@ -55,6 +63,12 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
             if (message && message.slp_vault_mint_txid) {
                 get_slp_vault_mint_txid = new Promise(resolve => {
                     resolve(message.slp_vault_mint_txid);
+                });
+            }
+
+            if (message && message.slp_mint_vault_mint_tx_valid_txid) {
+                get_slp_mint_vault_mint_tx_valid_txid = new Promise(resolve => {
+                    resolve(message.slp_mint_vault_mint_tx_valid_txid);
                 });
             }
         });
@@ -90,6 +104,9 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     });
 
     afterEach(() => {
+        // Reset msgCollector after each step
+        msgCollector = [];
+
         testRunner.send('next');
     });
 
@@ -132,10 +149,25 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     let vaultSetupTxid = '';
     let slpVaultGenesisTxid = '';
     let slpVaultMintTxid = '';
+    let validSlpVaultMintTxid = '';
 
     let vaultSetup: Tx_InNode;
     let slpVaultGenesis: Tx_InNode;
     let slpVaultMint: Tx_InNode;
+
+    let ws: WsEndpoint_InNode;
+
+    const BASE_CONFIRMED_WSMSG: WsMsgClient = {
+        type: 'Tx',
+        msgType: 'TX_CONFIRMED',
+        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
+    const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
+        type: 'Tx',
+        msgType: 'TX_ADDED_TO_MEMPOOL',
+        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+    };
+    const MSG_WAIT_MSECS = 1000;
 
     it('Gets an SLP vault setup tx from the mempool', async () => {
         const chronik = new ChronikClientNode(chronikUrl);
@@ -205,6 +237,17 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
 
         slpVaultGenesisTxid = await get_slp_vault_genesis_txid;
 
+        // Connect to the websocket with a testable onMessage handler
+        ws = chronik.ws({
+            onMessage: msg => {
+                return msgCollector.push(msg);
+            },
+        });
+        await ws.waitForOpen();
+        // Subscribe to slpVaultGenesisTxid
+        ws.subscribeToTokenId(slpVaultGenesisTxid);
+        // Note: ws subs and unsubs tested in token_alp.ts
+
         slpVaultGenesis = await chronik.tx(slpVaultGenesisTxid);
 
         // We get expected inputs
@@ -245,8 +288,7 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         expect(slpVaultGenesis.tokenEntries).to.deep.equal([
             {
                 ...BASE_TOKEN_ENTRY,
-                tokenId:
-                    '768626ba27515513f148d714453bd2964f0de49c6686fa54da56ae4e19387c70',
+                tokenId: slpVaultGenesisTxid,
                 tokenType: {
                     protocol: 'SLP',
                     type: 'SLP_TOKEN_TYPE_MINT_VAULT',
@@ -289,6 +331,9 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         const chronik = new ChronikClientNode(chronikUrl);
 
         slpVaultMintTxid = await get_slp_vault_mint_txid;
+
+        // We DO NOT see the slpVaultMintTxid from our websocket subscription to slpVaultGenesisTxid
+        expect(msgCollector).to.deep.equal([]);
 
         slpVaultMint = await chronik.tx(slpVaultMintTxid);
 
@@ -341,5 +386,28 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
 
         // Not normal status (missing mint vault)
         expect(slpVaultMint.tokenStatus).to.eql('TOKEN_STATUS_NOT_NORMAL');
+    });
+    it('We DO NOT see the mint tx in the websocket subscription when the genesis tx confirms (but we do see the genesis tx confirm)', async () => {
+        // We see the slpVaultMintTxid from our websocket subscription to slpVaultGenesisTxid
+        while (msgCollector.length < 1) {
+            // Wait for expected ws msg
+            // If it does not come in, test will time out
+            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+        }
+        expect(msgCollector).to.deep.equal([
+            { ...BASE_CONFIRMED_WSMSG, txid: slpVaultGenesisTxid },
+        ]);
+    });
+    it('We see a new vault mint if the genesis is confirmed (and, so, it is valid)', async () => {
+        validSlpVaultMintTxid = await get_slp_mint_vault_mint_tx_valid_txid;
+        // We see slpMintTxid from our websocket subscription to slpGenesisTxid
+        while (msgCollector.length < 1) {
+            // Wait for expected ws msg
+            // If it does not come in, test will time out
+            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+        }
+        expect(msgCollector).to.deep.equal([
+            { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: validSlpVaultMintTxid },
+        ]);
     });
 });

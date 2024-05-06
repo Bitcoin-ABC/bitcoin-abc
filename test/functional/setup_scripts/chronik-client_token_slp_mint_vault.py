@@ -16,8 +16,10 @@ from test_framework.address import (
     P2SH_OP_TRUE,
     SCRIPTSIG_OP_TRUE,
 )
+from test_framework.blocktools import create_block, create_coinbase
 from test_framework.chronik.slp import slp_genesis, slp_mint_vault
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
+from test_framework.p2p import P2PDataStore
 from test_framework.script import OP_12, OP_EQUAL, OP_HASH160, CScript, hash160
 from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal
@@ -36,6 +38,7 @@ class ChronikClientTokenSlpMintVault(SetupFramework):
         from test_framework.chronik.client import pb
 
         node = self.nodes[0]
+        peer = node.add_p2p_connection(P2PDataStore())
 
         mocktime = 1300000000
         node.setmocktime(mocktime)
@@ -139,6 +142,48 @@ class ChronikClientTokenSlpMintVault(SetupFramework):
             slp_mint_vault_mint_tx.serialize().hex()
         )
         send_ipc_message({"slp_vault_mint_txid": slp_mint_vault_mint_tx_txid})
+        yield True
+
+        self.log.info("Step 5: Mine SLP V2 MINT VAULT MINT")
+        # Mine only the GENESIS tx
+        block_height = 103
+        block = create_block(
+            int(block_hashes[-1], 16),
+            create_coinbase(block_height, b"\x03" * 33),
+            1300000500,
+        )
+        block.vtx += [slp_vault_genesis_tx]
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
+        peer.send_blocks_and_test([block], node)
+        assert_equal(node.getblockcount(), 103)
+        yield True
+
+        self.log.info("Step 6: Mint vault tx after genesis has confirmed")
+        slp_mint_vault_mint_tx_valid = CTransaction()
+        slp_mint_vault_mint_tx_valid.vin = [
+            CTxIn(
+                COutPoint(int(vault_setup_txid, 16), 1),
+                CScript([bytes(CScript([OP_12]))]),
+            )
+        ]
+        slp_mint_vault_mint_tx_valid.vout = [
+            CTxOut(
+                0,
+                slp_mint_vault(
+                    token_id=slp_vault_genesis_tx_txid,
+                    mint_amounts=[5000],
+                ),
+            ),
+            CTxOut(546, P2SH_OP_TRUE),
+        ]
+        slp_mint_vault_mint_tx_valid.rehash()
+        slp_mint_vault_mint_tx_valid_txid = node.sendrawtransaction(
+            slp_mint_vault_mint_tx_valid.serialize().hex()
+        )
+        send_ipc_message(
+            {"slp_mint_vault_mint_tx_valid_txid": slp_mint_vault_mint_tx_valid_txid}
+        )
         yield True
 
 

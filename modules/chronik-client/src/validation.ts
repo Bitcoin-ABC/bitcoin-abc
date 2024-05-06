@@ -6,6 +6,7 @@ import { WsSubScriptClient } from './ChronikClientNode';
 
 const VALID_HEX_REGEX = new RegExp(/^[a-f0-9]+$/);
 const VALID_LOKADID_REGEX = new RegExp(/^[a-f0-9]{8}$/);
+const VALID_TOKENID_REGEX = new RegExp(/^[a-f0-9]{64}$/);
 
 export const isValidWsSubscription = (
     subscription: WsSubScriptClient,
@@ -53,6 +54,14 @@ export const verifyLokadId = (lokadId: string) => {
     if (!VALID_LOKADID_REGEX.test(lokadId)) {
         throw new Error(
             `Invalid lokadId: "${lokadId}". lokadId must be 4 bytes (8 chars) of lowercase hex.`,
+        );
+    }
+};
+
+export const verifyTokenId = (tokenId: string) => {
+    if (!VALID_TOKENID_REGEX.test(tokenId)) {
+        throw new Error(
+            `Invalid tokenId: "${tokenId}". tokenId must be 64 characters of lowercase hex.`,
         );
     }
 };

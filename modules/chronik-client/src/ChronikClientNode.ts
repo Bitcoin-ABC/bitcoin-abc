@@ -9,7 +9,11 @@ import * as proto from '../proto/chronikNode';
 import { BlockchainInfo, OutPoint } from './ChronikClient';
 import { FailoverProxy } from './failoverProxy';
 import { fromHex, toHex, toHexRev } from './hex';
-import { isValidWsSubscription, verifyLokadId } from './validation';
+import {
+    isValidWsSubscription,
+    verifyLokadId,
+    verifyTokenId,
+} from './validation';
 
 type MessageEvent = ws.MessageEvent | { data: Blob };
 
@@ -611,10 +615,7 @@ export class WsEndpoint_InNode {
         this.unsubscribeFromScript(type as 'p2pkh' | 'p2sh', hash as string);
     }
 
-    /**
-     * Subscribe to a lokadId
-     * Receive updates when token txs including this lokadId are broadcast
-     */
+    /** Subscribe to a lokadId */
     public subscribeToLokadId(lokadId: string) {
         verifyLokadId(lokadId);
 
@@ -645,6 +646,40 @@ export class WsEndpoint_InNode {
         if (this.ws?.readyState === WebSocket.OPEN) {
             // Send unsubscribe msg to chronik server
             this._subUnsubLokadId(true, lokadId);
+        }
+    }
+
+    /** Subscribe to a tokenId */
+    public subscribeToTokenId(tokenId: string) {
+        verifyTokenId(tokenId);
+
+        // Update ws.subs to include this tokenId
+        this.subs.tokens.push(tokenId);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send subscribe msg to chronik server
+            this._subUnsubToken(false, tokenId);
+        }
+    }
+
+    /** Unsubscribe from the given tokenId */
+    public unsubscribeFromTokenId(tokenId: string) {
+        // Find the requested unsub tokenId and remove it
+        const unsubIndex = this.subs.tokens.findIndex(
+            thisTokenId => thisTokenId === tokenId,
+        );
+        if (unsubIndex === -1) {
+            // If we cannot find this subscription in this.subs.tokens, throw an error
+            // We do not want an app developer thinking they have unsubscribed from something if no action happened
+            throw new Error(`No existing sub at tokenId "${tokenId}"`);
+        }
+
+        // Remove the requested tokenId subscription from this.subs.tokens
+        this.subs.tokens.splice(unsubIndex, 1);
+
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            // Send unsubscribe msg to chronik server
+            this._subUnsubToken(true, tokenId);
         }
     }
 
@@ -694,6 +729,21 @@ export class WsEndpoint_InNode {
                 // User input for lokadId is string
                 // Chronik expects bytes
                 lokadId: fromHex(lokadId),
+            },
+        }).finish();
+
+        if (this.ws === undefined) {
+            throw new Error('Invalid state; _ws is undefined');
+        }
+
+        this.ws.send(encodedSubscription);
+    }
+
+    private _subUnsubToken(isUnsub: boolean, tokenId: string) {
+        const encodedSubscription = proto.WsSub.encode({
+            isUnsub,
+            tokenId: {
+                tokenId: tokenId,
             },
         }).finish();
 
