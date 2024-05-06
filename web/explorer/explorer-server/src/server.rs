@@ -413,10 +413,16 @@ impl Server {
                                     slp-token-type-2.md"
                                 )
                             }
-                            SlpTokenType::Nft1Group
-                            | SlpTokenType::Nft1Child => {
+                            SlpTokenType::Nft1Group => {
                                 (
-                                    "SLP NFT-1",
+                                    "SLP NFT-1 Group",
+                                    "https://github.com/simpleledger/\
+                                    slp-specifications/blob/master/slp-nft-1.md"
+                                )
+                            }
+                            SlpTokenType::Nft1Child => {
+                                (
+                                    "SLP NFT-1 Child",
                                     "https://github.com/simpleledger/\
                                     slp-specifications/blob/master/slp-nft-1.md"
                                 )
