@@ -250,7 +250,7 @@ case "$HOST" in
 esac
 
 # Produce the source package if it does not already exist
-if ! ls "${OUTDIR_BASE}"/bitcoin-abc-*.tar.gz 1> /dev/null 2>&1; then
+if ! ls "${OUTDIR_BASE}"/src/bitcoin-abc-*.tar.gz 1> /dev/null 2>&1; then
     mkdir -p source_package
     pushd source_package
 
@@ -280,11 +280,12 @@ if ! ls "${OUTDIR_BASE}"/bitcoin-abc-*.tar.gz 1> /dev/null 2>&1; then
     # Correct tar file order
     tar -xf ${SOURCEDIST}
     rm ${SOURCEDIST}
-    tar --create --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > "${OUTDIR_BASE}/${SOURCEDIST}"
+    mkdir -p "${OUTDIR_BASE}/src"
+    tar --create --mode='u+rw,go+r-w,a+X' ${DISTNAME} | gzip -9n > "${OUTDIR_BASE}/src/${SOURCEDIST}"
     rm -rf ${DISTNAME}
 else
     echo Skipping source package generation because it already exists.
-    DISTNAME=$(basename -s .tar.gz "${OUTDIR_BASE}"/bitcoin-abc-*.tar.gz)
+    DISTNAME=$(basename -s .tar.gz "${OUTDIR_BASE}"/src/bitcoin-abc-*.tar.gz)
 fi
 
 mkdir -p "$OUTDIR"
@@ -456,14 +457,18 @@ mv --no-target-directory "$OUTDIR" "$ACTUAL_OUTDIR" \
 
 (
     cd "${OUTDIR_BASE}"
-    find "$ACTUAL_OUTDIR" -type f -print0 \
+
+    pushd "${ACTUAL_OUTDIR}"
+    find . -type f -print0 \
       | xargs -0 realpath --relative-base="$PWD" \
       | xargs sha256sum \
       | sort -k2 \
-      | sponge "$ACTUAL_OUTDIR"/SHA256SUMS.part
+      | sponge "SHA256SUMS.part"
+    popd
+
     # $SOURCEDIST is defined if the source package was created for this host.
     if [ -n "${SOURCEDIST}" ]; then
-        sha256sum ${SOURCEDIST} >> "$ACTUAL_OUTDIR"/SHA256SUMS.part
+        sha256sum "src/${SOURCEDIST}" >> "$ACTUAL_OUTDIR"/SHA256SUMS.part
     fi
     cat "$ACTUAL_OUTDIR"/SHA256SUMS.part
 )
