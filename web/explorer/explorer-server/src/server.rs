@@ -7,8 +7,7 @@ use std::{
 use askama::Template;
 use axum::{response::Redirect, routing::get, Router};
 use bitcoinsuite_chronik_client::proto::{
-    token_type, AlpTokenType, ScriptUtxo, SlpTokenType, TokenInfo, TokenTxType,
-    TokenType,
+    token_type, ScriptUtxo, SlpTokenType, TokenInfo, TokenTxType, TokenType,
 };
 use bitcoinsuite_chronik_client::{proto::OutPoint, ChronikClient};
 use bitcoinsuite_core::{CashAddress, Hashed, Sha256d};
@@ -318,78 +317,12 @@ impl Server {
                 let tx_type = TokenTxType::from_i32(token_entry.tx_type)
                     .ok_or_else(|| eyre!("Malformed token_entry.tx_type"))?;
 
-                let action_str = match token_type {
-                    token_type::TokenType::Slp(slp) => {
-                        let slp_token_type = SlpTokenType::from_i32(slp)
-                            .ok_or_else(|| eyre!("Malformed SlpTokenType"))?;
-                        match (slp_token_type, tx_type) {
-                            (SlpTokenType::Fungible, TokenTxType::Genesis) => {
-                                "SLP GENESIS"
-                            }
-                            (SlpTokenType::Fungible, TokenTxType::Mint) => {
-                                "SLP MINT"
-                            }
-                            (SlpTokenType::Fungible, TokenTxType::Send) => {
-                                "SLP SEND"
-                            }
-                            (SlpTokenType::Fungible, TokenTxType::Burn) => {
-                                "SLP BURN"
-                            }
-                            (SlpTokenType::Nft1Group, TokenTxType::Genesis) => {
-                                "NFT1 GROUP GENESIS"
-                            }
-                            (SlpTokenType::Nft1Group, TokenTxType::Mint) => {
-                                "NFT1 GROUP MINT"
-                            }
-                            (SlpTokenType::Nft1Group, TokenTxType::Send) => {
-                                "NFT1 GROUP SEND"
-                            }
-                            (SlpTokenType::Nft1Group, TokenTxType::Burn) => {
-                                "NFT1 GROUP BURN"
-                            }
-                            (SlpTokenType::Nft1Child, TokenTxType::Genesis) => {
-                                "NFT1 Child GENESIS"
-                            }
-                            (SlpTokenType::Nft1Child, TokenTxType::Send) => {
-                                "NFT1 Child SEND"
-                            }
-                            (SlpTokenType::Nft1Child, TokenTxType::Burn) => {
-                                "NFT1 Child BURN"
-                            }
-                            (SlpTokenType::MintVault, TokenTxType::Genesis) => {
-                                "SLP Type2 GENESIS"
-                            }
-                            (SlpTokenType::MintVault, TokenTxType::Mint) => {
-                                "SLP Type2 MINT"
-                            }
-                            (SlpTokenType::MintVault, TokenTxType::Send) => {
-                                "SLP Type2 SEND"
-                            }
-                            (SlpTokenType::MintVault, TokenTxType::Burn) => {
-                                "SLP Type2 BURN"
-                            }
-                            _ => "SLP Unknown",
-                        }
-                    }
-                    token_type::TokenType::Alp(alp) => {
-                        let alp_token_type = AlpTokenType::from_i32(alp)
-                            .ok_or_else(|| eyre!("Malformed AlpTokenType"))?;
-                        match (alp_token_type, tx_type) {
-                            (AlpTokenType::Standard, TokenTxType::Genesis) => {
-                                "ALP GENESIS"
-                            }
-                            (AlpTokenType::Standard, TokenTxType::Mint) => {
-                                "ALP MINT"
-                            }
-                            (AlpTokenType::Standard, TokenTxType::Send) => {
-                                "ALP SEND"
-                            }
-                            (AlpTokenType::Standard, TokenTxType::Burn) => {
-                                "ALP BURN"
-                            }
-                            _ => "ALP Unknown",
-                        }
-                    }
+                let action_str = match tx_type {
+                    TokenTxType::Genesis => "GENESIS",
+                    TokenTxType::Mint => "MINT",
+                    TokenTxType::Send => "SEND",
+                    TokenTxType::Burn => "BURN",
+                    _ => "Unknown",
                 };
 
                 let (token_type_str, specification) = match token_type {
@@ -441,12 +374,13 @@ impl Server {
 
                 (
                     format!(
-                        "Token Details ({}{} Transaction)",
+                        "Token Details ({}{} {} Transaction)",
                         if token_entry.is_invalid {
                             "Invalid "
                         } else {
                             ""
                         },
+                        &token_type_str,
                         &action_str,
                     )
                     .into(),
