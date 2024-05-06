@@ -11,7 +11,6 @@ module.exports = {
         'https://chronik.be.cash/xec',
     ],
     blockExplorer: 'https://explorer.e.cash',
-    stakerPeerApi: 'https://avalanche.cash/api/recentstakingpayouts/XEC',
     priceApi: {
         apiBase: 'https://api.coingecko.com/api/v3/simple/price',
         cryptos: [

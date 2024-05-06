@@ -87,35 +87,6 @@ module.exports = {
         }
         return false;
     },
-    /**
-     * Get staker's peer name as set on https://ecash.coin.dance/avalanche
-     * Note these peerNames are available at api endpoint https://avalanche.cash/api/recentstakingpayouts/XEC
-     * @param {object} parsedBlock the object returned by the parseBlock function in parse.js
-     * @returns {string | boolean} peerName or false if it cannot be determined
-     */
-    getStakerPeerName: async function (parsedBlock) {
-        if (!parsedBlock.staker) {
-            // Don't look for peerName if no staker
-            return;
-        }
-        try {
-            const resp = await axios.get(config.stakerPeerApi);
-            const { data } = resp;
-            // Match blockheight of parsedBlock with results from recent staking winners
-            const thisBlockWinner = data.filter(
-                winner => winner.blockHeight === parsedBlock.height.toString(),
-            );
-            if (
-                thisBlockWinner.length === 1 &&
-                typeof thisBlockWinner[0].peerName !== 'undefined'
-            ) {
-                return thisBlockWinner[0].peerName;
-            }
-        } catch (err) {
-            console.log(`Error in getting staker peerName`, err);
-        }
-        return false;
-    },
     formatPrice: function (price, fiatCode) {
         // Get symbol
         let fiatSymbol = config.fiatReference[fiatCode];

@@ -1318,7 +1318,6 @@ module.exports = {
      * Build a string formatted for Telegram's API using HTML encoding
      * @param {object} parsedBlock
      * @param {array or false} coingeckoPrices if no coingecko API error
-     * @param {string | false} avalanchePeerName avalanche peername of staking rwd winner if available
      * @param {Map or false} tokenInfoMap if no chronik API error
      * @param {Map or false} addressInfoMap if no chronik API error
      * @returns {function} splitOverflowTgMsg(tgMsg)
@@ -1326,7 +1325,6 @@ module.exports = {
     getBlockTgMessage: function (
         parsedBlock,
         coingeckoPrices,
-        avalanchePeerName,
         tokenInfoMap,
         outputScriptInfoMap,
     ) {
@@ -1721,9 +1719,7 @@ module.exports = {
                     coingeckoPrices,
                 )} to <a href="${config.blockExplorer}/address/${
                     staker.staker
-                }">${returnAddressPreview(staker.staker)}</a>${
-                    avalanchePeerName ? ` | ${avalanchePeerName}` : ''
-                }`,
+                }">${returnAddressPreview(staker.staker)}</a>`,
             );
         }
 

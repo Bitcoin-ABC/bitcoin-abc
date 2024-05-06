@@ -30,7 +30,6 @@ const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
 // Create a bot that uses 'polling' to fetch new updates
 const telegramBotDev = new TelegramBot(botId, { polling: true });
-const recentStakersApiResponse = require('../test/mocks/recentStakersApiResponse');
 
 /**
  * generateMock.js
@@ -204,7 +203,6 @@ async function generateMock(
 
     // Mock a successful API request
     mock.onGet(getCoingeckoApiUrl(config)).reply(200, coingeckoResponse);
-    mock.onGet(config.stakerPeerApi).reply(200, recentStakersApiResponse);
 
     // Generate app mocks using this block
     // TODO need to mock all the calls here

@@ -20,9 +20,7 @@ const {
     getEmojiFromBalanceSats,
     bigNumberAmountToLocaleString,
     containsOnlyPrintableAscii,
-    getStakerPeerName,
 } = require('../src/utils');
-const peerNameTests = require('./fixtures/peerNames');
 const { addressPreviews, mockCoingeckoPrices } = require('./mocks/templates');
 
 describe('ecash-telegram-bot utils.js functions', function () {
@@ -33,30 +31,6 @@ describe('ecash-telegram-bot utils.js functions', function () {
                 returnAddressPreview(address, sliceSize),
                 preview,
             );
-        }
-    });
-    it('getStakerPeerName finds expected staker', async function () {
-        for (let peerNameTest of peerNameTests) {
-            const { parsedBlock, apiResponse, peerName } = peerNameTest;
-            const mock = new MockAdapter(axios, {
-                onNoMatch: 'throwException',
-            });
-
-            if (apiResponse) {
-                // Mock a successful API request
-                mock.onGet().reply(200, apiResponse);
-
-                // Check that parsedBlock.staker now has expected peerName key
-                assert.strictEqual(
-                    await getStakerPeerName(parsedBlock),
-                    peerName,
-                );
-            } else {
-                // Mock API error
-                mock.onGet().reply(500, new Error('some error'));
-                // parsedBlock.staker has no peerName key after function is called if api error
-                assert.strictEqual(await getStakerPeerName(parsedBlock), false);
-            }
         }
     });
     it('getCoingeckoPrices returns object of expected shape for config API call', async function () {

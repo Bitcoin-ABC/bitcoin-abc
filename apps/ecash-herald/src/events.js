@@ -4,7 +4,7 @@
 'use strict';
 const config = require('../config');
 const { parseBlock, getBlockTgMessage } = require('./parse');
-const { getCoingeckoPrices, getStakerPeerName } = require('./utils');
+const { getCoingeckoPrices } = require('./utils');
 const { sendBlockSummary } = require('./telegram');
 const { getTokenInfoMap, getOutputscriptInfoMap } = require('./chronik');
 
@@ -61,7 +61,6 @@ module.exports = {
         }
 
         const parsedBlock = parseBlock(blockDetails);
-        const avalanchePeerName = await getStakerPeerName(parsedBlock);
         // Get token genesis info for token IDs in this block
         const { tokenIds, outputScripts } = parsedBlock;
 
@@ -80,7 +79,6 @@ module.exports = {
         const blockSummaryTgMsgs = getBlockTgMessage(
             parsedBlock,
             coingeckoPrices,
-            avalanchePeerName,
             tokenInfoMap,
             outputScriptInfoMap,
         );
@@ -94,7 +92,6 @@ module.exports = {
                 blockDetails,
                 parsedBlock,
                 coingeckoResponse,
-                avalanchePeerName,
                 coingeckoPrices,
                 tokenInfoMap,
                 outputScriptInfoMap,
@@ -102,7 +99,6 @@ module.exports = {
                 blockSummaryTgMsgsApiFailure: getBlockTgMessage(
                     parsedBlock,
                     false, // failed coingecko price lookup
-                    false, // failed avalanche peerName lookup
                     false, // failed chronik token ID lookup
                 ),
             };

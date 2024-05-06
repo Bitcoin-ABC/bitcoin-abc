@@ -17,7 +17,6 @@ const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 const { MockTelegramBot, mockChannelId } = require('./mocks/telegramBotMock');
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
-const recentStakersApiResponse = require('../test/mocks/recentStakersApiResponse');
 
 describe('ecash-herald chronikWsHandler.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
@@ -174,7 +173,6 @@ describe('ecash-herald chronikWsHandler.js', async function () {
 
         // Mock a successful API request
         mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
-        mock.onGet(config.stakerPeerApi).reply(200, recentStakersApiResponse);
 
         const result = await parseWebsocketMessage(
             mockedChronik,
@@ -254,7 +252,6 @@ describe('ecash-herald chronikWsHandler.js', async function () {
 
         // Mock a failed API request
         mock.onGet(getCoingeckoApiUrl(config)).reply(500, { error: 'error' });
-        mock.onGet(config.stakerPeerApi).reply(500, { error: 'some error' });
 
         const result = await parseWebsocketMessage(
             mockedChronik,
