@@ -6,8 +6,8 @@
 
 #include <kernel/mempool_options.h>
 
-#include <chainparams.h>
 #include <consensus/amount.h>
+#include <kernel/chainparams.h>
 #include <policy/policy.h>
 #include <tinyformat.h>
 #include <util/error.h>

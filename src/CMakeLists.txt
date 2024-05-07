@@ -538,6 +538,7 @@ add_library(common
 	feerate.cpp
 	core_read.cpp
 	core_write.cpp
+	kernel/chainparams.cpp
 	key.cpp
 	key_io.cpp
 	merkleblock.cpp
@@ -844,6 +845,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 	#       like index/*.cpp will be removed.
 	add_library(bitcoinkernel
 		kernel/bitcoinkernel.cpp
+		kernel/chainparams.cpp
 		kernel/coinstats.cpp
 		kernel/cs_main.cpp
 		kernel/disconnected_transactions.cpp

@@ -4,7 +4,6 @@
 
 #include <config.h>
 
-#include <chainparams.h>
 #include <consensus/consensus.h> // DEFAULT_MAX_BLOCK_SIZE
 
 GlobalConfig::GlobalConfig()
@@ -25,7 +24,14 @@ uint64_t GlobalConfig::GetMaxBlockSize() const {
     return nMaxBlockSize;
 }
 
+void GlobalConfig::SetChainParams(const CChainParams chainParamsIn) {
+    chainParams.emplace(chainParamsIn);
+}
+
 const CChainParams &GlobalConfig::GetChainParams() const {
+    if (chainParams) {
+        return *chainParams;
+    }
     return Params();
 }
 

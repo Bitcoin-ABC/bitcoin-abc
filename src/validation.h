@@ -16,7 +16,6 @@
 #include <blockfileinfo.h>
 #include <blockindexcomparators.h>
 #include <chain.h>
-#include <chainparams.h>
 #include <common/bloom.h>
 #include <config.h>
 #include <consensus/amount.h>
@@ -25,6 +24,7 @@
 #include <disconnectresult.h>
 #include <flatfile.h>
 #include <fs.h>
+#include <kernel/chainparams.h>
 #include <kernel/chainstatemanager_opts.h>
 #include <kernel/cs_main.h>
 #include <node/blockstorage.h>

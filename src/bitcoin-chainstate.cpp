@@ -11,6 +11,7 @@
 //
 // It is part of the libbitcoinkernel project.
 
+#include <kernel/chainparams.h>
 #include <kernel/validation_cache_sizes.h>
 
 #include <chainparams.h>
@@ -55,7 +56,10 @@ int main(int argc, char *argv[]) {
 
     // SETUP: Misc Globals
     SelectParams(CBaseChainParams::MAIN);
-    const Config &config = GetConfig();
+
+    auto chainparams = CChainParams::Main(CChainParams::ChainOptions{});
+    auto &config = const_cast<Config &>(GetConfig());
+    config.SetChainParams(*chainparams);
 
     // ECC_Start, etc.
     init::SetGlobals();

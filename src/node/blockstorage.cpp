@@ -6,13 +6,13 @@
 
 #include <blockindexcomparators.h>
 #include <chain.h>
-#include <chainparams.h>
 #include <clientversion.h>
 #include <config.h>
 #include <consensus/validation.h>
 #include <flatfile.h>
 #include <fs.h>
 #include <hash.h>
+#include <kernel/chainparams.h>
 #include <pow/pow.h>
 #include <reverse_iterator.h>
 #include <shutdown.h>

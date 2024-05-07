@@ -308,6 +308,7 @@ public:
     bool SetMaxBlockSize(uint64_t maxBlockSize) override { return false; }
     uint64_t GetMaxBlockSize() const override { return 32'000'000; }
 
+    void SetChainParams(const CChainParams chainParamsIn) override {}
     const CChainParams &GetChainParams() const override { return *chainParams; }
 
     void SetCashAddrEncoding(bool) override {}

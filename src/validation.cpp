@@ -6,6 +6,7 @@
 
 #include <validation.h>
 
+#include <kernel/chainparams.h>
 #include <kernel/coinstats.h>
 #include <kernel/disconnected_transactions.h>
 #include <kernel/mempool_entry.h>
