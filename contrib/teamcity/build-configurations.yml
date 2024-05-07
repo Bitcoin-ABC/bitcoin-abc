@@ -749,10 +749,33 @@ builds:
       JEST_JUNIT_OUTPUT_DIR: "test/junit"
       JEST_JUNIT_OUTPUT_NAME: "cashtab.xml"
     script: |
-      # Cashtab tests depend on mock-chronik-cleint
-      # Install any mock-chronik-client dependencies before running tests
+      # Cashtab tests depend on libraries hosted in the monorepo
+      # Install their dependencies (and build them, if necessary) before tests
+      # ecashaddrjs
+      echo "Installing ecashaddrjs dependencies..."
+      pushd "${TOPLEVEL}/modules/ecashaddrjs"
+      npm ci
+      npm run build
+
+      # mock-chronik-client
       echo "Installing mock-chronik-client dependencies..."
       pushd "${TOPLEVEL}/modules/mock-chronik-client"
+      npm ci
+
+      # chronik-client
+      echo "Installing chronik-client dependencies..."
+      pushd "${TOPLEVEL}/modules/chronik-client"
+      npm ci
+      npm run build
+
+      # ecash-coinselect
+      echo "Installing ecash-coinselect dependencies..."
+      pushd "${TOPLEVEL}/modules/ecash-coinselect"
+      npm ci
+
+      # ecash-script
+      echo "Installing ecash-script dependencies..."
+      pushd "${TOPLEVEL}/modules/ecash-script"
       npm ci
 
       pushd "${TOPLEVEL}/cashtab"

@@ -5,12 +5,36 @@
 # Stage 1
 FROM node:20-buster-slim AS builder
 
-WORKDIR /app
+# Build all local Cashtab dependencies
 
+# ecashaddrjs
+WORKDIR /app/modules/ecashaddrjs
+COPY modules/ecashaddrjs/ .
+RUN npm ci
+RUN npm run build
+
+# chronik-client
+WORKDIR /app/modules/chronik-client
+COPY modules/chronik-client/ .
+RUN npm ci
+RUN npm run build
+
+# ecash-coinselect
+WORKDIR /app/modules/ecash-coinselect
+COPY modules/ecash-coinselect/ .
+RUN npm ci
+
+# ecash-script
+WORKDIR /app/modules/ecash-script
+COPY modules/ecash-script/ .
+RUN npm ci
+
+# Now that local dependencies are ready, build cashtab
+WORKDIR /app/cashtab
 # Copy only the package files and install necessary dependencies.
 # This reduces cache busting when source files are changed.
-COPY package.json .
-COPY package-lock.json .
+COPY cashtab/package.json .
+COPY cashtab/package-lock.json .
 
 # Docker should not rebuild deps just because package.json version bump
 # So, always keep package.json and package-lock.json at 1.0.0 in the docker image
@@ -19,7 +43,7 @@ RUN npm version --allow-same-version 1.0.0
 RUN npm ci
 
 # Copy the rest of the project files and build
-COPY . .
+COPY cashtab/ .
 RUN npm run build
 
 # Stage 2
@@ -27,10 +51,9 @@ FROM nginx
 
 ARG NGINX_CONF=nginx.conf
 
-COPY $NGINX_CONF /etc/nginx/conf.d/default.conf
+COPY cashtab/$NGINX_CONF /etc/nginx/conf.d/default.conf
 # Set working directory to nginx asset directory
 # Copy static assets from builder stage
-COPY --from=builder /app/build /usr/share/nginx/html/
-EXPOSE 80
+COPY --from=builder /app/cashtab/build /usr/share/nginx/html/
 # Containers run nginx with global directives and daemon off
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
