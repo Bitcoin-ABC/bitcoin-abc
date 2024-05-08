@@ -119,6 +119,15 @@ templates:
         npm ci
       fi
 
+      # Install ecash-coinselect dependencies if this test uses them
+      if [ -z "${DEPENDS_ECASH_COINSELECT+x}" ] ; then
+        echo "Test does not depend on ecash-coinselect, skipping ecash-coinselect dependencies..."
+      else
+        echo "Test depends on ecash-coinselect. Installing ecash-coinselect dependencies..."
+        pushd "${TOPLEVEL}/modules/ecash-coinselect"
+        npm ci
+      fi
+
       pushd "${TOPLEVEL}/${JS_PROJECT_ROOT}"
 
       MOCHA_JUNIT_DIR="test_results"
@@ -855,6 +864,9 @@ builds:
     env:
       JS_PROJECT_ROOT: apps/token-server
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
+      DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
+      DEPENDS_ECASH_COINSELECT: "true"
       RUN_NPM_BUILD: "true"
     templates:
       - js-mocha
