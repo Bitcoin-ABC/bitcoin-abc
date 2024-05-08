@@ -85,7 +85,7 @@ describe('<Home />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Initially, Home component is not rendered
-        expect(screen.queryByTitle('Tx History')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('tx-history')).not.toBeInTheDocument();
 
         // Initially, Loading ctn is rendered
         expect(screen.getByTitle('Cashtab Loading')).toBeInTheDocument();
@@ -101,7 +101,7 @@ describe('<Home />', () => {
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
         // The home screen is in the document
-        expect(await screen.findByTitle('Tx History')).toBeInTheDocument();
+        expect(await screen.findByTestId('tx-history')).toBeInTheDocument();
 
         // No API Error
         await waitFor(() =>

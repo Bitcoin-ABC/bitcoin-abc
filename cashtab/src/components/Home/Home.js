@@ -140,7 +140,7 @@ const Home = () => {
     return (
         <>
             {apiError && <ApiError />}
-            <TxHistoryCtn title="Tx History">
+            <TxHistoryCtn data-testid="tx-history">
                 <TxHistory
                     txs={Array.isArray(parsedTxHistory) ? parsedTxHistory : []}
                     hashes={hashes}

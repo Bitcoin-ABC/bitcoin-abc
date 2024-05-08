@@ -165,7 +165,7 @@ describe('<Configure />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Click the hamburger menu
         await user.click(screen.queryByTitle('Show Other Screens'));
@@ -274,7 +274,7 @@ describe('<Configure />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Click the hamburger menu
         await user.click(screen.queryByTitle('Show Other Screens'));
@@ -350,7 +350,7 @@ describe('<Configure />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Click the hamburger menu
         await user.click(screen.queryByTitle('Show Other Screens'));
@@ -459,7 +459,7 @@ describe('<Configure />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Click the hamburger menu
         await user.click(screen.queryByTitle('Show Other Screens'));

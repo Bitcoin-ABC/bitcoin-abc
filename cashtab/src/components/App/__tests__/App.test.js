@@ -217,7 +217,7 @@ describe('<App />', () => {
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Navigate to Send screen
         await user.click(
@@ -378,7 +378,7 @@ describe('<App />', () => {
         );
 
         // We see the home container
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Open the collapse of this tx in tx history to see the panel options
         // We can click anywhere on this tx
@@ -441,7 +441,7 @@ describe('<App />', () => {
         );
 
         // We see the home container
-        await screen.findByTitle('Tx History');
+        await screen.findByTestId('tx-history');
 
         // Open the collapse of this tx in tx history to see the panel options
         // We can click anywhere on this tx
@@ -695,7 +695,7 @@ describe('<App />', () => {
         );
 
         // We are forwarded to the home screen after the wallet loads
-        expect(await screen.findByTitle('Tx History')).toBeInTheDocument();
+        expect(await screen.findByTestId('tx-history')).toBeInTheDocument();
 
         // The imported wallet is in localforage
         const wallets = await localforage.getItem('wallets');
