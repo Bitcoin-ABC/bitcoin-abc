@@ -189,6 +189,16 @@ templates:
       PROJECT_NAME="$(basename ${JS_PROJECT_ROOT})"
       TEST_SUITE_NAME="$(project_to_suite ${PROJECT_NAME})"
 
+      # Install ecashaddrjs dependencies if this test uses them
+      if [ -z "${DEPENDS_ECASHADDRJS+x}" ] ; then
+        echo "Test does not depend on ecashaddrjs, skipping ecashaddrjs dependencies..."
+      else
+        echo "Test depends on ecashaddrjs. Installing ecashaddrjs dependencies..."
+        pushd "${TOPLEVEL}/modules/ecashaddrjs"
+        npm ci
+        npm run build
+      fi
+
       # Build ecash-lib-wasm for ecash-lib's WebAssembly part
       if [ -z "${DEPENDS_ECASH_LIB_WASM+x}" ] ; then
         echo "Test does not depend on ecash-lib-wasm, skipping"
@@ -840,6 +850,9 @@ builds:
       - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/alias-server
+      DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_ECASH_SCRIPT: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
     templates:
       - js-mocha
@@ -885,7 +898,10 @@ builds:
       - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: apps/examples
+      DEPENDS_ECASHADDRJS: "true"
+      DEPENDS_CHRONIK_CLIENT: "true"
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
+      DEPENDS_ECASH_COINSELECT: "true"
     templates:
       - js-mocha
 
@@ -894,6 +910,7 @@ builds:
       - modules/chronik-client/
     env:
       JS_PROJECT_ROOT: modules/chronik-client
+      DEPENDS_ECASHADDRJS: "true"
     templates:
       - js-mocha
 
@@ -903,6 +920,7 @@ builds:
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       RUN_NPM_BUILD: "true"
+      DEPENDS_ECASHADDRJS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
     templates:
@@ -920,6 +938,7 @@ builds:
       - modules/ecash-lib/
     env:
       JS_PROJECT_ROOT: modules/ecash-agora
+      DEPENDS_ECASHADDRJS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
       DEPENDS_ECASH_LIB: "true"
@@ -937,6 +956,7 @@ builds:
       - modules/ecash-lib/
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
+      DEPENDS_ECASHADDRJS: "true"
       DEPENDS_ECASH_LIB_WASM: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
     templates:
@@ -952,6 +972,7 @@ builds:
       - modules/chronik-client/
     env:
       JS_PROJECT_ROOT: modules/chronik-client
+      DEPENDS_ECASHADDRJS: "true"
     templates:
       - js-mocha-integration-tests
 
