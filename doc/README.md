@@ -14,19 +14,20 @@ If you download the associated signature files with the binaries from the above 
 you can verify the integrity of the binaries by following these instructions, replacing
 VERSION with the value relevant to you:
 
-Get the keys for versions 0.20.11 or later:
+Get the keys for versions 0.29.4 or later:
 ```
-VERSION="0.20.11"
+VERSION="0.29.4"
 URL="https://download.bitcoinabc.org/${VERSION}/src/bitcoin-abc-${VERSION}.tar.gz"
-KEYS_FILE="bitcoin-abc-${VERSION}/contrib/gitian-signing/keys.txt"
+KEYS_FILE="bitcoin-abc-${VERSION}/contrib/signing/keys.txt"
 wget -q -O - "${URL}" | tar -zxOf - "${KEYS_FILE}" | while read FINGERPRINT _; do gpg --recv-keys "${FINGERPRINT}"; done
 ```
 
-Get the keys for versions 0.20.10 or earlier:
+Get the keys for versions 0.29.3 or earlier:
 ```
-VERSION="0.20.10"
-URL="https://raw.githubusercontent.com/Bitcoin-ABC/bitcoin-abc/v${VERSION}/contrib/gitian-signing/keys.txt"
-wget -q -O - "${URL}" | awk 1 | while read FINGERPRINT _; do gpg --recv-keys "${FINGERPRINT}"; done
+VERSION="0.29.3"
+URL="https://download.bitcoinabc.org/${VERSION}/src/bitcoin-abc-${VERSION}.tar.gz"
+KEYS_FILE="bitcoin-abc-${VERSION}/contrib/gitian-signing/keys.txt"
+wget -q -O - "${URL}" | tar -zxOf - "${KEYS_FILE}" | while read FINGERPRINT _; do gpg --recv-keys "${FINGERPRINT}"; done
 ```
 
 Check the binaries (all versions):
@@ -75,7 +76,7 @@ The following are developer notes on how to build Bitcoin ABC on your native pla
 - [macOS Build Notes](build-osx.md)
 - [Unix Build Notes](build-unix.md)
 - [Windows Build Notes](build-windows.md)
-- [Gitian Building Guide](gitian-building.md)
+- [GUIX Building Guide](/contrib/guix/README.md)
 
 Development
 ---------------------
@@ -115,5 +116,3 @@ License
 ---------------------
 Distribution is done under the [MIT software license](/COPYING).
 This product includes software developed by the OpenSSL Project for use in the [OpenSSL Toolkit](https://www.openssl.org/), cryptographic software written by Eric Young ([eay@cryptsoft.com](mailto:eay@cryptsoft.com)), and UPnP software written by Thomas Bernard.
-The `gitian-builder` software developed by the Gitian Developers and distributed
-as part of the project is [licenced](../contrib/gitian-builder/LICENSE) under the [GNU General Public License version 3](../contrib/gitian-builder/COPYING).

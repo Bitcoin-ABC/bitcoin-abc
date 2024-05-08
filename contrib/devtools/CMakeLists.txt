@@ -36,7 +36,6 @@ exclude_from_source_package(
 	"circular-dependencies.py"
 	"copyright_header.py"
 	"extract_strings_qt.py"
-	"gitian-build.py"
 	"optimize-pngs.py"
 	"README.md"
 	"test-security-check.py"

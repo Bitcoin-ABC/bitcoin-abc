@@ -6,7 +6,7 @@ set -euo pipefail
 
 help_message() {
   (cat <<EOF
-Output sha256sums from Gitian build output.
+Output sha256sums from GUIX build output.
 Usage: $0 AssetDirectory Prefix > sha256sums
 Prefix will be matched in the manifest and then removed from the final output.
 EOF

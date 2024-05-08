@@ -1,6 +1,0 @@
-Downloader
-
-* incremental update of dest directory
-  * overwrite existing files (optionally balk if sha256sum changed)
-  * remove empty dirs as result of file remove
-* json

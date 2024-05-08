@@ -1,13 +1,6 @@
 ---
 # Templates can be referenced in builds to avoid duplication
 templates:
-  gitian_builds:
-    script: |
-      "${TOPLEVEL}/contrib/teamcity/gitian.sh"
-    timeout: 9000
-    artifacts:
-      gitian-results: ''
-
   guix_builds:
     script: |
       "${TOPLEVEL}/contrib/teamcity/guix.sh"
@@ -691,24 +684,6 @@ builds:
     targets:
       - - check-source-control-tools
     timeout: 600
-
-  gitian-linux:
-    templates:
-      - gitian_builds
-    env:
-      OS_NAME: linux
-
-  gitian-osx:
-    templates:
-      - gitian_builds
-    env:
-      OS_NAME: osx
-
-  gitian-win:
-    templates:
-      - gitian_builds
-    env:
-      OS_NAME: win
 
   guix-linux:
     templates:

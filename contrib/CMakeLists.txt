@@ -11,9 +11,6 @@ exclude_from_source_package(
 	# Subdirectories
 	"aur/"
 	"debian/"
-	"gitian/"
-	"gitian-builder/"
-	"gitian-descriptors/"
 	"qos/"
 	"seeds/"
 	"teamcity/"
@@ -24,7 +21,6 @@ exclude_from_source_package(
 
 	# Files
 	"bitcoin-qt.pro"
-	"gitian-build.py"
 	"README.md"
 	"valgrind.supp"
 )

@@ -13,7 +13,7 @@ RELEASE_NOTES_DIR="${TOPLEVEL}/doc/release-notes"
 help_message() {
   echo "Create a draft Github release and upload binaries."
   echo "Usage: $0 <options>"
-  echo "-a, --asset-dir       Path to the top-level directory outputted by a Gitian build."
+  echo "-a, --asset-dir       Path to the top-level directory outputted by a GUIX build."
   echo "                      This directory must contain linux, osx, and win binaries in those respective sub-directories."
   echo "-d, --dry-run         Run through the script, but do not touch existing tags, push to Github, or upload release files."
   echo "-h, --help            Display this help message."

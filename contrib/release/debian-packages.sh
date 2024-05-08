@@ -13,7 +13,7 @@ DEFAULT_DISTROS+=("jammy")
 DEFAULT_PPA="bitcoin-abc"
 DPUT_CONFIG_FILE=~/".dput.cf"
 TOPLEVEL="$(git rev-parse --show-toplevel)"
-KEYS_TXT="${TOPLEVEL}"/contrib/gitian-signing/keys.txt
+KEYS_TXT="${TOPLEVEL}"/contrib/signing/keys.txt
 
 help_message() {
 cat <<EOF

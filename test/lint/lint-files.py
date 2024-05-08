@@ -27,11 +27,6 @@ ALLOWED_EXECUTABLE_SHEBANG = {
     "sh": [b"#!/usr/bin/env bash", b"#!/bin/sh"],
 }
 
-# Exceptions
-
-# Global exceptions, none of the tests are run on these files.
-THIRD_PARTY_DIR = "contrib/gitian-builder/"
-
 # JS files are treated as common files rather than source files, as they frequently
 # use mixedCase in their names.
 ALLOWED_FILENAME_EXCEPTION = "web/e.cash/pages/blog/[slug].js"
@@ -91,8 +86,6 @@ def get_git_file_metadata() -> Dict[str, FileMeta]:
     files = {}
     for file_spec in files_raw:
         meta = FileMeta(file_spec)
-        if meta.file_path.startswith(THIRD_PARTY_DIR):
-            continue
         files[meta.file_path] = meta
     return files
 
@@ -224,9 +217,7 @@ def check_shebang_file_permissions(files_meta) -> int:
     # within the file so we need to filter the list to only files with the shebang on
     # the first line
     filenames = [
-        filename.split(":1:")[0]
-        for filename in filenames
-        if ":1:" in filename and not filename.startswith(THIRD_PARTY_DIR)
+        filename.split(":1:")[0] for filename in filenames if ":1:" in filename
     ]
 
     failed_tests = 0
