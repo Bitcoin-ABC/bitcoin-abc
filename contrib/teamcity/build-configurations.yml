@@ -889,6 +889,7 @@ builds:
       - modules/mock-chronik-client/
     env:
       JS_PROJECT_ROOT: modules/mock-chronik-client
+      DEPENDS_ECASHADDRJS: "true"
     templates:
       - js-mocha
 

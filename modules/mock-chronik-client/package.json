@@ -1,6 +1,6 @@
 {
     "dependencies": {
-        "ecashaddrjs": "^1.5.2"
+        "ecashaddrjs": "file:../ecashaddrjs"
     },
     "name": "mock-chronik-client",
     "description": "Testing utility to mock the Chronik indexer client and support unit tests that need to mock chronik related API calls.",
