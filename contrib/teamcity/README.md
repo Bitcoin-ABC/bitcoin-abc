@@ -10,10 +10,10 @@ Basic steps for creating a new TeamCity build agent.
 ## Create a new, empty VM
 
 Select the following options:
-1. OS: Debian (Stretch; Ubuntu works as a backup option)
+1. OS: Debian
 2. Disk Space: 20GB (Disk space can be increased later. Always start with the smallest disk space necessary to reduce overhead costs)
 3. CPUs: 4+ (recommended 8+ for IBD and GUIX builds)
-4. Memory: 8GB+ (minimum 32GB for running IBD)
+4. Memory: 8GB+ (minimum 32GB for running IBD and 64GB for TSAN builds)
 
 ## Setup user to run builds
 
