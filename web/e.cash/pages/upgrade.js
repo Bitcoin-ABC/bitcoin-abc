@@ -13,6 +13,7 @@ const oldVersion = `0.28.12`;
 
 function Upgrade(props) {
     const latestVersion = props.latestVersion;
+    const latestMajor = latestVersion.split('.', 2).join('.').concat('.x');
 
     return (
         <Layout>
@@ -33,8 +34,8 @@ function Upgrade(props) {
                 <H3 text="Who needs to upgrade?" id="who" />
                 <p>
                     All operators of a Bitcoin ABC full node must upgrade to the
-                    latest major version ({latestVersion}). This is available at
-                    the Bitcoin ABC{' '}
+                    latest major version {latestMajor} (current latest version
+                    is {latestVersion}). This is available at the Bitcoin ABC{' '}
                     <Link href="https://bitcoinabc.org/releases/">
                         Releases Page
                     </Link>
