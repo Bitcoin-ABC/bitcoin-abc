@@ -89,11 +89,12 @@ export default function CoreTech() {
                     >
                         <p>
                             Avalanche is a revolutionary consensus algorithm
-                            that enables instant transactions, enhanced
-                            security, and fork-free upgrades. Other bitcoin
-                            competitors (like Bitcoin Cash) lost significant
-                            value from contentious (and seemingly endless)
-                            forks.
+                            integrated with eCash&apos;s core Proof-of-Work,
+                            enabling instant transactions, enhanced security,
+                            subnets, staking rewards for node operators and
+                            fork-free upgrades. This hybrid consensus model
+                            pushes eCash to the forefront of blockchain
+                            technology.
                         </p>
                         <ButtonRow>
                             <Button
