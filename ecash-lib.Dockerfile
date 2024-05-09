@@ -14,6 +14,11 @@ RUN apt-get update \
 WORKDIR /app/
 COPY Cargo.toml .
 
+# Copy chronik to same directory structure as monorepo
+# This needs to be in place to run ./build-wasm
+WORKDIR /app/chronik/
+COPY chronik/ .
+
 # Copy ecash-lib and ecash-lib-wasm files to same directory structure as monorepo
 WORKDIR /app/modules/ecash-lib
 COPY modules/ecash-lib .
@@ -31,6 +36,7 @@ WORKDIR /app/modules
 COPY --from=WasmBuilder /app/modules .
 
 # Build out local dependencies of ecash-lib
+
 # chronik-client
 WORKDIR /app/modules/chronik-client
 COPY modules/chronik-client/ .
