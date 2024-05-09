@@ -84,7 +84,7 @@ Section -Main SEC0000
     File "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/@CPACK_NSIS_EXECUTABLES_DIRECTORY@/bitcoin-cli.exe"
     SetOutPath $INSTDIR\doc
     File /r "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/doc\*.md"
-    File /r /x bitcoin_logo_doxygen.png "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/doc\*.png"
+    File /r /x /nonfatal bitcoin_logo_doxygen.png "@CPACK_TEMPORARY_INSTALL_DIRECTORY@/doc\*.png"
     SetOutPath $INSTDIR
     WriteRegStr HKCU "${REGKEY}\Components" Main 1
 SectionEnd
