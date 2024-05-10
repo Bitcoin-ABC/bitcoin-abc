@@ -14,6 +14,7 @@ import subnets from '/public/animations/subnets.json';
 import calculate from '/public/animations/calculate.json';
 import cashfusion from '/public/animations/cashfusion.json';
 import AnimateImage from '/components/animate-image';
+import chronik from '/public/animations/services.json';
 import {
     TextImageBlockCtn,
     LeftTopArrow,
@@ -147,22 +148,6 @@ export default function CoreTech() {
                     </TextImageBlock>
 
                     <TextImageBlock
-                        id="etokens"
-                        title="eTokens"
-                        image={spiningcoin}
-                        speed={0.8}
-                    >
-                        <p>
-                            eCash supports tokens that anyone can create and
-                            trade with a few clicks. Instantly create your NFT
-                            collection or fungible tokens with your own name,
-                            supply, decimal places and icon -- all for the low
-                            cost and high speed of a single eCash transaction
-                            (much less than $0.01).
-                        </p>
-                    </TextImageBlock>
-
-                    <TextImageBlock
                         id="subnets"
                         title="Subnets"
                         image={subnets}
@@ -189,6 +174,39 @@ export default function CoreTech() {
                             owned ones. Two subnets planned by the eCash team
                             are an Ethereum Virtual Machine (EVM) and a
                             Zero-Knowledge (ZK) privacy subnet.
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock
+                        id="chronik"
+                        title="Chronik"
+                        image={chronik}
+                        imagespeed={0.7}
+                    >
+                        <p>
+                            Chronik is an indexer integrated right into the
+                            node. This removes redundancy and complexity when
+                            interacting with the blockchain. This super fast,
+                            reliable and highly scalable indexing solution makes
+                            it easy for developers to bootstrap and leverage
+                            native support for all available features on the
+                            eCash network.
+                        </p>
+                    </TextImageBlock>
+
+                    <TextImageBlock
+                        id="etokens"
+                        title="eTokens"
+                        image={spiningcoin}
+                        speed={0.8}
+                    >
+                        <p>
+                            eCash supports tokens that anyone can create and
+                            trade with a few clicks. Instantly create your NFT
+                            collection or fungible tokens with your own name,
+                            supply, decimal places and icon -- all for the low
+                            cost and high speed of a single eCash transaction
+                            (much less than $0.01).
                         </p>
                     </TextImageBlock>
 
