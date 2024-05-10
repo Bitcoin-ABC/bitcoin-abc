@@ -206,12 +206,12 @@ UniValue blockToJSON(BlockManager &blockman, const CBlock &block,
                                             : nullptr;
                 UniValue objTx(UniValue::VOBJ);
                 TxToUniv(*tx, BlockHash(), objTx, true, txundo, verbosity);
-                txs.push_back(objTx);
+                txs.push_back(std::move(objTx));
             }
             break;
     }
 
-    result.pushKV("tx", txs);
+    result.pushKV("tx", std::move(txs));
 
     return result;
 }
