@@ -4,8 +4,9 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
-#include <hash.h> // For Hash()
-#include <key.h>  // For CKey
+#include <common/signmessage.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC
+#include <hash.h>               // For Hash()
+#include <key.h>                // For CKey
 #include <sync.h>
 #include <test/util/logging.h>
 #include <test/util/str.h>
@@ -16,7 +17,6 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
-#include <util/message.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC
 #include <util/moneystr.h>
 #include <util/overflow.h>
 #include <util/spanparsing.h>

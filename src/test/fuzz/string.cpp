@@ -5,6 +5,7 @@
 #include <blockfilter.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/signmessage.h>
 #include <common/system.h>
 #include <logging.h>
 #include <netaddress.h>
@@ -19,7 +20,6 @@
 #include <serialize.h>
 #include <streams.h>
 #include <util/error.h>
-#include <util/message.h>
 #include <util/settings.h>
 #include <util/strencodings.h>
 #include <util/string.h>

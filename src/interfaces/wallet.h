@@ -5,6 +5,7 @@
 #ifndef BITCOIN_INTERFACES_WALLET_H
 #define BITCOIN_INTERFACES_WALLET_H
 
+#include <common/signmessage.h>
 #include <consensus/amount.h>
 #include <interfaces/chain.h> // For ChainClient
 #include <primitives/blockhash.h>
@@ -13,7 +14,6 @@
 #include <script/sighashtype.h>
 #include <script/standard.h>           // For CTxDestination
 #include <support/allocators/secure.h> // For SecureString
-#include <util/message.h>
 #include <util/result.h>
 #include <util/ui_change_type.h>
 

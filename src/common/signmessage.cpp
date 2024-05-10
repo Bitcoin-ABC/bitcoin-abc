@@ -3,13 +3,14 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/signmessage.h>
+
 #include <hash.h>            // For HashWriter
 #include <key.h>             // For CKey
 #include <key_io.h>          // For DecodeDestination()
 #include <pubkey.h>          // For CPubKey
 #include <script/standard.h> // For CTxDestination, IsValidDestination(), PKHash
 #include <serialize.h>       // For SER_GETHASH
-#include <util/message.h>
 #include <util/strencodings.h> // For DecodeBase64()
 
 #include <string>

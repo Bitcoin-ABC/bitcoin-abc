@@ -422,7 +422,6 @@ add_library(util
 	util/error.cpp
 	util/fs.cpp
 	util/fs_helpers.cpp
-	util/message.cpp
 	util/moneystr.cpp
 	util/readwritefile.cpp
 	util/settings.cpp
@@ -522,6 +521,7 @@ add_library(common
 	common/bloom.cpp
 	common/init.cpp
 	common/configfile.cpp
+	common/signmessage.cpp
 	common/system.cpp
 	cashaddr.cpp
 	cashaddrenc.cpp

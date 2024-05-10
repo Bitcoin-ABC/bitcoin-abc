@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/signmessage.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <httpserver.h>
@@ -29,7 +30,6 @@
 #include <timedata.h>
 #include <util/any.h>
 #include <util/check.h>
-#include <util/message.h> // For MessageSign(), MessageVerify()
 #include <util/strencodings.h>
 #include <util/time.h>
 

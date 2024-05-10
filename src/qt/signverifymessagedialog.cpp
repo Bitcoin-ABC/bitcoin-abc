@@ -5,12 +5,12 @@
 #include <qt/forms/ui_signverifymessagedialog.h>
 #include <qt/signverifymessagedialog.h>
 
+#include <common/signmessage.h> // For MessageSign(), MessageVerify()
 #include <key_io.h>
 #include <qt/addressbookpage.h>
 #include <qt/guiutil.h>
 #include <qt/platformstyle.h>
 #include <qt/walletmodel.h>
-#include <util/message.h> // For MessageSign(), MessageVerify()
 #include <wallet/wallet.h>
 
 #include <QClipboard>

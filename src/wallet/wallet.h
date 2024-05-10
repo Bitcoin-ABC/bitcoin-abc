@@ -7,6 +7,7 @@
 #ifndef BITCOIN_WALLET_WALLET_H
 #define BITCOIN_WALLET_WALLET_H
 
+#include <common/signmessage.h>
 #include <common/system.h>
 #include <consensus/amount.h>
 #include <interfaces/chain.h>
@@ -16,7 +17,6 @@
 #include <primitives/blockhash.h>
 #include <psbt.h>
 #include <tinyformat.h>
-#include <util/message.h>
 #include <util/result.h>
 #include <util/strencodings.h>
 #include <util/string.h>
