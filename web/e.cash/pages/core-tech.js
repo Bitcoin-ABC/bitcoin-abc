@@ -154,10 +154,11 @@ export default function CoreTech() {
                     >
                         <p>
                             eCash supports tokens that anyone can create and
-                            trade. Instantly create your own token with your own
-                            name, supply, decimal places, and icon -- all for
-                            the low cost and high speed of a single eCash
-                            transaction (much less than $0.01).
+                            trade with a few clicks. Instantly create your NFT
+                            collection or fungible tokens with your own name,
+                            supply, decimal places and icon -- all for the low
+                            cost and high speed of a single eCash transaction
+                            (much less than $0.01).
                         </p>
                     </TextImageBlock>
 
