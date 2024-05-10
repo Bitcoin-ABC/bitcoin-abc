@@ -125,6 +125,10 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     FillableSigningProvider keystore;
     BOOST_CHECK(keystore.AddKey(key));
 
+    // Freeze time for length of test
+    auto now{GetTime<std::chrono::seconds>()};
+    SetMockTime(now);
+
     // 50 orphan transactions:
     for (int i = 0; i < 50; i++) {
         CMutableTransaction tx;
@@ -180,21 +184,51 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         BOOST_CHECK(!orphanage.AddTx(MakeTransactionRef(tx), i));
     }
 
-    // Test EraseOrphansFor:
+    size_t expected_num_orphans = orphanage.CountOrphans();
+
+    // Non-existent peer; nothing should be deleted
+    orphanage.EraseForPeer(/*peer=*/-1);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), expected_num_orphans);
+
+    // Each of first three peers stored
+    // two transactions each.
     for (NodeId i = 0; i < 3; i++) {
-        size_t sizeBefore = orphanage.CountOrphans();
         orphanage.EraseForPeer(i);
-        BOOST_CHECK(orphanage.CountOrphans() < sizeBefore);
+        expected_num_orphans -= 2;
+        BOOST_CHECK(orphanage.CountOrphans() == expected_num_orphans);
     }
 
-    // Test LimitTxs() function:
+    // Test LimitTxs() function, nothing should timeout:
     FastRandomContext rng{/*fDeterministic=*/true};
+    orphanage.LimitTxs(/*max_txs=*/expected_num_orphans, rng);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), expected_num_orphans);
+    expected_num_orphans -= 1;
+    orphanage.LimitTxs(/*max_txs=*/expected_num_orphans, rng);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), expected_num_orphans);
+    assert(expected_num_orphans > 40);
     orphanage.LimitTxs(40, rng);
-    BOOST_CHECK(orphanage.CountOrphans() <= 40);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 40);
     orphanage.LimitTxs(10, rng);
-    BOOST_CHECK(orphanage.CountOrphans() <= 10);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 10);
     orphanage.LimitTxs(0, rng);
-    BOOST_CHECK(orphanage.CountOrphans() == 0);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 0);
+
+    // Add one more orphan, check timeout logic
+    auto timeout_tx = MakeTransactionSpending(/*outpoints=*/{}, rng);
+    orphanage.AddTx(timeout_tx, 0);
+    orphanage.LimitTxs(1, rng);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 1);
+
+    // One second shy of expiration
+    SetMockTime(now + ORPHAN_TX_EXPIRE_TIME - 1s);
+    orphanage.LimitTxs(1, rng);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 1);
+
+    // Jump one more second, orphan should be timed out on limiting
+    SetMockTime(now + ORPHAN_TX_EXPIRE_TIME);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 1);
+    orphanage.LimitTxs(1, rng);
+    BOOST_CHECK_EQUAL(orphanage.CountOrphans(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(get_children) {
