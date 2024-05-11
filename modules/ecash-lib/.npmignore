@@ -1,5 +1,6 @@
 # Included in sourcemaps already
 /src
+/tests
 
 # Don't publish tests
 *.test.d.ts
