@@ -626,7 +626,7 @@ UniValue RPCHelpMan::HandleRequest(const Config &config,
                 mismatch.setNull();
                 break;
             }
-            mismatch.push_back(match);
+            mismatch.push_back(std::move(match));
         }
         if (!mismatch.isNull()) {
             std::string explain{mismatch.empty() ? "no possible results defined"
@@ -830,7 +830,7 @@ UniValue RPCHelpMan::GetArgMap() const {
         map.push_back(arg_name);
         map.push_back(type == RPCArg::Type::STR ||
                       type == RPCArg::Type::STR_HEX);
-        arr.push_back(map);
+        arr.push_back(std::move(map));
     };
 
     for (int i{0}; i < int(m_args.size()); ++i) {
@@ -1166,7 +1166,7 @@ UniValue RPCResult::MatchesType(const UniValue &result) const {
                 m_inner.at(std::min(m_inner.size() - 1, i))};
             UniValue match{doc_inner.MatchesType(result.get_array()[i])};
             if (!match.isTrue()) {
-                errors.pushKV(strprintf("%d", i), match);
+                errors.pushKV(strprintf("%d", i), std::move(match));
             }
         }
         if (errors.empty()) {
@@ -1187,7 +1187,7 @@ UniValue RPCResult::MatchesType(const UniValue &result) const {
             for (size_t i{0}; i < result.get_obj().size(); ++i) {
                 UniValue match{doc_inner.MatchesType(result.get_obj()[i])};
                 if (!match.isTrue()) {
-                    errors.pushKV(result.getKeys()[i], match);
+                    errors.pushKV(result.getKeys()[i], std::move(match));
                 }
             }
             if (errors.empty()) {
@@ -1221,7 +1221,7 @@ UniValue RPCResult::MatchesType(const UniValue &result) const {
             }
             UniValue match{doc_entry.MatchesType(result_it->second)};
             if (!match.isTrue()) {
-                errors.pushKV(doc_entry.m_key_name, match);
+                errors.pushKV(doc_entry.m_key_name, std::move(match));
             }
         }
         if (errors.empty()) {

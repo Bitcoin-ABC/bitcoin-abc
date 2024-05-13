@@ -292,7 +292,7 @@ static RPCHelpMan getpeerinfo() {
                     for (const int height : statestats.vHeightInFlight) {
                         heights.push_back(height);
                     }
-                    obj.pushKV("inflight", heights);
+                    obj.pushKV("inflight", std::move(heights));
                     obj.pushKV("relaytxes", statestats.m_relay_txs);
                     obj.pushKV("minfeefilter",
                                statestats.m_fee_filter_received);
@@ -307,7 +307,7 @@ static RPCHelpMan getpeerinfo() {
                      NetPermissions::ToStrings(stats.m_permission_flags)) {
                     permissions.push_back(permission);
                 }
-                obj.pushKV("permissions", permissions);
+                obj.pushKV("permissions", std::move(permissions));
 
                 UniValue sendPerMsgType(UniValue::VOBJ);
                 for (const auto &i : stats.mapSendBytesPerMsgType) {
@@ -315,7 +315,7 @@ static RPCHelpMan getpeerinfo() {
                         sendPerMsgType.pushKV(i.first, i.second);
                     }
                 }
-                obj.pushKV("bytessent_per_msg", sendPerMsgType);
+                obj.pushKV("bytessent_per_msg", std::move(sendPerMsgType));
 
                 UniValue recvPerMsgType(UniValue::VOBJ);
                 for (const auto &i : stats.mapRecvBytesPerMsgType) {
@@ -323,7 +323,7 @@ static RPCHelpMan getpeerinfo() {
                         recvPerMsgType.pushKV(i.first, i.second);
                     }
                 }
-                obj.pushKV("bytesrecv_per_msg", recvPerMsgType);
+                obj.pushKV("bytesrecv_per_msg", std::move(recvPerMsgType));
                 obj.pushKV("connection_type",
                            ConnectionTypeAsString(stats.m_conn_type));
 
@@ -334,7 +334,7 @@ static RPCHelpMan getpeerinfo() {
                                *stats.m_availabilityScore);
                 }
 
-                ret.push_back(obj);
+                ret.push_back(std::move(obj));
             }
 
             return ret;
@@ -608,10 +608,10 @@ static RPCHelpMan getaddednodeinfo() {
                     address.pushKV("address", info.resolvedAddress.ToString());
                     address.pushKV("connected",
                                    info.fInbound ? "inbound" : "outbound");
-                    addresses.push_back(address);
+                    addresses.push_back(std::move(address));
                 }
-                obj.pushKV("addresses", addresses);
-                ret.push_back(obj);
+                obj.pushKV("addresses", std::move(addresses));
+                ret.push_back(std::move(obj));
             }
 
             return ret;
@@ -678,7 +678,7 @@ static RPCHelpMan getnettotals() {
             outboundLimit.pushKV(
                 "time_left_in_cycle",
                 count_seconds(connman.GetMaxOutboundTimeLeftInCycle()));
-            obj.pushKV("uploadtarget", outboundLimit);
+            obj.pushKV("uploadtarget", std::move(outboundLimit));
             return obj;
         },
     };
@@ -701,7 +701,7 @@ static UniValue GetNetworksInfo() {
         obj.pushKV("proxy", proxy.IsValid() ? proxy.proxy.ToStringIPPort()
                                             : std::string());
         obj.pushKV("proxy_randomize_credentials", proxy.randomize_credentials);
-        networks.push_back(obj);
+        networks.push_back(std::move(obj));
     }
     return networks;
 }
@@ -825,10 +825,10 @@ static RPCHelpMan getnetworkinfo() {
                     rec.pushKV("address", item.first.ToString());
                     rec.pushKV("port", item.second.nPort);
                     rec.pushKV("score", item.second.nScore);
-                    localAddresses.push_back(rec);
+                    localAddresses.push_back(std::move(rec));
                 }
             }
-            obj.pushKV("localaddresses", localAddresses);
+            obj.pushKV("localaddresses", std::move(localAddresses));
             obj.pushKV("warnings", GetWarnings(false).original);
             return obj;
         },
@@ -980,7 +980,7 @@ static RPCHelpMan listbanned() {
                 rec.pushKV("banned_until", banEntry.nBanUntil);
                 rec.pushKV("ban_created", banEntry.nCreateTime);
 
-                bannedAddresses.push_back(rec);
+                bannedAddresses.push_back(std::move(rec));
             }
 
             return bannedAddresses;
@@ -1112,7 +1112,7 @@ static RPCHelpMan getnodeaddresses() {
                 obj.pushKV("address", addr.ToStringIP());
                 obj.pushKV("port", addr.GetPort());
                 obj.pushKV("network", GetNetworkName(addr.GetNetClass()));
-                ret.push_back(obj);
+                ret.push_back(std::move(obj));
             }
             return ret;
         },

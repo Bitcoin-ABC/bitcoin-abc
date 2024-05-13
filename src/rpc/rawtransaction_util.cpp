@@ -170,7 +170,7 @@ static void TxInErrorToJSON(const CTxIn &txin, UniValue &vErrorsRet,
     entry.pushKV("scriptSig", HexStr(txin.scriptSig));
     entry.pushKV("sequence", uint64_t(txin.nSequence));
     entry.pushKV("error", strMessage);
-    vErrorsRet.push_back(entry);
+    vErrorsRet.push_back(std::move(entry));
 }
 
 void ParsePrevouts(const UniValue &prevTxsUnival,
@@ -303,7 +303,7 @@ void SignTransactionResultToJSON(CMutableTransaction &mtx, bool complete,
         if (result.exists("errors")) {
             vErrors.push_backV(result["errors"].getValues());
         }
-        result.pushKV("errors", vErrors);
+        result.pushKV("errors", std::move(vErrors));
     }
 }
 

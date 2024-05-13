@@ -379,7 +379,7 @@ public:
                            batch[ID_NETWORKINFO]["result"]["connections_out"]);
         connections.pushKV("total",
                            batch[ID_NETWORKINFO]["result"]["connections"]);
-        result.pushKV("connections", connections);
+        result.pushKV("connections", std::move(connections));
 
         result.pushKV("proxy",
                       batch[ID_NETWORKINFO]["result"]["networks"][0]["proxy"]);
@@ -958,7 +958,7 @@ static void GetWalletBalances(UniValue &result) {
             getbalances.find_value("result")["mine"]["trusted"];
         balances.pushKV(wallet_name, balance);
     }
-    result.pushKV("balances", balances);
+    result.pushKV("balances", std::move(balances));
 }
 
 /**

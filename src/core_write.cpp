@@ -251,7 +251,7 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
             UniValue o(UniValue::VOBJ);
             o.pushKV("asm", ScriptToAsmStr(txin.scriptSig, true));
             o.pushKV("hex", HexStr(txin.scriptSig));
-            in.pushKV("scriptSig", o);
+            in.pushKV("scriptSig", std::move(o));
         }
         if (have_undo) {
             const Coin &prev_coin = txundo->vprevout[i];
@@ -272,16 +272,16 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
                     p.pushKV("generated", bool(prev_coin.IsCoinBase()));
                     p.pushKV("height", uint64_t(prev_coin.GetHeight()));
                     p.pushKV("value", prev_txout.nValue);
-                    p.pushKV("scriptPubKey", o_script_pub_key);
-                    in.pushKV("prevout", p);
+                    p.pushKV("scriptPubKey", std::move(o_script_pub_key));
+                    in.pushKV("prevout", std::move(p));
                     break;
             }
         }
         in.pushKV("sequence", (int64_t)txin.nSequence);
-        vin.push_back(in);
+        vin.push_back(std::move(in));
     }
 
-    entry.pushKV("vin", vin);
+    entry.pushKV("vin", std::move(vin));
 
     UniValue vout(UniValue::VARR);
     for (unsigned int i = 0; i < tx.vout.size(); i++) {
@@ -294,20 +294,20 @@ void TxToUniv(const CTransaction &tx, const BlockHash &hashBlock,
 
         UniValue o(UniValue::VOBJ);
         ScriptPubKeyToUniv(txout.scriptPubKey, o, true);
-        out.pushKV("scriptPubKey", o);
+        out.pushKV("scriptPubKey", std::move(o));
 
         if (is_change_func && is_change_func(txout)) {
             out.pushKV("ischange", true);
         }
 
-        vout.push_back(out);
+        vout.push_back(std::move(out));
 
         if (have_undo) {
             amt_total_out += txout.nValue;
         }
     }
 
-    entry.pushKV("vout", vout);
+    entry.pushKV("vout", std::move(vout));
 
     if (have_undo) {
         const Amount fee = amt_total_in - amt_total_out;

@@ -732,10 +732,10 @@ static bool rest_getutxos(Config &config, const std::any &context,
                 // include the script in a json output
                 UniValue o(UniValue::VOBJ);
                 ScriptPubKeyToUniv(coin.out.scriptPubKey, o, true);
-                utxo.pushKV("scriptPubKey", o);
-                utxos.push_back(utxo);
+                utxo.pushKV("scriptPubKey", std::move(o));
+                utxos.push_back(std::move(utxo));
             }
-            objGetUTXOResponse.pushKV("utxos", utxos);
+            objGetUTXOResponse.pushKV("utxos", std::move(utxos));
 
             // return json string
             std::string strJSON = objGetUTXOResponse.write() + "\n";

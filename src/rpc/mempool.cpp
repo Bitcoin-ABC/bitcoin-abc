@@ -261,7 +261,7 @@ static RPCHelpMan testmempoolaccept() {
                 auto it = package_result.m_tx_results.find(tx->GetId());
                 if (exit_early || it == package_result.m_tx_results.end()) {
                     // Validation unfinished. Just return the txid.
-                    rpc_result.push_back(result_inner);
+                    rpc_result.push_back(std::move(result_inner));
                     continue;
                 }
                 const auto &tx_result = it->second;
@@ -299,8 +299,8 @@ static RPCHelpMan testmempoolaccept() {
                             effective_includes_res.push_back(txid.ToString());
                         }
                         fees.pushKV("effective-includes",
-                                    effective_includes_res);
-                        result_inner.pushKV("fees", fees);
+                                    std::move(effective_includes_res));
+                        result_inner.pushKV("fees", std::move(fees));
                     }
                 } else {
                     result_inner.pushKV("allowed", false);
@@ -314,7 +314,7 @@ static RPCHelpMan testmempoolaccept() {
                         result_inner.pushKV("reject-details", state.ToString());
                     }
                 }
-                rpc_result.push_back(result_inner);
+                rpc_result.push_back(std::move(result_inner));
             }
             return rpc_result;
         },
@@ -385,14 +385,14 @@ static void entryToJSON(const CTxMemPool &pool, UniValue &info,
         depends.push_back(dep);
     }
 
-    info.pushKV("depends", depends);
+    info.pushKV("depends", std::move(depends));
 
     UniValue spent(UniValue::VARR);
     for (const auto &child : e->GetMemPoolChildrenConst()) {
         spent.push_back(child.get()->GetTx().GetId().ToString());
     }
 
-    info.pushKV("spentby", spent);
+    info.pushKV("spentby", std::move(spent));
     info.pushKV("unbroadcast", pool.IsUnbroadcastTx(tx.GetId()));
 }
 
@@ -413,7 +413,7 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose,
             // Mempool has unique entries so there is no advantage in using
             // UniValue::pushKV, which checks if the key already exists in O(N).
             // UniValue::pushKVEnd is used instead which currently is O(1).
-            o.pushKVEnd(txid.ToString(), info);
+            o.pushKVEnd(txid.ToString(), std::move(info));
         }
         return o;
     } else {
@@ -433,7 +433,7 @@ UniValue MempoolToJSON(const CTxMemPool &pool, bool verbose,
             return a;
         } else {
             UniValue o(UniValue::VOBJ);
-            o.pushKV("txids", a);
+            o.pushKV("txids", std::move(a));
             o.pushKV("mempool_sequence", mempool_sequence);
             return o;
         }
@@ -569,7 +569,7 @@ static RPCHelpMan getmempoolancestors() {
                     const TxId &_txid = e->GetTx().GetId();
                     UniValue info(UniValue::VOBJ);
                     entryToJSON(mempool, info, e);
-                    o.pushKV(_txid.ToString(), info);
+                    o.pushKV(_txid.ToString(), std::move(info));
                 }
                 return o;
             }
@@ -643,7 +643,7 @@ static RPCHelpMan getmempooldescendants() {
                     const TxId &_txid = e->GetTx().GetId();
                     UniValue info(UniValue::VOBJ);
                     entryToJSON(mempool, info, e);
-                    o.pushKV(_txid.ToString(), info);
+                    o.pushKV(_txid.ToString(), std::move(info));
                 }
                 return o;
             }
@@ -865,7 +865,7 @@ static RPCHelpMan submitpackage() {
                     HelpExampleCli("submitpackage", "[rawtx1, rawtx2]")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const UniValue raw_transactions = request.params[0].get_array();
+            const UniValue &raw_transactions = request.params[0].get_array();
             if (raw_transactions.size() < 1 ||
                 raw_transactions.size() > MAX_PACKAGE_COUNT) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -996,14 +996,15 @@ static RPCHelpMan submitpackage() {
                                     txid.ToString());
                             }
                             fees.pushKV("effective-includes",
-                                        effective_includes_res);
+                                        std::move(effective_includes_res));
                         }
-                        result_inner.pushKV("fees", fees);
+                        result_inner.pushKV("fees", std::move(fees));
                         break;
                 }
-                tx_result_map.pushKV(tx->GetId().GetHex(), result_inner);
+                tx_result_map.pushKV(tx->GetId().GetHex(),
+                                     std::move(result_inner));
             }
-            rpc_result.pushKV("tx-results", tx_result_map);
+            rpc_result.pushKV("tx-results", std::move(tx_result_map));
 
             return rpc_result;
         },

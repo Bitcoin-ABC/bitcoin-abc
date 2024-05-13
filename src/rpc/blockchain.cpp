@@ -1197,9 +1197,9 @@ static RPCHelpMan gettxoutsetinfo() {
                         "unclaimed_rewards",
                         stats.total_unspendables_unclaimed_rewards -
                             prev_stats.total_unspendables_unclaimed_rewards);
-                    block_info.pushKV("unspendables", unspendables);
+                    block_info.pushKV("unspendables", std::move(unspendables));
 
-                    ret.pushKV("block_info", block_info);
+                    ret.pushKV("block_info", std::move(block_info));
                 }
             } else {
                 throw JSONRPCError(RPC_INTERNAL_ERROR,
@@ -1306,7 +1306,7 @@ RPCHelpMan gettxout() {
             ret.pushKV("value", coin.GetTxOut().nValue);
             UniValue o(UniValue::VOBJ);
             ScriptPubKeyToUniv(coin.GetTxOut().scriptPubKey, o, true);
-            ret.pushKV("scriptPubKey", o);
+            ret.pushKV("scriptPubKey", std::move(o));
             ret.pushKV("coinbase", coin.IsCoinBase());
 
             return ret;
@@ -1596,7 +1596,7 @@ static RPCHelpMan getchaintips() {
                 }
                 obj.pushKV("status", status);
 
-                res.push_back(obj);
+                res.push_back(std::move(obj));
             }
 
             return res;
@@ -2569,9 +2569,9 @@ static RPCHelpMan scantxoutset() {
                     unspent.pushKV("coinbase", coin.IsCoinBase());
                     unspent.pushKV("height", int32_t(coin.GetHeight()));
 
-                    unspents.push_back(unspent);
+                    unspents.push_back(std::move(unspent));
                 }
-                result.pushKV("unspents", unspents);
+                result.pushKV("unspents", std::move(unspents));
                 result.pushKV("total_amount", total_in);
             } else {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,

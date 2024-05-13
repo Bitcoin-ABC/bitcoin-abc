@@ -1114,7 +1114,7 @@ static RPCHelpMan getblocktemplate() {
                     pblocktemplate->entries[index_in_template].sigChecks;
                 entry.pushKVEnd("sigchecks", sigChecks);
 
-                transactions.push_back(entry);
+                transactions.push_back(std::move(entry));
                 index_in_template++;
             }
 
@@ -1156,14 +1156,14 @@ static RPCHelpMan getblocktemplate() {
                                          *minerFundWhitelist.begin())));
                     minerFund.pushKV("amount", minerFundMinValue);
                 }
-                result.pushKV("minerfund", minerFund);
+                result.pushKV("minerfund", std::move(minerFund));
 
                 if (!stakingRewardsPayoutScripts.empty()) {
                     UniValue stakingRewards(UniValue::VOBJ);
                     stakingRewards.pushKV(
                         "script", HexStr(stakingRewardsPayoutScripts[0]));
                     stakingRewards.pushKV("amount", stakingRewardsAmount);
-                    result.pushKV("stakingrewards", stakingRewards);
+                    result.pushKV("stakingrewards", std::move(stakingRewards));
                 }
             } else {
                 UniValue minerFund(UniValue::VOBJ);
@@ -1173,10 +1173,10 @@ static RPCHelpMan getblocktemplate() {
                         EncodeDestination(fundDestination, config));
                 }
 
-                minerFund.pushKV("addresses", minerFundList);
+                minerFund.pushKV("addresses", std::move(minerFundList));
                 minerFund.pushKV("minimumvalue", minerFundMinValue);
 
-                coinbasetxn.pushKV("minerfund", minerFund);
+                coinbasetxn.pushKV("minerfund", std::move(minerFund));
 
                 if (!stakingRewardsPayoutScripts.empty()) {
                     UniValue stakingRewards(UniValue::VOBJ);
@@ -1184,11 +1184,13 @@ static RPCHelpMan getblocktemplate() {
                     ScriptPubKeyToUniv(stakingRewardsPayoutScripts[0],
                                        stakingRewardsPayoutScriptObj,
                                        /*fIncludeHex=*/true);
-                    stakingRewards.pushKV("payoutscript",
-                                          stakingRewardsPayoutScriptObj);
+                    stakingRewards.pushKV(
+                        "payoutscript",
+                        std::move(stakingRewardsPayoutScriptObj));
                     stakingRewards.pushKV("minimumvalue", stakingRewardsAmount);
 
-                    coinbasetxn.pushKV("stakingrewards", stakingRewards);
+                    coinbasetxn.pushKV("stakingrewards",
+                                       std::move(stakingRewards));
                 }
             }
 
@@ -1200,14 +1202,14 @@ static RPCHelpMan getblocktemplate() {
             aMutable.push_back("transactions");
             aMutable.push_back("prevblock");
 
-            result.pushKV("capabilities", aCaps);
+            result.pushKV("capabilities", std::move(aCaps));
 
             result.pushKV("version", pblock->nVersion);
 
             result.pushKV("previousblockhash", pblock->hashPrevBlock.GetHex());
-            result.pushKV("transactions", transactions);
-            result.pushKV("coinbaseaux", aux);
-            result.pushKV("coinbasetxn", coinbasetxn);
+            result.pushKV("transactions", std::move(transactions));
+            result.pushKV("coinbaseaux", std::move(aux));
+            result.pushKV("coinbasetxn", std::move(coinbasetxn));
             result.pushKV("coinbasevalue", int64_t(coinbasevalue / SATOSHI));
             result.pushKV("longpollid",
                           active_chain.Tip()->GetBlockHash().GetHex() +
@@ -1215,7 +1217,7 @@ static RPCHelpMan getblocktemplate() {
             result.pushKV("target", hashTarget.GetHex());
             result.pushKV("mintime",
                           int64_t(pindexPrev->GetMedianTimePast()) + 1);
-            result.pushKV("mutable", aMutable);
+            result.pushKV("mutable", std::move(aMutable));
             result.pushKV("noncerange", "00000000ffffffff");
             const uint64_t sigCheckLimit =
                 GetMaxBlockSigChecksCount(DEFAULT_MAX_BLOCK_SIZE);
@@ -1261,12 +1263,12 @@ static RPCHelpMan getblocktemplate() {
                     prevHeaderTimes.push_back(prevHeaderReceivedTime[i]);
                 }
 
-                rtt.pushKV("prevheadertime", prevHeaderTimes);
+                rtt.pushKV("prevheadertime", std::move(prevHeaderTimes));
                 rtt.pushKV("prevbits", strprintf("%08x", pindexPrev->nBits));
                 rtt.pushKV("nodetime", adjustedTime);
                 rtt.pushKV("nexttarget", strprintf("%08x", nextTarget));
 
-                result.pushKV("rtt", rtt);
+                result.pushKV("rtt", std::move(rtt));
             }
 
             return result;

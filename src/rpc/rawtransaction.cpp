@@ -453,7 +453,7 @@ static RPCHelpMan combinerawtransaction() {
                                    R"('["myhex1", "myhex2", "myhex3"]')")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            UniValue txs = request.params[0].get_array();
+            const UniValue &txs = request.params[0].get_array();
             std::vector<CMutableTransaction> txVariants(txs.size());
 
             for (unsigned int idx = 0; idx < txs.size(); idx++) {
@@ -638,7 +638,7 @@ static RPCHelpMan signrawtransactionwithkey() {
             FillableSigningProvider keystore;
             const UniValue &keys = request.params[1].get_array();
             for (size_t idx = 0; idx < keys.size(); ++idx) {
-                UniValue k = keys[idx];
+                const UniValue &k = keys[idx];
                 CKey key = DecodeSecret(k.get_str());
                 if (!key.IsValid()) {
                     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
@@ -840,7 +840,7 @@ static RPCHelpMan decodepsbt() {
             // Add the decoded tx
             UniValue tx_univ(UniValue::VOBJ);
             TxToUniv(CTransaction(*psbtx.tx), BlockHash(), tx_univ, false);
-            result.pushKV("tx", tx_univ);
+            result.pushKV("tx", std::move(tx_univ));
 
             // Unknown data
             if (psbtx.unknown.size() > 0) {
@@ -848,7 +848,7 @@ static RPCHelpMan decodepsbt() {
                 for (auto entry : psbtx.unknown) {
                     unknowns.pushKV(HexStr(entry.first), HexStr(entry.second));
                 }
-                result.pushKV("unknown", unknowns);
+                result.pushKV("unknown", std::move(unknowns));
             }
 
             // inputs
@@ -875,8 +875,8 @@ static RPCHelpMan decodepsbt() {
 
                     UniValue o(UniValue::VOBJ);
                     ScriptToUniv(txout.scriptPubKey, o, true);
-                    out.pushKV("scriptPubKey", o);
-                    in.pushKV("utxo", out);
+                    out.pushKV("scriptPubKey", std::move(o));
+                    in.pushKV("utxo", std::move(out));
                 } else {
                     have_all_utxos = false;
                 }
@@ -888,7 +888,7 @@ static RPCHelpMan decodepsbt() {
                         partial_sigs.pushKV(HexStr(sig.second.first),
                                             HexStr(sig.second.second));
                     }
-                    in.pushKV("partial_signatures", partial_sigs);
+                    in.pushKV("partial_signatures", std::move(partial_sigs));
                 }
 
                 // Sighash
@@ -902,7 +902,7 @@ static RPCHelpMan decodepsbt() {
                 if (!input.redeem_script.empty()) {
                     UniValue r(UniValue::VOBJ);
                     ScriptToUniv(input.redeem_script, r, false);
-                    in.pushKV("redeem_script", r);
+                    in.pushKV("redeem_script", std::move(r));
                 }
 
                 // keypaths
@@ -918,9 +918,9 @@ static RPCHelpMan decodepsbt() {
                                       ReadBE32(entry.second.fingerprint)));
                         keypath.pushKV("path",
                                        WriteHDKeypath(entry.second.path));
-                        keypaths.push_back(keypath);
+                        keypaths.push_back(std::move(keypath));
                     }
-                    in.pushKV("bip32_derivs", keypaths);
+                    in.pushKV("bip32_derivs", std::move(keypaths));
                 }
 
                 // Final scriptSig
@@ -929,7 +929,7 @@ static RPCHelpMan decodepsbt() {
                     scriptsig.pushKV(
                         "asm", ScriptToAsmStr(input.final_script_sig, true));
                     scriptsig.pushKV("hex", HexStr(input.final_script_sig));
-                    in.pushKV("final_scriptSig", scriptsig);
+                    in.pushKV("final_scriptSig", std::move(scriptsig));
                 }
 
                 // Unknown data
@@ -939,12 +939,12 @@ static RPCHelpMan decodepsbt() {
                         unknowns.pushKV(HexStr(entry.first),
                                         HexStr(entry.second));
                     }
-                    in.pushKV("unknown", unknowns);
+                    in.pushKV("unknown", std::move(unknowns));
                 }
 
-                inputs.push_back(in);
+                inputs.push_back(std::move(in));
             }
-            result.pushKV("inputs", inputs);
+            result.pushKV("inputs", std::move(inputs));
 
             // outputs
             Amount output_value = Amount::zero();
@@ -956,7 +956,7 @@ static RPCHelpMan decodepsbt() {
                 if (!output.redeem_script.empty()) {
                     UniValue r(UniValue::VOBJ);
                     ScriptToUniv(output.redeem_script, r, false);
-                    out.pushKV("redeem_script", r);
+                    out.pushKV("redeem_script", std::move(r));
                 }
 
                 // keypaths
@@ -971,9 +971,9 @@ static RPCHelpMan decodepsbt() {
                                       ReadBE32(entry.second.fingerprint)));
                         keypath.pushKV("path",
                                        WriteHDKeypath(entry.second.path));
-                        keypaths.push_back(keypath);
+                        keypaths.push_back(std::move(keypath));
                     }
-                    out.pushKV("bip32_derivs", keypaths);
+                    out.pushKV("bip32_derivs", std::move(keypaths));
                 }
 
                 // Unknown data
@@ -983,10 +983,10 @@ static RPCHelpMan decodepsbt() {
                         unknowns.pushKV(HexStr(entry.first),
                                         HexStr(entry.second));
                     }
-                    out.pushKV("unknown", unknowns);
+                    out.pushKV("unknown", std::move(unknowns));
                 }
 
-                outputs.push_back(out);
+                outputs.push_back(std::move(out));
 
                 // Fee calculation
                 if (MoneyRange(psbtx.tx->vout[i].nValue) &&
@@ -997,7 +997,7 @@ static RPCHelpMan decodepsbt() {
                     have_all_utxos = false;
                 }
             }
-            result.pushKV("outputs", outputs);
+            result.pushKV("outputs", std::move(outputs));
             if (have_all_utxos) {
                 result.pushKV("fee", total_in - output_value);
             }
@@ -1033,7 +1033,7 @@ static RPCHelpMan combinepsbt() {
             const JSONRPCRequest &request) -> UniValue {
             // Unserialize the transactions
             std::vector<PartiallySignedTransaction> psbtxs;
-            UniValue txs = request.params[0].get_array();
+            const UniValue &txs = request.params[0].get_array();
             if (txs.empty()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Parameter 'txs' cannot be empty");
@@ -1421,7 +1421,7 @@ RPCHelpMan joinpsbts() {
             const JSONRPCRequest &request) -> UniValue {
             // Unserialize the transactions
             std::vector<PartiallySignedTransaction> psbtxs;
-            UniValue txs = request.params[0].get_array();
+            const UniValue &txs = request.params[0].get_array();
 
             if (txs.size() <= 1) {
                 throw JSONRPCError(
@@ -1615,7 +1615,7 @@ RPCHelpMan analyzepsbt() {
                     for (const CKeyID &pubkey : input.missing_pubkeys) {
                         missing_pubkeys_univ.push_back(HexStr(pubkey));
                     }
-                    missing.pushKV("pubkeys", missing_pubkeys_univ);
+                    missing.pushKV("pubkeys", std::move(missing_pubkeys_univ));
                 }
                 if (!input.missing_redeem_script.IsNull()) {
                     missing.pushKV("redeemscript",
@@ -1626,15 +1626,15 @@ RPCHelpMan analyzepsbt() {
                     for (const CKeyID &pubkey : input.missing_sigs) {
                         missing_sigs_univ.push_back(HexStr(pubkey));
                     }
-                    missing.pushKV("signatures", missing_sigs_univ);
+                    missing.pushKV("signatures", std::move(missing_sigs_univ));
                 }
                 if (!missing.getKeys().empty()) {
-                    input_univ.pushKV("missing", missing);
+                    input_univ.pushKV("missing", std::move(missing));
                 }
-                inputs_result.push_back(input_univ);
+                inputs_result.push_back(std::move(input_univ));
             }
             if (!inputs_result.empty()) {
-                result.pushKV("inputs", inputs_result);
+                result.pushKV("inputs", std::move(inputs_result));
             }
             if (psbta.estimated_vsize != std::nullopt) {
                 result.pushKV("estimated_vsize", (int)*psbta.estimated_vsize);

@@ -312,7 +312,7 @@ UniValue RPCConvertNamedValues(const std::string &strMethod,
         // Use pushKVEnd instead of pushKV to avoid overwriting an explicit
         // "args" value with an implicit one. Let the RPC server handle the
         // request as given.
-        params.pushKVEnd("args", positional_args);
+        params.pushKVEnd("args", std::move(positional_args));
     }
 
     return params;

@@ -510,7 +510,7 @@ public:
         if (nValue != Amount::zero()) {
             UniValue amount(UniValue::VARR);
             amount.push_back(nValue);
-            array.push_back(amount);
+            array.push_back(std::move(amount));
         }
 
         array.push_back(FormatScript(spendTx.vin[0].scriptSig));
