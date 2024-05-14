@@ -25,6 +25,7 @@
 #include <validation.h>
 
 #include <test/util/mining.h>
+#include <test/util/random.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>

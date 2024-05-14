@@ -23,6 +23,7 @@
 #include <util/time.h>
 #include <util/vector.h>
 
+#include <test/util/random.h>
 #include <test/util/setup_common.h>
 
 #include <univalue.h>

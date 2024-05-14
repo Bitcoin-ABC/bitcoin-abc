@@ -29,6 +29,7 @@
 #include <node/validation_cache_args.h>
 #include <noui.h>
 #include <pow/pow.h>
+#include <random.h>
 #include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
@@ -52,6 +53,7 @@
 #include <walletinitinterface.h>
 
 #include <test/util/mining.h>
+#include <test/util/random.h>
 
 #include <algorithm>
 #include <functional>
@@ -68,39 +70,11 @@ using node::VerifyLoadedChainstate;
 
 const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
 
-FastRandomContext g_insecure_rand_ctx;
 /**
  * Random context to get unique temp data dirs. Separate from
  * g_insecure_rand_ctx, which can be seeded from a const env var
  */
 static FastRandomContext g_insecure_rand_ctx_temp_path;
-
-/**
- * Return the unsigned from the environment var if available,
- * otherwise 0
- */
-static uint256 GetUintFromEnv(const std::string &env_name) {
-    const char *num = std::getenv(env_name.c_str());
-    if (!num) {
-        return {};
-    }
-    return uint256S(num);
-}
-
-void Seed(FastRandomContext &ctx) {
-    // Should be enough to get the seed once for the process
-    static uint256 seed{};
-    static const std::string RANDOM_CTX_SEED{"RANDOM_CTX_SEED"};
-    if (seed.IsNull()) {
-        seed = GetUintFromEnv(RANDOM_CTX_SEED);
-    }
-    if (seed.IsNull()) {
-        seed = GetRandHash();
-    }
-    LogPrintf("%s: Setting random seed for current tests to %s=%s\n", __func__,
-              RANDOM_CTX_SEED, seed.GetHex());
-    ctx = FastRandomContext(seed);
-}
 
 std::ostream &operator<<(std::ostream &os, const uint256 &num) {
     os << num.ToString();

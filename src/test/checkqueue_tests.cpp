@@ -11,6 +11,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+#include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <thread>
 #include <vector>

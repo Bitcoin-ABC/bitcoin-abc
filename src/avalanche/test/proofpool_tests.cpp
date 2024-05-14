@@ -12,6 +12,7 @@
 #include <random.h>
 
 #include <avalanche/test/util.h>
+#include <test/util/random.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>

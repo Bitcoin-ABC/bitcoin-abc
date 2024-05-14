@@ -50,6 +50,7 @@ add_library(testutil OBJECT
 	util/logging.cpp
 	util/mining.cpp
 	util/net.cpp
+	util/random.cpp
 	util/setup_common.cpp
 	util/str.cpp
 	util/transaction_utils.cpp

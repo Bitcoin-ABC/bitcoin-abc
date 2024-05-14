@@ -30,6 +30,7 @@
 #include <test/data/tx_valid.json.h>
 #include <test/jsonutil.h>
 #include <test/scriptflags.h>
+#include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <test/util/transaction_utils.h>
 
