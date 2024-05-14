@@ -72,6 +72,8 @@
 #cmakedefine HAVE_FUNC_ATTRIBUTE_DLLEXPORT 1
 #cmakedefine HAVE_POSIX_FALLOCATE 1
 
+#cmakedefine HAVE_FDATASYNC 1
+
 #cmakedefine ENABLE_BIP70 1
 #cmakedefine ENABLE_WALLET 1
 #cmakedefine ENABLE_ZMQ 1
