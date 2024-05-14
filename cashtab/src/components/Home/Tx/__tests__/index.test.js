@@ -51,6 +51,7 @@ import {
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
 import { getHashes } from 'wallet';
+import userEvent from '@testing-library/user-event';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -118,6 +119,12 @@ describe('<Tx />', () => {
         expect(
             screen.getAllByTitle('Finalized by Avalanche')[1],
         ).toBeInTheDocument();
+
+        // If we expand the panel, we see the exact XEC amount
+        // Expand the panel
+        await userEvent.click(screen.getByTitle('tx-received'));
+        // Now we see the exact XEC received amount
+        expect(screen.getByText('42.00 XEC')).toBeInTheDocument();
     });
     it('Incoming XEC-only, not yet finalized by Avalanche', async () => {
         const AVALANCHE_UNFINALIZED_CHAINTIP = 0;

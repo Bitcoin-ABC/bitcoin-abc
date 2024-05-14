@@ -896,10 +896,17 @@ const Tx = ({
                                 ) : (
                                     <>
                                         {xecTxType === 'Sent' ? '-' : ''}
-                                        {toFormattedXec(
-                                            satoshisSent,
-                                            userLocale,
-                                        )}{' '}
+                                        {!showPanel
+                                            ? toFormattedXec(
+                                                  satoshisSent,
+                                                  userLocale,
+                                              )
+                                            : toXec(
+                                                  satoshisSent,
+                                              ).toLocaleString(userLocale, {
+                                                  maximumFractionDigits: 2,
+                                                  minimumFractionDigits: 2,
+                                              })}{' '}
                                         XEC
                                     </>
                                 )}
