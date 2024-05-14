@@ -174,7 +174,7 @@ void SimulationTest(CCoinsView *base, bool fake_best_block) {
 
             if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                 CTxOut txout;
-                txout.nValue = int64_t(InsecureRand32()) * SATOSHI;
+                txout.nValue = InsecureRandMoneyAmount();
                 if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
                     txout.scriptPubKey.assign(1 + InsecureRandBits(6),
                                               OP_RETURN);

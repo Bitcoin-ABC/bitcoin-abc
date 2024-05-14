@@ -5,6 +5,7 @@
 #ifndef BITCOIN_TEST_UTIL_RANDOM_H
 #define BITCOIN_TEST_UTIL_RANDOM_H
 
+#include <consensus/amount.h>
 #include <random.h>
 #include <uint256.h>
 
@@ -60,6 +61,11 @@ static inline uint64_t InsecureRandRange(uint64_t range) {
 }
 static inline bool InsecureRandBool() {
     return g_insecure_rand_ctx.randbool();
+}
+
+static inline Amount InsecureRandMoneyAmount() {
+    return static_cast<int64_t>(InsecureRandRange(MAX_MONEY / SATOSHI + 1)) *
+           SATOSHI;
 }
 
 #endif // BITCOIN_TEST_UTIL_RANDOM_H

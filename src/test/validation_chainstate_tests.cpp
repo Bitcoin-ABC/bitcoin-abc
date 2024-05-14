@@ -9,6 +9,7 @@
 #include <rpc/blockchain.h>
 #include <sync.h>
 #include <test/util/chainstate.h>
+#include <test/util/coins.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <uint256.h>
@@ -26,20 +27,6 @@ BOOST_AUTO_TEST_CASE(validation_chainstate_resize_caches) {
     ChainstateManager &manager = *Assert(m_node.chainman);
     CTxMemPool &mempool = *Assert(m_node.mempool);
 
-    //! Create and add a Coin with DynamicMemoryUsage of 80 bytes to the given
-    //! view.
-    auto add_coin = [](CCoinsViewCache &coins_view) -> COutPoint {
-        TxId txid{InsecureRand256()};
-        COutPoint outp{txid, 0};
-        Amount nValue = static_cast<int64_t>(InsecureRand32()) * SATOSHI;
-        CScript scriptPubKey;
-        scriptPubKey.assign((uint32_t)56, 1);
-        Coin newcoin(CTxOut(nValue, std::move(scriptPubKey)), 1, false);
-        coins_view.AddCoin(outp, std::move(newcoin), false);
-
-        return outp;
-    };
-
     Chainstate &c1 =
         WITH_LOCK(cs_main, return manager.InitializeChainstate(&mempool));
     c1.InitCoinsDB(
@@ -52,7 +39,7 @@ BOOST_AUTO_TEST_CASE(validation_chainstate_resize_caches) {
     // Add a coin to the in-memory cache, upsize once, then downsize.
     {
         LOCK(::cs_main);
-        auto outpoint = add_coin(c1.CoinsTip());
+        const auto outpoint = AddTestCoin(c1.CoinsTip());
 
         // Set a meaningless bestblock value in the coinsview cache - otherwise
         // we won't flush during ResizecoinsCaches() and will subsequently hit

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 //
 #include <sync.h>
+#include <test/util/coins.h>
 #include <test/util/random.h>
 #include <test/util/setup_common.h>
 #include <validation.h>
@@ -24,25 +25,11 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
     LOCK(::cs_main);
     auto &view = chainstate.CoinsTip();
 
-    //! Create and add a Coin with DynamicMemoryUsage of 80 bytes to the given
-    //! view.
-    auto add_coin = [](CCoinsViewCache &coins_view) -> COutPoint {
-        ;
-        auto txid = TxId(InsecureRand256());
-        COutPoint outp{txid, 0};
-        CScript scriptPubKey;
-        scriptPubKey.assign(static_cast<uint32_t>(62), 1);
-        Coin newcoin(CTxOut(500 * SATOSHI, std::move(scriptPubKey)), 1, false);
-        coins_view.AddCoin(std::move(outp), std::move(newcoin), false);
-
-        return outp;
-    };
-
     // The number of bytes consumed by coin's heap data, i.e. CScript
     // (prevector<28, uint8_t>) when assigned 56 bytes of data per above.
     //
     // See also: Coin::DynamicMemoryUsage().
-    constexpr unsigned int COIN_SIZE = is_64_bit ? 80 : 72;
+    constexpr unsigned int COIN_SIZE = is_64_bit ? 80 : 64;
 
     auto print_view_mem_usage = [](CCoinsViewCache &_view) {
         BOOST_TEST_MESSAGE(
@@ -63,7 +50,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
         // Add a bunch of coins to see that we at least flip over to CRITICAL.
 
         for (int i{0}; i < 1000; ++i) {
-            COutPoint res = add_coin(view);
+            const COutPoint res = AddTestCoin(view);
             BOOST_CHECK_EQUAL(view.AccessCoin(res).DynamicMemoryUsage(),
                               COIN_SIZE);
         }
@@ -88,7 +75,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
     constexpr int COINS_UNTIL_CRITICAL{3};
 
     for (int i{0}; i < COINS_UNTIL_CRITICAL; ++i) {
-        COutPoint res = add_coin(view);
+        const COutPoint res = AddTestCoin(view);
         print_view_mem_usage(view);
         BOOST_CHECK_EQUAL(view.AccessCoin(res).DynamicMemoryUsage(), COIN_SIZE);
         BOOST_CHECK_EQUAL(
@@ -99,7 +86,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
 
     // Adding some additional coins will push us over the edge to CRITICAL.
     for (int i{0}; i < 4; ++i) {
-        add_coin(view);
+        AddTestCoin(view);
         print_view_mem_usage(view);
         if (chainstate.GetCoinsCacheSizeState(MAX_COINS_CACHE_BYTES,
                                               /*max_mempool_size_bytes*/ 0) ==
@@ -119,7 +106,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
         CoinsCacheSizeState::OK);
 
     for (int i{0}; i < 3; ++i) {
-        add_coin(view);
+        AddTestCoin(view);
         print_view_mem_usage(view);
         BOOST_CHECK_EQUAL(
             chainstate.GetCoinsCacheSizeState(
@@ -129,7 +116,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
 
     // Adding another coin with the additional mempool room will put us >90%
     // but not yet critical.
-    add_coin(view);
+    AddTestCoin(view);
     print_view_mem_usage(view);
 
     // Only perform these checks on 64 bit hosts; I haven't done the math
@@ -147,7 +134,7 @@ BOOST_AUTO_TEST_CASE(getcoinscachesizestate) {
 
     // Using the default max_* values permits way more coins to be added.
     for (int i{0}; i < 1000; ++i) {
-        add_coin(view);
+        AddTestCoin(view);
         BOOST_CHECK_EQUAL(chainstate.GetCoinsCacheSizeState(),
                           CoinsCacheSizeState::OK);
     }

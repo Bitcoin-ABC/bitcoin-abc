@@ -47,6 +47,7 @@ add_dependencies(check check-bitcoin)
 add_library(testutil OBJECT
 	util/blockfilter.cpp
 	util/blockindex.cpp
+	util/coins.cpp
 	util/logging.cpp
 	util/mining.cpp
 	util/net.cpp
