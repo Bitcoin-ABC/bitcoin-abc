@@ -4,8 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <config.h>
-#include <fs.h>
 #include <streams.h>
+#include <util/fs.h>
 #include <util/translation.h>
 #include <wallet/salvage.h>
 #include <wallet/wallet.h>

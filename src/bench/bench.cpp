@@ -4,7 +4,7 @@
 
 #include <bench/bench.h>
 
-#include <fs.h>
+#include <util/fs.h>
 
 #include <test/util/setup_common.h>
 

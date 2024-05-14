@@ -14,7 +14,6 @@
 #include <consensus/params.h>
 #include <consensus/validation.h>
 #include <core_io.h>
-#include <fs.h>
 #include <hash.h>
 #include <index/blockfilterindex.h>
 #include <index/coinstatsindex.h>
@@ -35,6 +34,7 @@
 #include <txmempool.h>
 #include <undo.h>
 #include <util/check.h>
+#include <util/fs.h>
 #include <util/strencodings.h>
 #include <util/translation.h>
 #include <validation.h>

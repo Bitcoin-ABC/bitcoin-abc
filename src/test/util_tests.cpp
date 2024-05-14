@@ -4,7 +4,6 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
-#include <fs.h>
 #include <hash.h> // For Hash()
 #include <key.h>  // For CKey
 #include <sync.h>
@@ -13,6 +12,7 @@
 #include <uint256.h>
 #include <util/bitdeque.h>
 #include <util/check.h>
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/getuniquepath.h>
 #include <util/message.h> // For MessageSign(), MessageVerify(), MESSAGE_MAGIC

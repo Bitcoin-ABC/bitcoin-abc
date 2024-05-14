@@ -19,7 +19,6 @@
 #include <consensus/consensus.h>
 #include <crypto/sha256.h>
 #include <dnsseeds.h>
-#include <fs.h>
 #include <i2p.h>
 #include <logging.h>
 #include <netaddress.h>
@@ -28,6 +27,7 @@
 #include <protocol.h>
 #include <random.h>
 #include <scheduler.h>
+#include <util/fs.h>
 #include <util/sock.h>
 #include <util/strencodings.h>
 #include <util/system.h>

@@ -7,13 +7,13 @@
 #endif
 
 #include <config.h>
-#include <fs.h>
 #include <interfaces/node.h>
 #include <qt/forms/ui_intro.h>
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/intro.h>
 #include <qt/optionsmodel.h>
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/system.h>
 

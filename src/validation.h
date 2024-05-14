@@ -23,7 +23,6 @@
 #include <deploymentstatus.h>
 #include <disconnectresult.h>
 #include <flatfile.h>
-#include <fs.h>
 #include <kernel/chainparams.h>
 #include <kernel/chainstatemanager_opts.h>
 #include <kernel/cs_main.h>
@@ -37,6 +36,7 @@
 #include <txmempool.h> // For CTxMemPool::cs
 #include <uint256.h>
 #include <util/check.h>
+#include <util/fs.h>
 #include <util/result.h>
 #include <util/translation.h>
 

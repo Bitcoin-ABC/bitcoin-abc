@@ -4,7 +4,7 @@
 
 #include <wallet/bdb.h>
 
-#include <fs.h>
+#include <util/fs.h>
 
 #include <test/util/setup_common.h>
 

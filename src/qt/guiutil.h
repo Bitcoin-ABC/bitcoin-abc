@@ -6,8 +6,8 @@
 #define BITCOIN_QT_GUIUTIL_H
 
 #include <consensus/amount.h>
-#include <fs.h>
 #include <netaddress.h>
+#include <util/fs.h>
 
 #include <QEvent>
 #include <QHeaderView>

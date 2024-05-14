@@ -27,7 +27,6 @@
 #include <consensus/amount.h>
 #include <currencyunit.h>
 #include <flatfile.h>
-#include <fs.h>
 #include <hash.h>
 #include <httprpc.h>
 #include <httpserver.h>
@@ -72,6 +71,7 @@
 #include <txorphanage.h>
 #include <util/asmap.h>
 #include <util/check.h>
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/moneystr.h>
 #include <util/string.h>

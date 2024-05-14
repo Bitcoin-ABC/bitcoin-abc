@@ -6,10 +6,10 @@
 #define BITCOIN_DBWRAPPER_H
 
 #include <clientversion.h>
-#include <fs.h>
 #include <serialize.h>
 #include <span.h>
 #include <streams.h>
+#include <util/fs.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 

@@ -11,7 +11,6 @@
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
-#include <fs.h>
 #include <interfaces/wallet.h>
 #include <key.h>
 #include <key_io.h>
@@ -29,6 +28,7 @@
 #include <util/bip32.h>
 #include <util/check.h>
 #include <util/error.h>
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/moneystr.h>
 #include <util/string.h>

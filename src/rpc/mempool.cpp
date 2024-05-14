@@ -7,7 +7,6 @@
 #include <kernel/mempool_persist.h>
 
 #include <core_io.h>
-#include <fs.h>
 #include <node/context.h>
 #include <node/mempool_persist_args.h>
 #include <policy/settings.h>
@@ -17,6 +16,7 @@
 #include <rpc/util.h>
 #include <txmempool.h>
 #include <univalue.h>
+#include <util/fs.h>
 #include <validation.h>
 
 using kernel::DumpMempool;

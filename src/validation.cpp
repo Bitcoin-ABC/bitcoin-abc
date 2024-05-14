@@ -26,7 +26,6 @@
 #include <consensus/tx_check.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>
-#include <fs.h>
 #include <hash.h>
 #include <logging.h>
 #include <logging/timer.h>
@@ -53,6 +52,7 @@
 #include <txmempool.h>
 #include <undo.h>
 #include <util/check.h> // For NDEBUG compile time check
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/strencodings.h>
 #include <util/string.h>

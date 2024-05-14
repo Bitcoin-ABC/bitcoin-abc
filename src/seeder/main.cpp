@@ -4,7 +4,6 @@
 
 #include <clientversion.h>
 #include <dnsseeds.h>
-#include <fs.h>
 #include <logging.h>
 #include <protocol.h>
 #include <seeder/bitcoin.h>
@@ -12,6 +11,7 @@
 #include <seeder/dns.h>
 #include <seeder/options.h>
 #include <streams.h>
+#include <util/fs.h>
 #include <util/strencodings.h>
 #include <util/system.h>
 #include <util/time.h>

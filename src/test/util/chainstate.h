@@ -7,11 +7,11 @@
 
 #include <clientversion.h>
 #include <config.h>
-#include <fs.h>
 #include <node/context.h>
 #include <node/utxo_snapshot.h>
 #include <rpc/blockchain.h>
 #include <test/util/setup_common.h>
+#include <util/fs.h>
 #include <validation.h>
 
 #include <univalue.h>

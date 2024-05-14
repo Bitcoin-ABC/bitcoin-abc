@@ -7,9 +7,9 @@
 #include <chainparams.h>
 #include <config.h>
 #include <consensus/params.h>
-#include <fs.h>
 #include <node/blockstorage.h>
 #include <node/caches.h>
+#include <util/fs.h>
 #include <validation.h>
 
 namespace node {

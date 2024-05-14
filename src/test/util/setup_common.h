@@ -9,7 +9,6 @@
 #include <chainparamsbase.h>
 #include <config.h>
 #include <consensus/amount.h>
-#include <fs.h>
 #include <key.h>
 #include <node/caches.h>
 #include <node/context.h>
@@ -19,6 +18,7 @@
 #include <stdexcept>
 #include <txmempool.h>
 #include <util/check.h>
+#include <util/fs.h>
 #include <util/string.h>
 #include <util/system.h>
 #include <util/vector.h>

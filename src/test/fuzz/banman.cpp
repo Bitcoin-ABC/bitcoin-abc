@@ -4,8 +4,8 @@
 
 #include <banman.h>
 #include <config.h>
-#include <fs.h>
 #include <netaddress.h>
+#include <util/fs.h>
 #include <util/system.h>
 
 #include <test/fuzz/FuzzedDataProvider.h>

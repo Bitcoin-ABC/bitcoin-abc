@@ -10,8 +10,8 @@
 #include <coins.h>
 #include <dbwrapper.h>
 #include <flatfile.h>
-#include <fs.h>
 #include <kernel/cs_main.h>
+#include <util/fs.h>
 #include <util/result.h>
 
 #include <cstddef>

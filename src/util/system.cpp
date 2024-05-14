@@ -6,9 +6,9 @@
 #include <util/system.h>
 
 #include <chainparamsbase.h>
-#include <fs.h>
 #include <script/standard.h>
 #include <sync.h>
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/getuniquepath.h>
 #include <util/strencodings.h>

@@ -13,7 +13,6 @@
 #include <consensus/consensus.h>
 #include <core_io.h>
 #include <currencyunit.h>
-#include <fs.h>
 #include <key_io.h>
 #include <primitives/transaction.h>
 #include <rpc/util.h>
@@ -21,6 +20,7 @@
 #include <script/sign.h>
 #include <script/signingprovider.h>
 #include <util/exception.h>
+#include <util/fs.h>
 #include <util/moneystr.h>
 #include <util/strencodings.h>
 #include <util/string.h>

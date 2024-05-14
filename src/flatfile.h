@@ -6,8 +6,8 @@
 #ifndef BITCOIN_FLATFILE_H
 #define BITCOIN_FLATFILE_H
 
-#include <fs.h>
 #include <serialize.h>
+#include <util/fs.h>
 
 #include <string>
 

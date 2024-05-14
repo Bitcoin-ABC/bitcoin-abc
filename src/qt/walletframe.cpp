@@ -4,13 +4,13 @@
 
 #include <qt/walletframe.h>
 
-#include <fs.h>
 #include <qt/bitcoingui.h>
 #include <qt/createwalletdialog.h>
 #include <qt/overviewpage.h>
 #include <qt/walletcontroller.h>
 #include <qt/walletmodel.h>
 #include <qt/walletview.h>
+#include <util/fs.h>
 #include <util/fs_helpers.h>
 
 #include <QGroupBox>

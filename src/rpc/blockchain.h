@@ -5,9 +5,9 @@
 #ifndef BITCOIN_RPC_BLOCKCHAIN_H
 #define BITCOIN_RPC_BLOCKCHAIN_H
 
-#include <fs.h>
 #include <streams.h>
 #include <sync.h>
+#include <util/fs.h>
 #include <validation.h>
 
 #include <univalue.h>

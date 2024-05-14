@@ -11,12 +11,12 @@
 
 #include <chain.h>
 #include <chainparams.h>
-#include <fs.h>
 #include <kernel/blockmanager_opts.h>
 #include <kernel/cs_main.h>
 #include <protocol.h> // For CMessageHeader::MessageStartChars
 #include <sync.h>
 #include <txdb.h>
+#include <util/fs.h>
 
 class ArgsManager;
 class BlockValidationState;
