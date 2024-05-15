@@ -57,7 +57,6 @@ const { dev } = secrets;
 const { botId, channelId } = dev.telegram;
 // Create a bot that uses 'polling' to fetch new updates
 const telegramBotDev = new TelegramBot(botId, { polling: true });
-const recentStakersApiResponse = require('../test/mocks/recentStakersApiResponse');
 
 // Mock price API call to prevent rate limiting during testing
 const axios = require('axios');
@@ -78,7 +77,6 @@ async function sendMsgByBlock(
             ethereum: { usd: 1900.0 },
         };
         mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
-        mock.onGet(config.stakerPeerApi).reply(200, recentStakersApiResponse);
     }
 
     const returnedMocks = await handleBlockConnected(
