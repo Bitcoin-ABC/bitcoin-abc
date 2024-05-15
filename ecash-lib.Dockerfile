@@ -37,6 +37,12 @@ COPY --from=WasmBuilder /app/modules .
 
 # Build out local dependencies of ecash-lib
 
+# ecashaddrjs (dependency of chronik-client)
+WORKDIR /app/modules/ecashaddrjs
+COPY modules/ecashaddrjs/ .
+RUN npm ci
+RUN npm run build
+
 # chronik-client
 WORKDIR /app/modules/chronik-client
 COPY modules/chronik-client/ .
