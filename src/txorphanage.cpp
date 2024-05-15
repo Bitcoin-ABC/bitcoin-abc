@@ -7,13 +7,14 @@
 #include <consensus/validation.h>
 #include <logging.h>
 #include <policy/policy.h>
+#include <util/time.h>
 
 #include <cassert>
 
-/** Expiration time for orphan transactions in seconds */
-static constexpr int64_t ORPHAN_TX_EXPIRE_TIME = 20 * 60;
-/** Minimum time between orphan transactions expire time checks in seconds */
-static constexpr int64_t ORPHAN_TX_EXPIRE_INTERVAL = 5 * 60;
+/** Expiration time for orphan transactions */
+static constexpr auto ORPHAN_TX_EXPIRE_TIME{20min};
+/** Minimum time between orphan transactions expire time checks */
+static constexpr auto ORPHAN_TX_EXPIRE_INTERVAL{5min};
 
 bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
     LOCK(m_mutex);
@@ -38,7 +39,7 @@ bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
     }
 
     auto ret = m_orphans.emplace(
-        txid, OrphanTx{tx, peer, GetTime() + ORPHAN_TX_EXPIRE_TIME,
+        txid, OrphanTx{tx, peer, Now<NodeSeconds>() + ORPHAN_TX_EXPIRE_TIME,
                        m_orphan_list.size()});
     assert(ret.second);
     m_orphan_list.push_back(ret.first);
@@ -113,13 +114,13 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans) {
     LOCK(m_mutex);
 
     unsigned int nEvicted = 0;
-    static int64_t nNextSweep;
-    int64_t nNow = GetTime();
+    static NodeSeconds nNextSweep;
+    auto nNow{Now<NodeSeconds>()};
     if (nNextSweep <= nNow) {
         // Sweep out expired orphan pool entries:
         int nErased = 0;
-        int64_t nMinExpTime =
-            nNow + ORPHAN_TX_EXPIRE_TIME - ORPHAN_TX_EXPIRE_INTERVAL;
+        auto nMinExpTime{nNow + ORPHAN_TX_EXPIRE_TIME -
+                         ORPHAN_TX_EXPIRE_INTERVAL};
         std::map<TxId, OrphanTx>::iterator iter = m_orphans.begin();
         while (iter != m_orphans.end()) {
             std::map<TxId, OrphanTx>::iterator maybeErase = iter++;
