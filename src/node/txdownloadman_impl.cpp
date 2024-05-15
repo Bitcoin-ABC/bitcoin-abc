@@ -39,10 +39,6 @@ void TxDownloadManager::BlockConnected(
 void TxDownloadManager::BlockDisconnected() {
     m_impl->BlockDisconnected();
 }
-bool TxDownloadManager::AlreadyHaveTx(const TxId &txid,
-                                      bool include_reconsiderable) {
-    return m_impl->AlreadyHaveTx(txid, include_reconsiderable);
-}
 void TxDownloadManager::ConnectedPeer(NodeId nodeid,
                                       const TxDownloadConnectionInfo &info) {
     m_impl->ConnectedPeer(nodeid, info);
@@ -63,10 +59,6 @@ TxDownloadManager::GetRequestsToSend(NodeId nodeid,
 void TxDownloadManager::ReceivedNotFound(NodeId nodeid,
                                          const std::vector<TxId> &txids) {
     m_impl->ReceivedNotFound(nodeid, txids);
-}
-std::optional<PackageToValidate>
-TxDownloadManager::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
-    return m_impl->Find1P1CPackage(ptx, nodeid);
 }
 void TxDownloadManager::MempoolAcceptedTx(const CTransactionRef &tx) {
     m_impl->MempoolAcceptedTx(tx);
