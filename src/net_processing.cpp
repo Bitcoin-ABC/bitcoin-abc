@@ -922,6 +922,24 @@ private:
      */
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
+    struct PackageToValidate {
+        const Package m_txns;
+        const std::vector<NodeId> m_senders;
+        /** Construct a 1-parent-1-child package. */
+        explicit PackageToValidate(const CTransactionRef &parent,
+                                   const CTransactionRef &child,
+                                   NodeId parent_sender, NodeId child_sender)
+            : m_txns{parent, child}, m_senders{parent_sender, child_sender} {}
+
+        std::string ToString() const {
+            Assume(m_txns.size() == 2);
+            return strprintf(
+                "parent %s (sender=%d) + child %s (sender=%d)",
+                m_txns.front()->GetId().ToString(), m_senders.front(),
+                m_txns.back()->GetId().ToString(), m_senders.back());
+        }
+    };
+
     /**
      * Handle a transaction whose result was not
      * MempoolAcceptResult::ResultType::VALID.
@@ -942,23 +960,14 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
                                  m_tx_download_mutex);
 
-    struct PackageToValidate {
-        const Package m_txns;
-        const std::vector<NodeId> m_senders;
-        /** Construct a 1-parent-1-child package. */
-        explicit PackageToValidate(const CTransactionRef &parent,
-                                   const CTransactionRef &child,
-                                   NodeId parent_sender, NodeId child_sender)
-            : m_txns{parent, child}, m_senders{parent_sender, child_sender} {}
-
-        std::string ToString() const {
-            Assume(m_txns.size() == 2);
-            return strprintf(
-                "parent %s (sender=%d) + child %s (sender=%d)",
-                m_txns.front()->GetId().ToString(), m_senders.front(),
-                m_txns.back()->GetId().ToString(), m_senders.back());
-        }
-    };
+    /**
+     * Handle a transaction whose result was
+     * MempoolAcceptResult::ResultType::VALID. Updates m_txrequest and
+     * m_orphanage. Also queues the tx for relay.
+     */
+    void ProcessValidTx(NodeId nodeid, const CTransactionRef &tx)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
+                                 m_tx_download_mutex);
 
     /**
      * Handle the results of package validation: calls ProcessValidTx and
@@ -978,15 +987,6 @@ private:
      */
     std::optional<PackageToValidate> Find1P1CPackage(const CTransactionRef &ptx,
                                                      NodeId nodeid)
-        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
-                                 m_tx_download_mutex);
-
-    /**
-     * Handle a transaction whose result was
-     * MempoolAcceptResult::ResultType::VALID. Updates m_txrequest and
-     * m_orphanage. Also queues the tx for relay.
-     */
-    void ProcessValidTx(NodeId nodeid, const CTransactionRef &tx)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
                                  m_tx_download_mutex);
 
