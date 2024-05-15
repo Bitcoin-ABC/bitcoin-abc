@@ -17,16 +17,18 @@ import AnimateImage from '/components/animate-image';
 import chronik from '/public/animations/services.json';
 import {
     TextImageBlockCtn,
+    TextCtn,
+    ImageCtn,
+    ButtonRow,
+} from '/styles/pages/core-tech.js';
+import {
     LeftTopArrow,
     LeftDownArrow,
     RightTopArrow,
     RightDownArrow,
-    TextCtn,
-    ImageCtn,
-    ButtonRow,
     Blob,
     ContentCtn,
-} from '/styles/pages/core-tech.js';
+} from '/styles/common.js';
 
 /**
  * Return a styled block for the coretech items
