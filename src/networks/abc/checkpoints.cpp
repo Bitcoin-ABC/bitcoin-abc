@@ -79,6 +79,9 @@ static CCheckpointData mainNetCheckpointData = {
         // Cowperthwaite activation.
         {818670, BlockHash::fromHex("000000000000000003e79cfe757a675909fd2bffde"
                                     "52158ce4ec826e5ac6ae79")},
+        // Lee Kuan Yew activation.
+        {844743, BlockHash::fromHex("0000000000000000053b80210677e6821a2ac0ed73"
+                                    "b949a78667e1bfb3dfa6eb")},
     }};
 
 static CCheckpointData testNetCheckpointData = {
@@ -126,6 +129,9 @@ static CCheckpointData testNetCheckpointData = {
         // Cowperthwaite activation.
         {1584486, BlockHash::fromHex("000000000bdc9ee694295e611be29fcad7189f116"
                                      "04edeb8f6c0ab65b40c3370")},
+        // Lee Kuan Yew activation.
+        {1608805, BlockHash::fromHex("00000000000ad004602681a2458bc6304196ec483"
+                                     "f336cce7d031309e4d3592d")},
     }};
 
 static CCheckpointData regTestCheckpointData = {
