@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019 The Bitcoin Core developers
+# Copyright (c) 2014-present The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Base class for RPC testing."""
@@ -668,55 +668,58 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
         from_connection = self.nodes[a]
         to_connection = self.nodes[b]
 
-        from_num_peers = 1 + len(from_connection.getpeerinfo())
-        to_num_peers = 1 + len(to_connection.getpeerinfo())
         host = to_connection.host
         if host is None:
             host = "127.0.0.1"
         ip_port = f"{host}:{str(to_connection.p2p_port)}"
         from_connection.addnode(ip_port, "onetry")
-        # poll until version handshake complete to avoid race conditions
-        # with transaction relaying
-        # See comments in net_processing:
-        # * Must have a version message before anything else
-        # * Must have a verack message before anything else
-        self.wait_until(
-            lambda: sum(peer["version"] != 0 for peer in from_connection.getpeerinfo())
-            == from_num_peers
-        )
-        self.wait_until(
-            lambda: sum(peer["version"] != 0 for peer in to_connection.getpeerinfo())
-            == to_num_peers
-        )
-        self.wait_until(
-            lambda: sum(
-                peer["bytesrecv_per_msg"].pop("verack", 0) == 24
-                for peer in from_connection.getpeerinfo()
+
+        # Use subversion as peer id. Test nodes have their node number appended to the user agent string
+        from_connection_subver = from_connection.getnetworkinfo()["subversion"]
+        to_connection_subver = to_connection.getnetworkinfo()["subversion"]
+
+        def find_conn(node, peer_subversion, inbound):
+            return next(
+                filter(
+                    lambda peer: peer["subver"] == peer_subversion
+                    and peer["inbound"] == inbound,
+                    node.getpeerinfo(),
+                ),
+                None,
             )
-            == from_num_peers
+
+        self.wait_until(
+            lambda: find_conn(from_connection, to_connection_subver, inbound=False)
+            is not None
         )
         self.wait_until(
-            lambda: sum(
-                peer["bytesrecv_per_msg"].pop("verack", 0) == 24
-                for peer in to_connection.getpeerinfo()
-            )
-            == to_num_peers
+            lambda: find_conn(to_connection, from_connection_subver, inbound=True)
+            is not None
         )
-        # The message bytes are counted before processing the message, so make
-        # sure it was fully processed by waiting for a ping.
+
+        def check_bytesrecv(peer, msg_type, min_bytes_recv):
+            assert peer is not None, "Error: peer disconnected"
+            return peer["bytesrecv_per_msg"].pop(msg_type, 0) >= min_bytes_recv
+
+        # Poll until version handshake (fSuccessfullyConnected) is complete to
+        # avoid race conditions, because some message types are blocked from
+        # being sent or received before fSuccessfullyConnected.
+        #
+        # As the flag fSuccessfullyConnected is not exposed, check it by
+        # waiting for a pong, which can only happen after the flag was set.
         self.wait_until(
-            lambda: sum(
-                peer["bytesrecv_per_msg"].pop("pong", 0) >= 32
-                for peer in from_connection.getpeerinfo()
+            lambda: check_bytesrecv(
+                find_conn(from_connection, to_connection_subver, inbound=False),
+                "pong",
+                32,
             )
-            == from_num_peers
         )
         self.wait_until(
-            lambda: sum(
-                peer["bytesrecv_per_msg"].pop("pong", 0) >= 32
-                for peer in to_connection.getpeerinfo()
+            lambda: check_bytesrecv(
+                find_conn(to_connection, from_connection_subver, inbound=True),
+                "pong",
+                32,
             )
-            == to_num_peers
         )
 
     def disconnect_nodes(self, a, b):
