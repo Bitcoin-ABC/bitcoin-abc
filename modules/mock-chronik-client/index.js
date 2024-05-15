@@ -17,6 +17,7 @@ module.exports = {
             // Can be set with self.setMock
             self.mockedResponses = {
                 block: {},
+                blockTxs: {},
                 blockchainInfo: {},
                 txHistory: [],
                 tx: {},
@@ -32,6 +33,23 @@ module.exports = {
             self.block = async function (blockHashOrHeight) {
                 return throwOrReturnValue(
                     self.mockedResponses.block[blockHashOrHeight],
+                );
+            };
+            self.blockTxs = async function (
+                hashOrHeight,
+                pageNumber = 0,
+                pageSize = CHRONIK_DEFAULT_PAGESIZE,
+            ) {
+                if (
+                    self.mockedResponses[hashOrHeight].txHistory instanceof
+                    Error
+                ) {
+                    throw self.mockedResponses[hashOrHeight].txHistory;
+                }
+                return self.getTxHistory(
+                    pageNumber,
+                    pageSize,
+                    self.mockedResponses[hashOrHeight].txHistory,
                 );
             };
             self.tx = async function (txid) {
@@ -87,28 +105,36 @@ module.exports = {
                         onEnd: wsObj.onEnd, // may be undefined
                         autoReconnect: wsObj.autoReconnect || true, // default to true if unset
                         manuallyClosed: false,
-                        subs: [],
+                        subs: {
+                            blocks: false,
+                            tokens: [],
+                            lokadIds: [],
+                            scripts: [],
+                        },
                         isSubscribedBlocks: false,
                         waitForOpen: async function () {
                             self.wsWaitForOpenCalled = true;
                         },
+                        // Note: subscribe is a legacy NNG method
                         subscribe: function (type, hash) {
-                            this.subs.push({
+                            this.subs.scripts.push({
                                 scriptType: type,
                                 scriptPayload: hash,
                             });
                             self.wsSubscribeCalled = true;
                         },
+                        // Note: unsubscribe is a legacy NNG method
                         unsubscribe: function (type, hash) {
-                            const thisSubInSubsIndex = this.subs.findIndex(
-                                sub =>
-                                    sub.scriptType === type &&
-                                    sub.scriptPayload === hash,
-                            );
+                            const thisSubInSubsIndex =
+                                this.subs.scripts.findIndex(
+                                    sub =>
+                                        sub.scriptType === type &&
+                                        sub.scriptPayload === hash,
+                                );
 
                             if (typeof thisSubInSubsIndex !== 'undefined') {
                                 // Remove from subs
-                                this.subs.splice(thisSubInSubsIndex, 1);
+                                this.subs.scripts.splice(thisSubInSubsIndex, 1);
                             }
                             // Otherwise do nothing
                         },
@@ -209,6 +235,11 @@ module.exports = {
 
             self.setTxHistoryByTokenId = function (tokenId, txHistory) {
                 self.mockedResponses[tokenId].txHistory = txHistory;
+            };
+
+            self.setTxHistoryByBlock = function (hashOrHeight, txHistory) {
+                // Set all expected tx history as array where it can be accessed by mock method
+                self.mockedResponses[hashOrHeight] = { txHistory };
             };
 
             /**

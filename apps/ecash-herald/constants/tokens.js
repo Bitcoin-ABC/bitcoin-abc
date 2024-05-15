@@ -15,13 +15,13 @@ const cachedTokenInfoMap = new Map();
 cachedTokenInfoMap.set(
     'cdcdcdcdcdc9dda4c92bb1145aa84945c024346ea66fd4b699e344e45df2e145',
     {
-        name: 'Credo In Unum Deo',
-        ticker: 'CRD',
+        tokenTicker: 'CRD',
+        tokenName: 'Credo In Unum Deo',
         url: 'https://crd.network/token',
-        data: '',
-        authPubKey: '',
         decimals: 4,
-        numMintBatons: 1,
+        data: {},
+        authPubkey:
+            '0334b744e6338ad438c92900c0ed1869c3fd2c0f35a4a9b97a88447b6e2b145f10',
     },
 );
 

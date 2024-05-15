@@ -113,10 +113,8 @@ describe('alias-server main.js', async function () {
             avalancheRpc,
             returnMocks,
         );
-        // Check that websocket is connected
-        assert.deepEqual(result.aliasWebsocket.subs, [
-            { scriptPayload: hash, scriptType: type },
-        ]);
+        // Confirm websocket opened
+        assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Check that startup was called
         assert.deepEqual(
             result.appStartup,

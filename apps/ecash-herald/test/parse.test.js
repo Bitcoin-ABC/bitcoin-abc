@@ -16,7 +16,7 @@ const memoOutputScripts = require('./mocks/memo');
 const { consumeNextPush } = require('ecash-script');
 
 const {
-    parseBlock,
+    parseBlockTxs,
     getStakerFromCoinbaseTx,
     getMinerFromCoinbaseTx,
     parseMemoOutputScript,
@@ -43,14 +43,17 @@ describe('parse.js functions', function () {
     it('Parses the master test block', function () {
         const thisBlock = block;
         const {
-            blockDetails,
+            blockTxs,
             parsedBlock,
             coingeckoPrices,
             tokenInfoMap,
             outputScriptInfoMap,
             blockSummaryTgMsgs,
         } = thisBlock;
-        assert.deepEqual(parseBlock(blockDetails), parsedBlock);
+        assert.deepEqual(
+            parseBlockTxs(parsedBlock.hash, parsedBlock.height, blockTxs),
+            parsedBlock,
+        );
         assert.deepEqual(
             getBlockTgMessage(
                 parsedBlock,

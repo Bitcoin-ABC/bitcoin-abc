@@ -22,12 +22,20 @@ const {
     returnAddressPreview,
     containsOnlyPrintableAscii,
 } = require('./utils');
-module.exports = {
-    parseBlock: function (chronikBlockResponse) {
-        const { blockInfo, txs } = chronikBlockResponse;
-        const { hash } = blockInfo;
-        const { height, numTxs } = blockInfo;
 
+// Constants for SLP 1 token types as returned by chronik-client
+const SLP_1_PROTOCOL_NUMBER = 1;
+const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
+const SLP_1_NFT_PROTOCOL_NUMBER = 65;
+
+module.exports = {
+    /**
+     * Parse a finalized block for newsworthy information
+     * @param {string} blockHash
+     * @param {number} blockHeight
+     * @param {Tx_InNode[]} txs
+     */
+    parseBlockTxs: function (blockHash, blockHeight, txs) {
         // Parse coinbase string
         const coinbaseTx = txs[0];
         const miner = module.exports.getMinerFromCoinbaseTx(coinbaseTx, miners);
@@ -52,6 +60,12 @@ module.exports = {
             const thisParsedTx = parsedTxs[i];
             if (thisParsedTx.tokenSendInfo) {
                 tokenIds.add(thisParsedTx.tokenSendInfo.tokenId);
+            }
+            if (thisParsedTx.genesisInfo) {
+                tokenIds.add(thisParsedTx.genesisInfo.tokenId);
+            }
+            if (thisParsedTx.tokenBurnInfo) {
+                tokenIds.add(thisParsedTx.tokenBurnInfo.tokenId);
             }
             // Some OP_RETURN txs also have token IDs we need to parse
             // SWaP txs, (TODO: airdrop txs)
@@ -85,13 +99,12 @@ module.exports = {
                 }
             }
         }
-
         return {
-            hash,
-            height,
+            hash: blockHash,
+            height: blockHeight,
             miner,
             staker,
-            numTxs,
+            numTxs: txs.length,
             parsedTxs,
             tokenIds,
             outputScripts,
@@ -289,7 +302,6 @@ module.exports = {
 
         // tokenBurn parsing variables
         let tokenBurnInfo = false;
-        let undecimalizedTokenBurnAmount = new BigNumber(0);
 
         /* Collect xecSendInfo for all txs, since all txs are XEC sends
          * You may later want to render xecSendInfo for tokenSends, appTxs, etc,
@@ -304,57 +316,108 @@ module.exports = {
         let totalSatsSent = 0;
         let changeAmountSats = 0;
 
-        if (tx.slpTxData !== null && typeof tx.slpTxData !== 'undefined') {
+        if (
+            tx.tokenStatus !== 'TOKEN_STATUS_NON_TOKEN' &&
+            tx.tokenEntries.length > 0
+        ) {
             isTokenTx = true;
-            // Determine if this is an etoken genesis tx
-            if (
-                tx.slpTxData.slpMeta !== null &&
-                typeof tx.slpTxData.slpMeta !== 'undefined' &&
-                tx.slpTxData.genesisInfo !== null &&
-                typeof tx.slpTxData.genesisInfo !== 'undefined' &&
-                tx.slpTxData.slpMeta.txType === 'GENESIS'
-            ) {
-                genesisInfo = tx.slpTxData.genesisInfo;
+
+            // We may have more than one token action in a given tx
+            // chronik will reflect this by having multiple entries in the tokenEntries array
+
+            // For now, just parse the first action
+            // TODO handle txs with multiple tokenEntries
+            const parsedTokenAction = tx.tokenEntries[0];
+
+            const {
+                tokenId,
+                tokenType,
+                txType,
+                burnSummary,
+                actualBurnAmount,
+            } = parsedTokenAction;
+            const { protocol, number } = tokenType;
+            const isUnintentionalBurn =
+                burnSummary !== '' && actualBurnAmount !== '0';
+
+            // Get token type
+            // TODO present the token type in msgs
+            let parsedTokenType = '';
+            switch (protocol) {
+                case 'ALP': {
+                    parsedTokenType = 'ALP';
+                    break;
+                }
+                case 'SLP': {
+                    if (number === SLP_1_PROTOCOL_NUMBER) {
+                        parsedTokenType = 'SLP';
+                    } else if (
+                        number === SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER
+                    ) {
+                        parsedTokenType = 'NFT Collection';
+                    } else if (number === SLP_1_NFT_PROTOCOL_NUMBER) {
+                        parsedTokenType = 'NFT';
+                    }
+                    break;
+                }
+                default: {
+                    parsedTokenType = `${protocol} ${number}`;
+                    break;
+                }
             }
-            // Determine if this is an etoken send tx
-            if (
-                tx.slpTxData.slpMeta !== null &&
-                typeof tx.slpTxData.slpMeta !== 'undefined' &&
-                tx.slpTxData.slpMeta.txType === 'SEND'
-            ) {
-                // Initialize tokenSendInfo as an object with the sent tokenId
-                tokenSendInfo = { tokenId: tx.slpTxData.slpMeta.tokenId };
+
+            switch (txType) {
+                case 'GENESIS': {
+                    // Note that NNG chronik provided genesisInfo in this tx
+                    // Now we get it from chronik.token
+                    // Initialize genesisInfo object with tokenId so it can be rendered into a msg later
+                    genesisInfo = { tokenId };
+                    break;
+                }
+                case 'SEND': {
+                    if (isUnintentionalBurn) {
+                        tokenBurnInfo = {
+                            tokenId,
+                            undecimalizedTokenBurnAmount: actualBurnAmount,
+                        };
+                    } else {
+                        tokenSendInfo = {
+                            tokenId,
+                            parsedTokenType,
+                            txType,
+                        };
+                    }
+                    break;
+                }
+                // TODO handle MINT
+                default: {
+                    // For now, if we can't parse as above, this will be parsed as an eCash tx (or EMPP)
+                    break;
+                }
             }
         }
-        for (let i in inputs) {
-            const thisInput = inputs[i];
-            xecSendingOutputScripts.add(thisInput.outputScript);
-            xecInputAmountSats += parseInt(thisInput.value);
+        for (const input of inputs) {
+            xecSendingOutputScripts.add(input.outputScript);
+            xecInputAmountSats += input.value;
             // The input that sent the token utxos will have key 'slpToken'
-            if (typeof thisInput.slpToken !== 'undefined') {
+            if (typeof input.token !== 'undefined') {
                 // Add amount to undecimalizedTokenInputAmount
+                // TODO make sure this is for the correct tokenID
+                // Could have mistakes in parsing ALP txs otherwise
+                // For now, this is outside the scope of migration
                 undecimalizedTokenInputAmount =
-                    undecimalizedTokenInputAmount.plus(
-                        thisInput.slpToken.amount,
-                    );
+                    undecimalizedTokenInputAmount.plus(input.token.amount);
                 // Collect the input outputScripts to identify change output
-                tokenSendingOutputScripts.add(thisInput.outputScript);
-            }
-            if (typeof thisInput.slpBurn !== 'undefined') {
-                undecimalizedTokenBurnAmount =
-                    undecimalizedTokenBurnAmount.plus(
-                        new BigNumber(thisInput.slpBurn.token.amount),
-                    );
+                tokenSendingOutputScripts.add(input.outputScript);
             }
         }
 
         // Iterate over outputs to check for OP_RETURN msgs
-        for (let i = 0; i < outputs.length; i += 1) {
-            const thisOutput = outputs[i];
-            const value = parseInt(thisOutput.value);
+        for (const output of outputs) {
+            const { value, outputScript } = output;
             xecOutputAmountSats += value;
             // If this output script is the same as one of the sendingOutputScripts
-            if (xecSendingOutputScripts.has(thisOutput.outputScript)) {
+            if (xecSendingOutputScripts.has(outputScript)) {
                 // Then this XEC amount is change
                 changeAmountSats += value;
             } else {
@@ -363,9 +426,8 @@ module.exports = {
                 // Add outputScript and value to map
                 // If this outputScript is already in xecReceivingOutputs, increment its value
                 xecReceivingOutputs.set(
-                    thisOutput.outputScript,
-                    (xecReceivingOutputs.get(thisOutput.outputScript) ?? 0) +
-                        value,
+                    outputScript,
+                    (xecReceivingOutputs.get(outputScript) ?? 0) + value,
                 );
 
                 // Increment totalSatsSent
@@ -373,24 +435,25 @@ module.exports = {
             }
             // Don't parse OP_RETURN values of etoken txs, this info is available from chronik
             if (
-                thisOutput.outputScript.startsWith(opReturn.opReturnPrefix) &&
+                outputScript.startsWith(opReturn.opReturnPrefix) &&
                 !isTokenTx
             ) {
                 opReturnInfo = module.exports.parseOpReturn(
-                    thisOutput.outputScript.slice(2),
+                    outputScript.slice(2),
                 );
             }
             // For etoken send txs, parse outputs for tokenSendInfo object
-            if (typeof thisOutput.slpToken !== 'undefined') {
+            if (typeof output.token !== 'undefined') {
+                // TODO handle EMPP and potential token txs with multiple tokens involved
                 // Check output script to confirm does not match tokenSendingOutputScript
-                if (tokenSendingOutputScripts.has(thisOutput.outputScript)) {
+                if (tokenSendingOutputScripts.has(outputScript)) {
                     // change
                     tokenChangeOutputs.set(
-                        thisOutput.outputScript,
+                        outputScript,
                         (
-                            tokenChangeOutputs.get(thisOutput.outputScript) ??
+                            tokenChangeOutputs.get(outputScript) ??
                             new BigNumber(0)
-                        ).plus(thisOutput.slpToken.amount),
+                        ).plus(output.token.amount),
                     );
                 } else {
                     /* This is the sent token qty
@@ -401,12 +464,11 @@ module.exports = {
                      * BigNumber library is required for token calculations
                      */
                     tokenReceivingOutputs.set(
-                        thisOutput.outputScript,
+                        outputScript,
                         (
-                            tokenReceivingOutputs.get(
-                                thisOutput.outputScript,
-                            ) ?? new BigNumber(0)
-                        ).plus(thisOutput.slpToken.amount),
+                            tokenReceivingOutputs.get(outputScript) ??
+                            new BigNumber(0)
+                        ).plus(output.token.amount),
                     );
                 }
             }
@@ -420,17 +482,6 @@ module.exports = {
             tokenSendInfo.tokenChangeOutputs = tokenChangeOutputs;
             tokenSendInfo.tokenReceivingOutputs = tokenReceivingOutputs;
             tokenSendInfo.tokenSendingOutputScripts = tokenSendingOutputScripts;
-        }
-
-        // If this is a token burn tx, return token burn parsing info and not 'false' for tokenBurnInfo
-        // Check to make sure undecimalizedTokenBurnAmount is not zero
-        // Some txs e.g. ff314cae5d5daeabe44225f855bd54c7d07737b8458a8e8a49fc581025ee0a57 give
-        // an slpBurn field in chronik, even though not even a token tx
-        if (undecimalizedTokenBurnAmount.gt(0)) {
-            tokenBurnInfo = {
-                undecimalizedTokenBurnAmount:
-                    undecimalizedTokenBurnAmount.toString(),
-            };
         }
 
         // If this tx sent XEC to itself, reassign changeAmountSats to totalSatsSent
@@ -749,7 +800,9 @@ module.exports = {
                 msg += `|<a href="${config.blockExplorer}/tx/${tokenId}">${
                     typeof cachedTokenInfo === 'undefined'
                         ? `${tokenId.slice(0, 3)}...${tokenId.slice(-3)}`
-                        : prepareStringForTelegramHTML(cachedTokenInfo.ticker)
+                        : prepareStringForTelegramHTML(
+                              cachedTokenInfo.tokenTicker,
+                          )
                 }</a>`;
 
                 const numOutputs = consume(stack, 1);
@@ -1355,10 +1408,12 @@ module.exports = {
                 totalSatsSent,
             } = thisParsedTx;
 
-            if (genesisInfo) {
+            if (genesisInfo && tokenInfoMap) {
                 // The txid of a genesis tx is the tokenId
                 const tokenId = txid;
-                let { tokenTicker, tokenName, tokenDocumentUrl } = genesisInfo;
+                const genesisInfoForThisToken = tokenInfoMap.get(tokenId);
+                let { tokenTicker, tokenName, tokenDocumentUrl } =
+                    genesisInfoForThisToken;
                 // Make sure tokenName does not contain telegram html escape characters
                 tokenName = prepareStringForTelegramHTML(tokenName);
                 // Make sure tokenName does not contain telegram html escape characters
@@ -1530,8 +1585,7 @@ module.exports = {
 
             if (tokenBurnInfo && tokenInfoMap) {
                 // If this is a token burn tx and you have tokenInfoMap
-                const { tokenId, tokenSendingOutputScripts } = tokenSendInfo;
-                const { undecimalizedTokenBurnAmount } = tokenBurnInfo;
+                const { tokenId, undecimalizedTokenBurnAmount } = tokenBurnInfo;
 
                 if (
                     typeof tokenId !== 'undefined' &&
@@ -1559,7 +1613,7 @@ module.exports = {
 
                     const tokenBurningAddressStr = returnAddressPreview(
                         cashaddr.encodeOutputScript(
-                            tokenSendingOutputScripts.values().next().value,
+                            xecSendingOutputScripts.values().next().value,
                         ),
                     );
 

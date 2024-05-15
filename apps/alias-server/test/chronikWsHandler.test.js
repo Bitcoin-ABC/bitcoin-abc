@@ -84,7 +84,6 @@ describe('alias-server chronikWsHandler.js', async function () {
     it('initializeWebsocket returns expected websocket object for a p2pkh address', async function () {
         const wsTestAddress =
             'ecash:qp3c268rd5946l2f5m5es4x25f7ewu4sjvpy52pqa8';
-        const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient(wsTestAddress, []);
         const db = null;
@@ -92,7 +91,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const channelId = null;
         const { avalancheRpc } = mockSecrets;
 
-        const result = await initializeWebsocket(
+        await initializeWebsocket(
             mockedChronik,
             wsTestAddress,
             db,
@@ -106,15 +105,10 @@ describe('alias-server chronikWsHandler.js', async function () {
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
-        // Confirm ws is subscribed to expected type and hash
-        assert.deepEqual(result.subs, [
-            { scriptType: type, scriptPayload: hash },
-        ]);
     });
     it('initializeWebsocket returns expected websocket object for a p2sh address', async function () {
         const wsTestAddress =
             'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07';
-        const { type, hash } = cashaddr.decode(wsTestAddress, true);
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
         const db = null;
@@ -122,7 +116,7 @@ describe('alias-server chronikWsHandler.js', async function () {
         const channelId = null;
         const { avalancheRpc } = mockSecrets;
 
-        const result = await initializeWebsocket(
+        await initializeWebsocket(
             mockedChronik,
             wsTestAddress,
             db,
@@ -136,10 +130,6 @@ describe('alias-server chronikWsHandler.js', async function () {
         assert.strictEqual(mockedChronik.wsWaitForOpenCalled, true);
         // Confirm subscribe was called
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
-        // Confirm ws is subscribed to expected type and hash
-        assert.deepEqual(result.subs, [
-            { scriptType: type, scriptPayload: hash },
-        ]);
     });
     it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message if block is avalanche finalized', async function () {
         // Initialize chronik mock

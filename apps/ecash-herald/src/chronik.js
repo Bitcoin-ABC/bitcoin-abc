@@ -5,6 +5,9 @@
 const { getEmojiFromBalanceSats } = require('./utils');
 const cashaddr = require('ecashaddrjs');
 
+// Max txs we can get in one request
+const CHRONIK_MAX_PAGESIZE = 200;
+
 module.exports = {
     getTokenInfoMap: async function (chronik, tokenIdSet) {
         let tokenInfoMap = new Map();
@@ -12,12 +15,11 @@ module.exports = {
         tokenIdSet.forEach(tokenId => {
             tokenInfoPromises.push(
                 new Promise((resolve, reject) => {
-                    chronik.tx(tokenId).then(
-                        txDetails => {
+                    chronik.token(tokenId).then(
+                        response => {
                             // Note: txDetails.slpTxData.genesisInfo only exists for token genesis txs
                             try {
-                                const genesisInfo =
-                                    txDetails.slpTxData.genesisInfo;
+                                const genesisInfo = response.genesisInfo;
                                 tokenInfoMap.set(tokenId, genesisInfo);
                                 resolve(true);
                             } catch (err) {
@@ -73,14 +75,14 @@ module.exports = {
                         .script(type, hash)
                         .utxos()
                         .then(
-                            utxos => {
+                            response => {
                                 // If this address has no utxos, then utxos.length is 0
                                 // If this address has utxos, then utxos = [{utxos: []}]
                                 const balanceSats =
-                                    utxos.length === 0
+                                    response.utxos.length === 0
                                         ? 0
-                                        : utxos[0].utxos
-                                              .map(utxo => parseInt(utxo.value))
+                                        : response.utxos
+                                              .map(utxo => utxo.value)
                                               .reduce(
                                                   (prev, curr) => prev + curr,
                                                   0,
@@ -90,7 +92,7 @@ module.exports = {
                                 outputScriptInfoMap.set(outputScript, {
                                     emoji: getEmojiFromBalanceSats(balanceSats),
                                     balanceSats,
-                                    utxos,
+                                    utxos: response.utxos,
                                 });
                                 resolve(true);
                             },
@@ -118,5 +120,47 @@ module.exports = {
             return false;
         }
         return outputScriptInfoMap;
+    },
+    /**
+     * Get all txs in a block
+     * Txs are paginated so this may require more than one API call
+     * @param {ChronikClientNode} chronik
+     * @param {number} blockHeight
+     * @throws {err} on chronik error
+     * @returns {Tx_InNode[]}
+     */
+    getAllBlockTxs: async function (
+        chronik,
+        blockHeight,
+        pageSize = CHRONIK_MAX_PAGESIZE,
+    ) {
+        const firstPage = await chronik.blockTxs(blockHeight, 0, pageSize);
+        const { txs, numPages } = firstPage;
+
+        if (numPages === 1) {
+            return txs;
+        }
+
+        const remainingPagesPromises = [];
+
+        // Start with i=1 as you already have the first page of txs, which corresponds with pagenum = 0
+        for (let i = 1; i < numPages; i += 1) {
+            remainingPagesPromises.push(
+                new Promise((resolve, reject) => {
+                    chronik.blockTxs(blockHeight, i, pageSize).then(
+                        result => {
+                            resolve(result.txs);
+                        },
+                        err => {
+                            reject(err);
+                        },
+                    );
+                }),
+            );
+        }
+        const remainingTxs = await Promise.all(remainingPagesPromises);
+
+        // Combine all txs into an array
+        return txs.concat(remainingTxs.flat());
     },
 };

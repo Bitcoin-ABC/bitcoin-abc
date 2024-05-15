@@ -3,15 +3,14 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 'use strict';
-const cashaddr = require('ecashaddrjs');
-const { handleBlockConnected } = require('./events');
+const { handleBlockConnected, handleBlockFinalized } = require('./events');
 
 module.exports = {
     initializeWebsocket: async function (
         chronik,
-        address,
         telegramBot,
         channelId,
+        memoryCache,
     ) {
         // Subscribe to chronik websocket
         const ws = chronik.ws({
@@ -21,16 +20,15 @@ module.exports = {
                     msg,
                     telegramBot,
                     channelId,
+                    memoryCache,
                 );
             },
         });
         // Wait for WS to be connected:
         await ws.waitForOpen();
-        console.log(`Connected to websocket`);
-        // Subscribe to scripts (on Lotus, current ABC payout address):
-        // Will give a message on avg every 2 minutes
-        const { type, hash } = cashaddr.decode(address, true);
-        ws.subscribe(type, hash);
+        console.log(`Listening for chronik block msgs`);
+        // Subscribe to blocks
+        ws.subscribeToBlocks();
         return ws;
     },
     parseWebsocketMessage: async function (
@@ -38,24 +36,35 @@ module.exports = {
         wsMsg,
         telegramBot,
         channelId,
+        memoryCache,
     ) {
-        // Determine type of tx
-        const { type } = wsMsg;
+        // Get height and msg type
+        // Note that herald only subscribes to blocks, so only MsgBlockClient is expected here
+        const { msgType, blockHeight, blockHash } = wsMsg;
 
-        // type can be AddedToMempool, BlockConnected, or Confirmed
-        // For now, herald only supports BlockConnected
-
-        switch (type) {
-            case 'BlockConnected': {
-                return handleBlockConnected(
+        switch (msgType) {
+            case 'BLK_CONNECTED': {
+                handleBlockConnected(
+                    telegramBot,
+                    channelId,
+                    blockHash,
+                    blockHeight,
+                    memoryCache,
+                );
+                break;
+            }
+            case 'BLK_FINALIZED': {
+                return handleBlockFinalized(
                     chronik,
                     telegramBot,
                     channelId,
-                    wsMsg.blockHash,
+                    blockHash,
+                    blockHeight,
+                    memoryCache,
                 );
             }
             default:
-                // For now, we're only interested in BlockConnected
+                // Do nothing for other events
                 return false;
         }
     },

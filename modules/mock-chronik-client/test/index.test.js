@@ -177,6 +177,35 @@ it('We can also set and get tx history by tokenId', async function () {
     );
 });
 
+it('We can get blockTxs by height', async function () {
+    // Initialize chronik mock with history info
+    const mockedChronik = new MockChronikClient();
+    const height = 800000;
+    mockedChronik.setTxHistoryByBlock(height, mockTxHistory.txs);
+
+    // Execute the API call
+    const result = await mockedChronik.blockTxs(height, 0, 2);
+    assert.deepEqual(result, mockTxHistory);
+
+    // We can also call this without page size
+    assert.deepEqual(await mockedChronik.blockTxs(height), mockTxHistory);
+});
+
+it('We can get blockTxs by hash', async function () {
+    // Initialize chronik mock with history info
+    const mockedChronik = new MockChronikClient();
+    const hash =
+        '0000000000000000115e051672e3d4a6c523598594825a1194862937941296fe';
+    mockedChronik.setTxHistoryByBlock(hash, mockTxHistory.txs);
+
+    // Execute the API call
+    const result = await mockedChronik.blockTxs(hash, 0, 2);
+    assert.deepEqual(result, mockTxHistory);
+
+    // We can also call this without page size
+    assert.deepEqual(await mockedChronik.blockTxs(hash), mockTxHistory);
+});
+
 it('We can sub and unsub to scripts with the websocket', async function () {
     // Initialize chronik mock with script info
     const mockedChronik = new MockChronikClient();
@@ -196,13 +225,15 @@ it('We can sub and unsub to scripts with the websocket', async function () {
     ws.subscribe(type, hash);
 
     // The sub is in ws.subs
-    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+    assert.deepEqual(ws.subs.scripts, [
+        { scriptType: type, scriptPayload: hash },
+    ]);
 
     // We can unsubscribe from the script
     ws.unsubscribe(type, hash);
 
     // The sub is no longer there
-    assert.deepEqual(ws.subs, []);
+    assert.deepEqual(ws.subs.scripts, []);
 });
 
 it('We can mock a chronik websocket connection', async function () {
@@ -226,13 +257,15 @@ it('We can mock a chronik websocket connection', async function () {
     assert.strictEqual(mockedChronik.wsSubscribeCalled, true);
 
     // The sub is in ws.subs
-    assert.deepEqual(ws.subs, [{ scriptType: type, scriptPayload: hash }]);
+    assert.deepEqual(ws.subs.scripts, [
+        { scriptType: type, scriptPayload: hash },
+    ]);
 
     // We can unsubscribe from the script
     ws.unsubscribe(type, hash);
 
     // The sub is no longer there
-    assert.deepEqual(ws.subs, []);
+    assert.deepEqual(ws.subs.scripts, []);
 
     // We can test that waitForOpen() has been called
     await ws.waitForOpen();
@@ -270,15 +303,13 @@ it('We can subscribe to and unsubscribe from addresses with the ws object', asyn
     ws.subscribeToAddress(P2PKH_ADDRESS);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, {
-        scripts: [{ scriptType: type, payload: hash }],
-    });
+    assert.deepEqual(ws.subs.scripts, [{ scriptType: type, payload: hash }]);
 
     // Unsubscribe from address
     ws.unsubscribeFromAddress(P2PKH_ADDRESS);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, { scripts: [] });
+    assert.deepEqual(ws.subs.scripts, []);
 
     // We expect an error if we unsubscribe from an address and there is no existing subscription
     assert.throws(
@@ -306,15 +337,13 @@ it('We can subscribe to and unsubscribe from scripts with the ws object', async 
     ws.subscribeToScript(type, hash);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, {
-        scripts: [{ scriptType: type, payload: hash }],
-    });
+    assert.deepEqual(ws.subs.scripts, [{ scriptType: type, payload: hash }]);
 
     // Unsubscribe from address
     ws.unsubscribeFromScript(type, hash);
 
     // Verify websocket subscription is as expected
-    assert.deepEqual(ws.subs, { scripts: [] });
+    assert.deepEqual(ws.subs.scripts, []);
 
     // We expect an error if we unsubscribe from an address and there is no existing subscription
     assert.throws(

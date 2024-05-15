@@ -5,21 +5,22 @@
 const config = require('../config');
 const fs = require('fs');
 const path = require('path');
-const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient(config.chronik);
+const { ChronikClientNode } = require('chronik-client');
+const chronik = new ChronikClientNode(config.chronik);
 const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 const mockedChronik = new MockChronikClient();
 const { jsonReplacer, getCoingeckoApiUrl } = require('../src/utils');
 const unrevivedBlockMocks = require('../test/mocks/block');
 const { jsonReviver } = require('../src/utils');
 const blockMocks = JSON.parse(JSON.stringify(unrevivedBlockMocks), jsonReviver);
-const { handleBlockConnected } = require('../src/events');
-const { parseBlock } = require('../src/parse');
+const { handleBlockFinalized } = require('../src/events');
+const { parseBlockTxs } = require('../src/parse');
 const { sendBlockSummary } = require('../src/telegram');
 const cashaddr = require('ecashaddrjs');
 // Mock all price API calls
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
+const { caching } = require('cache-manager');
 // Mock telegram bot
 const { MockTelegramBot } = require('../test/mocks/telegramBotMock');
 const mockedTelegramBot = new MockTelegramBot();
@@ -39,6 +40,10 @@ const telegramBotDev = new TelegramBot(botId, { polling: true });
  * while showcasing all of its features, without needing to duplicate txids
  * that are already tested
  */
+
+const MOCK_HASH =
+    '0000000000000000000000000000000000000000000000000000000000000000';
+const MOCK_HEIGHT = 819346;
 
 // Test vectors
 // Add txids to this array related to new features as new diffs are added
@@ -63,6 +68,11 @@ const txids = [
     '25345b0bf921a2a9080c647768ba440bbe84499f4c7773fba8a1b03e88ae7fe7', // etoken send locale string formatting
     '0167e881fcb359cdfc82af5fc6c0821daf55f40767694eea2f23c0d42a9b1c17', // etoken self-send tx, BUX
 
+    // ALP send txs
+    'b2c9c056339d41ec59341541dda8bd6e570730beba485e14eb54d0a073700c22', // etoken send tx, CRD
+    '45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc', // EMPP SLPv2 send
+    '413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8', // EMPP SLPv2 mint
+
     // eToken burn tx
     '6b139007a0649f99a1a099c7c924716ee1920f74ea83111f6426854d4c3c3c79', // etoken burn tx
 
@@ -74,8 +84,6 @@ const txids = [
     'a8c348539a1470b28b9f99693994b918b475634352994dddce80ad544e871b3a', // memo | reply to memo
     '7a0d6ae3384e293183478f681f51a77ef4c71f29957199364bb9ba4d8e1938be', // Airdrop
     '22135bb69435023a84c80b1b93b31fc8898c3507eaa70569ed038f32d59599a9', // alias beta
-    '45ec66bc2440d2f94fa2c645e20a44f6fab7c397053ce77a95484c6053104cdc', // EMPP SLPv2 send
-    '413b57617d2c497b137d31c53151fee595415ec273ef7a111160da8093147ed8', // EMPP SLPv2 mint
     '9094e1aab7ac73c680bf66e78cc8311831b3d813e608bff1e07b1854855fc0f1', // Unknown app tx, parsable
     'b5782d3a3b55e5ee9e4330a969c2891042ae05fafab7dc05cd14da63e7242f8e', // Unknown app tx, likely hex
 
@@ -93,14 +101,9 @@ async function generateMock(
     block,
     txids,
 ) {
-    const {
-        blockDetails,
-        outputScriptInfoMap,
-        tokenInfoMap,
-        coingeckoResponse,
-    } = block;
+    const { outputScriptInfoMap, tokenInfoMap, coingeckoResponse } = block;
     // Get txids from your saved block
-    const savedTxids = blockDetails.txs.map(tx => {
+    const savedTxids = block.blockTxs.map(tx => {
         return tx.txid;
     });
 
@@ -141,20 +144,13 @@ async function generateMock(
         process.exit(1);
     }
     // Add these new chronik tx objects to the txs: key of your savedBlock
-    blockDetails.txs = blockDetails.txs.concat(newChronikTxs);
+    const blockTxs = block.blockTxs.concat(newChronikTxs);
 
-    // Update block.blockDetails.numTxs
-    blockDetails.blockInfo.numTxs = blockDetails.txs.length;
-
-    // Mock chronik response for chronik.block
-    // Tell mockedChronik what response we expect for chronik.block(thisBlockHash)
-    mockedChronik.setMock('block', {
-        input: blockDetails.blockInfo.hash,
-        output: blockDetails,
-    });
+    // Mock chronik response for chronik.blockTxs
+    mockedChronik.setTxHistoryByBlock(MOCK_HEIGHT, blockTxs);
 
     // Get parsedBlock
-    const parsedBlock = parseBlock(blockDetails);
+    const parsedBlock = parseBlockTxs(MOCK_HASH, MOCK_HEIGHT, blockTxs);
 
     // Tell mockedChronik what response we expect for chronik.tx
     const { tokenIds, outputScripts } = parsedBlock;
@@ -162,18 +158,16 @@ async function generateMock(
     // Instead of saving all the chronik responses as mocks, which would be very large
     // Just set them as mocks based on tokenInfoMap, which contains the info we need
     tokenIds.forEach(tokenId => {
-        mockedChronik.setMock('tx', {
+        mockedChronik.setMock('token', {
             input: tokenId,
             output: {
-                slpTxData: {
-                    genesisInfo: tokenInfoMap.has(tokenId)
-                        ? tokenInfoMap.get(tokenId)
-                        : {
-                              tokenTicker: 'STUB',
-                              tokenName: 'Placeholder Token Name',
-                              decimals: 0,
-                          },
-                },
+                genesisInfo: tokenInfoMap.has(tokenId)
+                    ? tokenInfoMap.get(tokenId)
+                    : {
+                          tokenTicker: 'STUB',
+                          tokenName: 'Placeholder Token Name',
+                          decimals: 0,
+                      },
             },
         });
     });
@@ -185,13 +179,14 @@ async function generateMock(
 
         if (outputScriptInfoMap.has(outputScript)) {
             const { utxos } = outputScriptInfoMap.get(outputScript);
-            mockedChronik.setUtxos(type, hash, utxos);
+            mockedChronik.setUtxos(type, hash, { outputScript, utxos });
         } else {
             // If you don't have a mock for this particular outputScript in block.js,
             // mock it as an address with a single utxo for 100 XEC
-            mockedChronik.setUtxos(type, hash, [
-                { outputScript, utxos: [{ value: '10000' }] },
-            ]);
+            mockedChronik.setUtxos(type, hash, {
+                outputScript,
+                utxos: [{ value: 10000 }],
+            });
         }
     });
 
@@ -207,11 +202,18 @@ async function generateMock(
     // Generate app mocks using this block
     // TODO need to mock all the calls here
     // so need to manually build outputscriptinfomap, tokeninfomap
-    const returnedMocks = await handleBlockConnected(
+    const CACHE_TTL = 2 * config.waitForFinalizationMsecs;
+    const memoryCache = await caching('memory', {
+        max: 100,
+        ttl: CACHE_TTL,
+    });
+    const returnedMocks = await handleBlockFinalized(
         mockedChronik,
         mockedTelegramBot,
         channelId,
-        blockDetails.blockInfo.hash,
+        MOCK_HASH,
+        MOCK_HEIGHT,
+        memoryCache,
         true,
     );
 

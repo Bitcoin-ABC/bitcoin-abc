@@ -4,11 +4,13 @@
 
 'use strict';
 module.exports = {
+    waitForFinalizationMsecs: 10000,
     xecSendDisplayCount: 12,
     chronik: [
-        'https://chronik.fabien.cash',
-        'https://chronik2.fabien.cash',
-        'https://chronik.be.cash/xec',
+        'https://chronik-native1.fabien.cash',
+        'https://chronik-native.fabien.cash',
+        'https://chronik.pay2stay.com/xec',
+        'https://chronik.be.cash/xec2',
     ],
     blockExplorer: 'https://explorer.e.cash',
     priceApi: {

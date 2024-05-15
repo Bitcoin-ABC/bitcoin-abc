@@ -131,3 +131,8 @@ If you have any implementation questions regarding this mock tool please check t
 1.8.0
 
 -   Allow getting history without specifying pageNumber or pageSize
+
+1.9.0
+
+-   Support `blockTxs` endpoint
+-   Update websocket subs shape to match ChronikClientNode

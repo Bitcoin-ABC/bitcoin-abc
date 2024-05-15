@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 'use strict';
+const { caching } = require('cache-manager');
 
 /**
  * sendMsgByBlockheight.js
@@ -24,12 +25,12 @@
  */
 
 // App functions
-const { handleBlockConnected } = require('../src/events');
+const { handleBlockFinalized } = require('../src/events');
 const { sendBlockSummary } = require('../src/telegram');
 const { getCoingeckoApiUrl } = require('../src/utils');
 
 // Default to the genesis block
-let blockhashOrHeight = 0;
+let height = 0;
 
 // Use live API for axios calls and not mocks
 // Default to false as it doesn't take much testing to rate limit coingecko API
@@ -38,7 +39,7 @@ let liveApi = false;
 // Look for blockheight specified from command line
 if (process.argv && typeof process.argv[2] !== 'undefined') {
     // user input if available, commas removed
-    blockhashOrHeight = parseInt(process.argv[2].replace(/,/g, ''));
+    height = parseInt(process.argv[2].replace(/,/g, ''));
     if (typeof process.argv[3] !== 'undefined' && process.argv[3] === 'true') {
         liveApi = true;
         console.log(`Sending msg with live API calls`);
@@ -47,8 +48,8 @@ if (process.argv && typeof process.argv[2] !== 'undefined') {
 
 // Initialize chronik
 const config = require('../config');
-const { ChronikClient } = require('chronik-client');
-const chronik = new ChronikClient(config.chronik);
+const { ChronikClientNode } = require('chronik-client');
+const chronik = new ChronikClientNode(config.chronik);
 
 // Initialize telegram bot to send msgs to dev channel
 const secrets = require('../secrets');
@@ -62,12 +63,15 @@ const telegramBotDev = new TelegramBot(botId, { polling: true });
 const axios = require('axios');
 const MockAdapter = require('axios-mock-adapter');
 
-async function sendMsgByBlock(
-    chronik,
-    telegramBot,
-    channelId,
-    blockhashOrHeight,
-) {
+async function sendMsgByBlock(chronik, telegramBot, channelId, height) {
+    // Need cache to pass to function
+    const CACHE_TTL = 2 * config.waitForFinalizationMsecs;
+    const memoryCache = await caching('memory', {
+        max: 100,
+        ttl: CACHE_TTL,
+    });
+    // We do not need this value if we are not using the live API
+    let hash = height.toString();
     if (!liveApi) {
         // Mock price API
         const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
@@ -77,27 +81,27 @@ async function sendMsgByBlock(
             ethereum: { usd: 1900.0 },
         };
         mock.onGet(getCoingeckoApiUrl(config)).reply(200, mockResult);
+    } else {
+        // Get hash if we are using live API calls
+
+        const block = await chronik.block(height);
+        hash = block.blockInfo.hash;
     }
 
-    const returnedMocks = await handleBlockConnected(
+    const returnedMocks = await handleBlockFinalized(
         chronik,
         telegramBot,
         channelId,
-        blockhashOrHeight,
+        hash,
+        height,
+        memoryCache,
         true,
     );
 
-    const { blockDetails, blockSummaryTgMsgs, blockSummaryTgMsgsApiFailure } =
-        returnedMocks;
-    const blockheight = blockDetails.blockInfo.height;
+    const { blockSummaryTgMsgs, blockSummaryTgMsgsApiFailure } = returnedMocks;
 
     // Send msg with successful price API call
-    await sendBlockSummary(
-        blockSummaryTgMsgs,
-        telegramBot,
-        channelId,
-        blockheight,
-    );
+    await sendBlockSummary(blockSummaryTgMsgs, telegramBot, channelId, height);
 
     // Send msg with failed price API call
     await sendBlockSummary(
@@ -108,10 +112,10 @@ async function sendMsgByBlock(
 
     console.log(
         '\x1b[32m%s\x1b[0m',
-        `✔ Sent telegram msg for block ${blockhashOrHeight}`,
+        `✔ Sent telegram msg for block ${height.toLocaleString()}`,
     );
 
     process.exit(0);
 }
 
-sendMsgByBlock(chronik, telegramBotDev, channelId, blockhashOrHeight);
+sendMsgByBlock(chronik, telegramBotDev, channelId, height);
