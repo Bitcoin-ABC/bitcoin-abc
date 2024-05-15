@@ -923,13 +923,25 @@ private:
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
     struct PackageToValidate {
-        const Package m_txns;
-        const std::vector<NodeId> m_senders;
+        Package m_txns;
+        std::vector<NodeId> m_senders;
         /** Construct a 1-parent-1-child package. */
         explicit PackageToValidate(const CTransactionRef &parent,
                                    const CTransactionRef &child,
                                    NodeId parent_sender, NodeId child_sender)
             : m_txns{parent, child}, m_senders{parent_sender, child_sender} {}
+
+        // Move ctor
+        PackageToValidate(PackageToValidate &&other)
+            : m_txns{std::move(other.m_txns)},
+              m_senders{std::move(other.m_senders)} {}
+
+        // Move assignment
+        PackageToValidate &operator=(PackageToValidate &&other) {
+            this->m_txns = std::move(other.m_txns);
+            this->m_senders = std::move(other.m_senders);
+            return *this;
+        }
 
         std::string ToString() const {
             Assume(m_txns.size() == 2);
@@ -944,19 +956,25 @@ private:
      * Handle a transaction whose result was not
      * MempoolAcceptResult::ResultType::VALID.
      *
-     * @param[in] first_time_failure Whether this tx should be added to
-     *                               vExtraTxnForCompact. Set to false if the
-     *                               tx has already been rejected before, e.g.
-     *                               is an orphan, to avoid adding duplicate
-     *                               entries.
+     * @param[in] first_time_failure Whether we should consider inserting into
+     *                               vExtraTxnForCompact, adding a new orphan
+     *                               to resolve, or looking for a package to
+     *                               submit. Set to true for transactions just
+     *                               received over p2p. Set to false if the tx
+     *                               has already been rejected before, e.g. is
+     *                               already in the orphanage, to avoid adding
+     *                               duplicate entries.
      *
      * Updates m_txrequest, m_recent_rejects,
      * m_recent_rejects_package_reconsiderable, m_orphanage and
      * vExtraTxnForCompact.
+     *
+     * @returns a PackageToValidate if this transaction has a reconsiderable
+     * failure and an eligible package was found, or std::nullopt otherwise.
      */
-    void ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
-                          const TxValidationState &result,
-                          bool first_time_failure)
+    std::optional<PackageToValidate>
+    ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
+                     const TxValidationState &result, bool first_time_failure)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main,
                                  m_tx_download_mutex);
 
@@ -4119,10 +4137,10 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
     HeadersDirectFetchBlocks(config, pfrom, *pindexLast);
 }
 
-void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
-                                       const CTransactionRef &ptx,
-                                       const TxValidationState &state,
-                                       bool first_time_failure) {
+std::optional<PeerManagerImpl::PackageToValidate>
+PeerManagerImpl::ProcessInvalidTx(NodeId nodeid, const CTransactionRef &ptx,
+                                  const TxValidationState &state,
+                                  bool first_time_failure) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
     AssertLockHeld(cs_main); // For ActiveTip
@@ -4135,6 +4153,8 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
 
     LogDebug(BCLog::MEMPOOLREJ, "%s from peer=%d was not accepted: %s\n",
              txid.ToString(), nodeid, state.ToString());
+    // Populated if failure is reconsiderable and eligible package is found.
+    std::optional<PackageToValidate> package_to_validate;
 
     if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
         // Only process a new orphan if this is a first time failure, as
@@ -4237,13 +4257,13 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
                 m_txdownloadman.GetTxRequestRef().ForgetInvId(tx.GetId());
             }
         }
-        return;
+        return std::nullopt;
     }
 
     if (m_avalanche &&
         m_avalanche->isPreconsensusActivated(m_chainman.ActiveTip()) &&
         state.GetResult() == TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
-        return;
+        return std::nullopt;
     }
 
     if (state.GetResult() == TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
@@ -4252,6 +4272,17 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         // download or submit this transaction by itself again, but may submit
         // it as part of a package later.
         m_txdownloadman.RecentRejectsPackageReconsiderableFilter().insert(txid);
+
+        if (first_time_failure) {
+            // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look for
+            // a matching child in the orphanage, as it is possible that they
+            // succeed as a package.
+            LogDebug(BCLog::TXPACKAGES,
+                     "tx %s failed but reconsiderable, looking for child in "
+                     "orphanage\n",
+                     txid.ToString());
+            package_to_validate = Find1P1CPackage(ptx, nodeid);
+        }
     } else {
         m_txdownloadman.RecentRejectsFilter().insert(txid);
     }
@@ -4272,6 +4303,8 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         LogDebug(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
                  txid.ToString());
     }
+
+    return package_to_validate;
 }
 
 void PeerManagerImpl::ProcessValidTx(NodeId nodeid, const CTransactionRef &tx) {
@@ -5951,21 +5984,9 @@ void PeerManagerImpl::ProcessMessage(
                 pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
             }
             if (state.IsInvalid()) {
-                ProcessInvalidTx(pfrom.GetId(), ptx, state,
-                                 /*first_time_failure=*/true);
-            }
-            // When a transaction fails for TX_PACKAGE_RECONSIDERABLE, look for
-            // a matching child in the orphanage, as it is possible that they
-            // succeed as a package.
-            if (state.GetResult() ==
-                TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
-                LogDebug(
-                    BCLog::TXPACKAGES,
-                    "tx %s failed but reconsiderable, looking for child in "
-                    "orphanage\n",
-                    txid.ToString());
                 if (auto package_to_validate{
-                        Find1P1CPackage(ptx, pfrom.GetId())}) {
+                        ProcessInvalidTx(pfrom.GetId(), ptx, state,
+                                         /*first_time_failure=*/true)}) {
                     const auto package_result{ProcessNewPackage(
                         m_chainman.ActiveChainstate(), m_mempool,
                         package_to_validate->m_txns, /*test_accept=*/false)};
