@@ -982,17 +982,12 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
     // previous block or lacking node connected.
     // The previous block time is capped to now for the unlikely event the
     // previous block time is in the future.
-    std::chrono::seconds registrationDelay =
+    auto registrationDelay = std::chrono::duration_cast<std::chrono::seconds>(
+        4 * Peer::DANGLING_TIMEOUT);
+    auto maxRegistrationDelay =
         std::chrono::duration_cast<std::chrono::seconds>(
-            IsLeeKuanYewEnabled(chainman.GetConsensus(), pprev)
-                ? 4 * Peer::DANGLING_TIMEOUT
-                : 2 * Peer::DANGLING_TIMEOUT);
-    std::chrono::seconds maxRegistrationDelay =
-        std::chrono::duration_cast<std::chrono::seconds>(
-            IsLeeKuanYewEnabled(chainman.GetConsensus(), pprev)
-                ? 6 * Peer::DANGLING_TIMEOUT
-                : 4 * Peer::DANGLING_TIMEOUT);
-    std::chrono::seconds minRegistrationDelay =
+            6 * Peer::DANGLING_TIMEOUT);
+    auto minRegistrationDelay =
         std::chrono::duration_cast<std::chrono::seconds>(
             2 * Peer::DANGLING_TIMEOUT);
 

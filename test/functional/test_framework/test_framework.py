@@ -49,8 +49,8 @@ TEST_EXIT_PASSED = 0
 TEST_EXIT_FAILED = 1
 TEST_EXIT_SKIPPED = 77
 
-# Timestamp is Nov. 20th, 2023 at 12:00:00
-TIMESTAMP_IN_THE_PAST = 1700481600
+# Timestamp is May. 16th, 2024 at 08:00:00
+TIMESTAMP_IN_THE_PAST = 1715846400
 
 TMPDIR_PREFIX = "bitcoin_func_test_"
 
@@ -286,11 +286,11 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
             help="Run test using a descriptor wallet",
         )
         parser.add_argument(
-            "--with-leekuanyewactivation",
-            dest="leekuanyewactivation",
+            "--with-augustoactivation",
+            dest="augustoactivation",
             default=False,
             action="store_true",
-            help=f"Activate Lee Kuan Yew update on timestamp {TIMESTAMP_IN_THE_PAST}",
+            help=f"Activate Augusto update on timestamp {TIMESTAMP_IN_THE_PAST}",
         )
         parser.add_argument(
             "--timeout-factor",
@@ -598,9 +598,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.leekuanyewactivation:
+            if self.options.augustoactivation:
                 self.nodes[i].extend_default_args(
-                    [f"-leekuanyewactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-augustoactivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
     def start_node(self, i, *args, **kwargs):
@@ -910,9 +910,9 @@ class BitcoinTestFramework(metaclass=BitcoinTestMetaClass):
                 )
             )
 
-            if self.options.leekuanyewactivation:
+            if self.options.augustoactivation:
                 self.nodes[CACHE_NODE_ID].extend_default_args(
-                    [f"-leekuanyewactivationtime={TIMESTAMP_IN_THE_PAST}"]
+                    [f"-augustoactivationtime={TIMESTAMP_IN_THE_PAST}"]
                 )
 
             self.start_node(CACHE_NODE_ID)

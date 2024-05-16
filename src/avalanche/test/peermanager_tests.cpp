@@ -2351,8 +2351,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     }
 
     // Make sure the proofs have been registered before the prev block was found
-    // and before 4x the peer replacement cooldown.
-    now += 4 * avalanche::Peer::DANGLING_TIMEOUT + 1s;
+    // and before 6x the peer replacement cooldown.
+    now += 6 * avalanche::Peer::DANGLING_TIMEOUT + 1s;
     SetMockTime(now);
     prevBlock.nTime = now.count();
 
@@ -2513,14 +2513,14 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         BOOST_CHECK(pm.setFinalized(peerid));
         BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
-        // 3. The proof has been registered 30min from the previous block time,
+        // 3. The proof has been registered 60min from the previous block time,
         // but the previous block time is in the future.
-        now += 20min + 1s;
+        now += 50min + 1s;
         SetMockTime(now);
         prevBlock.nTime = (now + 10min).count();
         BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
-        // 4. The proof has been registered 30min from now, but only 20min from
+        // 4. The proof has been registered 60min from now, but only 50min from
         // the previous block time.
         now += 10min;
         SetMockTime(now);
@@ -2539,65 +2539,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     }
 
     {
-        proofs.clear();
-        for (size_t i = 0; i < 2; i++) {
-            // Add a couple proofs
-            const CKey key = CKey::MakeCompressedKey();
-            CScript payoutScript = GetScriptForRawPubKey(key.GetPubKey());
-
-            auto proof = buildProofWithAmountAndPayout(PROOF_DUST_THRESHOLD,
-                                                       payoutScript);
-            PeerId peerid = TestPeerManager::registerAndGetPeerId(pm, proof);
-            BOOST_CHECK_NE(peerid, NO_PEER);
-
-            BOOST_CHECK(pm.addNode(NodeId(i), proof->getId()));
-
-            BOOST_CHECK(pm.setFinalized(peerid));
-
-            proofs.push_back(proof);
-        }
-
-        // The proofs has been registered > 30min from the previous block time,
-        // but less than 60min
-        now += 30min + 1s;
-        SetMockTime(now);
-        prevBlock.nTime = now.count();
-
-        // Because they are both recently registered, both proofs are acceptable
-        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
-        BOOST_CHECK_EQUAL(winners.size(), 2);
-
-        // The proofs has been registered > 60min from the previous block time
-        now += 30min;
-        SetMockTime(now);
-        prevBlock.nTime = now.count();
-
-        // Now only one is acceptable
-        BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
-        BOOST_CHECK_EQUAL(winners.size(), 1);
-
-        // Remove all proofs
-        for (auto &proof : proofs) {
-            BOOST_CHECK(pm.rejectProof(
-                proof->getId(),
-                avalanche::PeerManager::RejectionMode::INVALIDATE));
-        }
-        BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
-    }
-
-    {
         BOOST_CHECK_EQUAL(TestPeerManager::getPeerCount(pm), 0);
-
-        gArgs.ForceSetArg("-leekuanyewactivationtime", "0");
-
-        std::array<CBlockIndex, 12> blocks;
-        for (size_t i = 1; i < blocks.size(); ++i) {
-            blocks[i].pprev = &blocks[i - 1];
-        }
-        SetMTP(blocks, now.count());
-        prevBlock.pprev = &blocks.back();
-
-        BOOST_CHECK(IsLeeKuanYewEnabled(Params().GetConsensus(), &prevBlock));
 
         proofs.clear();
         for (size_t i = 0; i < 4; i++) {
@@ -2695,8 +2637,6 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
         BOOST_CHECK_EQUAL(winners.size(), 1);
         checkRegistrationTime(winners[0]);
-
-        gArgs.ClearForcedArg("-leekuanyewactivationtime");
     }
 }
 

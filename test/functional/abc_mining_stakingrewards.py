@@ -21,7 +21,6 @@ from test_framework.util import (
 
 QUORUM_NODE_COUNT = 16
 STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
-THE_FUTURE = 2000000000
 
 
 class AbcMiningStakingRewardsTest(BitcoinTestFramework):
@@ -36,7 +35,6 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                 "-avaminavaproofsnodecount=0",
                 "-whitelist=noban@127.0.0.1",
                 "-avalanchestakingrewards=1",
-                f"-leekuanyewactivationtime={THE_FUTURE}",
             ],
         ]
 
@@ -50,7 +48,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
         quorum = [get_ava_p2p_interface(self, node) for _ in range(QUORUM_NODE_COUNT)]
         assert node.getavalancheinfo()["ready_to_poll"] is True
 
-        now += 60 * 60 + 1
+        now += 90 * 60 + 1
         node.setmocktime(now)
 
         invalid_block_hash = "0" * 63

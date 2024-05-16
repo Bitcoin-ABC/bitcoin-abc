@@ -2312,7 +2312,7 @@ BOOST_AUTO_TEST_CASE(compute_staking_rewards) {
     };
 
     // Elapse some time
-    now += 1h;
+    now += 1h + 1s;
     SetMockTime(now);
     prevBlock.nTime = now.count();
 

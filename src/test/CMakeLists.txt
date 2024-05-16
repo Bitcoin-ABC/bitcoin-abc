@@ -291,8 +291,8 @@ function(add_boost_test_runners_with_upgrade_activated SUITE EXECUTABLE)
 			"--catch_system_errors=no"
 			--
 			"-testsuitename=Bitcoin ABC unit tests with next upgrade activated"
-			# Nov. 20th, 2023 at 12:00:00
-			-leekuanyewactivationtime=1700481600
+			# May. 16th, 2024 at 08:00:00
+			-augustoactivationtime=1715846400
 		)
 	endforeach()
 endfunction()

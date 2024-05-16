@@ -53,9 +53,8 @@ bool IsCowperthwaiteEnabled(const Consensus::Params &params,
                             const CBlockIndex *pindexPrev);
 
 /** Check if May 15th, 2024 protocol upgrade has activated. */
-bool IsLeeKuanYewEnabled(const Consensus::Params &params,
-                         int64_t nMedianTimePast);
-bool IsLeeKuanYewEnabled(const Consensus::Params &params,
-                         const CBlockIndex *pindexPrev);
+bool IsAugustoEnabled(const Consensus::Params &params, int64_t nMedianTimePast);
+bool IsAugustoEnabled(const Consensus::Params &params,
+                      const CBlockIndex *pindexPrev);
 
 #endif // BITCOIN_CONSENSUS_ACTIVATION_H

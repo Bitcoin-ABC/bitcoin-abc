@@ -114,17 +114,17 @@ bool IsCowperthwaiteEnabled(const Consensus::Params &params,
     return IsCowperthwaiteEnabled(params, pindexPrev->nHeight);
 }
 
-bool IsLeeKuanYewEnabled(const Consensus::Params &params,
-                         int64_t nMedianTimePast) {
-    return nMedianTimePast >= gArgs.GetIntArg("-leekuanyewactivationtime",
-                                              params.leeKuanYewActivationTime);
+bool IsAugustoEnabled(const Consensus::Params &params,
+                      int64_t nMedianTimePast) {
+    return nMedianTimePast >= gArgs.GetIntArg("-augustoactivationtime",
+                                              params.augustoActivationTime);
 }
 
-bool IsLeeKuanYewEnabled(const Consensus::Params &params,
-                         const CBlockIndex *pindexPrev) {
+bool IsAugustoEnabled(const Consensus::Params &params,
+                      const CBlockIndex *pindexPrev) {
     if (pindexPrev == nullptr) {
         return false;
     }
 
-    return IsLeeKuanYewEnabled(params, pindexPrev->GetMedianTimePast());
+    return IsAugustoEnabled(params, pindexPrev->GetMedianTimePast());
 }
