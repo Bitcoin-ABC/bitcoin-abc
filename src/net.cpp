@@ -15,6 +15,7 @@
 #include <banman.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/netif.h>
 #include <compat/compat.h>
 #include <config.h>
 #include <consensus/consensus.h>
@@ -413,7 +414,8 @@ static CAddress GetBindAddress(const Sock &sock) {
     socklen_t sockaddr_bind_len = sizeof(sockaddr_bind);
     if (!sock.GetSockName((struct sockaddr *)&sockaddr_bind,
                           &sockaddr_bind_len)) {
-        addr_bind.SetSockAddr((const struct sockaddr *)&sockaddr_bind);
+        addr_bind.SetSockAddr((const struct sockaddr *)&sockaddr_bind,
+                              sockaddr_bind_len);
     } else {
         LogPrintLevel(BCLog::NET, BCLog::Level::Warning,
                       "getsockname failed\n");
@@ -991,7 +993,7 @@ void CConnman::AcceptConnection(const ListenSocket &hListenSocket) {
         return;
     }
 
-    if (!addr.SetSockAddr((const struct sockaddr *)&sockaddr)) {
+    if (!addr.SetSockAddr((const struct sockaddr *)&sockaddr, len)) {
         LogPrintLevel(BCLog::NET, BCLog::Level::Warning,
                       "Unknown socket family\n");
     }
@@ -2355,50 +2357,11 @@ void Discover() {
         return;
     }
 
-#ifdef WIN32
-    // Get local host IP
-    char pszHostName[256] = "";
-    if (gethostname(pszHostName, sizeof(pszHostName)) != SOCKET_ERROR) {
-        const std::vector<CNetAddr> addresses{LookupHost(pszHostName, 0, true)};
-        for (const CNetAddr &addr : addresses) {
-            if (AddLocal(addr, LOCAL_IF)) {
-                LogPrintf("%s: %s - %s\n", __func__, pszHostName,
-                          addr.ToStringAddr());
-            }
+    for (const CNetAddr &addr : GetLocalAddresses()) {
+        if (AddLocal(addr, LOCAL_IF)) {
+            LogPrintf("%s: %s\n", __func__, addr.ToStringAddr());
         }
     }
-#elif (HAVE_DECL_GETIFADDRS && HAVE_DECL_FREEIFADDRS)
-    // Get local host ip
-    struct ifaddrs *myaddrs;
-    if (getifaddrs(&myaddrs) == 0) {
-        for (struct ifaddrs *ifa = myaddrs; ifa != nullptr;
-             ifa = ifa->ifa_next) {
-            if (ifa->ifa_addr == nullptr || (ifa->ifa_flags & IFF_UP) == 0 ||
-                strcmp(ifa->ifa_name, "lo") == 0 ||
-                strcmp(ifa->ifa_name, "lo0") == 0) {
-                continue;
-            }
-            if (ifa->ifa_addr->sa_family == AF_INET) {
-                struct sockaddr_in *s4 =
-                    reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
-                CNetAddr addr(s4->sin_addr);
-                if (AddLocal(addr, LOCAL_IF)) {
-                    LogPrintf("%s: IPv4 %s: %s\n", __func__, ifa->ifa_name,
-                              addr.ToStringAddr());
-                }
-            } else if (ifa->ifa_addr->sa_family == AF_INET6) {
-                struct sockaddr_in6 *s6 =
-                    reinterpret_cast<struct sockaddr_in6 *>(ifa->ifa_addr);
-                CNetAddr addr(s6->sin6_addr);
-                if (AddLocal(addr, LOCAL_IF)) {
-                    LogPrintf("%s: IPv6 %s: %s\n", __func__, ifa->ifa_name,
-                              addr.ToStringAddr());
-                }
-            }
-        }
-        freeifaddrs(myaddrs);
-    }
-#endif
 }
 
 void CConnman::SetNetworkActive(bool active) {

@@ -463,6 +463,9 @@ macro(link_windows_dependencies TARGET)
 
 	find_library(WS2_32_LIBRARY NAMES ws2_32)
 	target_link_libraries(${TARGET} ${WS2_32_LIBRARY})
+
+	find_library(IPHLPAPI_LIBRARY NAMES iphlpapi)
+	target_link_libraries(${TARGET} ${IPHLPAPI_LIBRARY})
 endmacro()
 
 # Target specific configs
@@ -518,6 +521,7 @@ add_library(common
 	common/init.cpp
 	common/configfile.cpp
 	common/messages.cpp
+	common/netif.cpp
 	common/signmessage.cpp
 	common/system.cpp
 	cashaddr.cpp
@@ -965,6 +969,7 @@ if(BUILD_CHAINSTATE)
 		cashaddr.cpp         # via cashaddrenc.cpp
 		cashaddrenc.cpp      # via key_io.cpp
 		common/messages.cpp  # via net_permissions.cpp (ResolveErrMsg)
+		common/netif.cpp     # via net.cpp (GetLocalAddresses)
 		dnsseeds.cpp         # via net.cpp (GetRandomizedDNSSeeds)
 		i2p.cpp              # via net.cpp
 		key_io.cpp           # avalanche/processor.cpp uses DecodeSecret

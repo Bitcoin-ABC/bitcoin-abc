@@ -990,13 +990,19 @@ CService::CService(const struct sockaddr_in6 &addr)
     assert(addr.sin6_family == AF_INET6);
 }
 
-bool CService::SetSockAddr(const struct sockaddr *paddr) {
+bool CService::SetSockAddr(const struct sockaddr *paddr, socklen_t addrlen) {
     switch (paddr->sa_family) {
         case AF_INET:
+            if (addrlen != sizeof(struct sockaddr_in)) {
+                return false;
+            }
             *this =
                 CService(*reinterpret_cast<const struct sockaddr_in *>(paddr));
             return true;
         case AF_INET6:
+            if (addrlen != sizeof(struct sockaddr_in6)) {
+                return false;
+            }
             *this =
                 CService(*reinterpret_cast<const struct sockaddr_in6 *>(paddr));
             return true;
