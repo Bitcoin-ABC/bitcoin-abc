@@ -812,6 +812,9 @@ public:
                     avalanche::Processor *const avalanche, Options opts);
 
     /** Overridden from CValidationInterface. */
+    void ActiveTipChange(const CBlockIndex &new_tip, bool) override
+        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
+                                 !m_tx_download_mutex);
     void BlockConnected(ChainstateRole role,
                         const std::shared_ptr<const CBlock> &pblock,
                         const CBlockIndex *pindexConnected) override
@@ -1350,14 +1353,10 @@ private:
      *  - m_recent_rejects_package_reconsiderable (if
      *    include_reconsiderable = true)
      *  - m_recent_confirmed_transactions
-     * Also responsible for resetting m_recent_rejects and
-     * m_recent_rejects_package_reconsiderable if the chain tip has changed.
-     *  */
+     */
     bool AlreadyHaveTx(const TxId &txid, bool include_reconsiderable)
-        EXCLUSIVE_LOCKS_REQUIRED(cs_main,
-                                 !m_recent_confirmed_transactions_mutex,
+        EXCLUSIVE_LOCKS_REQUIRED(!m_recent_confirmed_transactions_mutex,
                                  m_tx_download_mutex);
-
     /**
      * Filter for transactions that were recently rejected by the mempool.
      * These are not rerequested until the chain tip changes, at which point
@@ -1379,12 +1378,6 @@ private:
      */
     CRollingBloomFilter m_recent_rejects GUARDED_BY(m_tx_download_mutex){
         120'000, 0.000'001};
-
-    /**
-     * Block hash of chain tip the last time we reset m_recent_rejects and
-     * m_recent_rejects_package_reconsiderable.
-     */
-    BlockHash hashRecentRejectsChainTip GUARDED_BY(m_tx_download_mutex);
 
     /**
      * Filter for:
@@ -2986,6 +2979,22 @@ void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
                               avalanchePeriodicNetworkingInterval);
 }
 
+void PeerManagerImpl::ActiveTipChange(const CBlockIndex &new_tip, bool is_ibd) {
+    // Ensure mempool mutex was released, otherwise deadlock may occur if
+    // another thread holding m_tx_download_mutex waits on the mempool mutex.
+    AssertLockNotHeld(m_mempool.cs);
+    AssertLockNotHeld(m_tx_download_mutex);
+
+    if (!is_ibd) {
+        LOCK(m_tx_download_mutex);
+        // If the chain tip has changed, previously rejected transactions might
+        // now be valid, e.g. due to a timelock. Reset the rejection filters to
+        // give those transactions another chance if we see them again.
+        m_recent_rejects.reset();
+        m_recent_rejects_package_reconsiderable.reset();
+    }
+}
+
 /**
  * Evict orphan txn pool entries based on a newly connected
  * block, remember the recently confirmed transactions, and delete tracked
@@ -3206,20 +3215,7 @@ void PeerManagerImpl::BlockChecked(const CBlock &block,
 
 bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
                                     bool include_reconsiderable) {
-    AssertLockHeld(::cs_main);
     AssertLockHeld(m_tx_download_mutex);
-
-    if (m_chainman.ActiveChain().Tip()->GetBlockHash() !=
-        hashRecentRejectsChainTip) {
-        // If the chain tip has changed previously rejected transactions
-        // might be now valid, e.g. due to a nLockTime'd tx becoming
-        // valid, or a double-spend. Reset the rejects filter and give
-        // those txs a second chance.
-        hashRecentRejectsChainTip =
-            m_chainman.ActiveChain().Tip()->GetBlockHash();
-        m_recent_rejects.reset();
-        m_recent_rejects_package_reconsiderable.reset();
-    }
 
     if (m_mempool.withOrphanage([&txid](const TxOrphanage &orphanage) {
             return orphanage.HaveTx(txid);
