@@ -46,8 +46,15 @@ bool StakingRewardsPolicy::operator()(BlockPolicyValidationState &state) {
             continue;
         }
 
-        if (std::find(winners.begin(), winners.end(), o.scriptPubKey) !=
-            winners.end()) {
+        auto it = std::find(winners.begin(), winners.end(), o.scriptPubKey);
+        if (it != winners.end()) {
+            if (it != winners.begin()) {
+                LogPrint(BCLog::AVALANCHE,
+                         "Staking rewards for block %s: selected winner is "
+                         "flaky, accepting an alternative one\n",
+                         blockhash.ToString());
+            }
+
             return true;
         }
     }
