@@ -366,7 +366,7 @@ class TestNode:
         if self.start_perf:
             self._start_perf()
 
-    def wait_for_rpc_connection(self):
+    def wait_for_rpc_connection(self, *, wait_for_import=True):
         """Sets up an RPC connection to the bitcoind process. Returns False if unable to connect."""
         # Poll at a rate of four times per second
         poll_per_s = 4
@@ -389,28 +389,28 @@ class TestNode:
                 rpc.getblockcount()
                 # If the call to getblockcount() succeeds then the RPC
                 # connection is up
-                wait_until_helper_internal(
-                    lambda: rpc.getmempoolinfo()["loaded"],
-                    timeout_factor=self.timeout_factor,
-                )
-                # Wait for the node to finish reindex, block import, and
-                # loading the mempool. Usually importing happens fast or
-                # even "immediate" when the node is started. However, there
-                # is no guarantee and sometimes ImportBlocks might finish
-                # later. This is going to cause intermittent test failures,
-                # because generally the tests assume the node is fully
-                # ready after being started.
-                #
-                # For example, the node will reject block messages from p2p
-                # when it is still importing with the error "Unexpected
-                # block message received"
-                #
-                # The wait is done here to make tests as robust as possible
-                # and prevent racy tests and intermittent failures as much
-                # as possible. Some tests might not need this, but the
-                # overhead is trivial, and the added guarantees are worth
-                # the minimal performance cost.
-
+                if wait_for_import:
+                    wait_until_helper_internal(
+                        lambda: rpc.getmempoolinfo()["loaded"],
+                        timeout_factor=self.timeout_factor,
+                    )
+                    # Wait for the node to finish reindex, block import, and
+                    # loading the mempool. Usually importing happens fast or
+                    # even "immediate" when the node is started. However, there
+                    # is no guarantee and sometimes ImportBlocks might finish
+                    # later. This is going to cause intermittent test failures,
+                    # because generally the tests assume the node is fully
+                    # ready after being started.
+                    #
+                    # For example, the node will reject block messages from p2p
+                    # when it is still importing with the error "Unexpected
+                    # block message received"
+                    #
+                    # The wait is done here to make tests as robust as possible
+                    # and prevent racy tests and intermittent failures as much
+                    # as possible. Some tests might not need this, but the
+                    # overhead is trivial, and the added guarantees are worth
+                    # the minimal performance cost.
                 self.log.debug("RPC successfully started")
                 if self.use_cli:
                     return

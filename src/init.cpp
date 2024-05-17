@@ -2833,22 +2833,21 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         g_txindex = std::make_unique<TxIndex>(
             interfaces::MakeChain(node, Params()), index_cache_sizes.tx_index,
-            false, chainman.m_blockman.m_reindexing);
+            false, do_reindex);
         node.indexes.emplace_back(g_txindex.get());
     }
 
     for (const auto &filter_type : g_enabled_filter_types) {
         InitBlockFilterIndex(
             [&] { return interfaces::MakeChain(node, Params()); }, filter_type,
-            index_cache_sizes.filter_index, false,
-            chainman.m_blockman.m_reindexing);
+            index_cache_sizes.filter_index, false, do_reindex);
         node.indexes.emplace_back(GetBlockFilterIndex(filter_type));
     }
 
     if (args.GetBoolArg("-coinstatsindex", DEFAULT_COINSTATSINDEX)) {
         g_coin_stats_index = std::make_unique<CoinStatsIndex>(
             interfaces::MakeChain(node, Params()), /* cache size */ 0, false,
-            chainman.m_blockman.m_reindexing);
+            do_reindex);
         node.indexes.emplace_back(g_coin_stats_index.get());
     }
 
@@ -2869,8 +2868,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                   "background sync to complete before enabling Chronik."));
         }
 
-        const bool fReindexChronik = chainman.m_blockman.m_reindexing ||
-                                     args.GetBoolArg("-chronikreindex", false);
+        const bool fReindexChronik =
+            do_reindex || args.GetBoolArg("-chronikreindex", false);
         if (!chronik::Start(args, config, node, fReindexChronik)) {
             return false;
         }

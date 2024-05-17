@@ -149,6 +149,22 @@ class ChronikResyncTest(BitcoinTestFramework):
         ):
             self.restart_node(0, ["-chronik"])
 
+        self.log.info("Restart after a partial reindex does not wipe the index")
+        self.generate(node, 1500)
+        node.stop_node()
+        with node.wait_for_debug_log([b"initload thread start"], interval=None):
+            node.start(["-chronik", "-reindex"])
+            node.wait_for_rpc_connection(wait_for_import=False)
+        node.stop_node()
+        # Start node without the reindex flag and verify it does not wipe the indexes data again
+        with node.assert_debug_log(
+            expected_msgs=["Opening Chronik at "],
+            unexpected_msgs=["Wiping Chronik at "],
+        ):
+            node.start(["-chronik"])
+            node.wait_for_rpc_connection(wait_for_import=False)
+        node.stop_node()
+
 
 if __name__ == "__main__":
     ChronikResyncTest().main()
