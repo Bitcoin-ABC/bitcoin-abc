@@ -1208,7 +1208,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-maxscriptcachesize=<n>",
         strprintf("Limit size of script cache to <n> MiB (default: %u)",
-                  DEFAULT_MAX_SCRIPT_CACHE_BYTES >> 20),
+                  DEFAULT_SCRIPT_EXECUTION_CACHE_BYTES >> 20),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg("-maxtipage=<n>",
@@ -2213,8 +2213,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     ValidationCacheSizes validation_cache_sizes{};
     ApplyArgsManOptions(args, validation_cache_sizes);
     (void)InitSignatureCache(validation_cache_sizes.signature_cache_bytes);
-    (void)InitScriptExecutionCache(
-        validation_cache_sizes.script_execution_cache_bytes);
 
     int script_threads = args.GetIntArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
     if (script_threads <= 0) {

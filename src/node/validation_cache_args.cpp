@@ -26,9 +26,5 @@ void ApplyArgsManOptions(const ArgsManager &argsman,
         cache_sizes.signature_cache_bytes =
             std::max<int64_t>(*max_size, 0) * (1 << 20);
     }
-    if (auto max_size = argsman.GetIntArg("-maxscriptcachesize")) {
-        cache_sizes.script_execution_cache_bytes =
-            std::max<int64_t>(*max_size, 0) * (1 << 20);
-    }
 }
 } // namespace node

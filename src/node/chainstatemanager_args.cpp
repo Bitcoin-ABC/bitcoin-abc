@@ -61,6 +61,14 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
         opts.store_recent_headers_time = *value;
     }
 
+    // When supplied with a max_size of 0, both the signature cache and
+    // script execution cache create the minimum possible cache (2
+    // elements). Therefore, we can use 0 as a floor here.
+    if (auto max_size = args.GetIntArg("-maxscriptcachesize")) {
+        opts.script_execution_cache_bytes =
+            std::max<int64_t>(*max_size, 0) * (1 << 20);
+    }
+
     if (auto value{args.GetBoolArg("-parkdeepreorg")}) {
         opts.park_deep_reorg = *value;
     }

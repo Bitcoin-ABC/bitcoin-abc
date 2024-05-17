@@ -5,7 +5,6 @@
 #ifndef BITCOIN_KERNEL_VALIDATION_CACHE_SIZES_H
 #define BITCOIN_KERNEL_VALIDATION_CACHE_SIZES_H
 
-#include <script/scriptcache.h>
 #include <script/sigcache.h>
 
 #include <cstddef>
@@ -14,7 +13,6 @@
 namespace kernel {
 struct ValidationCacheSizes {
     size_t signature_cache_bytes{DEFAULT_MAX_SIG_CACHE_BYTES};
-    size_t script_execution_cache_bytes{DEFAULT_MAX_SCRIPT_CACHE_BYTES};
 };
 } // namespace kernel
 

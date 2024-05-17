@@ -31,6 +31,7 @@
 #include <policy/packages.h>
 #include <script/script_error.h>
 #include <script/script_metrics.h>
+#include <script/scriptcache.h>
 #include <shutdown.h>
 #include <sync.h>
 #include <txdb.h>
@@ -418,6 +419,20 @@ public:
 };
 
 /**
+ * Convenience class for initializing and passing the script execution cache.
+ */
+class ValidationCache {
+public:
+    CuckooCache::cache<ScriptCacheElement, ScriptCacheHasher>
+        m_script_execution_cache;
+
+    ValidationCache(size_t script_execution_cache_bytes);
+
+    ValidationCache(const ValidationCache &) = delete;
+    ValidationCache &operator=(const ValidationCache &) = delete;
+};
+
+/**
  * Check whether all of this transaction's input scripts succeed.
  *
  * This involves ECDSA signature checks so can be computationally intensive.
@@ -450,7 +465,8 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
                        const CCoinsViewCache &view, const uint32_t flags,
                        bool sigCacheStore, bool scriptCacheStore,
                        const PrecomputedTransactionData &txdata,
-                       int &nSigChecksOut, TxSigCheckLimiter &txLimitSigChecks,
+                       ValidationCache &validation_cache, int &nSigChecksOut,
+                       TxSigCheckLimiter &txLimitSigChecks,
                        CheckInputsLimiter *pBlockLimitSigChecks,
                        std::vector<CScriptCheck> *pvChecks)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main);
@@ -462,12 +478,13 @@ static inline bool
 CheckInputScripts(const CTransaction &tx, TxValidationState &state,
                   const CCoinsViewCache &view, const uint32_t flags,
                   bool sigCacheStore, bool scriptCacheStore,
-                  const PrecomputedTransactionData &txdata, int &nSigChecksOut)
+                  const PrecomputedTransactionData &txdata,
+                  ValidationCache &validation_cache, int &nSigChecksOut)
     EXCLUSIVE_LOCKS_REQUIRED(cs_main) {
     TxSigCheckLimiter nSigChecksTxLimiter;
-    return CheckInputScripts(tx, state, view, flags, sigCacheStore,
-                             scriptCacheStore, txdata, nSigChecksOut,
-                             nSigChecksTxLimiter, nullptr, nullptr);
+    return CheckInputScripts(
+        tx, state, view, flags, sigCacheStore, scriptCacheStore, txdata,
+        validation_cache, nSigChecksOut, nSigChecksTxLimiter, nullptr, nullptr);
 }
 
 /**
@@ -1288,6 +1305,8 @@ public:
     //! A single BlockManager instance is shared across each constructed
     //! chainstate to avoid duplicating block metadata.
     node::BlockManager m_blockman;
+
+    ValidationCache m_validation_cache;
 
     /**
      * Whether initial block download has ended and IsInitialBlockDownload
