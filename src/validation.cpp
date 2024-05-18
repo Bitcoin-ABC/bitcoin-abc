@@ -1744,7 +1744,8 @@ bool CScriptCheck::operator()() {
     const CScript &scriptSig = ptxTo->vin[nIn].scriptSig;
     if (!VerifyScript(scriptSig, m_tx_out.scriptPubKey, nFlags,
                       CachingTransactionSignatureChecker(
-                          ptxTo, nIn, m_tx_out.nValue, cacheStore, txdata),
+                          ptxTo, nIn, m_tx_out.nValue, cacheStore,
+                          *m_signature_cache, txdata),
                       metrics, &error)) {
         return false;
     }
@@ -1761,7 +1762,9 @@ bool CScriptCheck::operator()() {
     return true;
 }
 
-ValidationCache::ValidationCache(const size_t script_execution_cache_bytes) {
+ValidationCache::ValidationCache(const size_t script_execution_cache_bytes,
+                                 const size_t signature_cache_bytes)
+    : m_signature_cache{signature_cache_bytes} {
     // Setup the salted hasher
     uint256 nonce = GetRandHash();
     // We want the nonce to be 64 bytes long to force the hasher to process
@@ -1827,8 +1830,9 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
         // of CScriptCheck.
 
         // Verify signature
-        CScriptCheck check(coin.GetTxOut(), tx, i, flags, sigCacheStore, txdata,
-                           &txLimitSigChecks, pBlockLimitSigChecks);
+        CScriptCheck check(
+            coin.GetTxOut(), tx, validation_cache.m_signature_cache, i, flags,
+            sigCacheStore, txdata, &txLimitSigChecks, pBlockLimitSigChecks);
 
         // If pvChecks is not null, defer the check execution to the caller.
         if (pvChecks) {
@@ -1850,8 +1854,9 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
                 // NOT_STANDARD instead of CONSENSUS to avoid downstream users
                 // splitting the network between upgraded and non-upgraded nodes
                 // by banning CONSENSUS-failing data providers.
-                CScriptCheck check2(coin.GetTxOut(), tx, i, mandatoryFlags,
-                                    sigCacheStore, txdata);
+                CScriptCheck check2(coin.GetTxOut(), tx,
+                                    validation_cache.m_signature_cache, i,
+                                    mandatoryFlags, sigCacheStore, txdata);
                 if (check2()) {
                     return state.Invalid(
                         TxValidationResult::TX_NOT_STANDARD,
@@ -7237,7 +7242,8 @@ ChainstateManager::ChainstateManager(
     Options options, node::BlockManager::Options blockman_options)
     : m_options{Flatten(std::move(options))},
       m_blockman{std::move(blockman_options)},
-      m_validation_cache{m_options.script_execution_cache_bytes} {}
+      m_validation_cache{m_options.script_execution_cache_bytes,
+                         m_options.signature_cache_bytes} {}
 
 bool ChainstateManager::DetectSnapshotChainstate(CTxMemPool *mempool) {
     assert(!m_snapshot_chainstate);

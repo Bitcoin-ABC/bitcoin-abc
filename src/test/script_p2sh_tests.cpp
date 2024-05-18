@@ -102,7 +102,6 @@ BOOST_AUTO_TEST_CASE(sign) {
         txTo[i].vin[0].prevout = COutPoint(txFrom.GetId(), i);
         txTo[i].vout[0].nValue = SATOSHI;
     }
-
     for (int i = 0; i < 8; i++) {
         BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction(txFrom),
                                           txTo[i], 0,
@@ -113,6 +112,7 @@ BOOST_AUTO_TEST_CASE(sign) {
     // All of the above should be OK, and the txTos have valid signatures
     // Check to make sure signature verification fails if we use the wrong
     // ScriptSig:
+    SignatureCache signature_cache{DEFAULT_SIGNATURE_CACHE_BYTES};
     for (int i = 0; i < 8; i++) {
         CTransaction tx(txTo[i]);
         PrecomputedTransactionData txdata(tx);
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(sign) {
             txTo[i].vin[0].scriptSig = txTo[j].vin[0].scriptSig;
             bool sigOK =
                 CScriptCheck(txFrom.vout[txTo[i].vin[0].prevout.GetN()],
-                             CTransaction(txTo[i]), 0,
+                             CTransaction(txTo[i]), signature_cache, 0,
                              SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_STRICTENC |
                                  SCRIPT_ENABLE_SIGHASH_FORKID,
                              false, txdata)();

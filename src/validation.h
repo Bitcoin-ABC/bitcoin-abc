@@ -32,6 +32,7 @@
 #include <script/script_error.h>
 #include <script/script_metrics.h>
 #include <script/scriptcache.h>
+#include <script/sigcache.h>
 #include <shutdown.h>
 #include <sync.h>
 #include <txdb.h>
@@ -419,7 +420,8 @@ public:
 };
 
 /**
- * Convenience class for initializing and passing the script execution cache.
+ * Convenience class for initializing and passing the script execution cache
+ * and signature cache.
  */
 class ValidationCache {
 private:
@@ -430,8 +432,10 @@ private:
 public:
     CuckooCache::cache<ScriptCacheElement, ScriptCacheHasher>
         m_script_execution_cache;
+    SignatureCache m_signature_cache;
 
-    ValidationCache(size_t script_execution_cache_bytes);
+    ValidationCache(size_t script_execution_cache_bytes,
+                    size_t signature_cache_bytes);
 
     ValidationCache(const ValidationCache &) = delete;
     ValidationCache &operator=(const ValidationCache &) = delete;
@@ -565,17 +569,20 @@ private:
     ScriptError error{ScriptError::UNKNOWN};
     ScriptExecutionMetrics metrics;
     PrecomputedTransactionData txdata;
+    SignatureCache *m_signature_cache;
     TxSigCheckLimiter *pTxLimitSigChecks;
     CheckInputsLimiter *pBlockLimitSigChecks;
 
 public:
     CScriptCheck(const CTxOut &outIn, const CTransaction &txToIn,
-                 unsigned int nInIn, uint32_t nFlagsIn, bool cacheIn,
+                 SignatureCache &signature_cache, unsigned int nInIn,
+                 uint32_t nFlagsIn, bool cacheIn,
                  const PrecomputedTransactionData &txdataIn,
                  TxSigCheckLimiter *pTxLimitSigChecksIn = nullptr,
                  CheckInputsLimiter *pBlockLimitSigChecksIn = nullptr)
         : m_tx_out(outIn), ptxTo(&txToIn), nIn(nInIn), nFlags(nFlagsIn),
           cacheStore(cacheIn), txdata(txdataIn),
+          m_signature_cache(&signature_cache),
           pTxLimitSigChecks(pTxLimitSigChecksIn),
           pBlockLimitSigChecks(pBlockLimitSigChecksIn) {}
 

@@ -18,6 +18,7 @@
 #include <policy/settings.h>
 #include <script/script.h>
 #include <script/script_error.h>
+#include <script/sigcache.h>
 #include <script/sign.h>
 #include <script/signingprovider.h>
 #include <script/standard.h>
@@ -442,10 +443,13 @@ BOOST_AUTO_TEST_CASE(test_big_transaction) {
         coins.emplace_back(std::move(out), 1, false);
     }
 
+    SignatureCache signature_cache{DEFAULT_SIGNATURE_CACHE_BYTES};
+
     for (size_t i = 0; i < mtx.vin.size(); i++) {
         std::vector<CScriptCheck> vChecks;
-        vChecks.emplace_back(coins[tx.vin[i].prevout.GetN()].GetTxOut(), tx, i,
-                             STANDARD_SCRIPT_VERIFY_FLAGS, false, txdata);
+        vChecks.emplace_back(coins[tx.vin[i].prevout.GetN()].GetTxOut(), tx,
+                             signature_cache, i, STANDARD_SCRIPT_VERIFY_FLAGS,
+                             false, txdata);
         control.Add(std::move(vChecks));
     }
 

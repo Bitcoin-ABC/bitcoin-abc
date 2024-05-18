@@ -5,7 +5,6 @@
 #include <test/util/setup_common.h>
 
 #include <kernel/mempool_entry.h>
-#include <kernel/validation_cache_sizes.h>
 
 #include <addrman.h>
 #include <banman.h>
@@ -29,7 +28,6 @@
 #include <node/kernel_notifications.h>
 #include <node/miner.h>
 #include <node/peerman_args.h>
-#include <node/validation_cache_args.h>
 #include <noui.h>
 #include <pow/pow.h>
 #include <random.h>
@@ -62,7 +60,6 @@
 #include <functional>
 #include <memory>
 
-using kernel::ValidationCacheSizes;
 using node::ApplyArgsManOptions;
 using node::BlockAssembler;
 using node::BlockManager;
@@ -134,10 +131,6 @@ BasicTestingSetup::BasicTestingSetup(
     m_node.kernel = std::make_unique<kernel::Context>();
     SetupEnvironment();
     SetupNetworking();
-
-    ValidationCacheSizes validation_cache_sizes{};
-    ApplyArgsManOptions(*m_node.args, validation_cache_sizes);
-    Assert(InitSignatureCache(validation_cache_sizes.signature_cache_bytes));
 
     m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
     g_wallet_init_interface.Construct(m_node);

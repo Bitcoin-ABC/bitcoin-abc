@@ -12,6 +12,7 @@
 #include <dbwrapper.h>
 #include <primitives/blockhash.h>
 #include <script/scriptcache.h>
+#include <script/sigcache.h>
 #include <txdb.h>
 #include <util/time.h>
 
@@ -57,6 +58,7 @@ struct ChainstateManagerOpts {
     CoinsViewOptions coins_view{};
     Notifications &notifications;
     size_t script_execution_cache_bytes{DEFAULT_SCRIPT_EXECUTION_CACHE_BYTES};
+    size_t signature_cache_bytes{DEFAULT_SIGNATURE_CACHE_BYTES};
     int stop_at_height{DEFAULT_STOPATHEIGHT};
     //! If set, this overwrites the timestamp at which replay protection
     //! activates.

@@ -62,8 +62,9 @@ BOOST_AUTO_TEST_CASE(sig_pubkey_hash_variations) {
         SER_NETWORK, PROTOCOL_VERSION);
     CTransaction dummyTx(deserialize, stream);
     PrecomputedTransactionData txdata(dummyTx);
+    SignatureCache signature_cache{DEFAULT_SIGNATURE_CACHE_BYTES};
     CachingTransactionSignatureChecker checker(&dummyTx, 0, 0 * SATOSHI, true,
-                                               txdata);
+                                               signature_cache, txdata);
 
     TestCachingTransactionSignatureChecker testChecker(checker);
 

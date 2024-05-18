@@ -19,11 +19,14 @@
 
 namespace {
 const BasicTestingSetup *g_setup;
+SignatureCache *g_signature_cache;
 } // namespace
 
 void initialize_script_sigcache() {
     static const auto testing_setup = MakeNoLogFileContext<>();
+    static SignatureCache signature_cache{DEFAULT_SIGNATURE_CACHE_BYTES};
     g_setup = testing_setup.get();
+    g_signature_cache = &signature_cache;
 }
 
 FUZZ_TARGET_INIT(script_sigcache, initialize_script_sigcache) {
@@ -40,7 +43,12 @@ FUZZ_TARGET_INIT(script_sigcache, initialize_script_sigcache) {
     const bool store = fuzzed_data_provider.ConsumeBool();
     PrecomputedTransactionData tx_data;
     CachingTransactionSignatureChecker caching_transaction_signature_checker{
-        mutable_transaction ? &tx : nullptr, n_in, amount, store, tx_data};
+        mutable_transaction ? &tx : nullptr,
+        n_in,
+        amount,
+        store,
+        *g_signature_cache,
+        tx_data};
     const std::optional<CPubKey> pub_key =
         ConsumeDeserializable<CPubKey>(fuzzed_data_provider);
     if (pub_key) {

@@ -11,7 +11,6 @@
 
 #include <kernel/checks.h>
 #include <kernel/mempool_persist.h>
-#include <kernel/validation_cache_sizes.h>
 
 #include <addrman.h>
 #include <avalanche/avalanche.h>
@@ -56,7 +55,6 @@
 #include <node/miner.h>
 #include <node/peerman_args.h>
 #include <node/ui_interface.h>
-#include <node/validation_cache_args.h>
 #include <policy/block/rtt.h>
 #include <policy/policy.h>
 #include <policy/settings.h>
@@ -119,7 +117,6 @@
 
 using kernel::DEFAULT_STOPAFTERBLOCKIMPORT;
 using kernel::DumpMempool;
-using kernel::ValidationCacheSizes;
 
 using node::ApplyArgsManOptions;
 using node::BlockManager;
@@ -1202,7 +1199,7 @@ void SetupServerArgs(NodeContext &node) {
     argsman.AddArg(
         "-maxsigcachesize=<n>",
         strprintf("Limit size of signature cache to <n> MiB (default: %u)",
-                  DEFAULT_MAX_SIG_CACHE_BYTES >> 20),
+                  DEFAULT_SIGNATURE_CACHE_BYTES >> 20),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::DEBUG_TEST);
     argsman.AddArg(
@@ -2209,10 +2206,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                   args.GetArg("-datadir", ""),
                   fs::PathToString(fs::current_path()));
     }
-
-    ValidationCacheSizes validation_cache_sizes{};
-    ApplyArgsManOptions(args, validation_cache_sizes);
-    (void)InitSignatureCache(validation_cache_sizes.signature_cache_bytes);
 
     int script_threads = args.GetIntArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
     if (script_threads <= 0) {

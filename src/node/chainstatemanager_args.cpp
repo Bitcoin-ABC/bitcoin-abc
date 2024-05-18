@@ -68,6 +68,11 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
         opts.script_execution_cache_bytes =
             std::max<int64_t>(*max_size, 0) * (1 << 20);
     }
+    if (auto max_size = args.GetIntArg("-maxsigcachesize")) {
+        opts.signature_cache_bytes =
+            std::max<int64_t>(*max_size, 0) * (1 << 20);
+        ;
+    }
 
     if (auto value{args.GetBoolArg("-parkdeepreorg")}) {
         opts.park_deep_reorg = *value;
