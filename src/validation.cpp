@@ -1761,6 +1761,23 @@ bool CScriptCheck::operator()() {
     return true;
 }
 
+ValidationCache::ValidationCache(const size_t script_execution_cache_bytes) {
+    // Setup the salted hasher
+    uint256 nonce = GetRandHash();
+    // We want the nonce to be 64 bytes long to force the hasher to process
+    // this chunk, which makes later hash computations more efficient. We
+    // just write our 32-byte entropy twice to fill the 64 bytes.
+    m_script_execution_cache_hasher.Write(nonce.begin(), 32);
+    m_script_execution_cache_hasher.Write(nonce.begin(), 32);
+
+    const auto [num_elems, approx_size_bytes] =
+        m_script_execution_cache.setup_bytes(script_execution_cache_bytes);
+    LogPrintf("Using %zu MiB out of %zu MiB requested for script execution "
+              "cache, able to store %zu elements\n",
+              approx_size_bytes >> 20, script_execution_cache_bytes >> 20,
+              num_elems);
+}
+
 bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
                        const CCoinsViewCache &inputs, const uint32_t flags,
                        bool sigCacheStore, bool scriptCacheStore,
@@ -1780,7 +1797,8 @@ bool CheckInputScripts(const CTransaction &tx, TxValidationState &state,
     // Note that this assumes that the inputs provided are correct (ie that the
     // transaction hash which is in tx's prevouts properly commits to the
     // scriptPubKey in the inputs view of that transaction).
-    ScriptCacheKey hashCacheEntry(tx, flags);
+    ScriptCacheKey hashCacheEntry(
+        tx, flags, validation_cache.ScriptExecutionCacheHasher());
     ScriptCacheElement elem(hashCacheEntry, 0);
     bool found_in_cache = validation_cache.m_script_execution_cache.get(
         elem, /*erase=*/!scriptCacheStore);

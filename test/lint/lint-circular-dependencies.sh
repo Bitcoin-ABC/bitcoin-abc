@@ -38,10 +38,6 @@ EXPECTED_CIRCULAR_DEPENDENCIES=(
 
     # Temporary, to be removed when preconsensus is activated by default
     "avalanche/processor -> validation -> policy/block/preconsensus -> avalanche/processor"
-
-    # Temporary, removed in next commit
-    "script/scriptcache -> validation -> script/scriptcache"
-    "kernel/chainstatemanager_opts -> script/scriptcache -> validation -> kernel/chainstatemanager_opts"
 )
 
 EXIT_CODE=0

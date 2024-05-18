@@ -422,6 +422,11 @@ public:
  * Convenience class for initializing and passing the script execution cache.
  */
 class ValidationCache {
+private:
+    //! Pre-initialized hasher to avoid having to recreate it for every hash
+    //! calculation.
+    CSHA256 m_script_execution_cache_hasher;
+
 public:
     CuckooCache::cache<ScriptCacheElement, ScriptCacheHasher>
         m_script_execution_cache;
@@ -430,6 +435,11 @@ public:
 
     ValidationCache(const ValidationCache &) = delete;
     ValidationCache &operator=(const ValidationCache &) = delete;
+
+    //! Return a copy of the pre-initialized hasher.
+    CSHA256 ScriptExecutionCacheHasher() const {
+        return m_script_execution_cache_hasher;
+    }
 };
 
 /**

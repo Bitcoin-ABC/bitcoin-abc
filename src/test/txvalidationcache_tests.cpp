@@ -661,10 +661,18 @@ BOOST_FIXTURE_TEST_CASE(scriptcache_values, TestChain100Setup) {
     tx2.nVersion = 2;
     uint32_t flagsA = 0x7fffffff;
     uint32_t flagsB = 0xffffffff;
-    ScriptCacheKey key1A(CTransaction(tx1), flagsA);
-    ScriptCacheKey key1B(CTransaction(tx1), flagsB);
-    ScriptCacheKey key2A(CTransaction(tx2), flagsA);
-    ScriptCacheKey key2B(CTransaction(tx2), flagsB);
+    ScriptCacheKey key1A(
+        CTransaction(tx1), flagsA,
+        m_node.chainman->m_validation_cache.ScriptExecutionCacheHasher());
+    ScriptCacheKey key1B(
+        CTransaction(tx1), flagsB,
+        m_node.chainman->m_validation_cache.ScriptExecutionCacheHasher());
+    ScriptCacheKey key2A(
+        CTransaction(tx2), flagsA,
+        m_node.chainman->m_validation_cache.ScriptExecutionCacheHasher());
+    ScriptCacheKey key2B(
+        CTransaction(tx2), flagsB,
+        m_node.chainman->m_validation_cache.ScriptExecutionCacheHasher());
 
     BOOST_CHECK(key1A == key1A);
     BOOST_CHECK(!(key1A == key1B));

@@ -29,7 +29,7 @@ class ScriptCacheKey {
 public:
     ScriptCacheKey() = default;
     ScriptCacheKey(const ScriptCacheKey &rhs) = default;
-    ScriptCacheKey(const CTransaction &tx, uint32_t flags);
+    ScriptCacheKey(const CTransaction &tx, uint32_t flags, CSHA256 &&hasher);
 
     ScriptCacheKey &operator=(const ScriptCacheKey &rhs) = default;
 
