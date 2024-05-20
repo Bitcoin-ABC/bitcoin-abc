@@ -2212,20 +2212,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     ValidationCacheSizes validation_cache_sizes{};
     ApplyArgsManOptions(args, validation_cache_sizes);
-
-    if (!InitSignatureCache(validation_cache_sizes.signature_cache_bytes)) {
-        return InitError(strprintf(
-            _("Unable to allocate memory for -maxsigcachesize: '%s' MiB"),
-            args.GetIntArg("-maxsigcachesize",
-                           DEFAULT_MAX_SIG_CACHE_BYTES >> 20)));
-    }
-    if (!InitScriptExecutionCache(
-            validation_cache_sizes.script_execution_cache_bytes)) {
-        return InitError(strprintf(
-            _("Unable to allocate memory for -maxscriptcachesize: '%s' MiB"),
-            args.GetIntArg("-maxscriptcachesize",
-                           DEFAULT_MAX_SCRIPT_CACHE_BYTES >> 20)));
-    }
+    (void)InitSignatureCache(validation_cache_sizes.signature_cache_bytes);
+    (void)InitScriptExecutionCache(
+        validation_cache_sizes.script_execution_cache_bytes);
 
     int script_threads = args.GetIntArg("-par", DEFAULT_SCRIPTCHECK_THREADS);
     if (script_threads <= 0) {
