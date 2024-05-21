@@ -63,14 +63,14 @@ function(add_crate_test_targets CRATE)
     set(CLIPPY_TARGET "${CRATE_TEST_TARGET}-clippy")
     add_cargo_custom_target("${CLIPPY_TARGET}"
         clippy
-        --package "${CRATE}-*"
+        --package '${CRATE}-*'
         -- -D warnings
     )
 
     set(TEST_TARGET "${CRATE_TEST_TARGET}-test")
     add_cargo_custom_target("${TEST_TARGET}"
         test
-        --package "${CRATE}-*"
+        --package '${CRATE}-*'
     )
 
     add_dependencies("${CRATE_TEST_TARGET}"
