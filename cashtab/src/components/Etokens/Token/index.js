@@ -95,6 +95,7 @@ const Token = () => {
         cashtabState,
         updateCashtabState,
         chronik,
+        ecc,
         chaintipBlockheight,
         loading,
     } = useContext(WalletContext);
@@ -436,6 +437,7 @@ const Token = () => {
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
+                ecc,
                 wallet,
                 tokenSendTargetOutputs,
                 settings.minFeeSends &&
@@ -490,6 +492,7 @@ const Token = () => {
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
+                ecc,
                 wallet,
                 nftFanTargetOutputs,
                 settings.minFeeSends &&
@@ -723,6 +726,7 @@ const Token = () => {
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
+                ecc,
                 wallet,
                 tokenBurnTargetOutputs,
                 settings.minFeeSends &&
@@ -786,6 +790,7 @@ const Token = () => {
             // Build and broadcast the tx
             const { response } = await sendXec(
                 chronik,
+                ecc,
                 wallet,
                 mintTargetOutputs,
                 settings.minFeeSends &&

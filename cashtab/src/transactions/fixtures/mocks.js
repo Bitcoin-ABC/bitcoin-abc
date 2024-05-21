@@ -797,7 +797,7 @@ const walletWithTokensInNode = {
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: '1000000',
+                value: 1000000,
                 network: 'XEC',
                 path: 1899,
             },

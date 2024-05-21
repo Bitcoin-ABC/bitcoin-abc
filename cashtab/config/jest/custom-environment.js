@@ -3,6 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import JSDOMEnvironment from 'jest-environment-jsdom';
+import { TextEncoder, TextDecoder } from 'util';
+
 export default class CustomEnvironment extends JSDOMEnvironment {
     constructor(config, context) {
         super(config, context);
@@ -16,6 +18,8 @@ export default class CustomEnvironment extends JSDOMEnvironment {
         await super.setup();
         this.global.Uint8Array = Uint8Array;
         this.global.ArrayBuffer = ArrayBuffer;
+        this.global.TextEncoder = TextEncoder;
+        this.global.TextDecoder = TextDecoder;
     }
 
     async teardown() {

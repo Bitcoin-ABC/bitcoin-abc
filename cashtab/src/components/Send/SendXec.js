@@ -9,7 +9,6 @@ import { CashReceivedNotificationIcon } from 'components/Common/CustomIcons';
 import Modal from 'components/Common/Modal';
 import PrimaryButton from 'components/Common/Buttons';
 import { toSatoshis, toXec } from 'wallet';
-import { getMaxSendAmountSatoshis } from 'ecash-coinselect';
 import { sumOneToManyXec } from 'utils/cashMethods';
 import { Event } from 'components/Common/GoogleAnalytics';
 import {
@@ -24,7 +23,7 @@ import { getWalletState } from 'utils/cashMethods';
 import {
     sendXec,
     getMultisendTargetOutputs,
-    ignoreUnspendableUtxos,
+    getMaxSendAmountSatoshis,
 } from 'transactions';
 import {
     getCashtabMsgTargetOutput,
@@ -167,17 +166,19 @@ const InputModesHolder = styled.div`
 const SendXec = () => {
     const ContextValue = React.useContext(WalletContext);
     const location = useLocation();
-    const { chaintipBlockheight, fiatPrice, apiError, cashtabState, chronik } =
-        ContextValue;
+    const {
+        chaintipBlockheight,
+        fiatPrice,
+        apiError,
+        cashtabState,
+        chronik,
+        ecc,
+    } = ContextValue;
     const { settings, wallets } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
     const walletState = getWalletState(wallet);
-    const { balanceSats, nonSlpUtxos, tokens } = walletState;
-    // Use spendable utxos instead of all nonSlpUtxos for onMax function
-    const spendableUtxos = ignoreUnspendableUtxos(
-        nonSlpUtxos,
-        chaintipBlockheight,
-    );
+    const { balanceSats, tokens } = walletState;
+
     const [isOneToManyXECSend, setIsOneToManyXECSend] = useState(false);
     const [sendWithCashtabMsg, setSendWithCashtabMsg] = useState(false);
     const [sendWithOpReturnRaw, setSendWithOpReturnRaw] = useState(false);
@@ -490,6 +491,7 @@ const SendXec = () => {
         try {
             const txObj = await sendXec(
                 chronik,
+                ecc,
                 wallet,
                 targetOutputs,
                 settings.minFeeSends &&
@@ -723,15 +725,18 @@ const SendXec = () => {
         // Account for CashtabMsg if it is set
         const intendedTargetOutputs =
             sendWithCashtabMsg && formData.cashtabMsg !== ''
-                ? getCashtabMsgTargetOutput(formData.cashtabMsg)
+                ? [getCashtabMsgTargetOutput(formData.cashtabMsg)]
                 : [];
 
-        // Get max send amount in satoshis
+        // Build a tx sending all non-token utxos
+        // Determine the amount being sent (outputs less fee)
         let maxSendSatoshis;
         try {
             // An error will be thrown if the wallet has insufficient funds to send more than dust
             maxSendSatoshis = getMaxSendAmountSatoshis(
-                spendableUtxos,
+                wallet,
+                intendedTargetOutputs,
+                chaintipBlockheight,
                 settings.minFeeSends &&
                     (hasEnoughToken(
                         tokens,
@@ -745,7 +750,6 @@ const SendXec = () => {
                         ))
                     ? appConfig.minFee
                     : appConfig.defaultFee,
-                intendedTargetOutputs,
             );
         } catch (err) {
             // Set to zero. In this case, 0 is the max amount we can send, and we know

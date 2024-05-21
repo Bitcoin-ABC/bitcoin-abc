@@ -781,15 +781,19 @@ builds:
       npm ci
       npm run build
 
-      # ecash-coinselect
-      echo "Installing ecash-coinselect dependencies..."
-      pushd "${TOPLEVEL}/modules/ecash-coinselect"
-      npm ci
-
       # ecash-script
       echo "Installing ecash-script dependencies..."
       pushd "${TOPLEVEL}/modules/ecash-script"
       npm ci
+
+      # ecash-lib-wasm
+      pushd "${TOPLEVEL}/modules/ecash-lib-wasm"
+      ./build-wasm.sh
+
+      # ecash-lib
+      pushd "${TOPLEVEL}/modules/ecash-lib"
+      npm ci
+      npm run build
 
       pushd "${TOPLEVEL}/cashtab"
       npm ci
@@ -918,6 +922,7 @@ builds:
   ecash-lib-tests:
     runOnDiffRegex:
       - modules/ecash-lib/
+      - cashtab/
     env:
       JS_PROJECT_ROOT: modules/ecash-lib
       RUN_NPM_BUILD: "true"

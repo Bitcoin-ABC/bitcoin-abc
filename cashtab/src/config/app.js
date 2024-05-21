@@ -14,8 +14,8 @@ const appConfig = {
     legacyPrefix: 'bitcoincash',
     coingeckoId: 'ecash',
     fiatUpdateIntervalMs: 90000,
-    defaultFee: 2.01,
-    minFee: 1,
+    defaultFee: 2010, // satoshis per kb
+    minFee: 1000, // satoshis per kb
     dustSats: 546,
     cashDecimals: 2,
     fiatDecimals: 2,

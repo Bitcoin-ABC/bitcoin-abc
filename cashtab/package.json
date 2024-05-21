@@ -1,6 +1,6 @@
 {
     "name": "cashtab",
-    "version": "2.39.2",
+    "version": "2.40.0",
     "private": true,
     "scripts": {
         "start": "node scripts/start.js",
@@ -31,7 +31,7 @@
         "bip66": "^1.1.5",
         "bitcoinjs-message": "^2.2.0",
         "chronik-client": "file:../modules/chronik-client",
-        "ecash-coinselect": "file:../modules/ecash-coinselect",
+        "ecash-lib": "file:../modules/ecash-lib",
         "ecash-script": "file:../modules/ecash-script",
         "ecashaddrjs": "file:../modules/ecashaddrjs",
         "js-sha256": "^0.11.0",
@@ -43,7 +43,8 @@
         "react-ga": "^3.3.0",
         "react-router-dom": "^6.22.0",
         "react-toastify": "^10.0.5",
-        "slp-mdm": "^0.0.6"
+        "slp-mdm": "^0.0.6",
+        "wif": "^4.0.0"
     },
     "devDependencies": {
         "@babel/core": "^7.16.0",
@@ -105,6 +106,7 @@
         "styled-components": "^4.4.0",
         "tailwindcss": "^3.0.2",
         "terser-webpack-plugin": "^5.2.5",
+        "util": "^0.12.5",
         "web-vitals": "^2.1.4",
         "webpack": "^5.90.1",
         "webpack-dev-server": "^4.6.0",

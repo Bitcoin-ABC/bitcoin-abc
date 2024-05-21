@@ -24,6 +24,7 @@ import {
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { explorer } from 'config/explorer';
 import { undecimalizeTokenAmount } from 'wallet';
+import { Ecc, initWasm } from 'ecash-lib';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -53,6 +54,11 @@ window.matchMedia = query => ({
 });
 
 describe('<Configure />', () => {
+    let ecc;
+    beforeAll(async () => {
+        await initWasm();
+        ecc = new Ecc();
+    });
     let user;
     beforeEach(() => {
         // Set up userEvent
@@ -102,7 +108,11 @@ describe('<Configure />', () => {
         );
 
         render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/configure"
+            />,
         );
 
         // We are on the settings screen
@@ -128,7 +138,11 @@ describe('<Configure />', () => {
         );
 
         render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/configure"
+            />,
         );
 
         // We are on the settings screen
@@ -154,15 +168,15 @@ describe('<Configure />', () => {
         );
 
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206e0875eb1b866bc063217eb55ba88ddb2a5c4f299278e0c7ce4f34194619a6d502201e2c373cfe93ed35c6502e22b748ab07893e22643107b58f018af8ffbd6b654e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88accd6c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064416a14b2f97b4b24a409799b68a6da2d34ada9fa0f305eeffe11d9234cd8ee17dcb033de65840107dd52c35207fb2d2a88eadac270e582a8bc7cd66df4437800234121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acdb6c0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            '7eb806a83c48b0ab38b5af10aaa7452d4648f2c0d41975343ada9f4aa8255bd8';
+            '5f334f32bec07b1029ae579460c704e33ba05b91e3bc2bba9ee215bc585cd6ab';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -261,7 +275,7 @@ describe('<Configure />', () => {
             output: cachetTokenAndTx.tx,
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -329,15 +343,15 @@ describe('<Configure />', () => {
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022043679b2fcde0099b0cd29bfbca382e92e3b871c079a0db7d73c39440d067f5bb02202e2ab2d5d83b70911da2758afd9e56eaaaa989050f35e4cc4d28d20afc29778a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb26d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a8ae2e6e418b09c8a189547c7412a551617d2f26e55ee5af787ef9ad3f583f6086995640fc06039a04e113dc3d18ce3c51b817f59d31dbb8193dcfa4b7a862664121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb96d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            '6d2e157e2e2b1fa47cc63ede548375213942e29c090f5d9cbc2722258f720c08';
+            'c16de907537369994417459369faad6595842d569b7b4a9544288ac8a4c81dbb';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -427,9 +441,9 @@ describe('<Configure />', () => {
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022043679b2fcde0099b0cd29bfbca382e92e3b871c079a0db7d73c39440d067f5bb02202e2ab2d5d83b70911da2758afd9e56eaaaa989050f35e4cc4d28d20afc29778a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb26d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441a8ae2e6e418b09c8a189547c7412a551617d2f26e55ee5af787ef9ad3f583f6086995640fc06039a04e113dc3d18ce3c51b817f59d31dbb8193dcfa4b7a862664121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb96d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            '6d2e157e2e2b1fa47cc63ede548375213942e29c090f5d9cbc2722258f720c08';
+            'c16de907537369994417459369faad6595842d569b7b4a9544288ac8a4c81dbb';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
@@ -437,16 +451,16 @@ describe('<Configure />', () => {
 
         // Can verify in Electrum that this tx is sent at 1.0 sat/byte
         const tokenSendHex =
-            '02000000023abaa0b3d97fdc6fb07a535c552fcb379e7bffa6e7e52707b8cf1507bf243e42010000006b483045022100a3ee483d79bbc25ea139dbdac578a533ceb6a8764ba49aa4a46f9cfd73efd86602202fe5a207777e0ef846d19e04b75f9ebb3ff5e0c3b70108526aadb2e9ea27865c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b483045022100c45c36d3083c2a7980535b0495a34c976c90bb51de502b9f9f3f840578a46283022034d491a71135e8497bfa79b664e0e7d5458ec3387643dc1636a8d65721c7b2054121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000024e160364080000000005f5e09c22020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac0d800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '02000000023abaa0b3d97fdc6fb07a535c552fcb379e7bffa6e7e52707b8cf1507bf243e420100000064412f77fbc2321dfa4ada5c554a4528c80862c3184acfcdced5b13d182a890b7199c0ab6b669586cfa7d590e92ada88fe9163557146b7f6c3705163c932154863d64121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dfffffffffe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064414075e2e616fb9048241e9650f53e5c0fe54c5bc5a88a1e9218321b5e90b4e54fe6f4ddd7f6c345f3bd614c8939ccaba7884112ef8aa6fbc62637d9095d83f4c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000406a04534c500001010453454e4420fb4233e8a568993976ed38a81c2671587c5ad09552dedefa78760deed6ff87aa08000000024e160364080000000005f5e09c22020000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac1b800e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const tokenSendTxid =
-            'ce727c96439dfe365cb47f780c37ebb2e756051db62375e992419d5db3c81b1e';
+            'a9981db09af60875966df3f47a80588d0975fec799c658b702b22633604904d1';
 
         mockedChronik.setMock('broadcastTx', {
             input: tokenSendHex,
             output: { txid: tokenSendTxid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        render(<CashtabTestWrapper chronik={mockedChronik} ecc={ecc} />);
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -548,7 +562,11 @@ describe('<Configure />', () => {
             localforage,
         );
         render(
-            <CashtabTestWrapper chronik={mockedChronik} route="/configure" />,
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/configure"
+            />,
         );
 
         // Wait for wallet to load

@@ -21,6 +21,7 @@ import localforage from 'localforage';
 import { when } from 'jest-when';
 import appConfig from 'config/app';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import { Ecc, initWasm } from 'ecash-lib';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -50,6 +51,11 @@ window.matchMedia = query => ({
 });
 
 describe('<CreateTokenForm />', () => {
+    let ecc;
+    beforeAll(async () => {
+        await initWasm();
+        ecc = new Ecc();
+    });
     let user;
     beforeEach(() => {
         // Configure userEvent
@@ -84,9 +90,9 @@ describe('<CreateTokenForm />', () => {
         );
         // Add tx mock to mockedChronik
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b483045022100c90a0e610859887b6d490b35ec4c8d013c4824a490536fb7f41bc0b7f6af481b02200f81b5125abed2e9ad7323cbf95d3983a75a9ab725eac454c164f836b26ee68c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c0001024c0008000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac887f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a2102000000644199e5a5dcfea45a68137f07bfe749195897767030687bd3f4b4dbcf2b2ddf2711af47b13f376523031b3c3c975a00e12b46d46f057fd5e144b79a95eee71479e84121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c0001024c0008000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac977f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            'b8f0152d64266b0c31729be8b997e9c3f780694cffb664cd9acc98e0871a0135';
+            '71626fb3bd4be7713096107af225eff0f9243c5374ca50fe3bf9a736e14b9f9c';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
@@ -94,6 +100,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                ecc={ecc}
                 route="/create-token"
             />,
         );
@@ -148,7 +155,7 @@ describe('<CreateTokenForm />', () => {
     });
     it('User can create a token with a mint baton', async () => {
         const createdTokenId =
-            'a34382e000eed02f749ab6a9e8de37e25e7565f016707dc81460ce63167ee1c2';
+            '999507a9f1859adf85405abe28bb75d3c470ef53d2e4bb18880454a5fa9aa9e4';
         // Mock a utxo of the not-yet-created token so we can test the redirect
         const MOCK_UTXO_FOR_BALANCE = {
             token: {
@@ -186,16 +193,16 @@ describe('<CreateTokenForm />', () => {
         });
         // Add tx mock to mockedChronik
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402205e54e8ef3c0912b2bbeda364c1b15298e235d91eca3f8e02395fe5f07a406ee70220482d820793356ba8c3012ac2bd6630c8daa88c443111d8f9ee93785937d48f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c000102010208000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac227d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const txid =
-            'a34382e000eed02f749ab6a9e8de37e25e7565f016707dc81460ce63167ee1c2';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441ff86eb97dad643075e75ed273334cee9aef1b938436dc350bcb48f73d129ce6a9d9ea40e749303e7bcbd27a082f1ee03080582f00f1ec80f202166bff431a0334121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff040000000000000000466a04534c500001010747454e4553495303544b450a7465737420746f6b656e1768747470733a2f2f7777772e636173687461622e636f6d4c000102010208000000000393870022020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac22020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac307d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+
         mockedChronik.setMock('broadcastTx', {
             input: hex,
-            output: { txid },
+            output: { txid: createdTokenId },
         });
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                ecc={ecc}
                 route="/create-token"
             />,
         );
@@ -248,7 +255,7 @@ describe('<CreateTokenForm />', () => {
         // Verify notification triggered
         expect(await screen.findByText('Token created!')).toHaveAttribute(
             'href',
-            `${explorer.blockExplorerUrl}/tx/${txid}`,
+            `${explorer.blockExplorerUrl}/tx/${createdTokenId}`,
         );
 
         // We are sent to its token-action page
@@ -261,9 +268,9 @@ describe('<CreateTokenForm />', () => {
         );
         // Add tx mock to mockedChronik
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022064d8618b1b6131f6d1b611d67107d0962f7c1d951a5cadcccf3f502952a1723002202f9fd50a185b683475fb9c0a394fef4b6aaaf188cdb3747a1c38d4366571a3614121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000006e6a04534c500001810747454e45534953033448432454686520466f75722048616c662d436f696e73206f66204a696e2d71756120283448432925656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c294c0001004c0008000000000000000422020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac387f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064415594de73e7f09dc4bd7622b136921d8b883c131559e9ba9212185fb5f7db1fe062715183484097a5f7cf71d75af3b9b3b2768f7e011550893376ef9ec150887b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0300000000000000006e6a04534c500001810747454e45534953033448432454686520466f75722048616c662d436f696e73206f66204a696e2d71756120283448432925656e2e77696b6970656469612e6f72672f77696b692f5461692d50616e5f286e6f76656c294c0001004c0008000000000000000422020000000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac467f0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            'ed6e5838af475cf2d35e537abb06cb497bb9e69ba071ba06a678d35764a39c9a';
+            '4517dc895499f2090ae04eeb28e2d2f0a0790baf99568f7e52436df45ca766c3';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
@@ -273,6 +280,7 @@ describe('<CreateTokenForm />', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                ecc={ecc}
                 route="/create-nft-collection"
             />,
         );

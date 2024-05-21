@@ -103,7 +103,7 @@ export const getSlpGenesisTargetOutput = genesisConfig => {
  * @returns {array} targetOutput(s), e.g. [{value: 0, script: <encoded slp send script>}]
  * or [{value: 0, script: <encoded slp send script>}, {value: 546}]
  * if token change
- * Change output has no address key, same behavior as ecash-coinselect
+ * Change output has no address key
  */
 export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
     const { tokenInputs, sendAmounts } = tokenInputInfo;
@@ -129,7 +129,7 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
     // sendAmounts can only be length 1 or 2
     if (sendAmounts.length > 1) {
         // Add another targetOutput
-        // Note that change addresses are added after ecash-coinselect by wallet
+        // Note that change addresses are added in the sendXec function
         // Change output is denoted by lack of address key
         targetOutputs.push({
             value: appConfig.dustSats,

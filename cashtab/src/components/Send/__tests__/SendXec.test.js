@@ -23,6 +23,7 @@ import {
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
 import { CashtabSettings } from 'config/cashtabSettings';
+import { Ecc, initWasm } from 'ecash-lib';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -52,6 +53,11 @@ window.matchMedia = query => ({
 });
 
 describe('<SendXec />', () => {
+    let ecc;
+    beforeAll(async () => {
+        await initWasm();
+        ecc = new Ecc();
+    });
     let user;
     beforeEach(() => {
         // Set up userEvent
@@ -85,7 +91,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -139,7 +151,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -191,7 +209,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -272,7 +296,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -317,7 +347,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -364,7 +400,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -431,7 +473,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -491,7 +539,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -543,7 +597,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -624,7 +684,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -672,7 +738,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -722,7 +794,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -803,7 +881,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -857,7 +941,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -925,7 +1015,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -993,7 +1089,13 @@ describe('<SendXec />', () => {
             walletWithXecAndTokens,
             localforage,
         );
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1060,15 +1162,21 @@ describe('<SendXec />', () => {
 
         // Can check in electrum for opreturn and amount
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206d45893e238b7e30110d4e0d47e63204a7d6347169547bebad5200be510b8790022014eb3457545423b9eb04aec14e28551548c011ee3544cb40619063dfbb20a1c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac417b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064410fed2b69cf2c9f0ca92318461d707292347ef567d6866d3889b510d1d1ab8615451dd1d56608457d4f40e8eb97f61dad4f3dc9fbef57099105a6a3e32e0efe8e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac4f7b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            '79e6afc28d4149c51c4e2a32c05c57fb59c1c164fde1afc655590ce99ed70cb8';
+            '63e4bba044135367eb71c71bc78aee91ecce0551fbdfbdb975e668fb808547ed';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1193,15 +1301,21 @@ describe('<SendXec />', () => {
 
         // Can check in electrum for opreturn and amount
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b483045022100c7afe57283adb7dae4ae4d72c40e9403f4673205ccb3bd25fb618919dc41984d02203433e27c83796c2bb4f89a20a51230e9db6a3c94aaf40f9ee51a284a8bdd40824121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0200000000000000003c6a040074616235486f772061626f75742061206c6f6e672d6973682043617368746162206d7367207769746820656d6f6a697320f09f8eaff09f988e03820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064418305d1f7771a13e90b0cb15adf1c0a39b4381d1ec1bc3bebfa67cbbb5c9461b1a9d0c5a66ca5935aad771cbe869c9002add8b9d9822724ce73db8d15554f26cb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0200000000000000003c6a040074616235486f772061626f75742061206c6f6e672d6973682043617368746162206d7367207769746820656d6f6a697320f09f8eaff09f988e11820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
         const txid =
-            '5c7b3dbc88ff6a9991108ec650448a9e530591001b99f40133eb23434778cfa7';
+            'b1d49881be9c810e4408881438efb9e910d9e03bcc12a7bfcd652a0952d06f42';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1220,7 +1334,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is the expected max send for Cashtab's fee and no other outputs
-        expect(amountInputEl).toHaveValue(9509.26);
+        expect(amountInputEl).toHaveValue(9509.4);
 
         // Let's add a Cashtab message
         await user.click(screen.getByTitle('Toggle Cashtab Msg'));
@@ -1237,7 +1351,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and an empty-space Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9508.83);
+        expect(amountInputEl).toHaveValue(9508.97);
 
         // Clear the msg input and start again
         await user.clear(
@@ -1257,7 +1371,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and a Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9507.87);
+        expect(amountInputEl).toHaveValue(9508.01);
 
         // Click Send
         await user.click(
@@ -1290,15 +1404,21 @@ describe('<SendXec />', () => {
         // Can check in electrum to confirm this is not sent at 1.0 sat/byte
         // It's 2.02
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a47304402206d45893e238b7e30110d4e0d47e63204a7d6347169547bebad5200be510b8790022014eb3457545423b9eb04aec14e28551548c011ee3544cb40619063dfbb20a1c54121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac417b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064410fed2b69cf2c9f0ca92318461d707292347ef567d6866d3889b510d1d1ab8615451dd1d56608457d4f40e8eb97f61dad4f3dc9fbef57099105a6a3e32e0efe8e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000296a04007461622263617368746162206d6573736167652077697468206f705f72657475726e5f726177a4060000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac4f7b0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            '79e6afc28d4149c51c4e2a32c05c57fb59c1c164fde1afc655590ce99ed70cb8';
+            '63e4bba044135367eb71c71bc78aee91ecce0551fbdfbdb975e668fb808547ed';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1424,15 +1544,21 @@ describe('<SendXec />', () => {
 
         // Can check in electrum for opreturn and amount
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a4730440220449bd79f6aaa826afaae1ae2021bd2b3459d1a77c40a64f7ba85a98c0fc7d531022007cf8e1246091b6b647487c75a63002d2fbc0e3bf6c0a99e326afbe5bd30e6c74121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0260ae0a00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ace9d30300000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064413b207f573a7abb9ec0d149fa71cbde63272a0e6b58298a81bc39ac2001729205bd1e9284c9d5a268f7abe63c5c953bf932ac06c13e408341bde4e4807d7f2fe94121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff0260ae0a00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acf7d30300000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            'aefbd7b1a93ec6914368d71deda3ce646aabdccdb99195b349675febeea976db';
+            'a6e905185097cc1ffb289ca366ff7322f8aaf95713d1e5d1a4e89663e609530f';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1484,15 +1610,21 @@ describe('<SendXec />', () => {
 
         // Can check in electrum for opreturn and amount
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006b4830450221009ce5b0f6332ed7d1dbfdcf6a0ab870a69d97690b47463c09e403c25255df8d2d02206c553baba4386eb73b7938cb041da23c69072bb1232101fd2f3c8d2b1b6367b34121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03d0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac98080000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac9d710e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a210200000064411aa35b343dea193092b46c01b877677d595d854686655ae24a3387a10955656a7604dca1cae999239d8ae76dc16ec9db72560832e8a9b0fb09f4ba6e1fb384b14121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff03d0070000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac98080000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388acab710e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
         const txid =
-            'cf665d10e1a0baa8f4c593113678f7859078b1a9a441ac4d6fa40d3636127b99';
+            'a306834359b3591c68dc3ee8227e5e10225e6ab3c5a7496ead6e119aaaf31635';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1541,15 +1673,21 @@ describe('<SendXec />', () => {
 
         // Can check in electrum for opreturn and amount
         const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a4730440220055d58f64b9c4e899e06161829f10477ce1d102acfc1fa1a56d35483256a85070220026c9eb6858f62e2a61c58c4b9e55a28ba36bd6b5a7a37b5bb8108bdc4f78a4a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff018e820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
+            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006441e11f1d96347ab50d56b111e9fd5ef68f9f1c69c76e1f8a65ec1fa58bd2e0eaee7a33b2c961ed5e58231c793b5d8a2950e2def6e7613df1055e681bc8f25d0a5b4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff019c820e00000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
         const txid =
-            'c204b8644f35fdf102799c5b6575a7d9b32c6f6cda16182791e4ea8db40b3932';
+            '521eda8ad78014c60374931dcc4e35f312847f9332e16cb846cd387a984e95d2';
         mockedChronik.setMock('broadcastTx', {
             input: hex,
             output: { txid },
         });
 
-        render(<CashtabTestWrapper chronik={mockedChronik} route="/send" />);
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route="/send"
+            />,
+        );
 
         // Wait for the app to load
         await waitFor(() =>
@@ -1568,7 +1706,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is the expected max send for Cashtab's fee and no other outputs
-        expect(amountInputEl).toHaveValue(9509.26);
+        expect(amountInputEl).toHaveValue(9509.4);
 
         // Let's add a Cashtab message
         await user.click(screen.getByTitle('Toggle Cashtab Msg'));
@@ -1585,7 +1723,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and an empty-space Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9508.83);
+        expect(amountInputEl).toHaveValue(9508.97);
 
         // Clear the msg input and start again
         await user.clear(
@@ -1605,7 +1743,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // Amount input is now the expected max send for Cashtab's fee and a Cashtab Msg output
-        expect(amountInputEl).toHaveValue(9507.87);
+        expect(amountInputEl).toHaveValue(9508.01);
 
         // Now we turn the Cashtab Msg switch off without clearing the input field
         await user.click(screen.getByTitle('Toggle Cashtab Msg'));
@@ -1617,7 +1755,7 @@ describe('<SendXec />', () => {
         await user.click(screen.getByText('max'));
 
         // We are back to our max send amount for no other outputs
-        expect(amountInputEl).toHaveValue(9509.26);
+        expect(amountInputEl).toHaveValue(9509.4);
 
         // Click Send
         await user.click(

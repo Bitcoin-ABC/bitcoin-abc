@@ -73,7 +73,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const userLocale = getUserLocale(navigator);
-    const { chronik, chaintipBlockheight, cashtabState } =
+    const { chronik, ecc, chaintipBlockheight, cashtabState } =
         React.useContext(WalletContext);
     const { settings, wallets } = cashtabState;
 
@@ -535,6 +535,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             const { response } = isNftMint
                 ? await sendXec(
                       chronik,
+                      ecc,
                       wallet,
                       targetOutputs,
                       settings.minFeeSends &&
@@ -557,6 +558,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
                   )
                 : await sendXec(
                       chronik,
+                      ecc,
                       wallet,
                       targetOutputs,
                       settings.minFeeSends &&
