@@ -93,3 +93,7 @@ const tx = txBuild.sign(ecc, 1000, 546);
 const rawTx = tx.ser();
 console.log(toHex(rawTx));
 ```
+
+## Changelog
+
+-   0.1.1 - Validation that feePerKb is an integer

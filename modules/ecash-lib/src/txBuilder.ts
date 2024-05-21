@@ -132,6 +132,9 @@ export class TxBuilder {
                     'Using a leftover output requires setting feePerKb',
                 );
             }
+            if (!Number.isInteger(feePerKb)) {
+                throw new Error('feePerKb must be an integer');
+            }
             if (dustLimit === undefined) {
                 throw new Error(
                     'Using a leftover output requires setting dustLimit',

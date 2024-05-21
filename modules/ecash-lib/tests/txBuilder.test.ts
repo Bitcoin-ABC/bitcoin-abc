@@ -557,6 +557,9 @@ describe('TxBuilder', () => {
         expect(() => txBuild.sign(ecc, 1000)).to.throw(
             'Using a leftover output requires setting dustLimit',
         );
+        expect(() => txBuild.sign(ecc, 0.1)).to.throw(
+            'feePerKb must be an integer',
+        );
         expect(() => txBuild.sign(ecc)).to.throw(
             'Using a leftover output requires setting feePerKb',
         );
