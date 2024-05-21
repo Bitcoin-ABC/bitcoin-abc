@@ -1141,12 +1141,9 @@ BOOST_AUTO_TEST_CASE(get_extra_full_outbound_count) {
     checkExtraFullOutboundCount(5, 5, 2);
 }
 
-BOOST_FIXTURE_TEST_CASE(net_group_limit, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(net_group_limit) {
     m_node.connman = std::make_unique<CConnmanTest>(
         m_node.chainman->GetConfig(), 0x1337, 0x1337, *m_node.addrman);
-    m_node.peerman =
-        PeerManager::make(*m_node.connman, *m_node.addrman, m_node.banman.get(),
-                          *m_node.chainman, *m_node.mempool, false);
 
     bilingual_str error;
     // Init the global avalanche object otherwise the avalanche outbound
