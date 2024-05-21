@@ -54,7 +54,7 @@ class ChronikWsOrdering(BitcoinTestFramework):
         coinblock = node.getblock(coinblockhash)
         cointxid = coinblock["tx"][0]
 
-        block_hashes = self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
+        self.generatetoaddress(node, 100, ADDRESS_ECREG_UNSPENDABLE)
 
         coinvalue = 5000000000
         balance = coinvalue
@@ -132,7 +132,8 @@ class ChronikWsOrdering(BitcoinTestFramework):
             return node.isfinalblock(blockhash)
 
         self.wait_until(is_quorum_established)
-        self.wait_until(lambda: is_finalblock(block_hashes[-1]))
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: is_finalblock(tip))
 
         # Subscribe to all scripts in the test, and to blocks
         ws = chronik.ws(timeout=240)
