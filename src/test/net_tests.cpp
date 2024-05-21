@@ -61,6 +61,8 @@ struct CConnmanTest : public CConnman {
 
     NodeId nodeid = 0;
 
+    ~CConnmanTest() { ClearNodes(); }
+
     void AddNode(ConnectionType type) {
         CAddress addr(
             CService(ip(GetRand<uint32_t>()), Params().GetDefaultPort()),
@@ -1367,6 +1369,9 @@ BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {
 
     CaptureMessage = CaptureMessageOrig;
     chainstate.ResetIbd();
+
+    m_node.peerman->FinalizeNode(config, peer);
+
     m_node.args->ForceSetArg("-capturemessages", "0");
     m_node.args->ForceSetArg("-bind", "");
     // PeerManager::ProcessMessage() calls AddTimeData() which changes the
