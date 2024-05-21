@@ -261,16 +261,6 @@ describe('<Configure />', () => {
             output: cachetTokenAndTx.tx,
         });
 
-        // Can verify in Electrum that this tx is sent at 1.0 sat/byte
-        const hex =
-            '0200000001fe667fba52a1aa603a892126e492717eed3dad43bfea7365a7fdd08e051e8a21020000006a473044022043679b2fcde0099b0cd29bfbca382e92e3b871c079a0db7d73c39440d067f5bb02202e2ab2d5d83b70911da2758afd9e56eaaaa989050f35e4cc4d28d20afc29778a4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff027c150000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88acb26d0e00000000001976a9143a5fb236934ec078b4507c303d3afd82067f8fc188ac00000000';
-        const txid =
-            '6d2e157e2e2b1fa47cc63ede548375213942e29c090f5d9cbc2722258f720c08';
-        mockedChronik.setMock('broadcastTx', {
-            input: hex,
-            output: { txid },
-        });
-
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Default route is home
