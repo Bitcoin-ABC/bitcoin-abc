@@ -5,12 +5,12 @@
 #include <httprpc.h>
 
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <crypto/hmac_sha256.h>
 #include <logging.h>
 #include <rpc/protocol.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <walletinitinterface.h>
 

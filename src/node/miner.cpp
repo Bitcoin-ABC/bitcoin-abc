@@ -11,6 +11,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
+#include <common/args.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <consensus/consensus.h>
@@ -25,7 +26,6 @@
 #include <primitives/transaction.h>
 #include <timedata.h>
 #include <util/moneystr.h>
-#include <util/system.h>
 #include <validation.h>
 #include <versionbits.h>
 

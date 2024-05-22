@@ -14,6 +14,7 @@
 #include <avalanche/avalanche.h>
 #include <banman.h>
 #include <clientversion.h>
+#include <common/args.h>
 #include <compat.h>
 #include <config.h>
 #include <consensus/consensus.h>
@@ -30,7 +31,6 @@
 #include <util/fs.h>
 #include <util/sock.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/thread.h>
 #include <util/trace.h>
 #include <util/translation.h>

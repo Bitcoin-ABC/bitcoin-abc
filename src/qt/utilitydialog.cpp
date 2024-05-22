@@ -10,13 +10,13 @@
 #include <qt/utilitydialog.h>
 
 #include <clientversion.h>
+#include <common/args.h>
 #include <init.h>
 #include <qt/forms/ui_helpmessagedialog.h>
 #ifdef ENABLE_BIP70
 #include <qt/paymentrequestplus.h>
 #endif
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #include <QCloseEvent>
 #include <QLabel>

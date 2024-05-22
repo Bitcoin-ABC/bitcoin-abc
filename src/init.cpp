@@ -22,6 +22,7 @@
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <compat/sanity.h>
 #include <config.h>
 #include <consensus/amount.h>

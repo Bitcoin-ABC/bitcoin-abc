@@ -10,6 +10,7 @@
 
 #include <cashaddrenc.h>
 #include <chain.h>
+#include <common/args.h>
 #include <consensus/consensus.h>
 #include <interfaces/node.h>
 #include <interfaces/wallet.h>
@@ -19,7 +20,6 @@
 #include <qt/guiutil.h>
 #include <qt/paymentserver.h>
 #include <qt/transactionrecord.h>
-#include <util/system.h>
 #include <validation.h>
 #include <wallet/ismine.h>
 

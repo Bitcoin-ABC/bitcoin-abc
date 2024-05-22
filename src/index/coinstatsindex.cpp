@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <coins.h>
+#include <common/args.h>
 #include <consensus/amount.h>
 #include <crypto/muhash.h>
 #include <logging.h>

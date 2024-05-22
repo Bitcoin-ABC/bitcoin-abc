@@ -5,8 +5,8 @@
 #include <flatfile.h>
 
 #include <clientversion.h>
+#include <common/args.h>
 #include <streams.h>
-#include <util/system.h>
 
 #include <test/util/setup_common.h>
 

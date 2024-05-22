@@ -4,8 +4,8 @@
 
 #include <dnsseeds.h>
 
+#include <common/args.h>
 #include <random.h>
-#include <util/system.h>
 
 const std::vector<std::string>
 GetRandomizedDNSSeeds(const CChainParams &params) {

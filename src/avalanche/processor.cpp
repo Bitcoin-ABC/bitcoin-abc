@@ -11,6 +11,7 @@
 #include <avalanche/validation.h>
 #include <avalanche/voterecord.h>
 #include <chain.h>
+#include <common/args.h>
 #include <key_io.h> // For DecodeSecret
 #include <net.h>
 #include <netmessagemaker.h>

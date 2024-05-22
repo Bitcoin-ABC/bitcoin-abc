@@ -9,6 +9,7 @@
 #include <avalanche/delegation.h>
 #include <avalanche/validation.h>
 #include <cashaddrenc.h>
+#include <common/args.h>
 #include <consensus/activation.h>
 #include <logging.h>
 #include <random.h>
@@ -16,7 +17,6 @@
 #include <uint256.h>
 #include <util/fastrange.h>
 #include <util/fs_helpers.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <validation.h> // For ChainstateManager
 

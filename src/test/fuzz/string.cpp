@@ -4,6 +4,7 @@
 
 #include <blockfilter.h>
 #include <clientversion.h>
+#include <common/args.h>
 #include <logging.h>
 #include <netaddress.h>
 #include <netbase.h>

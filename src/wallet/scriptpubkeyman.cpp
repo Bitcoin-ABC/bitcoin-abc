@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <key_io.h>
 #include <logging.h>

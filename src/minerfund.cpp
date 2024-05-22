@@ -6,12 +6,12 @@
 
 #include <blockindex.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <consensus/activation.h>
 #include <consensus/amount.h>
 #include <currencyunit.h>
 #include <key_io.h> // For DecodeDestination
 #include <primitives/transaction.h>
-#include <util/system.h>
 
 /**
  * Percentage of the block reward to be sent to the fund.

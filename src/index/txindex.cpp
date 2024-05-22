@@ -5,10 +5,10 @@
 #include <index/txindex.h>
 
 #include <chain.h>
+#include <common/args.h>
 #include <index/disktxpos.h>
 #include <logging.h>
 #include <node/blockstorage.h>
-#include <util/system.h>
 #include <validation.h>
 
 constexpr uint8_t DB_TXINDEX{'t'};

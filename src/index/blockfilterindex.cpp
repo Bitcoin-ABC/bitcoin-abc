@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/args.h>
 #include <dbwrapper.h>
 #include <index/blockfilterindex.h>
 #include <node/blockstorage.h>
 #include <primitives/blockhash.h>
 #include <util/fs_helpers.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <map>

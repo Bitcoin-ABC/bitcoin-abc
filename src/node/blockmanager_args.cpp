@@ -4,9 +4,9 @@
 
 #include <node/blockmanager_args.h>
 
+#include <common/args.h>
 #include <node/blockstorage.h>
 #include <tinyformat.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>
 

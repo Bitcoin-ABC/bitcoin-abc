@@ -6,11 +6,11 @@
 
 #include <chainparams.h>
 
+#include <common/args.h>
 #include <consensus/merkle.h>
 #include <currencyunit.h>
 #include <logging.h>
 #include <tinyformat.h>
-#include <util/system.h>
 
 #include <cassert>
 

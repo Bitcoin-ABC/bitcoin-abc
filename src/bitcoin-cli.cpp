@@ -9,6 +9,7 @@
 
 #include <chainparamsbase.h>
 #include <clientversion.h>
+#include <common/args.h>
 #include <currencyunit.h>
 #include <rpc/client.h>
 #include <rpc/mining.h>
@@ -1127,7 +1128,7 @@ static int CommandLineRPC(int argc, char *argv[]) {
 // for ASLR. This is a temporary workaround until a fixed
 // version of binutils is used for releases.
 __declspec(dllexport) int main(int argc, char *argv[]) {
-    util::WinCmdLineArgs winArgs;
+    common::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
 #else
 int main(int argc, char *argv[]) {

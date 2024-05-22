@@ -6,6 +6,7 @@
 #include <banman.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <init.h>
 #include <interfaces/chain.h>
@@ -33,7 +34,6 @@
 #include <txmempool.h>
 #include <uint256.h>
 #include <util/check.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>

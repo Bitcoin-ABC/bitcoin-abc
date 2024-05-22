@@ -4,7 +4,7 @@
 
 #include <wallet/coincontrol.h>
 
-#include <util/system.h>
+#include <common/args.h>
 
 void CCoinControl::SetNull() {
     destChange = CNoDestination();

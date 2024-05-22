@@ -5,6 +5,7 @@
 #include <i2p.h>
 
 #include <chainparams.h>
+#include <common/args.h>
 #include <compat.h>
 #include <compat/endian.h>
 #include <crypto/sha256.h>
@@ -18,7 +19,6 @@
 #include <util/sock.h>
 #include <util/spanparsing.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #include <chrono>
 #include <memory>

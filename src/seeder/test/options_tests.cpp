@@ -2,9 +2,9 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/args.h>
 #include <seeder/options.h>
 #include <util/string.h>
-#include <util/system.h>
 
 #include <boost/test/unit_test.hpp>
 

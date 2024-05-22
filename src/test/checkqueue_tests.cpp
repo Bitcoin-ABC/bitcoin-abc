@@ -4,8 +4,8 @@
 
 #include <checkqueue.h>
 
+#include <common/args.h>
 #include <sync.h>
-#include <util/system.h>
 #include <util/time.h>
 
 #include <atomic>

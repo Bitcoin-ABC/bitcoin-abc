@@ -6,6 +6,7 @@
 #include <httpserver.h>
 
 #include <chainparamsbase.h>
+#include <common/args.h>
 #include <compat.h>
 #include <config.h>
 #include <logging.h>
@@ -15,7 +16,6 @@
 #include <shutdown.h>
 #include <sync.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 

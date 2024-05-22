@@ -4,6 +4,7 @@
 
 #include <chainparams.h>
 #include <coins.h>
+#include <common/args.h>
 #include <consensus/tx_check.h>
 #include <consensus/tx_verify.h>
 #include <consensus/validation.h>

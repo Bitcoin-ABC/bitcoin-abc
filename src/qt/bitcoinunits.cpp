@@ -4,9 +4,9 @@
 
 #include <qt/bitcoinunits.h>
 
+#include <common/args.h>
 #include <consensus/amount.h>
 #include <currencyunit.h>
-#include <util/system.h>
 
 #include <QStringList>
 

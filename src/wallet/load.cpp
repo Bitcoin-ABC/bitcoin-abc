@@ -5,11 +5,12 @@
 
 #include <wallet/load.h>
 
+#include <common/args.h>
 #include <interfaces/chain.h>
+#include <logging.h>
 #include <scheduler.h>
 #include <util/fs.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <wallet/spend.h>
 #include <wallet/wallet.h>

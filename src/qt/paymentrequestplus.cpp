@@ -8,7 +8,7 @@
 
 #include <qt/paymentrequestplus.h>
 
-#include <util/system.h>
+#include <common/args.h>
 
 #include <openssl/x509_vfy.h>
 

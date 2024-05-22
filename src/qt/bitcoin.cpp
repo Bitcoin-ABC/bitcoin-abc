@@ -5,6 +5,7 @@
 #include <qt/bitcoin.h>
 
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <httprpc.h>
 #include <init.h>
@@ -26,7 +27,6 @@
 #include <qt/winshutdownmonitor.h>
 #include <uint256.h>
 #include <util/exception.h>
-#include <util/system.h>
 #include <util/threadnames.h>
 #include <util/translation.h>
 #include <validation.h>
@@ -593,7 +593,7 @@ static void SetupUIArgs(ArgsManager &argsman) {
 
 int GuiMain(int argc, char *argv[]) {
 #ifdef WIN32
-    util::WinCmdLineArgs winArgs;
+    common::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
 #endif
     SetupEnvironment();

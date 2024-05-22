@@ -4,7 +4,7 @@
 
 #include <currencyunit.h>
 
-#include <util/system.h>
+#include <common/args.h>
 
 void SetupCurrencyUnitOptions(ArgsManager &argsman) {
     // whether to use eCash default unit and address prefix

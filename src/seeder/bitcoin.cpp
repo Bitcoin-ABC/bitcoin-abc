@@ -6,6 +6,7 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
+#include <common/args.h>
 #include <hash.h>
 #include <netbase.h>
 #include <primitives/blockhash.h>

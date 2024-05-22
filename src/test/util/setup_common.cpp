@@ -43,6 +43,7 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <util/strencodings.h>
+#include <util/system.h>
 #include <util/thread.h>
 #include <util/threadnames.h>
 #include <util/time.h>

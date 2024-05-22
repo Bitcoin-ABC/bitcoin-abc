@@ -528,7 +528,9 @@ add_network_sources(NETWORK_SOURCES
 # Because nothing says this is different from util than "common"
 add_library(common
 	base58.cpp
+	common/args.cpp
 	common/bloom.cpp
+	common/configfile.cpp
 	cashaddr.cpp
 	cashaddrenc.cpp
 	chainparams.cpp
@@ -855,7 +857,9 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		arith_uint256.cpp
 		blockfileinfo.cpp
 		blockindex.cpp
+		common/args.cpp
 		common/bloom.cpp
+		common/configfile.cpp
 		chain.cpp
 		chainparamsbase.cpp
 		chainparams.cpp

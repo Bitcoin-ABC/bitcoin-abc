@@ -5,6 +5,7 @@
 #include <qt/clientmodel.h>
 
 #include <clientversion.h>
+#include <common/args.h>
 #include <config.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>

@@ -6,7 +6,7 @@
 #include <qt/test/bitcoinaddressvalidatortests.h>
 
 #include <chainparams.h>
-#include <util/system.h>
+#include <common/args.h>
 
 #include <QValidator>
 

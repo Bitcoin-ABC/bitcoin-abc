@@ -19,6 +19,7 @@
 #include <blockvalidity.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/validation.h>
@@ -45,7 +46,6 @@
 #include <txorphanage.h>
 #include <util/check.h> // For NDEBUG compile time check
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/trace.h>
 #include <validation.h>
 

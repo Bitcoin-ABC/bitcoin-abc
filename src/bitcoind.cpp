@@ -9,6 +9,7 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
+#include <common/args.h>
 #include <compat.h>
 #include <config.h>
 #include <httprpc.h>
@@ -315,7 +316,7 @@ static bool AppInit(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 #ifdef WIN32
-    util::WinCmdLineArgs winArgs;
+    common::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
 #endif
     SetupEnvironment();

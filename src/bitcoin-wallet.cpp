@@ -8,6 +8,7 @@
 
 #include <chainparams.h>
 #include <chainparamsbase.h>
+#include <common/args.h>
 #include <currencyunit.h>
 #include <logging.h>
 #include <util/exception.h>
@@ -91,7 +92,7 @@ static bool WalletAppInit(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 #ifdef WIN32
-    util::WinCmdLineArgs winArgs;
+    common::WinCmdLineArgs winArgs;
     std::tie(argc, argv) = winArgs.get();
 #endif
     SetupEnvironment();

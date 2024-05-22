@@ -5,6 +5,7 @@
 #include <qt/walletmodel.h>
 
 #include <cashaddrenc.h>
+#include <common/args.h> // for GetBoolArg
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
 #include <key_io.h>
@@ -16,7 +17,6 @@
 #include <qt/paymentserver.h>
 #include <qt/recentrequeststablemodel.h>
 #include <qt/transactiontablemodel.h>
-#include <util/system.h> // for GetBoolArg
 #include <util/translation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/wallet.h> // for CRecipient

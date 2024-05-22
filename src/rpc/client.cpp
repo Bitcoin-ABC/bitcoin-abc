@@ -4,7 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <rpc/client.h>
-#include <util/system.h>
+
+#include <common/args.h>
 
 #include <cstdint>
 #include <set>

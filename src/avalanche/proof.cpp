@@ -6,12 +6,12 @@
 
 #include <avalanche/validation.h>
 #include <coins.h>
+#include <common/args.h>
 #include <hash.h>
 #include <policy/policy.h>
 #include <script/standard.h>
 #include <streams.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/translation.h>
 
 #include <tinyformat.h>

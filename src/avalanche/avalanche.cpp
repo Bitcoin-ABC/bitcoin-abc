@@ -4,7 +4,7 @@
 
 #include <avalanche/avalanche.h>
 
-#include <util/system.h>
+#include <common/args.h>
 
 bool isAvalancheEnabled(const ArgsManager &argsman) {
     return argsman.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);

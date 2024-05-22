@@ -5,8 +5,8 @@
 #include <consensus/activation.h>
 
 #include <chain.h>
+#include <common/args.h>
 #include <consensus/params.h>
-#include <util/system.h>
 
 bool IsUAHFenabled(const Consensus::Params &params, int nHeight) {
     return nHeight >= params.uahfHeight;

@@ -5,11 +5,11 @@
 #include <chainparams.h>
 #include <chainparamsbase.h>
 #include <chrono>
+#include <common/args.h>
 #include <config.h>
 #include <logging.h>
 #include <node/context.h>
 #include <node/ui_interface.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <util/translation.h>
 

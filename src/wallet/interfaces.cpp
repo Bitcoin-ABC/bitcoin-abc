@@ -5,6 +5,7 @@
 #include <interfaces/wallet.h>
 
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/validation.h>
@@ -16,7 +17,6 @@
 #include <support/allocators/secure.h>
 #include <sync.h>
 #include <util/check.h>
-#include <util/system.h>
 #include <util/ui_change_type.h>
 #include <wallet/context.h>
 #include <wallet/fees.h>

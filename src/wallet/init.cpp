@@ -4,6 +4,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/args.h>
 #include <config.h>
 #include <init.h>
 #include <interfaces/chain.h>
@@ -14,7 +15,6 @@
 #include <univalue.h>
 #include <util/check.h>
 #include <util/moneystr.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/rpc/backup.h>

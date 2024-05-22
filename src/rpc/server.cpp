@@ -6,6 +6,7 @@
 
 #include <rpc/server.h>
 
+#include <common/args.h>
 #include <config.h>
 #include <logging.h>
 #include <rpc/util.h>

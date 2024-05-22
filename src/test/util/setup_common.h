@@ -7,6 +7,7 @@
 
 #include <blockindex.h>
 #include <chainparamsbase.h>
+#include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <key.h>
@@ -19,7 +20,6 @@
 #include <util/check.h>
 #include <util/fs.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/vector.h>
 
 #include <type_traits>

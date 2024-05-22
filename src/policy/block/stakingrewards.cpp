@@ -7,6 +7,7 @@
 #include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <blockindex.h>
+#include <common/args.h>
 #include <consensus/activation.h>
 #include <consensus/amount.h>
 #include <logging.h>

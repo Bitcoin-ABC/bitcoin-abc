@@ -7,6 +7,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>

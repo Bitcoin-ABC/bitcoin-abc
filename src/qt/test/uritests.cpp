@@ -6,10 +6,10 @@
 #include <qt/test/uritests.h>
 
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <qt/guiutil.h>
 #include <qt/walletmodel.h>
-#include <util/system.h>
 
 #include <QUrl>
 

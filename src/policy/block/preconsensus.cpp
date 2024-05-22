@@ -6,7 +6,7 @@
 
 #include <avalanche/avalanche.h>
 #include <blockindex.h>
-#include <util/system.h>
+#include <common/args.h>
 
 bool PreConsensusPolicy::operator()(BlockPolicyValidationState &state) {
     if (!m_mempool || !m_blockIndex.pprev ||

@@ -5,6 +5,7 @@
 #include <wallet/rpc/backup.h>
 
 #include <chain.h>
+#include <common/args.h>
 #include <config.h>
 #include <core_io.h>
 #include <interfaces/chain.h>
@@ -19,7 +20,6 @@
 #include <util/bip32.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <util/translation.h>
 #include <wallet/rpc/util.h>

@@ -7,6 +7,7 @@
 #include <banman.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <net.h>
 #include <net_processing.h>
@@ -16,7 +17,6 @@
 #include <serialize.h>
 #include <timedata.h>
 #include <txorphanage.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <validation.h>
 

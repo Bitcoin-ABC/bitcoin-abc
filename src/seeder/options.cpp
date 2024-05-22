@@ -6,7 +6,7 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
-#include <util/system.h>
+#include <common/args.h>
 
 #include <string>
 

@@ -8,6 +8,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <logging.h>
+#include <util/system.h>
 
 #include <atomic>
 

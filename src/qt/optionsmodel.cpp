@@ -8,6 +8,7 @@
 
 #include <qt/optionsmodel.h>
 
+#include <common/args.h>
 #include <interfaces/node.h>
 #include <mapport.h>
 #include <net.h>

@@ -4,6 +4,7 @@
 
 #include <rpc/util.h>
 
+#include <common/args.h>
 #include <consensus/amount.h>
 #include <key_io.h>
 #include <script/descriptor.h>

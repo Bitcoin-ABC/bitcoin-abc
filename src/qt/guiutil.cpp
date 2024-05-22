@@ -6,6 +6,7 @@
 
 #include <cashaddrenc.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <interfaces/node.h>
 #include <key_io.h>
 #include <logging.h>
@@ -22,7 +23,6 @@
 #include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/time.h>
 
 #ifdef WIN32

@@ -6,6 +6,7 @@
 
 #include <cashaddrenc.h>
 #include <chainparams.h>
+#include <common/args.h>
 #include <config.h>
 #include <interfaces/node.h>
 #include <key_io.h>
@@ -14,7 +15,6 @@
 #include <qt/bitcoinunits.h>
 #include <qt/guiutil.h>
 #include <qt/optionsmodel.h>
-#include <util/system.h>
 #include <wallet/wallet.h>
 
 #ifdef ENABLE_BIP70

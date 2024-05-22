@@ -5,13 +5,13 @@
 
 #include <rpc/request.h>
 
+#include <common/args.h>
 #include <logging.h>
 #include <random.h>
 #include <rpc/protocol.h>
 #include <util/fs.h>
 #include <util/fs_helpers.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #include <fstream>
 #include <stdexcept>

@@ -6,9 +6,9 @@
 
 #include <consensus/amount.h>
 
+#include <common/args.h>
 #include <currencyunit.h>
 #include <univalue.h>
-#include <util/system.h>
 
 #include <tinyformat.h>
 

@@ -22,6 +22,7 @@
 
 static const unsigned int DEFAULT_RPC_SERIALIZE_VERSION = 1;
 
+class ArgsManager;
 class CRPCCommand;
 
 namespace RPCServerSignals {

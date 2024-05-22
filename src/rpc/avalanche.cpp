@@ -10,6 +10,7 @@
 #include <avalanche/proof.h>
 #include <avalanche/proofbuilder.h>
 #include <avalanche/validation.h>
+#include <common/args.h>
 #include <config.h>
 #include <core_io.h>
 #include <index/txindex.h>
