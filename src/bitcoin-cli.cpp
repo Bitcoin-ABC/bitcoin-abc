@@ -18,7 +18,9 @@
 #include <tinyformat.h>
 #include <util/exception.h>
 #include <util/strencodings.h>
+#include <util/string.h>
 #include <util/system.h>
+#include <util/time.h>
 #include <util/translation.h>
 
 #include <event2/buffer.h>

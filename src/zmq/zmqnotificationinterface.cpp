@@ -8,6 +8,7 @@
 
 #include <zmq.h>
 
+#include <logging.h>
 #include <primitives/block.h>
 #include <util/system.h>
 

@@ -10,6 +10,7 @@
 #include <consensus/amount.h>
 #include <interfaces/chain.h>
 #include <interfaces/handler.h>
+#include <logging.h>
 #include <outputtype.h>
 #include <primitives/blockhash.h>
 #include <psbt.h>

@@ -7,6 +7,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <logging.h>
 #include <node/blockstorage.h>
 #include <primitives/blockhash.h>
 #include <primitives/txid.h>

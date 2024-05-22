@@ -8,6 +8,7 @@
 
 #include <timedata.h>
 
+#include <logging.h>
 #include <netaddress.h>
 #include <node/ui_interface.h>
 #include <sync.h>

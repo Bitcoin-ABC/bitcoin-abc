@@ -6,6 +6,7 @@
 #include <script/sigcache.h>
 
 #include <cuckoocache.h>
+#include <logging.h>
 #include <pubkey.h>
 #include <random.h>
 #include <uint256.h>

@@ -5,7 +5,6 @@
 #include <avalanche/proofbuilder.h>
 
 #include <random.h>
-#include <util/system.h>
 
 namespace avalanche {
 

@@ -5,6 +5,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <key_io.h>
+#include <logging.h>
 #include <outputtype.h>
 #include <script/descriptor.h>
 #include <script/sign.h>

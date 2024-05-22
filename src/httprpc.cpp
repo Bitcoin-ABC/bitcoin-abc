@@ -7,6 +7,7 @@
 #include <chainparams.h>
 #include <config.h>
 #include <crypto/hmac_sha256.h>
+#include <logging.h>
 #include <rpc/protocol.h>
 #include <util/strencodings.h>
 #include <util/system.h>
