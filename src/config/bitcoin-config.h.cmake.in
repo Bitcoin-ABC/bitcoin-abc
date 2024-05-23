@@ -105,4 +105,7 @@
 
 #cmakedefine ENABLE_TRACING 1
 
+/* Define to 1 if strerror_r returns char *. */
+#cmakedefine STRERROR_R_CHAR_P 1
+
 #endif // BITCOIN_BITCOIN_CONFIG_H

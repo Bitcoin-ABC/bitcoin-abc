@@ -294,5 +294,14 @@ endif()
 
 check_type_size(__int128 __INT128)
 
+check_cxx_source_compiles("
+	#include <string.h>
+	int main() {
+	  char buf[100];
+	  char* p{strerror_r(0, buf, sizeof buf)};
+	  (void)p;
+	}
+" STRERROR_R_CHAR_P)
+
 # Generate the config
 configure_file(bitcoin-config.h.cmake.in bitcoin-config.h ESCAPE_QUOTES)
