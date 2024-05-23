@@ -18,6 +18,7 @@ import {
 } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
+    expectWsMsgs,
     setMochaTimeout,
     TestInfo,
 } from '../setup/testRunner';
@@ -162,6 +163,9 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
         tx2Txid = await get_tx2_txid;
         tx3Txid = await get_tx3_txid;
 
+        // Wait for expected ws msgs
+        await expectWsMsgs(4, msgCollector);
+
         // The first msg will be for the cointx
         const coinTxMsg = msgCollector.shift();
 
@@ -187,6 +191,8 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
         expect(msgCollector.length).to.eql(0);
     });
     it('Conflicting block is mined', async () => {
+        // Wait for expected ws msgs
+        await expectWsMsgs(4, msgCollector);
         // The three txs AddedToMempool in the previous step are now RemovedFromMempool
         // Msgs come in order, with the most-recently broadcast tx removed first
         for (const txid of [tx3Txid, tx2Txid, tx1Txid]) {

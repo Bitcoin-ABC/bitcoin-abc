@@ -10,6 +10,7 @@ import path from 'path';
 import { ChronikClientNode, WsEndpoint_InNode, WsMsgClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
+    expectWsMsgs,
     setMochaTimeout,
     TestInfo,
 } from '../setup/testRunner';
@@ -89,7 +90,6 @@ describe('History endpoints and websocket for LOKAD ID', () => {
     const LOKAD2 = Buffer.from('lok2').toString('hex');
     const LOKAD3 = Buffer.from('lok3').toString('hex');
     const LOKAD4 = Buffer.from('lok4').toString('hex');
-    const MSG_WAIT_MSECS = 1000;
     let ws: WsEndpoint_InNode;
     let ws2: WsEndpoint_InNode;
 
@@ -251,22 +251,16 @@ describe('History endpoints and websocket for LOKAD ID', () => {
         const altConfirmedTxs = await chronik.lokadId(LOKAD1).confirmedTxs();
         expect(altConfirmedTxs.txs.length).to.eql(0);
 
-        while (msgCollectorLokadZero.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadZero);
 
         // We get ADDED_TO_MEMPOOL websocket msg for this txid at ws
         expect(msgCollectorLokadZero).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: TX1_TXID },
         ]);
 
-        while (msgCollectorLokadsOneThroughThree.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadsOneThroughThree);
 
         // We get ADDED_TO_MEMPOOL websocket msg for this txid at ws2
         expect(msgCollectorLokadsOneThroughThree).to.deep.equal([
@@ -316,12 +310,8 @@ describe('History endpoints and websocket for LOKAD ID', () => {
             (await chronik.lokadId(LOKAD2).confirmedTxs()).txs.length,
         ).to.eql(0);
 
-        // We receive expected websocket msg
-        while (msgCollectorLokadZero.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadZero);
         expect(msgCollectorLokadZero).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: TX2_TXID },
         ]);
@@ -381,22 +371,16 @@ describe('History endpoints and websocket for LOKAD ID', () => {
 
         // We get TX_CONFIRMED websocket msgs for all three txs at ws1
         // The msgs come in block order, i.e. alphabetical by txid
-        while (msgCollectorLokadZero.length < 3) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msgs
+        await expectWsMsgs(3, msgCollectorLokadZero);
         expect(msgCollectorLokadZero).to.deep.equal([
             { ...BASE_CONFIRMED_WSMSG, txid: TX1_TXID }, // 1ef4bebdb5a1298877aed9b7f741e3e0903820514316a35f3e7c05957308471a
             { ...BASE_CONFIRMED_WSMSG, txid: TX0_TXID }, // 963850dd9433358993b41184960ea73ee24c754fbccb512ff45976b594cb8876
             { ...BASE_CONFIRMED_WSMSG, txid: TX2_TXID }, // a989e07ae47f3925e911942e6dfbb0a5217fbd6617975b5c7a03a235c0c8a554
         ]);
         // We get TX1_TXID confirmed at ws2
-        while (msgCollectorLokadsOneThroughThree.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadsOneThroughThree);
         expect(msgCollectorLokadsOneThroughThree).to.deep.equal([
             { ...BASE_CONFIRMED_WSMSG, txid: TX1_TXID }, // 1ef4bebdb5a1298877aed9b7f741e3e0903820514316a35f3e7c05957308471a
         ]);
@@ -466,21 +450,14 @@ describe('History endpoints and websocket for LOKAD ID', () => {
         }
 
         // We get this msg at ws
-        while (msgCollectorLokadZero.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadZero);
         expect(msgCollectorLokadZero).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: TX3_TXID }, // 5d8e3f080fa9f7b399be2abd5ab78c9cd6857daadc0f84db1dcfd308ef209080
         ]);
 
-        // We get no msg at ws2
-        while (msgCollectorLokadsOneThroughThree.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadsOneThroughThree);
         expect(msgCollectorLokadsOneThroughThree).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: TX3_TXID }, // 5d8e3f080fa9f7b399be2abd5ab78c9cd6857daadc0f84db1dcfd308ef209080
         ]);
@@ -543,21 +520,16 @@ describe('History endpoints and websocket for LOKAD ID', () => {
         expect(confirmedTxsLokadFour.txs[0].txid).to.eql(CONFLICTING_TX_TXID);
 
         // We get removed from mempool msg at ws
-        while (msgCollectorLokadZero.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadZero);
         expect(msgCollectorLokadZero).to.deep.equal([
             { ...BASE_REMOVEDFROMMEMPOOL_WSMSG, txid: TX3_TXID }, // 5d8e3f080fa9f7b399be2abd5ab78c9cd6857daadc0f84db1dcfd308ef209080
         ]);
 
         // We get removed from mempool msg at w2, and confirmed for the invalidating tx
-        while (msgCollectorLokadsOneThroughThree.length < 2) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected msgs
+        await expectWsMsgs(2, msgCollectorLokadsOneThroughThree);
+
         expect(msgCollectorLokadsOneThroughThree).to.deep.equal([
             {
                 type: 'Tx',
@@ -610,11 +582,9 @@ describe('History endpoints and websocket for LOKAD ID', () => {
         expect(confirmedTxs.txs.length).to.eql(0);
 
         expect(msgCollectorLokadZero).to.deep.equal([]);
-        while (msgCollectorLokadsOneThroughThree.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+
+        // Wait for expected msg
+        await expectWsMsgs(1, msgCollectorLokadsOneThroughThree);
         expect(msgCollectorLokadsOneThroughThree).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: CONFLICTING_TX_TXID },
         ]);

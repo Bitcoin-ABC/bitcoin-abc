@@ -15,6 +15,7 @@ import {
 } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
+    expectWsMsgs,
     setMochaTimeout,
     TestInfo,
 } from '../setup/testRunner';
@@ -164,7 +165,6 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         msgType: 'TX_CONFIRMED',
         txid: '1111111111111111111111111111111111111111111111111111111111111111',
     };
-    const MSG_WAIT_MSECS = 1000;
 
     it('Gets an SLP genesis tx from the mempool', async () => {
         const chronik = new ChronikClientNode(chronikUrl);
@@ -278,11 +278,8 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         slpMintTxid = await get_slp_fungible_mint_txid;
 
         // We see slpMintTxid from our websocket subscription to slpGenesisTxid
-        while (msgCollector.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected ws msg
+        await expectWsMsgs(1, msgCollector);
         expect(msgCollector).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: slpMintTxid },
         ]);
@@ -361,11 +358,8 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
         slpSendTxid = await get_slp_fungible_send_txid;
 
         // We see slpSendTxid from our websocket subscription to slpGenesisTxid
-        while (msgCollector.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected ws msg
+        await expectWsMsgs(1, msgCollector);
         expect(msgCollector).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: slpSendTxid },
         ]);
@@ -562,11 +556,8 @@ describe('Get blocktxs, txs, and history for SLP fungible token txs', () => {
 
         // We see expected TX_CONFIRMED msg for txs related to slpGenesisTxid
         // Note they come in block order, i.e. alphabetical by txid
-        while (msgCollector.length < 3) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected ws msg
+        await expectWsMsgs(3, msgCollector);
         expect(msgCollector).to.deep.equal([
             { ...BASE_CONFIRMED_WSMSG, txid: slpMintTxid }, // 31417f7a8c8939d5b8da5e0d241e733fd698d5bce384d00f5f682b78dcff944d
             { ...BASE_CONFIRMED_WSMSG, txid: slpGenesisTxid }, // cd295e7eb883b5826e2d8872b1626a4af4ce7ec81c468f1bfdad14632036d20a

@@ -16,6 +16,7 @@ import {
 } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
+    expectWsMsgs,
     setMochaTimeout,
     TestInfo,
 } from '../setup/testRunner';
@@ -330,6 +331,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
         finalizedBlockhash = await get_finalized_block_blockhash;
         finalizedHeight = await get_finalized_height;
 
+        // Wait for expected ws msg
+        await expectWsMsgs(1, msgCollector);
+
         // We get a Block Finalized msg
         const finalizedBlockMsg = msgCollector.shift();
 
@@ -344,6 +348,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector.length).to.eql(0);
     });
     it('After some txs have been broadcast', async () => {
+        // Wait for expected ws msgs
+        await expectWsMsgs(4, msgCollector);
+
         p2pkhTxid = await get_p2pkh_txid;
         expect(msgCollector[0]).to.deep.equal({
             type: 'Tx',
@@ -378,6 +385,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
     it('After a block is mined', async () => {
         nextBlockhash = await get_next_blockhash;
 
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
+
         // The block connected msg comes first
         const blockConnectedMsg = msgCollector.shift();
 
@@ -407,7 +417,10 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector.length).to.eql(4);
     });
     it('After this block is parked', async () => {
-        // The Block Disconnected msg comes firs
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
+
+        // The Block Disconnected msg comes first
         const blockMsg = msgCollector.shift();
 
         // We get Block Disconnected on parked block
@@ -435,6 +448,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
     });
     it('After this block is unparked', async () => {
         // As when the block was first mined, we get Tx Confirmed msgs and Block Connected msg
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
 
         // Remove this msg from msgCollector
         const blockMsg = msgCollector.shift();
@@ -467,7 +483,10 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector.length).to.eql(4);
     });
     it('After this block is invalidated', async () => {
-        // The Block Disconnected msg comes firs
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
+
+        // The Block Disconnected msg comes first
         const blockMsg = msgCollector.shift();
 
         // We get Block Disconnected on invalidated block
@@ -495,6 +514,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
     });
     it('After this block is reconsidered', async () => {
         // As when the block was first mined, we get Tx Confirmed msgs and Block Connected msg
+
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
 
         // The Block Connected msg comes first
         const blockMsg = msgCollector.shift();
@@ -527,6 +549,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector.length).to.eql(4);
     });
     it('After this block is finalized by Avalanche', async () => {
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
+
         // The Block Finalized msg comes first
         const blockConnectedMsg = msgCollector.shift();
 
@@ -556,6 +581,9 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector.length).to.eql(4);
     });
     it('After a tx is broadcast with outputs of each type', async () => {
+        // Wait for expected ws msgs
+        await expectWsMsgs(1, msgCollector);
+
         mixedOutputTxid = await get_mixed_output_txid;
         // We get this message only one time, as chronik now has msg de-duplication
         const mixedOutputTxMsg = msgCollector.shift();

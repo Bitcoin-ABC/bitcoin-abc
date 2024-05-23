@@ -4,6 +4,7 @@
 
 import { ChildProcess, spawn } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
+import { WsMsgClient } from '../../index';
 
 function initializeTestRunner(testName: string, statusEvent: EventEmitter) {
     // By convention, we name the setup scripts chronik-client_${testName}
@@ -126,6 +127,19 @@ export async function cleanupMochaRegtest(
     // Do not exit the tests (to start the next file's tests) until the testRunner has shut down
     await once(statusEvent, 'done');
     console.log(`testRunner complete in ${testName}`);
+}
+
+const MSG_WAIT_MSECS = 1000;
+export async function expectWsMsgs(
+    expectedMsgCount: number,
+    msgCollector: WsMsgClient[],
+) {
+    // Wait for expected ws msg(s)
+    while (msgCollector.length < expectedMsgCount) {
+        // If we do not receive expected number of msgs, will hit mocha timeout
+        await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
+    }
+    return;
 }
 
 export default initializeTestRunner;

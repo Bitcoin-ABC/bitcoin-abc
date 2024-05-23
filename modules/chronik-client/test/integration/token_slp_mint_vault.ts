@@ -15,6 +15,7 @@ import {
 } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
+    expectWsMsgs,
     setMochaTimeout,
     TestInfo,
 } from '../setup/testRunner';
@@ -167,7 +168,6 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
         msgType: 'TX_ADDED_TO_MEMPOOL',
         txid: '1111111111111111111111111111111111111111111111111111111111111111',
     };
-    const MSG_WAIT_MSECS = 1000;
 
     it('Gets an SLP vault setup tx from the mempool', async () => {
         const chronik = new ChronikClientNode(chronikUrl);
@@ -389,11 +389,8 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     });
     it('We DO NOT see the mint tx in the websocket subscription when the genesis tx confirms (but we do see the genesis tx confirm)', async () => {
         // We see the slpVaultMintTxid from our websocket subscription to slpVaultGenesisTxid
-        while (msgCollector.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected ws msg
+        await expectWsMsgs(1, msgCollector);
         expect(msgCollector).to.deep.equal([
             { ...BASE_CONFIRMED_WSMSG, txid: slpVaultGenesisTxid },
         ]);
@@ -401,11 +398,8 @@ describe('Get blocktxs, txs, and history for SLP 2 mint vault token txs', () => 
     it('We see a new vault mint if the genesis is confirmed (and, so, it is valid)', async () => {
         validSlpVaultMintTxid = await get_slp_mint_vault_mint_tx_valid_txid;
         // We see slpMintTxid from our websocket subscription to slpGenesisTxid
-        while (msgCollector.length < 1) {
-            // Wait for expected ws msg
-            // If it does not come in, test will time out
-            await new Promise(resolve => setTimeout(resolve, MSG_WAIT_MSECS));
-        }
+        // Wait for expected ws msg
+        await expectWsMsgs(1, msgCollector);
         expect(msgCollector).to.deep.equal([
             { ...BASE_ADDEDTOMEMPOOL_WSMSG, txid: validSlpVaultMintTxid },
         ]);
