@@ -4,6 +4,7 @@
 
 #include <core_io.h>
 
+#include <common/system.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <key_io.h>
@@ -17,7 +18,6 @@
 #include <undo.h>
 #include <util/check.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #include <univalue.h>
 

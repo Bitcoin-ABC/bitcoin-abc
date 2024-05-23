@@ -4,12 +4,12 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <script/script.h>
 #include <txmempool.h>
 #include <util/check.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <test/util/blockindex.h>

@@ -9,12 +9,12 @@
 #include <script/sign.h>
 #include <script/signingprovider.h>
 
+#include <common/system.h>
 #include <core_io.h>
 #include <key.h>
 #include <rpc/util.h>
 #include <streams.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #if defined(HAVE_CONSENSUS_LIB)
 #include <script/bitcoinconsensus.h>

@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <util/fs.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <wallet/salvage.h>
 #include <wallet/wallet.h>

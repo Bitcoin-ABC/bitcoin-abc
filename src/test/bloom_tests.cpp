@@ -5,6 +5,7 @@
 #include <common/bloom.h>
 
 #include <clientversion.h>
+#include <common/system.h>
 #include <consensus/merkle.h>
 #include <key.h>
 #include <key_io.h>
@@ -15,7 +16,6 @@
 #include <streams.h>
 #include <uint256.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #include <test/util/random.h>
 #include <test/util/setup_common.h>

@@ -5,6 +5,7 @@
 #include <blockfilter.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/system.h>
 #include <logging.h>
 #include <netaddress.h>
 #include <netbase.h>
@@ -22,7 +23,6 @@
 #include <util/settings.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <util/url.h>
 #include <version.h>

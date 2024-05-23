@@ -7,8 +7,8 @@
 #include <rpc/server.h>
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
-#include <util/system.h>
 
 #include <test/util/setup_common.h>
 

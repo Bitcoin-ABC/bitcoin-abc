@@ -9,10 +9,10 @@
 #endif
 
 #include <common/args.h>
+#include <common/system.h>
 #include <node/ui_interface.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/translation.h>
 
 #include <cstdint>

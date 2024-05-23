@@ -2,10 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/system.h>
 #include <qt/bitcoin.h>
 #include <qt/test/optiontests.h>
 #include <test/util/setup_common.h>
-#include <util/system.h>
 
 #include <QSettings>
 #include <QTest>

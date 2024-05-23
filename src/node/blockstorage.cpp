@@ -7,6 +7,7 @@
 #include <blockindexcomparators.h>
 #include <chain.h>
 #include <clientversion.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/validation.h>
 #include <flatfile.h>
@@ -20,7 +21,6 @@
 #include <undo.h>
 #include <util/batchpriority.h>
 #include <util/fs.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <map>

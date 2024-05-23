@@ -6,13 +6,13 @@
 #define BITCOIN_DBWRAPPER_H
 
 #include <clientversion.h>
+#include <common/system.h>
 #include <logging.h>
 #include <serialize.h>
 #include <span.h>
 #include <streams.h>
 #include <util/fs.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>

@@ -3,13 +3,13 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <protocol.h>
 #include <seeder/bitcoin.h>
 #include <seeder/db.h>
 #include <seeder/test/util.h>
 #include <serialize.h>
 #include <streams.h>
-#include <util/system.h>
 #include <version.h>
 
 #include <boost/test/unit_test.hpp>

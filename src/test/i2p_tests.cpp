@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <common/system.h>
 #include <i2p.h>
 #include <netaddress.h>
 #include <netbase.h>
@@ -9,7 +10,6 @@
 #include <test/util/net.h>
 #include <test/util/setup_common.h>
 #include <threadinterrupt.h>
-#include <util/system.h>
 
 #include <boost/test/unit_test.hpp>
 

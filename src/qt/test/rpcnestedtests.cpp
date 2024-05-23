@@ -4,11 +4,11 @@
 
 #include <qt/test/rpcnestedtests.h>
 
+#include <common/system.h>
 #include <config.h>
 #include <interfaces/node.h>
 #include <qt/rpcconsole.h>
 #include <rpc/server.h>
-#include <util/system.h>
 
 #include <test/util/setup_common.h>
 

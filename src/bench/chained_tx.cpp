@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <bench/bench.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <node/context.h>
@@ -11,7 +12,6 @@
 #include <script/script.h>
 #include <txmempool.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <test/util/mining.h>

@@ -5,8 +5,8 @@
 #ifndef BITCOIN_RADIX_H
 #define BITCOIN_RADIX_H
 
+#include <common/system.h>
 #include <rcu.h>
-#include <util/system.h>
 
 #include <array>
 #include <atomic>

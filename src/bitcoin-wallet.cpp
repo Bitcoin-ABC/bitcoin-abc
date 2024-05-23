@@ -9,10 +9,10 @@
 #include <chainparams.h>
 #include <chainparamsbase.h>
 #include <common/args.h>
+#include <common/system.h>
 #include <currencyunit.h>
 #include <logging.h>
 #include <util/exception.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <wallet/wallettool.h>
 

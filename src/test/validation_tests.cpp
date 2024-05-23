@@ -7,6 +7,7 @@
 
 #include <chainparams.h>
 #include <clientversion.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/consensus.h>
@@ -14,7 +15,6 @@
 #include <primitives/transaction.h>
 #include <streams.h>
 #include <uint256.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <test/util/setup_common.h>

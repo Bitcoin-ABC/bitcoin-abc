@@ -5,12 +5,12 @@
 #include <key.h>
 
 #include <chainparams.h> // For Params()
+#include <common/system.h>
 #include <key_io.h>
 #include <streams.h>
 #include <uint256.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 
 #include <test/util/setup_common.h>
 

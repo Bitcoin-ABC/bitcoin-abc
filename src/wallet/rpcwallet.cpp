@@ -5,6 +5,7 @@
 
 #include <chainparams.h> // for GetConsensus.
 #include <coins.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/validation.h>
@@ -23,7 +24,6 @@
 #include <util/error.h>
 #include <util/moneystr.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <util/url.h>
 #include <util/vector.h>

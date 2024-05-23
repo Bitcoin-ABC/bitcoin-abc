@@ -10,6 +10,7 @@
 #include <chainparamsbase.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/system.h>
 #include <currencyunit.h>
 #include <rpc/client.h>
 #include <rpc/mining.h>
@@ -20,7 +21,6 @@
 #include <util/exception.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <util/translation.h>
 

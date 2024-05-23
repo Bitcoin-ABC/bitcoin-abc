@@ -5,12 +5,12 @@
 
 #include <script/sigcache.h>
 
+#include <common/system.h>
 #include <cuckoocache.h>
 #include <logging.h>
 #include <pubkey.h>
 #include <random.h>
 #include <uint256.h>
-#include <util/system.h>
 
 #include <algorithm>
 #include <mutex>

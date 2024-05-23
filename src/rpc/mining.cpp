@@ -9,6 +9,7 @@
 #include <cashaddrenc.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/activation.h>
 #include <consensus/amount.h>
@@ -38,7 +39,6 @@
 #include <univalue.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <validation.h>
 #include <validationinterface.h>

@@ -4,7 +4,7 @@
 
 #include <interfaces/handler.h>
 
-#include <util/system.h>
+#include <common/system.h>
 
 #include <boost/signals2/connection.hpp>
 #include <utility>

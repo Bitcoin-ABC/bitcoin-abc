@@ -7,9 +7,9 @@
 // only local node policy logic
 
 #include <coins.h>
+#include <common/system.h>
 #include <policy/policy.h>
 #include <script/interpreter.h>
-#include <util/system.h>
 
 Amount GetDustThreshold(const CTxOut &txout, const CFeeRate &dustRelayFeeIn) {
     /**

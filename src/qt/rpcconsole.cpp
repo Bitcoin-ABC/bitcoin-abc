@@ -9,6 +9,7 @@
 #include <qt/rpcconsole.h>
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <interfaces/node.h>
 #include <netbase.h>
@@ -20,7 +21,6 @@
 #include <rpc/client.h>
 #include <rpc/server.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/threadnames.h>
 
 #ifdef ENABLE_WALLET

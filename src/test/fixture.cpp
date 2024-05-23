@@ -8,7 +8,7 @@
  */
 #define BOOST_TEST_MODULE Bitcoin ABC unit tests
 
-#include <util/system.h>
+#include <common/system.h>
 
 #include <test/util/setup_common.h>
 

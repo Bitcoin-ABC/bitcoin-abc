@@ -443,7 +443,6 @@ add_library(util
 	util/strencodings.cpp
 	util/string.cpp
 	util/syserror.cpp
-	util/system.cpp
 	util/thread.cpp
 	util/threadnames.cpp
 	util/time.cpp
@@ -533,6 +532,7 @@ add_library(common
 	common/args.cpp
 	common/bloom.cpp
 	common/configfile.cpp
+	common/system.cpp
 	cashaddr.cpp
 	cashaddrenc.cpp
 	chainparams.cpp

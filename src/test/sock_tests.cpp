@@ -4,10 +4,10 @@
 
 #include <util/sock.h>
 
+#include <common/system.h>
 #include <compat.h>
 #include <test/util/setup_common.h>
 #include <threadinterrupt.h>
-#include <util/system.h>
 
 #include <boost/test/unit_test.hpp>
 

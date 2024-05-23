@@ -5,6 +5,7 @@
 #include <blockencodings.h>
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/validation.h>
@@ -13,7 +14,6 @@
 #include <random.h>
 #include <streams.h>
 #include <txmempool.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <unordered_map>

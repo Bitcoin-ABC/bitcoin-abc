@@ -4,13 +4,13 @@
 
 #include <script/scriptcache.h>
 
+#include <common/system.h>
 #include <crypto/sha256.h>
 #include <cuckoocache.h>
 #include <primitives/transaction.h>
 #include <random.h>
 #include <script/sigcache.h>
 #include <sync.h>
-#include <util/system.h>
 #include <validation.h>
 
 /**

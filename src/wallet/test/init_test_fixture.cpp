@@ -5,10 +5,10 @@
 #include <wallet/test/init_test_fixture.h>
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <univalue.h>
 #include <util/check.h>
 #include <util/fs.h>
-#include <util/system.h>
 
 #include <fstream>
 #include <string>

@@ -10,6 +10,7 @@
 #include <addrman.h>
 #include <banman.h>
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
@@ -44,7 +45,6 @@
 #include <txdb.h>
 #include <txmempool.h>
 #include <util/strencodings.h>
-#include <util/system.h>
 #include <util/thread.h>
 #include <util/threadnames.h>
 #include <util/time.h>

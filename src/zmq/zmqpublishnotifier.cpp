@@ -6,6 +6,7 @@
 
 #include <chain.h>
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <logging.h>
 #include <node/blockstorage.h>
@@ -13,7 +14,6 @@
 #include <primitives/txid.h>
 #include <rpc/server.h>
 #include <streams.h>
-#include <util/system.h>
 #include <zmq/zmqutil.h>
 
 #include <zmq.h>

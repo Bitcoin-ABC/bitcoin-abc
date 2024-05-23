@@ -5,13 +5,13 @@
 #include <wallet/spend.h>
 
 #include <common/args.h>
+#include <common/system.h>
 #include <consensus/validation.h>
 #include <interfaces/chain.h>
 #include <policy/policy.h>
 #include <util/check.h>
 #include <util/insert.h>
 #include <util/moneystr.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <wallet/coincontrol.h>
 #include <wallet/fees.h>

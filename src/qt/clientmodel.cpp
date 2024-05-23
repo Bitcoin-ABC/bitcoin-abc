@@ -6,6 +6,7 @@
 
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/system.h>
 #include <config.h>
 #include <interfaces/handler.h>
 #include <interfaces/node.h>
@@ -15,7 +16,6 @@
 #include <qt/guiconstants.h>
 #include <qt/guiutil.h>
 #include <qt/peertablemodel.h>
-#include <util/system.h>
 #include <util/threadnames.h>
 #include <validation.h>
 

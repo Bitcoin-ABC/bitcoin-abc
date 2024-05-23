@@ -7,6 +7,7 @@
 
 #include <clientversion.h>
 #include <coins.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/tx_verify.h>
@@ -17,7 +18,6 @@
 #include <reverse_iterator.h>
 #include <undo.h>
 #include <util/moneystr.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <validationinterface.h>
 #include <version.h>

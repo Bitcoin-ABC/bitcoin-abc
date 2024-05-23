@@ -7,7 +7,7 @@
 #ifndef BITCOIN_INIT_H
 #define BITCOIN_INIT_H
 
-#include <util/system.h>
+#include <common/system.h>
 
 #include <memory>
 #include <string>

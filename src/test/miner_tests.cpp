@@ -8,6 +8,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <coins.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/consensus.h>
 #include <consensus/merkle.h>
@@ -20,7 +21,6 @@
 #include <uint256.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <util/time.h>
 #include <validation.h>
 

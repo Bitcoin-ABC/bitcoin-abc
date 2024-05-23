@@ -32,7 +32,7 @@
 #include <qt/walletmodel.h>
 #include <qt/walletview.h>
 #endif // ENABLE_WALLET
-#include <util/system.h>
+#include <common/system.h>
 #include <util/translation.h>
 #include <validation.h>
 

@@ -10,6 +10,7 @@
 #include <chainparams.h>
 #include <clientversion.h>
 #include <common/args.h>
+#include <common/system.h>
 #include <compat.h>
 #include <config.h>
 #include <httprpc.h>
@@ -23,7 +24,6 @@
 #include <util/exception.h>
 #include <util/strencodings.h>
 #include <util/syserror.h>
-#include <util/system.h>
 #include <util/threadnames.h>
 #include <util/tokenpipe.h>
 #include <util/translation.h>

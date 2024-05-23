@@ -6,12 +6,12 @@
 #include <txdb.h>
 
 #include <chain.h>
+#include <common/system.h>
 #include <logging.h>
 #include <node/ui_interface.h>
 #include <pow/pow.h>
 #include <random.h>
 #include <shutdown.h>
-#include <util/system.h>
 #include <util/translation.h>
 #include <util/vector.h>
 #include <version.h>

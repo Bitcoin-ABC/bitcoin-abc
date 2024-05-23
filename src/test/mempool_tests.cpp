@@ -4,11 +4,11 @@
 
 #include <txmempool.h>
 
+#include <common/system.h>
 #include <kernel/disconnected_transactions.h>
 #include <kernel/mempool_entry.h>
 #include <policy/settings.h>
 #include <reverse_iterator.h>
-#include <util/system.h>
 #include <util/time.h>
 
 #include <test/util/setup_common.h>

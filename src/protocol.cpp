@@ -6,9 +6,9 @@
 #include <protocol.h>
 
 #include <chainparams.h>
+#include <common/system.h>
 #include <config.h>
 #include <logging.h>
-#include <util/system.h>
 
 #include <atomic>
 

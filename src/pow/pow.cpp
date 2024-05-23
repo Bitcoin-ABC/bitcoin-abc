@@ -9,6 +9,7 @@
 #include <arith_uint256.h>
 #include <chain.h>
 #include <chainparams.h>
+#include <common/system.h>
 #include <consensus/activation.h>
 #include <consensus/params.h>
 #include <pow/aserti32d.h>
@@ -16,7 +17,6 @@
 #include <pow/eda.h>
 #include <pow/grasberg.h>
 #include <primitives/blockhash.h>
-#include <util/system.h>
 
 uint32_t GetNextWorkRequired(const CBlockIndex *pindexPrev,
                              const CBlockHeader *pblock,

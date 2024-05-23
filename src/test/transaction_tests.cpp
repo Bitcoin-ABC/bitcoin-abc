@@ -6,6 +6,7 @@
 #include <chainparams.h> // For CChainParams
 #include <checkqueue.h>
 #include <clientversion.h>
+#include <common/system.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/tx_check.h>
@@ -23,7 +24,6 @@
 #include <streams.h>
 #include <util/strencodings.h>
 #include <util/string.h>
-#include <util/system.h>
 #include <validation.h>
 
 #include <test/data/tx_invalid.json.h>
