@@ -3006,7 +3006,8 @@ UniValue WriteUTXOSnapshot(Chainstate &chainstate, CCoinsViewCursor *pcursor,
                   tip->nHeight, tip->GetBlockHash().ToString(),
                   fs::PathToString(path), fs::PathToString(temppath)));
 
-    SnapshotMetadata metadata{tip->GetBlockHash(), maybe_stats->coins_count};
+    SnapshotMetadata metadata{chainstate.m_chainman.GetParams().DiskMagic(),
+                              tip->GetBlockHash(), maybe_stats->coins_count};
 
     afile << metadata;
 
@@ -3147,7 +3148,7 @@ static RPCHelpMan loadtxoutset() {
                                        " for reading.");
             }
 
-            SnapshotMetadata metadata;
+            SnapshotMetadata metadata{chainman.GetParams().DiskMagic()};
             try {
                 afile >> metadata;
             } catch (const std::ios_base::failure &e) {

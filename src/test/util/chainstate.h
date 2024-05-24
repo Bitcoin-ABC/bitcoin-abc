@@ -57,7 +57,7 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
     //
     FILE *infile{fsbridge::fopen(snapshot_path, "rb")};
     AutoFile auto_infile{infile};
-    node::SnapshotMetadata metadata;
+    node::SnapshotMetadata metadata{node.chainman->GetParams().DiskMagic()};
     auto_infile >> metadata;
 
     malleation(auto_infile, metadata);

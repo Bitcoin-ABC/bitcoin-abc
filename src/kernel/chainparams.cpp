@@ -576,7 +576,7 @@ std::vector<int> CChainParams::GetAvailableSnapshotHeights() const {
 }
 
 std::optional<ChainType>
-GetNetworkForMagic(CMessageHeader::MessageMagic &message) {
+GetNetworkForMagic(const CMessageHeader::MessageMagic &message) {
     CChainParams::ChainOptions opts{};
     const auto mainnet_msg = CChainParams::Main(opts)->DiskMagic();
     const auto testnet_msg = CChainParams::TestNet(opts)->DiskMagic();

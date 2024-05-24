@@ -209,6 +209,13 @@ class AssumeutxoTest(BitcoinTestFramework):
                 None,
                 "[snapshot] bad snapshot data after deserializing 2 coins",
             ],
+            # txid coins count exceeds coins left
+            [
+                b"\xfd\xff\xff",
+                32,
+                None,
+                "[snapshot] mismatch in coins count in snapshot metadata and actual snapshot data",
+            ],
             # wrong outpoint index
             [
                 b"\x01",

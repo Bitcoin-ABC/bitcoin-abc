@@ -200,6 +200,6 @@ protected:
 const CCheckpointData &CheckpointData(const ChainType chain);
 
 std::optional<ChainType>
-GetNetworkForMagic(CMessageHeader::MessageMagic &pchMessageStart);
+GetNetworkForMagic(const CMessageHeader::MessageMagic &pchMessageStart);
 
 #endif // BITCOIN_KERNEL_CHAINPARAMS_H

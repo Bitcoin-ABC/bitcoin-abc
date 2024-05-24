@@ -322,7 +322,8 @@ FUZZ_TARGET_DESERIALIZE(blocktransactionsrequest_deserialize, {
     DeserializeFromFuzzingInput(buffer, btr);
 })
 FUZZ_TARGET_DESERIALIZE(snapshotmetadata_deserialize, {
-    SnapshotMetadata snapshot_metadata;
+    auto msg_start = Params().DiskMagic();
+    SnapshotMetadata snapshot_metadata{msg_start};
     DeserializeFromFuzzingInput(buffer, snapshot_metadata);
 })
 FUZZ_TARGET_DESERIALIZE(uint160_deserialize, {
