@@ -33,30 +33,6 @@ export const navitems = [
         ],
     },
     {
-        nav_item: 'Build on eCash',
-        link: '/build',
-    },
-    {
-        nav_item: 'Technology',
-        dropdown_items: [
-            {
-                title: 'Releases',
-                link: 'https://www.bitcoinabc.org/releases/',
-                icon: '/images/hand-logo-icon.svg',
-            },
-            {
-                title: 'Source Code',
-                link: 'https://github.com/bitcoin-abc/bitcoin-abc/',
-                icon: '/images/hand-code-icon.svg',
-            },
-            {
-                title: 'Documentation',
-                link: 'https://www.bitcoinabc.org/doc/',
-                icon: '/images/document-icon.svg',
-            },
-        ],
-    },
-    {
         nav_item: 'Get eCash',
         dropdown_items: [
             {
@@ -84,6 +60,30 @@ export const navitems = [
     {
         nav_item: 'Use eCash',
         link: '/use-ecash',
+    },
+    {
+        nav_item: 'Build on eCash',
+        link: '/build',
+    },
+    {
+        nav_item: 'Technology',
+        dropdown_items: [
+            {
+                title: 'Releases',
+                link: 'https://www.bitcoinabc.org/releases/',
+                icon: '/images/hand-logo-icon.svg',
+            },
+            {
+                title: 'Source Code',
+                link: 'https://github.com/bitcoin-abc/bitcoin-abc/',
+                icon: '/images/hand-code-icon.svg',
+            },
+            {
+                title: 'Documentation',
+                link: 'https://www.bitcoinabc.org/doc/',
+                icon: '/images/document-icon.svg',
+            },
+        ],
     },
     {
         nav_item: 'Blog',
