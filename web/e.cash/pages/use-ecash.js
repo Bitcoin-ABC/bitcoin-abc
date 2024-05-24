@@ -148,20 +148,23 @@ function UseEcash(props) {
                     </TextImageBlock>
                     <TextImageBlock
                         id="paybutton"
-                        title="Paybutton"
+                        title="PayButton"
                         image={paybutton}
-                        alt="Paybutton logo"
+                        alt="PayButton logo"
                     >
                         <p>
                             The easiest way to accept eCash online. Simply add a
                             few lines of code to start accepting eCash on your
-                            website. Enables you to track transactions and
-                            revenue through the PayButton dashboard, create
-                            wallets and manage your buttons to organize payments
-                            across all of your websites.
+                            website.
+                        </p>
+                        <p>
+                            Use the PayButton dashboard to track transactions
+                            and revenue for your business. Create wallets and
+                            manage your buttons to organize payments across all
+                            of your websites.
                         </p>
                         <Button
-                            text="Paybutton"
+                            text="PayButton"
                             link="https://paybutton.org/"
                             corner="bottomRight"
                             color="accent"
