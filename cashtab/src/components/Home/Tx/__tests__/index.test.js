@@ -47,6 +47,7 @@ import {
     SlpNftMint,
     SlpParentGenesisTxMock,
     oneOutputReceivedTx,
+    paywallPaymentTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -2297,5 +2298,90 @@ describe('<Tx />', () => {
 
         // We see the expected token action text for a received SLPv1 fungible token tx
         expect(screen.getByText('Created 89 HSM')).toBeInTheDocument();
+    });
+    it('Sent paywall payment tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={paywallPaymentTx.tx}
+                        hashes={[paywallPaymentTx.tx.outputs[1].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We render the timestamp
+        expect(screen.getByText('May 23, 2024, 14:33:47')).toBeInTheDocument();
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the paywall description
+        expect(screen.getByText('Paywall Article')).toBeInTheDocument();
+
+        // We see expected explorer link generated
+        expect(screen.getByText('Paywall Article')).toHaveAttribute(
+            'href', 'https://explorer.e.cash/tx/4d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4'
+        );
+    });
+    it('Invalid paywall payment tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...paywallPaymentTx.tx,
+                            outputs: [
+                                {
+                                    ...paywallPaymentTx.tx.outputs[0],
+                                    outputScript:
+                                        '6a0470617977', // no data after the paywall lokad ID
+                                },
+                                ...paywallPaymentTx.tx.outputs.slice(1),
+                            ],
+                        }}
+                        hashes={[paywallPaymentTx.tx.outputs[1].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We render the timestamp
+        expect(screen.getByText('May 23, 2024, 14:33:47')).toBeInTheDocument();
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the invalid paywall tx description
+        expect(
+            screen.getByText('Invalid Paywall Payment'),
+        ).toBeInTheDocument();
     });
 });

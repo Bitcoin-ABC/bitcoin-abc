@@ -60,6 +60,7 @@ import {
     SelfSendIcon,
     FanOutIcon,
     MintNftIcon,
+    PaywallPaymentIcon,
 } from 'components/Common/CustomIcons';
 import PropTypes from 'prop-types';
 import { supportedFiatCurrencies } from 'config/cashtabSettings';
@@ -408,6 +409,33 @@ const Tx = ({
                         <IconAndLabel>
                             <ChatIcon />
                             <AppDescLabel>Invalid eCash Chat</AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                }
+                break;
+            }
+            case opReturn.appPrefixesHex.paywallPayment: {
+                if (typeof stackArray[1] !== 'undefined') {
+                    appActions.push(
+                        <>
+                            <IconAndLabel>
+                                <PaywallPaymentIcon />
+                                <AppDescLabel>Paywall Payment</AppDescLabel>
+                            </IconAndLabel>
+                            <AppDescMsg>
+                                <a href={`${explorer.blockExplorerUrl}/tx/${Buffer.from(stackArray[1], 'hex').toString()}`}
+                                 target="_blank"
+                                 rel="noreferrer">
+                                    Paywall Article
+                                </a>
+                            </AppDescMsg>
+                        </>,
+                    );
+                } else {
+                    appActions.push(
+                        <IconAndLabel>
+                            <PaywallPaymentIcon />
+                            <AppDescLabel>Invalid Paywall Payment</AppDescLabel>
                         </IconAndLabel>,
                     );
                 }

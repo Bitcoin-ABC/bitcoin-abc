@@ -9572,6 +9572,74 @@ export const tokenBurnDecimals = {
     },
 };
 
+export const paywallPaymentTx = {
+    tx: {
+        "txid": "e9692335fdb3b75f2e319cbda1396f7f32c02c3d172e58148abeb2952c7e2460",
+        "version": 2,
+        "inputs": [
+            {
+                "prevOut": {
+                    "txid": "4d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4",
+                    "outIdx": 1
+                },
+                "inputScript": "483045022100a58e1087f128d676d4b5839c795df15b88b87b47b0c8f382d39811ee5df21cf6022022727ede00178347e0ab0dd3df91959378c25a29f902a4f8b4f1c79ddd7cf15241210216794b896521c52b0b156d886652859d1e4e03a9cd8f3894f4b1e1853092a3c7",
+                "value": 550,
+                "sequenceNo": 4294967295,
+                "outputScript": "76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac"
+            },
+            {
+                "prevOut": {
+                    "txid": "4d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4",
+                    "outIdx": 2
+                },
+                "inputScript": "483045022100856c2d015d7384a094d0c17dde0ec29ee37ddf64c914a6c1d12c9bd92724bc52022027d9f6525c49786e5454615e605d1af0aa4fa0860eea39e927316042ba3557f141210216794b896521c52b0b156d886652859d1e4e03a9cd8f3894f4b1e1853092a3c7",
+                "value": 27419,
+                "sequenceNo": 4294967295,
+                "outputScript": "76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac"
+            }
+        ],
+        "outputs": [
+            {
+                "value": 0,
+                "outputScript": "6a04706179774034643761363265626237663036666437613836663836313238303835336536666365336331313763373335393866653238343139303236306162643564646334"
+            },
+            {
+                "value": 15000,
+                "outputScript": "76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac",
+                "spentBy": {
+                    "txid": "84d75fe93ab918e74e58c1a12a982d0cc8d1db1bb102f02068772723891711b3",
+                    "outIdx": 0
+                }
+            },
+            {
+                "value": 12056,
+                "outputScript": "76a91406e6281dfcffdd9db8304e81dcfa3820ab349ae488ac"
+            }
+        ],
+        "lockTime": 0,
+        "timeFirstSeen": 1716474827,
+        "size": 454,
+        "isCoinbase": false,
+        "tokenEntries": [],
+        "tokenFailedParsings": [],
+        "tokenStatus": "TOKEN_STATUS_NON_TOKEN",
+        "block": {
+            "height": 845901,
+            "hash": "00000000000000001da9291a7aa6fa8f9fa5f99413faa951e3f5777a082f911e",
+            "timestamp": 1716475087
+        },
+        "parsed": {
+            "xecTxType": "Sent",
+            "satoshisSent": 27056,
+            "stackArray": [
+                "70617977",
+                "34643761363265626237663036666437613836663836313238303835336536666365336331313763373335393866653238343139303236306162643564646334"
+            ],
+            "recipients": []
+        }
+    }
+};
+
 export const swapTx = {
     tx: {
         txid: 'baed6358b9ea2e354e384d2e31a576ffa25fcceaf796e711e8306f9c8086b00f',

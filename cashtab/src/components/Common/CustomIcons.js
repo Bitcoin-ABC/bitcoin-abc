@@ -156,6 +156,19 @@ export const TokenBurnIcon = () => <TokenBurn title="tx-token-burn" />;
 export const PayButtonIcon = () => (
     <PayButtonImg src={PayButton} alt="tx-paybutton" />
 );
+const PaywallPaymentIconWrapper = styled.div`
+    svg,
+    g,
+    path {
+        fill: ${props => props.theme.eCashBlue};
+    }
+    fill: ${props => props.theme.eCashBlue};
+`;
+export const PaywallPaymentIcon = () => (
+    <PaywallPaymentIconWrapper>
+        <Audit title="tx-paywall" />
+    </PaywallPaymentIconWrapper>
+);
 export const ChatIcon = () => <Chat title="tx-chat" />;
 export const MintIcon = () => <Mint title="tx-mint" />;
 export const CopyPasteIcon = () => <CopyPaste title="copy-paste" />;
