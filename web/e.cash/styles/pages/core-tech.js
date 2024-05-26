@@ -57,7 +57,7 @@ export const TextCtn = styled.div`
 export const ImageCtn = styled.div`
     position: absolute;
     width: 50%;
-    height: 700px;
+    height: ${props => `${props.imageHeight}px`};
     top: 50%;
     transform: translate(10%, -50%);
     right: 0px;
@@ -67,7 +67,7 @@ export const ImageCtn = styled.div`
     ${props => props.theme.breakpoint.medium} {
         width: 100%;
         position: relative;
-        height: auto;
+        height: 400px;
         transform: none;
         margin-top: 30px;
     }

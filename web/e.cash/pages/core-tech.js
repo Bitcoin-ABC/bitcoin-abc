@@ -39,7 +39,15 @@ import {
  * @param {object} children any children to display in the body
  * @param {string} id the CSS id used for anchor links
  */
-function TextImageBlock({ title, image, reverse, speed, children, id }) {
+function TextImageBlock({
+    title,
+    image,
+    reverse,
+    speed,
+    children,
+    id,
+    imageHeight = 700,
+}) {
     return (
         <TextImageBlockCtn id={id}>
             <LeftTopArrow />
@@ -50,7 +58,7 @@ function TextImageBlock({ title, image, reverse, speed, children, id }) {
                 <H3 text={title} />
                 {children}
             </TextCtn>
-            <ImageCtn>
+            <ImageCtn imageHeight={imageHeight}>
                 <AnimateImage image={image} reverse={reverse} speed={speed} />
             </ImageCtn>
         </TextImageBlockCtn>
@@ -201,6 +209,7 @@ export default function CoreTech() {
                         title="eTokens"
                         image={spiningcoin}
                         speed={0.8}
+                        imageHeight={490}
                     >
                         <p>
                             eCash supports tokens that anyone can create and
