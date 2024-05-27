@@ -2520,17 +2520,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     ChainstateManager &chainman = *Assert(node.chainman);
 
-    assert(!node.peerman);
-    node.peerman = PeerManager::make(
-        *node.connman, *node.addrman, node.banman.get(), chainman,
-        *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
-    RegisterValidationInterface(node.peerman.get());
-
-    // Encoded addresses using cashaddr instead of base58.
-    // We do this by default to avoid confusion with BTC addresses.
-    config.SetCashAddrEncoding(args.GetBoolArg("-usecashaddr", true));
-
-    // Step 7.5 (I guess ?): Initialize Avalanche.
+    // Initialize Avalanche.
     bilingual_str avalancheError;
     g_avalanche = avalanche::Processor::MakeProcessor(
         args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
@@ -2544,6 +2534,16 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         g_avalanche->isAvalancheServiceAvailable()) {
         nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
     }
+
+    assert(!node.peerman);
+    node.peerman = PeerManager::make(
+        *node.connman, *node.addrman, node.banman.get(), chainman,
+        *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+    RegisterValidationInterface(node.peerman.get());
+
+    // Encoded addresses using cashaddr instead of base58.
+    // We do this by default to avoid confusion with BTC addresses.
+    config.SetCashAddrEncoding(args.GetBoolArg("-usecashaddr", true));
 
     // Step 8: load indexers
     if (args.GetBoolArg("-txindex", DEFAULT_TXINDEX)) {
@@ -2905,12 +2905,12 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         },
         DUMP_BANS_INTERVAL);
 
+    // Start Avalanche's event loop.
+    g_avalanche->startEventLoop(*node.scheduler);
+
     if (node.peerman) {
         node.peerman->StartScheduledTasks(*node.scheduler);
     }
-
-    // Start Avalanche's event loop.
-    g_avalanche->startEventLoop(*node.scheduler);
 
 #if HAVE_SYSTEM
     StartupNotify(args);

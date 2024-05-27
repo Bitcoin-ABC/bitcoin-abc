@@ -138,10 +138,6 @@ struct AvalancheTestingSetup : public TestChain100Setup {
                                                       *m_node.addrman);
         m_connman = connman.get();
         m_node.connman = std::move(connman);
-        m_node.peerman = ::PeerManager::make(
-            *m_connman, *m_node.addrman, m_node.banman.get(), *m_node.chainman,
-            *m_node.mempool, false);
-        m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
 
         // Get the processor ready.
         setArg("-avaminquorumstake", "0");
@@ -154,6 +150,11 @@ struct AvalancheTestingSetup : public TestChain100Setup {
             *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
             error);
         BOOST_CHECK(m_processor);
+
+        m_node.peerman = ::PeerManager::make(
+            *m_connman, *m_node.addrman, m_node.banman.get(), *m_node.chainman,
+            *m_node.mempool, false);
+        m_node.chain = interfaces::MakeChain(m_node, config.GetChainParams());
     }
 
     ~AvalancheTestingSetup() {
