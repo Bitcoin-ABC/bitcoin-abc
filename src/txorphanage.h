@@ -111,7 +111,7 @@ protected:
 
     struct IteratorComparator {
         template <typename I> bool operator()(const I &a, const I &b) const {
-            return &(*a) < &(*b);
+            return a->first < b->first;
         }
     };
 
@@ -127,6 +127,9 @@ protected:
 
     /** Erase an orphan by txid */
     int EraseTxNoLock(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(m_mutex);
+
+    /** Timestamp for the next scheduled sweep of expired orphans */
+    NodeSeconds m_next_sweep GUARDED_BY(m_mutex){0s};
 };
 
 #endif // BITCOIN_TXORPHANAGE_H

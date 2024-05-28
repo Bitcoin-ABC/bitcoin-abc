@@ -125,9 +125,8 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans,
     LOCK(m_mutex);
 
     unsigned int nEvicted = 0;
-    static NodeSeconds nNextSweep;
     auto nNow{Now<NodeSeconds>()};
-    if (nNextSweep <= nNow) {
+    if (m_next_sweep <= nNow) {
         // Sweep out expired orphan pool entries:
         int nErased = 0;
         auto nMinExpTime{nNow + ORPHAN_TX_EXPIRE_TIME -
@@ -144,7 +143,7 @@ unsigned int TxOrphanage::LimitOrphans(unsigned int max_orphans,
         }
         // Sweep again 5 minutes after the next entry that expires in order to
         // batch the linear scan.
-        nNextSweep = nMinExpTime + ORPHAN_TX_EXPIRE_INTERVAL;
+        m_next_sweep = nMinExpTime + ORPHAN_TX_EXPIRE_INTERVAL;
         if (nErased > 0) {
             LogPrint(BCLog::TXPACKAGES,
                      "Erased %d orphan tx due to expiration\n", nErased);
