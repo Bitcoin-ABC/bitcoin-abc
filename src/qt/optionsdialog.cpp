@@ -33,8 +33,8 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet)
     ui->setupUi(this);
 
     /* Main elements init */
-    ui->databaseCache->setMinimum(MIN_DB_CACHE_MB);
-    ui->databaseCache->setMaximum(MAX_DB_CACHE_MB);
+    ui->databaseCache->setRange(MIN_DB_CACHE_MB,
+                                std::numeric_limits<int>::max());
     ui->threadsScriptVerif->setMinimum(-GetNumCores());
     ui->threadsScriptVerif->setMaximum(MAX_SCRIPTCHECK_THREADS);
     ui->pruneWarning->setVisible(false);

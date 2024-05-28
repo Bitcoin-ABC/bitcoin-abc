@@ -34,8 +34,6 @@ struct Params;
 
 //! min. -dbcache (MiB)
 static constexpr int64_t MIN_DB_CACHE_MB = 4;
-//! max. -dbcache (MiB)
-static constexpr int64_t MAX_DB_CACHE_MB = sizeof(void *) > 4 ? 16384 : 1024;
 //! -dbcache default (MiB)
 static constexpr int64_t DEFAULT_DB_CACHE_MB = 1024;
 //! -dbbatchsize default (bytes)

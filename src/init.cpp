@@ -542,11 +542,13 @@ void SetupServerArgs(NodeContext &node) {
                   DEFAULT_DB_BATCH_SIZE),
         ArgsManager::ALLOW_ANY | ArgsManager::DEBUG_ONLY,
         OptionsCategory::OPTIONS);
-    argsman.AddArg(
-        "-dbcache=<n>",
-        strprintf("Set database cache size in MiB (%d to %d, default: %d)",
-                  MIN_DB_CACHE_MB, MAX_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
-        ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
+    argsman.AddArg("-dbcache=<n>",
+                   strprintf("Maximum database cache size <n> MiB (minimum %d, "
+                             "default: %d). Make sure you have enough RAM. In "
+                             "addition, unused memory allocated to the mempool "
+                             "is shared with this cache (see -maxmempool).",
+                             MIN_DB_CACHE_MB, DEFAULT_DB_CACHE_MB),
+                   ArgsManager::ALLOW_ANY, OptionsCategory::OPTIONS);
     argsman.AddArg(
         "-includeconf=<file>",
         "Specify additional configuration file, relative to the -datadir path "

@@ -14,8 +14,6 @@ CacheSizes CalculateCacheSizes(const ArgsManager &args, size_t n_indexes) {
         (args.GetIntArg("-dbcache", DEFAULT_DB_CACHE_MB) << 20);
     // total cache cannot be less than MIN_DB_CACHE_MB
     nTotalCache = std::max(nTotalCache, MIN_DB_CACHE_MB << 20);
-    // total cache cannot be greater than MAX_DB_CACHE_MB
-    nTotalCache = std::min(nTotalCache, MAX_DB_CACHE_MB << 20);
 
     CacheSizes sizes;
     sizes.block_tree_db =
