@@ -806,7 +806,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         def announce_cmpct_block(node, peer):
             utxo = self.utxos.pop(0)
-            block, _ = self.build_block_with_transactions(node, utxo, 5)
+            block, ordered_txs = self.build_block_with_transactions(node, utxo, 5)
 
             cmpct_block = HeaderAndShortIDs()
             cmpct_block.initialize_from_block(block)
@@ -814,11 +814,11 @@ class CompactBlocksTest(BitcoinTestFramework):
             peer.send_and_ping(msg)
             with p2p_lock:
                 assert "getblocktxn" in peer.last_message
-            return block, cmpct_block
+            return block, ordered_txs, cmpct_block
 
-        block, cmpct_block = announce_cmpct_block(node, stalling_peer)
+        block, ordered_txs, cmpct_block = announce_cmpct_block(node, stalling_peer)
 
-        for tx in block.vtx[1:]:
+        for tx in ordered_txs[1:]:
             delivery_peer.send_message(msg_tx(tx))
         delivery_peer.sync_with_ping()
         mempool = node.getrawmempool()
@@ -831,8 +831,8 @@ class CompactBlocksTest(BitcoinTestFramework):
         self.utxos.append([block.vtx[-1].sha256, 0, block.vtx[-1].vout[0].nValue])
 
         # Now test that delivering an invalid compact block won't break relay
-        block, cmpct_block = announce_cmpct_block(node, stalling_peer)
-        for tx in block.vtx[1:]:
+        block, ordered_txs, cmpct_block = announce_cmpct_block(node, stalling_peer)
+        for tx in ordered_txs[1:]:
             delivery_peer.send_message(msg_tx(tx))
         delivery_peer.sync_with_ping()
 
