@@ -171,7 +171,7 @@ const App = () => {
                     transition={Bounce}
                 />
                 <WalletBody>
-                    <WalletCtn>
+                    <WalletCtn showFooter={wallet !== false}>
                         {!cashtabLoaded ? (
                             <LoadingCtn title="Cashtab Loading" />
                         ) : (

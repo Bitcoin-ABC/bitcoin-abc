@@ -73,7 +73,7 @@ export const WalletCtn = styled.div`
     ${AppPositionCss}
     position: relative;
     padding: 0 0 100px;
-    min-height: calc(100vh - 80px);
+    min-height: ${props => (props.showFooter ? 'calc(100vh - 80px)' : '100vh')};
 `;
 
 export const Footer = styled.div`
