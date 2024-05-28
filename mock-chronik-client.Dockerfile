@@ -25,7 +25,7 @@ COPY modules/mock-chronik-client/package-lock.json .
 RUN npm ci
 
 # Copy the rest of the project files
-COPY . .
+COPY modules/mock-chronik-client/ .
 
 # Publish the module
 CMD [ "npm", "publish" ]
