@@ -95,13 +95,16 @@ export default function Home() {
                         <div id="about-ecash">
                             <H2 subtext="The eCash Story" text="GET STARTED" />
                             <p>
-                                Introducing eCash: the new battle-tested
-                                cryptocurrency forged from centuries of economic
-                                theory and over a decade of real-world crypto
-                                experience. eCash is the implementation of the
-                                tech-secured sound money envisioned by
-                                luminaries in monetary philosophy like Milton
-                                Friedman.
+                                The battle-tested cryptocurrency forged from
+                                centuries of economic theory and over a decade
+                                of real-world crypto experience. This
+                                groundbreaking network is the realization of
+                                tech-secured sound money, as envisioned by
+                                luminaries of free-market philosophy.
+                            </p>
+                            <p>
+                                With eCash, sending money is now as simple as
+                                sending an email.
                             </p>
                         </div>
                         <div>
