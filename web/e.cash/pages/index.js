@@ -93,7 +93,10 @@ export default function Home() {
                 <Container>
                     <StorySection>
                         <div id="about-ecash">
-                            <H2 subtext="The eCash Story" text="GET STARTED" />
+                            <H2
+                                subtext="The eCash Story"
+                                text="Introducing eCash"
+                            />
                             <p>
                                 The battle-tested cryptocurrency forged from
                                 centuries of economic theory and over a decade
@@ -101,10 +104,6 @@ export default function Home() {
                                 groundbreaking network is the realization of
                                 tech-secured sound money, as envisioned by
                                 luminaries of free-market philosophy.
-                            </p>
-                            <p>
-                                With eCash, sending money is now as simple as
-                                sending an email.
                             </p>
                         </div>
                         <div>
