@@ -157,11 +157,13 @@ class AuthServiceProxy:
             )
         )
         if args and argsn:
-            raise ValueError("Cannot handle both named and positional arguments")
+            params = dict(args=args, **argsn)
+        else:
+            params = args or argsn
         return {
             "version": "1.1",
             "method": self._service_name,
-            "params": args or argsn,
+            "params": params,
             "id": AuthServiceProxy.__id_count,
         }
 

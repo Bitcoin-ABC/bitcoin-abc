@@ -31,6 +31,24 @@ class NamedArgumentTest(BitcoinTestFramework):
         assert_equal(
             node.echo(arg0=0, arg3=3, arg9=9), [0] + [None] * 2 + [3] + [None] * 5 + [9]
         )
+        assert_equal(node.echo(0, 1, arg3=3, arg5=5), [0, 1, None, 3, None, 5])
+        assert_raises_rpc_error(
+            -8,
+            "Parameter arg1 specified twice both as positional and named argument",
+            node.echo,
+            0,
+            1,
+            arg1=1,
+        )
+        assert_raises_rpc_error(
+            -8,
+            "Parameter arg1 specified twice both as positional and named argument",
+            node.echo,
+            0,
+            None,
+            2,
+            arg1=1,
+        )
 
 
 if __name__ == "__main__":

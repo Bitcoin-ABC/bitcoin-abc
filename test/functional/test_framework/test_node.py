@@ -1011,10 +1011,6 @@ class TestNodeCLI:
         named_args = [
             str(key) + "=" + arg_to_cli(value) for (key, value) in kwargs.items()
         ]
-        assert not (pos_args and named_args), (
-            "Cannot use positional arguments and named arguments in the same "
-            "bitcoin-cli call"
-        )
         p_args = [self.binary, "-datadir=" + self.datadir] + self.options
         if named_args:
             p_args += ["-named"]
