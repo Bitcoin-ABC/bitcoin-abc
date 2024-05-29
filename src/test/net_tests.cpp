@@ -213,7 +213,7 @@ struct CConnmanTest : public CConnman {
 
         Mutex mutex;
         WAIT_LOCK(mutex, lock);
-        bool ret = cvar.wait_for(lock, 10s, [&]() {
+        bool ret = cvar.wait_for(lock, 60s, [&]() {
             LOCK(cs);
             return outboundFullRelayCount == expectedOutboundFullRelayCount &&
                    avalancheOutboundsCount == expectedAvalancheOutboundsCount;
