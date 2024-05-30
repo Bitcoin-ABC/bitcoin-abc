@@ -12,7 +12,8 @@
 
 namespace avalanche {
 struct ProofId;
-}
+class Processor;
+} // namespace avalanche
 
 class AddrMan;
 class CTxMemPool;
@@ -51,11 +52,10 @@ struct CNodeStateStats {
 
 class PeerManager : public CValidationInterface, public NetEventsInterface {
 public:
-    static std::unique_ptr<PeerManager> make(CConnman &connman,
-                                             AddrMan &addrman, BanMan *banman,
-                                             ChainstateManager &chainman,
-                                             CTxMemPool &pool,
-                                             bool ignore_incoming_txs);
+    static std::unique_ptr<PeerManager>
+    make(CConnman &connman, AddrMan &addrman, BanMan *banman,
+         ChainstateManager &chainman, CTxMemPool &pool,
+         avalanche::Processor *const avalanche, bool ignore_incoming_txs);
     virtual ~PeerManager() {}
 
     /**

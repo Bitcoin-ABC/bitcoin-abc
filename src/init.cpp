@@ -2536,9 +2536,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     assert(!node.peerman);
-    node.peerman = PeerManager::make(
-        *node.connman, *node.addrman, node.banman.get(), chainman,
-        *node.mempool, args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
+    node.peerman =
+        PeerManager::make(*node.connman, *node.addrman, node.banman.get(),
+                          chainman, *node.mempool, g_avalanche.get(),
+                          args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
     RegisterValidationInterface(node.peerman.get());
 
     // Encoded addresses using cashaddr instead of base58.

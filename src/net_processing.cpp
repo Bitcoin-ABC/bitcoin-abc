@@ -749,6 +749,7 @@ class PeerManagerImpl final : public PeerManager {
 public:
     PeerManagerImpl(CConnman &connman, AddrMan &addrman, BanMan *banman,
                     ChainstateManager &chainman, CTxMemPool &pool,
+                    avalanche::Processor *const avalanche,
                     bool ignore_incoming_txs);
 
     /** Overridden from CValidationInterface. */
@@ -1108,6 +1109,7 @@ private:
     BanMan *const m_banman;
     ChainstateManager &m_chainman;
     CTxMemPool &m_mempool;
+    avalanche::Processor *const m_avalanche;
     InvRequestTracker<TxId> m_txrequest GUARDED_BY(::cs_main);
 
     Mutex cs_proofrequest;
@@ -2094,13 +2096,13 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
         }
     }
 
-    if (g_avalanche && isAvalancheEnabled(gArgs)) {
+    if (m_avalanche && isAvalancheEnabled(gArgs)) {
         // Get and sanitize the list of proofids to broadcast. The RelayProof
         // call is done in a second loop to avoid locking cs_vNodes while
         // cs_peerManager is locked which would cause a potential deadlock due
         // to reversed lock order.
         auto unbroadcasted_proofids =
-            g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+            m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                 auto unbroadcasted_proofids = pm.getUnbroadcastProofs();
 
                 auto it = unbroadcasted_proofids.begin();
@@ -2138,7 +2140,7 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
         pnode->updateAvailabilityScore(AVALANCHE_STATISTICS_DECAY_FACTOR);
     });
 
-    if (!g_avalanche) {
+    if (!m_avalanche) {
         // Not enabled or not ready yet
         return;
     }
@@ -2147,7 +2149,7 @@ void PeerManagerImpl::UpdateAvalancheStatistics() const {
     // weighted moving average of the average of node availability scores.
     // This ensures the peer score is bound to the lifetime of its proof which
     // incentivizes stable network activity.
-    g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+    m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
         pm.updateAvailabilityScores(
             AVALANCHE_STATISTICS_DECAY_FACTOR, [&](NodeId nodeid) -> double {
                 double score{0.0};
@@ -2166,16 +2168,16 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     bool fQuorumEstablished;
     bool fShouldRequestMoreNodes;
 
-    if (!g_avalanche) {
+    if (!m_avalanche) {
         // Not enabled or not ready yet, retry later
         goto scheduleLater;
     }
 
-    g_avalanche->sendDelayedAvahello();
+    m_avalanche->sendDelayedAvahello();
 
-    fQuorumEstablished = g_avalanche->isQuorumEstablished();
+    fQuorumEstablished = m_avalanche->isQuorumEstablished();
     fShouldRequestMoreNodes =
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+        m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             return pm.shouldRequestMoreNodes();
         });
 
@@ -2236,7 +2238,7 @@ void PeerManagerImpl::AvalanchePeriodicNetworking(CScheduler &scheduler) const {
     // If we never had an avaproofs message yet, be kind and only request to a
     // subset of our peers as we expect a ton of avaproofs message in the
     // process.
-    if (g_avalanche->getAvaproofsNodeCounter() == 0) {
+    if (m_avalanche->getAvaproofsNodeCounter() == 0) {
         avanode_ids.resize(std::min<size_t>(avanode_ids.size(), 3));
     }
 
@@ -2599,21 +2601,25 @@ PeerManagerImpl::FetchBlock(const Config &config, NodeId peer_id,
     return std::nullopt;
 }
 
-std::unique_ptr<PeerManager> PeerManager::make(CConnman &connman,
-                                               AddrMan &addrman, BanMan *banman,
-                                               ChainstateManager &chainman,
-                                               CTxMemPool &pool,
-                                               bool ignore_incoming_txs) {
+std::unique_ptr<PeerManager>
+PeerManager::make(CConnman &connman, AddrMan &addrman, BanMan *banman,
+                  ChainstateManager &chainman, CTxMemPool &pool,
+                  avalanche::Processor *const avalanche,
+                  bool ignore_incoming_txs) {
     return std::make_unique<PeerManagerImpl>(connman, addrman, banman, chainman,
-                                             pool, ignore_incoming_txs);
+                                             pool, avalanche,
+                                             ignore_incoming_txs);
 }
 
 PeerManagerImpl::PeerManagerImpl(CConnman &connman, AddrMan &addrman,
                                  BanMan *banman, ChainstateManager &chainman,
-                                 CTxMemPool &pool, bool ignore_incoming_txs)
+                                 CTxMemPool &pool,
+                                 avalanche::Processor *const avalanche,
+                                 bool ignore_incoming_txs)
     : m_chainparams(chainman.GetParams()), m_connman(connman),
       m_addrman(addrman), m_banman(banman), m_chainman(chainman),
-      m_mempool(pool), m_ignore_incoming_txs(ignore_incoming_txs) {}
+      m_mempool(pool), m_avalanche(avalanche),
+      m_ignore_incoming_txs(ignore_incoming_txs) {}
 
 void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
     // Stale tip checking and peer eviction are on two different timers, but we
@@ -2879,14 +2885,14 @@ bool PeerManagerImpl::AlreadyHaveBlock(const BlockHash &block_hash) {
 }
 
 bool PeerManagerImpl::AlreadyHaveProof(const avalanche::ProofId &proofid) {
-    assert(g_avalanche);
+    assert(m_avalanche);
 
-    auto localProof = g_avalanche->getLocalProof();
+    auto localProof = m_avalanche->getLocalProof();
     if (localProof && localProof->getId() == proofid) {
         return true;
     }
 
-    return g_avalanche->withPeerManager([&proofid](avalanche::PeerManager &pm) {
+    return m_avalanche->withPeerManager([&proofid](avalanche::PeerManager &pm) {
         return pm.exists(proofid) || pm.isInvalid(proofid);
     });
 }
@@ -3212,7 +3218,7 @@ PeerManagerImpl::FindProofForGetData(const Peer &peer,
     avalanche::ProofRef proof;
 
     bool send_unconditionally =
-        g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+        m_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
             return pm.forPeer(proofid, [&](const avalanche::Peer &peer) {
                 proof = peer.proof;
 
@@ -3229,7 +3235,7 @@ PeerManagerImpl::FindProofForGetData(const Peer &peer,
         // the status of our proof is unknown pending for a block. Note that it
         // still needs to have been announced first (presumably via an avahello
         // message).
-        proof = g_avalanche->getLocalProof();
+        proof = m_avalanche->getLocalProof();
     }
 
     // We don't have this proof
@@ -3282,7 +3288,7 @@ void PeerManagerImpl::ProcessGetData(
         const CInv &inv = *it;
 
         if (it->IsMsgProof()) {
-            if (!g_avalanche) {
+            if (!m_avalanche) {
                 vNotFound.push_back(inv);
                 ++it;
                 continue;
@@ -3292,7 +3298,7 @@ void PeerManagerImpl::ProcessGetData(
             if (proof) {
                 m_connman.PushMessage(
                     &pfrom, msgMaker.Make(NetMsgType::AVAPROOF, *proof));
-                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                     pm.removeUnbroadcastProof(proofid);
                 });
             } else {
@@ -4292,10 +4298,9 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
  * @param[in] id   The id of the proof being polled for
  * @return         Our current vote for the proof
  */
-static uint32_t getAvalancheVoteForProof(const avalanche::ProofId &id) {
-    assert(g_avalanche);
-
-    return g_avalanche->withPeerManager([&id](avalanche::PeerManager &pm) {
+static uint32_t getAvalancheVoteForProof(const avalanche::Processor &avalanche,
+                                         const avalanche::ProofId &id) {
+    return avalanche.withPeerManager([&id](avalanche::PeerManager &pm) {
         // Rejected proof
         if (pm.isInvalid(id)) {
             return 1;
@@ -4358,7 +4363,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (IsAvalancheMessageType(msg_type)) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             LogPrint(BCLog::AVALANCHE,
                      "Avalanche is not initialized, ignoring %s message\n",
                      msg_type);
@@ -4663,9 +4668,9 @@ void PeerManagerImpl::ProcessMessage(
                               /*version=*/CMPCTBLOCKS_VERSION));
         }
 
-        if (g_avalanche && isAvalancheEnabled(gArgs)) {
-            if (g_avalanche->sendHello(&pfrom)) {
-                auto localProof = g_avalanche->getLocalProof();
+        if (m_avalanche && isAvalancheEnabled(gArgs)) {
+            if (m_avalanche->sendHello(&pfrom)) {
+                auto localProof = m_avalanche->getLocalProof();
 
                 if (localProof) {
                     AddKnownProof(*peer, localProof->getId());
@@ -4902,7 +4907,7 @@ void PeerManagerImpl::ProcessMessage(
                 logInv(inv, fAlreadyHave);
                 AddKnownProof(*peer, proofid);
 
-                if (!fAlreadyHave && g_avalanche && isAvalancheEnabled(gArgs) &&
+                if (!fAlreadyHave && m_avalanche && isAvalancheEnabled(gArgs) &&
                     !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
                     const bool preferred = isPreferredDownloadPeer(pfrom);
 
@@ -5892,7 +5897,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAHELLO) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             return;
         }
         {
@@ -5947,7 +5952,7 @@ void PeerManagerImpl::ProcessMessage(
 
                 // Don't check the return value. If it fails we probably don't
                 // know about the proof yet.
-                g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+                m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
                     return pm.addNode(pfrom.GetId(), proofid);
                 });
             }
@@ -5975,7 +5980,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPOLL) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             return;
         }
         const auto now = Now<SteadyMilliseconds>();
@@ -5993,7 +5998,7 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        const bool quorum_established = g_avalanche->isQuorumEstablished();
+        const bool quorum_established = m_avalanche->isQuorumEstablished();
 
         uint64_t round;
         Unserialize(vRecv, round);
@@ -6036,8 +6041,8 @@ void PeerManagerImpl::ProcessMessage(
                                                   BlockHash(inv.hash)));
                 } break;
                 case MSG_AVA_PROOF: {
-                    vote =
-                        getAvalancheVoteForProof(avalanche::ProofId(inv.hash));
+                    vote = getAvalancheVoteForProof(
+                        *m_avalanche, avalanche::ProofId(inv.hash));
                 } break;
                 default: {
                     LogPrint(BCLog::AVALANCHE,
@@ -6050,13 +6055,13 @@ void PeerManagerImpl::ProcessMessage(
         }
 
         // Send the query to the node.
-        g_avalanche->sendResponse(
+        m_avalanche->sendResponse(
             &pfrom, avalanche::Response(round, cooldown, std::move(votes)));
         return;
     }
 
     if (msg_type == NetMsgType::AVARESPONSE) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             return;
         }
         // As long as QUIC is not implemented, we need to sign response and
@@ -6084,7 +6089,7 @@ void PeerManagerImpl::ProcessMessage(
         std::vector<avalanche::VoteItemUpdate> updates;
         int banscore{0};
         std::string error;
-        if (!g_avalanche->registerVotes(pfrom.GetId(), response, updates,
+        if (!m_avalanche->registerVotes(pfrom.GetId(), response, updates,
                                         banscore, error)) {
             if (banscore > 0) {
                 // If the banscore was set, just increase the node ban score
@@ -6166,7 +6171,7 @@ void PeerManagerImpl::ProcessMessage(
                 auto nextCooldownTimePoint = GetTime<std::chrono::seconds>();
                 switch (u.getStatus()) {
                     case avalanche::VoteStatus::Invalid:
-                        g_avalanche->withPeerManager(
+                        m_avalanche->withPeerManager(
                             [&](avalanche::PeerManager &pm) {
                                 pm.setInvalid(proofid);
                             });
@@ -6178,7 +6183,7 @@ void PeerManagerImpl::ProcessMessage(
                             avalanche::PeerManager::RejectionMode::INVALIDATE;
                         // Fallthrough
                     case avalanche::VoteStatus::Rejected:
-                        if (!g_avalanche->withPeerManager(
+                        if (!m_avalanche->withPeerManager(
                                 [&](avalanche::PeerManager &pm) {
                                     return pm.rejectProof(proofid,
                                                           rejectionMode);
@@ -6194,7 +6199,7 @@ void PeerManagerImpl::ProcessMessage(
                                 "-avalanchepeerreplacementcooldown",
                                 AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
                     case avalanche::VoteStatus::Accepted:
-                        if (!g_avalanche->withPeerManager(
+                        if (!m_avalanche->withPeerManager(
                                 [&](avalanche::PeerManager &pm) {
                                     pm.registerProof(
                                         proof,
@@ -6347,7 +6352,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPROOF) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             return;
         }
         auto proof = RCUPtr<avalanche::Proof>::make();
@@ -6359,7 +6364,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::GETAVAPROOFS) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             return;
         }
         if (peer->m_proof_relay == nullptr) {
@@ -6370,7 +6375,7 @@ void PeerManagerImpl::ProcessMessage(
             GetTime<std::chrono::seconds>();
 
         peer->m_proof_relay->sharedProofs =
-            g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+            m_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
                 return pm.getShareableProofsSnapshot();
             });
 
@@ -6383,7 +6388,7 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPROOFS) {
-        if (!g_avalanche) {
+        if (!m_avalanche) {
             return;
         }
         if (peer->m_proof_relay == nullptr) {
@@ -6459,7 +6464,7 @@ void PeerManagerImpl::ProcessMessage(
 
         size_t proofCount = 0;
         std::vector<std::pair<avalanche::ProofId, bool>> remoteProofsStatus;
-        g_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
+        m_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
             pm.forEachPeer([&](const avalanche::Peer &peer) {
                 assert(peer.proof);
                 uint64_t shortid = compactProofs.getShortID(peer.getProofId());
@@ -6499,12 +6504,12 @@ void PeerManagerImpl::ProcessMessage(
         // We want to keep a count of how many nodes we successfully requested
         // avaproofs from as this is used to determine when we are confident our
         // quorum is close enough to the other participants.
-        g_avalanche->avaproofsSent(nodeid);
+        m_avalanche->avaproofsSent(nodeid);
 
         // Only save remote proofs from stakers
         if (WITH_LOCK(pfrom.cs_avalanche_pubkey,
                       return pfrom.m_avalanche_pubkey.has_value())) {
-            g_avalanche->withPeerManager(
+            m_avalanche->withPeerManager(
                 [&remoteProofsStatus, nodeid](avalanche::PeerManager &pm) {
                     for (const auto &[proofid, present] : remoteProofsStatus) {
                         pm.saveRemoteProof(proofid, nodeid, present);
@@ -8337,11 +8342,11 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
 
     const bool isStaker = WITH_LOCK(node.cs_avalanche_pubkey,
                                     return node.m_avalanche_pubkey.has_value());
-    auto saveProofIfStaker = [isStaker](const CNode &node,
-                                        const avalanche::ProofId &proofid,
-                                        const NodeId nodeid) -> bool {
+    auto saveProofIfStaker = [this, isStaker](const CNode &node,
+                                              const avalanche::ProofId &proofid,
+                                              const NodeId nodeid) -> bool {
         if (isStaker) {
-            return g_avalanche->withPeerManager(
+            return m_avalanche->withPeerManager(
                 [&](avalanche::PeerManager &pm) {
                     return pm.saveRemoteProof(proofid, nodeid, true);
                 });
@@ -8365,7 +8370,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     // holds cs_main and that creates a potential deadlock during shutdown
 
     avalanche::ProofRegistrationState state;
-    if (g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+    if (m_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             return pm.registerProof(proof, state);
         })) {
         WITH_LOCK(cs_proofrequest, m_proofrequest.ForgetInvId(proofid));
@@ -8378,7 +8383,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
     }
 
     if (state.GetResult() == avalanche::ProofRegistrationResult::INVALID) {
-        g_avalanche->withPeerManager(
+        m_avalanche->withPeerManager(
             [&](avalanche::PeerManager &pm) { pm.setInvalid(proofid); });
         Misbehaving(peer, 100, state.GetRejectReason());
         return false;
@@ -8390,7 +8395,7 @@ bool PeerManagerImpl::ReceivedAvalancheProof(CNode &node, Peer &peer,
         return false;
     }
 
-    if (!g_avalanche->reconcileOrFinalize(proof)) {
+    if (!m_avalanche->reconcileOrFinalize(proof)) {
         LogPrint(BCLog::AVALANCHE,
                  "Not polling the avalanche proof (%s): peer=%d, proofid %s\n",
                  state.IsValid() ? "not-worth-polling"
