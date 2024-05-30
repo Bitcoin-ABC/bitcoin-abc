@@ -1,9 +1,40 @@
 # Multi-stage
-# 1) Node image for building frontend assets
-# 2) nginx stage to serve frontend assets
+# 1) rust image for ecash-lib
+# 2) Node image for building frontend assets
+# 3) nginx stage to serve frontend assets
 
-# Stage 1
+# Stage 1 - rust machine for building ecash-lib-wasm
+FROM rust:1.76.0 AS WasmBuilder
+
+RUN apt-get update \
+  && apt-get install clang binaryen -y \
+  && rustup target add wasm32-unknown-unknown \
+  && cargo install -f wasm-bindgen-cli@0.2.92
+
+# Copy Cargo.toml
+WORKDIR /app/
+COPY Cargo.toml .
+
+# Copy chronik to same directory structure as monorepo
+# This needs to be in place to run ./build-wasm
+WORKDIR /app/chronik/
+COPY chronik/ .
+
+# Copy ecash-lib and ecash-lib-wasm files to same directory structure as monorepo
+WORKDIR /app/modules/ecash-lib
+COPY modules/ecash-lib .
+WORKDIR /app/modules/ecash-lib-wasm
+COPY modules/ecash-lib-wasm .
+
+# Build web assembly for ecash-lib
+RUN ./build-wasm.sh
+
+# Stage 2
 FROM node:20-buster-slim AS builder
+
+# Copy static assets from WasmBuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
+WORKDIR /app/modules
+COPY --from=WasmBuilder /app/modules .
 
 # Build all local Cashtab dependencies
 
@@ -19,10 +50,10 @@ COPY modules/chronik-client/ .
 RUN npm ci
 RUN npm run build
 
-# ecash-coinselect
-WORKDIR /app/modules/ecash-coinselect
-COPY modules/ecash-coinselect/ .
+# ecash-lib
+WORKDIR /app/modules/ecash-lib
 RUN npm ci
+RUN npm run build
 
 # ecash-script
 WORKDIR /app/modules/ecash-script
@@ -46,7 +77,7 @@ RUN npm ci
 COPY cashtab/ .
 RUN npm run build
 
-# Stage 2
+# Stage 3
 FROM nginx
 
 ARG NGINX_CONF=nginx.conf
