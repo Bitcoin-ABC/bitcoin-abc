@@ -169,13 +169,14 @@ static bool GenerateBlock(ChainstateManager &chainman, CBlock &block,
 
 static UniValue generateBlocks(ChainstateManager &chainman,
                                const CTxMemPool &mempool,
+                               const avalanche::Processor *avalanche,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
     UniValue blockHashes(UniValue::VARR);
     while (nGenerate > 0 && !ShutdownRequested()) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(
             BlockAssembler{chainman.GetConfig(), chainman.ActiveChainstate(),
-                           &mempool}
+                           &mempool, avalanche}
                 .CreateNewBlock(coinbase_script));
 
         if (!pblocktemplate.get()) {
@@ -277,8 +278,8 @@ static RPCHelpMan generatetodescriptor() {
             const CTxMemPool &mempool = EnsureMemPool(node);
             ChainstateManager &chainman = EnsureChainman(node);
 
-            return generateBlocks(chainman, mempool, coinbase_script,
-                                  num_blocks, max_tries);
+            return generateBlocks(chainman, mempool, g_avalanche.get(),
+                                  coinbase_script, num_blocks, max_tries);
         },
     };
 }
@@ -342,8 +343,8 @@ static RPCHelpMan generatetoaddress() {
 
             CScript coinbase_script = GetScriptForDestination(destination);
 
-            return generateBlocks(chainman, mempool, coinbase_script,
-                                  num_blocks, max_tries);
+            return generateBlocks(chainman, mempool, g_avalanche.get(),
+                                  coinbase_script, num_blocks, max_tries);
         },
     };
 }
@@ -440,7 +441,8 @@ static RPCHelpMan generateblock() {
                 LOCK(cs_main);
 
                 std::unique_ptr<CBlockTemplate> blocktemplate(
-                    BlockAssembler{config, chainman.ActiveChainstate(), nullptr}
+                    BlockAssembler{config, chainman.ActiveChainstate(), nullptr,
+                                   g_avalanche.get()}
                         .CreateNewBlock(coinbase_script));
                 if (!blocktemplate) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
@@ -975,9 +977,9 @@ static RPCHelpMan getblocktemplate() {
 
                 // Create new block
                 CScript scriptDummy = CScript() << OP_TRUE;
-                pblocktemplate =
-                    BlockAssembler{config, active_chainstate, &mempool}
-                        .CreateNewBlock(scriptDummy);
+                pblocktemplate = BlockAssembler{config, active_chainstate,
+                                                &mempool, g_avalanche.get()}
+                                     .CreateNewBlock(scriptDummy);
                 if (!pblocktemplate) {
                     throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
                 }
@@ -1059,7 +1061,8 @@ static RPCHelpMan getblocktemplate() {
             coinbasetxn.pushKV("minerfund", minerFund);
 
             std::vector<CScript> stakingRewardsPayoutScripts;
-            if (IsStakingRewardsActivated(consensusParams, pindexPrev) &&
+            if (g_avalanche &&
+                IsStakingRewardsActivated(consensusParams, pindexPrev) &&
                 g_avalanche->getStakingRewardWinners(
                     pindexPrev->GetBlockHash(), stakingRewardsPayoutScripts)) {
                 UniValue stakingRewards(UniValue::VOBJ);

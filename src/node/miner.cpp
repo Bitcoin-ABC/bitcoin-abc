@@ -61,10 +61,12 @@ BlockAssembler::Options::Options()
 
 BlockAssembler::BlockAssembler(Chainstate &chainstate,
                                const CTxMemPool *mempool,
-                               const Options &options)
+                               const Options &options,
+                               const avalanche::Processor *avalanche)
     : chainParams(chainstate.m_chainman.GetParams()), m_mempool(mempool),
-      m_chainstate(chainstate), fPrintPriority(gArgs.GetBoolArg(
-                                    "-printpriority", DEFAULT_PRINTPRIORITY)) {
+      m_chainstate(chainstate), m_avalanche(avalanche),
+      fPrintPriority(
+          gArgs.GetBoolArg("-printpriority", DEFAULT_PRINTPRIORITY)) {
     blockMinFeeRate = options.blockMinFeeRate;
     // Limit size to between 1K and options.nExcessiveBlockSize -1K for sanity:
     nMaxGeneratedBlockSize = std::max<uint64_t>(
@@ -103,8 +105,9 @@ static BlockAssembler::Options DefaultOptions(const Config &config) {
 }
 
 BlockAssembler::BlockAssembler(const Config &config, Chainstate &chainstate,
-                               const CTxMemPool *mempool)
-    : BlockAssembler(chainstate, mempool, DefaultOptions(config)) {}
+                               const CTxMemPool *mempool,
+                               const avalanche::Processor *avalanche)
+    : BlockAssembler(chainstate, mempool, DefaultOptions(config), avalanche) {}
 
 void BlockAssembler::resetBlock() {
     // Reserve space for coinbase tx.
@@ -200,8 +203,8 @@ BlockAssembler::CreateNewBlock(const CScript &scriptPubKeyIn) {
     }
 
     std::vector<CScript> stakingRewardsPayoutScripts;
-    if (IsStakingRewardsActivated(consensusParams, pindexPrev) &&
-        g_avalanche->getStakingRewardWinners(pindexPrev->GetBlockHash(),
+    if (m_avalanche && IsStakingRewardsActivated(consensusParams, pindexPrev) &&
+        m_avalanche->getStakingRewardWinners(pindexPrev->GetBlockHash(),
                                              stakingRewardsPayoutScripts)) {
         const Amount stakingRewards = GetStakingRewardsAmount(blockReward);
         coinbaseTx.vout[0].nValue -= stakingRewards;

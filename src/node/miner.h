@@ -27,6 +27,10 @@ namespace Consensus {
 struct Params;
 }
 
+namespace avalanche {
+class Processor;
+}
+
 namespace node {
 static const bool DEFAULT_PRINTPRIORITY = false;
 
@@ -69,6 +73,7 @@ private:
 
     const CTxMemPool *const m_mempool;
     Chainstate &m_chainstate;
+    const avalanche::Processor *const m_avalanche;
 
     const bool fPrintPriority;
 
@@ -81,9 +86,11 @@ public:
     };
 
     BlockAssembler(const Config &config, Chainstate &chainstate,
-                   const CTxMemPool *mempool);
+                   const CTxMemPool *mempool,
+                   const avalanche::Processor *avalanche = nullptr);
     BlockAssembler(Chainstate &chainstate, const CTxMemPool *mempool,
-                   const Options &options);
+                   const Options &options,
+                   const avalanche::Processor *avalanche = nullptr);
 
     /** Construct a new block template with coinbase to scriptPubKeyIn */
     std::unique_ptr<CBlockTemplate>
