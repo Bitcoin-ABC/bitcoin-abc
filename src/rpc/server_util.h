@@ -15,6 +15,9 @@ class PeerManager;
 namespace node {
 struct NodeContext;
 } // namespace node
+namespace avalanche {
+class Processor;
+} // namespace avalanche
 
 node::NodeContext &EnsureAnyNodeContext(const std::any &context);
 CTxMemPool &EnsureMemPool(const node::NodeContext &node);
@@ -25,5 +28,6 @@ ChainstateManager &EnsureChainman(const node::NodeContext &node);
 ChainstateManager &EnsureAnyChainman(const std::any &context);
 CConnman &EnsureConnman(const node::NodeContext &node);
 PeerManager &EnsurePeerman(const node::NodeContext &node);
+avalanche::Processor &EnsureAvalanche(const node::NodeContext &node);
 
 #endif // BITCOIN_RPC_SERVER_UTIL_H
