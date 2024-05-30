@@ -1145,14 +1145,6 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
     m_node.connman = std::make_unique<CConnmanTest>(
         m_node.chainman->GetConfig(), 0x1337, 0x1337, *m_node.addrman);
 
-    bilingual_str error;
-    // Init the global avalanche object otherwise the avalanche outbound
-    // slots are not allocated.
-    g_avalanche = avalanche::Processor::MakeProcessor(
-        *m_node.args, *m_node.chain, m_node.connman.get(), *m_node.chainman,
-        m_node.mempool.get(), *m_node.scheduler, error);
-    BOOST_CHECK(g_avalanche);
-
     CConnman::Options options;
     options.nMaxConnections = 200;
     options.m_max_outbound_full_relay = 8;
@@ -1260,8 +1252,6 @@ BOOST_AUTO_TEST_CASE(net_group_limit) {
         options.m_max_outbound_full_relay, // Expected full-relay outbound count
         50                                 // Expected avalanche outbound count
         ));
-
-    g_avalanche.reset();
 }
 
 BOOST_AUTO_TEST_CASE(initial_advertise_from_version_message) {

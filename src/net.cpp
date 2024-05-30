@@ -2268,8 +2268,7 @@ void CConnman::ThreadOpenConnections(
             (nOutboundBlockRelay < m_max_outbound_block_relay)) {
             conn_type = ConnectionType::BLOCK_RELAY;
             anchor = true;
-        } else if (g_avalanche &&
-                   (nOutboundAvalanche < m_max_avalanche_outbound)) {
+        } else if (nOutboundAvalanche < m_max_avalanche_outbound) {
             conn_type = ConnectionType::AVALANCHE_OUTBOUND;
         } else if (nOutboundFullRelay < m_max_outbound_full_relay) {
             // OUTBOUND_FULL_RELAY

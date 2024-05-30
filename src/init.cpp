@@ -2721,7 +2721,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nLocalServices = nLocalServices;
     connOptions.nMaxConnections = nMaxConnections;
     connOptions.m_max_avalanche_outbound =
-        g_avalanche && isAvalancheEnabled(args)
+        isAvalancheEnabled(args)
             ? args.GetIntArg("-maxavalancheoutbound",
                              DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
             : 0;
@@ -2737,9 +2737,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.uiInterface = &uiInterface;
     connOptions.m_banman = node.banman.get();
     connOptions.m_msgproc.push_back(node.peerman.get());
-    if (g_avalanche) {
-        connOptions.m_msgproc.push_back(g_avalanche.get());
-    }
+    connOptions.m_msgproc.push_back(g_avalanche.get());
     connOptions.nSendBufferMaxSize =
         1000 * args.GetIntArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =
