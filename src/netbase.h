@@ -242,18 +242,23 @@ bool LookupSubNet(const std::string &strSubnet, CSubNet &subnet,
                   DNSLookupFn dns_lookup_function = g_dns_lookup);
 
 /**
- * Create a TCP or UNIX socket in the given address family.
- * @param[in] address_family to use for the socket
- * @return pointer to the created Sock object or unique_ptr that owns nothing in
- *     case of failure
+ * Create a real socket from the operating system.
+ * @param[in] domain Communications domain, first argument to the socket(2)
+ *                   syscall.
+ * @param[in] type Type of the socket, second argument to the socket(2)
+ *                 syscall.
+ * @param[in] protocol The particular protocol to be used with the socket,
+ *                     third argument to the socket(2) syscall.
+ * @return pointer to the created Sock object or unique_ptr that owns nothing
+ *         in case of failure
  */
-std::unique_ptr<Sock> CreateSockOS(sa_family_t address_family);
+std::unique_ptr<Sock> CreateSockOS(int domain, int type, int protocol);
 
 /**
  * Socket factory. Defaults to `CreateSockTCP()`, but can be overridden by unit
  * tests.
  */
-extern std::function<std::unique_ptr<Sock>(const sa_family_t &)> CreateSock;
+extern std::function<std::unique_ptr<Sock>(int, int, int)> CreateSock;
 
 /**
  * Create a socket and try to connect to the specified service.
