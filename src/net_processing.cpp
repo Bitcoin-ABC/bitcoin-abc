@@ -3282,6 +3282,11 @@ void PeerManagerImpl::ProcessGetData(
         const CInv &inv = *it;
 
         if (it->IsMsgProof()) {
+            if (!g_avalanche) {
+                vNotFound.push_back(inv);
+                ++it;
+                continue;
+            }
             const avalanche::ProofId proofid(inv.hash);
             auto proof = FindProofForGetData(peer, proofid, now);
             if (proof) {
@@ -5887,6 +5892,9 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAHELLO) {
+        if (!g_avalanche) {
+            return;
+        }
         {
             LOCK(pfrom.cs_avalanche_pubkey);
             if (pfrom.m_avalanche_pubkey.has_value()) {
@@ -5967,6 +5975,9 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPOLL) {
+        if (!g_avalanche) {
+            return;
+        }
         const auto now = Now<SteadyMilliseconds>();
         const int64_t cooldown =
             gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
@@ -5982,8 +5993,7 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        const bool quorum_established =
-            g_avalanche && g_avalanche->isQuorumEstablished();
+        const bool quorum_established = g_avalanche->isQuorumEstablished();
 
         uint64_t round;
         Unserialize(vRecv, round);
@@ -6046,6 +6056,9 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVARESPONSE) {
+        if (!g_avalanche) {
+            return;
+        }
         // As long as QUIC is not implemented, we need to sign response and
         // verify response's signatures in order to avoid any manipulation of
         // messages at the transport level.
@@ -6334,6 +6347,9 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPROOF) {
+        if (!g_avalanche) {
+            return;
+        }
         auto proof = RCUPtr<avalanche::Proof>::make();
         vRecv >> *proof;
 
@@ -6343,6 +6359,9 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::GETAVAPROOFS) {
+        if (!g_avalanche) {
+            return;
+        }
         if (peer->m_proof_relay == nullptr) {
             return;
         }
@@ -6364,6 +6383,9 @@ void PeerManagerImpl::ProcessMessage(
     }
 
     if (msg_type == NetMsgType::AVAPROOFS) {
+        if (!g_avalanche) {
+            return;
+        }
         if (peer->m_proof_relay == nullptr) {
             return;
         }
