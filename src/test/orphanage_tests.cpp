@@ -4,7 +4,6 @@
 
 #include <txorphanage.h>
 
-#include <arith_uint256.h>
 #include <key.h>
 #include <primitives/transaction.h>
 #include <primitives/txid.h>
@@ -115,7 +114,7 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     // ecdsa_signature_parse_der_lax are executed during this test.
     // Specifically branches that run only when an ECDSA
     // signature's R and S values have leading zeros.
-    g_insecure_rand_ctx = FastRandomContext(ArithToUint256(arith_uint256(33)));
+    g_insecure_rand_ctx.Reseed(uint256{33});
 
     TxOrphanageTest orphanage;
     CKey key;
