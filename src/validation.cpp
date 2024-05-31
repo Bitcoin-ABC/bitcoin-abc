@@ -2651,8 +2651,8 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
             if (g_avalanche) {
                 parkingPolicies.emplace_back(
                     std::make_unique<StakingRewardsPolicy>(
-                        consensusParams, *pindexNew, blockConnecting,
-                        blockReward));
+                        *g_avalanche, consensusParams, *pindexNew,
+                        blockConnecting, blockReward));
 
                 if (m_mempool) {
                     parkingPolicies.emplace_back(

@@ -22,13 +22,6 @@ struct StakingRewardsActivationTestingSetup : public TestingSetup {
 
         gArgs.ForceSetArg("-avalanche", "1");
 
-        bilingual_str error;
-        g_avalanche = avalanche::Processor::MakeProcessor(
-            *m_node.args, *m_node.chain, m_node.connman.get(),
-            *Assert(m_node.chainman), m_node.mempool.get(), *m_node.scheduler,
-            error);
-
-        BOOST_CHECK(g_avalanche);
         BOOST_CHECK(isAvalancheEnabled(gArgs));
 
         // Before Cowperthwaite activation
@@ -55,11 +48,6 @@ struct StakingRewardsActivationTestingSetup : public TestingSetup {
         BOOST_CHECK(isAvalancheEnabled(gArgs));
         BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &block),
                           expectActivation);
-
-        // If g_avalanche is null, staking rewards are disabled
-        g_avalanche.reset(nullptr);
-        BOOST_CHECK(!g_avalanche);
-        BOOST_CHECK(!IsStakingRewardsActivated(params, &block));
 
         gArgs.ClearForcedArg("-avalanche");
     }
