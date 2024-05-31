@@ -72,10 +72,6 @@ namespace Consensus {
 struct Params;
 } // namespace Consensus
 
-namespace Consensus {
-struct Params;
-}
-
 #define MIN_TRANSACTION_SIZE                                                   \
     (::GetSerializeSize(CTransaction(), PROTOCOL_VERSION))
 
