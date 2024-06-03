@@ -6,13 +6,9 @@ from binascii import unhexlify
 from typing import TYPE_CHECKING
 
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
-from electrumabc.bitcoin import (
-    TYPE_ADDRESS,
-    TYPE_SCRIPT,
-    SignatureType,
-    deserialize_xpub,
-)
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, deserialize_xpub
 from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
+from electrumabc.ecc import SignatureType
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore, is_xpubkey, parse_xpubkey
 from electrumabc.networks import NetworkConstants

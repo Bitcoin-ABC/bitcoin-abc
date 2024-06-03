@@ -33,7 +33,6 @@ from typing import List, Optional, Tuple, Union
 
 from . import cashaddr, networks
 from .bitcoin import (
-    ECKey,
     OpCodes,
     ScriptType,
     is_minikey,
@@ -41,6 +40,7 @@ from .bitcoin import (
     push_script_bytes,
 )
 from .crypto import hash_160
+from .ecc import ECKey
 from .util import cachedproperty
 
 _sha256 = hashlib.sha256

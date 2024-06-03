@@ -9,8 +9,9 @@ from typing import Optional, Tuple
 
 from electrumabc import bitcoin
 from electrumabc.address import Address
-from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType, SignatureType
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType
 from electrumabc.crypto import hash_160
+from electrumabc.ecc import SignatureType
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
 from electrumabc.plugins import Device

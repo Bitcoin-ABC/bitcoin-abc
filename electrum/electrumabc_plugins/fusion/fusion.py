@@ -46,8 +46,8 @@ from random import Random
 from google.protobuf.message import DecodeError
 
 from electrumabc import schnorr
-from electrumabc.bitcoin import public_key_from_private_key
 from electrumabc.constants import XEC
+from electrumabc.ecc import public_key_from_private_key
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
 from electrumabc.util import (

@@ -50,6 +50,7 @@ from .address import Address, PublicKey
 from .bitcoin import TYPE_ADDRESS
 from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES, XEC
 from .crypto import sha256
+from .ecc import point_to_ser, regenerate_key, verify_message
 from .printerror import PrintError, print_error
 from .transaction import Transaction, TxOutput
 from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
@@ -253,7 +254,7 @@ class PaymentRequest:
             address = info.get("address")
             pr.signature = b""
             message = pr.SerializeToString()
-            if bitcoin.verify_message(address, sig, message):
+            if verify_message(address, sig, message):
                 self.error = "Verified with DNSSEC"
                 return True
             else:
@@ -416,7 +417,7 @@ def sign_request_with_alias(pr, alias, alias_privkey):
     pr.pki_data = util.to_bytes(alias)
     message = pr.SerializeToString()
     _typ, raw_key, compressed = bitcoin.deserialize_privkey(alias_privkey)
-    ec_key = bitcoin.regenerate_key(raw_key)
+    ec_key = regenerate_key(raw_key)
     pr.signature = ec_key.sign_message(message, compressed)
 
 
@@ -924,7 +925,7 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
         # they don't include the nV byte so we have to try a bunch of stuff here
         for nV in (27, 28, 31, 32):
             pk, comp = bitcoin.pubkey_from_signature(bytes([nV]) + sig, msg)
-            pubkey = bitcoin.point_to_ser(pk.pubkey.point, comp)
+            pubkey = point_to_ser(pk.pubkey.point, comp)
             sig_addr = Address.from_pubkey(pubkey)
             if addr == sig_addr:
                 self.print_error("Signing address found and matches")

@@ -41,6 +41,7 @@ from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
+from .ecc import public_key_from_private_key, verify_message
 from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
@@ -428,7 +429,7 @@ class Commands:
             sec = txin.get("privkey")
             if sec:
                 txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
-                pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
+                pubkey = public_key_from_private_key(privkey, compressed)
                 keypairs[pubkey] = privkey, compressed
                 txin["type"] = txin_type.name
                 txin["x_pubkeys"] = [pubkey.hex()]
@@ -459,7 +460,7 @@ class Commands:
         )
         if privkey:
             txin_type, privkey2, compressed = bitcoin.deserialize_privkey(privkey)
-            pubkey = bitcoin.public_key_from_private_key(privkey2, compressed)
+            pubkey = public_key_from_private_key(privkey2, compressed)
             tx.sign({pubkey: (privkey2, compressed)})
         else:
             self.wallet.sign_transaction(tx, password)
@@ -681,7 +682,7 @@ class Commands:
         address = Address.from_string(address)
         sig = base64.b64decode(signature)
         message = util.to_bytes(message)
-        return bitcoin.verify_message(address, sig, message)
+        return verify_message(address, sig, message)
 
     def _mktx(
         self,

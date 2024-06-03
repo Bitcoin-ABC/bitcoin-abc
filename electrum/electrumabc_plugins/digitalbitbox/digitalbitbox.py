@@ -24,22 +24,24 @@ try:
 
     from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
     from electrumabc.bitcoin import (
-        MyVerifyingKey,
         ScriptType,
-        SignatureType,
         hmac_oneshot,
-        msg_magic,
-        point_to_ser,
-        pubkey_from_signature,
         public_key_to_p2pkh,
         push_script,
-        verify_message,
     )
     from electrumabc.crypto import (
         DecodeAES_bytes,
         EncodeAES_base64,
         EncodeAES_bytes,
         Hash,
+    )
+    from electrumabc.ecc import (
+        MyVerifyingKey,
+        SignatureType,
+        msg_magic,
+        point_to_ser,
+        pubkey_from_signature,
+        verify_message,
     )
     from electrumabc.i18n import _
     from electrumabc.keystore import HardwareKeyStore

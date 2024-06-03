@@ -26,25 +26,21 @@
 # SOFTWARE.
 from __future__ import annotations
 
-import base64
 import hashlib
 import hmac
 import os
-from enum import Enum, IntEnum
+from enum import IntEnum
 from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 import ecdsa
 import pyaes
 from ecdsa.curves import SECP256k1
-from ecdsa.ecdsa import curve_secp256k1, generator_secp256k1
-from ecdsa.ellipticcurve import Point
+from ecdsa.ecdsa import generator_secp256k1
 from ecdsa.util import number_to_string, string_to_number
 
-from . import networks
-from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv, hash_160, sha256
-from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
+from . import ecc, networks
+from .crypto import Hash, hash_160, sha256
 from .printerror import print_error
-from .serialize import serialize_blob
 from .util import InvalidPassword, assert_bytes, bh2u, to_bytes
 
 if TYPE_CHECKING:
@@ -67,8 +63,6 @@ else:
         "(optimize) flag."
     )
 # /End -O check
-
-do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1()
 
 # transactions
 
@@ -314,28 +308,6 @@ def hmac_sha_512(x, y):
 # pywallet openssl private key implementation
 
 
-def i2o_ECPublicKey(pubkey, compressed=False):
-    # public keys are 65 bytes long (520 bits)
-    # 0x04 + 32-byte X-coordinate + 32-byte Y-coordinate
-    # 0x00 = point at infinity, 0x02 and 0x03 = compressed, 0x04 = uncompressed
-    # compressed keys: <sign> <x> where <sign> is 0x02 if y is even and 0x03 if y is odd
-    if compressed:
-        if pubkey.point.y() & 1:
-            # explicitly convert point coordinates to int, because ecdsa
-            # returns mpz instead of int if gmpY is installed
-            key = b"\x03" + int(pubkey.point.x()).to_bytes(32, "big")
-        else:
-            key = b"\x02" + int(pubkey.point.x()).to_bytes(32, "big")
-    else:
-        key = (
-            b"\x04"
-            + int(pubkey.point.x()).to_bytes(32, "big")
-            + int(pubkey.point.y()).to_bytes(32, "big")
-        )
-
-    return key
-
-
 # end pywallet openssl private key implementation
 
 
@@ -529,31 +501,17 @@ def deserialize_privkey(key, *, net=None) -> Tuple[ScriptType, bytes, bool]:
         raise ValueError("cannot deserialize", key)
 
 
-def regenerate_key(pk):
-    assert len(pk) == 32
-    return ECKey(pk)
-
-
-def GetPubKey(pubkey, compressed=False) -> bytes:
-    return i2o_ECPublicKey(pubkey, compressed)
-
-
 def is_compressed(sec, *, net=None):
     if net is None:
         net = networks.net
     return deserialize_privkey(sec, net=net)[2]
 
 
-def public_key_from_private_key(pk: bytes, compressed) -> bytes:
-    pkey = regenerate_key(pk)
-    return GetPubKey(pkey.pubkey, compressed)
-
-
 def address_from_private_key(sec, *, net=None):
     if net is None:
         net = networks.net
     txin_type, privkey, compressed = deserialize_privkey(sec, net=net)
-    public_key = public_key_from_private_key(privkey, compressed)
+    public_key = ecc.public_key_from_private_key(privkey, compressed)
     return pubkey_to_address(txin_type, public_key, net=net)
 
 
@@ -590,267 +548,8 @@ def minikey_to_private_key(text):
     return sha256(text)
 
 
-class SignatureType(Enum):
-    ECASH = 1
-    BITCOIN = 2
-
-
-ECASH_MSG_MAGIC = b"eCash Signed Message:\n"
-BITCOIN_MSG_MAGIC = b"Bitcoin Signed Message:\n"
-
-
-def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> bytes:
-    """Prepare the preimage of the message before signing it or verifying
-    its signature."""
-    magic = ECASH_MSG_MAGIC if sigtype == SignatureType.ECASH else BITCOIN_MSG_MAGIC
-    return serialize_blob(magic) + serialize_blob(message)
-
-
-def verify_message(
-    address: Union[str, "Address"],
-    sig: bytes,
-    message: bytes,
-    *,
-    net: Optional[networks.AbstractNet] = None,
-    sigtype: SignatureType = SignatureType.ECASH,
-) -> bool:
-    if net is None:
-        net = networks.net
-    assert_bytes(sig, message)
-    # Fixme: circular import address -> bitcoin -> address
-    from .address import Address
-
-    if not isinstance(address, Address):
-        address = Address.from_string(address, net=net)
-
-    h = Hash(msg_magic(message, sigtype))
-    public_key, compressed = pubkey_from_signature(sig, h)
-    # check public key using the right address
-    pubkey = point_to_ser(public_key.pubkey.point, compressed)
-    addr = Address.from_pubkey(pubkey)
-    if address != addr:
-        return False
-    # check message
-    try:
-        public_key.verify_digest(sig[1:], h, sigdecode=ecdsa.util.sigdecode_string)
-    except Exception:
-        return False
-    return True
-
-
-def encrypt_message(message, pubkey: bytes, magic=b"BIE1"):
-    return ECKey.encrypt_message(message, pubkey, magic)
-
-
-def ECC_YfromX(x, curved=curve_secp256k1, odd=True):
-    _p = curved.p()
-    _a = curved.a()
-    _b = curved.b()
-    for offset in range(128):
-        Mx = x + offset
-        My2 = pow(Mx, 3, _p) + _a * pow(Mx, 2, _p) + _b % _p
-        My = pow(My2, (_p + 1) // 4, _p)
-
-        if curved.contains_point(Mx, My):
-            if odd == bool(My & 1):
-                return [My, offset]
-            return [_p - My, offset]
-    raise Exception("ECC_YfromX: No Y found")
-
-
-def negative_point(P):
-    return Point(P.curve(), P.x(), -P.y(), P.order())
-
-
-def point_to_ser(P, comp=True) -> bytes:
-    if comp:
-        return int(2 + (P.y() & 1)).to_bytes(1, "big") + int(P.x()).to_bytes(32, "big")
-    return b"\x04" + int(P.x()).to_bytes(32, "big") + int(P.y()).to_bytes(32, "big")
-
-
-def ser_to_point(Aser):
-    curve = curve_secp256k1
-    generator = generator_secp256k1
-    _r = generator.order()
-    assert Aser[0] in [0x02, 0x03, 0x04]
-    if Aser[0] == 0x04:
-        return Point(
-            curve, string_to_number(Aser[1:33]), string_to_number(Aser[33:]), _r
-        )
-    Mx = string_to_number(Aser[1:])
-    return Point(curve, Mx, ECC_YfromX(Mx, curve, Aser[0] == 0x03)[0], _r)
-
-
-class MyVerifyingKey(ecdsa.VerifyingKey):
-    @classmethod
-    def from_signature(klass, sig, recid, h, curve):
-        """See http://www.secg.org/download/aid-780/sec1-v2.pdf, chapter 4.1.6"""
-        from ecdsa import numbertheory, util
-
-        from . import msqr
-
-        curveFp = curve.curve
-        G = curve.generator
-        order = G.order()
-        # extract r,s from signature
-        r, s = util.sigdecode_string(sig, order)
-        # 1.1
-        x = r + (recid // 2) * order
-        # 1.3
-        alpha = (x * x * x + curveFp.a() * x + curveFp.b()) % curveFp.p()
-        beta = msqr.modular_sqrt(alpha, curveFp.p())
-        y = beta if (beta - recid) % 2 == 0 else curveFp.p() - beta
-        # 1.4 the constructor checks that nR is at infinity
-        R = Point(curveFp, x, y, order)
-        # 1.5 compute e from message:
-        e = string_to_number(h)
-        minus_e = -e % order
-        # 1.6 compute Q = r^-1 (sR - eG)
-        inv_r = numbertheory.inverse_mod(r, order)
-        Q = inv_r * (s * R + minus_e * G)
-        return klass.from_public_point(Q, curve)
-
-
-def pubkey_from_signature(sig, h):
-    if len(sig) != 65:
-        raise Exception("Wrong encoding")
-    nV = sig[0]
-    if nV < 27 or nV >= 35:
-        raise Exception("Bad encoding")
-    if nV >= 31:
-        compressed = True
-        nV -= 4
-    else:
-        compressed = False
-    recid = nV - 27
-    return MyVerifyingKey.from_signature(sig[1:], recid, h, curve=SECP256k1), compressed
-
-
-class MySigningKey(ecdsa.SigningKey):
-    """Enforce low S values in signatures"""
-
-    def sign_number(self, number, entropy=None, k=None):
-        curve = SECP256k1
-        G = curve.generator
-        order = G.order()
-        r, s = ecdsa.SigningKey.sign_number(self, number, entropy, k)
-        if s > order // 2:
-            s = order - s
-        return r, s
-
-
-class ECKey(object):
-    def __init__(self, k):
-        secret = string_to_number(k)
-        self.pubkey = ecdsa.ecdsa.Public_key(
-            generator_secp256k1, generator_secp256k1 * secret
-        )
-        self.privkey = ecdsa.ecdsa.Private_key(self.pubkey, secret)
-        self.secret = secret
-
-    def GetPubKey(self, compressed):
-        return GetPubKey(self.pubkey, compressed)
-
-    def get_public_key(self, compressed=True) -> bytes:
-        return point_to_ser(self.pubkey.point, compressed)
-
-    def sign(self, msg_hash):
-        private_key = MySigningKey.from_secret_exponent(self.secret, curve=SECP256k1)
-        public_key = private_key.get_verifying_key()
-        signature = private_key.sign_digest_deterministic(
-            msg_hash, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_string
-        )
-        assert public_key.verify_digest(
-            signature, msg_hash, sigdecode=ecdsa.util.sigdecode_string
-        )
-        return signature
-
-    def sign_message(self, message, is_compressed, sigtype=SignatureType.ECASH):
-        message = to_bytes(message, "utf8")
-        signature = self.sign(Hash(msg_magic(message, sigtype)))
-        for i in range(4):
-            sig = bytes([27 + i + (4 if is_compressed else 0)]) + signature
-            try:
-                self.verify_message(sig, message, sigtype)
-                return sig
-            except Exception:
-                continue
-        else:
-            raise Exception("error: cannot sign message")
-
-    def verify_message(self, sig, message, sigtype=SignatureType.ECASH):
-        assert_bytes(message)
-        h = Hash(msg_magic(message, sigtype))
-        public_key, compressed = pubkey_from_signature(sig, h)
-        # check public key
-        if point_to_ser(public_key.pubkey.point, compressed) != point_to_ser(
-            self.pubkey.point, compressed
-        ):
-            raise Exception("Bad signature")
-        # check message
-        public_key.verify_digest(sig[1:], h, sigdecode=ecdsa.util.sigdecode_string)
-
-    # ECIES encryption/decryption methods; AES-128-CBC with PKCS7 is used as the cipher; hmac-sha256 is used as the mac
-
-    @classmethod
-    def encrypt_message(self, message, pubkey, magic=b"BIE1"):
-        assert_bytes(message)
-
-        pk = ser_to_point(pubkey)
-        if not ecdsa.ecdsa.point_is_valid(generator_secp256k1, pk.x(), pk.y()):
-            raise Exception("invalid pubkey")
-
-        ephemeral_exponent = number_to_string(
-            ecdsa.util.randrange(pow(2, 256)), generator_secp256k1.order()
-        )
-        ephemeral = ECKey(ephemeral_exponent)
-        ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)
-        key = hashlib.sha512(ecdh_key).digest()
-        iv, key_e, key_m = key[0:16], key[16:32], key[32:]
-        ciphertext = aes_encrypt_with_iv(key_e, iv, message)
-        ephemeral_pubkey = ephemeral.get_public_key(compressed=True)
-        encrypted = magic + ephemeral_pubkey + ciphertext
-        mac = hmac.new(key_m, encrypted, hashlib.sha256).digest()
-
-        return base64.b64encode(encrypted + mac)
-
-    def decrypt_message(self, encrypted, magic=b"BIE1"):
-        encrypted = base64.b64decode(encrypted)
-        if len(encrypted) < 85:
-            raise Exception("invalid ciphertext: length")
-        magic_found = encrypted[:4]
-        ephemeral_pubkey = encrypted[4:37]
-        ciphertext = encrypted[37:-32]
-        mac = encrypted[-32:]
-        if magic_found != magic:
-            raise Exception("invalid ciphertext: invalid magic bytes")
-        try:
-            ephemeral_pubkey = ser_to_point(ephemeral_pubkey)
-        except AssertionError:
-            raise Exception("invalid ciphertext: invalid ephemeral pubkey")
-        if not ecdsa.ecdsa.point_is_valid(
-            generator_secp256k1, ephemeral_pubkey.x(), ephemeral_pubkey.y()
-        ):
-            raise Exception("invalid ciphertext: invalid ephemeral pubkey")
-        ecdh_key = point_to_ser(ephemeral_pubkey * self.privkey.secret_multiplier)
-        key = hashlib.sha512(ecdh_key).digest()
-        iv, key_e, key_m = key[0:16], key[16:32], key[32:]
-        if mac != hmac.new(key_m, encrypted[:-32], hashlib.sha256).digest():
-            raise InvalidPassword()
-        return aes_decrypt_with_iv(key_e, iv, ciphertext)
-
-
 # BIP32
 BIP32_PRIME = 0x80000000
-
-
-def get_pubkeys_from_secret(secret):
-    # public key
-    private_key = ecdsa.SigningKey.from_string(secret, curve=SECP256k1)
-    public_key = private_key.get_verifying_key()
-    K = public_key.to_string()
-    K_compressed = GetPubKey(public_key.pubkey, True)
-    return K, K_compressed
 
 
 # Child private key derivation function (from master private key)
@@ -868,8 +567,8 @@ def CKD_priv(k, c, n):
 
 def _CKD_priv(k, c, s, is_prime):
     order = generator_secp256k1.order()
-    keypair = ECKey(k)
-    cK = GetPubKey(keypair.pubkey, True)
+    keypair = ecc.ECKey(k)
+    cK = ecc.GetPubKey(keypair.pubkey, True)
     data = bytes([0]) + k + s if is_prime else cK + s
     I_ = hmac.new(c, data, hashlib.sha512).digest()
     k_n = number_to_string(
@@ -895,10 +594,10 @@ def CKD_pub(cK, c, n):
 def _CKD_pub(cK, c, s):
     I_ = hmac.new(c, cK + s, hashlib.sha512).digest()
     curve = SECP256k1
-    pubkey_point = string_to_number(I_[0:32]) * curve.generator + ser_to_point(cK)
+    pubkey_point = string_to_number(I_[0:32]) * curve.generator + ecc.ser_to_point(cK)
     public_key = ecdsa.VerifyingKey.from_public_point(pubkey_point, curve=SECP256k1)
     c_n = I_[32:]
-    cK_n = GetPubKey(public_key.pubkey, True)
+    cK_n = ecc.GetPubKey(public_key.pubkey, True)
     return cK_n, c_n
 
 
@@ -1043,7 +742,7 @@ def xpub_from_xprv(xprv, *, net=None):
     if net is None:
         net = networks.net
     xtype, depth, fingerprint, child_number, c, k = deserialize_xprv(xprv, net=net)
-    K, cK = get_pubkeys_from_secret(k)
+    K, cK = ecc.get_pubkeys_from_secret(k)
     return serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
 
 
@@ -1053,7 +752,7 @@ def bip32_root(seed, xtype, *, net=None):
     I_ = hmac.new(b"Bitcoin seed", seed, hashlib.sha512).digest()
     master_k = I_[0:32]
     master_c = I_[32:]
-    K, cK = get_pubkeys_from_secret(master_k)
+    K, cK = ecc.get_pubkeys_from_secret(master_k)
     xprv = serialize_xprv(xtype, master_c, master_k, net=net)
     xpub = serialize_xpub(xtype, master_c, cK, net=net)
     return xprv, xpub
@@ -1103,10 +802,10 @@ def bip32_private_derivation(xprv, branch, sequence, *, net=None):
         parent_k = k
         k, c = CKD_priv(k, c, i)
         depth += 1
-    _, parent_cK = get_pubkeys_from_secret(parent_k)
+    _, parent_cK = ecc.get_pubkeys_from_secret(parent_k)
     fingerprint = hash_160(parent_cK)[0:4]
     child_number = i.to_bytes(4, "big")
-    K, cK = get_pubkeys_from_secret(k)
+    K, cK = ecc.get_pubkeys_from_secret(k)
     xpub = serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
     xprv = serialize_xprv(xtype, c, k, depth, fingerprint, child_number, net=net)
     return xprv, xpub
@@ -1434,7 +1133,7 @@ class Bip38Key:
             keyBytes[i + 16] = k2[i] ^ derivedHalf1[i + 16]
         keyBytes = bytes(keyBytes)
 
-        eckey = regenerate_key(keyBytes)
+        eckey = ecc.regenerate_key(keyBytes)
 
         pubKey = eckey.GetPubKey(self.compressed)
 
@@ -1487,7 +1186,7 @@ class Bip38Key:
         else:
             passFactor = prefactorA
 
-        ignored, passpoint = get_pubkeys_from_secret(passFactor)
+        ignored, passpoint = ecc.get_pubkeys_from_secret(passFactor)
 
         encryptedpart1 = self.dec[15:23]
         encryptedpart2 = self.dec[23:39]
@@ -1531,7 +1230,7 @@ class Bip38Key:
 
         privKey = int_to_bytes(privKey, 32)
 
-        eckey = regenerate_key(privKey)
+        eckey = ecc.regenerate_key(privKey)
 
         pubKey = eckey.GetPubKey(self.compressed)
 
@@ -1565,7 +1264,7 @@ class Bip38Key:
             raise ValueError(
                 "Only p2pkh WIF keys may be encrypted using BIP38 at this time."
             )
-        public_key = public_key_from_private_key(key_bytes, compressed)
+        public_key = ecc.public_key_from_private_key(key_bytes, compressed)
         addr_str = pubkey_to_address(_type, public_key, net=net)
         addr_hash = Hash(addr_str)[0:4]
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
@@ -1653,7 +1352,7 @@ class Bip38Key:
         else:
             passfactor = prefactor
 
-        ignored, passpoint = get_pubkeys_from_secret(passfactor)
+        ignored, passpoint = ecc.get_pubkeys_from_secret(passfactor)
 
         # 49 bytes (not a str, despite name. We use the name from bip38 spec here)
         intermediate_passphrase_string = magic + ownerentropy + passpoint
@@ -1686,8 +1385,8 @@ class Bip38Key:
         seedb = os.urandom(24)
         factorb = Hash(seedb)
 
-        point = ser_to_point(passpoint) * cls._bytes_to_int(factorb)
-        pubkey = point_to_ser(point, compressed)
+        point = ecc.ser_to_point(passpoint) * cls._bytes_to_int(factorb)
+        pubkey = ecc.point_to_ser(point, compressed)
         generatedaddress = pubkey_to_address(ScriptType.p2pkh, pubkey)
         addresshash = Hash(generatedaddress)[:4]
 

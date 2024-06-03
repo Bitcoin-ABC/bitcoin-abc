@@ -56,6 +56,13 @@ from .bitcoin import TYPE_SCRIPT, OpCodes, ScriptType
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 from .crypto import Hash, hash_160
+from .ecc import (
+    MySigningKey,
+    MyVerifyingKey,
+    public_key_from_private_key,
+    regenerate_key,
+    ser_to_point,
+)
 
 #
 # Workalike python implementation of Bitcoin's CDataStream class.
@@ -1509,8 +1516,8 @@ class Transaction:
 
             # ECDSA signature
             try:
-                pubkey_point = bitcoin.ser_to_point(pubkey)
-                vk = bitcoin.MyVerifyingKey.from_public_point(
+                pubkey_point = ser_to_point(pubkey)
+                vk = MyVerifyingKey.from_public_point(
                     pubkey_point, curve=ecdsa.curves.SECP256k1
                 )
                 if vk.verify_digest(sig, msghash, sigdecode=ecdsa.util.sigdecode_der):
@@ -1537,9 +1544,9 @@ class Transaction:
 
     @staticmethod
     def _ecdsa_sign(sec, pre_hash):
-        pkey = bitcoin.regenerate_key(sec)
+        pkey = regenerate_key(sec)
         secexp = pkey.secret
-        private_key = bitcoin.MySigningKey.from_secret_exponent(
+        private_key = MySigningKey.from_secret_exponent(
             secexp, curve=ecdsa.curves.SECP256k1
         )
         public_key = private_key.get_verifying_key()
@@ -1581,7 +1588,7 @@ class Transaction:
 
     def _sign_txin(self, i, j, sec, compressed, *, use_cache=False):
         """Note: precondition is self._inputs is valid (ie: tx is already deserialized)"""
-        pubkey = bitcoin.public_key_from_private_key(sec, compressed)
+        pubkey = public_key_from_private_key(sec, compressed)
         # add signature
         nHashType = (
             0x00000041  # hardcoded, perhaps should be taken from unsigned input dict

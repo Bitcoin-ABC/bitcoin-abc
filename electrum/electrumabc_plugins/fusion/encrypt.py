@@ -55,7 +55,7 @@ import hmac
 
 import ecdsa
 
-from electrumabc.bitcoin import point_to_ser, ser_to_point
+from electrumabc.ecc import point_to_ser, ser_to_point
 
 G = ecdsa.SECP256k1.generator
 order = ecdsa.SECP256k1.generator.order()

@@ -21,8 +21,8 @@ from PyQt5.QtWidgets import (
 )
 
 from electrumabc.address import Address
-from electrumabc.bitcoin import SignatureType, verify_message
 from electrumabc.constants import CURRENCY, PROJECT_NAME
+from electrumabc.ecc import SignatureType, verify_message
 from electrumabc.i18n import _
 
 from .password_dialog import PasswordDialog

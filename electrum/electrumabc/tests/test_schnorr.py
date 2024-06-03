@@ -8,7 +8,7 @@ import secrets
 import unittest
 
 from .. import schnorr
-from ..bitcoin import regenerate_key
+from ..ecc import regenerate_key
 
 
 class TestSchnorr(unittest.TestCase):

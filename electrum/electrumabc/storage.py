@@ -31,7 +31,7 @@ import zlib
 from dataclasses import dataclass
 from typing import Any, Optional, Union
 
-from . import bitcoin
+from . import ecc
 from .json_db import JsonDB
 from .plugins import run_hook
 from .printerror import PrintError
@@ -180,11 +180,11 @@ class WalletStorage(PrintError):
         except Exception:
             return STO_EV_PLAINTEXT
 
-    def get_key(self, password: str) -> bitcoin.ECKey:
+    def get_key(self, password: str) -> ecc.ECKey:
         secret = hashlib.pbkdf2_hmac(
             "sha512", password.encode("utf-8"), b"", iterations=1024
         )
-        ec_key = bitcoin.ECKey(secret)
+        ec_key = ecc.ECKey(secret)
         return ec_key
 
     def _get_encryption_magic(self):
@@ -213,7 +213,7 @@ class WalletStorage(PrintError):
             s = bytes(s, "utf8")
             c = zlib.compress(s, level=zlib.Z_BEST_SPEED)
             enc_magic = self._get_encryption_magic()
-            s = bitcoin.encrypt_message(c, bytes.fromhex(self.pubkey), enc_magic)
+            s = ecc.encrypt_message(c, bytes.fromhex(self.pubkey), enc_magic)
             s = s.decode("utf8")
         return s
 

@@ -29,7 +29,8 @@ from __future__ import annotations
 from io import BytesIO
 
 from .. import schnorr
-from ..bitcoin import deserialize_privkey, public_key_from_private_key
+from ..bitcoin import deserialize_privkey
+from ..ecc import public_key_from_private_key
 from ..serialize import (
     DeserializationError,
     SerializableObject,

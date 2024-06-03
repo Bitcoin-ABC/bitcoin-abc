@@ -18,7 +18,7 @@ from ctypes import byref, c_int, c_size_t, c_void_p, cast, create_string_buffer
 import ecdsa
 
 from . import secp256k1
-from .bitcoin import point_to_ser, ser_to_point
+from .ecc import point_to_ser, ser_to_point
 
 
 def _setup_sign_function():

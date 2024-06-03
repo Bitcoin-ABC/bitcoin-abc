@@ -37,6 +37,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 from electrumabc import bitcoin, keystore, transaction, util
 from electrumabc.crypto import Hash
+from electrumabc.ecc import ECKey, encrypt_message
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import print_error
@@ -357,7 +358,7 @@ class Plugin(BasePlugin):
         for xpub, K, _hash in state.cosigner_list:
             if not self.cosigner_can_sign(tx, xpub):
                 continue
-            message = bitcoin.encrypt_message(tx.raw, K).decode("ascii")
+            message = encrypt_message(tx.raw, K).decode("ascii")
             try:
                 state.server.put(_hash, message)
             except Exception:
@@ -444,7 +445,7 @@ class Plugin(BasePlugin):
             return
         try:
             k = bh2u(bitcoin.deserialize_xprv(xprv)[-1])
-            EC = bitcoin.ECKey(bfh(k))
+            EC = ECKey(bfh(k))
             raw_tx = EC.decrypt_message(message)
         except Exception as e:
             traceback.print_exc(file=sys.stdout)

@@ -37,8 +37,9 @@ import requests
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, pyqtSignal
 
-from electrumabc import address, bitcoin, version
+from electrumabc import address, version
 from electrumabc.constants import PROJECT_NAME, RELEASES_JSON_URL
+from electrumabc.ecc import verify_message
 from electrumabc.i18n import _
 from electrumabc.networks import MainNet
 from electrumabc.printerror import PrintError, print_error
@@ -179,7 +180,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
                         if not self.is_newer(version_msg):
                             continue
                         try:
-                            is_verified = bitcoin.verify_message(
+                            is_verified = verify_message(
                                 adr,
                                 base64.b64decode(sig),
                                 version_msg.encode("utf-8"),
@@ -192,7 +193,7 @@ class UpdateChecker(QtWidgets.QWidget, PrintError):
                             # the message.
                             # TODO: remove after two new releases past 5.0.1
                             try:
-                                is_verified = bitcoin.verify_message(
+                                is_verified = verify_message(
                                     adr,
                                     base64.b64decode(sig),
                                     version_msg.encode("utf-8"),

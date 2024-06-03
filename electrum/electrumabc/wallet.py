@@ -72,6 +72,7 @@ from .bitcoin import ScriptType
 from .constants import XEC
 from .contacts import Contacts
 from .crypto import Hash
+from .ecc import SignatureType, public_key_from_private_key
 from .i18n import _, ngettext
 from .keystore import (
     BIP32KeyStore,
@@ -183,7 +184,7 @@ def sweep_preparations(
             inputs.append(TxInput.from_coin_dict(item))
 
     def find_utxos_for_privkey(txin_type: bitcoin.ScriptType, privkey, compressed):
-        pubkey = bitcoin.public_key_from_private_key(privkey, compressed)
+        pubkey = public_key_from_private_key(privkey, compressed)
         append_utxos_to_inputs(inputs, pubkey.hex(), txin_type)
         keypairs[pubkey] = privkey, compressed
 
@@ -2959,9 +2960,7 @@ class AbstractWallet(PrintError, SPVDelegate):
 
         self.storage.write()
 
-    def sign_message(
-        self, address, message, password, sigtype=bitcoin.SignatureType.ECASH
-    ):
+    def sign_message(self, address, message, password, sigtype=SignatureType.ECASH):
         index = self.get_address_index(address)
         return self.keystore.sign_message(index, message, password, sigtype)
 
