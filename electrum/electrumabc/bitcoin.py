@@ -41,10 +41,11 @@ from ecdsa.ellipticcurve import Point
 from ecdsa.util import number_to_string, string_to_number
 
 from . import networks
+from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv, hash_160, sha256
 from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
 from .printerror import print_error
 from .serialize import serialize_blob
-from .util import InvalidPassword, assert_bytes, bh2u, to_bytes, to_string
+from .util import InvalidPassword, assert_bytes, bh2u, to_bytes
 
 if TYPE_CHECKING:
     from .address import Address
@@ -80,12 +81,6 @@ CASH = 100
 TYPE_ADDRESS = 0
 TYPE_PUBKEY = 1
 TYPE_SCRIPT = 2
-
-# AES encryption
-try:
-    from Cryptodome.Cipher import AES
-except ImportError:
-    AES = None
 
 
 # Derived from Bitcoin ABC src/script/script.h
@@ -243,105 +238,9 @@ class ScriptType(IntEnum):
     unknown = -3
 
 
-class InvalidPadding(Exception):
-    pass
-
-
 class KeyIsBip38Error(ValueError):
     """Raised by deserialize_privkey to signify a key is a bip38 encrypted
     '6P' key."""
-
-
-def append_PKCS7_padding(data):
-    assert_bytes(data)
-    padlen = 16 - (len(data) % 16)
-    return data + bytes([padlen]) * padlen
-
-
-def strip_PKCS7_padding(data):
-    assert_bytes(data)
-    if len(data) % 16 != 0 or len(data) == 0:
-        raise InvalidPadding("invalid length")
-    padlen = data[-1]
-    if padlen > 16:
-        raise InvalidPadding("invalid padding byte (large)")
-    for i in data[-padlen:]:
-        if i != padlen:
-            raise InvalidPadding("invalid padding byte (inconsistent)")
-    return data[0:-padlen]
-
-
-def aes_encrypt_with_iv(key, iv, data):
-    assert_bytes(key, iv, data)
-    data = append_PKCS7_padding(data)
-    if AES:
-        e = AES.new(key, AES.MODE_CBC, iv).encrypt(data)
-    else:
-        aes_cbc = pyaes.AESModeOfOperationCBC(key, iv=iv)
-        aes = pyaes.Encrypter(aes_cbc, padding=pyaes.PADDING_NONE)
-        e = aes.feed(data) + aes.feed()  # empty aes.feed() flushes buffer
-    return e
-
-
-def aes_decrypt_with_iv(key, iv, data):
-    assert_bytes(key, iv, data)
-    if AES:
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        data = cipher.decrypt(data)
-    else:
-        aes_cbc = pyaes.AESModeOfOperationCBC(key, iv=iv)
-        aes = pyaes.Decrypter(aes_cbc, padding=pyaes.PADDING_NONE)
-        data = aes.feed(data) + aes.feed()  # empty aes.feed() flushes buffer
-    try:
-        return strip_PKCS7_padding(data)
-    except InvalidPadding:
-        raise InvalidPassword()
-
-
-def EncodeAES_bytes(secret, msg):
-    """Params and retval are all bytes objects."""
-    assert_bytes(msg)
-    iv = bytes(os.urandom(16))
-    ct = aes_encrypt_with_iv(secret, iv, msg)
-    return iv + ct
-
-
-def EncodeAES_base64(secret, msg):
-    """Returns base64 encoded ciphertext. Params and retval are all bytes."""
-    e = EncodeAES_bytes(secret, msg)
-    return base64.b64encode(e)
-
-
-def DecodeAES_bytes(secret, ciphertext):
-    assert_bytes(ciphertext)
-    iv, e = ciphertext[:16], ciphertext[16:]
-    s = aes_decrypt_with_iv(secret, iv, e)
-    return s
-
-
-def DecodeAES_base64(secret, ciphertext_b64):
-    ciphertext = bytes(base64.b64decode(ciphertext_b64))
-    return DecodeAES_bytes(secret, ciphertext)
-
-
-def pw_encode(s, password):
-    if password:
-        secret = Hash(password)
-        return EncodeAES_base64(secret, to_bytes(s, "utf8")).decode("utf8")
-    else:
-        return s
-
-
-def pw_decode(s, password):
-    if password is not None:
-        secret = Hash(password)
-        try:
-            d = to_string(DecodeAES_base64(secret, s), "utf8")
-        except Exception:
-            raise InvalidPassword()
-        return d
-    else:
-        return s
 
 
 def op_push_bytes(data_len: int) -> bytes:
@@ -394,17 +293,6 @@ def push_script(data: str, *, minimal=True) -> str:
     return push_script_bytes(bytes.fromhex(data), minimal=minimal).hex()
 
 
-def sha256(x):
-    x = to_bytes(x, "utf8")
-    return bytes(hashlib.sha256(x).digest())
-
-
-def Hash(x):
-    x = to_bytes(x, "utf8")
-    out = bytes(sha256(sha256(x)))
-    return out
-
-
 def hmac_oneshot(key, msg, digest):
     """Params key, msg and return val are bytes.
     Digest is a hashlib algorithm, e.g. hashlib.sha512"""
@@ -449,21 +337,6 @@ def i2o_ECPublicKey(pubkey, compressed=False):
 
 
 # end pywallet openssl private key implementation
-
-
-# functions from pywallet
-def hash_160(public_key: bytes) -> bytes:
-    sha256_hash = sha256(public_key)
-    try:
-        md = hashlib.new("ripemd160")
-        md.update(sha256_hash)
-        return md.digest()
-    except ValueError:
-        from Cryptodome.Hash import RIPEMD160
-
-        md = RIPEMD160.new()
-        md.update(sha256_hash)
-        return md.digest()
 
 
 def hash160_to_b58_address(h160, addrtype):

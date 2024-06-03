@@ -36,6 +36,7 @@ from mnemonic import Mnemonic
 from . import bitcoin, mnemo, networks
 from .address import Address, PublicKey
 from .bitcoin import SignatureType
+from .crypto import Hash, pw_decode, pw_encode
 from .plugins import run_hook
 from .printerror import PrintError, print_error
 from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
@@ -193,7 +194,7 @@ class ImportedKeyStore(SoftwareKeyStore):
 
     def import_privkey(self, WIF_privkey, password):
         pubkey = PublicKey.from_WIF_privkey(WIF_privkey)
-        self.keypairs[pubkey] = bitcoin.pw_encode(WIF_privkey, password)
+        self.keypairs[pubkey] = pw_encode(WIF_privkey, password)
         self._sorted = None
         return pubkey
 
@@ -202,7 +203,7 @@ class ImportedKeyStore(SoftwareKeyStore):
 
     def export_private_key(self, pubkey, password):
         """Returns a WIF string"""
-        WIF_privkey = bitcoin.pw_decode(self.keypairs[pubkey], password)
+        WIF_privkey = pw_decode(self.keypairs[pubkey], password)
         # this checks the password
         if pubkey != PublicKey.from_WIF_privkey(WIF_privkey):
             raise InvalidPassword()
@@ -227,8 +228,8 @@ class ImportedKeyStore(SoftwareKeyStore):
         if new_password == "":
             new_password = None
         for k, v in self.keypairs.items():
-            b = bitcoin.pw_decode(v, old_password)
-            c = bitcoin.pw_encode(b, new_password)
+            b = pw_decode(v, old_password)
+            c = pw_encode(b, new_password)
             self.keypairs[k] = c
 
 
@@ -270,10 +271,10 @@ class DeterministicKeyStore(SoftwareKeyStore):
         return Mnemonic.normalize_string(seed)
 
     def get_seed(self, password):
-        return bitcoin.pw_decode(self.seed, password)
+        return pw_decode(self.seed, password)
 
     def get_passphrase(self, password):
-        return bitcoin.pw_decode(self.passphrase, password) if self.passphrase else ""
+        return pw_decode(self.passphrase, password) if self.passphrase else ""
 
     @abstractmethod
     def get_private_key(self, sequence, password) -> Tuple[bytes, bool]:
@@ -380,10 +381,10 @@ class BIP32KeyStore(DeterministicKeyStore, Xpub):
         return d
 
     def get_master_private_key(self, password):
-        return bitcoin.pw_decode(self.xprv, password)
+        return pw_decode(self.xprv, password)
 
     def check_password(self, password):
-        xprv = bitcoin.pw_decode(self.xprv, password)
+        xprv = pw_decode(self.xprv, password)
         try:
             assert bitcoin.DecodeBase58Check(xprv) is not None
         except Exception:
@@ -398,13 +399,13 @@ class BIP32KeyStore(DeterministicKeyStore, Xpub):
             new_password = None
         if self.has_seed():
             decoded = self.get_seed(old_password)
-            self.seed = bitcoin.pw_encode(decoded, new_password)
+            self.seed = pw_encode(decoded, new_password)
         if self.passphrase:
             decoded = self.get_passphrase(old_password)
-            self.passphrase = bitcoin.pw_encode(decoded, new_password)
+            self.passphrase = pw_encode(decoded, new_password)
         if self.xprv is not None:
-            b = bitcoin.pw_decode(self.xprv, old_password)
-            self.xprv = bitcoin.pw_encode(b, new_password)
+            b = pw_decode(self.xprv, old_password)
+            self.xprv = pw_encode(b, new_password)
 
     def has_derivation(self) -> bool:
         """Note: the derivation path may not always be saved. Older versions
@@ -440,7 +441,7 @@ class OldKeyStore(DeterministicKeyStore):
         self.mpk = bytes.fromhex(d.get("mpk", ""))
 
     def get_hex_seed(self, password):
-        return bitcoin.pw_decode(self.seed, password).encode("utf8")
+        return pw_decode(self.seed, password).encode("utf8")
 
     def dump(self):
         d = DeterministicKeyStore.dump(self)
@@ -498,7 +499,7 @@ class OldKeyStore(DeterministicKeyStore):
     @classmethod
     def get_sequence(self, mpk: bytes, for_change: Union[int, bool], n: int):
         return ecdsa.util.string_to_number(
-            bitcoin.Hash(f"{n:d}:{for_change:d}:".encode("ascii") + mpk)
+            Hash(f"{n:d}:{for_change:d}:".encode("ascii") + mpk)
         )
 
     @classmethod
@@ -583,8 +584,8 @@ class OldKeyStore(DeterministicKeyStore):
         if new_password == "":
             new_password = None
         if self.has_seed():
-            decoded = bitcoin.pw_decode(self.seed, old_password)
-            self.seed = bitcoin.pw_encode(decoded, new_password)
+            decoded = pw_decode(self.seed, old_password)
+            self.seed = pw_encode(decoded, new_password)
 
 
 class HardwareKeyStore(KeyStore, Xpub):

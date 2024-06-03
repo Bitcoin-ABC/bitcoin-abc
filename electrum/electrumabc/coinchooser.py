@@ -25,7 +25,8 @@
 from math import floor, log10
 from typing import Dict, List, Optional
 
-from .bitcoin import CASH, TYPE_ADDRESS, sha256
+from .bitcoin import CASH, TYPE_ADDRESS
+from .crypto import sha256
 from .printerror import PrintError
 from .transaction import DUST_THRESHOLD, Transaction, TxInput, TxOutput
 from .util import NotEnoughFunds

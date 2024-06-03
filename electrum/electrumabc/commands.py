@@ -38,8 +38,9 @@ from functools import wraps
 
 from . import alias, bitcoin, util, web
 from .address import Address, AddressError
-from .bitcoin import CASH, TYPE_ADDRESS, hash_160
+from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
+from .crypto import hash_160
 from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID

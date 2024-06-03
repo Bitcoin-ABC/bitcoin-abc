@@ -36,11 +36,11 @@ from .bitcoin import (
     ECKey,
     OpCodes,
     ScriptType,
-    hash_160,
     is_minikey,
     minikey_to_private_key,
     push_script_bytes,
 )
+from .crypto import hash_160
 from .util import cachedproperty
 
 _sha256 = hashlib.sha256

@@ -5,8 +5,8 @@ from typing import List, Optional, Sequence, Tuple
 from PyQt5 import QtGui, QtWidgets
 
 from electrumabc import transaction
-from electrumabc.bitcoin import sha256
 from electrumabc.constants import XEC
+from electrumabc.crypto import sha256
 from electrumabc.i18n import _
 from electrumabc.wallet import AbstractWallet
 

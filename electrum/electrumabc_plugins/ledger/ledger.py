@@ -10,6 +10,7 @@ from typing import Optional, Tuple
 from electrumabc import bitcoin
 from electrumabc.address import Address
 from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType, SignatureType
+from electrumabc.crypto import hash_160
 from electrumabc.i18n import _
 from electrumabc.keystore import HardwareKeyStore
 from electrumabc.plugins import Device
@@ -139,7 +140,7 @@ class LedgerClient(HardwareClientBase):
             prevPath = "/".join(splitPath[0 : len(splitPath) - 1])
             nodeData = self.dongleObject.getWalletPublicKey(prevPath)
             publicKey = compress_public_key(nodeData["publicKey"])
-            h = bitcoin.hash_160(publicKey)
+            h = hash_160(publicKey)
             fingerprint = unpack(">I", h[0:4])[0]
         nodeData = self.dongleObject.getWalletPublicKey(bip32_path)
         publicKey = compress_public_key(nodeData["publicKey"])

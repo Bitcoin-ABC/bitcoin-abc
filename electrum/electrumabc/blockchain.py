@@ -29,6 +29,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from . import asert_daa, bitcoin, networks, util
+from .crypto import Hash
 from .printerror import PrintError
 from .uint256 import UInt256
 
@@ -168,7 +169,7 @@ def hash_header(header: Header) -> str:
         return NULL_HASH_HEX
     if header.get("prev_block_hash") is None:
         header["prev_block_hash"] = "00" * 32
-    return bitcoin.hash_encode(bitcoin.Hash(serialize_header(header)))
+    return bitcoin.hash_encode(Hash(serialize_header(header)))
 
 
 blockchains: Dict[int, Blockchain] = {}
@@ -229,7 +230,7 @@ def verify_proven_chunk(chunk_base_height: int, chunk_data: bytes):
 
 # Copied from electrumx
 def root_from_proof(hash_: bytes, branch: List[bytes], index: int) -> bytes:
-    hash_func = bitcoin.Hash
+    hash_func = Hash
     for elt in branch:
         if index & 1:
             hash_ = hash_func(elt + hash_)

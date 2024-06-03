@@ -33,7 +33,8 @@ from typing import Tuple, Union
 import ecdsa
 
 from electrumabc.address import Address, OpCodes, ScriptOutput
-from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType, hash_160
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType
+from electrumabc.crypto import hash_160
 from electrumabc.transaction import (
     OutPoint,
     Transaction,

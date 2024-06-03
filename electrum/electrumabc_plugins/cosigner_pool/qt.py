@@ -36,6 +36,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from electrumabc import bitcoin, keystore, transaction, util
+from electrumabc.crypto import Hash
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import print_error
@@ -280,7 +281,7 @@ class Plugin(BasePlugin):
         for key, keystore_ in wallet.keystores.items():
             xpub = keystore_.get_master_public_key()
             K = bitcoin.deserialize_xpub(xpub)[-1]
-            _hash = bh2u(bitcoin.Hash(K))
+            _hash = bh2u(Hash(K))
             if not keystore_.is_watching_only():
                 state.keys.append((key, _hash))
             else:

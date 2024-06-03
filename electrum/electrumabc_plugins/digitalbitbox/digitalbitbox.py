@@ -24,10 +24,6 @@ try:
 
     from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
     from electrumabc.bitcoin import (
-        DecodeAES_bytes,
-        EncodeAES_base64,
-        EncodeAES_bytes,
-        Hash,
         MyVerifyingKey,
         ScriptType,
         SignatureType,
@@ -38,6 +34,12 @@ try:
         public_key_to_p2pkh,
         push_script,
         verify_message,
+    )
+    from electrumabc.crypto import (
+        DecodeAES_bytes,
+        EncodeAES_base64,
+        EncodeAES_bytes,
+        Hash,
     )
     from electrumabc.i18n import _
     from electrumabc.keystore import HardwareKeyStore

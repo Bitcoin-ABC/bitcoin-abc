@@ -30,7 +30,7 @@ import base64
 from io import BytesIO
 from typing import Callable, List, Optional, Sequence, Tuple
 
-from ..bitcoin import Hash as sha256d
+from ..crypto import Hash as sha256d
 from ..serialize import (
     DeserializationError,
     SerializableObject,

@@ -49,6 +49,7 @@ from . import bitcoin, rsakey, transaction, util, x509
 from .address import Address, PublicKey
 from .bitcoin import TYPE_ADDRESS
 from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES, XEC
+from .crypto import sha256
 from .printerror import PrintError, print_error
 from .transaction import Transaction, TxOutput
 from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
@@ -151,7 +152,7 @@ class PaymentRequest:
     def parse(self, r):
         if self.error:
             return
-        self.id = bh2u(bitcoin.sha256(r)[0:16])
+        self.id = bh2u(sha256(r)[0:16])
         try:
             self.data = pb2.PaymentRequest()
             self.data.ParseFromString(r)
@@ -901,7 +902,7 @@ class PaymentRequestBitPay20(PaymentRequest, PrintError):
             if len(digest) != 32:
                 raise ValueError("Bad digest")
             addr = Address.from_string(r.headers["x-identity"])
-            if bitcoin.sha256(r.text) != digest:
+            if sha256(r.text) != digest:
                 raise ValueError("Digest does not match payload")
             msg = digest
         except Exception as e:

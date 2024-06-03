@@ -24,7 +24,8 @@
 from abc import ABC, abstractmethod
 
 from . import networks
-from .bitcoin import Hash, hash_decode, hash_encode
+from .bitcoin import hash_decode, hash_encode
+from .crypto import Hash
 from .util import ThreadJob
 
 

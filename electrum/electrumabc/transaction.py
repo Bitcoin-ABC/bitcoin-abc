@@ -55,6 +55,7 @@ from .address import (
 from .bitcoin import TYPE_SCRIPT, OpCodes, ScriptType
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
+from .crypto import Hash, hash_160
 
 #
 # Workalike python implementation of Bitcoin's CDataStream class.
@@ -376,7 +377,7 @@ class TxInput:
         self._pubkeys = pubkeys
         assert len(self._signatures) in (m, n)
         assert len(self._pubkeys) == n
-        self._address = Address.from_P2SH_hash(bitcoin.hash_160(redeemScript))
+        self._address = Address.from_P2SH_hash(hash_160(redeemScript))
 
     @property
     def type(self) -> ScriptType:
@@ -1147,7 +1148,7 @@ class Transaction:
             if sig_final in txin.signatures:
                 # skip if we already have this signature
                 continue
-            pre_hash = bitcoin.Hash(self.serialize_preimage(i))
+            pre_hash = Hash(self.serialize_preimage(i))
             added = False
             reason = []
             for j, pubkey in enumerate(pubkeys):
@@ -1322,13 +1323,11 @@ class Transaction:
                 else:
                     del cmeta, res, self._cached_sighash_tup
 
-        hashPrevouts = bitcoin.Hash(
-            b"".join(txin.outpoint.serialize() for txin in inputs)
-        )
-        hashSequence = bitcoin.Hash(
+        hashPrevouts = Hash(b"".join(txin.outpoint.serialize() for txin in inputs))
+        hashSequence = Hash(
             b"".join(txin.sequence.to_bytes(4, "little") for txin in inputs)
         )
-        hashOutputs = bitcoin.Hash(b"".join(o.serialize() for o in outputs))
+        hashOutputs = Hash(b"".join(o.serialize() for o in outputs))
 
         res = hashPrevouts, hashSequence, hashOutputs
         # cach resulting value, along with some minimal metadata to defensively
@@ -1395,7 +1394,7 @@ class Transaction:
 
     @staticmethod
     def _txid(raw_hex: bytes) -> str:
-        return bitcoin.Hash(raw_hex)[::-1].hex()
+        return Hash(raw_hex)[::-1].hex()
 
     def add_inputs(self, inputs: List[TxInput]):
         assert all(isinstance(txin, TxInput) for txin in inputs)
@@ -1587,9 +1586,7 @@ class Transaction:
         nHashType = (
             0x00000041  # hardcoded, perhaps should be taken from unsigned input dict
         )
-        pre_hash = bitcoin.Hash(
-            self.serialize_preimage(i, nHashType, use_cache=use_cache)
-        )
+        pre_hash = Hash(self.serialize_preimage(i, nHashType, use_cache=use_cache))
         if self._sign_schnorr:
             sig = self._schnorr_sign(pubkey, sec, pre_hash)
         else:

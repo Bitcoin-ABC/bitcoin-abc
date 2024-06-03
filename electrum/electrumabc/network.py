@@ -41,6 +41,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Un
 import socks
 
 from . import bitcoin, blockchain, networks, util, version
+from .crypto import Hash
 from .i18n import _
 from .interface import Connection, Interface
 from .monotonic import Monotonic
@@ -2037,7 +2038,7 @@ class Network(util.DaemonThread):
             )
             return False
 
-        header_hash = bitcoin.Hash(bytes.fromhex(header))
+        header_hash = Hash(bytes.fromhex(header))
         byte_branches = [bytes.fromhex(v)[::-1] for v in merkle_branch]
         proven_merkle_root = blockchain.root_from_proof(
             header_hash, byte_branches, header_height

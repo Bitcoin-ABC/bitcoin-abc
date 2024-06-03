@@ -34,7 +34,7 @@ import struct
 from io import BytesIO
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from ..bitcoin import Hash as sha256d
+from ..crypto import Hash as sha256d
 from ..serialize import (
     DeserializationError,
     SerializableObject,

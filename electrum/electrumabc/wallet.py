@@ -71,6 +71,7 @@ from .address import Address, PublicKey, Script
 from .bitcoin import ScriptType
 from .constants import XEC
 from .contacts import Contacts
+from .crypto import Hash
 from .i18n import _, ngettext
 from .keystore import (
     BIP32KeyStore,
@@ -2751,7 +2752,7 @@ class AbstractWallet(PrintError, SPVDelegate):
                 " make_payment_request"
             )
         timestamp = int(time.time())
-        _id = bh2u(bitcoin.Hash(addr.to_storage_string() + "%d" % timestamp))[0:10]
+        _id = bh2u(Hash(addr.to_storage_string() + "%d" % timestamp))[0:10]
         d = {
             "time": timestamp,
             "amount": amount,
