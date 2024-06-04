@@ -13,7 +13,19 @@
 
 ## Development
 
+Note that some Cashtab dependencies are pulled locally from the monorepo. These dependencies must be prepared before running `npm install` for Cashtab.
+
+-   `ecash-lib-wasm` (dependency of `ecash-lib`)
+-   `ecash-lib`
+-   `ecashaddrjs`
+-   `ecash-script`
+-   `chronik-client`
+-   `mock-chronik-client` (for tests)
+
+Please refer to the build instructions in each of these modules in the monorepo.
+
 ```
+cd cashtab/
 npm install
 npm start
 ```
