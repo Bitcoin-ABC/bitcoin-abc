@@ -888,6 +888,7 @@ public:
      */
     bool ActivateBestChain(BlockValidationState &state,
                            std::shared_ptr<const CBlock> pblock = nullptr,
+                           avalanche::Processor *const avalanche = nullptr,
                            bool skip_checkblockindex = false)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex)
@@ -1031,10 +1032,12 @@ public:
     }
 
 private:
-    bool ActivateBestChainStep(BlockValidationState &state,
-                               CBlockIndex *pindexMostWork,
-                               const std::shared_ptr<const CBlock> &pblock,
-                               bool &fInvalidFound, ConnectTrace &connectTrace)
+    bool
+    ActivateBestChainStep(BlockValidationState &state,
+                          CBlockIndex *pindexMostWork,
+                          const std::shared_ptr<const CBlock> &pblock,
+                          bool &fInvalidFound, ConnectTrace &connectTrace,
+                          const avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs,
                                  !cs_avalancheFinalizedBlockIndex);
     bool ConnectTip(BlockValidationState &state,

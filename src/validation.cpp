@@ -2952,7 +2952,7 @@ void Chainstate::PruneBlockIndexCandidates() {
 bool Chainstate::ActivateBestChainStep(
     BlockValidationState &state, CBlockIndex *pindexMostWork,
     const std::shared_ptr<const CBlock> &pblock, bool &fInvalidFound,
-    ConnectTrace &connectTrace) {
+    ConnectTrace &connectTrace, const avalanche::Processor *const avalanche) {
     AssertLockHeld(cs_main);
     if (m_mempool) {
         AssertLockHeld(m_mempool->cs);
@@ -3016,7 +3016,7 @@ bool Chainstate::ActivateBestChainStep(
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
-                            connectTrace, disconnectpool, g_avalanche.get())) {
+                            connectTrace, disconnectpool, avalanche)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (state.GetResult() !=
@@ -3126,6 +3126,7 @@ static void LimitValidationInterfaceQueue() LOCKS_EXCLUDED(cs_main) {
 
 bool Chainstate::ActivateBestChain(BlockValidationState &state,
                                    std::shared_ptr<const CBlock> pblock,
+                                   avalanche::Processor *const avalanche,
                                    bool skip_checkblockindex) {
     AssertLockNotHeld(m_chainstate_mutex);
 
@@ -3199,7 +3200,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                                       pindexMostWork->GetBlockHash()
                             ? pblock
                             : nullBlockPtr,
-                        fInvalidFound, connectTrace)) {
+                        fInvalidFound, connectTrace, avalanche)) {
                     // A system error occurred
                     return false;
                 }
@@ -3261,10 +3262,10 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         }
         // When we reach this point, we switched to a new tip (stored in
         // pindexNewTip).
-        if (g_avalanche) {
+        if (avalanche) {
             for (const CBlockIndex *pindex : blocksToReconcile) {
-                g_avalanche->addToReconcile(pindex);
-                g_avalanche->computeStakingReward(pindex);
+                avalanche->addToReconcile(pindex);
+                avalanche->computeStakingReward(pindex);
             }
         }
 
@@ -3338,7 +3339,7 @@ bool Chainstate::PreciousBlock(BlockValidationState &state,
         }
     }
 
-    return ActivateBestChain(state);
+    return ActivateBestChain(state, /*pblock=*/nullptr, g_avalanche.get());
 }
 
 namespace {
@@ -4554,7 +4555,8 @@ bool ChainstateManager::ProcessNewBlock(
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
-    if (!ActiveChainstate().ActivateBestChain(state, block)) {
+    if (!ActiveChainstate().ActivateBestChain(state, block,
+                                              g_avalanche.get())) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
                      state.ToString());
     }
@@ -5291,7 +5293,7 @@ void Chainstate::LoadExternalBlockFile(
                 // continue
                 if (hash == params.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
-                    if (!ActivateBestChain(state, nullptr)) {
+                    if (!ActivateBestChain(state, nullptr, g_avalanche.get())) {
                         break;
                     }
                 }
@@ -5306,7 +5308,7 @@ void Chainstate::LoadExternalBlockFile(
                     // concurrent network message processing, but that is not
                     // reliable for the purpose of pruning while importing.
                     BlockValidationState state;
-                    if (!ActivateBestChain(state, pblock)) {
+                    if (!ActivateBestChain(state, pblock, g_avalanche.get())) {
                         LogPrint(BCLog::REINDEX,
                                  "failed to activate chain (%s)\n",
                                  state.ToString());

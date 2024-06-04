@@ -5,6 +5,7 @@
 
 #include <rpc/blockchain.h>
 
+#include <avalanche/avalanche.h> // for g_avalanche
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -1599,7 +1600,8 @@ static RPCHelpMan invalidateblock() {
             chainman.ActiveChainstate().InvalidateBlock(state, pblockindex);
 
             if (state.IsValid()) {
-                chainman.ActiveChainstate().ActivateBestChain(state);
+                chainman.ActiveChainstate().ActivateBestChain(
+                    state, /*pblock=*/nullptr, g_avalanche.get());
             }
 
             if (!state.IsValid()) {
@@ -1652,7 +1654,8 @@ RPCHelpMan parkblock() {
             active_chainstate.ParkBlock(state, pblockindex);
 
             if (state.IsValid()) {
-                active_chainstate.ActivateBestChain(state);
+                active_chainstate.ActivateBestChain(state, /*pblock=*/nullptr,
+                                                    g_avalanche.get());
             }
 
             if (!state.IsValid()) {
@@ -1698,7 +1701,8 @@ static RPCHelpMan reconsiderblock() {
             }
 
             BlockValidationState state;
-            chainman.ActiveChainstate().ActivateBestChain(state);
+            chainman.ActiveChainstate().ActivateBestChain(
+                state, /*pblock=*/nullptr, g_avalanche.get());
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
@@ -1763,7 +1767,8 @@ RPCHelpMan unparkblock() {
             }
 
             BlockValidationState state;
-            active_chainstate.ActivateBestChain(state);
+            active_chainstate.ActivateBestChain(state, /*pblock=*/nullptr,
+                                                g_avalanche.get());
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());

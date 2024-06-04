@@ -95,7 +95,8 @@ static bool CreateAndActivateUTXOSnapshot(TestingSetup *fixture,
         // support resetting the chainstate while preserving the block index.
         // We call CheckBlockIndex() explicitly below, after ActivateSnapshot.
         if (!node.chainman->ActiveChainstate().ActivateBestChain(
-                state, /*pblock=*/nullptr, /*skip_checkblockindex=*/true)) {
+                state, /*pblock=*/nullptr, /*avalanche=*/nullptr,
+                /*skip_checkblockindex=*/true)) {
             throw std::runtime_error(
                 strprintf("ActivateBestChain failed. (%s)", state.ToString()));
         }

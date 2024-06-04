@@ -2226,7 +2226,7 @@ BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
     BOOST_CHECK(!g_avalanche->isAccepted(blockindex));
 
     // Call ActivateBestChain to connect the new block
-    BOOST_CHECK(chainstate.ActivateBestChain(state, block));
+    BOOST_CHECK(chainstate.ActivateBestChain(state, block, g_avalanche.get()));
     // It is a valid block so the tip is updated
     BOOST_CHECK_EQUAL(chainstate.m_chain.Tip(), blockindex);
 

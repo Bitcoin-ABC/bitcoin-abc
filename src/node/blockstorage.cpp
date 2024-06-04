@@ -4,6 +4,7 @@
 
 #include <node/blockstorage.h>
 
+#include <avalanche/avalanche.h> // for g_avalanche
 #include <blockindexcomparators.h>
 #include <chain.h>
 #include <clientversion.h>
@@ -1007,7 +1008,8 @@ void ThreadImport(ChainstateManager &chainman,
         for (Chainstate *chainstate :
              WITH_LOCK(::cs_main, return chainman.GetAll())) {
             BlockValidationState state;
-            if (!chainstate->ActivateBestChain(state, nullptr)) {
+            if (!chainstate->ActivateBestChain(state, nullptr,
+                                               g_avalanche.get())) {
                 LogPrintf("Failed to connect best block (%s)\n",
                           state.ToString());
                 StartShutdown();
