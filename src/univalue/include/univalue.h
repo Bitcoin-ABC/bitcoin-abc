@@ -139,8 +139,6 @@ public:
     }
     bool get_bool() const;
     const std::string& get_str() const;
-    auto get_int() const { return getInt<int>(); };
-    auto get_int64() const { return getInt<int64_t>(); };
     double get_real() const;
     const UniValue& get_obj() const;
     const UniValue& get_array() const;
