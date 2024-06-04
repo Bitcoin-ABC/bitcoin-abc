@@ -4,7 +4,6 @@
 
 #include <rpc/server_util.h>
 
-#include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <common/args.h>
 #include <net_processing.h>
@@ -80,9 +79,9 @@ PeerManager &EnsurePeerman(const NodeContext &node) {
 }
 
 avalanche::Processor &EnsureAvalanche(const NodeContext &node) {
-    if (!g_avalanche) {
+    if (!node.avalanche) {
         throw JSONRPCError(RPC_INTERNAL_ERROR,
                            "Error: Avalanche processor missing or disabled");
     }
-    return *g_avalanche;
+    return *node.avalanche;
 }

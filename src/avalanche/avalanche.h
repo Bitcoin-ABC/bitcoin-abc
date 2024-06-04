@@ -65,9 +65,4 @@ static constexpr bool DEFAULT_PERSIST_AVAPEERS{true};
 /** Default for -avalanchepreconsensus */
 static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{false};
 
-/**
- * Global avalanche instance.
- */
-extern std::unique_ptr<avalanche::Processor> g_avalanche;
-
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H

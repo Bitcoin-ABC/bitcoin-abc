@@ -99,9 +99,9 @@ static void verifyProofOrThrow(const NodeContext &node, avalanche::Proof &proof,
     }
 
     Amount stakeUtxoDustThreshold = avalanche::PROOF_DUST_THRESHOLD;
-    if (g_avalanche) {
+    if (node.avalanche) {
         // If Avalanche is enabled, use the configured dust threshold
-        g_avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
+        node.avalanche->withPeerManager([&](avalanche::PeerManager &pm) {
             stakeUtxoDustThreshold = pm.getStakeUtxoDustThreshold();
         });
     }

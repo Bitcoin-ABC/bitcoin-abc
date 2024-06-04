@@ -201,10 +201,10 @@ void Interrupt(NodeContext &node) {
     InterruptREST();
     InterruptTorControl();
     InterruptMapPort();
-    if (g_avalanche) {
+    if (node.avalanche) {
         // Avalanche needs to be stopped before we interrupt the thread group as
         // the scheduler will stop working then.
-        g_avalanche->stopEventLoop();
+        node.avalanche->stopEventLoop();
     }
     if (node.connman) {
         node.connman->Interrupt();
@@ -251,8 +251,8 @@ void Shutdown(NodeContext &node) {
     // 2. Shutdown network processing.
     // 3. Destroy avalanche::Processor.
     // 4. Destroy CConnman
-    if (g_avalanche) {
-        g_avalanche->stopEventLoop();
+    if (node.avalanche) {
+        node.avalanche->stopEventLoop();
     }
 
     // Because these depend on each-other, we make sure that neither can be
@@ -281,7 +281,7 @@ void Shutdown(NodeContext &node) {
     node.peerman.reset();
 
     // Destroy various global instances
-    g_avalanche.reset();
+    node.avalanche.reset();
     node.connman.reset();
     node.banman.reset();
     node.addrman.reset();
@@ -2525,15 +2525,15 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED)) {
         // Initialize Avalanche.
         bilingual_str avalancheError;
-        g_avalanche = avalanche::Processor::MakeProcessor(
+        node.avalanche = avalanche::Processor::MakeProcessor(
             args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
             *node.scheduler, avalancheError);
-        if (!g_avalanche) {
+        if (!node.avalanche) {
             InitError(avalancheError);
             return false;
         }
 
-        if (g_avalanche->isAvalancheServiceAvailable()) {
+        if (node.avalanche->isAvalancheServiceAvailable()) {
             nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
         }
     }
@@ -2541,7 +2541,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     assert(!node.peerman);
     node.peerman =
         PeerManager::make(*node.connman, *node.addrman, node.banman.get(),
-                          chainman, *node.mempool, g_avalanche.get(),
+                          chainman, *node.mempool, node.avalanche.get(),
                           args.GetBoolArg("-blocksonly", DEFAULT_BLOCKSONLY));
     RegisterValidationInterface(node.peerman.get());
 
@@ -2665,9 +2665,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         vImportFiles.push_back(fs::PathFromString(strFile));
     }
 
-    chainman.m_load_block =
-        std::thread(&util::TraceThread, "loadblk", [=, &chainman, &args] {
-            ThreadImport(chainman, g_avalanche.get(), vImportFiles,
+    avalanche::Processor *const avalanche = node.avalanche.get();
+    chainman.m_load_block = std::thread(
+        &util::TraceThread, "loadblk", [=, &chainman, &args, &avalanche] {
+            ThreadImport(chainman, avalanche, vImportFiles,
                          ShouldPersistMempool(args) ? MempoolPath(args)
                                                     : fs::path{});
         });
@@ -2724,9 +2725,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nLocalServices = nLocalServices;
     connOptions.nMaxConnections = nMaxConnections;
     connOptions.m_max_avalanche_outbound =
-        g_avalanche ? args.GetIntArg("-maxavalancheoutbound",
-                                     DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
-                    : 0;
+        node.avalanche
+            ? args.GetIntArg("-maxavalancheoutbound",
+                             DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
+            : 0;
     connOptions.m_max_outbound_full_relay = std::min(
         MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
         connOptions.nMaxConnections - connOptions.m_max_avalanche_outbound);
@@ -2739,7 +2741,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.uiInterface = &uiInterface;
     connOptions.m_banman = node.banman.get();
     connOptions.m_msgproc.push_back(node.peerman.get());
-    connOptions.m_msgproc.push_back(g_avalanche.get());
+    connOptions.m_msgproc.push_back(node.avalanche.get());
     connOptions.nSendBufferMaxSize =
         1000 * args.GetIntArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =
@@ -2907,7 +2909,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         DUMP_BANS_INTERVAL);
 
     // Start Avalanche's event loop.
-    g_avalanche->startEventLoop(*node.scheduler);
+    node.avalanche->startEventLoop(*node.scheduler);
 
     if (node.peerman) {
         node.peerman->StartScheduledTasks(*node.scheduler);

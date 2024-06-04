@@ -3,7 +3,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <avalanche/avalanche.h>
 #include <avalanche/processor.h>
 #include <blockvalidity.h>
 #include <cashaddrenc.h>
@@ -283,7 +282,7 @@ static RPCHelpMan generatetodescriptor() {
             const CTxMemPool &mempool = EnsureMemPool(node);
             ChainstateManager &chainman = EnsureChainman(node);
 
-            return generateBlocks(chainman, mempool, g_avalanche.get(),
+            return generateBlocks(chainman, mempool, node.avalanche.get(),
                                   coinbase_script, num_blocks, max_tries);
         },
     };
@@ -348,7 +347,7 @@ static RPCHelpMan generatetoaddress() {
 
             CScript coinbase_script = GetScriptForDestination(destination);
 
-            return generateBlocks(chainman, mempool, g_avalanche.get(),
+            return generateBlocks(chainman, mempool, node.avalanche.get(),
                                   coinbase_script, num_blocks, max_tries);
         },
     };
@@ -447,7 +446,7 @@ static RPCHelpMan generateblock() {
 
                 std::unique_ptr<CBlockTemplate> blocktemplate(
                     BlockAssembler{config, chainman.ActiveChainstate(), nullptr,
-                                   g_avalanche.get()}
+                                   node.avalanche.get()}
                         .CreateNewBlock(coinbase_script));
                 if (!blocktemplate) {
                     throw JSONRPCError(RPC_INTERNAL_ERROR,
@@ -482,7 +481,7 @@ static RPCHelpMan generateblock() {
             BlockHash block_hash;
             uint64_t max_tries{DEFAULT_MAX_TRIES};
 
-            if (!GenerateBlock(chainman, g_avalanche.get(), block, max_tries,
+            if (!GenerateBlock(chainman, node.avalanche.get(), block, max_tries,
                                block_hash) ||
                 block_hash.IsNull()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Failed to make block.");
@@ -984,7 +983,7 @@ static RPCHelpMan getblocktemplate() {
                 // Create new block
                 CScript scriptDummy = CScript() << OP_TRUE;
                 pblocktemplate = BlockAssembler{config, active_chainstate,
-                                                &mempool, g_avalanche.get()}
+                                                &mempool, node.avalanche.get()}
                                      .CreateNewBlock(scriptDummy);
                 if (!pblocktemplate) {
                     throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");
@@ -1067,9 +1066,9 @@ static RPCHelpMan getblocktemplate() {
             coinbasetxn.pushKV("minerfund", minerFund);
 
             std::vector<CScript> stakingRewardsPayoutScripts;
-            if (g_avalanche &&
+            if (node.avalanche &&
                 IsStakingRewardsActivated(consensusParams, pindexPrev) &&
-                g_avalanche->getStakingRewardWinners(
+                node.avalanche->getStakingRewardWinners(
                     pindexPrev->GetBlockHash(), stakingRewardsPayoutScripts)) {
                 UniValue stakingRewards(UniValue::VOBJ);
                 UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
@@ -1180,7 +1179,8 @@ static RPCHelpMan submitblock() {
                                    "Block does not start with a coinbase");
             }
 
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             const BlockHash hash = block.GetHash();
             {
                 LOCK(cs_main);
@@ -1204,7 +1204,7 @@ static RPCHelpMan submitblock() {
                                                      /*force_processing=*/true,
                                                      /*min_pow_checked=*/true,
                                                      /*new_block=*/&new_block,
-                                                     g_avalanche.get());
+                                                     node.avalanche.get());
             UnregisterSharedValidationInterface(sc);
             if (!new_block && accepted) {
                 return "duplicate";

@@ -5,7 +5,6 @@
 
 #include <rpc/blockchain.h>
 
-#include <avalanche/avalanche.h> // for g_avalanche
 #include <blockfilter.h>
 #include <chain.h>
 #include <chainparams.h>
@@ -1545,7 +1544,8 @@ static RPCHelpMan preciousblock() {
             BlockHash hash(ParseHashV(request.params[0], "blockhash"));
             CBlockIndex *pblockindex;
 
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             {
                 LOCK(cs_main);
                 pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
@@ -1557,7 +1557,7 @@ static RPCHelpMan preciousblock() {
 
             BlockValidationState state;
             chainman.ActiveChainstate().PreciousBlock(state, pblockindex,
-                                                      g_avalanche.get());
+                                                      node.avalanche.get());
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());
@@ -1588,7 +1588,8 @@ static RPCHelpMan invalidateblock() {
             const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
             BlockValidationState state;
 
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             CBlockIndex *pblockindex;
             {
                 LOCK(cs_main);
@@ -1602,7 +1603,7 @@ static RPCHelpMan invalidateblock() {
 
             if (state.IsValid()) {
                 chainman.ActiveChainstate().ActivateBestChain(
-                    state, /*pblock=*/nullptr, g_avalanche.get());
+                    state, /*pblock=*/nullptr, node.avalanche.get());
             }
 
             if (!state.IsValid()) {
@@ -1634,7 +1635,8 @@ RPCHelpMan parkblock() {
             const BlockHash hash(uint256S(strHash));
             BlockValidationState state;
 
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             Chainstate &active_chainstate = chainman.ActiveChainstate();
             CBlockIndex *pblockindex = nullptr;
             {
@@ -1656,7 +1658,7 @@ RPCHelpMan parkblock() {
 
             if (state.IsValid()) {
                 active_chainstate.ActivateBestChain(state, /*pblock=*/nullptr,
-                                                    g_avalanche.get());
+                                                    node.avalanche.get());
             }
 
             if (!state.IsValid()) {
@@ -1686,7 +1688,8 @@ static RPCHelpMan reconsiderblock() {
                     HelpExampleRpc("reconsiderblock", "\"blockhash\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             const BlockHash hash(ParseHashV(request.params[0], "blockhash"));
 
             {
@@ -1703,7 +1706,7 @@ static RPCHelpMan reconsiderblock() {
 
             BlockValidationState state;
             chainman.ActiveChainstate().ActivateBestChain(
-                state, /*pblock=*/nullptr, g_avalanche.get());
+                state, /*pblock=*/nullptr, node.avalanche.get());
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.ToString());
@@ -1733,7 +1736,8 @@ RPCHelpMan unparkblock() {
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
             const std::string strHash = request.params[0].get_str();
-            ChainstateManager &chainman = EnsureAnyChainman(request.context);
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            ChainstateManager &chainman = EnsureChainman(node);
             const BlockHash hash(uint256S(strHash));
             Chainstate &active_chainstate = chainman.ActiveChainstate();
 
@@ -1769,7 +1773,7 @@ RPCHelpMan unparkblock() {
 
             BlockValidationState state;
             active_chainstate.ActivateBestChain(state, /*pblock=*/nullptr,
-                                                g_avalanche.get());
+                                                node.avalanche.get());
 
             if (!state.IsValid()) {
                 throw JSONRPCError(RPC_DATABASE_ERROR, state.GetRejectReason());

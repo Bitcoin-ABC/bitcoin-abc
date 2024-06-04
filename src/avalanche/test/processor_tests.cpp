@@ -2218,31 +2218,26 @@ BOOST_AUTO_TEST_CASE(block_reconcile_initial_vote) {
         BOOST_CHECK(blockindex);
     }
 
-    // ActivateBestChain() interacts with g_avalanche, so make it happy
-    g_avalanche = std::move(m_processor);
-
     // The block is not connected yet, and not added to the poll list yet
-    BOOST_CHECK(AvalancheTest::getInvsForNextPoll(*g_avalanche).empty());
-    BOOST_CHECK(!g_avalanche->isAccepted(blockindex));
+    BOOST_CHECK(AvalancheTest::getInvsForNextPoll(*m_processor).empty());
+    BOOST_CHECK(!m_processor->isAccepted(blockindex));
 
     // Call ActivateBestChain to connect the new block
-    BOOST_CHECK(chainstate.ActivateBestChain(state, block, g_avalanche.get()));
+    BOOST_CHECK(chainstate.ActivateBestChain(state, block, m_processor.get()));
     // It is a valid block so the tip is updated
     BOOST_CHECK_EQUAL(chainstate.m_chain.Tip(), blockindex);
 
     // Check the block is added to the poll
-    auto invs = AvalancheTest::getInvsForNextPoll(*g_avalanche);
+    auto invs = AvalancheTest::getInvsForNextPoll(*m_processor);
     BOOST_CHECK_EQUAL(invs.size(), 1);
     BOOST_CHECK_EQUAL(invs[0].type, MSG_BLOCK);
     BOOST_CHECK_EQUAL(invs[0].hash, blockhash);
 
     // This block is our new tip so we should vote "yes"
-    BOOST_CHECK(g_avalanche->isAccepted(blockindex));
+    BOOST_CHECK(m_processor->isAccepted(blockindex));
 
     // Prevent a data race between UpdatedBlockTip and the Processor destructor
     SyncWithValidationInterfaceQueue();
-
-    g_avalanche.reset(nullptr);
 }
 
 BOOST_AUTO_TEST_CASE(compute_staking_rewards) {

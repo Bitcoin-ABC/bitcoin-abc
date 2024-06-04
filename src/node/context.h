@@ -23,6 +23,9 @@ class Chain;
 class ChainClient;
 class WalletClient;
 } // namespace interfaces
+namespace avalanche {
+class Processor;
+} // namespace avalanche
 
 namespace node {
 class KernelNotifications;
@@ -56,6 +59,8 @@ struct NodeContext {
     std::unique_ptr<CScheduler> scheduler;
     std::function<void()> rpc_interruption_point = [] {};
     std::unique_ptr<KernelNotifications> notifications;
+
+    std::unique_ptr<avalanche::Processor> avalanche;
 
     //! Declare default constructor and destructor that are not inline, so code
     //! instantiating the NodeContext struct doesn't need to #include class

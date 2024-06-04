@@ -34,10 +34,6 @@ static constexpr std::chrono::milliseconds AVALANCHE_TIME_STEP{10};
 
 static const std::string AVAPEERS_FILE_NAME{"avapeers.dat"};
 
-// Unfortunately, the bitcoind codebase is full of global and we are kinda
-// forced into it here.
-std::unique_ptr<avalanche::Processor> g_avalanche;
-
 namespace avalanche {
 static const uint256 GetVoteItemId(const AnyVoteItem &item) {
     return std::visit(variant::overloaded{

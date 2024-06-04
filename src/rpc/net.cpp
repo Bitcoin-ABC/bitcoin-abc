@@ -248,7 +248,7 @@ static RPCHelpMan getpeerinfo() {
                 obj.pushKV("lastrecv", count_seconds(stats.m_last_recv));
                 obj.pushKV("last_transaction",
                            count_seconds(stats.m_last_tx_time));
-                if (g_avalanche) {
+                if (node.avalanche) {
                     obj.pushKV("last_proof",
                                count_seconds(stats.m_last_proof_time));
                 }
@@ -447,7 +447,7 @@ static RPCHelpMan addconnection() {
             } else if (conn_type_in == "feeler") {
                 conn_type = ConnectionType::FEELER;
             } else if (conn_type_in == "avalanche") {
-                if (!g_avalanche) {
+                if (!node.avalanche) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
                                        "Error: avalanche outbound requested "
                                        "but avalanche is not enabled.");
