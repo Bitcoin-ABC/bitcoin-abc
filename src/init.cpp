@@ -2664,7 +2664,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     chainman.m_load_block =
         std::thread(&util::TraceThread, "loadblk", [=, &chainman, &args] {
-            ThreadImport(chainman, vImportFiles,
+            ThreadImport(chainman, g_avalanche.get(), vImportFiles,
                          ShouldPersistMempool(args) ? MempoolPath(args)
                                                     : fs::path{});
         });

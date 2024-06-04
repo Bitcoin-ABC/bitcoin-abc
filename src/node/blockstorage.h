@@ -34,6 +34,9 @@ struct FlatFilePos;
 namespace Consensus {
 struct Params;
 }
+namespace avalanche {
+class Processor;
+}
 
 namespace node {
 
@@ -295,6 +298,7 @@ public:
 };
 
 void ThreadImport(ChainstateManager &chainman,
+                  avalanche::Processor *const avalanche,
                   std::vector<fs::path> vImportFiles,
                   const fs::path &mempool_path);
 } // namespace node

@@ -5171,7 +5171,8 @@ bool Chainstate::LoadGenesisBlock() {
 
 void Chainstate::LoadExternalBlockFile(
     FILE *fileIn, FlatFilePos *dbp,
-    std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent) {
+    std::multimap<BlockHash, FlatFilePos> *blocks_with_unknown_parent,
+    avalanche::Processor *const avalanche) {
     AssertLockNotHeld(m_chainstate_mutex);
 
     // Either both should be specified (-reindex), or neither (-loadblock).
@@ -5293,7 +5294,7 @@ void Chainstate::LoadExternalBlockFile(
                 // continue
                 if (hash == params.GetConsensus().hashGenesisBlock) {
                     BlockValidationState state;
-                    if (!ActivateBestChain(state, nullptr, g_avalanche.get())) {
+                    if (!ActivateBestChain(state, nullptr, avalanche)) {
                         break;
                     }
                 }
@@ -5308,7 +5309,7 @@ void Chainstate::LoadExternalBlockFile(
                     // concurrent network message processing, but that is not
                     // reliable for the purpose of pruning while importing.
                     BlockValidationState state;
-                    if (!ActivateBestChain(state, pblock, g_avalanche.get())) {
+                    if (!ActivateBestChain(state, pblock, avalanche)) {
                         LogPrint(BCLog::REINDEX,
                                  "failed to activate chain (%s)\n",
                                  state.ToString());

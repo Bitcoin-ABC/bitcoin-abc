@@ -835,7 +835,8 @@ public:
      */
     void LoadExternalBlockFile(FILE *fileIn, FlatFilePos *dbp = nullptr,
                                std::multimap<BlockHash, FlatFilePos>
-                                   *blocks_with_unknown_parent = nullptr)
+                                   *blocks_with_unknown_parent = nullptr,
+                               avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex);
 

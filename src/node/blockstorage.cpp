@@ -4,7 +4,7 @@
 
 #include <node/blockstorage.h>
 
-#include <avalanche/avalanche.h> // for g_avalanche
+#include <avalanche/processor.h>
 #include <blockindexcomparators.h>
 #include <chain.h>
 #include <clientversion.h>
@@ -912,6 +912,7 @@ public:
 };
 
 void ThreadImport(ChainstateManager &chainman,
+                  avalanche::Processor *const avalanche,
                   std::vector<fs::path> vImportFiles,
                   const fs::path &mempool_path) {
     ScheduleBatchPriority();
@@ -940,7 +941,7 @@ void ThreadImport(ChainstateManager &chainman,
                 LogPrintf("Reindexing block file blk%05u.dat...\n",
                           (unsigned int)nFile);
                 chainman.ActiveChainstate().LoadExternalBlockFile(
-                    file, &pos, &blocks_with_unknown_parent);
+                    file, &pos, &blocks_with_unknown_parent, avalanche);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
@@ -963,7 +964,9 @@ void ThreadImport(ChainstateManager &chainman,
             if (file) {
                 LogPrintf("Importing blocks file %s...\n",
                           fs::PathToString(path));
-                chainman.ActiveChainstate().LoadExternalBlockFile(file);
+                chainman.ActiveChainstate().LoadExternalBlockFile(
+                    file, /*dbp=*/nullptr,
+                    /*blocks_with_unknown_parent=*/nullptr, avalanche);
                 if (ShutdownRequested()) {
                     LogPrintf("Shutdown requested. Exit %s\n", __func__);
                     return;
@@ -1008,8 +1011,7 @@ void ThreadImport(ChainstateManager &chainman,
         for (Chainstate *chainstate :
              WITH_LOCK(::cs_main, return chainman.GetAll())) {
             BlockValidationState state;
-            if (!chainstate->ActivateBestChain(state, nullptr,
-                                               g_avalanche.get())) {
+            if (!chainstate->ActivateBestChain(state, nullptr, avalanche)) {
                 LogPrintf("Failed to connect best block (%s)\n",
                           state.ToString());
                 StartShutdown();
