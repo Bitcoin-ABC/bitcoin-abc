@@ -941,7 +941,8 @@ public:
     /**
      * Mark a block as finalized by avalanche.
      */
-    bool AvalancheFinalizeBlock(CBlockIndex *pindex)
+    bool AvalancheFinalizeBlock(CBlockIndex *pindex,
+                                avalanche::Processor &avalanche)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_avalancheFinalizedBlockIndex);
 
     /**

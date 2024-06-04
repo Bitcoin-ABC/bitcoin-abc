@@ -2,6 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <avalanche/processor.h>
 #include <consensus/validation.h>
 #include <primitives/block.h>
 #include <scheduler.h>
@@ -146,17 +147,22 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
     // Make sure the test function was actually called
     BOOST_CHECK_EQUAL(callCount, tipHeight + 1);
 
+    bilingual_str error;
+    auto avalanche = avalanche::Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(), *m_node.chainman,
+        m_node.mempool.get(), *m_node.scheduler, error);
+
     // Check calling from AvalancheFinalizedBlock
     Chainstate &activeChainState = m_node.chainman->ActiveChainstate();
 
     callCount = 0;
     calledIndex = nullptr;
-    BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(nullptr));
+    BOOST_CHECK(!activeChainState.AvalancheFinalizeBlock(nullptr, *avalanche));
     SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 0);
     BOOST_CHECK_EQUAL(calledIndex, nullptr);
 
-    BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip));
+    BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
     SyncWithValidationInterfaceQueue();
     BOOST_CHECK_EQUAL(callCount, 1);
     BOOST_CHECK_EQUAL(calledIndex, tip);
@@ -164,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(block_finalized, TestChain100Setup) {
     // Successive calls won't call the validation again, because the block is
     // already finalized.
     for (size_t i = 0; i < 10; i++) {
-        BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip));
+        BOOST_CHECK(activeChainState.AvalancheFinalizeBlock(tip, *avalanche));
         SyncWithValidationInterfaceQueue();
         BOOST_CHECK_EQUAL(callCount, 1);
         BOOST_CHECK_EQUAL(calledIndex, tip);

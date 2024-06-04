@@ -4,6 +4,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <avalanche/processor.h>
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
@@ -257,11 +258,16 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     const CChainParams &chainParams = config.GetChainParams();
     ChainstateManager &chainman = *Assert(m_node.chainman);
 
+    bilingual_str error;
+    auto avalanche = avalanche::Processor::MakeProcessor(
+        *m_node.args, *m_node.chain, m_node.connman.get(), chainman,
+        m_node.mempool.get(), *m_node.scheduler, error);
+
     // Connect the genesis block
     bool newBlock;
     BOOST_CHECK(chainman.ProcessNewBlock(
         std::make_shared<CBlock>(chainParams.GenesisBlock()), true, true,
-        &newBlock));
+        &newBlock, avalanche.get()));
 
     // Generate an invalid block with a valid header
     const std::shared_ptr<const CBlock> pblock =
@@ -281,11 +287,12 @@ BOOST_AUTO_TEST_CASE(avalanche_finalization_bad_state) {
     // Set the tip to pindex because AvalancheFinalizeBlock checks it is in the
     // active chain.
     activeChainstate.m_chain.SetTip(*Assert(pindex));
-    BOOST_CHECK(activeChainstate.AvalancheFinalizeBlock(pindex));
+    BOOST_CHECK(activeChainstate.AvalancheFinalizeBlock(pindex, *avalanche));
     activeChainstate.m_chain.SetTip(*Assert(pindex->pprev));
 
     // Process the block. It should be found invalid and finalization reverted.
-    bool processed = chainman.ProcessNewBlock(pblock, true, true, &newBlock);
+    bool processed = chainman.ProcessNewBlock(pblock, true, true, &newBlock,
+                                              avalanche.get());
     assert(processed);
     BOOST_CHECK(newBlock);
     {

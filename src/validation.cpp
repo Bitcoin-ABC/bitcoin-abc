@@ -3691,7 +3691,8 @@ void Chainstate::UnparkBlock(CBlockIndex *pindex) {
     return UnparkBlockImpl(pindex, false);
 }
 
-bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex) {
+bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex,
+                                        avalanche::Processor &avalanche) {
     if (!pindex) {
         return false;
     }
@@ -3704,9 +3705,7 @@ bool Chainstate::AvalancheFinalizeBlock(CBlockIndex *pindex) {
         return false;
     }
 
-    if (g_avalanche) {
-        g_avalanche->cleanupStakingRewards(pindex->nHeight);
-    }
+    avalanche.cleanupStakingRewards(pindex->nHeight);
 
     if (IsBlockAvalancheFinalized(pindex)) {
         return true;

@@ -6279,7 +6279,7 @@ void PeerManagerImpl::ProcessMessage(
                         }
 
                         m_chainman.ActiveChainstate().AvalancheFinalizeBlock(
-                            pindex);
+                            pindex, *m_avalanche);
                     } break;
                     case avalanche::VoteStatus::Stale:
                         // Fall back on Nakamoto consensus in the absence of
