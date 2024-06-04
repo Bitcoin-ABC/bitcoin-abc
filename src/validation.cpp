@@ -2577,7 +2577,8 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
                             CBlockIndex *pindexNew,
                             const std::shared_ptr<const CBlock> &pblock,
                             ConnectTrace &connectTrace,
-                            DisconnectedBlockTransactions &disconnectpool) {
+                            DisconnectedBlockTransactions &disconnectpool,
+                            const avalanche::Processor *const avalanche) {
     AssertLockHeld(cs_main);
     if (m_mempool) {
         AssertLockHeld(m_mempool->cs);
@@ -2648,10 +2649,10 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
             parkingPolicies.emplace_back(std::make_unique<MinerFundPolicy>(
                 consensusParams, *pindexNew, blockConnecting, blockReward));
 
-            if (g_avalanche) {
+            if (avalanche) {
                 parkingPolicies.emplace_back(
                     std::make_unique<StakingRewardsPolicy>(
-                        *g_avalanche, consensusParams, *pindexNew,
+                        *avalanche, consensusParams, *pindexNew,
                         blockConnecting, blockReward));
 
                 if (m_mempool) {
@@ -3015,7 +3016,7 @@ bool Chainstate::ActivateBestChainStep(
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
-                            connectTrace, disconnectpool)) {
+                            connectTrace, disconnectpool, g_avalanche.get())) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (state.GetResult() !=

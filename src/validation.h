@@ -71,6 +71,9 @@ class SnapshotMetadata;
 namespace Consensus {
 struct Params;
 } // namespace Consensus
+namespace avalanche {
+class Processor;
+} // namespace avalanche
 
 #define MIN_TRANSACTION_SIZE                                                   \
     (::GetSerializeSize(CTransaction(), PROTOCOL_VERSION))
@@ -1039,7 +1042,8 @@ private:
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
                     ConnectTrace &connectTrace,
-                    DisconnectedBlockTransactions &disconnectpool)
+                    DisconnectedBlockTransactions &disconnectpool,
+                    const avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs,
                                  !cs_avalancheFinalizedBlockIndex);
     void InvalidBlockFound(CBlockIndex *pindex,
