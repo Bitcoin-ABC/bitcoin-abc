@@ -485,7 +485,7 @@ namespace {
                     if (!last_handler) {
                         const UniValue &code = e["code"];
                         if (code.isNum() &&
-                            code.get_int() == RPC_WALLET_NOT_FOUND) {
+                            code.getInt<int>() == RPC_WALLET_NOT_FOUND) {
                             return false;
                         }
                     }

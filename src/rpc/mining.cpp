@@ -126,8 +126,10 @@ static RPCHelpMan getnetworkhashps() {
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
             return GetNetworkHashPS(
-                !request.params[0].isNull() ? request.params[0].get_int() : 120,
-                !request.params[1].isNull() ? request.params[1].get_int() : -1,
+                !request.params[0].isNull() ? request.params[0].getInt<int>()
+                                            : 120,
+                !request.params[1].isNull() ? request.params[1].getInt<int>()
+                                            : -1,
                 chainman.ActiveChain());
         },
     };
@@ -262,10 +264,10 @@ static RPCHelpMan generatetodescriptor() {
                     HelpExampleCli("generatetodescriptor", "11 \"mydesc\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const int num_blocks{request.params[0].get_int()};
+            const int num_blocks{request.params[0].getInt<int>()};
             const uint64_t max_tries{request.params[2].isNull()
                                          ? DEFAULT_MAX_TRIES
-                                         : request.params[2].get_int()};
+                                         : request.params[2].getInt<int>()};
 
             CScript coinbase_script;
             std::string error;
@@ -325,10 +327,10 @@ static RPCHelpMan generatetoaddress() {
             HelpExampleCli("getnewaddress", "")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const int num_blocks{request.params[0].get_int()};
+            const int num_blocks{request.params[0].getInt<int>()};
             const uint64_t max_tries{request.params[2].isNull()
                                          ? DEFAULT_MAX_TRIES
-                                         : request.params[2].get_int64()};
+                                         : request.params[2].getInt<int64_t>()};
 
             CTxDestination destination = DecodeDestination(
                 request.params[1].get_str(), config.GetChainParams());
@@ -580,7 +582,7 @@ static RPCHelpMan prioritisetransaction() {
             LOCK(cs_main);
 
             TxId txid(ParseHashV(request.params[0], "txid"));
-            Amount nAmount = request.params[2].get_int64() * SATOSHI;
+            Amount nAmount = request.params[2].getInt<int64_t>() * SATOSHI;
 
             if (!(request.params[1].isNull() ||
                   request.params[1].get_real() == 0)) {

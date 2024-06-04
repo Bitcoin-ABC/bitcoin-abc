@@ -229,8 +229,8 @@ static RPCHelpMan stop() {
             // handled, so this reply will get back to the client.
             StartShutdown();
             if (jsonRequest.params[0].isNum()) {
-                UninterruptibleSleep(
-                    std::chrono::milliseconds{jsonRequest.params[0].get_int()});
+                UninterruptibleSleep(std::chrono::milliseconds{
+                    jsonRequest.params[0].getInt<int>()});
             }
             return RESULT;
         },

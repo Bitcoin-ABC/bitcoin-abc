@@ -102,7 +102,7 @@ static const CBlockIndex *ParseHashOrHeight(const UniValue &param,
     CChain &active_chain = chainman.ActiveChain();
 
     if (param.isNum()) {
-        const int height{param.get_int()};
+        const int height{param.getInt<int>()};
         if (height < 0) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
@@ -263,7 +263,7 @@ static RPCHelpMan waitfornewblock() {
             const JSONRPCRequest &request) -> UniValue {
             int timeout = 0;
             if (!request.params[0].isNull()) {
-                timeout = request.params[0].get_int();
+                timeout = request.params[0].getInt<int>();
             }
 
             CUpdatedBlock block;
@@ -329,7 +329,7 @@ static RPCHelpMan waitforblock() {
             BlockHash hash(ParseHashV(request.params[0], "blockhash"));
 
             if (!request.params[1].isNull()) {
-                timeout = request.params[1].get_int();
+                timeout = request.params[1].getInt<int>();
             }
 
             CUpdatedBlock block;
@@ -385,10 +385,10 @@ static RPCHelpMan waitforblockheight() {
             const JSONRPCRequest &request) -> UniValue {
             int timeout = 0;
 
-            int height = request.params[0].get_int();
+            int height = request.params[0].getInt<int>();
 
             if (!request.params[1].isNull()) {
-                timeout = request.params[1].get_int();
+                timeout = request.params[1].getInt<int>();
             }
 
             CUpdatedBlock block;
@@ -486,7 +486,7 @@ static RPCHelpMan getblockfrompeer() {
 
             const BlockHash block_hash{
                 ParseHashV(request.params[0], "blockhash")};
-            const NodeId peer_id{request.params[1].get_int64()};
+            const NodeId peer_id{request.params[1].getInt<int64_t>()};
 
             const CBlockIndex *const index = WITH_LOCK(
                 cs_main,
@@ -525,7 +525,7 @@ static RPCHelpMan getblockhash() {
             LOCK(cs_main);
             const CChain &active_chain = chainman.ActiveChain();
 
-            int nHeight = request.params[0].get_int();
+            int nHeight = request.params[0].getInt<int>();
             if (nHeight < 0 || nHeight > active_chain.Height()) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Block height out of range");
@@ -776,7 +776,7 @@ static RPCHelpMan getblock() {
             int verbosity = 1;
             if (!request.params[1].isNull()) {
                 if (request.params[1].isNum()) {
-                    verbosity = request.params[1].get_int();
+                    verbosity = request.params[1].getInt<int>();
                 } else {
                     verbosity = request.params[1].get_bool() ? 1 : 0;
                 }
@@ -842,7 +842,7 @@ static RPCHelpMan pruneblockchain() {
             Chainstate &active_chainstate = chainman.ActiveChainstate();
             CChain &active_chain = active_chainstate.m_chain;
 
-            int heightParam = request.params[0].get_int();
+            int heightParam = request.params[0].getInt<int>();
             if (heightParam < 0) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Negative block height.");
@@ -1198,7 +1198,7 @@ RPCHelpMan gettxout() {
             UniValue ret(UniValue::VOBJ);
 
             TxId txid(ParseHashV(request.params[0], "txid"));
-            int n = request.params[1].get_int();
+            int n = request.params[1].getInt<int>();
             COutPoint out(txid, n);
             bool fMempool = true;
             if (!request.params[2].isNull()) {
@@ -1266,10 +1266,10 @@ static RPCHelpMan verifychain() {
             const JSONRPCRequest &request) -> UniValue {
             const int check_level{request.params[0].isNull()
                                       ? DEFAULT_CHECKLEVEL
-                                      : request.params[0].get_int()};
+                                      : request.params[0].getInt<int>()};
             const int check_depth{request.params[1].isNull()
                                       ? DEFAULT_CHECKBLOCKS
-                                      : request.params[1].get_int()};
+                                      : request.params[1].getInt<int>()};
 
             ChainstateManager &chainman = EnsureAnyChainman(request.context);
             LOCK(cs_main);
@@ -1851,7 +1851,7 @@ static RPCHelpMan getchaintxstats() {
                 blockcount =
                     std::max(0, std::min(blockcount, pindex->nHeight - 1));
             } else {
-                blockcount = request.params[0].get_int();
+                blockcount = request.params[0].getInt<int>();
 
                 if (blockcount < 0 ||
                     (blockcount > 0 && blockcount >= pindex->nHeight)) {

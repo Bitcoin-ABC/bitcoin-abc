@@ -240,8 +240,8 @@ BOOST_AUTO_TEST_CASE(sighash_from_data) {
             // deserialize test data
             std::string raw_tx = test[0].get_str();
             std::string raw_script = test[1].get_str();
-            nIn = test[2].get_int();
-            sigHashType = SigHashType(test[3].get_int());
+            nIn = test[2].getInt<int>();
+            sigHashType = SigHashType(test[3].getInt<int>());
             sigHashRegHex = test[4].get_str();
             sigHashOldHex = test[5].get_str();
             sigHashRepHex = test[6].get_str();

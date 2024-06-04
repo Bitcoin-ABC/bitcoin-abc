@@ -489,7 +489,7 @@ void RPCExecutor::request(const QString &command,
     } catch (UniValue &objError) {
         // Nice formatting for standard-format error
         try {
-            int code = objError.find_value("code").get_int();
+            int code = objError.find_value("code").getInt<int>();
             std::string message = objError.find_value("message").get_str();
             Q_EMIT reply(RPCConsole::CMD_ERROR,
                          QString::fromStdString(message) + " (code " +

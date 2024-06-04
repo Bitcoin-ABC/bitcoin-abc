@@ -176,9 +176,9 @@ BOOST_AUTO_TEST_CASE(rpc_rawparams) {
         "9e2bbf32d826a1e222031fd888ac00000000";
     BOOST_CHECK_NO_THROW(
         r = CallRPC(std::string("decoderawtransaction ") + rawtx));
-    BOOST_CHECK_EQUAL(r.get_obj().find_value("version").get_int(), 1);
-    BOOST_CHECK_EQUAL(r.get_obj().find_value("size").get_int(), 193);
-    BOOST_CHECK_EQUAL(r.get_obj().find_value("locktime").get_int(), 0);
+    BOOST_CHECK_EQUAL(r.get_obj().find_value("version").getInt<int>(), 1);
+    BOOST_CHECK_EQUAL(r.get_obj().find_value("size").getInt<int>(), 193);
+    BOOST_CHECK_EQUAL(r.get_obj().find_value("locktime").getInt<int>(), 0);
     BOOST_CHECK_THROW(
         r = CallRPC(std::string("decoderawtransaction ") + rawtx + " extra"),
         std::runtime_error);
@@ -203,7 +203,7 @@ BOOST_AUTO_TEST_CASE(rpc_togglenetwork) {
 
     BOOST_CHECK_NO_THROW(CallRPC("setnetworkactive false"));
     r = CallRPC("getnetworkinfo");
-    int numConnection = r.get_obj().find_value("connections").get_int();
+    int numConnection = r.get_obj().find_value("connections").getInt<int>();
     BOOST_CHECK_EQUAL(numConnection, 0);
 
     netState = r.get_obj().find_value("networkactive").get_bool();
@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
     UniValue banned_until = o1.find_value("banned_until");
     BOOST_CHECK_EQUAL(adr.get_str(), "127.0.0.0/24");
     // absolute time check
-    BOOST_CHECK_EQUAL(banned_until.get_int64(), 9907731200);
+    BOOST_CHECK_EQUAL(banned_until.getInt<int64_t>(), 9907731200);
 
     BOOST_CHECK_NO_THROW(CallRPC(std::string("clearbanned")));
 
@@ -502,8 +502,8 @@ BOOST_AUTO_TEST_CASE(rpc_ban) {
     banned_until = o1.find_value("banned_until");
     BOOST_CHECK_EQUAL(adr.get_str(), "127.0.0.0/24");
     int64_t now = GetTime();
-    BOOST_CHECK(banned_until.get_int64() > now);
-    BOOST_CHECK(banned_until.get_int64() - now <= 200);
+    BOOST_CHECK(banned_until.getInt<int64_t>() > now);
+    BOOST_CHECK(banned_until.getInt<int64_t>() - now <= 200);
 
     // must throw an exception because 127.0.0.1 is in already banned subnet
     // range
@@ -566,32 +566,32 @@ BOOST_AUTO_TEST_CASE(rpc_convert_values_generatetoaddress) {
     BOOST_CHECK_NO_THROW(result = RPCConvertValues(
                              "generatetoaddress",
                              {"101", "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a"}));
-    BOOST_CHECK_EQUAL(result[0].get_int(), 101);
+    BOOST_CHECK_EQUAL(result[0].getInt<int>(), 101);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a");
 
     BOOST_CHECK_NO_THROW(result = RPCConvertValues(
                              "generatetoaddress",
                              {"101", "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU"}));
-    BOOST_CHECK_EQUAL(result[0].get_int(), 101);
+    BOOST_CHECK_EQUAL(result[0].getInt<int>(), 101);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU");
 
     BOOST_CHECK_NO_THROW(result = RPCConvertValues(
                              "generatetoaddress",
                              {"1", "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a", "9"}));
-    BOOST_CHECK_EQUAL(result[0].get_int(), 1);
+    BOOST_CHECK_EQUAL(result[0].getInt<int>(), 1);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mkESjLZW66TmHhiFX8MCaBjrhZ543PPh9a");
-    BOOST_CHECK_EQUAL(result[2].get_int(), 9);
+    BOOST_CHECK_EQUAL(result[2].getInt<int>(), 9);
 
     BOOST_CHECK_NO_THROW(result = RPCConvertValues(
                              "generatetoaddress",
                              {"1", "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU", "9"}));
-    BOOST_CHECK_EQUAL(result[0].get_int(), 1);
+    BOOST_CHECK_EQUAL(result[0].getInt<int>(), 1);
     BOOST_CHECK_EQUAL(result[1].get_str(),
                       "mhMbmE2tE9xzJYCV9aNC8jKWN31vtGrguU");
-    BOOST_CHECK_EQUAL(result[2].get_int(), 9);
+    BOOST_CHECK_EQUAL(result[2].getInt<int>(), 9);
 }
 
 BOOST_AUTO_TEST_CASE(help_example) {

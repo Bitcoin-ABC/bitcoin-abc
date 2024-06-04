@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(blockfilters_json_test) {
         }
 
         size_t pos = 0;
-        /*int block_height =*/test[pos++].get_int();
+        /*int block_height =*/test[pos++].getInt<int>();
         uint256 block_hash;
         BOOST_CHECK(ParseHashStr(test[pos++].get_str(), block_hash));
 

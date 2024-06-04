@@ -515,7 +515,7 @@ public:
         }
 
         const UniValue &networkinfo{batch[ID_NETWORKINFO]["result"]};
-        if (networkinfo["version"].get_int() < 230000) {
+        if (networkinfo["version"].getInt<int>() < 230000) {
             throw std::runtime_error("-netinfo requires bitcoind server to be "
                                      "running v0.23.0 and up");
         }
@@ -546,16 +546,17 @@ public:
             }
             if (DetailsRequested()) {
                 // Push data for this peer to the peers vector.
-                const int peer_id{peer["id"].get_int()};
+                const int peer_id{peer["id"].getInt<int>()};
                 const int mapped_as{peer["mapped_as"].isNull()
                                         ? 0
-                                        : peer["mapped_as"].get_int()};
-                const int version{peer["version"].get_int()};
-                const int64_t conn_time{peer["conntime"].get_int64()};
-                const int64_t last_blck{peer["last_block"].get_int64()};
-                const int64_t last_recv{peer["lastrecv"].get_int64()};
-                const int64_t last_send{peer["lastsend"].get_int64()};
-                const int64_t last_trxn{peer["last_transaction"].get_int64()};
+                                        : peer["mapped_as"].getInt<int>()};
+                const int version{peer["version"].getInt<int>()};
+                const int64_t conn_time{peer["conntime"].getInt<int64_t>()};
+                const int64_t last_blck{peer["last_block"].getInt<int64_t>()};
+                const int64_t last_recv{peer["lastrecv"].getInt<int64_t>()};
+                const int64_t last_send{peer["lastsend"].getInt<int64_t>()};
+                const int64_t last_trxn{
+                    peer["last_transaction"].getInt<int64_t>()};
                 const double min_ping{
                     peer["minping"].isNull() ? -1 : peer["minping"].get_real()};
                 const double ping{peer["pingtime"].isNull()
@@ -580,10 +581,10 @@ public:
         }
 
         // Generate report header.
-        std::string result{strprintf("%s %s%s - %i%s\n\n", PACKAGE_NAME,
-                                     FormatFullVersion(), ChainToString(),
-                                     networkinfo["protocolversion"].get_int(),
-                                     networkinfo["subversion"].get_str())};
+        std::string result{strprintf(
+            "%s %s%s - %i%s\n\n", PACKAGE_NAME, FormatFullVersion(),
+            ChainToString(), networkinfo["protocolversion"].getInt<int>(),
+            networkinfo["subversion"].get_str())};
 
         // Report detailed peer connections list sorted by direction and minimum
         // ping time.
@@ -661,10 +662,10 @@ public:
                                          max_addr_size);
             }
             for (const UniValue &addr : local_addrs) {
-                result +=
-                    strprintf("\n%-*s    port %6i    score %6i", max_addr_size,
-                              addr["address"].get_str(), addr["port"].get_int(),
-                              addr["score"].get_int());
+                result += strprintf("\n%-*s    port %6i    score %6i",
+                                    max_addr_size, addr["address"].get_str(),
+                                    addr["port"].getInt<int>(),
+                                    addr["score"].getInt<int>());
             }
         }
 
@@ -883,7 +884,7 @@ ConnectAndCallRPC(BaseRequestHandler *rh, const std::string &strMethod,
             if (fWait) {
                 const UniValue &error = response.find_value("error");
                 if (!error.isNull() &&
-                    error["code"].get_int() == RPC_IN_WARMUP) {
+                    error["code"].getInt<int>() == RPC_IN_WARMUP) {
                     throw CConnectionFailed("server in warmup");
                 }
             }
@@ -923,14 +924,14 @@ static void ParseError(const UniValue &error, std::string &strPrint,
             strPrint += ("error message:\n" + err_msg.get_str());
         }
         if (err_code.isNum() &&
-            err_code.get_int() == RPC_WALLET_NOT_SPECIFIED) {
+            err_code.getInt<int>() == RPC_WALLET_NOT_SPECIFIED) {
             strPrint += "\nTry adding \"-rpcwallet=<filename>\" option to "
                         "bitcoin-cli command line.";
         }
     } else {
         strPrint = "error: " + error.write();
     }
-    nRet = abs(error["code"].get_int());
+    nRet = abs(error["code"].getInt<int>());
 }
 
 /**

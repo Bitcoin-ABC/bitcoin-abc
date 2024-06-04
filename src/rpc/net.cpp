@@ -513,7 +513,7 @@ static RPCHelpMan disconnectnode() {
                                             (address_arg.isStr() &&
                                              address_arg.get_str().empty()))) {
                 /* handle disconnect-by-id */
-                NodeId nodeid = (NodeId)id_arg.get_int64();
+                NodeId nodeid = (NodeId)id_arg.getInt<int64_t>();
                 success = connman.DisconnectNode(nodeid);
             } else {
                 throw JSONRPCError(
@@ -905,7 +905,7 @@ static RPCHelpMan setban() {
                 // Use standard bantime if not specified.
                 int64_t banTime = 0;
                 if (!request.params[2].isNull()) {
-                    banTime = request.params[2].get_int64();
+                    banTime = request.params[2].getInt<int64_t>();
                 }
 
                 bool absolute = false;
@@ -1078,8 +1078,9 @@ static RPCHelpMan getnodeaddresses() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             const CConnman &connman = EnsureConnman(node);
 
-            const int count{
-                request.params[0].isNull() ? 1 : request.params[0].get_int()};
+            const int count{request.params[0].isNull()
+                                ? 1
+                                : request.params[0].getInt<int>()};
             if (count < 0) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER,
                                    "Address count out of range");
@@ -1153,7 +1154,7 @@ static RPCHelpMan addpeeraddress() {
 
             const std::string &addr_string{request.params[0].get_str()};
             const uint16_t port{
-                static_cast<uint16_t>(request.params[1].get_int())};
+                static_cast<uint16_t>(request.params[1].getInt<int>())};
             const bool tried{request.params[2].isTrue()};
 
             UniValue obj(UniValue::VOBJ);

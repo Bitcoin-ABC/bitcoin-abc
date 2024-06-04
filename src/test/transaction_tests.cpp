@@ -51,7 +51,7 @@ BOOST_FIXTURE_TEST_SUITE(transaction_tests, BasicTestingSetup)
 static COutPoint buildOutPoint(const UniValue &vinput) {
     TxId txid;
     txid.SetHex(vinput[0].get_str());
-    return COutPoint(txid, vinput[1].get_int());
+    return COutPoint(txid, vinput[1].getInt<int>());
 }
 
 BOOST_AUTO_TEST_CASE(tx_valid) {
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(tx_valid) {
                     ParseScript(vinput[2].get_str());
                 if (vinput.size() >= 4) {
                     mapprevOutValues[outpoint] =
-                        vinput[3].get_int64() * SATOSHI;
+                        vinput[3].getInt<int64_t>() * SATOSHI;
                 }
             }
             if (!fValid) {
@@ -200,7 +200,7 @@ BOOST_AUTO_TEST_CASE(tx_invalid) {
                     ParseScript(vinput[2].get_str());
                 if (vinput.size() >= 4) {
                     mapprevOutValues[outpoint] =
-                        vinput[3].get_int64() * SATOSHI;
+                        vinput[3].getInt<int64_t>() * SATOSHI;
                 }
             }
             if (!fValid) {

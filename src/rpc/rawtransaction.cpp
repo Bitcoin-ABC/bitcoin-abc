@@ -224,7 +224,7 @@ static RPCHelpMan getrawtransaction() {
             bool fVerbose = false;
             if (!request.params[1].isNull()) {
                 fVerbose = request.params[1].isNum()
-                               ? (request.params[1].get_int() != 0)
+                               ? (request.params[1].getInt<int>() != 0)
                                : request.params[1].get_bool();
             }
 

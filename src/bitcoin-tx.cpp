@@ -636,7 +636,7 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
 
         TxId txid(hash);
 
-        const int nOut = prevOut["vout"].get_int();
+        const int nOut = prevOut["vout"].getInt<int>();
         if (nOut < 0) {
             throw std::runtime_error("vout cannot be negative");
         }

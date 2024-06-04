@@ -138,7 +138,7 @@ static RPCHelpMan createmultisig() {
                            "7e107ef3f6aa5a61626\\\"]\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            int required = request.params[0].get_int();
+            int required = request.params[0].getInt<int>();
 
             // Get the public keys
             const UniValue &keys = request.params[1].get_array();
@@ -465,7 +465,7 @@ static RPCHelpMan setmocktime() {
             // and ensure all call sites of GetTime() are accessing this safely.
             LOCK(cs_main);
 
-            const int64_t time{request.params[0].get_int64()};
+            const int64_t time{request.params[0].getInt<int64_t>()};
             if (time < 0) {
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
@@ -501,7 +501,7 @@ static RPCHelpMan mockscheduler() {
                                          "testing (-regtest mode) only");
             }
 
-            int64_t delta_seconds = request.params[0].get_int64();
+            int64_t delta_seconds = request.params[0].getInt<int64_t>();
             if ((delta_seconds <= 0) || (delta_seconds > 3600)) {
                 throw std::runtime_error(
                     "delta_time must be between 1 and 3600 seconds (1 hr)");

@@ -43,7 +43,7 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
     CMutableTransaction rawTx;
 
     if (!locktime.isNull()) {
-        int64_t nLockTime = locktime.get_int64();
+        int64_t nLockTime = locktime.getInt<int64_t>();
         if (nLockTime < 0 || nLockTime > std::numeric_limits<uint32_t>::max()) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, locktime out of range");
@@ -69,7 +69,7 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
                                "Invalid parameter, vout must be a number");
         }
 
-        int nOutput = vout_v.get_int();
+        int nOutput = vout_v.getInt<int>();
         if (nOutput < 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                "Invalid parameter, vout cannot be negative");
@@ -82,7 +82,7 @@ CMutableTransaction ConstructTransaction(const CChainParams &params,
         // Set the sequence number if passed in the parameters object.
         const UniValue &sequenceObj = o.find_value("sequence");
         if (sequenceObj.isNum()) {
-            int64_t seqNr64 = sequenceObj.get_int64();
+            int64_t seqNr64 = sequenceObj.getInt<int64_t>();
             if (seqNr64 < 0 || seqNr64 > std::numeric_limits<uint32_t>::max()) {
                 throw JSONRPCError(
                     RPC_INVALID_PARAMETER,
@@ -200,7 +200,7 @@ void ParsePrevouts(const UniValue &prevTxsUnival,
 
             TxId txid(ParseHashO(prevOut, "txid"));
 
-            int nOut = prevOut.find_value("vout").get_int();
+            int nOut = prevOut.find_value("vout").getInt<int>();
             if (nOut < 0) {
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                    "vout cannot be negative");

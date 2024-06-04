@@ -544,7 +544,7 @@ std::optional<int64_t> SettingToInt(const util::SettingsValue &value) {
         return 1;
     }
     if (value.isNum()) {
-        return value.get_int64();
+        return value.getInt<int64_t>();
     }
     return atoi64(value.get_str());
 }

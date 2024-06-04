@@ -79,7 +79,7 @@ static void JSONErrorReply(HTTPRequest *req, const UniValue &objError,
                            const UniValue &id) {
     // Send error reply from json-rpc error object.
     int nStatus = HTTP_INTERNAL_SERVER_ERROR;
-    int code = objError.find_value("code").get_int();
+    int code = objError.find_value("code").getInt<int>();
 
     if (code == RPC_INVALID_REQUEST) {
         nStatus = HTTP_BAD_REQUEST;

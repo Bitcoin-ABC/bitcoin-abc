@@ -138,7 +138,7 @@ static RPCHelpMan addavalanchenode() {
             HelpExampleRpc("addavalanchenode", "5, \"<pubkey>\", \"<proof>\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const NodeId nodeid = request.params[0].get_int64();
+            const NodeId nodeid = request.params[0].getInt<int64_t>();
             CPubKey key = ParsePubKey(request.params[1]);
 
             auto proof = RCUPtr<avalanche::Proof>::make();
@@ -253,8 +253,8 @@ static RPCHelpMan buildavalancheproof() {
                                    "0 1234567800 \"<master>\" []")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
-            const uint64_t sequence = request.params[0].get_int64();
-            const int64_t expiration = request.params[1].get_int64();
+            const uint64_t sequence = request.params[0].getInt<int64_t>();
+            const int64_t expiration = request.params[1].getInt<int64_t>();
 
             CKey masterKey = DecodeSecret(request.params[2].get_str());
             if (!masterKey.IsValid()) {
@@ -287,13 +287,13 @@ static RPCHelpMan buildavalancheproof() {
                         {"privatekey", UniValue::VSTR},
                     });
 
-                int nOut = stake.find_value("vout").get_int();
+                int nOut = stake.find_value("vout").getInt<int>();
                 if (nOut < 0) {
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                        "vout cannot be negative");
                 }
 
-                const int height = stake.find_value("height").get_int();
+                const int height = stake.find_value("height").getInt<int>();
                 if (height < 1) {
                     throw JSONRPCError(RPC_DESERIALIZATION_ERROR,
                                        "height must be positive");
@@ -1221,7 +1221,7 @@ static RPCHelpMan getremoteproofs() {
             NodeContext &node = EnsureAnyNodeContext(request.context);
             const avalanche::Processor &avalanche = EnsureAvalanche(node);
 
-            const NodeId nodeid = request.params[0].get_int64();
+            const NodeId nodeid = request.params[0].getInt<int64_t>();
             auto remoteProofs = avalanche.withPeerManager(
                 [nodeid](const avalanche::PeerManager &pm) {
                     return pm.getRemoteProofs(nodeid);

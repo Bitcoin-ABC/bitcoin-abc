@@ -68,7 +68,7 @@ RPCHelpMan walletpassphrase() {
                 strWalletPass = request.params[0].get_str().c_str();
 
                 // Get the timeout
-                nSleepTime = request.params[1].get_int64();
+                nSleepTime = request.params[1].getInt<int64_t>();
                 // Timeout cannot be negative, otherwise it will relock
                 // immediately
                 if (nSleepTime < 0) {

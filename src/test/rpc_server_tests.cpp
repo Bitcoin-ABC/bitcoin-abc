@@ -34,7 +34,7 @@ public:
 };
 
 static bool isRpcMethodNotFound(const UniValue &u) {
-    return u.find_value("code").get_int() == int(RPC_METHOD_NOT_FOUND);
+    return u.find_value("code").getInt<int>() == int(RPC_METHOD_NOT_FOUND);
 }
 
 BOOST_AUTO_TEST_CASE(rpc_server_execute_command) {

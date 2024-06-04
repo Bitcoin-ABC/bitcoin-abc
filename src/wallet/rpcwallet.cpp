@@ -514,7 +514,7 @@ static Amount GetReceived(const CWallet &wallet, const UniValue &params,
     // Minimum confirmations
     int min_depth = 1;
     if (!params[1].isNull()) {
-        min_depth = params[1].get_int();
+        min_depth = params[1].getInt<int>();
     }
 
     // Tally
@@ -691,7 +691,7 @@ static RPCHelpMan getbalance() {
 
             int min_depth = 0;
             if (!request.params[1].isNull()) {
-                min_depth = request.params[1].get_int();
+                min_depth = request.params[1].getInt<int>();
             }
 
             bool include_watchonly =
@@ -935,7 +935,7 @@ static RPCHelpMan addmultisigaddress() {
                 label = LabelFromValue(request.params[2]);
             }
 
-            int required = request.params[0].get_int();
+            int required = request.params[0].getInt<int>();
 
             // Get the public keys
             const UniValue &keys_or_addrs = request.params[1].get_array();
@@ -987,7 +987,7 @@ static UniValue ListReceived(const Config &config, const CWallet *const pwallet,
     // Minimum confirmations
     int nMinDepth = 1;
     if (!params[0].isNull()) {
-        nMinDepth = params[0].get_int();
+        nMinDepth = params[0].getInt<int>();
     }
 
     // Whether to include empty labels
@@ -1513,12 +1513,12 @@ RPCHelpMan listtransactions() {
             }
             int nCount = 10;
             if (!request.params[1].isNull()) {
-                nCount = request.params[1].get_int();
+                nCount = request.params[1].getInt<int>();
             }
 
             int nFrom = 0;
             if (!request.params[2].isNull()) {
-                nFrom = request.params[2].get_int();
+                nFrom = request.params[2].getInt<int>();
             }
 
             isminefilter filter = ISMINE_SPENDABLE;
@@ -1731,7 +1731,7 @@ static RPCHelpMan listsinceblock() {
             }
 
             if (!request.params[1].isNull()) {
-                target_confirms = request.params[1].get_int();
+                target_confirms = request.params[1].getInt<int>();
 
                 if (target_confirms < 1) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
@@ -2062,12 +2062,12 @@ static RPCHelpMan keypoolrefill() {
             // given by -keypool
             unsigned int kpSize = 0;
             if (!request.params[0].isNull()) {
-                if (request.params[0].get_int() < 0) {
+                if (request.params[0].getInt<int>() < 0) {
                     throw JSONRPCError(
                         RPC_INVALID_PARAMETER,
                         "Invalid parameter, expected valid size.");
                 }
-                kpSize = (unsigned int)request.params[0].get_int();
+                kpSize = (unsigned int)request.params[0].getInt<int>();
             }
 
             EnsureWalletIsUnlocked(pwallet);
@@ -2194,7 +2194,7 @@ static RPCHelpMan lockunspent() {
                                        {"vout", UniValueType(UniValue::VNUM)},
                                    });
 
-                const int nOutput = o.find_value("vout").get_int();
+                const int nOutput = o.find_value("vout").getInt<int>();
                 if (nOutput < 0) {
                     throw JSONRPCError(
                         RPC_INVALID_PARAMETER,
@@ -3120,13 +3120,13 @@ static RPCHelpMan listunspent() {
             int nMinDepth = 1;
             if (!request.params[0].isNull()) {
                 RPCTypeCheckArgument(request.params[0], UniValue::VNUM);
-                nMinDepth = request.params[0].get_int();
+                nMinDepth = request.params[0].getInt<int>();
             }
 
             int nMaxDepth = 9999999;
             if (!request.params[1].isNull()) {
                 RPCTypeCheckArgument(request.params[1], UniValue::VNUM);
-                nMaxDepth = request.params[1].get_int();
+                nMaxDepth = request.params[1].getInt<int>();
             }
 
             std::set<CTxDestination> destinations;
@@ -3191,7 +3191,7 @@ static RPCHelpMan listunspent() {
                 }
 
                 if (options.exists("maximumCount")) {
-                    nMaximumCount = options["maximumCount"].get_int64();
+                    nMaximumCount = options["maximumCount"].getInt<int64_t>();
                 }
             }
 
@@ -3357,7 +3357,7 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
                 change_position = (options.exists("change_position")
                                        ? options["change_position"]
                                        : options["changePosition"])
-                                      .get_int();
+                                      .getInt<int>();
             }
 
             const UniValue include_watching_option =
@@ -3414,7 +3414,7 @@ void FundTransaction(CWallet *const pwallet, CMutableTransaction &tx,
     }
 
     for (size_t idx = 0; idx < subtractFeeFromOutputs.size(); idx++) {
-        int pos = subtractFeeFromOutputs[idx].get_int();
+        int pos = subtractFeeFromOutputs[idx].getInt<int>();
         if (setSubtractFeeFromOutputs.count(pos)) {
             throw JSONRPCError(
                 RPC_INVALID_PARAMETER,
@@ -3767,7 +3767,7 @@ RPCHelpMan rescanblockchain() {
                 int tip_height = pwallet->GetLastBlockHeight();
 
                 if (!request.params[0].isNull()) {
-                    start_height = request.params[0].get_int();
+                    start_height = request.params[0].getInt<int>();
                     if (start_height < 0 || start_height > tip_height) {
                         throw JSONRPCError(RPC_INVALID_PARAMETER,
                                            "Invalid start_height");
@@ -3775,7 +3775,7 @@ RPCHelpMan rescanblockchain() {
                 }
 
                 if (!request.params[1].isNull()) {
-                    stop_height = request.params[1].get_int();
+                    stop_height = request.params[1].getInt<int>();
                     if (*stop_height < 0 || *stop_height > tip_height) {
                         throw JSONRPCError(RPC_INVALID_PARAMETER,
                                            "Invalid stop_height");
@@ -4874,7 +4874,7 @@ static RPCHelpMan upgradewallet() {
 
             int version = 0;
             if (!request.params[0].isNull()) {
-                version = request.params[0].get_int();
+                version = request.params[0].getInt<int>();
             }
             bilingual_str error;
             if (!pwallet->UpgradeWallet(version, error)) {
