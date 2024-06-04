@@ -3302,8 +3302,8 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
     return true;
 }
 
-bool Chainstate::PreciousBlock(BlockValidationState &state,
-                               CBlockIndex *pindex) {
+bool Chainstate::PreciousBlock(BlockValidationState &state, CBlockIndex *pindex,
+                               avalanche::Processor *const avalanche) {
     AssertLockNotHeld(m_chainstate_mutex);
     AssertLockNotHeld(::cs_main);
     {
@@ -3339,7 +3339,7 @@ bool Chainstate::PreciousBlock(BlockValidationState &state,
         }
     }
 
-    return ActivateBestChain(state, /*pblock=*/nullptr, g_avalanche.get());
+    return ActivateBestChain(state, /*pblock=*/nullptr, avalanche);
 }
 
 namespace {

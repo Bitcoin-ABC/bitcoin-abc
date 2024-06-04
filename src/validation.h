@@ -922,7 +922,8 @@ public:
      *
      * May not be called in a validationinterface callback.
      */
-    bool PreciousBlock(BlockValidationState &state, CBlockIndex *pindex)
+    bool PreciousBlock(BlockValidationState &state, CBlockIndex *pindex,
+                       avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(!m_chainstate_mutex,
                                  !cs_avalancheFinalizedBlockIndex)
             LOCKS_EXCLUDED(cs_main);
