@@ -135,7 +135,8 @@ static RPCHelpMan getnetworkhashps() {
     };
 }
 
-static bool GenerateBlock(ChainstateManager &chainman, CBlock &block,
+static bool GenerateBlock(ChainstateManager &chainman,
+                          avalanche::Processor *const avalanche, CBlock &block,
                           uint64_t &max_tries, BlockHash &block_hash) {
     block_hash.SetNull();
     block.hashMerkleRoot = BlockMerkleRoot(block);
@@ -160,7 +161,8 @@ static bool GenerateBlock(ChainstateManager &chainman, CBlock &block,
         std::make_shared<const CBlock>(block);
     if (!chainman.ProcessNewBlock(shared_pblock,
                                   /*force_processing=*/true,
-                                  /*min_pow_checked=*/true, nullptr)) {
+                                  /*min_pow_checked=*/true, nullptr,
+                                  avalanche)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR,
                            "ProcessNewBlock, block not accepted");
     }
@@ -171,7 +173,7 @@ static bool GenerateBlock(ChainstateManager &chainman, CBlock &block,
 
 static UniValue generateBlocks(ChainstateManager &chainman,
                                const CTxMemPool &mempool,
-                               const avalanche::Processor *avalanche,
+                               avalanche::Processor *const avalanche,
                                const CScript &coinbase_script, int nGenerate,
                                uint64_t nMaxTries) {
     UniValue blockHashes(UniValue::VARR);
@@ -188,7 +190,8 @@ static UniValue generateBlocks(ChainstateManager &chainman,
         CBlock *pblock = &pblocktemplate->block;
 
         BlockHash block_hash;
-        if (!GenerateBlock(chainman, *pblock, nMaxTries, block_hash)) {
+        if (!GenerateBlock(chainman, avalanche, *pblock, nMaxTries,
+                           block_hash)) {
             break;
         }
 
@@ -479,7 +482,8 @@ static RPCHelpMan generateblock() {
             BlockHash block_hash;
             uint64_t max_tries{DEFAULT_MAX_TRIES};
 
-            if (!GenerateBlock(chainman, block, max_tries, block_hash) ||
+            if (!GenerateBlock(chainman, g_avalanche.get(), block, max_tries,
+                               block_hash) ||
                 block_hash.IsNull()) {
                 throw JSONRPCError(RPC_MISC_ERROR, "Failed to make block.");
             }
@@ -1199,7 +1203,8 @@ static RPCHelpMan submitblock() {
             bool accepted = chainman.ProcessNewBlock(blockptr,
                                                      /*force_processing=*/true,
                                                      /*min_pow_checked=*/true,
-                                                     /*new_block=*/&new_block);
+                                                     /*new_block=*/&new_block,
+                                                     g_avalanche.get());
             UnregisterSharedValidationInterface(sc);
             if (!new_block && accepted) {
                 return "duplicate";

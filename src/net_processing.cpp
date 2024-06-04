@@ -4339,7 +4339,7 @@ void PeerManagerImpl::ProcessBlock(const Config &config, CNode &node,
                                    bool min_pow_checked) {
     bool new_block{false};
     m_chainman.ProcessNewBlock(block, force_processing, min_pow_checked,
-                               &new_block);
+                               &new_block, m_avalanche);
     if (new_block) {
         node.m_last_block_time = GetTime<std::chrono::seconds>();
     } else {

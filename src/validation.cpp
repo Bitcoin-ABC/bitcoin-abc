@@ -4511,7 +4511,8 @@ bool Chainstate::AcceptBlock(const std::shared_ptr<const CBlock> &pblock,
 
 bool ChainstateManager::ProcessNewBlock(
     const std::shared_ptr<const CBlock> &block, bool force_processing,
-    bool min_pow_checked, bool *new_block) {
+    bool min_pow_checked, bool *new_block,
+    avalanche::Processor *const avalanche) {
     AssertLockNotHeld(cs_main);
 
     {
@@ -4555,8 +4556,7 @@ bool ChainstateManager::ProcessNewBlock(
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
-    if (!ActiveChainstate().ActivateBestChain(state, block,
-                                              g_avalanche.get())) {
+    if (!ActiveChainstate().ActivateBestChain(state, block, avalanche)) {
         return error("%s: ActivateBestChain failed (%s)", __func__,
                      state.ToString());
     }

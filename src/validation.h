@@ -1413,7 +1413,9 @@ public:
      */
     bool ProcessNewBlock(const std::shared_ptr<const CBlock> &block,
                          bool force_processing, bool min_pow_checked,
-                         bool *new_block) LOCKS_EXCLUDED(cs_main);
+                         bool *new_block,
+                         avalanche::Processor *const avalanche = nullptr)
+        LOCKS_EXCLUDED(cs_main);
 
     /**
      * Process incoming block headers.
