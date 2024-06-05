@@ -395,6 +395,9 @@ BOOST_AUTO_TEST_CASE(rpc_parse_monetary_values) {
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString("0.01e-0")),
                       COIN / 100000000);
     BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString(
+                          "0.00000000000000000000000000000000000001e+36")),
+                      SATOSHI);
+    BOOST_CHECK_EQUAL(AmountFromValue(ValueFromString(
                           "0."
                           "0000000000000000000000000000000000000000000000000000"
                           "000000000000000000000001e+74")),
