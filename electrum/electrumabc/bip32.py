@@ -37,7 +37,6 @@ from ecdsa.util import number_to_string, string_to_number
 from . import ecc, networks
 from .bitcoin import DecodeBase58Check, EncodeBase58Check
 from .crypto import hash_160
-from .util import bh2u
 
 # BIP32
 BIP32_PRIME = 0x80000000
@@ -172,7 +171,7 @@ def deserialize_xkey(xkey, prv, *, net=None):
     fingerprint = xkey[5:9]
     child_number = xkey[9:13]
     c = xkey[13 : 13 + 32]
-    header = int("0x" + bh2u(xkey[0:4]), 16)
+    header = int.from_bytes(xkey[0:4], byteorder="big")
     headers = net.XPRV_HEADERS if prv else net.XPUB_HEADERS
     if header not in headers.values():
         raise InvalidXKeyFormat("Invalid xpub format", hex(header))

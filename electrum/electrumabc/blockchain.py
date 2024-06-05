@@ -369,10 +369,12 @@ class Blockchain(PrintError):
                     "bits mismatch: %s vs %s" % (bits, header.get("bits"))
                 )
             target = bits_to_target(bits)
-            if int("0x" + this_header_hash, 16) > target:
+            block_hash_as_num = int.from_bytes(
+                bytes.fromhex(this_header_hash), byteorder="big"
+            )
+            if block_hash_as_num > target:
                 raise VerifyError(
-                    "insufficient proof of work: %s vs target %s"
-                    % (int("0x" + this_header_hash, 16), target)
+                    f"insufficient proof of work: {block_hash_as_num} vs target {target}"
                 )
 
     def verify_chunk(self, chunk_base_height: int, chunk_data: bytes) -> None:
