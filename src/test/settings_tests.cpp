@@ -36,7 +36,7 @@ inline std::ostream &
 operator<<(std::ostream &os,
            const std::pair<std::string, util::SettingsValue> &kv) {
     util::SettingsValue out(util::SettingsValue::VOBJ);
-    out.__pushKV(kv.first, kv.second);
+    out.pushKVEnd(kv.first, kv.second);
     os << out.write();
     return os;
 }

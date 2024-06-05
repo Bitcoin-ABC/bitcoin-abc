@@ -115,7 +115,7 @@ void UniValue::push_backV(const std::vector<UniValue>& vec)
     values.insert(values.end(), vec.begin(), vec.end());
 }
 
-void UniValue::__pushKV(std::string key, UniValue val_)
+void UniValue::pushKVEnd(std::string key, UniValue val_)
 {
     checkType(VOBJ);
 
@@ -131,7 +131,7 @@ void UniValue::pushKV(std::string key, UniValue val_)
     if (findKey(key, idx))
         values[idx] = std::move(val_);
     else
-        __pushKV(std::move(key), std::move(val_));
+        pushKVEnd(std::move(key), std::move(val_));
 }
 
 void UniValue::pushKVs(UniValue obj)
@@ -140,7 +140,7 @@ void UniValue::pushKVs(UniValue obj)
     obj.checkType(VOBJ);
 
     for (size_t i = 0; i < obj.keys.size(); i++)
-        __pushKV(std::move(obj.keys.at(i)), std::move(obj.values.at(i)));
+        pushKVEnd(std::move(obj.keys.at(i)), std::move(obj.values.at(i)));
 }
 
 void UniValue::getObjMap(std::map<std::string,UniValue>& kv) const

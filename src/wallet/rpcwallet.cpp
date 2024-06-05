@@ -4135,10 +4135,10 @@ RPCHelpMan getaddressesbylabel() {
                     CHECK_NONFATAL(addresses.emplace(address).second);
                     // UniValue::pushKV checks if the key exists in O(N)
                     // and since duplicate addresses are unexpected (checked
-                    // with std::set in O(log(N))), UniValue::__pushKV is used
+                    // with std::set in O(log(N))), UniValue::pushKVEnd is used
                     // instead, which currently is O(1).
-                    ret.__pushKV(address,
-                                 AddressBookDataToJSON(item.second, false));
+                    ret.pushKVEnd(address,
+                                  AddressBookDataToJSON(item.second, false));
                 }
             }
 

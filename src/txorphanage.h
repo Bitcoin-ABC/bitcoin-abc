@@ -108,7 +108,7 @@ protected:
     std::vector<OrphanMap::iterator> m_orphan_list GUARDED_BY(m_mutex);
 
     /** Erase an orphan by txid */
-    int _EraseTx(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(m_mutex);
+    int EraseTxNoLock(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(m_mutex);
 };
 
 #endif // BITCOIN_TXORPHANAGE_H

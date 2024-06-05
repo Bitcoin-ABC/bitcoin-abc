@@ -29,8 +29,8 @@ template <typename T> struct secure_allocator : public std::allocator<T> {
     template <typename U>
     secure_allocator(const secure_allocator<U> &a) noexcept : base(a) {}
     ~secure_allocator() noexcept {}
-    template <typename _Other> struct rebind {
-        typedef secure_allocator<_Other> other;
+    template <typename Other> struct rebind {
+        typedef secure_allocator<Other> other;
     };
 
     T *allocate(std::size_t n, const void *hint = 0) {

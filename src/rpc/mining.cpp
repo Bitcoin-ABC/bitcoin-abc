@@ -1026,15 +1026,15 @@ static RPCHelpMan getblocktemplate() {
 
                 UniValue entry(UniValue::VOBJ);
                 entry.reserve(5);
-                entry.__pushKV("data", EncodeHexTx(tx));
-                entry.__pushKV("txid", txId.GetHex());
-                entry.__pushKV("hash", tx.GetHash().GetHex());
-                entry.__pushKV("fee",
-                               pblocktemplate->entries[index_in_template].fees /
-                                   SATOSHI);
+                entry.pushKVEnd("data", EncodeHexTx(tx));
+                entry.pushKVEnd("txid", txId.GetHex());
+                entry.pushKVEnd("hash", tx.GetHash().GetHex());
+                entry.pushKVEnd(
+                    "fee",
+                    pblocktemplate->entries[index_in_template].fees / SATOSHI);
                 const int64_t sigChecks =
                     pblocktemplate->entries[index_in_template].sigChecks;
-                entry.__pushKV("sigchecks", sigChecks);
+                entry.pushKVEnd("sigchecks", sigChecks);
 
                 transactions.push_back(entry);
                 index_in_template++;
