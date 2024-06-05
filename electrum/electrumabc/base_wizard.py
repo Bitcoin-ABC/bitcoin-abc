@@ -35,6 +35,7 @@ from electrumabc_plugins.hw_wallet import HWPluginBase
 
 from . import bitcoin, keystore, mnemo, util
 from .address import Address
+from .bip32 import is_bip32_derivation, xpub_type
 from .constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL
 from .i18n import _
 from .keystore import HardwareKeyStore
@@ -501,7 +502,7 @@ class BaseWizard(PrintError):
             title=_(f"Derivation for {self.wallet_type} wallet"),
             message=message,
             default=default_derivation,
-            test=bitcoin.is_bip32_derivation,
+            test=is_bip32_derivation,
             seed=seed,
             scannable=scannable,
         )
@@ -605,8 +606,6 @@ class BaseWizard(PrintError):
     def on_keystore(self, k):
         has_xpub = isinstance(k, keystore.Xpub)
         if has_xpub:
-            from .bitcoin import xpub_type
-
             t1 = xpub_type(k.xpub)
         if self.wallet_type == "standard":
             if has_xpub and t1 not in ["standard"]:

@@ -68,6 +68,7 @@ from . import (
     slp,
 )
 from .address import Address, PublicKey, Script
+from .bip32 import xpub_type
 from .bitcoin import ScriptType
 from .constants import XEC
 from .contacts import Contacts
@@ -3543,7 +3544,7 @@ class SimpleDeterministicWallet(SimpleWallet, DeterministicWallet):
     def load_keystore(self):
         self.keystore = load_keystore(self.storage, "keystore")
         try:
-            xtype = bitcoin.xpub_type(self.keystore.xpub)
+            xtype = xpub_type(self.keystore.xpub)
         except Exception:
             xtype = "standard"
         self.txin_type = "p2pkh" if xtype == "standard" else xtype
@@ -3608,7 +3609,7 @@ class MultisigWallet(DeterministicWallet):
             name = "x%d/" % (i + 1)
             self.keystores[name] = load_keystore(self.storage, name)
         self.keystore = self.keystores["x1/"]
-        xtype = bitcoin.xpub_type(self.keystore.xpub)
+        xtype = xpub_type(self.keystore.xpub)
         self.txin_type = "p2sh" if xtype == "standard" else xtype
 
     def save_keystore(self):

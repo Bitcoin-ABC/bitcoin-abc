@@ -35,7 +35,8 @@ from xmlrpc.client import ServerProxy, Transport
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal
 
-from electrumabc import bitcoin, keystore, transaction, util
+from electrumabc import keystore, transaction, util
+from electrumabc.bip32 import deserialize_xprv, deserialize_xpub
 from electrumabc.crypto import Hash
 from electrumabc.ecc import ECKey, encrypt_message
 from electrumabc.i18n import _
@@ -281,7 +282,7 @@ class Plugin(BasePlugin):
         state.cosigner_list = []
         for key, keystore_ in wallet.keystores.items():
             xpub = keystore_.get_master_public_key()
-            K = bitcoin.deserialize_xpub(xpub)[-1]
+            K = deserialize_xpub(xpub)[-1]
             _hash = bh2u(Hash(K))
             if not keystore_.is_watching_only():
                 state.keys.append((key, _hash))
@@ -444,7 +445,7 @@ class Plugin(BasePlugin):
                 self.on_receive(window, keyhash, message)  # try again
             return
         try:
-            k = bh2u(bitcoin.deserialize_xprv(xprv)[-1])
+            k = bh2u(deserialize_xprv(xprv)[-1])
             EC = ECKey(bfh(k))
             raw_tx = EC.decrypt_message(message)
         except Exception as e:

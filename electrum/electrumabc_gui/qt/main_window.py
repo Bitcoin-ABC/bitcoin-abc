@@ -55,6 +55,7 @@ import electrumabc.web as web
 from electrumabc import bitcoin, commands, keystore, networks, paymentrequest, util
 from electrumabc.address import Address
 from electrumabc.alias import DEFAULT_ENABLE_ALIASES
+from electrumabc.bip32 import InvalidXKeyFormat, InvalidXKeyNotBase58, deserialize_xpub
 from electrumabc.bitcoin import TYPE_ADDRESS
 from electrumabc.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
 from electrumabc.contacts import Contact
@@ -650,12 +651,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             and self.wallet.get_master_public_key()
         ) or None
         if xkey:
-            from electrumabc.bitcoin import (
-                InvalidXKeyFormat,
-                InvalidXKeyNotBase58,
-                deserialize_xpub,
-            )
-
             try:
                 deserialize_xpub(xkey)
             except InvalidXKeyNotBase58:

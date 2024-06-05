@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 
 from electrumabc import networks
 from electrumabc.address import Address
-from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, deserialize_xpub
+from electrumabc.bip32 import deserialize_xpub
+from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT
 from electrumabc.constants import DEFAULT_TXIN_SEQUENCE
 from electrumabc.ecc import SignatureType
 from electrumabc.i18n import _

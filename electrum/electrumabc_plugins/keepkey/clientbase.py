@@ -1,7 +1,7 @@
 import time
 from struct import pack
 
-from electrumabc.bitcoin import serialize_xpub
+from electrumabc.bip32 import serialize_xpub
 from electrumabc.i18n import _
 from electrumabc.keystore import bip39_normalize_passphrase
 from electrumabc.printerror import PrintError

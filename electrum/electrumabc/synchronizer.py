@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING, DefaultDict, Dict, Iterable, Optional, Set, Tu
 
 from . import networks
 from .address import Address
-from .bitcoin import InvalidXKeyFormat
+from .bip32 import InvalidXKeyFormat
 from .monotonic import Monotonic
 from .transaction import Transaction
 from .util import ThreadJob, bh2u, profiler

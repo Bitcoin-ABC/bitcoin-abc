@@ -7,8 +7,8 @@ import traceback
 from struct import pack, unpack
 from typing import Optional, Tuple
 
-from electrumabc import bitcoin
 from electrumabc.address import Address
+from electrumabc.bip32 import serialize_xpub
 from electrumabc.bitcoin import TYPE_ADDRESS, TYPE_SCRIPT, ScriptType
 from electrumabc.crypto import hash_160
 from electrumabc.ecc import SignatureType
@@ -150,7 +150,7 @@ class LedgerClient(HardwareClientBase):
         childnum = (
             int(lastChild[0]) if len(lastChild) == 1 else 0x80000000 | int(lastChild[0])
         )
-        xpub = bitcoin.serialize_xpub(
+        xpub = serialize_xpub(
             xtype,
             nodeData["chainCode"],
             publicKey,

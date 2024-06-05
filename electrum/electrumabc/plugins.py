@@ -52,7 +52,8 @@ from typing import (
 )
 from warnings import warn
 
-from . import bitcoin, version
+from . import version
+from .bip32 import xpub_type
 from .constants import PROJECT_NAME, SCRIPT_NAME
 from .i18n import _
 from .printerror import PrintError, print_error, print_stderr
@@ -1063,7 +1064,7 @@ class DeviceMgr(ThreadJob):
     ) -> Optional[HardwareClientBase]:
         # The wallet has not been previously paired, so let the user
         # choose an unpaired device and compare its first address.
-        xtype = bitcoin.xpub_type(xpub)
+        xtype = xpub_type(xpub)
         client = self._client_by_id(info.device.id_)
         if client and client.is_pairable():
             # See comment above for same code

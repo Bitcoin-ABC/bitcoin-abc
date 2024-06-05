@@ -35,6 +35,18 @@ from mnemonic import Mnemonic
 
 from . import bitcoin, mnemo, networks
 from .address import Address, PublicKey
+from .bip32 import (
+    CKD_pub,
+    bip32_private_derivation,
+    bip32_private_key,
+    bip32_public_derivation,
+    bip32_root,
+    deserialize_xprv,
+    deserialize_xpub,
+    is_xprv,
+    is_xpub,
+    xpub_from_xprv,
+)
 from .crypto import Hash, pw_decode, pw_encode
 from .ecc import SignatureType, regenerate_key
 from .plugins import run_hook
@@ -298,7 +310,7 @@ class Xpub:
     def derive_pubkey(self, for_change: bool, n):
         xpub = self.xpub_change if for_change else self.xpub_receive
         if xpub is None:
-            xpub = bitcoin.bip32_public_derivation(self.xpub, "", f"/{for_change:d}")
+            xpub = bip32_public_derivation(self.xpub, "", f"/{for_change:d}")
             if for_change:
                 self.xpub_change = xpub
             else:
@@ -307,9 +319,9 @@ class Xpub:
 
     @classmethod
     def get_pubkey_from_xpub(self, xpub, sequence) -> bytes:
-        _, _, _, _, c, cK = bitcoin.deserialize_xpub(xpub)
+        _, _, _, _, c, cK = deserialize_xpub(xpub)
         for i in sequence:
-            cK, c = bitcoin.CKD_pub(cK, c, i)
+            cK, c = CKD_pub(cK, c, i)
         return cK
 
     def get_xpubkey(self, c: int, i: int) -> bytes:
@@ -390,7 +402,7 @@ class BIP32KeyStore(DeterministicKeyStore, Xpub):
         except Exception:
             # Password was None but key was encrypted.
             raise InvalidPassword()
-        if bitcoin.deserialize_xprv(xprv)[4] != bitcoin.deserialize_xpub(self.xpub)[4]:
+        if deserialize_xprv(xprv)[4] != deserialize_xpub(self.xpub)[4]:
             raise InvalidPassword()
 
     def update_password(self, old_password, new_password):
@@ -417,18 +429,18 @@ class BIP32KeyStore(DeterministicKeyStore, Xpub):
 
     def add_xprv(self, xprv):
         self.xprv = xprv
-        self.xpub = bitcoin.xpub_from_xprv(xprv)
+        self.xpub = xpub_from_xprv(xprv)
 
     def add_xprv_from_seed(self, bip32_seed, xtype, derivation):
-        xprv, xpub = bitcoin.bip32_root(bip32_seed, xtype)
-        xprv, xpub = bitcoin.bip32_private_derivation(xprv, "m/", derivation)
+        xprv, xpub = bip32_root(bip32_seed, xtype)
+        xprv, xpub = bip32_private_derivation(xprv, "m/", derivation)
         self.add_xprv(xprv)
         self.derivation = derivation
 
     def get_private_key(self, sequence, password):
         xprv = self.get_master_private_key(password)
-        _, _, _, _, c, k = bitcoin.deserialize_xprv(xprv)
-        pk = bitcoin.bip32_private_key(sequence, k, c)
+        _, _, _, _, c, k = deserialize_xprv(xprv)
+        pk = bip32_private_key(sequence, k, c)
         return pk, True
 
     def set_wallet_advice(self, addr, advice):  # overrides KeyStore.set_wallet_advice
@@ -777,15 +789,15 @@ def is_private_key_list(text, *, allow_bip38=False):
 
 
 def is_private(text: str) -> bool:
-    return mnemo.is_seed(text) or bitcoin.is_xprv(text) or is_private_key_list(text)
+    return mnemo.is_seed(text) or is_xprv(text) or is_private_key_list(text)
 
 
 def is_master_key(text: str) -> bool:
-    return is_old_mpk(text) or bitcoin.is_xprv(text) or bitcoin.is_xpub(text)
+    return is_old_mpk(text) or is_xprv(text) or is_xpub(text)
 
 
 def is_bip32_key(text: str) -> bool:
-    return bitcoin.is_xprv(text) or bitcoin.is_xpub(text)
+    return is_xprv(text) or is_xpub(text)
 
 
 def _bip44_derivation(coin: int, account_id: int) -> str:
@@ -876,7 +888,7 @@ def from_xpub(xpub):
 
 
 def from_xprv(xprv):
-    xpub = bitcoin.xpub_from_xprv(xprv)
+    xpub = xpub_from_xprv(xprv)
     k = BIP32KeyStore({})
     k.xprv = xprv
     k.xpub = xpub
@@ -884,11 +896,11 @@ def from_xprv(xprv):
 
 
 def from_master_key(text):
-    if bitcoin.is_xprv(text):
+    if is_xprv(text):
         k = from_xprv(text)
     elif is_old_mpk(text):
         k = from_old_mpk(text)
-    elif bitcoin.is_xpub(text):
+    elif is_xpub(text):
         k = from_xpub(text)
     else:
         raise BitcoinException("Invalid master key")
