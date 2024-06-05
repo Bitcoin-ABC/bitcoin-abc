@@ -67,8 +67,7 @@ static bool registerProofIfNeeded(const avalanche::Processor &avalanche,
     }
 
     return avalanche.withPeerManager([&](avalanche::PeerManager &pm) {
-        return pm.getProof(proof->getId()) ||
-               pm.registerProof(std::move(proof), state);
+        return pm.getProof(proof->getId()) || pm.registerProof(proof, state);
     });
 }
 
@@ -1168,7 +1167,7 @@ static RPCHelpMan setstakingreward() {
 
             const std::vector<uint8_t> data =
                 ParseHex(request.params[1].get_str());
-            const CScript payoutScript(data.begin(), data.end());
+            CScript payoutScript(data.begin(), data.end());
 
             std::vector<CScript> payoutScripts;
 

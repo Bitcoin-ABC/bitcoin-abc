@@ -156,7 +156,7 @@ ReadStatus PartiallyDownloadedBlock::FillBlock(
             }
             block.vtx[i] = vtx_missing[tx_missing_offset++];
         } else {
-            block.vtx[i] = std::move(txn_available);
+            block.vtx[i] = txn_available;
         }
     }
 

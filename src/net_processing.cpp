@@ -4885,7 +4885,7 @@ void PeerManagerImpl::ProcessMessage(
                 const bool fAlreadyHave = AlreadyHaveBlock(BlockHash(inv.hash));
                 logInv(inv, fAlreadyHave);
 
-                const BlockHash hash{inv.hash};
+                BlockHash hash{inv.hash};
                 UpdateBlockAvailability(pfrom.GetId(), hash);
                 if (!fAlreadyHave && !m_chainman.m_blockman.LoadingBlocks() &&
                     !IsBlockRequested(hash)) {

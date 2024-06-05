@@ -265,7 +265,7 @@ Processor::MakeProcessor(const ArgsManager &argsman, interfaces::Chain &chain,
         }
 
         peerData = std::make_unique<PeerData>();
-        peerData->proof = std::move(proof);
+        peerData->proof = proof;
         if (!VerifyProof(stakeUtxoDustThreshold, *peerData->proof, error)) {
             // error is set by VerifyProof
             return nullptr;

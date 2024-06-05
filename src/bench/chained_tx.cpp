@@ -400,7 +400,7 @@ static void Reorg10BlocksWith500TxChainSkipMempool(benchmark::Bench &bench) {
 static void GenerateBlock50ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
     const Config &config = test_setup.m_node.chainman->GetConfig();
-    const CTxIn utxo = createUTXOs(config, 1, test_setup.m_node).back();
+    CTxIn utxo = createUTXOs(config, 1, test_setup.m_node).back();
     benchGenerateNewBlock(config, test_setup.m_node, bench,
                           {oneInOneOutChain(config, std::move(utxo), 50)});
 }
@@ -409,7 +409,7 @@ static void GenerateBlock50ChainedTxs(benchmark::Bench &bench) {
 static void GenerateBlock500ChainedTxs(benchmark::Bench &bench) {
     RegTestingSetup test_setup{};
     const Config &config = test_setup.m_node.chainman->GetConfig();
-    const CTxIn utxo = createUTXOs(config, 1, test_setup.m_node).back();
+    CTxIn utxo = createUTXOs(config, 1, test_setup.m_node).back();
     benchGenerateNewBlock(config, test_setup.m_node, bench,
                           {oneInOneOutChain(config, std::move(utxo), 500)});
 }

@@ -267,9 +267,9 @@ struct AvalancheTestingSetup : public TestChain100Setup {
                                           error);
     }
 
-    void setArg(std::string key, std::string value) {
+    void setArg(std::string key, const std::string &value) {
         ArgsManager &argsman = *Assert(m_node.args);
-        argsman.ForceSetArg(key, std::move(value));
+        argsman.ForceSetArg(key, value);
         m_overridden_args.emplace(std::move(key));
     }
 
