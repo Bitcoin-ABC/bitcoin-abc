@@ -86,6 +86,7 @@ import {
     SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER,
     SLP_1_NFT_PROTOCOL_NUMBER,
 } from 'slpv1';
+import { CopyIconButton } from 'components/Common/Buttons';
 
 const Tx = ({
     tx,
@@ -423,9 +424,16 @@ const Tx = ({
                                 <AppDescLabel>Paywall Payment</AppDescLabel>
                             </IconAndLabel>
                             <AppDescMsg>
-                                <a href={`${explorer.blockExplorerUrl}/tx/${Buffer.from(stackArray[1], 'hex').toString()}`}
-                                 target="_blank"
-                                 rel="noreferrer">
+                                <a
+                                    href={`${
+                                        explorer.blockExplorerUrl
+                                    }/tx/${Buffer.from(
+                                        stackArray[1],
+                                        'hex',
+                                    ).toString()}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
                                     Paywall Article
                                 </a>
                             </AppDescMsg>
@@ -923,6 +931,17 @@ const Tx = ({
                                     '-'
                                 ) : (
                                     <>
+                                        <CopyIconButton
+                                            style={{ zIndex: '2' }}
+                                            name={`Copy amount`}
+                                            data={toXec(
+                                                satoshisSent,
+                                            ).toLocaleString(userLocale, {
+                                                maximumFractionDigits: 2,
+                                                minimumFractionDigits: 2,
+                                            })}
+                                            showToast
+                                        />
                                         {xecTxType === 'Sent' ? '-' : ''}
                                         {!showPanel
                                             ? toFormattedXec(
