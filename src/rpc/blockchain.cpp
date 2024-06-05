@@ -2411,7 +2411,7 @@ static RPCHelpMan scantxoutset() {
                     FlatSigningProvider provider;
                     auto scripts =
                         EvalDescriptorStringOrObject(scanobject, provider);
-                    for (const auto &script : scripts) {
+                    for (CScript &script : scripts) {
                         std::string inferred =
                             InferDescriptor(script, provider)->ToString();
                         needles.emplace(script);

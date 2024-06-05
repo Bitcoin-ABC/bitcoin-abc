@@ -8,7 +8,6 @@
 
 #include <tinyformat.h>
 
-#include <algorithm>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>

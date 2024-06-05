@@ -257,7 +257,7 @@ ListCoins(const CWallet &wallet) {
 
     AvailableCoins(wallet, availableCoins);
 
-    for (const auto &coin : availableCoins) {
+    for (COutput &coin : availableCoins) {
         CTxDestination address;
         if ((coin.fSpendable ||
              (wallet.IsWalletFlagSet(WALLET_FLAG_DISABLE_PRIVATE_KEYS) &&

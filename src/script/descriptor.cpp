@@ -591,7 +591,7 @@ public:
             } else {
                 tmp = pubkey->ToString();
             }
-            ret += std::move(tmp);
+            ret += tmp;
         }
         if (m_subdescriptor_arg) {
             if (pos++) {
@@ -601,7 +601,7 @@ public:
             if (!m_subdescriptor_arg->ToStringHelper(arg, tmp, priv)) {
                 return false;
             }
-            ret += std::move(tmp);
+            ret += tmp;
         }
         out = std::move(ret) + ")";
         return true;
