@@ -101,7 +101,7 @@ block content %}
                 >
                     eTokens <i class="icon chevron circle down"></i>
                 </a>
-                <div class="etoken-table-ctn" style="display: none">
+                <div class="etoken-table-ctn">
                     {% for (token_id, json_balance) in json_balances %} {% if
                     token_id != "main" %} {% let token =
                     tokens|get_token(token_id) %} {% match token %} {% when Some
