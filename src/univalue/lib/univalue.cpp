@@ -29,7 +29,9 @@ void UniValue::setNull() {
 void UniValue::setBool(bool val_) {
     clear();
     typ = VBOOL;
-    if (val_) val = "1";
+    if (val_) {
+        val = "1";
+    }
 }
 
 static bool validNumStr(const std::string &s) {
@@ -114,26 +116,31 @@ void UniValue::pushKV(std::string key, UniValue val_) {
     checkType(VOBJ);
 
     size_t idx;
-    if (findKey(key, idx))
+    if (findKey(key, idx)) {
         values[idx] = std::move(val_);
-    else
+    } else {
         pushKVEnd(std::move(key), std::move(val_));
+    }
 }
 
 void UniValue::pushKVs(UniValue obj) {
     checkType(VOBJ);
     obj.checkType(VOBJ);
 
-    for (size_t i = 0; i < obj.keys.size(); i++)
+    for (size_t i = 0; i < obj.keys.size(); i++) {
         pushKVEnd(std::move(obj.keys.at(i)), std::move(obj.values.at(i)));
+    }
 }
 
 void UniValue::getObjMap(std::map<std::string, UniValue> &kv) const {
-    if (typ != VOBJ) return;
+    if (typ != VOBJ) {
+        return;
+    }
 
     kv.clear();
-    for (size_t i = 0; i < keys.size(); i++)
+    for (size_t i = 0; i < keys.size(); i++) {
         kv[keys[i]] = values[i];
+    }
 }
 
 bool UniValue::findKey(const std::string &key, size_t &retIdx) const {
@@ -168,17 +175,25 @@ bool UniValue::checkObject(
 }
 
 const UniValue &UniValue::operator[](const std::string &key) const {
-    if (typ != VOBJ) return NullUniValue;
+    if (typ != VOBJ) {
+        return NullUniValue;
+    }
 
     size_t index = 0;
-    if (!findKey(key, index)) return NullUniValue;
+    if (!findKey(key, index)) {
+        return NullUniValue;
+    }
 
     return values.at(index);
 }
 
 const UniValue &UniValue::operator[](size_t index) const {
-    if (typ != VOBJ && typ != VARR) return NullUniValue;
-    if (index >= values.size()) return NullUniValue;
+    if (typ != VOBJ && typ != VARR) {
+        return NullUniValue;
+    }
+    if (index >= values.size()) {
+        return NullUniValue;
+    }
 
     return values.at(index);
 }

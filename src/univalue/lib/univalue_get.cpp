@@ -18,27 +18,37 @@
 
 namespace {
 static bool ParsePrechecks(const std::string &str) {
-    if (str.empty()) // No empty string allowed
+    if (str.empty()) {
+        // No empty string allowed
         return false;
+    }
     if (str.size() >= 1 &&
-        (json_isspace(str[0]) ||
-         json_isspace(str[str.size() - 1]))) // No padding allowed
+        (json_isspace(str[0]) || json_isspace(str[str.size() - 1]))) {
+        // No padding allowed
         return false;
-    if (str.size() != strlen(str.c_str())) // No embedded NUL characters allowed
+    }
+    if (str.size() != strlen(str.c_str())) {
+        // No embedded NUL characters allowed
         return false;
+    }
     return true;
 }
 
 bool ParseDouble(const std::string &str, double *out) {
-    if (!ParsePrechecks(str)) return false;
-    if (str.size() >= 2 && str[0] == '0' &&
-        str[1] == 'x') // No hexadecimal floats allowed
+    if (!ParsePrechecks(str)) {
         return false;
+    }
+    if (str.size() >= 2 && str[0] == '0' && str[1] == 'x') {
+        // No hexadecimal floats allowed
+        return false;
+    }
     std::istringstream text(str);
     text.imbue(std::locale::classic());
     double result;
     text >> result;
-    if (out) *out = result;
+    if (out) {
+        *out = result;
+    }
     return text.eof() && !text.fail();
 }
 } // namespace
@@ -49,9 +59,10 @@ const std::vector<std::string> &UniValue::getKeys() const {
 }
 
 const std::vector<UniValue> &UniValue::getValues() const {
-    if (typ != VOBJ && typ != VARR)
+    if (typ != VOBJ && typ != VARR) {
         throw std::runtime_error(
             "JSON value is not an object or array as expected");
+    }
     return values;
 }
 
@@ -68,8 +79,9 @@ const std::string &UniValue::get_str() const {
 double UniValue::get_real() const {
     checkType(VNUM);
     double retval;
-    if (!ParseDouble(getValStr(), &retval))
+    if (!ParseDouble(getValStr(), &retval)) {
         throw std::runtime_error("JSON double out of range");
+    }
     return retval;
 }
 
