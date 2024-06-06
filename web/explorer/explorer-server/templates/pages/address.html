@@ -71,16 +71,14 @@ block content %}
                     </div>
                 </div>
 
-                <div class="address-ctn-divider"></div>
                 {% if total_xec > 0 %}
+                <div class="address-ctn-divider"></div>
                 <a
                     class="show-coins"
                     onclick="$('#sats-coins').toggle(); loadSatsTable();"
                 >
                     Coins <i class="icon chevron circle down"></i>
                 </a>
-                {% else %}
-                <div>Address is empty</div>
                 {% endif %}
 
                 <div id="sats-coins" style="display: none">
