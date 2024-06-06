@@ -1511,35 +1511,20 @@ class Transaction:
         if len(sig) == 64:
             # Schnorr signatures are always exactly 64 bytes
             return schnorr.verify(pubkey, sig, msghash)
-        else:
-            from ecdsa import BadDigestError, BadSignatureError
-            from ecdsa.der import UnexpectedDER
 
-            # ECDSA signature
-            try:
-                pubkey_coordinates = ser_to_coordinates(pubkey)
-                public_key = ECPubkey.from_point(pubkey_coordinates)
-                sig_string = sig_string_from_der_sig(sig)
-                return public_key.verify_message_hash(sig_string, msghash)
-            except (
-                AssertionError,
-                ValueError,
-                TypeError,
-                BadSignatureError,
-                BadDigestError,
-                UnexpectedDER,
-            ) as e:
-                # ser_to_point will fail if pubkey is off-curve, infinity, or garbage.
-                # verify_digest may also raise BadDigestError and BadSignatureError
-                if isinstance(reason, list):
-                    reason.insert(0, repr(e))
-            except Exception as e:
-                print_error(
-                    "[Transaction.verify_signature] unexpected exception", repr(e)
-                )
-                if isinstance(reason, list):
-                    reason.insert(0, repr(e))
-            return False
+        # ECDSA signature
+        try:
+            pubkey_coordinates = ser_to_coordinates(pubkey)
+            public_key = ECPubkey.from_point(pubkey_coordinates)
+            sig_string = sig_string_from_der_sig(sig)
+            return public_key.verify_message_hash(sig_string, msghash)
+        except Exception as e:
+            # ser_to_point will fail if pubkey is off-curve, infinity, or garbage.
+            # verify_digest may also raise BadDigestError and BadSignatureError
+            print_error("[Transaction.verify_signature] unexpected exception", repr(e))
+            if isinstance(reason, list):
+                reason.insert(0, repr(e))
+        return False
 
     @staticmethod
     def _ecdsa_sign(sec, pre_hash):
