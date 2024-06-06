@@ -236,7 +236,7 @@ const renderTxID = data => {
 };
 
 const renderBlockHeight = (_value, _type, row) => {
-    if (row.blockHeight === 0) {
+    if (row.blockHeight === null) {
         return '<div class="ui red horizontal label">Unconfirmed</div>';
     }
     return (
