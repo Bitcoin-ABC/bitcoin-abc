@@ -69,7 +69,7 @@ pub fn tx_history_to_json(
 
         let (token_id, token) = match &tx.token_entries.get(0) {
             Some(token_entry) => {
-                let token_id = hex::encode(&token_entry.token_id);
+                let token_id = token_entry.token_id.clone();
                 let json_token = json_tokens.get(&token_id);
 
                 match json_token {
@@ -116,7 +116,7 @@ pub fn block_txs_to_json(
 
         let (token_id, token) = match &tx.token_entries.get(0) {
             Some(token_entry) => {
-                let token_id_hex = hex::encode(&token_entry.token_id);
+                let token_id_hex = token_entry.token_id.clone();
                 let genesis_info = match tokens_by_hex.get(&token_id_hex) {
                     Some(token) => token.genesis_info.as_ref(),
                     None => None,
@@ -140,9 +140,9 @@ pub fn block_txs_to_json(
                         .to_string();
 
                 (
-                    Some(token_id_hex),
+                    Some(token_id_hex.clone()),
                     Some(JsonToken {
-                        token_id: to_be_hex(&token_entry.token_id.as_bytes()),
+                        token_id: token_id_hex,
                         token_type: token_type_to_int(&token_entry.token_type)?,
                         token_ticker,
                         token_name,

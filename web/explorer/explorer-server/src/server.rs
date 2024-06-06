@@ -499,14 +499,12 @@ impl Server {
 
             match &utxo.token {
                 Some(token) => {
-                    let token_id_hex = hex::encode(&token.token_id);
-                    let token_id_hash = Sha256d::from_slice_be_or_null(
-                        &token.token_id.as_bytes(),
-                    );
+                    let token_id_hash = Sha256d::from_hex_be(&token.token_id)
+                        .expect("Impossible");
 
                     json_utxo.token_amount = token.amount;
 
-                    match json_balances.entry(token_id_hex) {
+                    match json_balances.entry(token.token_id.clone()) {
                         Entry::Occupied(mut entry) => {
                             let entry = entry.get_mut();
                             entry.sats_amount += utxo.value;
@@ -515,7 +513,7 @@ impl Server {
                         }
                         Entry::Vacant(entry) => {
                             entry.insert(JsonBalance {
-                                token_id: Some(hex::encode(&token.token_id)),
+                                token_id: Some(token.token_id.clone()),
                                 sats_amount: utxo.value,
                                 token_amount: token.amount.into(),
                                 utxos: vec![json_utxo],
@@ -580,7 +578,7 @@ impl Server {
 
         let tokens = future::try_join_all(token_calls).await?;
         for token in tokens.into_iter() {
-            token_map.insert(hex::encode(&token.token_id), token);
+            token_map.insert(token.token_id.clone(), token);
         }
 
         Ok(token_map)
