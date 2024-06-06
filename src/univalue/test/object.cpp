@@ -16,25 +16,26 @@
 
 #define BOOST_CHECK(expr) assert(expr)
 #define BOOST_CHECK_EQUAL(v1, v2) assert((v1) == (v2))
-#define BOOST_CHECK_THROW(stmt, excMatch) { \
-        try { \
-            (stmt); \
-            assert(0 && "No exception caught"); \
-        } catch (excMatch & e) { \
-	} catch (...) { \
-	    assert(0 && "Wrong exception caught"); \
-	} \
+#define BOOST_CHECK_THROW(stmt, excMatch)                                      \
+    {                                                                          \
+        try {                                                                  \
+            (stmt);                                                            \
+            assert(0 && "No exception caught");                                \
+        } catch (excMatch & e) {                                               \
+        } catch (...) {                                                        \
+            assert(0 && "Wrong exception caught");                             \
+        }                                                                      \
     }
-#define BOOST_CHECK_NO_THROW(stmt) { \
-        try { \
-            (stmt); \
-	} catch (...) { \
-	    assert(0); \
-	} \
+#define BOOST_CHECK_NO_THROW(stmt)                                             \
+    {                                                                          \
+        try {                                                                  \
+            (stmt);                                                            \
+        } catch (...) {                                                        \
+            assert(0);                                                         \
+        }                                                                      \
     }
 
-void univalue_constructor()
-{
+void univalue_constructor() {
     UniValue v1;
     BOOST_CHECK(v1.isNull());
 
@@ -81,8 +82,7 @@ void univalue_constructor()
     BOOST_CHECK_EQUAL(v9.getValStr(), "zappa");
 }
 
-void univalue_push_throw()
-{
+void univalue_push_throw() {
     UniValue j;
     BOOST_CHECK_THROW(j.push_back(1), std::runtime_error);
     BOOST_CHECK_THROW(j.push_backV({1}), std::runtime_error);
@@ -91,8 +91,7 @@ void univalue_push_throw()
     BOOST_CHECK_THROW(j.pushKVs({}), std::runtime_error);
 }
 
-void univalue_typecheck()
-{
+void univalue_typecheck() {
     UniValue v1;
     v1.setNumStr("1");
     BOOST_CHECK(v1.isNum());
@@ -140,8 +139,7 @@ void univalue_typecheck()
     BOOST_CHECK_THROW(vals[1].get_bool(), std::runtime_error);
 }
 
-void univalue_set()
-{
+void univalue_set() {
     UniValue v(UniValue::VSTR, "foo");
     v.clear();
     BOOST_CHECK(v.isNull());
@@ -207,8 +205,7 @@ void univalue_set()
     BOOST_CHECK(v.isNull());
 }
 
-void univalue_array()
-{
+void univalue_array() {
     UniValue arr(UniValue::VARR);
     arr.reserve(9);
 
@@ -267,8 +264,7 @@ void univalue_array()
     BOOST_CHECK_EQUAL(arr.size(), 0);
 }
 
-void univalue_object()
-{
+void univalue_object() {
     UniValue obj(UniValue::VOBJ);
     std::string strKey, strVal;
     UniValue v;
@@ -284,7 +280,7 @@ void univalue_object()
     obj.pushKV(strKey, strVal);
 
     strKey = "last";
-    const char* cVal = "Smith";
+    const char *cVal = "Smith";
     obj.pushKV(strKey, cVal);
 
     strKey = "distance";
@@ -378,18 +374,16 @@ void univalue_object()
 
     obj.pushKV("name", "foo bar");
 
-    std::map<std::string,UniValue> kv;
+    std::map<std::string, UniValue> kv;
     obj.getObjMap(kv);
     BOOST_CHECK_EQUAL(kv["age"].getValStr(), "43");
     BOOST_CHECK_EQUAL(kv["name"].getValStr(), "foo bar");
-
 }
 
-static const char *json1 =
-"[1.10000000,{\"key1\":\"str\\u0000\",\"key2\":800,\"key3\":{\"name\":\"martian http://test.com\"}}]";
+static const char *json1 = "[1.10000000,{\"key1\":\"str\\u0000\",\"key2\":800,"
+                           "\"key3\":{\"name\":\"martian http://test.com\"}}]";
 
-void univalue_readwrite()
-{
+void univalue_readwrite() {
     UniValue v;
     BOOST_CHECK(v.read(json1));
 
@@ -426,7 +420,7 @@ void univalue_readwrite()
     BOOST_CHECK(v.read("1.0 ") && (v.get_real() == 1.0));
     BOOST_CHECK(v.read("0.00000000000000000000000000000000000001e+30 "));
 
-    //should fail, missing leading 0, therefore invalid JSON
+    // should fail, missing leading 0, therefore invalid JSON
     BOOST_CHECK(!v.read(".19e-6"));
     // Invalid, initial garbage
     BOOST_CHECK(!v.read("[1.0"));
@@ -459,8 +453,7 @@ void univalue_readwrite()
     BOOST_CHECK(!v.read("{} 42"));
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
     univalue_constructor();
     univalue_push_throw();
     univalue_typecheck();

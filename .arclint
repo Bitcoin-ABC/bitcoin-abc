@@ -12,7 +12,7 @@
             ],
             "include": "(^(src|chronik)/.*\\.(h|c|cpp|mm)$)",
             "exclude": [
-                "(^src/(secp256k1|univalue|leveldb)/)",
+                "(^src/(secp256k1|leveldb)/)",
                 "(^src/bench/nanobench.h$)"
             ]
         },
