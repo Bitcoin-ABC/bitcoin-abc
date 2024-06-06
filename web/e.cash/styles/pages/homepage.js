@@ -235,9 +235,9 @@ export const YouTubeVideo = styled.div`
         to(#00abe7)
     );
     background-image: linear-gradient(180deg, #273498, #0074c2 53%, #00abe7);
-    -webkit-transform: translate(0, -30px) rotate(-3deg);
-    -ms-transform: translate(0, -30px) rotate(-3deg);
-    transform: translate(0, -30px) rotate(-3deg);
+    -webkit-transform: translate(0, -30px);
+    -ms-transform: translate(0, -30px);
+    transform: translate(0, -30px);
     filter: drop-shadow(
         10px 8px 14px hsla(221.45454545454544, 100%, 7.33%, 0.94)
     );
