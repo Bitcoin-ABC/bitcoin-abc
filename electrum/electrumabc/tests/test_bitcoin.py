@@ -11,11 +11,14 @@ from ..bitcoin import (
     OpCodes,
     SignatureType,
     address_from_private_key,
+    b58_address_to_hash160,
     bip32_private_derivation,
     bip32_public_derivation,
     bip32_root,
     deserialize_privkey,
     generator_secp256k1,
+    hash160_to_p2pkh,
+    hash160_to_p2sh,
     is_bip32_derivation,
     is_compressed,
     is_minikey,
@@ -33,7 +36,7 @@ from ..bitcoin import (
     xpub_from_xprv,
     xpub_type,
 )
-from ..networks import set_mainnet, set_testnet
+from ..networks import MainNet, TestNet, set_mainnet, set_testnet
 from ..util import bfh, bh2u
 
 try:
@@ -60,8 +63,6 @@ class TestBitcoin(unittest.TestCase):
 
         Pub = pvk * G
         pubkey_c = point_to_ser(Pub, True)
-        # pubkey_u = point_to_ser(Pub,False)
-        public_key_to_p2pkh(pubkey_c)
 
         eck = ECKey(number_to_string(pvk, _r))
 
@@ -598,6 +599,61 @@ class TestBip38(unittest.TestCase):
         self.assertTrue(bool(b38.decrypt("ΜΟΛΩΝ ΛΑΒΕ")))
 
         # Success!
+
+
+class TestBase58AddressEncoding(unittest.TestCase):
+    def setUp(self) -> None:
+        # test data from https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
+        self.pubkey = bytes.fromhex(
+            "0250863ad64a87ae8a2fe83c1af1a8403cb53f53e486d8511dad8a04887e5b2352"
+        )
+        self.h160 = bytes.fromhex("f54a5851e9372b87810a8e60cdd2e7cfd80b6e31")
+
+    def test_hash160_to_p2sh(self):
+        self.assertEqual(
+            hash160_to_p2sh(self.h160, net=MainNet),
+            "3Q3zY87DrUmE371Grgc7bsDiVPqpu4mN1f",
+        )
+        self.assertEqual(
+            b58_address_to_hash160("3Q3zY87DrUmE371Grgc7bsDiVPqpu4mN1f"),
+            (MainNet.ADDRTYPE_P2SH, self.h160),
+        )
+
+        self.assertEqual(
+            hash160_to_p2sh(self.h160, net=TestNet),
+            "2NFcCbs3FTwGaEtdpXpDzDpCyhk3znhQzzo",
+        )
+        self.assertEqual(
+            b58_address_to_hash160("2NFcCbs3FTwGaEtdpXpDzDpCyhk3znhQzzo"),
+            (TestNet.ADDRTYPE_P2SH, self.h160),
+        )
+
+    def test_p2kh(self):
+        self.assertEqual(
+            public_key_to_p2pkh(self.pubkey, net=MainNet),
+            "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs",
+        )
+        self.assertEqual(
+            hash160_to_p2pkh(self.h160, net=MainNet),
+            "1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs",
+        )
+        self.assertEqual(
+            b58_address_to_hash160("1PMycacnJaSqwwJqjawXBErnLsZ7RkXUAs"),
+            (MainNet.ADDRTYPE_P2PKH, self.h160),
+        )
+
+        self.assertEqual(
+            public_key_to_p2pkh(self.pubkey, net=TestNet),
+            "n3svudhm7bt6j3nTT9uu1A57Cs9pKK3iXW",
+        )
+        self.assertEqual(
+            hash160_to_p2pkh(self.h160, net=TestNet),
+            "n3svudhm7bt6j3nTT9uu1A57Cs9pKK3iXW",
+        )
+        self.assertEqual(
+            b58_address_to_hash160("n3svudhm7bt6j3nTT9uu1A57Cs9pKK3iXW"),
+            (TestNet.ADDRTYPE_P2PKH, self.h160),
+        )
 
 
 if __name__ == "__main__":
