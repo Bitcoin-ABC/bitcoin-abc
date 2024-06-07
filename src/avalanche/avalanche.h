@@ -70,6 +70,4 @@ static constexpr bool DEFAULT_AVALANCHE_PRECONSENSUS{false};
  */
 extern std::unique_ptr<avalanche::Processor> g_avalanche;
 
-bool isAvalancheEnabled(const ArgsManager &argsman);
-
 #endif // BITCOIN_AVALANCHE_AVALANCHE_H

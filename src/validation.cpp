@@ -3163,7 +3163,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         bool blocks_connected = false;
 
         const bool fAutoUnpark =
-            gArgs.GetBoolArg("-automaticunparking", !isAvalancheEnabled(gArgs));
+            gArgs.GetBoolArg("-automaticunparking", !avalanche);
 
         {
             LOCK(cs_main);

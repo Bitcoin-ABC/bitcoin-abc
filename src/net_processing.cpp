@@ -2073,8 +2073,7 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
                                    std::forward_as_tuple(node.IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
-    PeerRef peer =
-        std::make_shared<Peer>(nodeid, our_services, isAvalancheEnabled(gArgs));
+    PeerRef peer = std::make_shared<Peer>(nodeid, our_services, !!m_avalanche);
     {
         LOCK(m_peer_mutex);
         m_peer_map.emplace_hint(m_peer_map.end(), nodeid, peer);
@@ -2096,7 +2095,7 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
         }
     }
 
-    if (m_avalanche && isAvalancheEnabled(gArgs)) {
+    if (m_avalanche) {
         // Get and sanitize the list of proofids to broadcast. The RelayProof
         // call is done in a second loop to avoid locking cs_vNodes while
         // cs_peerManager is locked which would cause a potential deadlock due
@@ -4370,7 +4369,7 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        if (!isAvalancheEnabled(gArgs)) {
+        if (!m_avalanche) {
             // If avalanche is not enabled, ignore avalanche messages
             return;
         }
@@ -4668,7 +4667,7 @@ void PeerManagerImpl::ProcessMessage(
                               /*version=*/CMPCTBLOCKS_VERSION));
         }
 
-        if (m_avalanche && isAvalancheEnabled(gArgs)) {
+        if (m_avalanche) {
             if (m_avalanche->sendHello(&pfrom)) {
                 auto localProof = m_avalanche->getLocalProof();
 
@@ -4907,7 +4906,7 @@ void PeerManagerImpl::ProcessMessage(
                 logInv(inv, fAlreadyHave);
                 AddKnownProof(*peer, proofid);
 
-                if (!fAlreadyHave && m_avalanche && isAvalancheEnabled(gArgs) &&
+                if (!fAlreadyHave && m_avalanche &&
                     !m_chainman.ActiveChainstate().IsInitialBlockDownload()) {
                     const bool preferred = isPreferredDownloadPeer(pfrom);
 

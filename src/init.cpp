@@ -1797,7 +1797,9 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     // -maxavalancheoutbound takes precedence over -maxconnections
     const int maxAvalancheOutbound = args.GetIntArg(
         "-maxavalancheoutbound", DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS);
-    if (isAvalancheEnabled(args) && maxAvalancheOutbound > nMaxConnections) {
+    const bool fAvalanche =
+        args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED);
+    if (fAvalanche && maxAvalancheOutbound > nMaxConnections) {
         nMaxConnections = std::max(maxAvalancheOutbound, nMaxConnections);
         // Indicate the value set by the user
         LogPrintf("Increasing -maxconnections from %d to %d to comply with "
@@ -1940,7 +1942,7 @@ bool AppInitParameterInteraction(Config &config, const ArgsManager &args) {
     }
 
     // This is a staking node
-    if (isAvalancheEnabled(args) && args.IsArgSet("-avaproof")) {
+    if (fAvalanche && args.IsArgSet("-avaproof")) {
         if (!args.GetBoolArg("-listen", true)) {
             return InitError(_("Running a staking node requires accepting "
                                "inbound connections. Please enable -listen."));
@@ -2520,19 +2522,20 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
     ChainstateManager &chainman = *Assert(node.chainman);
 
-    // Initialize Avalanche.
-    bilingual_str avalancheError;
-    g_avalanche = avalanche::Processor::MakeProcessor(
-        args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
-        *node.scheduler, avalancheError);
-    if (!g_avalanche) {
-        InitError(avalancheError);
-        return false;
-    }
+    if (args.GetBoolArg("-avalanche", AVALANCHE_DEFAULT_ENABLED)) {
+        // Initialize Avalanche.
+        bilingual_str avalancheError;
+        g_avalanche = avalanche::Processor::MakeProcessor(
+            args, *node.chain, node.connman.get(), chainman, node.mempool.get(),
+            *node.scheduler, avalancheError);
+        if (!g_avalanche) {
+            InitError(avalancheError);
+            return false;
+        }
 
-    if (isAvalancheEnabled(args) &&
-        g_avalanche->isAvalancheServiceAvailable()) {
-        nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
+        if (g_avalanche->isAvalancheServiceAvailable()) {
+            nLocalServices = ServiceFlags(nLocalServices | NODE_AVALANCHE);
+        }
     }
 
     assert(!node.peerman);
@@ -2721,10 +2724,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.nLocalServices = nLocalServices;
     connOptions.nMaxConnections = nMaxConnections;
     connOptions.m_max_avalanche_outbound =
-        isAvalancheEnabled(args)
-            ? args.GetIntArg("-maxavalancheoutbound",
-                             DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
-            : 0;
+        g_avalanche ? args.GetIntArg("-maxavalancheoutbound",
+                                     DEFAULT_MAX_AVALANCHE_OUTBOUND_CONNECTIONS)
+                    : 0;
     connOptions.m_max_outbound_full_relay = std::min(
         MAX_OUTBOUND_FULL_RELAY_CONNECTIONS,
         connOptions.nMaxConnections - connOptions.m_max_avalanche_outbound);

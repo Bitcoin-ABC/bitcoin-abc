@@ -76,7 +76,7 @@ Amount GetStakingRewardsAmount(const Amount &coinbaseValue) {
 
 bool IsStakingRewardsActivated(const Consensus::Params &params,
                                const CBlockIndex *pprev) {
-    return IsCowperthwaiteEnabled(params, pprev) && isAvalancheEnabled(gArgs) &&
+    return IsCowperthwaiteEnabled(params, pprev) &&
            gArgs.GetBoolArg("-avalanchestakingrewards",
                             params.enableStakingRewards);
 }

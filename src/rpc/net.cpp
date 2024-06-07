@@ -433,7 +433,6 @@ static RPCHelpMan addconnection() {
             }
 
             NodeContext &node = EnsureAnyNodeContext(request.context);
-            const ArgsManager &args{EnsureArgsman(node)};
 
             const std::string address = request.params[0].get_str();
             const std::string conn_type_in{
@@ -448,7 +447,7 @@ static RPCHelpMan addconnection() {
             } else if (conn_type_in == "feeler") {
                 conn_type = ConnectionType::FEELER;
             } else if (conn_type_in == "avalanche") {
-                if (!g_avalanche || !isAvalancheEnabled(args)) {
+                if (!g_avalanche) {
                     throw JSONRPCError(RPC_INVALID_PARAMETER,
                                        "Error: avalanche outbound requested "
                                        "but avalanche is not enabled.");

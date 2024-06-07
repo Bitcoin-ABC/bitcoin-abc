@@ -20,10 +20,6 @@ struct StakingRewardsActivationTestingSetup : public TestingSetup {
         SelectParams(net);
         const Consensus::Params &params = Params().GetConsensus();
 
-        gArgs.ForceSetArg("-avalanche", "1");
-
-        BOOST_CHECK(isAvalancheEnabled(gArgs));
-
         // Before Cowperthwaite activation
         const auto activationHeight = params.cowperthwaiteHeight;
 
@@ -38,18 +34,6 @@ struct StakingRewardsActivationTestingSetup : public TestingSetup {
         block.nHeight = activationHeight + 1;
         BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &block),
                           expectActivation);
-
-        // If avalanche is disabled, staking rewards are disabled
-        gArgs.ForceSetArg("-avalanche", "0");
-        BOOST_CHECK(!isAvalancheEnabled(gArgs));
-        BOOST_CHECK(!IsStakingRewardsActivated(params, &block));
-
-        gArgs.ForceSetArg("-avalanche", "1");
-        BOOST_CHECK(isAvalancheEnabled(gArgs));
-        BOOST_CHECK_EQUAL(IsStakingRewardsActivated(params, &block),
-                          expectActivation);
-
-        gArgs.ClearForcedArg("-avalanche");
     }
 };
 

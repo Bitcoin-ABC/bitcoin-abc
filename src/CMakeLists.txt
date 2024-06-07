@@ -613,7 +613,6 @@ endif()
 add_library(server
 	addrdb.cpp
 	addrman.cpp
-	avalanche/avalanche.cpp
 	avalanche/compactproofs.cpp
 	avalanche/delegation.cpp
 	avalanche/delegationbuilder.cpp
@@ -951,7 +950,6 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		addrman.cpp  # via net.cpp
 		banman.cpp   # via net.cpp
 		base58.cpp   # via key_io.cpp
-		avalanche/avalanche.cpp
 		avalanche/delegation.cpp
 		avalanche/delegationbuilder.cpp
 		avalanche/peermanager.cpp
