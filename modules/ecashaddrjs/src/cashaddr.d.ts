@@ -32,7 +32,7 @@ declare module 'ecashaddrjs' {
 
     export function isValidCashAddress(
         cashaddress: string,
-        optionalPrefix: string,
+        optionalPrefix?: string | false,
     ): boolean;
 
     export function toLegacy(cashaddress: string): string;
