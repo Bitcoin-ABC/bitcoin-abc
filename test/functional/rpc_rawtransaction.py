@@ -98,7 +98,11 @@ class RawTransactionsTest(BitcoinTestFramework):
         # Test `createrawtransaction` invalid `inputs`
         txid = "1d1d4e24ed99057e84c3f80fd8fbec79ed9e1acee37da269356ecea000000000"
         assert_raises_rpc_error(
-            -3, "Expected type array", self.nodes[0].createrawtransaction, "foo", {}
+            -3,
+            "not of expected type array",
+            self.nodes[0].createrawtransaction,
+            "foo",
+            {},
         )
         assert_raises_rpc_error(
             -3,
@@ -249,7 +253,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # Test `createrawtransaction` invalid `locktime`
         assert_raises_rpc_error(
             -3,
-            "Expected type number",
+            "not of expected type number",
             self.nodes[0].createrawtransaction,
             [],
             {},
@@ -455,7 +459,7 @@ class RawTransactionsTest(BitcoinTestFramework):
         # An invalid block hash should raise the correct errors
         assert_raises_rpc_error(
             -3,
-            "Expected type string, got bool",
+            "not of expected type string",
             self.nodes[0].getrawtransaction,
             tx,
             True,

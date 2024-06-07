@@ -23,6 +23,7 @@ Tests correspond to code in rpc/blockchain.cpp.
 import http.client
 import os
 import subprocess
+import textwrap
 from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE
@@ -190,7 +191,7 @@ class BlockchainTest(BitcoinTestFramework):
         # Test `getchaintxstats` invalid `nblocks`
         assert_raises_rpc_error(
             -3,
-            "Expected type number, got string",
+            "not of expected type number",
             self.nodes[0].getchaintxstats,
             "",
         )
@@ -210,7 +211,7 @@ class BlockchainTest(BitcoinTestFramework):
         # Test `getchaintxstats` invalid `blockhash`
         assert_raises_rpc_error(
             -3,
-            "Expected type string, got number",
+            "not of expected type string",
             self.nodes[0].getchaintxstats,
             blockhash=0,
         )
@@ -414,6 +415,19 @@ class BlockchainTest(BitcoinTestFramework):
     def _test_getnetworkhashps(self):
         self.log.info("Test getnetworkhashps")
         hashes_per_second = self.nodes[0].getnetworkhashps()
+        assert_raises_rpc_error(
+            -3,
+            textwrap.dedent(
+                """
+            Wrong type passed:
+            {
+                "Position 1 (nblocks)": "JSON value of type string is not of expected type number",
+                "Position 2 (height)": "JSON value of type array is not of expected type number"
+            }
+            """
+            ).strip(),
+            lambda: self.nodes[0].getnetworkhashps("a", []),
+        )
         # This should be 2 hashes every 10 minutes or 1/300
         assert abs(hashes_per_second * 300 - 1) < 0.0001
 

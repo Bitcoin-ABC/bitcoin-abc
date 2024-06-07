@@ -28,7 +28,7 @@ class DescriptorTest(BitcoinTestFramework):
             -1, "getdescriptorinfo", self.nodes[0].getdescriptorinfo
         )
         assert_raises_rpc_error(
-            -3, "Expected type string", self.nodes[0].getdescriptorinfo, 1
+            -3, "not of expected type string", self.nodes[0].getdescriptorinfo, 1
         )
         assert_raises_rpc_error(
             -5,

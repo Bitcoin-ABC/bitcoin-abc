@@ -100,7 +100,7 @@ class HelpRpcTest(BitcoinTestFramework):
         assert_raises_rpc_error(-1, "help", node.help, "foo", "bar")
 
         # invalid argument
-        assert_raises_rpc_error(-3, "Expected type string, got number", node.help, 0)
+        assert_raises_rpc_error(-3, "not of expected type string", node.help, 0)
 
         # help of unknown command
         assert_equal(node.help("foo"), "help: unknown command: foo")

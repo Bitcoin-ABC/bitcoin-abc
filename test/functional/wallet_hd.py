@@ -211,13 +211,13 @@ class WalletHDTest(BitcoinTestFramework):
             )
             assert_raises_rpc_error(
                 -3,
-                "Expected type bool, got string",
+                "not of expected type bool",
                 self.nodes[1].sethdseed,
                 "Not_bool",
             )
             assert_raises_rpc_error(
                 -3,
-                "Expected type string, got bool",
+                "not of expected type string",
                 self.nodes[1].sethdseed,
                 False,
                 True,

@@ -66,7 +66,7 @@ class MempoolAcceptanceTest(BitcoinTestFramework):
         self.log.info("Should not accept garbage to testmempoolaccept")
         assert_raises_rpc_error(
             -3,
-            "Expected type array, got string",
+            "not of expected type array",
             lambda: node.testmempoolaccept(rawtxs="ff00baar"),
         )
         assert_raises_rpc_error(

@@ -23,16 +23,6 @@ const std::string UNIX_EPOCH_TIME = "UNIX epoch time";
 const std::string EXAMPLE_ADDRESS =
     "\"qrmzys48glkpevp2l4t24jtcltc9hyzx9cep2qffm4\"";
 
-void RPCTypeCheckArgument(const UniValue &value,
-                          const UniValueType &typeExpected) {
-    if (!typeExpected.typeAny && value.type() != typeExpected.type) {
-        throw JSONRPCError(RPC_TYPE_ERROR,
-                           strprintf("Expected type %s, got %s",
-                                     uvTypeName(typeExpected.type),
-                                     uvTypeName(value.type())));
-    }
-}
-
 void RPCTypeCheckObj(const UniValue &o,
                      const std::map<std::string, UniValueType> &typesExpected,
                      bool fAllowNull, bool fStrict) {
@@ -582,8 +572,19 @@ UniValue RPCHelpMan::HandleRequest(const Config &config,
         !IsValidNumArgs(request.params.size())) {
         throw std::runtime_error(ToString());
     }
+    UniValue arg_mismatch{UniValue::VOBJ};
     for (size_t i{0}; i < m_args.size(); ++i) {
-        m_args.at(i).MatchesType(request.params[i]);
+        const auto &arg{m_args.at(i)};
+        UniValue match{arg.MatchesType(request.params[i])};
+        if (!match.isTrue()) {
+            arg_mismatch.pushKV(
+                strprintf("Position %s (%s)", i + 1, arg.m_names),
+                std::move(match));
+        }
+    }
+    if (!arg_mismatch.empty()) {
+        throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Wrong type passed:\n%s",
+                                                     arg_mismatch.write(4)));
     }
     const UniValue ret = m_fun(*this, config, request);
     if (gArgs.GetBoolArg("-rpcdoccheck", DEFAULT_RPC_DOC_CHECK)) {
@@ -715,45 +716,56 @@ UniValue RPCHelpMan::GetArgMap() const {
     return arr;
 }
 
-void RPCArg::MatchesType(const UniValue &request) const {
-    if (m_opts.skip_type_check) {
-        return;
-    }
-    if (IsOptional() && request.isNull()) {
-        return;
-    }
-    switch (m_type) {
+static std::optional<UniValue::VType> ExpectedType(RPCArg::Type type) {
+    using Type = RPCArg::Type;
+    switch (type) {
         case Type::STR_HEX:
         case Type::STR: {
-            RPCTypeCheckArgument(request, UniValue::VSTR);
-            return;
+            return UniValue::VSTR;
         }
         case Type::NUM: {
-            RPCTypeCheckArgument(request, UniValue::VNUM);
-            return;
+            return UniValue::VNUM;
         }
         case Type::AMOUNT: {
             // VNUM or VSTR, checked inside AmountFromValue()
-            return;
+            return std::nullopt;
         }
         case Type::RANGE: {
             // VNUM or VARR, checked inside ParseRange()
-            return;
+            return std::nullopt;
         }
         case Type::BOOL: {
-            RPCTypeCheckArgument(request, UniValue::VBOOL);
-            return;
+            return UniValue::VBOOL;
         }
         case Type::OBJ:
         case Type::OBJ_USER_KEYS: {
-            RPCTypeCheckArgument(request, UniValue::VOBJ);
-            return;
+            return UniValue::VOBJ;
         }
         case Type::ARR: {
-            RPCTypeCheckArgument(request, UniValue::VARR);
-            return;
+            return UniValue::VARR;
         }
     } // no default case, so the compiler can warn about missing cases
+    NONFATAL_UNREACHABLE();
+}
+
+UniValue RPCArg::MatchesType(const UniValue &request) const {
+    if (m_opts.skip_type_check) {
+        return true;
+    }
+    if (IsOptional() && request.isNull()) {
+        return true;
+    }
+    const auto exp_type{ExpectedType(m_type)};
+    if (!exp_type) {
+        // nothing to check
+        return true;
+    }
+
+    if (*exp_type != request.getType()) {
+        return strprintf("JSON value of type %s is not of expected type %s",
+                         uvTypeName(request.getType()), uvTypeName(*exp_type));
+    }
+    return true;
 }
 
 std::string RPCArg::GetFirstName() const {
