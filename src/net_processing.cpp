@@ -641,11 +641,10 @@ struct Peer {
     bool m_prefers_headers GUARDED_BY(NetEventsInterface::g_msgproc_mutex){
         false};
 
-    explicit Peer(NodeId id, ServiceFlags our_services)
+    explicit Peer(NodeId id, ServiceFlags our_services, bool fRelayProofs)
         : m_id(id), m_our_services{our_services},
-          m_proof_relay(isAvalancheEnabled(gArgs)
-                            ? std::make_unique<ProofRelay>()
-                            : nullptr) {}
+          m_proof_relay(fRelayProofs ? std::make_unique<ProofRelay>()
+                                     : nullptr) {}
 
 private:
     mutable Mutex m_tx_relay_mutex;
@@ -2074,7 +2073,8 @@ void PeerManagerImpl::InitializeNode(const Config &config, CNode &node,
                                    std::forward_as_tuple(node.IsInboundConn()));
         assert(m_txrequest.Count(nodeid) == 0);
     }
-    PeerRef peer = std::make_shared<Peer>(nodeid, our_services);
+    PeerRef peer =
+        std::make_shared<Peer>(nodeid, our_services, isAvalancheEnabled(gArgs));
     {
         LOCK(m_peer_mutex);
         m_peer_map.emplace_hint(m_peer_map.end(), nodeid, peer);
