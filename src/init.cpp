@@ -2587,8 +2587,6 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     node.notifications =
         std::make_unique<KernelNotifications>(node.exit_status);
     ReadNotificationArgs(args, *node.notifications);
-    bool fReindexChainState = args.GetBoolArg("-reindex-chainstate", false);
-
     ChainstateManager::Options chainman_opts{
         .config = config,
         .datadir = args.GetDataDirNet(),
@@ -2661,6 +2659,10 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
             kernel_cache_sizes.coins * (1.0 / 1024 / 1024),
             mempool_opts.max_size_bytes * (1.0 / 1024 / 1024));
 
+    bool do_reindex{args.GetBoolArg("-reindex", false)};
+    const bool do_reindex_chainstate{
+        args.GetBoolArg("-reindex-chainstate", false)};
+
     for (bool fLoaded = false; !fLoaded && !ShutdownRequested();) {
         node.mempool = std::make_unique<CTxMemPool>(config, mempool_opts);
 
@@ -2696,8 +2698,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         node::ChainstateLoadOptions options;
         options.mempool = Assert(node.mempool.get());
-        options.reindex = blockman_opts.reindex;
-        options.reindex_chainstate = fReindexChainState;
+        options.wipe_block_tree_db = do_reindex;
+        options.wipe_chainstate_db = do_reindex || do_reindex_chainstate;
         options.prune = chainman.m_blockman.IsPruneMode();
         options.check_blocks =
             args.GetIntArg("-checkblocks", DEFAULT_CHECKBLOCKS);
@@ -2756,7 +2758,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
 
         if (!fLoaded && !ShutdownRequested()) {
             // first suggest a reindex
-            if (!blockman_opts.reindex) {
+            if (!do_reindex) {
                 bool fRet = uiInterface.ThreadSafeQuestion(
                     error + Untranslated(".\n\n") +
                         _("Do you want to rebuild the block database now?"),
@@ -2766,7 +2768,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
                     CClientUIInterface::MSG_ERROR |
                         CClientUIInterface::BTN_ABORT);
                 if (fRet) {
-                    blockman_opts.reindex = true;
+                    do_reindex = true;
                     AbortShutdown();
                 } else {
                     LogPrintf("Aborted block database rebuild. Exiting.\n");
