@@ -2760,7 +2760,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
  * invalid (it's however far from certain to be valid).
  */
 CBlockIndex *Chainstate::FindMostWorkChain(
-    std::vector<const CBlockIndex *> &blocksToReconcile) {
+    std::vector<const CBlockIndex *> &blocksToReconcile, bool fAutoUnpark) {
     AssertLockHeld(::cs_main);
     do {
         CBlockIndex *pindexNew = nullptr;
@@ -2788,10 +2788,6 @@ CBlockIndex *Chainstate::FindMostWorkChain(
                 m_blockman.m_dirty_blockindex.insert(pindexNew);
             }
         }
-
-        const bool fAvalancheEnabled = isAvalancheEnabled(gArgs);
-        const bool fAutoUnpark =
-            gArgs.GetBoolArg("-automaticunparking", !fAvalancheEnabled);
 
         const CBlockIndex *pindexFork = m_chain.FindFork(pindexNew);
 
@@ -2913,9 +2909,7 @@ CBlockIndex *Chainstate::FindMostWorkChain(
             }
         }
 
-        if (fAvalancheEnabled && g_avalanche) {
-            blocksToReconcile.push_back(pindexNew);
-        }
+        blocksToReconcile.push_back(pindexNew);
 
         // We found a candidate that has valid ancestors. This is our guy.
         if (hasValidAncestor) {
@@ -3168,6 +3162,9 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         std::vector<const CBlockIndex *> blocksToReconcile;
         bool blocks_connected = false;
 
+        const bool fAutoUnpark =
+            gArgs.GetBoolArg("-automaticunparking", !isAvalancheEnabled(gArgs));
+
         {
             LOCK(cs_main);
             // Lock transaction pool for at least as long as it takes for
@@ -3183,7 +3180,8 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                 ConnectTrace connectTrace;
 
                 if (pindexMostWork == nullptr) {
-                    pindexMostWork = FindMostWorkChain(blocksToReconcile);
+                    pindexMostWork =
+                        FindMostWorkChain(blocksToReconcile, fAutoUnpark);
                 }
 
                 // Whether we have anything to do at all.

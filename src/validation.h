@@ -1055,7 +1055,8 @@ private:
                            const BlockValidationState &state)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_avalancheFinalizedBlockIndex);
     CBlockIndex *
-    FindMostWorkChain(std::vector<const CBlockIndex *> &blocksToReconcile)
+    FindMostWorkChain(std::vector<const CBlockIndex *> &blocksToReconcile,
+                      bool fAutoUnpark)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, !cs_avalancheFinalizedBlockIndex);
     void ReceivedBlockTransactions(const CBlock &block, CBlockIndex *pindexNew,
                                    const FlatFilePos &pos)
