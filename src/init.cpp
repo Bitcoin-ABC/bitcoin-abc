@@ -2888,7 +2888,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     // if pruning, perform the initial blockstore prune
     // after any wallet rescanning has taken place.
     if (chainman.m_blockman.IsPruneMode()) {
-        if (!chainman.m_blockman.m_reindexing) {
+        if (chainman.m_blockman.m_blockfiles_indexed) {
             LOCK(cs_main);
             for (Chainstate *chainstate : chainman.GetAll()) {
                 uiInterface.InitMessage(_("Pruning blockstore...").translated);

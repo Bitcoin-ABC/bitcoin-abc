@@ -260,11 +260,12 @@ public:
     std::atomic<bool> m_importing{false};
 
     /**
-     * Tracks if a reindex is currently in progress. Set to true when a reindex
-     * is requested and false when reindexing completes. Its value is persisted
-     * in the BlockTreeDB across restarts.
+     * Whether all blockfiles have been added to the block tree database.
+     * Normally true, but set to false when a reindex is requested and the
+     * database is wiped. The value is persisted in the database across restarts
+     * and will be false until reindexing completes.
      */
-    std::atomic_bool m_reindexing{false};
+    std::atomic_bool m_blockfiles_indexed{true};
 
     BlockMap m_block_index GUARDED_BY(cs_main);
 
@@ -362,7 +363,7 @@ public:
         std::numeric_limits<uint64_t>::max()};
 
     [[nodiscard]] bool LoadingBlocks() const {
-        return m_importing || m_reindexing;
+        return m_importing || !m_blockfiles_indexed;
     }
 
     /**

@@ -426,7 +426,7 @@ bool BlockManager::LoadBlockIndexDB(
 
     // Check whether we need to continue reindexing
     if (m_block_tree_db->IsReindexing()) {
-        m_reindexing = true;
+        m_blockfiles_indexed = false;
     }
 
     return true;
@@ -1122,7 +1122,7 @@ void ImportBlocks(ChainstateManager &chainman,
         ImportingNow imp{chainman.m_blockman.m_importing};
 
         // -reindex
-        if (chainman.m_blockman.m_reindexing) {
+        if (!chainman.m_blockman.m_blockfiles_indexed) {
             int nFile = 0;
             // Map of disk positions for blocks with unknown parent (only used
             // for reindex);  parent hash -> child disk position, multiple
@@ -1152,7 +1152,7 @@ void ImportBlocks(ChainstateManager &chainman,
             WITH_LOCK(
                 ::cs_main,
                 chainman.m_blockman.m_block_tree_db->WriteReindexing(false));
-            chainman.m_blockman.m_reindexing = false;
+            chainman.m_blockman.m_blockfiles_indexed = true;
             LogPrintf("Reindexing finished\n");
             // To avoid ending up in a situation without genesis block, re-try
             // initializing (no-op if reindexing worked):

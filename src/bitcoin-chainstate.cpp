@@ -168,9 +168,9 @@ int main(int argc, char *argv[]) {
         std::cout << "\t"
                   << "Path: " << abs_datadir << std::endl
                   << "\t"
-                  << "Reindexing: " << std::boolalpha
-                  << chainman.m_blockman.m_reindexing.load() << std::noboolalpha
-                  << std::endl
+                  << "Blockfiles Indexed: " << std::boolalpha
+                  << chainman.m_blockman.m_blockfiles_indexed.load()
+                  << std::noboolalpha << std::endl
                   << "\t"
                   << "Snapshot Active: " << std::boolalpha
                   << chainman.IsSnapshotActive() << std::noboolalpha

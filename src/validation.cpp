@@ -2615,7 +2615,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             LOCK(m_blockman.cs_LastBlockFile);
             if (m_blockman.IsPruneMode() &&
                 (m_blockman.m_check_for_pruning || nManualPruneHeight > 0) &&
-                !m_chainman.m_blockman.m_reindexing) {
+                m_chainman.m_blockman.m_blockfiles_indexed) {
                 // Make sure we don't prune any of the prune locks bestblocks.
                 // Pruning is height-based.
                 int last_prune{m_chain.Height()};
@@ -3501,11 +3501,11 @@ bool Chainstate::ActivateBestChainStep(
 }
 
 static SynchronizationState GetSynchronizationState(bool init,
-                                                    bool reindexing) {
+                                                    bool blockfiles_indexed) {
     if (!init) {
         return SynchronizationState::POST_INIT;
     }
-    if (reindexing) {
+    if (!blockfiles_indexed) {
         return SynchronizationState::INIT_REINDEX;
     }
     return SynchronizationState::INIT_DOWNLOAD;
@@ -3532,7 +3532,7 @@ static bool NotifyHeaderTip(ChainstateManager &chainman)
     if (fNotify) {
         chainman.GetNotifications().headerTip(
             GetSynchronizationState(fInitialBlockDownload,
-                                    chainman.m_blockman.m_reindexing),
+                                    chainman.m_blockman.m_blockfiles_indexed),
             pindexHeader->nHeight, pindexHeader->nTime, false);
     }
     return fNotify;
@@ -3689,7 +3689,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                             m_chainman.GetNotifications().blockTip(
                                 GetSynchronizationState(
                                     still_in_ibd,
-                                    m_chainman.m_blockman.m_reindexing),
+                                    m_chainman.m_blockman.m_blockfiles_indexed),
                                 *pindexNewTip))) {
                         // Just breaking and returning success for now. This
                         // could be changed to bubble up the kernel::Interrupted
@@ -4054,7 +4054,7 @@ bool Chainstate::UnwindBlock(BlockValidationState &state, CBlockIndex *pindex,
         // changes.
         (void)m_chainman.GetNotifications().blockTip(
             GetSynchronizationState(m_chainman.IsInitialBlockDownload(),
-                                    m_chainman.m_blockman.m_reindexing),
+                                    m_chainman.m_blockman.m_blockfiles_indexed),
             *to_mark_failed_or_parked->pprev);
     }
     return true;
@@ -4907,7 +4907,8 @@ void ChainstateManager::ReportHeadersPresync(const arith_uint256 &work,
     }
     bool initial_download = IsInitialBlockDownload();
     GetNotifications().headerTip(
-        GetSynchronizationState(initial_download, m_blockman.m_reindexing),
+        GetSynchronizationState(initial_download,
+                                m_blockman.m_blockfiles_indexed),
         height, timestamp, /*presync=*/true);
     if (initial_download) {
         int64_t blocks_left{
@@ -5739,7 +5740,7 @@ bool ChainstateManager::LoadRecentHeadersTime(const fs::path &filePath) {
 bool ChainstateManager::LoadBlockIndex() {
     AssertLockHeld(cs_main);
     // Load block index from databases
-    if (!m_blockman.m_reindexing) {
+    if (m_blockman.m_blockfiles_indexed) {
         bool ret{m_blockman.LoadBlockIndexDB(SnapshotBlockhash())};
         if (!ret) {
             return false;
@@ -5955,8 +5956,8 @@ void ChainstateManager::LoadExternalBlockFile(
                     }
                 }
 
-                if (m_blockman.IsPruneMode() && !m_blockman.m_reindexing &&
-                    pblock) {
+                if (m_blockman.IsPruneMode() &&
+                    m_blockman.m_blockfiles_indexed && pblock) {
                     // Must update the tip for pruning to work while importing
                     // with -loadblock. This is a tradeoff to conserve disk
                     // space at the expense of time spent updating the tip to be
