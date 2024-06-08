@@ -230,7 +230,7 @@ public:
     }
 
     /** Generate random bytes. */
-    template <typename B = uint8_t>
+    template <BasicByte B = uint8_t>
     std::vector<B> randbytes(size_t len) noexcept {
         std::vector<B> ret(len);
         fillrand(MakeWritableByteSpan(ret));
