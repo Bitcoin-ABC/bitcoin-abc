@@ -2727,8 +2727,8 @@ CConnman::GetAddresses(CNode &requestor, size_t max_addresses, size_t max_pct) {
         // shouldn't make any meaningful difference in terms of the freshness of
         // the response.
         cache_entry.m_cache_entry_expiration =
-            current_time + std::chrono::hours(21) +
-            GetRandMillis(std::chrono::hours(6));
+            current_time + 21h +
+            FastRandomContext().randrange<std::chrono::microseconds>(6h);
     }
     return cache_entry.m_addrs_response_cache;
 }

@@ -2396,7 +2396,8 @@ void PeerManagerImpl::ReattemptInitialBroadcast(CScheduler &scheduler) {
     // Schedule next run for 10-15 minutes in the future.
     // We add randomness on every cycle to avoid the possibility of P2P
     // fingerprinting.
-    const auto reattemptBroadcastInterval = 10min + GetRandMillis(5min);
+    const auto reattemptBroadcastInterval =
+        10min + FastRandomContext().randrange<std::chrono::milliseconds>(5min);
     scheduler.scheduleFromNow([&] { ReattemptInitialBroadcast(scheduler); },
                               reattemptBroadcastInterval);
 }
@@ -2507,7 +2508,8 @@ scheduleLater:
     // Schedule next run for 2-5 minutes in the future.
     // We add randomness on every cycle to avoid the possibility of P2P
     // fingerprinting.
-    const auto avalanchePeriodicNetworkingInterval = 2min + GetRandMillis(3min);
+    const auto avalanchePeriodicNetworkingInterval =
+        2min + FastRandomContext().randrange<std::chrono::milliseconds>(3min);
     scheduler.scheduleFromNow([&] { AvalanchePeriodicNetworking(scheduler); },
                               avalanchePeriodicNetworkingInterval);
 }
@@ -2879,7 +2881,8 @@ void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
         std::chrono::seconds{EXTRA_PEER_CHECK_INTERVAL});
 
     // schedule next run for 10-15 minutes in the future
-    const auto reattemptBroadcastInterval = 10min + GetRandMillis(5min);
+    const auto reattemptBroadcastInterval =
+        10min + FastRandomContext().randrange<std::chrono::milliseconds>(5min);
     scheduler.scheduleFromNow([&] { ReattemptInitialBroadcast(scheduler); },
                               reattemptBroadcastInterval);
 
@@ -2892,7 +2895,8 @@ void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
         AVALANCHE_STATISTICS_REFRESH_PERIOD);
 
     // schedule next run for 2-5 minutes in the future
-    const auto avalanchePeriodicNetworkingInterval = 2min + GetRandMillis(3min);
+    const auto avalanchePeriodicNetworkingInterval =
+        2min + FastRandomContext().randrange<std::chrono::milliseconds>(3min);
     scheduler.scheduleFromNow([&] { AvalanchePeriodicNetworking(scheduler); },
                               avalanchePeriodicNetworkingInterval);
 }
@@ -8623,8 +8627,9 @@ void PeerManagerImpl::MaybeSendFeefilter(
              (currentFilter < 3 * peer.m_fee_filter_sent / 4 ||
               currentFilter > 4 * peer.m_fee_filter_sent / 3)) {
         peer.m_next_send_feefilter =
-            current_time + GetRandomDuration<std::chrono::microseconds>(
-                               MAX_FEEFILTER_CHANGE_DELAY);
+            current_time +
+            FastRandomContext().randrange<std::chrono::microseconds>(
+                MAX_FEEFILTER_CHANGE_DELAY);
     }
 }
 
