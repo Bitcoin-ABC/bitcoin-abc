@@ -27,21 +27,22 @@ class MinerFundTest(BitcoinTestFramework):
             [],
         ]
 
+    @staticmethod
+    def get_best_coinbase(n):
+        return n.getblock(n.getbestblockhash(), 2)["tx"][0]
+
     def run_for_ratio(self, ratio):
         node = self.nodes[0]
 
         self.log.info("Create some history")
         self.generate(node, 10)
 
-        def get_best_coinbase(n):
-            return n.getblock(n.getbestblockhash(), 2)["tx"][0]
-
-        coinbase = get_best_coinbase(node)
+        coinbase = self.get_best_coinbase(node)
         assert_greater_than_or_equal(len(coinbase["vout"]), 2)
         block_reward = sum([vout["value"] for vout in coinbase["vout"]])
 
         def check_miner_fund_output():
-            coinbase = get_best_coinbase(node)
+            coinbase = self.get_best_coinbase(node)
             assert_equal(len(coinbase["vout"]), 2)
             assert_equal(
                 coinbase["vout"][1]["scriptPubKey"]["addresses"][0], MINER_FUND_ADDR
@@ -115,7 +116,7 @@ class MinerFundTest(BitcoinTestFramework):
                 self.nodes[1], nblocks=1, address=address, sync_fun=self.no_op
             )[0]
 
-        coinbase = get_best_coinbase(self.nodes[1])
+        coinbase = self.get_best_coinbase(self.nodes[1])
         assert_equal(len(coinbase["vout"]), 1)
 
         # node0 parks the block since the miner fund is enforced by policy.
@@ -141,8 +142,39 @@ class MinerFundTest(BitcoinTestFramework):
             n.reconsiderblock(first_block_no_miner_fund)
             assert_equal(n.getbestblockhash(), first_block_no_miner_fund)
 
+    def test_without_avalanche(self):
+        self.log.info("Test the behavior when avalanche is completely disabled")
+        self.restart_node(0, extra_args=["-enableminerfund"])
+        self.restart_node(1, extra_args=["-avalanche=0"])
+        self.connect_nodes(0, 1)
+
+        avalanche_node = self.nodes[0]
+        other_node = self.nodes[1]
+
+        # First mine a block on an avalanche enabled node, check that the node with
+        # avalanche uninitialized accepts it
+        avalanche_tip = self.generate(avalanche_node, 1, sync_fun=self.sync_blocks)[0]
+        coinbase = self.get_best_coinbase(other_node)
+        assert_greater_than_or_equal(len(coinbase["vout"]), 2)
+
+        # Mine a block on a non-avalanche node, check that the avalanche node parks it
+        with avalanche_node.assert_debug_log(
+            ["Park block because it violated a block policy: policy-bad-miner-fund"]
+        ):
+            other_tip = self.generate(other_node, 1, sync_fun=self.no_op)[0]
+
+        coinbase = self.get_best_coinbase(other_node)
+        assert_equal(len(coinbase["vout"]), 1)
+
+        assert_equal(other_node.getblock(other_tip)["confirmations"], 1)
+        assert_equal(other_node.getbestblockhash(), other_tip)
+
+        assert_equal(avalanche_node.getblock(other_tip)["confirmations"], -1)
+        assert_equal(avalanche_node.getbestblockhash(), avalanche_tip)
+
     def run_test(self):
         self.run_for_ratio(MINER_FUND_RATIO)
+        self.test_without_avalanche()
 
 
 if __name__ == "__main__":

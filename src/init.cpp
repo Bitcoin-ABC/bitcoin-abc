@@ -2741,7 +2741,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     connOptions.uiInterface = &uiInterface;
     connOptions.m_banman = node.banman.get();
     connOptions.m_msgproc.push_back(node.peerman.get());
-    connOptions.m_msgproc.push_back(node.avalanche.get());
+    if (node.avalanche) {
+        connOptions.m_msgproc.push_back(node.avalanche.get());
+    }
     connOptions.nSendBufferMaxSize =
         1000 * args.GetIntArg("-maxsendbuffer", DEFAULT_MAXSENDBUFFER);
     connOptions.nReceiveFloodSize =
@@ -2909,7 +2911,9 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         DUMP_BANS_INTERVAL);
 
     // Start Avalanche's event loop.
-    node.avalanche->startEventLoop(*node.scheduler);
+    if (node.avalanche) {
+        node.avalanche->startEventLoop(*node.scheduler);
+    }
 
     if (node.peerman) {
         node.peerman->StartScheduledTasks(*node.scheduler);
