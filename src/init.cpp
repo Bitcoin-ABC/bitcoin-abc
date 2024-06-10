@@ -2666,8 +2666,8 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     }
 
     avalanche::Processor *const avalanche = node.avalanche.get();
-    chainman.m_load_block = std::thread(
-        &util::TraceThread, "loadblk", [=, &chainman, &args, &avalanche] {
+    chainman.m_load_block =
+        std::thread(&util::TraceThread, "loadblk", [=, &chainman, &args] {
             ThreadImport(chainman, avalanche, vImportFiles,
                          ShouldPersistMempool(args) ? MempoolPath(args)
                                                     : fs::path{});
