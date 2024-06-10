@@ -3307,7 +3307,7 @@ bool Chainstate::ActivateBestChainStep(
     bool fBlocksDisconnected = false;
     DisconnectedBlockTransactions disconnectpool;
     while (m_chain.Tip() && m_chain.Tip() != pindexFork) {
-        if (!fBlocksDisconnected) {
+        if (m_mempool && !fBlocksDisconnected) {
             // Import and clear mempool; we must do this to preserve
             // topological ordering in the mempool index. This is ok since
             // inserts into the mempool are very fast now in our new

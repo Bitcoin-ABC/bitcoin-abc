@@ -9085,9 +9085,15 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                                      staller);
             if (m_chainman.BackgroundSyncInProgress() &&
                 !IsLimitedPeer(*peer)) {
+                // If the background tip is not an ancestor of the snapshot
+                // block, we need to start requesting blocks from their last
+                // common ancestor.
+                const CBlockIndex *from_tip =
+                    LastCommonAncestor(m_chainman.GetBackgroundSyncTip(),
+                                       m_chainman.GetSnapshotBaseBlock());
+
                 TryDownloadingHistoricalBlocks(
-                    *peer, get_inflight_budget(), vToDownload,
-                    m_chainman.GetBackgroundSyncTip(),
+                    *peer, get_inflight_budget(), vToDownload, from_tip,
                     Assert(m_chainman.GetSnapshotBaseBlock()));
             }
             for (const CBlockIndex *pindex : vToDownload) {
