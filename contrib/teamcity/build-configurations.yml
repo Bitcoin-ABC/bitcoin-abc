@@ -823,31 +823,6 @@ builds:
       popd
       mv coverage/coverage.tar.gz "${BUILD_DIR}/"
 
-  cashtab-components-tests:
-    runOnDiffRegex:
-      - modules/cashtab-components/
-    env:
-      # Any string will work, CI just needs to be defined
-      CI: 'teamcity'
-      JEST_SUITE_NAME: "Cashtab Components Test suites"
-      JEST_JUNIT_SUITE_NAME: "CashTab Components Unit Tests"
-      JEST_JUNIT_OUTPUT_DIR: "test/junit"
-      JEST_JUNIT_OUTPUT_NAME: "cashtab-components.xml"
-    script: |
-      pushd "${TOPLEVEL}/modules/cashtab-components"
-      npm ci
-      npm run build
-
-      # Make sure the report is available even if the tests fail
-      move_junit_report() {
-        mv test "${BUILD_DIR}/"
-      }
-      trap "move_junit_report" EXIT
-
-      npm run test -- \
-        --reporters=default \
-        --reporters=jest-junit
-
   alias-server-tests:
     runOnDiffRegex:
       - apps/alias-server/
