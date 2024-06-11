@@ -210,7 +210,7 @@ impl Db {
 
     /// Writes the batch to the Db atomically.
     pub fn write_batch(&self, write_batch: WriteBatch) -> Result<()> {
-        self.db.write_without_wal(write_batch).map_err(RocksDb)?;
+        self.db.write(write_batch).map_err(RocksDb)?;
         Ok(())
     }
 
