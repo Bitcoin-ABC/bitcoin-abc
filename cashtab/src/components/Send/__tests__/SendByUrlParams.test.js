@@ -129,9 +129,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
-
         // Wait for balance to be loaded
         expect(await screen.findByText('9,513.12 XEC')).toBeInTheDocument();
 
@@ -200,9 +197,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
 
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
-
         // The Send button is not disabled because we have a valid amount
         expect(
             await screen.findByRole('button', { name: 'Send' }),
@@ -265,9 +259,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveValue(null);
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
-
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
@@ -332,9 +323,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
 
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
-
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
             'cursor: not-allowed',
@@ -390,9 +378,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveValue(null);
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
-
-        // The "Webapp Tx Request" notice is NOT rendered
-        expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
@@ -451,9 +436,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveValue(null);
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
-
-        // The "Webapp Tx Request" notice is NOT rendered
-        expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Send button is disabled because no amount is entered
         expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(
@@ -518,9 +500,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveValue(legacyPassedAmount);
         // The amount input is disabled
         expect(amountInputEl).toHaveProperty('disabled', true);
-
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
 
         // The Send button is not disabled because we have a valid amount
         expect(
@@ -638,9 +617,6 @@ describe('<SendXec /> rendered with params in URL', () => {
             await screen.findByRole('button', { name: 'Send' }),
         ).not.toHaveStyle('cursor: not-allowed');
 
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
         expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
             'disabled',
@@ -719,9 +695,6 @@ describe('<SendXec /> rendered with params in URL', () => {
             'cursor: not-allowed',
         );
 
-        // The "Webapp Tx Request" notice is rendered
-        expect(screen.getByText('Webapp Tx Request')).toBeInTheDocument();
-
         // The Cashtab Msg switch is disabled because we have txInfoFromUrl
         expect(screen.getByTitle('Toggle Cashtab Msg')).toHaveProperty(
             'disabled',
@@ -768,9 +741,6 @@ describe('<SendXec /> rendered with params in URL', () => {
         expect(amountInputEl).toHaveValue(null);
         // The amount input is not disabled
         expect(amountInputEl).toHaveProperty('disabled', false);
-
-        // The "Webapp Tx Request" notice is NOT rendered
-        expect(screen.queryByText('Webapp Tx Request')).not.toBeInTheDocument();
 
         // The Send button is disabled
         expect(await screen.findByRole('button', { name: 'Send' })).toHaveStyle(

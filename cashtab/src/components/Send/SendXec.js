@@ -82,13 +82,6 @@ const SentLink = styled.a`
     text-decoration: none;
 `;
 
-const AppCreatedTxSummary = styled.div`
-    font-size: 24px;
-    margin-top: -33px;
-    padding: 0;
-    color: ${props => props.theme.eCashPurple};
-`;
-
 const AliasAddressPreviewLabel = styled.div`
     text-align: center;
     color: ${props => props.theme.forms.text};
@@ -860,9 +853,6 @@ const SendXec = () => {
                     handleCancel={handleCancel}
                     showCancelButton
                 />
-            )}
-            {txInfoFromUrl && (
-                <AppCreatedTxSummary>Webapp Tx Request</AppCreatedTxSummary>
             )}
 
             <SwitchContainer>
