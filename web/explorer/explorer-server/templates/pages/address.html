@@ -75,7 +75,7 @@ block content %}
                 <div class="address-ctn-divider"></div>
                 <a
                     class="show-coins"
-                    onclick="$('#sats-coins').toggle(); loadSatsTable();"
+                    onclick="$('#sats-coins').toggle(); loadSatsTable(); rotateArrow(this);"
                 >
                     Coins <i class="icon chevron circle down"></i>
                 </a>
@@ -95,9 +95,10 @@ block content %}
                 <div class="address-ctn-divider"></div>
                 <a
                     class="show-coins"
-                    onclick="$('.etoken-table-ctn').toggle();"
+                    onclick="$('.etoken-table-ctn').toggle(); rotateArrow(this);"
                 >
-                    eTokens <i class="icon chevron circle down"></i>
+                    eTokens
+                    <i class="icon chevron circle down rotate-arrow"></i>
                 </a>
                 <div class="etoken-table-ctn">
                     {% for (token_id, json_balance) in json_balances %} {% if
@@ -124,7 +125,8 @@ block content %}
                         </div>
                         <div class="etoken-row-cell etrc-last">
                             <a
-                                onclick="$('#token-coins-{{ loop.index0 }}').toggle(); loadTokenTable('{{ token_id }}')"
+                                class="show-coins"
+                                onclick="$('#token-coins-{{ loop.index0 }}').toggle(); rotateArrow(this); loadTokenTable('{{ token_id }}')"
                             >
                                 <span
                                     >{{ json_balance.utxos.len() }} {% if

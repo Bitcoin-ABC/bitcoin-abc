@@ -784,9 +784,23 @@ table.dataTable thead .sorting {
     cursor: pointer;
     width: fit-content;
     user-select: none;
+    display: flex;
+    align-items: center;
 }
 .show-coins:hover {
     filter: brightness(1.2);
+}
+
+.show-coins i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    margin-left: 2px;
+}
+
+.rotate-arrow {
+    transform: rotate(180deg);
 }
 
 .addresses {

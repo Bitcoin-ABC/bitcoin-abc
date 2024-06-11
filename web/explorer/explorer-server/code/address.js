@@ -433,6 +433,10 @@ const reRenderPage = params => {
     window.pagination.generatePaginationUI(currentPage, pageArray);
 };
 
+const rotateArrow = element => {
+    $(element).find('.chevron').toggleClass('rotate-arrow');
+};
+
 $(document).ready(() => {
     datatable();
     reRenderPage();
