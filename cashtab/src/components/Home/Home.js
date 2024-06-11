@@ -61,29 +61,10 @@ export const TxHistoryCtn = styled.div`
     margin-top: 24px;
 `;
 
-export const Links = styled(Link)`
-    color: ${props => props.theme.darkBlue};
-    width: 100%;
-    font-size: 16px;
-    margin: 10px 0 20px 0;
-    border: 1px solid ${props => props.theme.darkBlue};
-    padding: 14px 0;
-    display: inline-block;
-    border-radius: 3px;
-    transition: all 200ms ease-in-out;
-    svg {
-        fill: ${props => props.theme.darkBlue};
-    }
+export const AlertLink = styled(Link)`
+    color: red;
     :hover {
-        color: ${props => props.theme.eCashBlue};
-        border-color: ${props => props.theme.eCashBlue};
-        svg {
-            fill: ${props => props.theme.eCashBlue};
-        }
-    }
-    @media (max-width: 768px) {
-        padding: 10px 0;
-        font-size: 14px;
+        color: #000;
     }
 `;
 
@@ -159,7 +140,11 @@ const Home = () => {
                     <>
                         <Alert>
                             <p>
-                                <b>Backup your wallet</b>
+                                <b>
+                                    <AlertLink to="/backup">
+                                        Backup your wallet
+                                    </AlertLink>
+                                </b>
                             </p>
                             <p>
                                 Write down your 12-word seed and keep it in a
