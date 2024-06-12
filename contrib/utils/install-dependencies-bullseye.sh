@@ -153,7 +153,7 @@ pip3 install "lief==0.13.2"
 pip3 install websocket-client
 
 # Required python linters
-pip3 install black==23.3.0 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0
+pip3 install black==24.4.2 isort==5.6.4 mypy==0.910 flynt==0.78 flake8==6.0.0 flake8-builtins==2.5.0 flake8-comprehensions==3.14.0
 echo "export PATH=\"$(python3 -m site --user-base)/bin:\$PATH\"" >> ~/.bashrc
 # shellcheck source=/dev/null
 source ~/.bashrc
