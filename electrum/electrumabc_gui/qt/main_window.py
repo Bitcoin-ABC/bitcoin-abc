@@ -1033,10 +1033,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             self.show_error(_("No donation address for this server"))
 
     def show_about(self):
-        year_start_ec = 2017
-        year_end_ec = 2022
-        year_start = 2020
-        year_end = 2022
         QtWidgets.QMessageBox.about(
             self,
             f"{PROJECT_NAME}",
@@ -1044,17 +1040,6 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
             + _("Version")
             + f" {self.wallet.electrum_version}"
             + "</p>"
-            + '<span style="font-size:11pt; font-weight:500;"><p>'
-            + f"Copyright © {year_start}-{year_end} Bitcoin ABC and the {PROJECT_NAME} "
-            "developers."
-            + "</p><p>"
-            + _(
-                f"Copyright © {year_start_ec}-{year_end_ec} Electron Cash LLC "
-                "and the Electron Cash developers."
-            )
-            + "</p><p>"
-            + _("darkdetect for macOS © 2019 Alberto Sottile")
-            + "</p></span>"
             + '<span style="font-weight:200;"><p>'
             + _(
                 f"{PROJECT_NAME}'s focus is speed, with low resource usage and"
@@ -1065,7 +1050,10 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
                 "high-performance servers that handle the most complicated "
                 f"parts of the {CURRENCY} system."
             )
-            + "</p></span>",
+            + "</p></span>"
+            + f"<p><a href={REPOSITORY_URL}/blob/master/electrum/COPYING>"
+            + _("License and copyright information")
+            + "</a></p>",
         )
 
     def show_report_bug(self):
