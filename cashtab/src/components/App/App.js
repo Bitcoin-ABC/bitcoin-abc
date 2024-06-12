@@ -17,6 +17,7 @@ import {
     SwapIcon,
     TokensIcon,
     RewardIcon,
+    NftIcon,
 } from 'components/Common/CustomIcons';
 import Spinner from 'components/Common/Spinner';
 import { ThemeProvider } from 'styled-components';
@@ -38,6 +39,7 @@ import Swap from 'components/Swap/Swap';
 import Rewards from 'components/Rewards';
 import NotFound from 'components/App/NotFound';
 import OnBoarding from 'components/OnBoarding';
+import Nfts from 'components/Nfts';
 import { LoadingCtn } from 'components/Common/Atoms';
 import Cashtab from 'assets/cashtab_xec.png';
 import './App.css';
@@ -206,6 +208,12 @@ const App = () => {
                                                     <WalletIcon />
                                                 </NavHeader>
                                             )}
+                                            {location.pathname === '/nfts' && (
+                                                <NavHeader>
+                                                    Listed NFTs
+                                                    <NftIcon />
+                                                </NavHeader>
+                                            )}
                                             {location.pathname ===
                                                 '/contacts' && (
                                                 <NavHeader>
@@ -338,6 +346,10 @@ const App = () => {
                                                     element={<Wallets />}
                                                 />
                                                 <Route
+                                                    path="/nfts"
+                                                    element={<Nfts />}
+                                                />
+                                                <Route
                                                     path="/contacts"
                                                     element={<Contacts />}
                                                 />
@@ -447,6 +459,14 @@ const App = () => {
                                         {' '}
                                         <p>Wallets</p>
                                         <BankIcon />
+                                    </NavItem>
+                                    <NavItem
+                                        active={location.pathname === '/nfts'}
+                                        onClick={() => navigate('/nfts')}
+                                    >
+                                        {' '}
+                                        <p>Listed NFTs</p>
+                                        <NftIcon />
                                     </NavItem>
                                     <NavItem
                                         active={

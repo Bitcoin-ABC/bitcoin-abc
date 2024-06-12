@@ -27,7 +27,9 @@ import {
 } from 'components/Etokens/fixtures/mocks';
 import CashtabCache from 'config/CashtabCache';
 import { cashtabCacheToJSON } from 'helpers';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc, initWasm, toHex } from 'ecash-lib';
+import { MockAgora } from '../../../../../modules/mock-chronik-client';
+import * as wif from 'wif';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -618,7 +620,45 @@ describe('<Token /> available actions rendered', () => {
         // NFT name is rendered
         expect(screen.getByText('Gordon Chen')).toBeInTheDocument();
     });
-    it('SLP1 NFT', async () => {
+    it('We can list an SLP1 NFT', async () => {
+        // Set empty agora mocks so we can test proper routing to NFT market page on successful list
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // activeOffersByPubKey
+        // The test wallet is selling the Saturn V NFT
+        const thisPrivateKey = wif.decode(
+            tokenTestWallet.paths.get(appConfig.derivationPath).wif,
+        ).privateKey;
+        const thisPublicKey = ecc.derivePubkey(thisPrivateKey);
+        mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), []);
+
+        // activeOffersByGroupTokenId does not need to be mocked since there are no offers here
+
+        // NFT ad prep
+        const adPrepHex =
+            '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441645e5d4141c2e9207f5a743a0f672f0710a352347df32954c3a24a19c64e8d9b95007335bf5491d4f69eac89a389fb1cbc3b868f3342ac38a7e23b5c8976c72e4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf7926180300000064418a094d8cccbff0073e0b97fb84dfb849766545cbd4a764ad1d68b9a8ca5822feea93833c4df54fc5d7b52a73f0ba0fdf987a78f7481a5c55d351472f152931d04121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326080000000000000001b80b00000000000017a91407d2b0e6ec7b96cbfbe4a7d54e28d28fbcf65e4087f2290f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const adPrepTxid =
+            '6543a807c83363e5d43587dcd15239b9c82a485e2b1ebbd730e82a0f0db4385f';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: adPrepHex,
+            output: { txid: adPrepTxid },
+        });
+
+        // NFT ad list
+        const adListHex =
+            '02000000015f38b40d0f2ae830d7bb1e2b5e482ac8b93952d1dc8735d4e56333c807a8436501000000a70441475230074f4e4553484f54416c8c3c5fb1d038dcce630a1504a04c2333c50fddfbb35b37c01ad4e89f0e2aae103703f2a2cf94cef51cbeff6c442feb961f4ec2fc948d59dc61b6ee83b3f262414c56222b50fe00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac7521031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dad074f4e4553484f5488044147523087ffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a2228326080000000000000001220200000000000017a914729833ae294590bbcf28bfbb9ad54c01b6cdb62887da060000000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const adListTxid =
+            'd732c995d4071786a689dff175c60982c57a14a3e2f6362ee0418fba6a5eca7f';
+
+        mockedChronik.setMock('broadcastTx', {
+            input: adListHex,
+            output: { txid: adListTxid },
+        });
+
+        // NFT send
         const hex =
             '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441fff60607ba0fb6eda064075b321abc3980c249efcc0e91d4d95e464500a654476e59b76dd19bdd66f5d207a0d731550c93ce724a09e00a3bff3fcfbc08c970844121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fe754300443dfb293619693087016c9d9a8437489d48cb7c0c3fcb6b5af6277833ff7156355aeb557145c4075b7917d90d79239ba7bf776a38fef935d8da2f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
         const txid =
@@ -630,6 +670,7 @@ describe('<Token /> available actions rendered', () => {
         render(
             <CashtabTestWrapper
                 chronik={mockedChronik}
+                agora={mockedAgora}
                 ecc={ecc}
                 route={`/send-token/${slp1NftChildMocks.tokenId}`}
             />,
@@ -675,7 +716,129 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available for NFTs
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // We see an address input field
+        // On load, default action for NFT is to list it
+        expect(screen.getByTitle('Toggle Sell')).toHaveProperty(
+            'checked',
+            true,
+        );
+
+        // We see a price input field for listing this NFT
+        const priceInput = screen.getByPlaceholderText('Enter NFT list price');
+        expect(priceInput).toBeInTheDocument();
+
+        // We see expected error msg if we try to list the NFT for less than dust
+        await userEvent.type(priceInput, '5.45');
+        expect(
+            screen.getByText('List price cannot be less than dust (5.46 XEC).'),
+        ).toBeInTheDocument();
+
+        // The List button is disabled on bad validation
+        const listButton = screen.getByRole('button', {
+            name: /List Gordon Chen/,
+        });
+        expect(listButton).toHaveProperty('disabled', true);
+
+        await userEvent.clear(priceInput);
+
+        // No validation error if NFT list price is for more than dust
+        await userEvent.type(priceInput, '10000');
+        expect(
+            screen.queryByText(
+                'List price cannot be less than dust (5.46 XEC).',
+            ),
+        ).not.toBeInTheDocument();
+
+        // The List button is NOT disabled if price is greater than dust
+        expect(listButton).toHaveProperty('disabled', false);
+
+        // The fiat price is previewed correctly
+        expect(screen.getByText('10,000 XEC = $ 0.30 USD')).toBeInTheDocument();
+
+        // We can also set the price in fiat currency
+        await userEvent.selectOptions(
+            screen.getByTestId('currency-select-dropdown'),
+            screen.getByTestId('fiat-option'),
+        );
+
+        // The price input is cleared when the user changes from XEC price to fiat price
+        expect(priceInput).toHaveValue(null);
+
+        // We list the NFT for $5
+        await userEvent.type(priceInput, '5');
+
+        // The fiat price is previewed correctly
+        expect(
+            screen.getByText(/\$ 5 USD = 166,666.67 XEC/),
+        ).toBeInTheDocument();
+
+        // Click the now-enabled list button
+        await userEvent.click(listButton);
+
+        // We see expected confirmation modal to list the NFT
+        expect(screen.getByText(/List GC for \$ 5 USD/)).toBeInTheDocument();
+
+        // We can cancel and not list the NFT
+        await userEvent.click(screen.getByText('Cancel'));
+
+        // The confirmation modal is gone
+        expect(
+            screen.queryByText(/List GC for \$ 5 USD/),
+        ).not.toBeInTheDocument();
+
+        // We change our mind
+        await userEvent.click(listButton);
+        await userEvent.click(screen.getByText('OK'));
+
+        // We see expected toast notification for the ad setup tx
+        expect(await screen.findByText('Created NFT ad')).toBeInTheDocument();
+        // We see the expected toast notification for the successful listing tx
+        expect(
+            await screen.findByText(/NFT listed for 166,666.67 XEC/),
+        ).toBeInTheDocument();
+
+        // We route to the NFTs page
+        expect(await screen.findByTitle('Listed NFTs')).toBeInTheDocument();
+    });
+    it('We can send an SLP1 NFT', async () => {
+        // NFT send
+        const hex =
+            '0200000002268322a2a8e67fe9efdaf15c9eb7397fb640ae32d8a245c2933f9eb967ff9b5d010000006441fff60607ba0fb6eda064075b321abc3980c249efcc0e91d4d95e464500a654476e59b76dd19bdd66f5d207a0d731550c93ce724a09e00a3bff3fcfbc08c970844121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffef76d01776229a95c45696cf68f2f98c8332d0c53e3f24e73fd9c6deaf792618030000006441fe754300443dfb293619693087016c9d9a8437489d48cb7c0c3fcb6b5af6277833ff7156355aeb557145c4075b7917d90d79239ba7bf776a38fef935d8da2f7c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff030000000000000000376a04534c500001410453454e44205d9bff67b99e3f93c245a2d832ae40b67f39b79e5cf1daefe97fe6a8a222832608000000000000000122020000000000001976a91495e79f51d4260bc0dc3ba7fb77c7be92d0fbdd1d88ac84330f00000000001976a91400549451e5c22b18686cacdf34dce649e5ec3be288ac00000000';
+        const txid =
+            'daa5872d1ef95a05bd3ee59fc532aa7921a54b783a5af68c5aa9146f61d2e134';
+        mockedChronik.setMock('broadcastTx', {
+            input: hex,
+            output: { txid },
+        });
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                ecc={ecc}
+                route={`/send-token/${slp1NftChildMocks.tokenId}`}
+            />,
+        );
+
+        const { tokenName } = slp1NftChildMocks.token.genesisInfo;
+
+        // Wait for element to get token info and load
+        expect(
+            (await screen.findAllByText(new RegExp(tokenName)))[0],
+        ).toBeInTheDocument();
+
+        // On load, default action for NFT is to list it
+        const sellActionSwitch = screen.getByTitle('Toggle Sell');
+        expect(sellActionSwitch).toHaveProperty('checked', true);
+
+        // Sending is disabled
+        const sendActionSwitch = screen.getByTitle('Toggle Send');
+
+        expect(sendActionSwitch).toHaveProperty('checked', false);
+
+        // When we enable Sending, Selling is disabled, and Sending is enabled
+        await userEvent.click(sendActionSwitch);
+        expect(sendActionSwitch).toHaveProperty('checked', true);
+        expect(sellActionSwitch).toHaveProperty('checked', false);
+
+        // We see an Address input
         const addrInput = screen.getByPlaceholderText('Address');
         expect(addrInput).toBeInTheDocument();
 
@@ -823,9 +986,11 @@ describe('<Token /> available actions rendered', () => {
         // Token actions are available for NFTs
         expect(screen.getByTitle('Token Actions')).toBeInTheDocument();
 
-        // We see an address input field
-        const addrInput = screen.getByPlaceholderText('Address');
-        expect(addrInput).toBeInTheDocument();
+        // On load, the default action for an NFT is to list it
+        const nftListInput = screen.getByPlaceholderText(
+            'Enter NFT list price',
+        );
+        expect(nftListInput).toBeInTheDocument();
     });
     it('ALP token', async () => {
         render(

@@ -11,6 +11,7 @@ import GA from 'components/Common/GoogleAnalytics';
 import { ChronikClient } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';
 import { Ecc, initWasm } from 'ecash-lib';
+import { Agora } from 'ecash-agora';
 
 // Initialize wasm (activate ecash-lib) at app startup
 initWasm()
@@ -19,11 +20,13 @@ initWasm()
         const ecc = new Ecc();
         // Initialize chronik-client at app startup
         const chronik = new ChronikClient(chronikConfig.urls);
+        // Initialize new Agora chronik wrapper at app startup
+        const agora = new Agora(chronik);
 
         const container = document.getElementById('root');
         const root = createRoot(container);
         root.render(
-            <WalletProvider chronik={chronik} ecc={ecc}>
+            <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
                 <Router>
                     {GA.init() && <GA.RouteTracker />}
                     <App />

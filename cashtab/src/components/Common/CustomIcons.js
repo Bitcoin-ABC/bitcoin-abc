@@ -44,6 +44,7 @@ import { ReactComponent as Reward } from 'assets/reward.svg';
 import { ReactComponent as SelfSend } from 'assets/selfsend.svg';
 import { ReactComponent as FanOut } from 'assets/fanout.svg';
 import { ReactComponent as MintNft } from 'assets/mintnft.svg';
+import { ReactComponent as Nft } from 'assets/nft.svg';
 
 import appConfig from 'config/app';
 
@@ -212,6 +213,7 @@ export const RewardIcon = () => <Reward title="Cashtab Rewards" />;
 export const SelfSendIcon = () => <SelfSend title="Self Send" />;
 export const FanOutIcon = () => <FanOut title="Fan Out" />;
 export const MintNftIcon = () => <MintNft title="Mint NFT" />;
+export const NftIcon = () => <Nft title="NFT" />;
 
 const GithubIconWrapper = styled.div`
     svg {

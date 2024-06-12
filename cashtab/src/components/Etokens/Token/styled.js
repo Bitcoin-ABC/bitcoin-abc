@@ -153,6 +153,16 @@ export const NftRow = styled.div`
 export const NftTokenIdAndCopyIcon = styled.div`
     display: flex;
     align-items: center;
+    svg {
+        width: 18px;
+        height: 18px;
+        :hover {
+            g {
+                fill: ${props => props.theme.eCashPurple};
+            }
+            fill: ${props => props.theme.eCashPurple};
+        }
+    }
 `;
 export const NftCol = styled.div`
     display: flex;
@@ -174,4 +184,9 @@ export const NftCollectionTitle = styled.div`
     font-size: 18px;
     color: ${props => props.theme.contrast};
     word-break: break-all;
+`;
+
+export const ListPricePreview = styled.div`
+    text-align: center;
+    color: ${props => props.theme.contrast};
 `;

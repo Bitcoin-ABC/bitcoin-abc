@@ -40,6 +40,9 @@ import { createCashtabWallet } from 'wallet';
 import { isValidCashtabWallet } from 'validation';
 import CashtabCache from 'config/CashtabCache';
 import { CashtabSettings } from 'config/cashtabSettings';
+import { Ecc, initWasm, toHex } from 'ecash-lib';
+import * as wif from 'wif';
+import { MockAgora } from '../../../../../modules/mock-chronik-client';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -76,6 +79,11 @@ window.sideshift = {
 };
 
 describe('<App />', () => {
+    let ecc;
+    beforeAll(async () => {
+        await initWasm();
+        ecc = new Ecc();
+    });
     let user;
     beforeEach(() => {
         // Set up userEvent
@@ -214,7 +222,28 @@ describe('<App />', () => {
             localforage,
         );
 
-        render(<CashtabTestWrapper chronik={mockedChronik} />);
+        // Set empty agora mocks so we can test proper routing to NFT market page on successful list
+        const mockedAgora = new MockAgora();
+
+        mockedAgora.setOfferedGroupTokenIds([]);
+
+        // activeOffersByPubKey
+        // The test wallet is selling the Saturn V NFT
+        const thisPrivateKey = wif.decode(
+            walletWithXecAndTokens.paths.get(appConfig.derivationPath).wif,
+        ).privateKey;
+        const thisPublicKey = ecc.derivePubkey(thisPrivateKey);
+        mockedAgora.setActiveOffersByPubKey(toHex(thisPublicKey), []);
+
+        // activeOffersByGroupTokenId does not need to be mocked since there are no offers here
+
+        render(
+            <CashtabTestWrapper
+                chronik={mockedChronik}
+                agora={mockedAgora}
+                ecc={ecc}
+            />,
+        );
 
         // Default route is home
         await screen.findByTestId('tx-history');
@@ -356,6 +385,18 @@ describe('<App />', () => {
 
         // Now we see the Rewards screen
         expect(screen.getByTitle('Rewards')).toBeInTheDocument();
+
+        // Navigate to NFTs screen
+        await user.click(
+            screen.getByRole('button', {
+                name: /NFTs/i,
+            }),
+        );
+
+        // Now we see the NFTs screen
+        expect(
+            await screen.findByText('You do not have any listed NFTs'),
+        ).toBeInTheDocument();
     });
     it('Adding a contact to to a new contactList by clicking on tx history adds it to localforage and wallet context', async () => {
         const mockedChronik = await initializeCashtabStateForTests(

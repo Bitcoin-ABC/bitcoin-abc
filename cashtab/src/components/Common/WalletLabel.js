@@ -126,6 +126,7 @@ const WalletLabel = ({
                 minified={minified}
                 name="wallets"
                 id="wallets"
+                data-testid="wallet-select"
                 onChange={e => handleSelectWallet(e)}
                 value={wallets[0].name}
             >

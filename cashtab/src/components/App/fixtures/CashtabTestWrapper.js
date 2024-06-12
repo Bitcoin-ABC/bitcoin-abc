@@ -12,8 +12,13 @@ import PropTypes from 'prop-types';
 
 // Default ecc to an empty object
 // It is only needed in tests that use it from context
-const CashtabTestWrapper = ({ chronik, ecc = {}, route = '/wallet' }) => (
-    <WalletProvider chronik={chronik} ecc={ecc}>
+const CashtabTestWrapper = ({
+    chronik,
+    agora = {},
+    ecc = {},
+    route = '/wallet',
+}) => (
+    <WalletProvider chronik={chronik} agora={agora} ecc={ecc}>
         <MemoryRouter initialEntries={[route]}>
             <ThemeProvider theme={theme}>
                 <App />
@@ -24,6 +29,7 @@ const CashtabTestWrapper = ({ chronik, ecc = {}, route = '/wallet' }) => (
 
 CashtabTestWrapper.propTypes = {
     chronik: PropTypes.object,
+    agora: PropTypes.object,
     ecc: PropTypes.object,
     route: PropTypes.string,
 };

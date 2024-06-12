@@ -9,6 +9,7 @@ import PropTypes from 'prop-types';
 const ModalContainer = styled.div`
     width: ${props => props.width}px;
     height: ${props => props.height}px;
+    transition: height 1s ease-in-out;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -44,6 +45,7 @@ const ModalBody = styled.div`
     width: 100%;
     height: ${props =>
         props.showButtons ? props.height - MODAL_HEIGHT_DELTA : props.height}px;
+    transition: height 1s ease-in-out;
     overflow: auto;
     padding: 6px;
     word-wrap: break-word;

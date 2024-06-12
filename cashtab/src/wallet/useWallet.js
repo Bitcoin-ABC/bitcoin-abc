@@ -43,7 +43,7 @@ import TokenIcon from 'components/Etokens/TokenIcon';
 import { getUserLocale } from 'helpers';
 import { toFormattedXec } from 'utils/formatting';
 
-const useWallet = (chronik, ecc) => {
+const useWallet = (chronik, agora, ecc) => {
     const [cashtabLoaded, setCashtabLoaded] = useState(false);
     const [ws, setWs] = useState(null);
     const [fiatPrice, setFiatPrice] = useState(null);
@@ -968,6 +968,7 @@ const useWallet = (chronik, ecc) => {
 
     return {
         chronik,
+        agora,
         ecc,
         chaintipBlockheight,
         fiatPrice,

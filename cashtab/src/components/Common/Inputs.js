@@ -126,6 +126,12 @@ const CurrencyDropdown = styled.select`
 const SendXecDropdown = styled(CurrencyDropdown)`
     width: 100px;
 `;
+
+const SellPriceDropdown = styled(CurrencyDropdown)`
+    width: 100px;
+    border-radius: 0 9px 9px 0;
+`;
+
 const CurrencyOption = styled.option`
     text-align: left;
     background-color: ${props => props.theme.forms.selectionBackground};
@@ -431,6 +437,61 @@ SendTokenInput.propTypes = {
     error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     handleInput: PropTypes.func,
     handleOnMax: PropTypes.func,
+};
+
+export const ListPriceInput = ({
+    name = 'listPriceInput',
+    placeholder = 'listPriceInput',
+    value = 0,
+    inputDisabled = false,
+    selectValue = '',
+    selectDisabled = false,
+    fiatCode = 'USD',
+    error = false,
+    handleInput,
+    handleSelect,
+}) => {
+    return (
+        <CashtabInputWrapper>
+            <InputRow invalid={typeof error === 'string'}>
+                <LeftInput
+                    name={name}
+                    placeholder={placeholder}
+                    type="number"
+                    value={value}
+                    onChange={e => handleInput(e)}
+                    disabled={inputDisabled}
+                />
+                <SellPriceDropdown
+                    data-testid="currency-select-dropdown"
+                    value={selectValue}
+                    onChange={e => handleSelect(e)}
+                    disabled={selectDisabled}
+                >
+                    <CurrencyOption data-testid="xec-option" value="XEC">
+                        XEC
+                    </CurrencyOption>
+                    <CurrencyOption data-testid="fiat-option" value={fiatCode}>
+                        {fiatCode}
+                    </CurrencyOption>
+                </SellPriceDropdown>
+            </InputRow>
+            <ErrorMsg>{typeof error === 'string' ? error : ''}</ErrorMsg>
+        </CashtabInputWrapper>
+    );
+};
+
+ListPriceInput.propTypes = {
+    name: PropTypes.string,
+    placeholder: PropTypes.string,
+    value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    inputDisabled: PropTypes.bool,
+    selectValue: PropTypes.string,
+    selectDisabled: PropTypes.bool,
+    fiatCode: PropTypes.string,
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+    handleInput: PropTypes.func,
+    handleSelect: PropTypes.func,
 };
 
 export const AliasInput = ({

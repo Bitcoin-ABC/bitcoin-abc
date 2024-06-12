@@ -20,6 +20,7 @@ import {
     isValidTokenSendOrBurnAmount,
     parseAddressInput,
     isValidTokenMintAmount,
+    getXecListPriceError,
 } from 'validation';
 import { formatDate } from 'utils/formatting';
 import TokenIcon from 'components/Etokens/TokenIcon';
@@ -43,7 +44,12 @@ import {
     getNftChildSendTargetOutputs,
 } from 'slpv1';
 import { sendXec } from 'transactions';
-import { hasEnoughToken, decimalizeTokenAmount } from 'wallet';
+import {
+    hasEnoughToken,
+    decimalizeTokenAmount,
+    toSatoshis,
+    toXec,
+} from 'wallet';
 import Modal from 'components/Common/Modal';
 import { toast } from 'react-toastify';
 import {
@@ -51,6 +57,7 @@ import {
     SendTokenInput,
     ModalInput,
     InputFlex,
+    ListPriceInput,
 } from 'components/Common/Inputs';
 import { QuestionIcon } from 'components/Common/CustomIcons';
 import { decimalizedTokenQtyToLocaleFormat } from 'utils/formatting';
@@ -80,6 +87,7 @@ import {
     NftTokenIdAndCopyIcon,
     NftNameTitle,
     NftCollectionTitle,
+    ListPricePreview,
 } from 'components/Etokens/Token/styled';
 import CreateTokenForm from 'components/Etokens/CreateTokenForm';
 import {
@@ -87,7 +95,19 @@ import {
     getChildNftsFromParent,
     getTokenGenesisInfo,
 } from 'chronik';
+import { supportedFiatCurrencies } from 'config/cashtabSettings';
+import {
+    slpSend,
+    SLP_NFT1_CHILD,
+    Script,
+    fromHex,
+    shaRmd160,
+    P2PKHSignatory,
+    ALL_BIP143,
+} from 'ecash-lib';
 import { InlineLoader } from 'components/Common/Spinner';
+import { AgoraOneshot, AgoraOneshotAdSignatory } from 'ecash-agora';
+import * as wif from 'wif';
 
 const Token = () => {
     let navigate = useNavigate();
@@ -99,6 +119,7 @@ const Token = () => {
         ecc,
         chaintipBlockheight,
         loading,
+        fiatPrice,
     } = useContext(WalletContext);
     const { settings, wallets, cashtabCache } = cashtabState;
     const wallet = wallets.length > 0 ? wallets[0] : false;
@@ -198,6 +219,9 @@ const Token = () => {
     const [confirmationOfEtokenToBeBurnt, setConfirmationOfEtokenToBeBurnt] =
         useState('');
     const [aliasInputAddress, setAliasInputAddress] = useState(false);
+    const [selectedCurrency, setSelectedCurrency] = useState(appConfig.ticker);
+    const [nftListPriceError, setNftListPriceError] = useState(false);
+    const [showConfirmListNft, setShowConfirmListNft] = useState(false);
 
     // By default, we load the app with all switches disabled
     // For SLP v1 tokens, we want showSend to be enabled by default
@@ -209,6 +233,7 @@ const Token = () => {
         showMint: false,
         showFanout: false,
         showMintNft: false,
+        showSellNft: false,
     };
     const [switches, setSwitches] = useState(switchesOff);
     const [showLargeIconModal, setShowLargeIconModal] = useState(false);
@@ -236,6 +261,7 @@ const Token = () => {
         address: '',
         burnAmount: '',
         mintAmount: '',
+        nftListPrice: null,
     };
 
     const [formData, setFormData] = useState(emptyFormData);
@@ -333,16 +359,28 @@ const Token = () => {
     }, [loading, tokenBalance, cashtabCache]);
 
     useEffect(() => {
+        if (!isSupportedToken) {
+            // Do nothing for unsupported tokens
+            return;
+        }
         // This useEffect block works as a de-facto "on load" block,
         // for after we have the tokenId from the url params of this page
-        if (isSupportedToken) {
-            if (!isNftParent) {
-                // Supported token that is not an NFT parent
+        if (!isNftParent) {
+            // Supported token that is not an NFT parent
+            if (isNftChild) {
+                // Default action is list
+                setSwitches({ ...switchesOff, showSellNft: true });
+            } else {
                 // Default action is send
-                setSwitches(prev => ({ ...prev, showSend: true }));
+                setSwitches({ ...switchesOff, showSend: true });
             }
         }
-    }, [tokenId]);
+    }, [isSupportedToken, isNftParent, isNftChild]);
+
+    useEffect(() => {
+        // Clear NFT list price and de-select fiat currency if rate is unavailable
+        handleSelectedCurrencyChange({ target: { value: 'XEC' } });
+    }, [fiatPrice]);
 
     const getNfts = async tokenId => {
         const nftParentTxHistory = await getAllTxHistoryByTokenId(
@@ -847,6 +885,223 @@ const Token = () => {
         }
     };
 
+    const handleSelectedCurrencyChange = e => {
+        setSelectedCurrency(e.target.value);
+        // Clear NFT price input field to prevent unit confusion
+        // User must re-specify price in new units
+        setFormData(p => ({
+            ...p,
+            nftListPrice: '',
+        }));
+    };
+
+    const handleNftListPriceChange = e => {
+        const { name, value } = e.target;
+        setNftListPriceError(
+            getXecListPriceError(value, selectedCurrency, fiatPrice),
+        );
+        setFormData(p => ({
+            ...p,
+            [name]: value,
+        }));
+    };
+
+    const listNft = async () => {
+        // To guarantee we have no utxo conflicts while sending a chain of 2 txs
+        // We ensure that the target output of the ad setup tx will include enough XEC
+        // to cover the offer tx
+        const AD_SETUP_SATOSHIS = 3000;
+        const listPriceSatoshis =
+            selectedCurrency === appConfig.ticker
+                ? toSatoshis(formData.nftListPrice)
+                : toSatoshis(
+                      parseFloat(
+                          (
+                              parseFloat(formData.nftListPrice) / fiatPrice
+                          ).toFixed(2),
+                      ),
+                  );
+        const satsPerKb =
+            settings.minFeeSends &&
+            (hasEnoughToken(
+                tokens,
+                appConfig.vipTokens.grumpy.tokenId,
+                appConfig.vipTokens.grumpy.vipBalance,
+            ) ||
+                hasEnoughToken(
+                    tokens,
+                    appConfig.vipTokens.cachet.tokenId,
+                    appConfig.vipTokens.cachet.vipBalance,
+                ))
+                ? appConfig.minFee
+                : appConfig.defaultFee;
+
+        // Build the ad tx
+        // The advertisement tx is an SLP send tx of the listed NFT to the seller's wallet
+
+        const sellerSk = wif.decode(
+            wallet.paths.get(appConfig.derivationPath).wif,
+        ).privateKey;
+
+        const sellerPk = ecc.derivePubkey(sellerSk);
+        const sellerP2pkh = Script.p2pkh(
+            fromHex(wallet.paths.get(appConfig.derivationPath).hash),
+        );
+
+        const enforcedOutputs = [
+            {
+                value: 0,
+                script: slpSend(tokenId, SLP_NFT1_CHILD, [0, 1]),
+            },
+            {
+                value: listPriceSatoshis,
+                script: Script.p2pkh(
+                    fromHex(wallet.paths.get(appConfig.derivationPath).hash),
+                ),
+            },
+        ];
+
+        const agoraOneshot = new AgoraOneshot({
+            enforcedOutputs,
+            cancelPk: sellerPk,
+        });
+        const agoraAdScript = agoraOneshot.adScript();
+        const agoraAdP2sh = Script.p2sh(shaRmd160(agoraAdScript.bytecode));
+
+        // Input needs to be the child NFT utxo with appropriate signData
+        // Get the NFT utxo from Cashtab wallet
+        const [thisNftUtxo] = getNft(tokenId, wallet.state.slpUtxos);
+        // Prepare it for an ecash-lib tx
+        const adSetupInputs = [
+            {
+                input: {
+                    prevOut: {
+                        txid: thisNftUtxo.outpoint.txid,
+                        outIdx: thisNftUtxo.outpoint.outIdx,
+                    },
+                    signData: {
+                        value: appConfig.dustSats,
+                        outputScript: sellerP2pkh,
+                    },
+                },
+                signatory: P2PKHSignatory(sellerSk, sellerPk, ALL_BIP143),
+            },
+        ];
+        const adSetupTargetOutputs = [
+            {
+                value: 0,
+                script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
+            },
+            { value: AD_SETUP_SATOSHIS, script: agoraAdP2sh },
+        ];
+
+        // Broadcast the ad setup tx
+        let adSetupTxid;
+        try {
+            // Build and broadcast the ad setup tx
+            const { response } = await sendXec(
+                chronik,
+                ecc,
+                wallet,
+                adSetupTargetOutputs,
+                satsPerKb,
+                chaintipBlockheight,
+                adSetupInputs,
+            );
+            adSetupTxid = response.txid;
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${adSetupTxid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Created NFT ad
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+        } catch (err) {
+            console.error(`Error creating NFT listing ad`, err);
+            toast.error(`Error creating NFT listing ad: ${err}`);
+            // Do not attempt to list the NFT if the ad tx fails
+            return;
+        }
+
+        // Seller finishes offer setup + sends NFT to the advertised P2SH
+        const agoraScript = agoraOneshot.script();
+        const agoraP2sh = Script.p2sh(shaRmd160(agoraScript.bytecode));
+
+        const offerInputs = [
+            // The actual NFT
+            {
+                input: {
+                    prevOut: {
+                        // Since we just broadcast the ad tx and know how it was built,
+                        // this prevOut will always look like this
+                        txid: adSetupTxid,
+                        outIdx: 1,
+                    },
+                    signData: {
+                        value: AD_SETUP_SATOSHIS,
+                        redeemScript: agoraAdScript,
+                    },
+                },
+                signatory: AgoraOneshotAdSignatory(sellerSk),
+            },
+        ];
+        const offerTargetOutputs = [
+            {
+                value: 0,
+                script: slpSend(tokenId, SLP_NFT1_CHILD, [1]),
+            },
+            { value: appConfig.dustSats, script: agoraP2sh },
+        ];
+
+        let offerTxid;
+        try {
+            // Build and broadcast the ad setup tx
+            const { response } = await sendXec(
+                chronik,
+                ecc,
+                wallet,
+                offerTargetOutputs,
+                satsPerKb,
+                chaintipBlockheight,
+                offerInputs,
+            );
+            offerTxid = response.txid;
+
+            toast(
+                <TokenSentLink
+                    href={`${explorer.blockExplorerUrl}/tx/${offerTxid}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    NFT listed for{' '}
+                    {toXec(parseInt(listPriceSatoshis)).toLocaleString(
+                        userLocale,
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                        },
+                    )}{' '}
+                    XEC
+                </TokenSentLink>,
+                {
+                    icon: <TokenIcon size={32} tokenId={tokenId} />,
+                },
+            );
+
+            // Navigate to the NFTs page so the user can see and manage this listing (and others)
+            navigate(`/nfts`);
+        } catch (err) {
+            console.error(`Error listing NFT`, err);
+            toast.error(`Error listing NFT: ${err}`);
+        }
+    };
+
     return (
         <>
             {tokenBalance &&
@@ -970,6 +1225,72 @@ const Token = () => {
                                     handleInput={handleBurnConfirmationInput}
                                 />
                             </Modal>
+                        )}
+                        {showConfirmListNft && formData.nftListPrice !== '' && (
+                            <Modal
+                                title={`List ${tokenTicker} for ${
+                                    selectedCurrency === appConfig.ticker
+                                        ? `${parseFloat(
+                                              formData.nftListPrice,
+                                          ).toLocaleString(userLocale)}
+                                                        XEC (${
+                                                            settings
+                                                                ? `${
+                                                                      supportedFiatCurrencies[
+                                                                          settings
+                                                                              .fiatCurrency
+                                                                      ].symbol
+                                                                  } `
+                                                                : '$ '
+                                                        }${(
+                                              parseFloat(
+                                                  formData.nftListPrice,
+                                              ) * fiatPrice
+                                          ).toLocaleString(userLocale, {
+                                              minimumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                              maximumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                          })} ${
+                                              settings && settings.fiatCurrency
+                                                  ? settings.fiatCurrency.toUpperCase()
+                                                  : 'USD'
+                                          })?`
+                                        : `${
+                                              settings
+                                                  ? `${
+                                                        supportedFiatCurrencies[
+                                                            settings
+                                                                .fiatCurrency
+                                                        ].symbol
+                                                    } `
+                                                  : '$ '
+                                          }${parseFloat(
+                                              formData.nftListPrice,
+                                          ).toLocaleString(userLocale)} ${
+                                              settings && settings.fiatCurrency
+                                                  ? settings.fiatCurrency.toUpperCase()
+                                                  : 'USD'
+                                          } (${(
+                                              parseFloat(
+                                                  formData.nftListPrice,
+                                              ) / fiatPrice
+                                          ).toLocaleString(userLocale, {
+                                              minimumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                              maximumFractionDigits:
+                                                  appConfig.cashDecimals,
+                                          })}
+                                                        XEC)?`
+                                }`}
+                                handleOk={listNft}
+                                handleCancel={() =>
+                                    setShowConfirmListNft(false)
+                                }
+                                showCancelButton
+                                description={`This will create a sell offer. Your NFT is only transferred if your full price is paid. The price is fixed in XEC. If your NFT is not purchased, you can cancel or renew your listing at any time.`}
+                                height={275}
+                            />
                         )}
                         {renderedTokenType === 'NFT' ? (
                             <>
@@ -1242,6 +1563,157 @@ const Token = () => {
 
                         {isSupportedToken && (
                             <SendTokenForm title="Token Actions">
+                                {isNftChild && (
+                                    <>
+                                        <SwitchHolder>
+                                            <Switch
+                                                name="Toggle Sell"
+                                                on="💰"
+                                                off="💰"
+                                                checked={switches.showSellNft}
+                                                handleToggle={() => {
+                                                    // We turn everything else off, whether we are turning this one on or off
+                                                    setSwitches({
+                                                        ...switchesOff,
+                                                        showSellNft:
+                                                            !switches.showSellNft,
+                                                    });
+                                                }}
+                                            />
+                                            <SwitchLabel>
+                                                Sell {tokenName} ({tokenTicker})
+                                            </SwitchLabel>
+                                        </SwitchHolder>
+                                        {switches.showSellNft && (
+                                            <>
+                                                <SendTokenFormRow>
+                                                    <InputRow>
+                                                        <ListPriceInput
+                                                            name="nftListPrice"
+                                                            placeholder="Enter NFT list price"
+                                                            value={
+                                                                formData.nftListPrice
+                                                            }
+                                                            selectValue={
+                                                                selectedCurrency
+                                                            }
+                                                            selectDisabled={
+                                                                fiatPrice ===
+                                                                null
+                                                            }
+                                                            fiatCode={settings.fiatCurrency.toUpperCase()}
+                                                            error={
+                                                                nftListPriceError
+                                                            }
+                                                            handleInput={
+                                                                handleNftListPriceChange
+                                                            }
+                                                            handleSelect={
+                                                                handleSelectedCurrencyChange
+                                                            }
+                                                        ></ListPriceInput>
+                                                    </InputRow>
+                                                </SendTokenFormRow>
+                                                {!nftListPriceError &&
+                                                    formData.nftListPrice !==
+                                                        '' &&
+                                                    fiatPrice !== null && (
+                                                        <ListPricePreview title="NFT List Price">
+                                                            {selectedCurrency ===
+                                                            appConfig.ticker
+                                                                ? `${parseFloat(
+                                                                      formData.nftListPrice,
+                                                                  ).toLocaleString(
+                                                                      userLocale,
+                                                                  )}
+                                                        XEC = ${
+                                                            settings
+                                                                ? `${
+                                                                      supportedFiatCurrencies[
+                                                                          settings
+                                                                              .fiatCurrency
+                                                                      ].symbol
+                                                                  } `
+                                                                : '$ '
+                                                        }${(
+                                                                      parseFloat(
+                                                                          formData.nftListPrice,
+                                                                      ) *
+                                                                      fiatPrice
+                                                                  ).toLocaleString(
+                                                                      userLocale,
+                                                                      {
+                                                                          minimumFractionDigits:
+                                                                              appConfig.cashDecimals,
+                                                                          maximumFractionDigits:
+                                                                              appConfig.cashDecimals,
+                                                                      },
+                                                                  )} ${
+                                                                      settings &&
+                                                                      settings.fiatCurrency
+                                                                          ? settings.fiatCurrency.toUpperCase()
+                                                                          : 'USD'
+                                                                  }`
+                                                                : `${
+                                                                      settings
+                                                                          ? `${
+                                                                                supportedFiatCurrencies[
+                                                                                    settings
+                                                                                        .fiatCurrency
+                                                                                ]
+                                                                                    .symbol
+                                                                            } `
+                                                                          : '$ '
+                                                                  }${parseFloat(
+                                                                      formData.nftListPrice,
+                                                                  ).toLocaleString(
+                                                                      userLocale,
+                                                                  )} ${
+                                                                      settings &&
+                                                                      settings.fiatCurrency
+                                                                          ? settings.fiatCurrency.toUpperCase()
+                                                                          : 'USD'
+                                                                  } = ${(
+                                                                      parseFloat(
+                                                                          formData.nftListPrice,
+                                                                      ) /
+                                                                      fiatPrice
+                                                                  ).toLocaleString(
+                                                                      userLocale,
+                                                                      {
+                                                                          minimumFractionDigits:
+                                                                              appConfig.cashDecimals,
+                                                                          maximumFractionDigits:
+                                                                              appConfig.cashDecimals,
+                                                                      },
+                                                                  )}
+                                                        XEC`}
+                                                        </ListPricePreview>
+                                                    )}
+                                                <SendTokenFormRow>
+                                                    <PrimaryButton
+                                                        style={{
+                                                            marginTop: '12px',
+                                                        }}
+                                                        disabled={
+                                                            apiError ||
+                                                            nftListPriceError ||
+                                                            formData.nftListPrice ===
+                                                                ''
+                                                        }
+                                                        onClick={() =>
+                                                            setShowConfirmListNft(
+                                                                true,
+                                                            )
+                                                        }
+                                                    >
+                                                        List {tokenName}
+                                                    </PrimaryButton>
+                                                </SendTokenFormRow>
+                                            </>
+                                        )}
+                                    </>
+                                )}
                                 {!isNftParent && (
                                     <>
                                         <SwitchHolder>
