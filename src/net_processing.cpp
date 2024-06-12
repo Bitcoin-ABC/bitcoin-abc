@@ -2979,7 +2979,8 @@ void PeerManagerImpl::BlockDisconnected(
 void PeerManagerImpl::NewPoWValidBlock(
     const CBlockIndex *pindex, const std::shared_ptr<const CBlock> &pblock) {
     std::shared_ptr<const CBlockHeaderAndShortTxIDs> pcmpctblock =
-        std::make_shared<const CBlockHeaderAndShortTxIDs>(*pblock);
+        std::make_shared<const CBlockHeaderAndShortTxIDs>(
+            *pblock, FastRandomContext().rand64());
 
     LOCK(cs_main);
 
@@ -3470,7 +3471,8 @@ void PeerManagerImpl::ProcessGetBlockData(const Config &config, CNode &pfrom,
                     MakeAndPushMessage(pfrom, NetMsgType::CMPCTBLOCK,
                                        *a_recent_compact_block);
                 } else {
-                    CBlockHeaderAndShortTxIDs cmpctblock(*pblock);
+                    CBlockHeaderAndShortTxIDs cmpctblock(
+                        *pblock, FastRandomContext().rand64());
                     MakeAndPushMessage(pfrom, NetMsgType::CMPCTBLOCK,
                                        cmpctblock);
                 }
@@ -8839,7 +8841,8 @@ bool PeerManagerImpl::SendMessages(const Config &config, CNode *pto) {
                         const bool ret{m_chainman.m_blockman.ReadBlock(
                             block, *pBestIndex)};
                         assert(ret);
-                        CBlockHeaderAndShortTxIDs cmpctblock(block);
+                        CBlockHeaderAndShortTxIDs cmpctblock(
+                            block, FastRandomContext().rand64());
                         MakeAndPushMessage(*pto, NetMsgType::CMPCTBLOCK,
                                            cmpctblock);
                     }
