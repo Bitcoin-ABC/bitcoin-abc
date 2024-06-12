@@ -95,7 +95,7 @@ def _print_common(file, *args):
     # see: https://docs.python.org/3.6/library/io.html#multi-threading
     #
     # In very rare cases IO errors can occur here. We tolerate them. See #1595
-    with _print_lock, suppress(OSError):
+    with _print_lock, suppress(OSError), suppress(AttributeError):
         file.write(s_args)
         # necessary if redirecting to file
         file.flush()
