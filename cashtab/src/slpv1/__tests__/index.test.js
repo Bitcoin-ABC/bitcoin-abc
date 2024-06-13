@@ -30,22 +30,41 @@ describe('slpv1 methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, genesisConfig, targetOutputs } =
-                expectedReturn;
+            const {
+                description,
+                genesisInfo,
+                initialQuantity,
+                mintBatonOutIdx,
+                targetOutputs,
+            } = expectedReturn;
             it(`getSlpGenesisTargetOutput: ${description}`, () => {
-                expect(getSlpGenesisTargetOutput(genesisConfig)).toStrictEqual(
-                    targetOutputs,
-                );
+                expect(
+                    getSlpGenesisTargetOutput(
+                        genesisInfo,
+                        initialQuantity,
+                        mintBatonOutIdx,
+                    ),
+                ).toStrictEqual(targetOutputs);
             });
         });
 
         // Error cases
         expectedErrors.forEach(expectedError => {
-            const { description, genesisConfig, errorMsg } = expectedError;
+            const {
+                description,
+                genesisInfo,
+                initialQuantity,
+                mintBatonOutIdx,
+                errorMsg,
+            } = expectedError;
             it(`getSlpGenesisTargetOutput throws error for: ${description}`, () => {
-                expect(() => getSlpGenesisTargetOutput(genesisConfig)).toThrow(
-                    errorMsg,
-                );
+                expect(() =>
+                    getSlpGenesisTargetOutput(
+                        genesisInfo,
+                        initialQuantity,
+                        mintBatonOutIdx,
+                    ),
+                ).toThrow(errorMsg);
             });
         });
     });
@@ -73,7 +92,7 @@ describe('slpv1 methods', () => {
                 sendAmounts,
                 targetOutputs,
             } = expectedReturn;
-            it(`getSendTokenInputs with in-node chronik utxos: ${description}`, () => {
+            it(`getSendTokenInputs: ${description}`, () => {
                 const calcTokenInputs = getSendTokenInputs(
                     allSendUtxos,
                     tokenId,
@@ -83,7 +102,7 @@ describe('slpv1 methods', () => {
                 expect(calcTokenInputs.tokenInputs).toStrictEqual(tokenInputs);
                 expect(calcTokenInputs.sendAmounts).toStrictEqual(sendAmounts);
             });
-            it(`getSlpSendTargetOutputs with in-node inputs: ${description}`, () => {
+            it(`getSlpSendTargetOutputs: ${description}`, () => {
                 expect(
                     getSlpSendTargetOutputs(
                         { tokenInputs, sendAmounts },
@@ -192,21 +211,40 @@ describe('slpv1 methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, genesisConfig, targetOutputs } =
-                expectedReturn;
+            const {
+                description,
+                genesisInfo,
+                initialQuantity,
+                mintBatonOutIdx,
+                targetOutputs,
+            } = expectedReturn;
             it(`getNftParentGenesisTargetOutputs: ${description}`, () => {
-                expect(getNftParentGenesisTargetOutputs(genesisConfig)).toEqual(
-                    targetOutputs,
-                );
+                expect(
+                    getNftParentGenesisTargetOutputs(
+                        genesisInfo,
+                        initialQuantity,
+                        mintBatonOutIdx,
+                    ),
+                ).toStrictEqual(targetOutputs);
             });
         });
 
         // Error cases
         expectedErrors.forEach(expectedError => {
-            const { description, genesisConfig, errorMsg } = expectedError;
+            const {
+                description,
+                genesisInfo,
+                initialQuantity,
+                mintBatonOutIdx,
+                errorMsg,
+            } = expectedError;
             it(`getNftParentGenesisTargetOutputs throws error for: ${description}`, () => {
                 expect(() =>
-                    getNftParentGenesisTargetOutputs(genesisConfig),
+                    getNftParentGenesisTargetOutputs(
+                        genesisInfo,
+                        initialQuantity,
+                        mintBatonOutIdx,
+                    ),
                 ).toThrow(errorMsg);
             });
         });
@@ -220,9 +258,9 @@ describe('slpv1 methods', () => {
             const { description, tokenId, mintQty, targetOutputs } =
                 expectedReturn;
             it(`getNftParentMintTargetOutputs: ${description}`, () => {
-                expect(getNftParentMintTargetOutputs(tokenId, mintQty)).toEqual(
-                    targetOutputs,
-                );
+                expect(
+                    getNftParentMintTargetOutputs(tokenId, mintQty),
+                ).toStrictEqual(targetOutputs);
             });
         });
 
@@ -255,7 +293,7 @@ describe('slpv1 methods', () => {
         expectedReturns.forEach(expectedReturn => {
             const { description, fanInputs, returned } = expectedReturn;
             it(`getNftParentFanTxTargetOutputs: ${description}`, () => {
-                expect(getNftParentFanTxTargetOutputs(fanInputs)).toEqual(
+                expect(getNftParentFanTxTargetOutputs(fanInputs)).toStrictEqual(
                     returned,
                 );
             });
@@ -284,12 +322,11 @@ describe('slpv1 methods', () => {
     describe('Get targetOutputs for an NFT1 child genesis tx', () => {
         const { expectedReturns } = vectors.getNftChildGenesisTargetOutputs;
         expectedReturns.forEach(expectedReturn => {
-            const { description, childGenesisConfig, returned } =
-                expectedReturn;
+            const { description, genesisInfo, returned } = expectedReturn;
             it(`getNftChildGenesisTargetOutputs: ${description}`, () => {
                 expect(
-                    getNftChildGenesisTargetOutputs(childGenesisConfig),
-                ).toEqual(returned);
+                    getNftChildGenesisTargetOutputs(genesisInfo),
+                ).toStrictEqual(returned);
             });
         });
     });
@@ -310,7 +347,7 @@ describe('slpv1 methods', () => {
             it(`getNftChildSendTargetOutputs: ${description}`, () => {
                 expect(
                     getNftChildSendTargetOutputs(tokenId, destinationAddress),
-                ).toEqual(returned);
+                ).toStrictEqual(returned);
             });
         });
     });

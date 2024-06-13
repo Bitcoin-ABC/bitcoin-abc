@@ -22,7 +22,7 @@ import {
 } from '../fixtures/vectors';
 import slpv1Vectors from 'slpv1/fixtures/vectors';
 import { walletWithTokensInNode } from 'transactions/fixtures/mocks';
-import { Ecc, initWasm } from 'ecash-lib';
+import { Ecc, initWasm, Script, fromHex } from 'ecash-lib';
 
 describe('Cashtab functions that build and broadcast rawtxs', () => {
     let ecc;
@@ -283,9 +283,10 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                     [
                         {
                             value: 0,
-                            script: Buffer.from(
-                                '6a04007461622bf09f998ff09f93acf09faba1f09f9180f09f95b5efb88ff09f9191f09f8e83f09faa96f09f908bf09f8eaf',
-                                'hex',
+                            script: new Script(
+                                fromHex(
+                                    '6a04007461622bf09f998ff09f93acf09faba1f09f9180f09f95b5efb88ff09f9191f09f8e83f09faa96f09f908bf09f8eaf',
+                                ),
                             ),
                         },
                     ],

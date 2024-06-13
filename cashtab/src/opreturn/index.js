@@ -2,7 +2,6 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import * as utxolib from '@bitgo/utxo-lib';
 import cashaddr from 'ecashaddrjs';
 import { opReturn } from 'config/opreturn';
 import {
@@ -11,16 +10,7 @@ import {
     getOpReturnRawError,
 } from 'validation';
 import { getStackArray } from 'ecash-script';
-
-/**
- * Initialize an OP_RETURN script element in a way that utxolib.script.compile(script) accepts
- * utxolib.script.compile(script) will add pushdata bytes for each buffer
- * utxolib.script.compile(script) will not add pushdata bytes for raw data
- * Initialize script array with OP_RETURN byte (6a) as rawdata (i.e. you want compiled result of 6a, not 016a)
- */
-export const initializeScript = () => {
-    return [opReturn.opReturnPrefixDec];
-};
+import { Script, pushBytesOp, OP_RETURN, OP_0, fromHex } from 'ecash-lib';
 
 /**
  * Get targetOutput for a Cashtab Msg from user input string
@@ -35,12 +25,6 @@ export const getCashtabMsgTargetOutput = cashtabMsg => {
     if (cashtabMsg === '') {
         throw new Error('Cashtab Msg cannot be an empty string');
     }
-
-    let script = initializeScript();
-
-    // Push Cashtab Msg protocol identifier
-    script.push(Buffer.from(opReturn.appPrefixesHex.cashtab, 'hex'));
-
     // Cashtab msgs are utf8 encoded
     const cashtabMsgScript = Buffer.from(cashtabMsg, 'utf8');
     const cashtabMsgByteCount = cashtabMsgScript.length;
@@ -51,9 +35,13 @@ export const getCashtabMsgTargetOutput = cashtabMsg => {
         );
     }
 
-    script.push(cashtabMsgScript);
-
-    script = utxolib.script.compile(script);
+    const script = Script.fromOps([
+        OP_RETURN,
+        // LOKAD
+        pushBytesOp(Buffer.from(opReturn.appPrefixesHex.cashtab, 'hex')),
+        // utf8-encoded msg
+        pushBytesOp(cashtabMsgScript),
+    ]);
 
     // Create output
     return { value: 0, script };
@@ -227,14 +215,12 @@ export const getAirdropTargetOutput = (tokenId, airdropMsg = '') => {
             'getAirdropTargetOutput requires string input for tokenId and airdropMsg',
         );
     }
-
-    let script = initializeScript();
-
-    // Push Airdrop protocol identifier
-    script.push(Buffer.from(opReturn.appPrefixesHex.airdrop, 'hex'));
-
-    // add the airdrop token ID to script
-    script.push(Buffer.from(tokenId, 'hex'));
+    const scriptArray = [
+        OP_RETURN,
+        // LOKAD
+        pushBytesOp(Buffer.from(opReturn.appPrefixesHex.airdrop, 'hex')),
+        pushBytesOp(fromHex(tokenId)),
+    ];
 
     if (airdropMsg.trim() !== '') {
         // Cashtab msgs are utf8 encoded
@@ -246,11 +232,10 @@ export const getAirdropTargetOutput = (tokenId, airdropMsg = '') => {
                 `Error: Airdrop msg is ${airdropMsgByteCount} bytes. Exceeds ${opReturn.airdropMsgByteLimit} byte limit.`,
             );
         }
-
-        script.push(airdropMsgScript);
+        scriptArray.push(pushBytesOp(airdropMsgScript));
     }
 
-    script = utxolib.script.compile(script);
+    const script = Script.fromOps(scriptArray);
 
     // Create output
     return { value: 0, script };
@@ -269,20 +254,6 @@ export const getAliasTargetOutput = (alias, address) => {
     if (meetsAliasSpec(alias) !== true) {
         throw new Error(`Invalid alias "${alias}": ${aliasMeetsSpec}`);
     }
-
-    let script = initializeScript();
-
-    // Push alias protocol identifier
-    script.push(
-        Buffer.from(opReturn.appPrefixesHex.aliasRegistration, 'hex'), // '.xec'
-    );
-
-    // Push alias protocol tx version to stack
-    // Per spec, push this as OP_0
-    script.push(0);
-
-    // Push alias to the stack
-    script.push(Buffer.from(alias, 'utf8'));
 
     // Get the type and hash of the address in string format
     let decoded;
@@ -306,10 +277,19 @@ export const getAliasTargetOutput = (alias, address) => {
         );
     }
 
-    // Push <addressVersionByte> and <addressPayload>
-    script.push(Buffer.from(`${addressVersionByte}${hash}`, 'hex'));
-
-    script = utxolib.script.compile(script);
+    const script = Script.fromOps([
+        OP_RETURN,
+        // LOKAD
+        pushBytesOp(
+            Buffer.from(opReturn.appPrefixesHex.aliasRegistration, 'hex'),
+        ),
+        // alias protocol tx version to stack as OP_0 per spec
+        OP_0,
+        // utf-8 encoded alias
+        pushBytesOp(Buffer.from(alias, 'utf8')),
+        // spec-encoded registration address as <addressVersionByte> and <addressPayload>
+        pushBytesOp(Buffer.from(`${addressVersionByte}${hash}`, 'hex')),
+    ]);
 
     // Create output
     return { value: 0, script };
@@ -353,10 +333,13 @@ export const getOpreturnParamTargetOutput = opreturnParam => {
         throw new Error(`Invalid opreturnParam "${opreturnParam}"`);
     }
 
-    // Add OP_RETURN ('6a')
-    opreturnParam = opReturn.opReturnPrefixHex + opreturnParam;
-
-    const script = utxolib.script.compile(Buffer.from(opreturnParam, 'hex'));
+    // Note this is a "weird" function that translates op_return_raw input per bip21 spec
+    // We are adding the expected OP_RETURN code to the beginning of our param
+    // And we are converting the whole thing to ecash-lib "Script" type
+    // Unlike other functions we are not building an output from multiple pushes
+    const script = new Script(
+        fromHex(opReturn.opReturnPrefixHex + opreturnParam),
+    );
 
     // Create output
     return { value: 0, script };

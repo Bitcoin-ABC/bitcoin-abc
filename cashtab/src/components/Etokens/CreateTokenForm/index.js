@@ -39,7 +39,7 @@ import { sendXec } from 'transactions';
 import { TokenNotificationIcon } from 'components/Common/CustomIcons';
 import { explorer } from 'config/explorer';
 import { getWalletState } from 'utils/cashMethods';
-import { hasEnoughToken } from 'wallet';
+import { hasEnoughToken, undecimalizeTokenAmount } from 'wallet';
 import { toast } from 'react-toastify';
 import Switch from 'components/Common/Switch';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -155,7 +155,7 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
             // Cashtab only creates NFT1 Parent tokens (aka NFT Collections) with 0 decimals
             setFormData(previous => ({
                 ...previous,
-                decimals: '0',
+                decimals: 0,
             }));
         }
     }, [createNftCollection]);
@@ -510,28 +510,44 @@ const CreateTokenForm = ({ nftChildGenesisInput }) => {
         }
 
         // data must be valid and user reviewed to get here
-        const configObj = {
-            name: formData.name,
-            ticker: formData.ticker,
-            decimals: isNftMint ? NFT_DECIMALS : formData.decimals,
-            documentUrl:
+        const genesisInfo = {
+            tokenName: formData.name,
+            tokenTicker: formData.ticker,
+            url:
                 formData.url === ''
                     ? tokenConfig.newTokenDefaultUrl
                     : formData.url,
-            genesisQty: isNftMint ? NFT_GENESIS_QTY : formData.genesisQty,
             // Support documentHash for NFT Collection, but only for uploaded image file
-            documentHash: createNftCollection || isNftMint ? formData.hash : '',
-            mintBatonVout: createWithMintBatonAtIndexTwo ? 2 : null,
+            hash: createNftCollection || isNftMint ? formData.hash : '',
+            decimals: isNftMint ? NFT_DECIMALS : parseInt(formData.decimals),
         };
 
         // Create type 1 slp token per specified user data
         try {
             // Get target outputs for an SLP v1 genesis tx
             const targetOutputs = createNftCollection
-                ? getNftParentGenesisTargetOutputs(configObj)
+                ? getNftParentGenesisTargetOutputs(
+                      genesisInfo,
+                      BigInt(
+                          undecimalizeTokenAmount(
+                              formData.genesisQty,
+                              parseInt(formData.decimals),
+                          ),
+                      ),
+                      createWithMintBatonAtIndexTwo ? 2 : undefined,
+                  )
                 : isNftMint
-                ? getNftChildGenesisTargetOutputs(configObj)
-                : getSlpGenesisTargetOutput(configObj);
+                ? getNftChildGenesisTargetOutputs(genesisInfo)
+                : getSlpGenesisTargetOutput(
+                      genesisInfo,
+                      BigInt(
+                          undecimalizeTokenAmount(
+                              formData.genesisQty,
+                              parseInt(formData.decimals),
+                          ),
+                      ),
+                      createWithMintBatonAtIndexTwo ? 2 : undefined,
+                  );
             const { response } = isNftMint
                 ? await sendXec(
                       chronik,
