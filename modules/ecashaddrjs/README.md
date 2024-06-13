@@ -154,3 +154,4 @@ https://jsfiddle.net/zghd6c2y/
 1.5.3 - Upgraded dependencies
 1.5.4 - Added unit tests
 1.5.5 - Add types declaration for easy import by typescript apps
+1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
