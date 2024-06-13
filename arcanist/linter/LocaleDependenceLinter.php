@@ -85,6 +85,8 @@ final class LocaleDependenceLinter extends ArcanistLinter {
       "strtoull",
     ],
     "src/util/strencodings.h" => ["atoi"],
+    // False positive DbEnv::strerror
+    "src/wallet/bdb.cpp" => ["strerror"],
     // Outside this function use `SysErrorString`
     "src/util/syserror.cpp" => ["strerror"],
   );
