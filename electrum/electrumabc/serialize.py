@@ -30,10 +30,14 @@ from __future__ import annotations
 import struct
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Sequence, Type
+from typing import Optional, Sequence, Type
 
 
 class DeserializationError(BaseException):
+    pass
+
+
+class UnexpectedEndOfStream(DeserializationError):
     pass
 
 
@@ -83,8 +87,14 @@ def compact_size(nsize: int) -> bytes:
     return b"\xff" + nsize.to_bytes(8, "little")
 
 
-def read_compact_size(stream: BytesIO) -> int:
-    nit = struct.unpack("<B", stream.read(1))[0]
+def read_compact_size(stream: BytesIO) -> Optional[int]:
+    """
+    Read a compact size from a stream and return its value.
+    Return None in case the stream is depleted.
+    """
+    if not (next_byte := stream.read(1)):
+        return None
+    nit = struct.unpack("<B", next_byte)[0]
     if nit == 253:
         nit = struct.unpack("<H", stream.read(2))[0]
     elif nit == 254:
@@ -124,6 +134,8 @@ def deserialize_sequence(stream: BytesIO, cls: Type[SerializableObject]):
     cls must implement a deserialize classmethod returning an instance of the class.
     """
     size = read_compact_size(stream)
+    if size is None:
+        raise UnexpectedEndOfStream()
     ret = []
     for _ in range(size):
         obj = cls.deserialize(stream)
@@ -141,4 +153,6 @@ def serialize_blob(blob: bytes) -> bytes:
 def deserialize_blob(stream: BytesIO) -> bytes:
     """Deserialize a blob prefixed with a VarInt length"""
     size = read_compact_size(stream)
+    if size is None:
+        raise UnexpectedEndOfStream()
     return stream.read(size)

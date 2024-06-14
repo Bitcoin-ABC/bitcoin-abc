@@ -1,8 +1,14 @@
 import unittest
+from io import BytesIO
 
 from ..serialize import (
+    SerializableObject,
+    UnexpectedEndOfStream,
     compact_size,
     compact_size_nbytes,
+    deserialize_blob,
+    deserialize_sequence,
+    read_compact_size,
     serialize_blob,
     serialize_sequence,
 )
@@ -77,6 +83,44 @@ class TestSerialize(unittest.TestCase):
             serialize_sequence(sequence),
             compact_size(len(sequence)) + b"SpamEggSpamSpamBaconSpam",
         )
+
+
+class TestDeserialize(unittest.TestCase):
+    def test_raises_end_of_stream(self):
+        with self.assertRaises(UnexpectedEndOfStream):
+            deserialize_blob(BytesIO(b""))
+
+        class Dummy(SerializableObject):
+            @classmethod
+            def deserialize(cls, stream):
+                return cls()
+
+        with self.assertRaises(UnexpectedEndOfStream):
+            deserialize_sequence(BytesIO(b""), Dummy)
+
+    def test_read_compact_size(self):
+        self.assertIsNone(read_compact_size(BytesIO(b"")))
+
+        for i in range(0xFD):
+            self.assertEqual(read_compact_size(BytesIO(bytes([i]))), i)
+
+        self.assertEqual(read_compact_size(BytesIO(b"\xfd\xfd\x00")), 0xFD)
+        self.assertEqual(read_compact_size(BytesIO(b"\xfd\xfe\x00")), 0xFE)
+        self.assertEqual(read_compact_size(BytesIO(b"\xfd\xff\x00")), 0xFF)
+        self.assertEqual(read_compact_size(BytesIO(b"\xfd\x34\x12")), 0x1234)
+        self.assertEqual(read_compact_size(BytesIO(b"\xfd\xff\xff")), 0xFFFF)
+        self.assertEqual(
+            read_compact_size(BytesIO(b"\xfe\xff\xff\xff\xff")), 0xFFFFFFFF
+        )
+        self.assertEqual(
+            read_compact_size(BytesIO(b"\xff\x00\x00\x00\x00\x01\x00\x00\x00")),
+            0x100000000,
+        )
+
+        # Read two compact sizes in a stream that has only one
+        ss = BytesIO(b"\x01")
+        self.assertEqual(read_compact_size(ss), 1)
+        self.assertEqual(read_compact_size(ss), None)
 
 
 if __name__ == "__main__":
