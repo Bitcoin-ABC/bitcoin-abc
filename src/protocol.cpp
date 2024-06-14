@@ -190,19 +190,13 @@ bool CMessageHeader::IsValidWithoutConfig(const MessageMagic &magic) const {
 }
 
 bool CMessageHeader::IsOversized(const Config &config) const {
-    // If the message doesn't not contain a block content, check against
-    // MAX_PROTOCOL_MESSAGE_LENGTH.
-    if (nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH &&
-        !NetMsgType::IsBlockLike(GetCommand())) {
-        return true;
+    // Scale the maximum accepted size with the block size for messages with
+    // block content
+    if (NetMsgType::IsBlockLike(GetCommand())) {
+        return nMessageSize > 2 * config.GetMaxBlockSize();
     }
 
-    // Scale the maximum accepted size with the block size.
-    if (nMessageSize > 2 * config.GetMaxBlockSize()) {
-        return true;
-    }
-
-    return false;
+    return nMessageSize > MAX_PROTOCOL_MESSAGE_LENGTH;
 }
 
 ServiceFlags GetDesirableServiceFlags(ServiceFlags services) {
