@@ -511,6 +511,7 @@ static void TestWatchOnlyPubKey(LegacyScriptPubKeyMan *spk_man,
 
 // Cryptographically invalidate a PubKey whilst keeping length and first byte
 static void PollutePubKey(CPubKey &pubkey) {
+    assert(pubkey.size() > 0);
     std::vector<uint8_t> pubkey_raw(pubkey.begin(), pubkey.end());
     std::fill(pubkey_raw.begin() + 1, pubkey_raw.end(), 0);
     pubkey = CPubKey(pubkey_raw);
