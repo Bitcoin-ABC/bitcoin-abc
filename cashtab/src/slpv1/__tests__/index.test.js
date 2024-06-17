@@ -22,7 +22,6 @@ import {
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
-import appConfig from 'config/app';
 
 describe('slpv1 methods', () => {
     describe('Generating etoken genesis tx target outputs', () => {
@@ -34,35 +33,9 @@ describe('slpv1 methods', () => {
             const { description, genesisConfig, targetOutputs } =
                 expectedReturn;
             it(`getSlpGenesisTargetOutput: ${description}`, () => {
-                // Output value should be zero for OP_RETURN
-                const calculatedTargetOutputs =
-                    getSlpGenesisTargetOutput(genesisConfig);
-
-                // We expect 2 outputs or 3 outputs
-                expect(calculatedTargetOutputs.length >= 2).toBe(true);
-
-                // The output at the 0-index is the OP_RETURN
-                expect(calculatedTargetOutputs[0].value).toBe(0);
-                expect(calculatedTargetOutputs[0].script.toString('hex')).toBe(
-                    targetOutputs[0].script,
+                expect(getSlpGenesisTargetOutput(genesisConfig)).toStrictEqual(
+                    targetOutputs,
                 );
-                // The output at the 1-index is dust to given address
-                expect(calculatedTargetOutputs[1]).toStrictEqual({
-                    value: appConfig.dustSats,
-                });
-                if (calculatedTargetOutputs.length > 2) {
-                    // If we have a mint baton
-
-                    // We will only have 3 outputs in this case
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    expect(calculatedTargetOutputs.length).toBe(3);
-
-                    // The mint baton is at index 2
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    expect(calculatedTargetOutputs[2]).toStrictEqual({
-                        value: appConfig.dustSats,
-                    });
-                }
             });
         });
 
@@ -111,45 +84,12 @@ describe('slpv1 methods', () => {
                 expect(calcTokenInputs.sendAmounts).toStrictEqual(sendAmounts);
             });
             it(`getSlpSendTargetOutputs with in-node inputs: ${description}`, () => {
-                const calculatedTargetOutputs = getSlpSendTargetOutputs(
-                    { tokenInputs, sendAmounts },
-                    SEND_DESTINATION_ADDRESS,
-                );
-
-                // We will always have the OP_RETURN output at index 0
-                expect(calculatedTargetOutputs[0].value).toBe(0);
-                expect(calculatedTargetOutputs[0].script.toString('hex')).toBe(
-                    targetOutputs[0].script,
-                );
-
-                // We will always have the destination output at index 1
-                expect(calculatedTargetOutputs[1].value).toBe(
-                    appConfig.dustSats,
-                );
-                expect(calculatedTargetOutputs[1].address).toBe(
-                    SEND_DESTINATION_ADDRESS,
-                );
-
-                // If there is a change output it is at index 2
-                if (typeof calculatedTargetOutputs[2] !== 'undefined') {
-                    // If we are here, assert the length must be 3
-
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    expect(calculatedTargetOutputs.length).toBe(3);
-
-                    // assert the expected change output
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    expect(calculatedTargetOutputs[2].value).toBe(
-                        appConfig.dustSats,
-                    );
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    expect('address' in calculatedTargetOutputs[2]).toBe(false);
-                } else {
-                    // If we are here, assert the length must be 2
-
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    expect(calculatedTargetOutputs.length).toBe(2);
-                }
+                expect(
+                    getSlpSendTargetOutputs(
+                        { tokenInputs, sendAmounts },
+                        SEND_DESTINATION_ADDRESS,
+                    ),
+                ).toStrictEqual(targetOutputs);
             });
         });
         expectedErrors.forEach(expectedError => {
@@ -185,7 +125,7 @@ describe('slpv1 methods', () => {
                 tokenId,
                 decimals,
                 tokenInputInfo,
-                outputScriptHex,
+                targetOutputs,
             } = expectedReturn;
 
             it(`getSlpBurnTargetOutputs: ${description}`, () => {
@@ -201,21 +141,9 @@ describe('slpv1 methods', () => {
                     tokenInputInfo.sendAmounts,
                 );
 
-                const targetOutput = getSlpBurnTargetOutputs(
-                    calculatedTokenInputInfo,
-                );
-
-                // We will always have the OP_RETURN output at index 0
-                expect(targetOutput[0].value).toBe(0);
-                expect(targetOutput[0].script.toString('hex')).toBe(
-                    outputScriptHex,
-                );
-
-                // BURN txs always have 2 outputs
-                expect(targetOutput.length).toBe(2);
-                // assert the expected change output
-                expect(targetOutput[1].value).toBe(appConfig.dustSats);
-                expect('address' in targetOutput[1]).toBe(false);
+                expect(
+                    getSlpBurnTargetOutputs(calculatedTokenInputInfo),
+                ).toStrictEqual(targetOutputs);
             });
         });
     });
@@ -232,21 +160,12 @@ describe('slpv1 methods', () => {
         const { expectedReturns, expectedErrors } =
             vectors.getMintTargetOutputs;
         expectedReturns.forEach(vector => {
-            const { description, tokenId, decimals, mintQty, script } = vector;
+            const { description, tokenId, decimals, mintQty, targetOutputs } =
+                vector;
             it(`getMintTargetOutputs: ${description}`, () => {
-                const mintTargetOutputs = getMintTargetOutputs(
-                    tokenId,
-                    decimals,
-                    mintQty,
-                );
-                expect(mintTargetOutputs[0].script.toString('hex')).toBe(
-                    script,
-                );
-                expect(mintTargetOutputs.length).toBe(3);
-                expect(mintTargetOutputs.splice(1, 3)).toStrictEqual([
-                    { value: appConfig.dustSats },
-                    { value: appConfig.dustSats },
-                ]);
+                expect(
+                    getMintTargetOutputs(tokenId, decimals, mintQty),
+                ).toStrictEqual(targetOutputs);
             });
         });
         expectedErrors.forEach(vector => {

@@ -34,7 +34,10 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c0001034c000800000000004c4b40',
+                        script: Buffer.from(
+                            '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c0001034c000800000000004c4b40',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
@@ -56,7 +59,10 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c00010301020800000000004c4b40',
+                        script: Buffer.from(
+                            '6a04534c500001010747454e455349530345544e09657468616e746573741468747470733a2f2f636173687461622e636f6d2f4c00010301020800000000004c4b40',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
@@ -68,7 +74,7 @@ export default {
             },
             {
                 description:
-                    'Fixed supply eToken mint for tokenId 50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
+                    'Variable supply eToken mint for tokenId 50d8292c6255cda7afc6c8566fed3cf42a2794e9619740fe8f4c95431271410e',
                 genesisConfig: {
                     name: 'tabcash',
                     ticker: 'TBC',
@@ -81,7 +87,13 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
+                        script: Buffer.from(
+                            '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001000102080000000000000064',
+                            'hex',
+                        ),
+                    },
+                    {
+                        value: appConfig.dustSats,
                     },
                     {
                         value: appConfig.dustSats,
@@ -103,7 +115,10 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001094c0008ffffffffffffffff',
+                        script: Buffer.from(
+                            '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c0001094c0008ffffffffffffffff',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
@@ -125,11 +140,16 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c000100010208ffffffffffffffff',
+                        script: Buffer.from(
+                            '6a04534c500001010747454e455349530354424307746162636173681768747470733a2f2f636173687461626170702e636f6d2f4c000100010208ffffffffffffffff',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
-                        address: GENESIS_MINT_ADDRESS,
+                    },
+                    {
+                        value: appConfig.dustSats,
                     },
                 ],
             },
@@ -219,8 +239,16 @@ export default {
                     sendAmounts: [new BN('100000'), new BN('49900000')],
                 },
                 decimals: 2,
-                outputScriptHex:
-                    '6a04534c500001010453454e44204209be6bd48937263edef94ceaf77a417ab1b35b0c69559cfdf4a435e2bf1a88080000000002f969e0',
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001010453454e44204209be6bd48937263edef94ceaf77a417ab1b35b0c69559cfdf4a435e2bf1a88080000000002f969e0',
+                            'hex',
+                        ),
+                    },
+                    { value: appConfig.dustSats },
+                ],
             },
             {
                 // https://explorer.e.cash/tx/3ec07567e5f205a312db3f7704d68a6d8ea9451a44ade3e4d9d3e75f59e681ec
@@ -236,8 +264,16 @@ export default {
                         '56e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55',
                     sendAmounts: [new BN('88800888888')],
                 },
-                outputScriptHex:
-                    '6a04534c500001010453454e442056e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55080000000000000000',
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            '6a04534c500001010453454e442056e9b1d16c9989186c846187db57d9a9389c3ecc74e7237c1d1d0327cf904a55080000000000000000',
+                            'hex',
+                        ),
+                    },
+                    { value: appConfig.dustSats },
+                ],
             },
         ],
     },
@@ -511,11 +547,17 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000f080000000000000005',
+                        script: Buffer.from(
+                            '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000000f080000000000000005',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
                         address: SEND_DESTINATION_ADDRESS,
+                    },
+                    {
+                        value: appConfig.dustSats,
                     },
                 ],
             },
@@ -574,7 +616,10 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000001e',
+                        script: Buffer.from(
+                            '6a04534c500001010453454e4420111111111111111111111111111111111111111111111111111111111111111108000000000000001e',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
@@ -630,11 +675,17 @@ export default {
                 targetOutputs: [
                     {
                         value: 0,
-                        script: '6a04534c500001010453454e44201111111111111111111111111111111111111111111111111111111111111111080000000008f0d180080000000002faf080',
+                        script: Buffer.from(
+                            '6a04534c500001010453454e44201111111111111111111111111111111111111111111111111111111111111111080000000008f0d180080000000002faf080',
+                            'hex',
+                        ),
                     },
                     {
                         value: appConfig.dustSats,
                         address: SEND_DESTINATION_ADDRESS,
+                    },
+                    {
+                        value: appConfig.dustSats,
                     },
                 ],
             },
@@ -1096,7 +1147,17 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 0,
                 mintQty: '1000',
-                script: `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}01020800000000000003e8`,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}01020800000000000003e8`,
+                            'hex',
+                        ),
+                    },
+                    { value: appConfig.dustSats },
+                    { value: appConfig.dustSats },
+                ],
             },
             {
                 description:
@@ -1104,7 +1165,17 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 9,
                 mintQty: '1000.123456789',
-                script: `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208000000e8dc00dd15`,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208000000e8dc00dd15`,
+                            'hex',
+                        ),
+                    },
+                    { value: appConfig.dustSats },
+                    { value: appConfig.dustSats },
+                ],
             },
             {
                 description:
@@ -1112,7 +1183,17 @@ export default {
                 tokenId: MOCK_TOKEN_ID,
                 decimals: 0,
                 mintQty: '18446744073709551615',
-                script: `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
+                targetOutputs: [
+                    {
+                        value: 0,
+                        script: Buffer.from(
+                            `6a04534c50000101044d494e5420${MOCK_TOKEN_ID}010208ffffffffffffffff`,
+                            'hex',
+                        ),
+                    },
+                    { value: appConfig.dustSats },
+                    { value: appConfig.dustSats },
+                ],
             },
         ],
         expectedErrors: [
