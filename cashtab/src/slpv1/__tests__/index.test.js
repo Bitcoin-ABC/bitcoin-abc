@@ -8,7 +8,6 @@ import {
     getSlpBurnTargetOutputs,
     getAllSendUtxos,
     getSendTokenInputs,
-    getExplicitBurnTargetOutputs,
     getMintBatons,
     getMintTargetOutputs,
     getMaxMintAmount,
@@ -304,46 +303,6 @@ describe('slpv1 methods', () => {
                 expect(targetOutput[1].value).toBe(appConfig.dustSats);
                 expect('address' in targetOutput[1]).toBe(false);
             });
-        });
-    });
-    describe('Generating explicit etoken burn tx target output from in-node utxos', () => {
-        const { expectedReturns } = vectors.explicitBurns;
-
-        expectedReturns.forEach(expectedReturn => {
-            const { description, burnUtxos, decimals, outputScriptHex } =
-                expectedReturn;
-            it(`getExplicitBurnTargetOutputs: ${description}`, () => {
-                const targetOutputs = getExplicitBurnTargetOutputs(
-                    burnUtxos,
-                    decimals,
-                );
-                // We get an array of length 1
-                expect(targetOutputs.length).toBe(1);
-                // Output value should be zero for OP_RETURN
-                expect(targetOutputs[0].value).toBe(0);
-                // Test vs hex string as cannot store buffer type in vectors
-                expect(targetOutputs[0].script.toString('hex')).toBe(
-                    outputScriptHex,
-                );
-            });
-        });
-
-        // We expect an error if in-node utxos are used in a call without specifying the decimals param
-        it(`getExplicitBurnTargetOutputs throws error if called with in-node utxos and no specified decimals`, () => {
-            expect(() =>
-                getExplicitBurnTargetOutputs([
-                    {
-                        value: 546,
-                        token: {
-                            tokenId:
-                                '3333333333333333333333333333333333333333333333333333333333333333',
-                            amount: '100',
-                        },
-                    },
-                ]),
-            ).toThrow(
-                'Invalid decimals -1 for tokenId 3333333333333333333333333333333333333333333333333333333333333333. Decimals must be an integer 0-9.',
-            );
         });
     });
     describe('Get slpv1 mint baton(s)', () => {
