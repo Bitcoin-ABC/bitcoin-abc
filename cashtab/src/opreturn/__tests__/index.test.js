@@ -19,14 +19,10 @@ describe('Cashtab opreturn methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, cashtabMsg, outputScriptHex } = expectedReturn;
+            const { description, cashtabMsg, returned } = expectedReturn;
             it(`getCashtabMsgTargetOutput: ${description}`, () => {
-                const targetOutput = getCashtabMsgTargetOutput(cashtabMsg);
-                // Output value should be zero for OP_RETURN
-                expect(targetOutput.value).toStrictEqual(0);
-                // Test vs hex string as cannot store buffer type in vectors
-                expect(targetOutput.script.toString('hex')).toStrictEqual(
-                    outputScriptHex,
+                expect(getCashtabMsgTargetOutput(cashtabMsg)).toStrictEqual(
+                    returned,
                 );
             });
         });
@@ -46,19 +42,12 @@ describe('Cashtab opreturn methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, tokenId, airdropMsg, outputScriptHex } =
+            const { description, tokenId, airdropMsg, returned } =
                 expectedReturn;
             it(`${description}`, () => {
-                const targetOutput = getAirdropTargetOutput(
-                    tokenId,
-                    airdropMsg,
-                );
-                // Output value should be zero for OP_RETURN
-                expect(targetOutput.value).toStrictEqual(0);
-                // Test vs hex string as cannot store buffer type in vectors
-                expect(targetOutput.script.toString('hex')).toStrictEqual(
-                    outputScriptHex,
-                );
+                expect(
+                    getAirdropTargetOutput(tokenId, airdropMsg),
+                ).toStrictEqual(returned);
             });
         });
         // Error cases
@@ -79,15 +68,10 @@ describe('Cashtab opreturn methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, alias, address, outputScriptHex } =
-                expectedReturn;
+            const { description, alias, address, returned } = expectedReturn;
             it(`getAliasTargetOutput: ${description}`, () => {
-                const targetOutput = getAliasTargetOutput(alias, address);
-                // Output value should be zero for OP_RETURN
-                expect(targetOutput.value).toStrictEqual(0);
-                // Test vs hex string as cannot store buffer type in vectors
-                expect(targetOutput.script.toString('hex')).toStrictEqual(
-                    outputScriptHex,
+                expect(getAliasTargetOutput(alias, address)).toStrictEqual(
+                    returned,
                 );
             });
         });
@@ -150,17 +134,11 @@ describe('Cashtab opreturn methods', () => {
 
         // Successfully created targetOutputs
         expectedReturns.forEach(expectedReturn => {
-            const { description, opreturnParam, outputScriptHex } =
-                expectedReturn;
+            const { description, opreturnParam, returned } = expectedReturn;
             it(`getOpreturnParamTargetOutput: ${description}`, () => {
-                const targetOutput =
-                    getOpreturnParamTargetOutput(opreturnParam);
-                // Output value should be zero for OP_RETURN
-                expect(targetOutput.value).toStrictEqual(0);
-                // Test vs hex string as cannot store buffer type in vectors
-                expect(targetOutput.script.toString('hex')).toStrictEqual(
-                    outputScriptHex,
-                );
+                expect(
+                    getOpreturnParamTargetOutput(opreturnParam),
+                ).toStrictEqual(returned);
             });
         });
         // Error cases
