@@ -9,12 +9,13 @@ export const ApiDataProvider = ({ children }) => {
     const [priceLinkText, setPriceLinkText] = useState('Buy XEC');
 
     const getPrice = () => {
-        const api =
-            'https://api.coingecko.com/api/v3/simple/price?ids=ecash&vs_currencies=usd';
+        const api = 'https://avalanche.cash/api/pricebydate/XEC';
         fetch(api)
             .then(response => response.json())
             .then(data =>
-                setPriceLinkText(`1 XEC = $${data.ecash.usd.toFixed(6)}`),
+                setPriceLinkText(
+                    `1 XEC = $${parseFloat(data.Price_in_USD).toFixed(6)}`,
+                ),
             )
             .catch(err => console.log(err));
     };
