@@ -7,15 +7,12 @@ const config = require('../config');
 const aliasConstants = require('../constants/alias');
 const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
-const mockSecrets = require('../secrets.sample');
 const {
     handleAppStartup,
-    handleBlockConnected,
+    handleBlockFinalized,
     handleAddedToMempool,
 } = require('../src/events');
 const { MockChronikClient } = require('../../../modules/mock-chronik-client');
-const MockAdapter = require('axios-mock-adapter');
-const axios = require('axios');
 // Mock mongodb
 const {
     initializeDb,
@@ -82,7 +79,7 @@ describe('alias-server events.js', async function () {
         testCache.flushAll();
         testCache.close();
     });
-    it('handleAppStartup calls handleBlockConnected with tipHeight and completes function if block is avalanche finalized, and also removes pendingAliases that are in the avalanche confirmed block', async function () {
+    it('handleAppStartup calls handleBlockFinalized with tipHeight and completes function if block is avalanche finalized, and also removes pendingAliases that are in the avalanche confirmed block', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
@@ -108,20 +105,17 @@ describe('alias-server events.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
+        // Mock chronik block call for a finalized chaintip
+        mockedChronik.setMock('block', {
+            input: mockBlockchaininfoResponse.tipHash,
+            output: {
+                blockInfo: { isFinal: true },
+            },
         });
 
         const db = testDb;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         // Add some pending aliases to the pendingAliases collection
         let pendingAliases = [];
@@ -155,7 +149,6 @@ describe('alias-server events.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
         );
 
         // Verify that pendingAliases have been cleared
@@ -173,10 +166,37 @@ describe('alias-server events.js', async function () {
             generated.validAliasRegistrations,
         );
     });
-    it('handleAppStartup calls handleBlockConnected with tipHeight and returns false if block is not avalanche finalized', async function () {
+    it('handleAppStartup returns false on chronik error', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
 
+        // Tell mockedChronik what response we expect
+        mockedChronik.setMock('blockchainInfo', {
+            input: null,
+            output: new Error('some chronik error'),
+        });
+
+        const db = null;
+        const telegramBot = null;
+        const channelId = null;
+
+        const result = await handleAppStartup(
+            mockedChronik,
+            db,
+            testCache,
+            telegramBot,
+            channelId,
+        );
+
+        assert.deepEqual(result, false);
+        // Verify that no aliases have been added to the database
+        assert.deepEqual(await getAliasesFromDb(testDb), []);
+    });
+    it('handleAppStartup returns false if the chaintip is not avalanche finalized', async function () {
+        // Initialize chronik mock
+        const mockedChronik = new MockChronikClient();
+
+        // Response of bad format
         const mockBlockchaininfoResponse = {
             tipHash:
                 '00000000000000000ce690f27bc92c46863337cc9bd5b7c20aec094854db26e3',
@@ -189,20 +209,17 @@ describe('alias-server events.js', async function () {
             output: mockBlockchaininfoResponse,
         });
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: false,
-            error: null,
-            id: 'isfinalblock',
+        // Mock chronik block call for unfinalized chaintip
+        mockedChronik.setMock('block', {
+            input: mockBlockchaininfoResponse.tipHash,
+            output: {
+                blockInfo: { isFinal: false },
+            },
         });
 
         const db = null;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         const result = await handleAppStartup(
             mockedChronik,
@@ -210,69 +227,20 @@ describe('alias-server events.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
         );
 
         assert.deepEqual(result, false);
         // Verify that no aliases have been added to the database
         assert.deepEqual(await getAliasesFromDb(testDb), []);
     });
-    it('handleAppStartup returns false on chronik error', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-
-        // Response of bad format
-        const mockBlockchaininfoResponse = {
-            tipHashNotHere:
-                '00000000000000000ce690f27bc92c46863337cc9bd5b7c20aec094854db26e3',
-            tipHeightNotHere: 786878,
-        };
-
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('blockchainInfo', {
-            input: null,
-            output: mockBlockchaininfoResponse,
-        });
-
-        // Function will not get to RPC call, no need for axios mock
-
-        const db = null;
-        const telegramBot = null;
-        const channelId = null;
-        const { avalancheRpc } = mockSecrets;
-
-        const result = await handleAppStartup(
-            mockedChronik,
-            db,
-            testCache,
-            telegramBot,
-            channelId,
-            avalancheRpc,
-        );
-
-        assert.deepEqual(result, false);
-        // Verify that no aliases have been added to the database
-        assert.deepEqual(await getAliasesFromDb(testDb), []);
-    });
-    it('handleBlockConnected returns false if the function fails to obtain serverState', async function () {
+    it('handleBlockFinalized returns false if the function fails to obtain serverState', async function () {
         // tipHash called with
         const tipHash =
             '00000000000000000b0519ddbffcf6dbab212b95207e398ae3ed2ba312fa561d';
+        const tipHeight = 783136;
 
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
-
-        const mockBlock = {
-            blockInfo: {
-                height: 783136,
-            },
-        };
-
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('block', {
-            input: tipHash,
-            output: mockBlock,
-        });
 
         // Add tx history to mockedChronik
         // Set the script
@@ -284,58 +252,36 @@ describe('alias-server events.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
-        });
-
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         // Rename the serverState collection
         await testDb
             .collection(config.database.collections.serverState)
             .rename('notTheSameName');
 
-        const result = await handleBlockConnected(
+        const result = await handleBlockFinalized(
             mockedChronik,
             testDb,
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             tipHash,
+            tipHeight,
         );
 
         assert.deepEqual(result, false);
         // Verify that no aliases have been added to the database
         assert.deepEqual(await getAliasesFromDb(testDb), []);
     });
-    it('handleBlockConnected returns false if called with a block of height lower than serverState', async function () {
+    it('handleBlockFinalized returns false if called with a block of height lower than serverState', async function () {
         // tipHash called with
         const tipHash =
             '00000000000000000b0519ddbffcf6dbab212b95207e398ae3ed2ba312fa561d';
+        const tipHeight = 783136;
 
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
-
-        const mockBlock = {
-            blockInfo: {
-                height: 783136,
-            },
-        };
-
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('block', {
-            input: tipHash,
-            output: mockBlock,
-        });
 
         // Add tx history to mockedChronik
         // Set the script
@@ -347,19 +293,8 @@ describe('alias-server events.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
-        });
-
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         // Give the app a serverState in the future of the calling block
         const mockServerState = {
@@ -368,39 +303,28 @@ describe('alias-server events.js', async function () {
         };
         await updateServerState(testDb, mockServerState);
 
-        const result = await handleBlockConnected(
+        const result = await handleBlockFinalized(
             mockedChronik,
             testDb,
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             tipHash,
+            tipHeight,
         );
 
         assert.deepEqual(result, false);
         // Verify that no aliases have been added to the database
         assert.deepEqual(await getAliasesFromDb(testDb), []);
     });
-    it('handleBlockConnected returns false if called with a block of height equal to serverState', async function () {
+    it('handleBlockFinalized returns false if called with a block of height equal to serverState', async function () {
         // tipHash called with
         const tipHash =
             '00000000000000000b0519ddbffcf6dbab212b95207e398ae3ed2ba312fa561d';
+        const tipHeight = 783136;
 
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
-
-        const mockBlock = {
-            blockInfo: {
-                height: 783136,
-            },
-        };
-
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('block', {
-            input: tipHash,
-            output: mockBlock,
-        });
 
         // Add tx history to mockedChronik
         // Set the script
@@ -412,19 +336,8 @@ describe('alias-server events.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
-        });
-
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         // Give the app a serverState in the future of the calling block
         const mockServerState = {
@@ -433,14 +346,14 @@ describe('alias-server events.js', async function () {
         };
         await updateServerState(testDb, mockServerState);
 
-        const result = await handleBlockConnected(
+        const result = await handleBlockFinalized(
             mockedChronik,
             testDb,
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             tipHash,
+            tipHeight,
         );
 
         assert.deepEqual(result, false);

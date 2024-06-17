@@ -5,8 +5,7 @@
 'use strict';
 const config = require('../config');
 const aliasConstants = require('../constants/alias');
-const { wait, splitTxsByConfirmed } = require('./utils');
-const { isFinalBlock } = require('./rpc');
+const { splitTxsByConfirmed } = require('./utils');
 const {
     getServerState,
     updateServerState,
@@ -28,7 +27,6 @@ module.exports = {
      * @param {object} cache an initialized node-cache instance
      * @param {object} telegramBot initialized node-telegram-bot-api instance
      * @param {string} channelId channel where telegramBot is admin
-     * @param {object} avalancheRpc avalanche auth
      * @returns {bool | function} false if error, otherwise calls handleBlockConnected
      */
     handleAppStartup: async function (
@@ -37,7 +35,6 @@ module.exports = {
         cache,
         telegramBot,
         channelId,
-        avalancheRpc,
     ) {
         console.log(`Checking for new aliases on startup`);
         // If this is app startup, get the latest tipHash and tipHeight by querying the blockchain
@@ -51,51 +48,64 @@ module.exports = {
                 `Error in chronik.blockchainInfo() in handleAppStartup()`,
                 err,
             );
-            // Server will wait until receiving ws msg to handleBlockConnected()
+            // Server will wait until receiving ws msg to handleBlockFinalized()
             return false;
         }
+
+        // Check if this is finalized
+        // Now that we are using in-node chronik, this is indexed, no RPC call required
+
         const { tipHash, tipHeight } = chaintipInfo;
-        // Validate for good chronik response
-        if (typeof tipHash === 'string' && typeof tipHeight === 'number') {
-            return module.exports.handleBlockConnected(
-                chronik,
-                db,
-                cache,
-                telegramBot,
-                channelId,
-                avalancheRpc,
-                tipHash,
-                tipHeight,
+
+        let blockDetails;
+        try {
+            blockDetails = await chronik.block(tipHash);
+            if (blockDetails.blockInfo.isFinal !== true) {
+                // Server will wait until receiving ws msg to handleBlockFinalized()
+                return false;
+            }
+        } catch (err) {
+            console.log(
+                `Error in chronik.block(${tipHash}) in handleAppStartup()`,
+                err,
             );
+            // Server will wait until receiving ws msg to handleBlockFinalized()
+            return false;
         }
-        return false;
+
+        return module.exports.handleBlockFinalized(
+            chronik,
+            db,
+            cache,
+            telegramBot,
+            channelId,
+            tipHash,
+            tipHeight,
+        );
     },
     /**
-     * When a new block is found, check for avalanche finality. If finalized,
-     * update registered aliases, server state, and pending aliases. Send a telegram
+     * Update registered aliases, server state, and pending aliases. Send a telegram
      * msg announcing new alias registrations.
      * @param {object} chronik initialized chronik object
      * @param {object} db an initialized mongodb instance
      * @param {object} cache an initialized node-cache instance
      * @param {object} telegramBot initialized node-telegram-bot-api instance
      * @param {string} channelId channel where telegramBot is admin
-     * @param {object} avalancheRpc avalanche auth
      * @param {string} tipHash hash of the chaintip block
      * @param {number | undefined} tipHeight height of the chaintip block
      * @returns {bool | string} false if error, string summarizing results on success
      */
-    handleBlockConnected: async function (
+    handleBlockFinalized: async function (
         chronik,
         db,
         cache,
         telegramBot,
         channelId,
-        avalancheRpc,
         tipHash,
         tipHeight,
     ) {
         /*
-         * BlockConnected callback
+         * BLK_FINALIZED callback
          *
          * This is where alias-server queries the blockchain for new transactions and
          * parses those transactions to determine if any are valid alias registrations
@@ -105,64 +115,7 @@ module.exports = {
          *
          * A number of error conditions may cause parseWebsocketMessage to exit before any update to
          * the database occurs.
-         *
-         * If alias-server determines a blockhash and height with isFinalBlock === true,
-         * valid alias registrations will be processed up to and including that blockheight
-         *
-         * Otherwise parseWebsocketMessage will exit before any updates are made to the database
-         *
-         * Note: websockets disconnect and reconnect frequently. It cannot be assumed that
-         * every found block will triggger parseWebsocketMessage. So, parseWebsocketMessage must be designed such that
-         * it will always update for all unseen valid alias registrations.
-         *
          */
-
-        if (typeof tipHeight === 'undefined') {
-            let blockResult;
-            try {
-                blockResult = await chronik.block(tipHash);
-                // chronik blockdetails returns the block height at the 'blockInfo.height' key
-                tipHeight = blockResult.blockInfo.height;
-            } catch (err) {
-                console.log(
-                    `Error in chronik.block(${tipHash} in handleBlockConnected(). Exiting function.`,
-                    err,
-                );
-                // Exit handleBlockConnected on chronik error
-                return false;
-            }
-        }
-
-        // Initialize isAvalancheFinalized as false. Only set to true if you
-        // prove it so with a node rpc call
-        let isAvalancheFinalized = false;
-
-        for (let i = 0; i < config.avalancheCheckCount; i += 1) {
-            // Check to see if block tipHash has been finalized by avalanche
-            try {
-                isAvalancheFinalized = await isFinalBlock(
-                    avalancheRpc,
-                    tipHash,
-                );
-            } catch (err) {
-                console.log(`Error in isFinalBlock for ${tipHash}`, err);
-            }
-            if (isAvalancheFinalized) {
-                // If isAvalancheFinalized, stop checking
-                break;
-            }
-            wait(config.avalancheCheckWaitInterval);
-        }
-
-        if (!isAvalancheFinalized) {
-            console.log(
-                `Block ${tipHash} is not avalanche finalized after ${
-                    config.avalancheCheckWaitInterval *
-                    config.avalancheCheckCount
-                } ms. Exiting handleBlockConnected().`,
-            );
-            return false;
-        }
 
         // Cache the tipHeight
         cache.set('tipHeight', tipHeight);

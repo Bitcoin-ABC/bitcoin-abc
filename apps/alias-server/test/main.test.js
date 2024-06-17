@@ -6,9 +6,6 @@ const assert = require('assert');
 const cashaddr = require('ecashaddrjs');
 const { main } = require('../src/main');
 const aliasConstants = require('../constants/alias');
-const mockSecrets = require('../secrets.sample');
-const MockAdapter = require('axios-mock-adapter');
-const axios = require('axios');
 const { generated } = require('./mocks/aliasMocks');
 const {
     initializeDb,
@@ -76,6 +73,14 @@ describe('alias-server main.js', async function () {
             output: mockBlockchaininfoResponse,
         });
 
+        // Mock chronik block call for a finalized chaintip
+        mockedChronik.setMock('block', {
+            input: mockBlockchaininfoResponse.tipHash,
+            output: {
+                blockInfo: { isFinal: true },
+            },
+        });
+
         // Add tx history to mockedChronik
         // Set the script
         const { type, hash } = cashaddr.decode(
@@ -86,22 +91,11 @@ describe('alias-server main.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
-        });
-
         // Define params
         const chronik = mockedChronik;
         const address = aliasConstants.registrationAddress;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
         const returnMocks = true;
         const result = await main(
             db,
@@ -110,7 +104,6 @@ describe('alias-server main.js', async function () {
             address,
             telegramBot,
             channelId,
-            avalancheRpc,
             returnMocks,
         );
         // Confirm websocket opened

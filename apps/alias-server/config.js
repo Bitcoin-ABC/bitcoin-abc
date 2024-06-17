@@ -5,12 +5,9 @@
 'use strict';
 module.exports = {
     chronik: [
-        'https://chronik.fabien.cash',
-        'https://chronik2.fabien.cash',
-        'https://chronik.be.cash/xec',
+        'https://chronik-native1.fabien.cash',
+        'https://chronik-native2.fabien.cash',
     ],
-    avalancheCheckWaitInterval: 500, // half a second
-    avalancheCheckCount: 100, // max number of times you'll check if a block is avalanche finalized
     database: {
         name: 'ecashAliases',
         collections: {

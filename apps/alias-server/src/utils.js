@@ -106,9 +106,6 @@ module.exports = {
         }
         return { confirmedTxs, unconfirmedTxs };
     },
-    wait: async function (msecs) {
-        await new Promise(resolve => setTimeout(resolve, msecs));
-    },
     /**
      * Get alias registration price for an alias of a given length and blockheight
      * Note that for alias-server, you want the price for a given block and NOT the next block,

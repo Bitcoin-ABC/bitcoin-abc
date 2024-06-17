@@ -10,11 +10,10 @@ module.exports = {
      * Entrypoint of the app. Initializes server, updates indexer, and listens for new txs.
      * @param {object} db an initialized mongodb instance
      * @param {object} cache an initialized node-cache instance
-     * @param {object} chronik initialized chronik object
+     * @param {ChronikClient} chronik initialized chronik object
      * @param {string} address address that registeres new aliases
      * @param {object} telegramBot initialized node-telegram-bot-api instance
      * @param {string} channelId channel where telegramBot is admin
-     * @param {object} avalancheRpc avalanche auth
      * @param {bool} returnMocks
      * @returns {object} if returnMocks
      */
@@ -25,7 +24,6 @@ module.exports = {
         address,
         telegramBot,
         channelId,
-        avalancheRpc,
         returnMocks = false,
     ) {
         // Initialize websocket connection
@@ -38,7 +36,6 @@ module.exports = {
                 cache,
                 telegramBot,
                 channelId,
-                avalancheRpc,
             );
         } catch (err) {
             console.log(
@@ -54,7 +51,6 @@ module.exports = {
             cache,
             telegramBot,
             channelId,
-            avalancheRpc,
         );
 
         // Return mocks for unit testing

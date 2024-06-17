@@ -11,10 +11,6 @@ const {
     parseWebsocketMessage,
 } = require('../src/chronikWsHandler');
 const { MockChronikClient } = require('../../../modules/mock-chronik-client');
-const { mockBlock } = require('./mocks/chronikResponses');
-const mockSecrets = require('../secrets.sample');
-const MockAdapter = require('axios-mock-adapter');
-const axios = require('axios');
 // Mock mongodb
 const {
     initializeDb,
@@ -89,7 +85,6 @@ describe('alias-server chronikWsHandler.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         await initializeWebsocket(
             mockedChronik,
@@ -98,7 +93,6 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
         );
 
         // Confirm websocket opened
@@ -114,7 +108,6 @@ describe('alias-server chronikWsHandler.js', async function () {
         const db = null;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
 
         await initializeWebsocket(
             mockedChronik,
@@ -123,7 +116,6 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
         );
 
         // Confirm websocket opened
@@ -131,28 +123,18 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Confirm subscribe was called
         assert.deepEqual(mockedChronik.wsSubscribeCalled, true);
     });
-    it('parseWebsocketMessage correctly processes a chronik websocket BlockConnected message if block is avalanche finalized', async function () {
+    it('parseWebsocketMessage correctly processes a chronik websocket BLK_FINALIZED message if block is avalanche finalized', async function () {
         // Initialize chronik mock
         const mockedChronik = new MockChronikClient();
         const db = testDb;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
         const wsMsg = {
-            type: 'BlockConnected',
+            msgType: 'BLK_FINALIZED',
             blockHash:
                 '00000000000000000c36528b468fac70aa50c15cea9b7017ff7df53f7d0786c8',
+            blockHeight: 792598,
         };
-        const mockBlock = {
-            blockInfo: {
-                height: 792598,
-            },
-        };
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('block', {
-            input: wsMsg.blockHash,
-            output: mockBlock,
-        });
 
         // Add tx history to mockedChronik
         // Set the script
@@ -164,28 +146,18 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
-        });
         const result = await parseWebsocketMessage(
             mockedChronik,
             db,
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             wsMsg,
         );
 
         assert.strictEqual(
             result,
-            `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
+            `Alias registrations updated to block ${wsMsg.blockHash} at height ${wsMsg.blockHeight}`,
         );
         // Verify that all expected valid aliases have been added to the database
         assert.deepEqual(
@@ -193,71 +165,18 @@ describe('alias-server chronikWsHandler.js', async function () {
             generated.validAliasRegistrations,
         );
     });
-    it('parseWebsocketMessage calls handleBlockConnected, which exits if block is not avalanche finalized', async function () {
-        // Initialize chronik mock
-        const mockedChronik = new MockChronikClient();
-        const db = null;
-        const telegramBot = null;
-        const channelId = null;
-        const { avalancheRpc } = mockSecrets;
-        const wsMsg = {
-            type: 'BlockConnected',
-            blockHash:
-                '000000000000000015713b0407590ab1481fd7b8430f87e19cf768bec285ad55',
-        };
-
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('block', {
-            input: wsMsg.blockHash,
-            output: mockBlock,
-        });
-
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: false,
-            error: null,
-            id: 'isfinalblock',
-        });
-        const result = await parseWebsocketMessage(
-            mockedChronik,
-            db,
-            testCache,
-            telegramBot,
-            channelId,
-            avalancheRpc,
-            wsMsg,
-        );
-
-        assert.deepEqual(result, false);
-        // Verify that no aliases have been added to the database
-        assert.deepEqual(await getAliasesFromDb(testDb), []);
-    });
-    it('If parseWebsocketMessage is called before a previous call to handleBlockConnected has completed, the next call to handleBlockConnected will not enter until the first is completed', async function () {
+    it('If parseWebsocketMessage is called before a previous call to handleBlockFinalized has completed, the next call to handleBlockFinalized will not enter until the first is completed', async function () {
         // Initialize mocks for the first call to parseWebsocketMessage
         const mockedChronik = new MockChronikClient();
         const db = testDb;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
         const wsMsg = {
-            type: 'BlockConnected',
+            msgType: 'BLK_FINALIZED',
             blockHash:
                 '00000000000000000c36528b468fac70aa50c15cea9b7017ff7df53f7d0786c8',
+            blockHeight: 792598,
         };
-        const mockBlock = {
-            blockInfo: {
-                height: 792598,
-            },
-        };
-
-        // Tell mockedChronik what response we expect
-        mockedChronik.setMock('block', {
-            input: wsMsg.blockHash,
-            output: mockBlock,
-        });
 
         // Add tx history to mockedChronik
         // Set the script
@@ -269,34 +188,14 @@ describe('alias-server chronikWsHandler.js', async function () {
         // Set the mock tx history
         mockedChronik.setTxHistory(type, hash, generated.txHistory);
 
-        // Mock avalanche RPC call
-        // onNoMatch: 'throwException' helps to debug if mock is not being used
-        const mock = new MockAdapter(axios, { onNoMatch: 'throwException' });
-        // Mock response for rpc return of true for isfinalblock method
-        mock.onPost().reply(200, {
-            result: true,
-            error: null,
-            id: 'isfinalblock',
-        });
-
         // Initialize mocks for second call to parseWebsocketMessage
         const nextMockedChronik = new MockChronikClient();
         const nextWsMsg = {
-            type: 'BlockConnected',
+            msgType: 'BLK_FINALIZED',
             blockHash:
                 '000000000000000007b5922b3e385d6d3408b61ef25af41bcc9e665462fcaf49',
+            blockHeight: 792599,
         };
-        const nextMockBlock = {
-            blockInfo: {
-                height: 792599,
-            },
-        };
-
-        // Tell mockedChronik what response we expect
-        nextMockedChronik.setMock('block', {
-            input: nextWsMsg.blockHash,
-            output: nextMockBlock,
-        });
 
         // Add tx history to nextMockedChronik
         // Set the script
@@ -311,7 +210,6 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             wsMsg,
         );
         const secondCallPromise = parseWebsocketMessage(
@@ -320,7 +218,6 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             nextWsMsg,
         );
 
@@ -331,8 +228,8 @@ describe('alias-server chronikWsHandler.js', async function () {
         ]);
 
         assert.deepEqual(results, [
-            `Alias registrations updated to block ${wsMsg.blockHash} at height ${mockBlock.blockInfo.height}`,
-            `Alias registrations updated to block ${nextWsMsg.blockHash} at height ${nextMockBlock.blockInfo.height}`,
+            `Alias registrations updated to block ${wsMsg.blockHash} at height ${wsMsg.blockHeight}`,
+            `Alias registrations updated to block ${nextWsMsg.blockHash} at height ${nextWsMsg.blockHeight}`,
         ]);
         // Verify that all expected valid aliases have been added to the database
         assert.deepEqual(
@@ -346,9 +243,9 @@ describe('alias-server chronikWsHandler.js', async function () {
         const db = testDb;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
         const wsMsg = {
-            type: 'AddedToMempool',
+            type: 'Tx',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
             txid: incomingTxid,
         };
 
@@ -375,7 +272,6 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             wsMsg,
         );
 
@@ -388,9 +284,9 @@ describe('alias-server chronikWsHandler.js', async function () {
         const db = testDb;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
         const wsMsg = {
-            type: 'AddedToMempool',
+            type: 'Tx',
+            msgType: 'TX_ADDED_TO_MEMPOOL',
             txid: incomingTxid,
         };
 
@@ -417,21 +313,20 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             wsMsg,
         );
 
         assert.strictEqual(result, false);
     });
-    it('parseWebsocketMessage removes a txid from pendingAliases if RemovedFromMempool message includes that txid', async function () {
+    it('parseWebsocketMessage removes a txid from pendingAliases if TX_REMOVED_FROM_MEMPOOL message includes that txid', async function () {
         const incomingTxid =
             'ec92610fc41df2387e7febbb358b138a802ac26023f30b2442aa01ca733fff7d';
         const db = testDb;
         const telegramBot = null;
         const channelId = null;
-        const { avalancheRpc } = mockSecrets;
         const wsMsg = {
-            type: 'RemovedFromMempool',
+            type: 'Tx',
+            msgType: 'TX_REMOVED_FROM_MEMPOOL',
             txid: incomingTxid,
         };
 
@@ -464,7 +359,6 @@ describe('alias-server chronikWsHandler.js', async function () {
             testCache,
             telegramBot,
             channelId,
-            avalancheRpc,
             wsMsg,
         );
 

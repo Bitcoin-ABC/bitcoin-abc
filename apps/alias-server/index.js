@@ -43,7 +43,6 @@ initializeDb(aliasServerMongoClient).then(
             aliasConstants.registrationAddress,
             telegramBot,
             channelId,
-            secrets.avalancheRpc,
         );
 
         // Gracefully shut down on app termination
