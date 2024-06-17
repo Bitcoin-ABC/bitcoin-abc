@@ -140,18 +140,19 @@ https://jsfiddle.net/zghd6c2y/
 
 #### Change Log
 
-1.1.0 - Support decoding prefixless addresses\
-1.1.1 - Updated README to point to Bitcoin ABC monorepo\
-1.1.2 - Updated `repository` field in `package.json` to Bitcoin ABC monorepo\
-1.1.3 - Support string input and output for `hash`\
-1.2.0 - Support lowercase input and output of address types, support encoding outputScript to address, support getting type and hash from an outputScript with new exported function `getTypeAndHashFromOutputScript`\
-1.3.0 - Add `toLegacy` function to convert cashaddress format to legacy address\
-1.4.0 - Add `isValidCashAddress` function to validate cash addresses by prefix\
-1.4.1-6 - Fix repo README link for npmjs page\
-1.5.0 - Add `getOutputScriptFromAddress` function to get outputScript from address
-1.5.1 - Patch `getTypeAndHashFromOutputScript` to return type in lowercase (how chronik accepts it)
-1.5.2 - Make input of address type case insensitive for `encode`, e.g. `p2pkh` and `P2PKH` both work
-1.5.3 - Upgraded dependencies
-1.5.4 - Added unit tests
-1.5.5 - Add types declaration for easy import by typescript apps
-1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
+-   1.1.0 - Support decoding prefixless addresses\
+-   1.1.1 - Updated README to point to Bitcoin ABC monorepo\
+-   1.1.2 - Updated `repository` field in `package.json` to Bitcoin ABC monorepo\
+-   1.1.3 - Support string input and output for `hash`\
+-   1.2.0 - Support lowercase input and output of address types, support encoding outputScript to address, support getting type and hash from an outputScript with new exported function `getTypeAndHashFromOutputScript`\
+-   1.3.0 - Add `toLegacy` function to convert cashaddress format to legacy address\
+-   1.4.0 - Add `isValidCashAddress` function to validate cash addresses by prefix\
+-   1.4.1-6 - Fix repo README link for npmjs page\
+-   1.5.0 - Add `getOutputScriptFromAddress` function to get outputScript from address
+-   1.5.1 - Patch `getTypeAndHashFromOutputScript` to return type in lowercase (how chronik accepts it)
+-   1.5.2 - Make input of address type case insensitive for `encode`, e.g. `p2pkh` and `P2PKH` both work
+-   1.5.3 - Upgraded dependencies
+-   1.5.4 - Added unit tests
+-   1.5.5 - Skipped due to error in [D15400](https://reviews.bitcoinabc.org/D15400)
+-   1.5.6 - Add types declaration for easy import by typescript apps
+-   1.5.7 - Fix `isValidCashAddress` to allow both `undefined` or explicit `false` for no prefixes, or a user passed string as prefix
