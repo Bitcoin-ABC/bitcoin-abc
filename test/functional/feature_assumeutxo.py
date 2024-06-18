@@ -429,6 +429,23 @@ class AssumeutxoTest(BitcoinTestFramework):
         assert "NETWORK" not in node_services
         assert "NETWORK_LIMITED" in node_services
 
+    def test_snapshot_block_invalidated(self, dump_output_path):
+        self.log.info("Test snapshot is not loaded when base block is invalid.")
+        node = self.nodes[0]
+        # We are testing the case where the base block is invalidated itself
+        # and also the case where one of its parents is invalidated.
+        for height in [SNAPSHOT_BASE_HEIGHT, SNAPSHOT_BASE_HEIGHT - 1]:
+            block_hash = node.getblockhash(height)
+            node.invalidateblock(block_hash)
+            assert_equal(node.getblockcount(), height - 1)
+            msg = (
+                "Unable to load UTXO snapshot: The base block header "
+                "(118a7d5473bccce9b314789e14ce426fc65fb09dfeda0131032bb6d86ed2fd0b) "
+                "is part of an invalid chain."
+            )
+            assert_raises_rpc_error(-32603, msg, node.loadtxoutset, dump_output_path)
+            node.reconsiderblock(block_hash)
+
     def run_test(self):
         """
         Bring up two (disconnected) nodes, mine some new blocks on the first,
@@ -565,6 +582,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.test_invalid_mempool_state(dump_output["path"])
         self.test_invalid_snapshot_scenarios(dump_output["path"])
         self.test_invalid_file_path()
+        self.test_snapshot_block_invalidated(dump_output["path"])
 
         # Prune-node sanity check
         assert "NETWORK" not in n1.getnetworkinfo()["localservicesnames"]
