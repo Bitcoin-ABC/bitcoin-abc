@@ -910,6 +910,24 @@ private:
     bool MaybeDiscourageAndDisconnect(CNode &pnode, Peer &peer);
 
     /**
+     * Handle a transaction whose result was not
+     * MempoolAcceptResult::ResultType::VALID.
+     *
+     * Updates m_txrequest, m_recent_rejects and m_orphanage.
+     */
+    void ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
+                          const TxValidationState &result)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+
+    /**
+     * Handle a transaction whose result was
+     * MempoolAcceptResult::ResultType::VALID. Updates m_txrequest and
+     * m_orphanage. Also queues the tx for relay.
+     */
+    void ProcessValidTx(NodeId nodeid, const CTransactionRef &tx)
+        EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
+
+    /**
      * Reconsider orphan transactions after a parent has been accepted to the
      * mempool.
      *
@@ -3985,6 +4003,57 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
     HeadersDirectFetchBlocks(config, pfrom, pindexLast);
 }
 
+void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
+                                       const CTransactionRef &ptx,
+                                       const TxValidationState &state) {
+    AssertLockNotHeld(m_peer_mutex);
+    AssertLockHeld(g_msgproc_mutex);
+    AssertLockHeld(cs_main);
+
+    LogPrint(BCLog::MEMPOOLREJ, "%s from peer=%d was not accepted: %s\n",
+             ptx->GetHash().ToString(), nodeid, state.ToString());
+
+    if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
+        return;
+    }
+
+    m_recent_rejects.insert(ptx->GetId());
+    m_txrequest.ForgetInvId(ptx->GetId());
+
+    MaybePunishNodeForTx(nodeid, state);
+
+    // If the tx failed in ProcessOrphanTx, it should be removed from the
+    // orphanage unless the tx was still missing inputs. If the tx was not in
+    // the orphanage, EraseTx does nothing and returns 0.
+    if (m_orphanage.EraseTx(ptx->GetId()) > 0) {
+        LogPrint(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
+                 ptx->GetHash().ToString());
+    }
+}
+
+void PeerManagerImpl::ProcessValidTx(NodeId nodeid, const CTransactionRef &tx) {
+    AssertLockNotHeld(m_peer_mutex);
+    AssertLockHeld(g_msgproc_mutex);
+    AssertLockHeld(cs_main);
+
+    // As this version of the transaction was acceptable, we can forget about
+    // any requests for it. No-op if the tx is not in txrequest.
+    m_txrequest.ForgetInvId(tx->GetId());
+
+    m_orphanage.AddChildrenToWorkSet(*tx);
+    // If it came from the orphanage, remove it. No-op if the tx is not in
+    // txorphanage.
+    m_orphanage.EraseTx(tx->GetId());
+
+    LogPrint(
+        BCLog::MEMPOOL,
+        "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
+        nodeid, tx->GetHash().ToString(), m_mempool.size(),
+        m_mempool.DynamicMemoryUsage() / 1000);
+
+    RelayTransaction(tx->GetId());
+}
+
 bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     AssertLockHeld(g_msgproc_mutex);
     LOCK(cs_main);
@@ -3999,34 +4068,22 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
         if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
             LogPrint(BCLog::TXPACKAGES, "   accepted orphan tx %s\n",
                      orphanTxId.ToString());
-            LogPrint(BCLog::MEMPOOL,
-                     "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, "
-                     "%u kB)\n",
-                     peer.m_id, orphanTxId.ToString(), m_mempool.size(),
-                     m_mempool.DynamicMemoryUsage() / 1000);
-            RelayTransaction(orphanTxId);
-            m_orphanage.AddChildrenToWorkSet(*porphanTx);
-            m_orphanage.EraseTx(orphanTxId);
+            ProcessValidTx(peer.m_id, porphanTx);
             return true;
-        } else if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
-            if (state.IsInvalid()) {
-                LogPrint(BCLog::TXPACKAGES,
-                         "   invalid orphan tx %s from peer=%d. %s\n",
-                         orphanTxId.ToString(), peer.m_id, state.ToString());
-                LogPrint(BCLog::MEMPOOLREJ,
-                         "%s from peer=%d was not accepted: %s\n",
-                         orphanTxId.ToString(), peer.m_id, state.ToString());
-                // Punish peer that gave us an invalid orphan tx
-                MaybePunishNodeForTx(peer.m_id, state);
+        }
+
+        if (state.GetResult() != TxValidationResult::TX_MISSING_INPUTS) {
+            LogPrint(BCLog::TXPACKAGES,
+                     "   invalid orphan tx %s from peer=%d. %s\n",
+                     orphanTxId.ToString(), peer.m_id, state.ToString());
+
+            if (Assume(state.IsInvalid() &&
+                       state.GetResult() != TxValidationResult::TX_NO_MEMPOOL &&
+                       state.GetResult() !=
+                           TxValidationResult::TX_RESULT_UNSET)) {
+                ProcessInvalidTx(peer.m_id, porphanTx, state);
             }
-            // Has inputs but not accepted to mempool
-            // Probably non-standard or insufficient fee
-            LogPrint(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
-                     orphanTxId.ToString());
 
-            m_recent_rejects.insert(orphanTxId);
-
-            m_orphanage.EraseTx(orphanTxId);
             return true;
         }
     }
@@ -5332,19 +5389,8 @@ void PeerManagerImpl::ProcessMessage(
         const TxValidationState &state = result.m_state;
 
         if (result.m_result_type == MempoolAcceptResult::ResultType::VALID) {
-            // As this version of the transaction was acceptable, we can forget
-            // about any requests for it.
-            m_txrequest.ForgetInvId(tx.GetId());
-            RelayTransaction(tx.GetId());
-            m_orphanage.AddChildrenToWorkSet(tx);
-
+            ProcessValidTx(pfrom.GetId(), ptx);
             pfrom.m_last_tx_time = GetTime<std::chrono::seconds>();
-
-            LogPrint(BCLog::MEMPOOL,
-                     "AcceptToMemoryPool: peer=%d: accepted %s "
-                     "(poolsz %u txn, %u kB)\n",
-                     pfrom.GetId(), tx.GetId().ToString(), m_mempool.size(),
-                     m_mempool.DynamicMemoryUsage() / 1000);
         } else if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
             // It may be the case that the orphans parents have all been
             // rejected.
@@ -5407,20 +5453,9 @@ void PeerManagerImpl::ProcessMessage(
                 m_recent_rejects.insert(tx.GetId());
                 m_txrequest.ForgetInvId(tx.GetId());
             }
-        } else {
-            m_recent_rejects.insert(tx.GetId());
-            m_txrequest.ForgetInvId(tx.GetId());
-
-            if (RecursiveDynamicUsage(*ptx) < 100000) {
-                AddToCompactExtraTransactions(ptx);
-            }
         }
-
         if (state.IsInvalid()) {
-            LogPrint(BCLog::MEMPOOLREJ,
-                     "%s from peer=%d was not accepted: %s\n",
-                     tx.GetHash().ToString(), pfrom.GetId(), state.ToString());
-            MaybePunishNodeForTx(pfrom.GetId(), state);
+            ProcessInvalidTx(pfrom.GetId(), ptx, state);
         }
         return;
     }
