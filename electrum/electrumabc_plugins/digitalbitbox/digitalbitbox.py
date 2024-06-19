@@ -40,7 +40,7 @@ try:
         msg_magic,
         point_to_ser,
         pubkey_from_signature,
-        verify_message,
+        verify_message_with_address,
     )
     from electrumabc.i18n import _
     from electrumabc.keystore import HardwareKeyStore
@@ -595,7 +595,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                 pk, compressed = pubkey_from_signature(sig, msg_hash)
                 pk = point_to_ser(pk.pubkey.point, compressed)
                 addr = public_key_to_p2pkh(pk)
-                if verify_message(addr, sig, message) is False:
+                if verify_message_with_address(addr, sig, message) is False:
                     raise Exception(_("Could not sign message"))
             elif "pubkey" in reply["sign"][0]:
                 # firmware <= v2.1.1
@@ -607,7 +607,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                         addr = public_key_to_p2pkh(
                             binascii.unhexlify(reply["sign"][0]["pubkey"])
                         )
-                        if verify_message(addr, sig, message):
+                        if verify_message_with_address(addr, sig, message):
                             break
                     except Exception:
                         continue

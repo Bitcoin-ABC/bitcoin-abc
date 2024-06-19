@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import (
 
 from electrumabc.address import Address
 from electrumabc.constants import CURRENCY, PROJECT_NAME
-from electrumabc.ecc import SignatureType, verify_message
+from electrumabc.ecc import SignatureType, verify_message_with_address
 from electrumabc.i18n import _
 
 from .password_dialog import PasswordDialog
@@ -212,7 +212,9 @@ class SignVerifyDialog(QDialog, MessageBoxMixin):
         try:
             # This can throw on invalid base64
             sig = base64.b64decode(self.signature_e.toPlainText())
-            verified = verify_message(address, sig, message, sigtype=self.get_sigtype())
+            verified = verify_message_with_address(
+                address, sig, message, sigtype=self.get_sigtype()
+            )
         except Exception:
             verified = False
 

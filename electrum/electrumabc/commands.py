@@ -41,7 +41,7 @@ from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
-from .ecc import public_key_from_private_key, verify_message
+from .ecc import public_key_from_private_key, verify_message_with_address
 from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
@@ -682,7 +682,7 @@ class Commands:
         address = Address.from_string(address)
         sig = base64.b64decode(signature)
         message = util.to_bytes(message)
-        return verify_message(address, sig, message)
+        return verify_message_with_address(address, sig, message)
 
     def _mktx(
         self,

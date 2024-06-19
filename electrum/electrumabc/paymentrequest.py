@@ -50,7 +50,7 @@ from .address import Address, PublicKey
 from .bitcoin import TYPE_ADDRESS
 from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES, XEC
 from .crypto import sha256
-from .ecc import point_to_ser, regenerate_key, verify_message
+from .ecc import point_to_ser, regenerate_key, verify_message_with_address
 from .printerror import PrintError, print_error
 from .transaction import Transaction, TxOutput
 from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
@@ -254,7 +254,7 @@ class PaymentRequest:
             address = info.get("address")
             pr.signature = b""
             message = pr.SerializeToString()
-            if verify_message(address, sig, message):
+            if verify_message_with_address(address, sig, message):
                 self.error = "Verified with DNSSEC"
                 return True
             else:

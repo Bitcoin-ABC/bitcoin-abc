@@ -104,38 +104,6 @@ def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> b
     return serialize_blob(magic) + serialize_blob(message)
 
 
-def verify_message(
-    address: Union[str, "Address"],
-    sig: bytes,
-    message: bytes,
-    *,
-    net: Optional[networks.AbstractNet] = None,
-    sigtype: SignatureType = SignatureType.ECASH,
-) -> bool:
-    if net is None:
-        net = networks.net
-    assert_bytes(sig, message)
-    # Fixme: circular import address -> ecc -> address
-    from .address import Address
-
-    if not isinstance(address, Address):
-        address = Address.from_string(address, net=net)
-
-    h = Hash(msg_magic(message, sigtype))
-    public_key, compressed = pubkey_from_signature(sig, h)
-    # check public key using the right address
-    pubkey = point_to_ser(public_key.pubkey.point, compressed)
-    addr = Address.from_pubkey(pubkey)
-    if address != addr:
-        return False
-    # check message
-    try:
-        public_key.verify_digest(sig[1:], h, sigdecode=ecdsa.util.sigdecode_string)
-    except Exception:
-        return False
-    return True
-
-
 def encrypt_message(message, pubkey: bytes, magic=b"BIE1"):
     return ECKey.encrypt_message(message, pubkey, magic)
 
@@ -328,6 +296,40 @@ class ECPubkey(object):
     @classmethod
     def order(cls):
         return CURVE_ORDER
+
+
+def verify_message_with_address(
+    address: Union[str, "Address"],
+    sig65: bytes,
+    message: bytes,
+    *,
+    sigtype: SignatureType = SignatureType.ECASH,
+    net: Optional[networks.AbstractNet] = None,
+) -> bool:
+    # Fixme: circular import address -> ecc -> address
+    from .address import Address
+
+    if net is None:
+        net = networks.net
+    assert_bytes(sig65, message)
+
+    if not isinstance(address, Address):
+        address = Address.from_string(address, net=net)
+
+    h = Hash(msg_magic(message, sigtype))
+    try:
+        verifying_key, compressed = pubkey_from_signature(sig65, h)
+        ecdsa_point = verifying_key.pubkey.point
+        public_key = ECPubkey(point_to_ser(ecdsa_point))
+    except Exception:
+        return False
+    # check public key using the address
+    pubkey_hex = public_key.get_public_key_bytes(compressed)
+    addr = Address.from_pubkey(pubkey_hex)
+    if address != addr:
+        return False
+    # check message
+    return public_key.verify_message_hash(sig65[1:], h)
 
 
 class ECKey(object):

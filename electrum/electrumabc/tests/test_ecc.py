@@ -6,7 +6,13 @@ from ecdsa.ecdsa import generator_secp256k1
 from ecdsa.util import number_to_string
 
 from ..bitcoin import deserialize_privkey
-from ..ecc import ECKey, SignatureType, point_to_ser, regenerate_key, verify_message
+from ..ecc import (
+    ECKey,
+    SignatureType,
+    point_to_ser,
+    regenerate_key,
+    verify_message_with_address,
+)
 
 
 class TestECC(unittest.TestCase):
@@ -94,19 +100,23 @@ class TestECC(unittest.TestCase):
         self.assertTrue(sig1_b64 in accept_b64_1)
         self.assertTrue(sig2_b64 in accept_b64_2)
         # can it verify its own sigs?
-        self.assertTrue(verify_message(addr1, sig1, msg1))
-        self.assertTrue(verify_message(addr2, sig2, msg2))
+        self.assertTrue(verify_message_with_address(addr1, sig1, msg1))
+        self.assertTrue(verify_message_with_address(addr2, sig2, msg2))
         # Can we verify the hardcoded sigs (this checks that the underlying ECC
         # libs basically are ok with either nonce being used)
         for sig in accept_b64_1:
-            self.assertTrue(verify_message(addr1, base64.b64decode(sig), msg1))
+            self.assertTrue(
+                verify_message_with_address(addr1, base64.b64decode(sig), msg1)
+            )
         for sig in accept_b64_2:
-            self.assertTrue(verify_message(addr2, base64.b64decode(sig), msg2))
+            self.assertTrue(
+                verify_message_with_address(addr2, base64.b64decode(sig), msg2)
+            )
 
-        self.assertRaises(Exception, verify_message, addr1, b"wrong", msg1)
+        self.assertFalse(verify_message_with_address(addr1, b"wrong", msg1))
         # test for bad sigs for a message
-        self.assertFalse(verify_message(addr1, sig2, msg1))
-        self.assertFalse(verify_message(addr2, sig1, msg2))
+        self.assertFalse(verify_message_with_address(addr1, sig2, msg1))
+        self.assertFalse(verify_message_with_address(addr2, sig1, msg2))
 
     def test_legacy_msg_signing(self):
         """Test that we can use the legacy "Bitcoin Signed Message:\n" message magic."""
@@ -129,9 +139,9 @@ class TestECC(unittest.TestCase):
 
         for sig_ in accepted_signatures:
             self.assertTrue(
-                verify_message(
+                verify_message_with_address(
                     address=addr,
-                    sig=base64.b64decode(sig_),
+                    sig65=base64.b64decode(sig_),
                     message=msg,
                     sigtype=SignatureType.BITCOIN,
                 )
