@@ -81,8 +81,8 @@ def encrypt(message, pubkey, pad_to_length=None):
     except Exception:
         raise EncryptionFailed
     nonce_sec = ecdsa.util.randrange(order)
-    nonce_pub = point_to_ser(nonce_sec * G, comp=True)
-    key = hashlib.sha256(point_to_ser(nonce_sec * pubpoint, comp=True)).digest()
+    nonce_pub = point_to_ser(nonce_sec * G, compressed=True)
+    key = hashlib.sha256(point_to_ser(nonce_sec * pubpoint, compressed=True)).digest()
 
     plaintext = len(message).to_bytes(4, "big") + message
     if pad_to_length is None:
@@ -144,5 +144,5 @@ def decrypt(data, privkey):
     except Exception:
         raise DecryptionFailed
     sec = int.from_bytes(privkey, "big")
-    key = hashlib.sha256(point_to_ser(sec * nonce_pub, comp=True)).digest()
+    key = hashlib.sha256(point_to_ser(sec * nonce_pub, compressed=True)).digest()
     return decrypt_with_symmkey(data, key), key

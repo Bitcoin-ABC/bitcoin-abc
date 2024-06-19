@@ -170,10 +170,17 @@ class EcCoordinates(NamedTuple):
     y: int
 
 
-def point_to_ser(P, comp=True) -> bytes:
-    if comp:
-        return int(2 + (P.y() & 1)).to_bytes(1, "big") + int(P.x()).to_bytes(32, "big")
-    return b"\x04" + int(P.x()).to_bytes(32, "big") + int(P.y()).to_bytes(32, "big")
+def point_to_ser(
+    P: Union[EcCoordinates, ecdsa.ellipticcurve.Point], compressed=True
+) -> bytes:
+    if isinstance(P, tuple):
+        assert len(P) == 2, f"unexpected point: {P}"
+        x, y = P
+    else:
+        x, y = P.x(), P.y()
+    if compressed:
+        return int(2 + (y & 1)).to_bytes(1, "big") + int(x).to_bytes(32, "big")
+    return b"\x04" + int(x).to_bytes(32, "big") + int(y).to_bytes(32, "big")
 
 
 def ser_to_coordinates(ser: bytes) -> EcCoordinates:
@@ -270,8 +277,10 @@ class ECPubkey(object):
         return ECPubkey(point_to_ser(ecdsa_point))
 
     @classmethod
-    def from_point(cls, point: ecdsa.ecdsa.Public_key) -> ECPubkey:
-        _bytes = point_to_ser(point, comp=False)  # faster than compressed
+    def from_point(
+        cls, point: Union[EcCoordinates, ecdsa.ecdsa.Public_key]
+    ) -> ECPubkey:
+        _bytes = point_to_ser(point, compressed=False)  # faster than compressed
         return ECPubkey(_bytes)
 
     def get_public_key_bytes(self, compressed=True):
@@ -280,8 +289,8 @@ class ECPubkey(object):
     def get_public_key_hex(self, compressed=True):
         return self.get_public_key_bytes(compressed).hex()
 
-    def point(self) -> ecdsa.ecdsa.Public_key:
-        return self._pubkey
+    def point(self) -> EcCoordinates:
+        return EcCoordinates(self._pubkey.point.x(), self._pubkey.point.y())
 
     def __mul__(self, other: int):
         if not isinstance(other, int):

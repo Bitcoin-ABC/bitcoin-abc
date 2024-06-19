@@ -175,7 +175,7 @@ def sign(privkey, message_hash):
         if not 0 < secexp < order:
             raise ValueError("could not sign")
         pubpoint = secexp * G
-        pubbytes = point_to_ser(pubpoint, comp=True)
+        pubbytes = point_to_ser(pubpoint, compressed=True)
 
         k = nonce_function_rfc6979(
             order, privkey, message_hash, algo16=b"Schnorr+SHA256\x20\x20"
@@ -250,7 +250,7 @@ def verify(pubkey, signature, message_hash):
             return False
 
         # compressed format, regardless of whether pubkey was compressed or not:
-        pubbytes = point_to_ser(pubpoint, comp=True)
+        pubbytes = point_to_ser(pubpoint, compressed=True)
 
         ebytes = hashlib.sha256(rbytes + pubbytes + message_hash).digest()
         e = int.from_bytes(ebytes, "big")
@@ -313,7 +313,7 @@ class BlindSigner:
         # we store k in a list since .pop() is atomic.
         self._kcontainer = [k]
         Rpoint = k * ecdsa.SECP256k1.generator
-        self.R = point_to_ser(Rpoint, comp=True)
+        self.R = point_to_ser(Rpoint, compressed=True)
 
     def get_R(self):
         return self.R
@@ -409,7 +409,7 @@ class BlindSignatureRequest:
             # point at infinity:
             raise ValueError("pubkey could not be parsed")
 
-        self.pubkey_compressed = point_to_ser(pubpoint, comp=True)
+        self.pubkey_compressed = point_to_ser(pubpoint, compressed=True)
 
         # multiply & add the points -- takes ~190 microsec
         Rnew = Rpoint + self.a * ecdsa.SECP256k1.generator + self.b * pubpoint

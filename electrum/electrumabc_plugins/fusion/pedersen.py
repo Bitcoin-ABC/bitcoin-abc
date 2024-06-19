@@ -96,8 +96,8 @@ class PedersenSetup:
             self._ecdsa_H = Hpoint
             self._ecdsa_HG = HGpoint
 
-            self.H = point_to_ser(Hpoint, comp=False)
-            self.HG = point_to_ser(HGpoint, comp=False)
+            self.H = point_to_ser(Hpoint, compressed=False)
+            self.HG = point_to_ser(HGpoint, compressed=False)
         else:
             ctx = seclib.ctx
             H_buf = create_string_buffer(64)
@@ -107,7 +107,7 @@ class PedersenSetup:
 
             self._seclib_H = H_buf.raw
 
-            G = point_to_ser(ecdsa.SECP256k1.generator, comp=False)
+            G = point_to_ser(ecdsa.SECP256k1.generator, compressed=False)
             G_buf = create_string_buffer(64)
             res = seclib.secp256k1_ec_pubkey_parse(ctx, G_buf, G, c_size_t(len(G)))
             assert res, "G point should always deserialize without issue"
@@ -237,8 +237,8 @@ class Commitment:
         if Ppoint == ecdsa.ellipticcurve.INFINITY:
             raise ResultAtInfinity
 
-        self.P_uncompressed = point_to_ser(Ppoint, comp=False)
-        self.P_compressed = point_to_ser(Ppoint, comp=True)
+        self.P_uncompressed = point_to_ser(Ppoint, compressed=False)
+        self.P_compressed = point_to_ser(Ppoint, compressed=True)
 
     def _calc_initial_fast(self):
         # Fast version of _calc_initial, using libsecp256k1.
@@ -353,7 +353,7 @@ def add_points(points_iterable):
         Psum = sum(plist[1:], plist[0])
         if Psum == ecdsa.ellipticcurve.INFINITY:
             raise ResultAtInfinity
-        return point_to_ser(Psum, comp=False)
+        return point_to_ser(Psum, compressed=False)
 
 
 def add_commitments(commitment_iterable):

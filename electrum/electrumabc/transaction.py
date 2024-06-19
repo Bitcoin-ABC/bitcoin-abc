@@ -61,7 +61,7 @@ from .ecc import (
     MySigningKey,
     public_key_from_private_key,
     regenerate_key,
-    ser_to_point,
+    ser_to_coordinates,
     sig_string_from_der_sig,
 )
 
@@ -1517,8 +1517,8 @@ class Transaction:
 
             # ECDSA signature
             try:
-                pubkey_point = ser_to_point(pubkey)
-                public_key = ECPubkey.from_point(pubkey_point)
+                pubkey_coordinates = ser_to_coordinates(pubkey)
+                public_key = ECPubkey.from_point(pubkey_coordinates)
                 sig_string = sig_string_from_der_sig(sig)
                 return public_key.verify_message_hash(sig_string, msghash)
             except (
