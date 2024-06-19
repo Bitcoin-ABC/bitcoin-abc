@@ -8,6 +8,7 @@ from ecdsa.util import number_to_string
 from ..bitcoin import deserialize_privkey
 from ..ecc import (
     ECKey,
+    ECPubkey,
     SignatureType,
     point_to_ser,
     regenerate_key,
@@ -42,8 +43,8 @@ class TestECC(unittest.TestCase):
         self.assertEqual(message, dec2)
 
         signature = eck.sign_message(message, True)
-        # print signature
-        ECKey.verify_message(eck, signature, message)
+        pubkey = ECPubkey(pubkey_c)
+        self.assertTrue(pubkey.verify_message(signature, message))
 
     def test_msg_signing(self):
         msg1 = b"Chancellor on brink of second bailout for banks"

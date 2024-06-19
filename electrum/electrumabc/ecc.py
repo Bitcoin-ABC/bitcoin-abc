@@ -283,6 +283,27 @@ class ECPubkey(object):
     def __ne__(self, other):
         return not (self == other)
 
+    def verify_message(
+        self,
+        sig65: bytes,
+        message: bytes,
+        *,
+        sigtype: SignatureType = SignatureType.ECASH,
+    ) -> bool:
+        assert_bytes(message)
+        h = Hash(msg_magic(message, sigtype))
+        try:
+            verifying_key, compressed = pubkey_from_signature(sig65, h)
+            ecdsa_point = verifying_key.pubkey.point
+            public_key = ECPubkey(point_to_ser(ecdsa_point))
+        except Exception:
+            return False
+        # check public key
+        if public_key != self:
+            return False
+        # check message
+        return self.verify_message_hash(sig65[1:], h)
+
     def verify_message_hash(self, sig_string: bytes, msg_hash: bytes) -> bool:
         assert_bytes(sig_string)
         if len(sig_string) != 64:
@@ -363,25 +384,12 @@ class ECKey(object):
         signature = self.sign(Hash(msg_magic(message, sigtype)))
         for i in range(4):
             sig = bytes([27 + i + (4 if is_compressed else 0)]) + signature
-            try:
-                self.verify_message(sig, message, sigtype)
+            pubkey = ECPubkey.from_point(self.pubkey.point)
+            if pubkey.verify_message(sig, message, sigtype=sigtype):
                 return sig
-            except Exception:
-                continue
+            continue
         else:
             raise Exception("error: cannot sign message")
-
-    def verify_message(self, sig, message, sigtype=SignatureType.ECASH):
-        assert_bytes(message)
-        h = Hash(msg_magic(message, sigtype))
-        public_key, compressed = pubkey_from_signature(sig, h)
-        # check public key
-        if point_to_ser(public_key.pubkey.point, compressed) != point_to_ser(
-            self.pubkey.point, compressed
-        ):
-            raise Exception("Bad signature")
-        # check message
-        public_key.verify_digest(sig[1:], h, sigdecode=ecdsa.util.sigdecode_string)
 
     # ECIES encryption/decryption methods; AES-128-CBC with PKCS7 is used as the cipher; hmac-sha256 is used as the mac
 
