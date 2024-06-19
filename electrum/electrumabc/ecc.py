@@ -138,19 +138,19 @@ def encrypt_message(message, pubkey: bytes, magic=b"BIE1"):
     return ECKey.encrypt_message(message, pubkey, magic)
 
 
-def ECC_YfromX(x, curved=curve_secp256k1, odd=True):
-    _p = curved.p()
-    _a = curved.a()
-    _b = curved.b()
+def get_y_coord_from_x(x: int, odd=True) -> int:
+    curve = curve_secp256k1
+    _p = curve.p()
+    _a = curve.a()
+    _b = curve.b()
     for offset in range(128):
         Mx = x + offset
         My2 = pow(Mx, 3, _p) + _a * pow(Mx, 2, _p) + _b % _p
         My = pow(My2, (_p + 1) // 4, _p)
-
-        if curved.contains_point(Mx, My):
+        if curve.contains_point(Mx, My):
             if odd == bool(My & 1):
-                return [My, offset]
-            return [_p - My, offset]
+                return My
+            return _p - My
     raise Exception("ECC_YfromX: No Y found")
 
 
@@ -174,7 +174,7 @@ def ser_to_point(Aser):
             curve, string_to_number(Aser[1:33]), string_to_number(Aser[33:]), _r
         )
     Mx = string_to_number(Aser[1:])
-    return Point(curve, Mx, ECC_YfromX(Mx, curve, Aser[0] == 0x03)[0], _r)
+    return Point(curve, Mx, get_y_coord_from_x(Mx, Aser[0] == 0x03), _r)
 
 
 class MyVerifyingKey(ecdsa.VerifyingKey):
