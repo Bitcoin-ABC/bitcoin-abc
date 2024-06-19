@@ -3,54 +3,48 @@
 # digitalbitbox.com
 #
 
+import base64
+import binascii
+import hashlib
+import hmac
+import json
+import math
+import os
+import re
+import struct
+import sys
+import time
+
+import requests
+from ecdsa.ecdsa import generator_secp256k1
+from ecdsa.util import sigencode_der
+
+from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
+from electrumabc.bitcoin import (
+    ScriptType,
+    hmac_oneshot,
+    public_key_to_p2pkh,
+    push_script,
+)
+from electrumabc.crypto import DecodeAES_bytes, EncodeAES_base64, EncodeAES_bytes, Hash
+from electrumabc.ecc import (
+    ECPubkey,
+    SignatureType,
+    msg_magic,
+    verify_message_with_address,
+)
+from electrumabc.i18n import _
+from electrumabc.keystore import HardwareKeyStore
+from electrumabc.printerror import print_error
+from electrumabc.transaction import Transaction
+from electrumabc.util import UserCancelled, to_string
+
+from ..hw_wallet import HardwareClientBase, HWPluginBase
+
 try:
-    import base64
-    import binascii
-    import hashlib
-    import hmac
-    import json
-    import math
-    import os
-    import re
-    import struct
-    import sys
-    import time
-
     import hid
-    import requests
-    from ecdsa.ecdsa import generator_secp256k1
-    from ecdsa.util import sigencode_der
-
-    from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
-    from electrumabc.bitcoin import (
-        ScriptType,
-        hmac_oneshot,
-        public_key_to_p2pkh,
-        push_script,
-    )
-    from electrumabc.crypto import (
-        DecodeAES_bytes,
-        EncodeAES_base64,
-        EncodeAES_bytes,
-        Hash,
-    )
-    from electrumabc.ecc import (
-        ECPubkey,
-        SignatureType,
-        msg_magic,
-        verify_message_with_address,
-    )
-    from electrumabc.i18n import _
-    from electrumabc.keystore import HardwareKeyStore
-    from electrumabc.printerror import print_error
-    from electrumabc.transaction import Transaction
-    from electrumabc.util import UserCancelled, to_string
-
-    from ..hw_wallet import HardwareClientBase, HWPluginBase
-
-    DIGIBOX = True
 except ImportError:
-    DIGIBOX = False
+    hid = None
 
 
 # ----------------------------------------------------------------------------------
@@ -813,7 +807,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
 
 
 class DigitalBitboxPlugin(HWPluginBase):
-    libraries_available = DIGIBOX
+    libraries_available = hid is not None
     keystore_class = DigitalBitboxKeyStore
     client = None
     DEVICE_IDS = [(0x03EB, 0x2402)]  # Digital Bitbox
