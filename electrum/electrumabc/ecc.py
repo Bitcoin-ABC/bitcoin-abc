@@ -29,7 +29,7 @@ import base64
 import hashlib
 import hmac
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, NamedTuple, Optional, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
@@ -158,23 +158,30 @@ def negative_point(P):
     return Point(P.curve(), P.x(), -P.y(), P.order())
 
 
+class EcCoordinates(NamedTuple):
+    x: int
+    y: int
+
+
 def point_to_ser(P, comp=True) -> bytes:
     if comp:
         return int(2 + (P.y() & 1)).to_bytes(1, "big") + int(P.x()).to_bytes(32, "big")
     return b"\x04" + int(P.x()).to_bytes(32, "big") + int(P.y()).to_bytes(32, "big")
 
 
-def ser_to_point(Aser):
-    curve = curve_secp256k1
-    generator = generator_secp256k1
-    _r = generator.order()
-    assert Aser[0] in [0x02, 0x03, 0x04]
-    if Aser[0] == 0x04:
-        return Point(
-            curve, string_to_number(Aser[1:33]), string_to_number(Aser[33:]), _r
-        )
-    Mx = string_to_number(Aser[1:])
-    return Point(curve, Mx, get_y_coord_from_x(Mx, Aser[0] == 0x03), _r)
+def ser_to_coordinates(ser: bytes) -> EcCoordinates:
+    if ser[0] not in (0x02, 0x03, 0x04):
+        raise ValueError(f"Unexpected first byte: {ser[0]}")
+    if ser[0] == 0x04:
+        return EcCoordinates(string_to_number(ser[1:33]), string_to_number(ser[33:]))
+
+    x = string_to_number(ser[1:])
+    return EcCoordinates(x, get_y_coord_from_x(x, ser[0] == 0x03))
+
+
+def ser_to_point(ser: bytes) -> ecdsa.ellipticcurve.Point:
+    x, y = ser_to_coordinates(ser)
+    return Point(curve_secp256k1, x, y, generator_secp256k1.order())
 
 
 class MyVerifyingKey(ecdsa.VerifyingKey):
