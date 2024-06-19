@@ -49,6 +49,8 @@ if TYPE_CHECKING:
 
 do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1()
 
+CURVE_ORDER = SECP256k1.order
+
 
 def i2o_ECPublicKey(pubkey, compressed=False):
     # public keys are 65 bytes long (520 bits)
@@ -158,6 +160,11 @@ def negative_point(P):
     return Point(P.curve(), P.x(), -P.y(), P.order())
 
 
+def sig_string_from_der_sig(der_sig):
+    r, s = ecdsa.util.sigdecode_der(der_sig, CURVE_ORDER)
+    return ecdsa.util.sigencode_string(r, s, CURVE_ORDER)
+
+
 class EcCoordinates(NamedTuple):
     x: int
     y: int
@@ -240,6 +247,78 @@ class MySigningKey(ecdsa.SigningKey):
         if s > order // 2:
             s = order - s
         return r, s
+
+
+class ECPubkey(object):
+
+    def __init__(self, b: bytes):
+        assert_bytes(b)
+        point = ser_to_point(b)
+        self._pubkey = ecdsa.ecdsa.Public_key(generator_secp256k1, point)
+
+    @classmethod
+    def from_sig_string(cls, sig_string: bytes, recid: int, msg_hash: bytes):
+        assert_bytes(sig_string)
+        if len(sig_string) != 64:
+            raise Exception("Wrong encoding")
+        if not (0 <= recid <= 3):
+            raise ValueError(f"recid is {recid}, but should be 0 <= recid <= 3")
+        ecdsa_verifying_key = MyVerifyingKey.from_signature(
+            sig_string, recid, msg_hash, curve=SECP256k1
+        )
+        ecdsa_point = ecdsa_verifying_key.pubkey.point
+        return ECPubkey(point_to_ser(ecdsa_point))
+
+    @classmethod
+    def from_point(cls, point: ecdsa.ecdsa.Public_key) -> ECPubkey:
+        _bytes = point_to_ser(point, comp=False)  # faster than compressed
+        return ECPubkey(_bytes)
+
+    def get_public_key_bytes(self, compressed=True):
+        return point_to_ser(self.point(), compressed)
+
+    def get_public_key_hex(self, compressed=True):
+        return self.get_public_key_bytes(compressed).hex()
+
+    def point(self) -> ecdsa.ecdsa.Public_key:
+        return self._pubkey
+
+    def __mul__(self, other: int):
+        if not isinstance(other, int):
+            raise TypeError(
+                f"multiplication not defined for ECPubkey and {type(other)}"
+            )
+        ecdsa_point = self._pubkey.point * other
+        return self.from_point(ecdsa_point)
+
+    def __rmul__(self, other: int):
+        return self * other
+
+    def __add__(self, other):
+        if not isinstance(other, ECPubkey):
+            raise TypeError(f"addition not defined for ECPubkey and {type(other)}")
+        ecdsa_point = self._pubkey.point + other._pubkey.point
+        return self.from_point(ecdsa_point)
+
+    def __eq__(self, other):
+        return self.get_public_key_bytes() == other.get_public_key_bytes()
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def verify_message_hash(self, sig_string: bytes, msg_hash: bytes) -> bool:
+        assert_bytes(sig_string)
+        if len(sig_string) != 64:
+            return False
+        ecdsa_point = self._pubkey.point
+        verifying_key = MyVerifyingKey.from_public_point(ecdsa_point, curve=SECP256k1)
+        return verifying_key.verify_digest(
+            sig_string, msg_hash, sigdecode=ecdsa.util.sigdecode_string
+        )
+
+    @classmethod
+    def order(cls):
+        return CURVE_ORDER
 
 
 class ECKey(object):

@@ -18,7 +18,6 @@ try:
 
     import hid
     import requests
-    from ecdsa.curves import SECP256k1
     from ecdsa.ecdsa import generator_secp256k1
     from ecdsa.util import sigencode_der
 
@@ -36,7 +35,7 @@ try:
         Hash,
     )
     from electrumabc.ecc import (
-        MyVerifyingKey,
+        ECPubkey,
         SignatureType,
         msg_magic,
         point_to_ser,
@@ -794,8 +793,8 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                         recid = int(signed["recid"], 16)
                         s = binascii.unhexlify(signed["sig"])
                         h = inputhasharray[i]
-                        pk = MyVerifyingKey.from_signature(s, recid, h, curve=SECP256k1)
-                        pk = to_hexstr(point_to_ser(pk.pubkey.point, True))
+                        pk = ECPubkey.from_sig_string(s, recid, h)
+                        pk = pk.get_public_key_hex(compressed=True)
                     elif "pubkey" in signed:
                         # firmware <= v2.1.1
                         pk = signed["pubkey"]

@@ -57,11 +57,12 @@ from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 from .crypto import Hash, hash_160
 from .ecc import (
+    ECPubkey,
     MySigningKey,
-    MyVerifyingKey,
     public_key_from_private_key,
     regenerate_key,
     ser_to_point,
+    sig_string_from_der_sig,
 )
 
 #
@@ -1517,11 +1518,9 @@ class Transaction:
             # ECDSA signature
             try:
                 pubkey_point = ser_to_point(pubkey)
-                vk = MyVerifyingKey.from_public_point(
-                    pubkey_point, curve=ecdsa.curves.SECP256k1
-                )
-                if vk.verify_digest(sig, msghash, sigdecode=ecdsa.util.sigdecode_der):
-                    return True
+                public_key = ECPubkey.from_point(pubkey_point)
+                sig_string = sig_string_from_der_sig(sig)
+                return public_key.verify_message_hash(sig_string, msghash)
             except (
                 AssertionError,
                 ValueError,
