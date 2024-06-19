@@ -196,21 +196,6 @@ class MyVerifyingKey(ecdsa.VerifyingKey):
         return klass.from_public_point(Q, curve)
 
 
-def pubkey_from_signature(sig, h):
-    if len(sig) != 65:
-        raise Exception("Wrong encoding")
-    nV = sig[0]
-    if nV < 27 or nV >= 35:
-        raise Exception("Bad encoding")
-    if nV >= 31:
-        compressed = True
-        nV -= 4
-    else:
-        compressed = False
-    recid = nV - 27
-    return MyVerifyingKey.from_signature(sig[1:], recid, h, curve=SECP256k1), compressed
-
-
 class MySigningKey(ecdsa.SigningKey):
     """Enforce low S values in signatures"""
 
@@ -243,6 +228,21 @@ class ECPubkey(object):
         )
         ecdsa_point = ecdsa_verifying_key.pubkey.point
         return ECPubkey(point_to_ser(ecdsa_point))
+
+    @classmethod
+    def from_signature65(cls, sig: bytes, msg_hash: bytes):
+        if len(sig) != 65:
+            raise Exception("Wrong encoding")
+        nV = sig[0]
+        if not (27 <= nV <= 34):
+            raise Exception("Bad encoding")
+        if nV >= 31:
+            compressed = True
+            nV -= 4
+        else:
+            compressed = False
+        recid = nV - 27
+        return cls.from_sig_string(sig[1:], recid, msg_hash), compressed
 
     @classmethod
     def from_point(
@@ -293,9 +293,7 @@ class ECPubkey(object):
         assert_bytes(message)
         h = Hash(msg_magic(message, sigtype))
         try:
-            verifying_key, compressed = pubkey_from_signature(sig65, h)
-            ecdsa_point = verifying_key.pubkey.point
-            public_key = ECPubkey(point_to_ser(ecdsa_point))
+            public_key, compressed = ECPubkey.from_signature65(sig65, h)
         except Exception:
             return False
         # check public key
@@ -339,9 +337,7 @@ def verify_message_with_address(
 
     h = Hash(msg_magic(message, sigtype))
     try:
-        verifying_key, compressed = pubkey_from_signature(sig65, h)
-        ecdsa_point = verifying_key.pubkey.point
-        public_key = ECPubkey(point_to_ser(ecdsa_point))
+        public_key, compressed = ECPubkey.from_signature65(sig65, h)
     except Exception:
         return False
     # check public key using the address

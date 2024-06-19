@@ -38,8 +38,6 @@ try:
         ECPubkey,
         SignatureType,
         msg_magic,
-        point_to_ser,
-        pubkey_from_signature,
         verify_message_with_address,
     )
     from electrumabc.i18n import _
@@ -592,8 +590,8 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                 sig = bytes(
                     [27 + int(reply["sign"][0]["recid"], 16) + 4]
                 ) + binascii.unhexlify(reply["sign"][0]["sig"])
-                pk, compressed = pubkey_from_signature(sig, msg_hash)
-                pk = point_to_ser(pk.pubkey.point, compressed)
+                pk, compressed = ECPubkey.from_signature65(sig, msg_hash)
+                pk = pk.get_public_key_bytes(compressed)
                 addr = public_key_to_p2pkh(pk)
                 if verify_message_with_address(addr, sig, message) is False:
                     raise Exception(_("Could not sign message"))
