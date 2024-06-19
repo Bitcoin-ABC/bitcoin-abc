@@ -4,6 +4,9 @@
 
 // Preview config distinct from production config
 // For now, the only difference is the absence of async headers() {
+
+const { redirects } = require('./data/redirects.js');
+
 const nextConfig = {
     reactStrictMode: true,
     compiler: {
@@ -36,18 +39,7 @@ const nextConfig = {
         ],
     },
     async redirects() {
-        return [
-            {
-                source: '/roadmap-explained',
-                destination: '/roadmap',
-                permanent: true,
-            },
-            {
-                source: '/ecash-brand',
-                destination: '/brand',
-                permanent: true,
-            },
-        ];
+        return redirects;
     },
 };
 
