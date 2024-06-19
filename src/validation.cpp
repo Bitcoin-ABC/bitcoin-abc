@@ -2106,14 +2106,6 @@ static uint32_t GetNextBlockScriptFlags(const CBlockIndex *pindex,
     return flags;
 }
 
-static SteadyClock::duration time_check{};
-static SteadyClock::duration time_forks{};
-static SteadyClock::duration time_connect{};
-static SteadyClock::duration time_verify{};
-static SteadyClock::duration time_index{};
-static SteadyClock::duration time_total{};
-static int64_t num_blocks_total = 0;
-
 /**
  * Apply the effects of this block (with given index) on the UTXO set
  * represented by coins. Validity checks that depend on the UTXO set are also
@@ -2167,7 +2159,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         pindex->pprev == nullptr ? BlockHash() : pindex->pprev->GetBlockHash();
     assert(hashPrevBlock == view.GetBestBlock());
 
-    num_blocks_total++;
+    m_chainman.num_blocks_total++;
 
     // Special case for the genesis block, skipping connection of its
     // transactions (its coinbase is unspendable)
@@ -2225,11 +2217,12 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     }
 
     const auto time_1{SteadyClock::now()};
-    time_check += time_1 - time_start;
+    m_chainman.time_check += time_1 - time_start;
     LogPrint(BCLog::BENCH, "    - Sanity checks: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_1 - time_start),
-             Ticks<SecondsDouble>(time_check),
-             Ticks<MillisecondsDouble>(time_check) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_check),
+             Ticks<MillisecondsDouble>(m_chainman.time_check) /
+                 m_chainman.num_blocks_total);
 
     // Do not allow blocks that contain transactions which 'overwrite' older
     // transactions, unless those are already completely spent. If such
@@ -2345,11 +2338,12 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     const uint32_t flags = GetNextBlockScriptFlags(pindex->pprev, m_chainman);
 
     const auto time_2{SteadyClock::now()};
-    time_forks += time_2 - time_1;
+    m_chainman.time_forks += time_2 - time_1;
     LogPrint(BCLog::BENCH, "    - Fork checks: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_2 - time_1),
-             Ticks<SecondsDouble>(time_forks),
-             Ticks<MillisecondsDouble>(time_forks) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_forks),
+             Ticks<MillisecondsDouble>(m_chainman.time_forks) /
+                 m_chainman.num_blocks_total);
 
     std::vector<int> prevheights;
     Amount nFees = Amount::zero();
@@ -2483,7 +2477,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         txIndex++;
     }
     const auto time_3{SteadyClock::now()};
-    time_connect += time_3 - time_2;
+    m_chainman.time_connect += time_3 - time_2;
     LogPrint(BCLog::BENCH,
              "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) "
              "[%.2fs (%.2fms/blk)]\n",
@@ -2493,8 +2487,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
              nInputs <= 1
                  ? 0
                  : Ticks<MillisecondsDouble>(time_3 - time_2) / (nInputs - 1),
-             Ticks<SecondsDouble>(time_connect),
-             Ticks<MillisecondsDouble>(time_connect) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_connect),
+             Ticks<MillisecondsDouble>(m_chainman.time_connect) /
+                 m_chainman.num_blocks_total);
 
     const Amount blockReward =
         nFees + GetBlockSubsidy(pindex->nHeight, consensusParams);
@@ -2521,7 +2516,7 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         return false;
     }
     const auto time_4{SteadyClock::now()};
-    time_verify += time_4 - time_2;
+    m_chainman.time_verify += time_4 - time_2;
     LogPrint(
         BCLog::BENCH,
         "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs (%.2fms/blk)]\n",
@@ -2529,8 +2524,9 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
         nInputs <= 1
             ? 0
             : Ticks<MillisecondsDouble>(time_4 - time_2) / (nInputs - 1),
-        Ticks<SecondsDouble>(time_verify),
-        Ticks<MillisecondsDouble>(time_verify) / num_blocks_total);
+        Ticks<SecondsDouble>(m_chainman.time_verify),
+        Ticks<MillisecondsDouble>(m_chainman.time_verify) /
+            m_chainman.num_blocks_total);
 
     if (fJustCheck) {
         return true;
@@ -2549,11 +2545,12 @@ bool Chainstate::ConnectBlock(const CBlock &block, BlockValidationState &state,
     view.SetBestBlock(pindex->GetBlockHash());
 
     const auto time_5{SteadyClock::now()};
-    time_index += time_5 - time_4;
+    m_chainman.time_index += time_5 - time_4;
     LogPrint(BCLog::BENCH, "    - Index writing: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_5 - time_4),
-             Ticks<SecondsDouble>(time_index),
-             Ticks<MillisecondsDouble>(time_index) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_index),
+             Ticks<MillisecondsDouble>(m_chainman.time_index) /
+                 m_chainman.num_blocks_total);
 
     TRACE6(validation, block_connected, block_hash.data(), pindex->nHeight,
            block.vtx.size(), nInputs, nSigChecksRet,
@@ -2946,11 +2943,6 @@ bool Chainstate::DisconnectTip(BlockValidationState &state,
     return true;
 }
 
-static SteadyClock::duration time_connect_total{};
-static SteadyClock::duration time_flush{};
-static SteadyClock::duration time_chainstate{};
-static SteadyClock::duration time_post_connect{};
-
 /**
  * Connect a new block to m_chain. pblock is either nullptr or a pointer to
  * a CBlock corresponding to pindexNew, to bypass loading it again from disk.
@@ -3089,34 +3081,37 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         }
 
         time_3 = SteadyClock::now();
-        time_connect_total += time_3 - time_2;
-        assert(num_blocks_total > 0);
-        LogPrint(
-            BCLog::BENCH, "  - Connect total: %.2fms [%.2fs (%.2fms/blk)]\n",
-            Ticks<MillisecondsDouble>(time_3 - time_2),
-            Ticks<SecondsDouble>(time_connect_total),
-            Ticks<MillisecondsDouble>(time_connect_total) / num_blocks_total);
+        m_chainman.time_connect_total += time_3 - time_2;
+        assert(m_chainman.num_blocks_total > 0);
+        LogPrint(BCLog::BENCH,
+                 "  - Connect total: %.2fms [%.2fs (%.2fms/blk)]\n",
+                 Ticks<MillisecondsDouble>(time_3 - time_2),
+                 Ticks<SecondsDouble>(m_chainman.time_connect_total),
+                 Ticks<MillisecondsDouble>(m_chainman.time_connect_total) /
+                     m_chainman.num_blocks_total);
         // No need to reallocate since it only has capacity for 1 block
         view.Flush(/*reallocate_cache=*/false);
     }
 
     const auto time_4{SteadyClock::now()};
-    time_flush += time_4 - time_3;
+    m_chainman.time_flush += time_4 - time_3;
     LogPrint(BCLog::BENCH, "  - Flush: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_4 - time_3),
-             Ticks<SecondsDouble>(time_flush),
-             Ticks<MillisecondsDouble>(time_flush) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_flush),
+             Ticks<MillisecondsDouble>(m_chainman.time_flush) /
+                 m_chainman.num_blocks_total);
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FlushStateMode::IF_NEEDED)) {
         return false;
     }
     const auto time_5{SteadyClock::now()};
-    time_chainstate += time_5 - time_4;
+    m_chainman.time_chainstate += time_5 - time_4;
     LogPrint(BCLog::BENCH,
              "  - Writing chainstate: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_5 - time_4),
-             Ticks<SecondsDouble>(time_chainstate),
-             Ticks<MillisecondsDouble>(time_chainstate) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_chainstate),
+             Ticks<MillisecondsDouble>(m_chainman.time_chainstate) /
+                 m_chainman.num_blocks_total);
     // Remove conflicting transactions from the mempool.
     if (m_mempool) {
         disconnectpool.removeForBlock(blockConnecting.vtx, *m_mempool);
@@ -3139,17 +3134,19 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
     UpdateTip(pindexNew);
 
     const auto time_6{SteadyClock::now()};
-    time_post_connect += time_6 - time_5;
-    time_total += time_6 - time_1;
+    m_chainman.time_post_connect += time_6 - time_5;
+    m_chainman.time_total += time_6 - time_1;
     LogPrint(BCLog::BENCH,
              "  - Connect postprocess: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_6 - time_5),
-             Ticks<SecondsDouble>(time_post_connect),
-             Ticks<MillisecondsDouble>(time_post_connect) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_post_connect),
+             Ticks<MillisecondsDouble>(m_chainman.time_post_connect) /
+                 m_chainman.num_blocks_total);
     LogPrint(BCLog::BENCH, "- Connect block: %.2fms [%.2fs (%.2fms/blk)]\n",
              Ticks<MillisecondsDouble>(time_6 - time_1),
-             Ticks<SecondsDouble>(time_total),
-             Ticks<MillisecondsDouble>(time_total) / num_blocks_total);
+             Ticks<SecondsDouble>(m_chainman.time_total),
+             Ticks<MillisecondsDouble>(m_chainman.time_total) /
+                 m_chainman.num_blocks_total);
 
     // If we are the background validation chainstate, check to see if we are
     // done validating the snapshot (i.e. our tip has reached the snapshot's
