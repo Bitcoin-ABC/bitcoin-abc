@@ -77,6 +77,14 @@ def test_pin_unlocked(func):
     return catch_exception
 
 
+class DeviceNotInBitcoinCashModeError(Exception):
+    pass
+
+
+class UnknownCommandError(Exception):
+    pass
+
+
 class LedgerClient(HardwareClientBase):
     def __init__(
         self, hidDevice, *, product_key: Tuple[int, int], plugin: HWPluginBase
@@ -284,25 +292,41 @@ class LedgerClient(HardwareClientBase):
                         " your {}."
                     ).format(self.device)
                 ) from e
-            if e.sw == 0x6702:
-                # This happens with firmware/BTC/BCH apps > 2.0.2 when the user didn't
-                # open the BCH app
-                raise Exception(
-                    _("Open the BCH app")
-                    + "\n"
-                    + _("Please make sure that the BCH app is open on your device.")
-                ) from e
+            if e.sw in [0x6702, 0x6E00]:
+                # 0x6702 happens with firmware/BTC/BCH apps > 2.0.2 when the user didn't
+                # open the BCH app.
+                # 0x6e00 happens when the BTC app is open instead of the BCH app.
+                self.raise_device_not_in_bch_mode_error(e)
             raise e
+
+    def raise_device_not_in_bch_mode_error(self, e: BTChipException):
+        raise DeviceNotInBitcoinCashModeError(
+            _("Open the BCH app")
+            + "\n"
+            + _("Please make sure that the BCH app is open on your {}.").format(
+                self.device
+            )
+        ) from e
 
     def checkDevice(self):
         if not self.preflightDone:
             try:
                 self.perform_hw1_preflight()
             except BTChipException as e:
-                if e.sw == 0x6D00 or e.sw == 0x6700:
-                    raise RuntimeError(
-                        _("{} not in Bitcoin Cash mode").format(self.device)
-                    ) from e
+                if e.sw == 0x6700:
+                    self.raise_device_not_in_bch_mode_error(e)
+                if e.sw == 0x6D00:
+                    raise UnknownCommandError(
+                        _("Unknown command")
+                        + "\n\n"
+                        + _(
+                            "Check that the BCH app is open on your {}. If the problem "
+                            "persists, report the following error to the Electrum ABC "
+                            "developers."
+                        ).format(self.device)
+                        + "\n\n"
+                        + traceback.format_exc()
+                    )
                 raise e
             self.preflightDone = True
 

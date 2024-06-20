@@ -1084,10 +1084,10 @@ class DeviceMgr(ThreadJob):
         raise DeviceUnpairableError(
             _(
                 f"{PROJECT_NAME} cannot pair with your {plugin.device}.\n\n"
-                "Before you request bitcoins to be sent to addresses in this "
+                "Before you request eCash to be sent to addresses in this "
                 "wallet, ensure you can pair with your device, or that you have "
-                "its seed (and passphrase, if any).  Otherwise all bitcoins you "
-                "receive will be unspendable."
+                "its seed (and passphrase, if any).  Otherwise all funds you "
+                "receive may be unspendable."
             )
         )
 
