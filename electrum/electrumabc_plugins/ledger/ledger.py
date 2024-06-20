@@ -265,7 +265,7 @@ class LedgerClient(HardwareClientBase):
             gwpkArgSpecs = inspect.getfullargspec(self.dongleObject.getWalletPublicKey)
             self.cashaddrSWSupported = "cashAddr" in gwpkArgSpecs.args
         except BTChipException as e:
-            if e.sw == 0x6FAA:
+            if e.sw in [0x6FAA, 0x5515]:
                 raise Exception(
                     _(
                         "{hw_device_name} is temporarily locked - please unplug and"
