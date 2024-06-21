@@ -1,5 +1,12 @@
 # Release notes
 
+## Release 5.2.13
+
+- Fix support for recent versions  (> 2.4.1) of the Ledger apps (D16362).
+- Fix an error on Windows when the application is started while it is
+  already running in another process (D16327).
+
+
 ## Release 5.2.12
 
 - Disable "Generate Key" button in the Delegation editor for non-HD and
