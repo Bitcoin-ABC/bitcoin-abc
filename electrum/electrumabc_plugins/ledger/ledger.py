@@ -51,6 +51,7 @@ BITCOIN_CASH_SUPPORT = (1, 1, 8)
 CASHADDR_SUPPORT = (1, 2, 5)
 MULTI_OUTPUT_SUPPORT = (1, 1, 4)
 TRUSTED_INPUTS_REQUIRED = (1, 4, 0)
+OPERATION_MODE_UNSUPPORTED = (2, 4, 0)
 
 
 def test_pin_unlocked(func):
@@ -218,6 +219,7 @@ class LedgerClient(HardwareClientBase):
             self.cashaddrFWSupported = firmwareVersion >= CASHADDR_SUPPORT
             self.multiOutputSupported = firmwareVersion >= MULTI_OUTPUT_SUPPORT
             self.trustedInputsRequired = firmwareVersion >= TRUSTED_INPUTS_REQUIRED
+            self.operationModeSupported = firmwareVersion < OPERATION_MODE_UNSUPPORTED
 
             if not checkFirmware(firmwareInfo) or not self.supports_bitcoin_cash():
                 self.close()
@@ -227,15 +229,16 @@ class LedgerClient(HardwareClientBase):
                         " https://www.ledgerwallet.com"
                     ).format(self.device)
                 )
-            try:
-                self.dongleObject.getOperationMode()
-            except BTChipException as e:
-                if e.sw == 0x6985:
-                    self.close()
-                    self.handler.get_setup()
-                    # Acquire the new client on the next run
-                else:
-                    raise e
+            if self.operationModeSupported:
+                try:
+                    self.dongleObject.getOperationMode()
+                except BTChipException as e:
+                    if e.sw == 0x6985:
+                        self.close()
+                        self.handler.get_setup()
+                        # Acquire the new client on the next run
+                    else:
+                        raise e
             if (
                 self.has_detached_pin_support(self.dongleObject)
                 and not self.is_pin_validated(self.dongleObject)
@@ -361,7 +364,7 @@ class LedgerKeyStore(HardwareKeyStore):
     def get_client(self):
         return self.plugin.get_client(self).dongleObject
 
-    def get_client_electrum(self):
+    def get_client_electrum(self) -> LedgerClient:
         return self.plugin.get_client(self)
 
     def give_error(self, message, clear_client=False):
@@ -633,7 +636,8 @@ class LedgerKeyStore(HardwareKeyStore):
             self.handler.show_message(_("Confirm Transaction on your Ledger device..."))
             # Sign all inputs
             inputIndex = 0
-            client_ledger.enableAlternate2fa(False)
+            if self.get_client_electrum().operationModeSupported:
+                client_ledger.enableAlternate2fa(False)
             cashaddr = Address.FMT_UI == Address.FMT_CASHADDR
             if cashaddr and client_electrum.supports_cashaddr():
                 # For now the Ledger will show a bitcoincash: CashAddr
