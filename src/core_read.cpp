@@ -270,7 +270,7 @@ std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName) {
 SigHashType ParseSighashString(const UniValue &sighash) {
     SigHashType sigHashType = SigHashType().withForkId();
     if (!sighash.isNull()) {
-        static std::map<std::string, int> map_sighash_values = {
+        static const std::map<std::string, int> map_sighash_values = {
             {"ALL", SIGHASH_ALL},
             {"ALL|ANYONECANPAY", SIGHASH_ALL | SIGHASH_ANYONECANPAY},
             {"ALL|FORKID", SIGHASH_ALL | SIGHASH_FORKID},
