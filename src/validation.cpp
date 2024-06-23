@@ -3508,28 +3508,26 @@ static SynchronizationState GetSynchronizationState(bool init,
     return SynchronizationState::INIT_DOWNLOAD;
 }
 
-static bool NotifyHeaderTip(ChainstateManager &chainman)
-    LOCKS_EXCLUDED(cs_main) {
+bool ChainstateManager::NotifyHeaderTip() {
     bool fNotify = false;
     bool fInitialBlockDownload = false;
-    static CBlockIndex *pindexHeaderOld = nullptr;
     CBlockIndex *pindexHeader = nullptr;
     {
-        LOCK(cs_main);
-        pindexHeader = chainman.m_best_header;
+        LOCK(GetMutex());
+        pindexHeader = m_best_header;
 
-        if (pindexHeader != pindexHeaderOld) {
+        if (pindexHeader != m_last_notified_header) {
             fNotify = true;
-            fInitialBlockDownload = chainman.IsInitialBlockDownload();
-            pindexHeaderOld = pindexHeader;
+            fInitialBlockDownload = IsInitialBlockDownload();
+            m_last_notified_header = pindexHeader;
         }
     }
 
-    // Send block tip changed notifications without cs_main
+    // Send block tip changed notifications without the lock held
     if (fNotify) {
-        chainman.GetNotifications().headerTip(
+        GetNotifications().headerTip(
             GetSynchronizationState(fInitialBlockDownload,
-                                    chainman.m_blockman.m_blockfiles_indexed),
+                                    m_blockman.m_blockfiles_indexed),
             pindexHeader->nHeight, pindexHeader->nTime, false);
     }
     return fNotify;
@@ -4864,7 +4862,7 @@ bool ChainstateManager::ProcessNewBlockHeaders(
         }
     }
 
-    if (NotifyHeaderTip(*this)) {
+    if (NotifyHeaderTip()) {
         if (IsInitialBlockDownload() && ppindex && *ppindex) {
             const CBlockIndex &last_accepted{**ppindex};
             int64_t blocks_left{(NodeClock::now() - last_accepted.Time()) /
@@ -5143,7 +5141,7 @@ bool ChainstateManager::ProcessNewBlock(
         }
     }
 
-    NotifyHeaderTip(*this);
+    NotifyHeaderTip();
 
     // Only used to report errors, not invalidity - ignore it
     BlockValidationState state;
@@ -5979,7 +5977,7 @@ void ChainstateManager::LoadExternalBlockFile(
                     }
                 }
 
-                NotifyHeaderTip(*this);
+                NotifyHeaderTip();
 
                 if (!blocks_with_unknown_parent) {
                     continue;
@@ -6015,7 +6013,7 @@ void ChainstateManager::LoadExternalBlockFile(
                         }
                         range.first++;
                         blocks_with_unknown_parent->erase(it);
-                        NotifyHeaderTip(*this);
+                        NotifyHeaderTip();
                     }
                 }
             } catch (const std::exception &e) {

@@ -1212,6 +1212,11 @@ private:
     CBlockIndex *m_best_invalid GUARDED_BY(::cs_main){nullptr};
     CBlockIndex *m_best_parked GUARDED_BY(::cs_main){nullptr};
 
+    /** The last header for which a headerTip notification was issued. */
+    CBlockIndex *m_last_notified_header GUARDED_BY(GetMutex()){nullptr};
+
+    bool NotifyHeaderTip() LOCKS_EXCLUDED(GetMutex());
+
     //! Internal helper for ActivateSnapshot().
     //!
     //! De-serialization of a snapshot that is created with
