@@ -988,10 +988,9 @@ static RPCHelpMan getavalancheproofs() {
 static RPCHelpMan getstakingreward() {
     return RPCHelpMan{
         "getstakingreward",
-        "Return a list of possible staking reward winners based on the previous "
-        "block hash.\n"
-        "If -deprecatedrpc=getstakingreward is set it returns a single payout "
-        "script instead of an array.\n",
+        "Return a list of possible staking reward winners based on the "
+        "previous "
+        "block hash.\n",
         {
             {"blockhash", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The previous block hash, hex encoded."},
@@ -999,29 +998,6 @@ static RPCHelpMan getstakingreward() {
              "Whether to recompute the staking reward winner if there is a "
              "cached value."},
         },
-        // Deprecated in 0.28.11
-        IsDeprecatedRPCEnabled(gArgs, "getstakingreward")?
-        RPCResult{
-            RPCResult::Type::OBJ,
-                "payoutscript",
-                "The winning proof payout script",
-                {
-                    {RPCResult::Type::STR, "asm", "Decoded payout script"},
-                    {RPCResult::Type::STR_HEX, "hex",
-                    "Raw payout script in hex format"},
-                    {RPCResult::Type::STR, "type",
-                    "The output type (e.g. " + GetAllOutputTypes() + ")"},
-                    {RPCResult::Type::NUM, "reqSigs",
-                    "The required signatures"},
-                    {RPCResult::Type::ARR,
-                    "addresses",
-                    "",
-                    {
-                        {RPCResult::Type::STR, "address", "eCash address"},
-                    }},
-                },
-            }
-        :
         RPCResult{
             RPCResult::Type::ARR,
             "",
@@ -1051,7 +1027,6 @@ static RPCHelpMan getstakingreward() {
             const JSONRPCRequest &request) -> UniValue {
             const NodeContext &node = EnsureAnyNodeContext(request.context);
             ChainstateManager &chainman = EnsureChainman(node);
-            const ArgsManager &args{EnsureAnyArgsman(request.context)};
             avalanche::Processor &avalanche = EnsureAvalanche(node);
 
             const BlockHash blockhash(
@@ -1094,7 +1069,7 @@ static RPCHelpMan getstakingreward() {
 
             std::vector<CScript> winnerPayoutScripts;
             if (!avalanche.getStakingRewardWinners(blockhash,
-                                                      winnerPayoutScripts)) {
+                                                   winnerPayoutScripts)) {
                 throw JSONRPCError(
                     RPC_INTERNAL_ERROR,
                     strprintf("Unable to retrieve the staking reward winner "
@@ -1108,9 +1083,6 @@ static RPCHelpMan getstakingreward() {
                 ScriptPubKeyToUniv(winnerPayoutScript,
                                    stakingRewardsPayoutScriptObj,
                                    /*fIncludeHex=*/true);
-                if (IsDeprecatedRPCEnabled(args, "getstakingreward")) {
-                    return stakingRewardsPayoutScriptObj;
-                }
                 winners.push_back(stakingRewardsPayoutScriptObj);
             }
 
