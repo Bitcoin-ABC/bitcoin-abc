@@ -970,8 +970,9 @@ void PeerManager::removeUnbroadcastProof(const ProofId &proofid) {
     m_unbroadcast_proofids.erase(proofid);
 }
 
-bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
-                                            std::vector<CScript> &winners) {
+bool PeerManager::selectStakingRewardWinner(
+    const CBlockIndex *pprev,
+    std::vector<std::pair<ProofId, CScript>> &winners) {
     if (!pprev) {
         return false;
     }
@@ -1102,13 +1103,13 @@ bool PeerManager::selectStakingRewardWinner(const CBlockIndex *pprev,
     // Find the winner
     for (const ProofRef &proof : selectedProofs) {
         if (proof->getId() == firstCompliantProof->getId()) {
-            winners.push_back(proof->getPayoutScript());
+            winners.push_back({proof->getId(), proof->getPayoutScript()});
         }
     }
     // Add the others (if any) after the winner
     for (const ProofRef &proof : selectedProofs) {
         if (proof->getId() != firstCompliantProof->getId()) {
-            winners.push_back(proof->getPayoutScript());
+            winners.push_back({proof->getId(), proof->getPayoutScript()});
         }
     }
 

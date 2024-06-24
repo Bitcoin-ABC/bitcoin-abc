@@ -1004,9 +1004,11 @@ static RPCHelpMan getstakingreward() {
             "",
             {
                 {RPCResult::Type::OBJ,
-                 "payoutscript",
-                 "The winning proof payout script",
+                 "winner",
+                 "The winning proof",
                  {
+                     {RPCResult::Type::STR_HEX, "proofid",
+                      "The winning proofid"},
                      {RPCResult::Type::STR, "asm", "Decoded payout script"},
                      {RPCResult::Type::STR_HEX, "hex",
                       "Raw payout script in hex format"},
@@ -1067,9 +1069,8 @@ static RPCHelpMan getstakingreward() {
                               blockhash.ToString()));
             }
 
-            std::vector<CScript> winnerPayoutScripts;
-            if (!avalanche.getStakingRewardWinners(blockhash,
-                                                   winnerPayoutScripts)) {
+            std::vector<std::pair<avalanche::ProofId, CScript>> winners;
+            if (!avalanche.getStakingRewardWinners(blockhash, winners)) {
                 throw JSONRPCError(
                     RPC_INTERNAL_ERROR,
                     strprintf("Unable to retrieve the staking reward winner "
@@ -1077,16 +1078,16 @@ static RPCHelpMan getstakingreward() {
                               blockhash.ToString()));
             }
 
-            UniValue winners(UniValue::VARR);
-            for (auto &winnerPayoutScript : winnerPayoutScripts) {
-                UniValue stakingRewardsPayoutScriptObj(UniValue::VOBJ);
-                ScriptPubKeyToUniv(winnerPayoutScript,
-                                   stakingRewardsPayoutScriptObj,
+            UniValue winnersArr(UniValue::VARR);
+            for (auto &winner : winners) {
+                UniValue stakingRewardsObj(UniValue::VOBJ);
+                ScriptPubKeyToUniv(winner.second, stakingRewardsObj,
                                    /*fIncludeHex=*/true);
-                winners.push_back(stakingRewardsPayoutScriptObj);
+                stakingRewardsObj.pushKV("proofid", winner.first.GetHex());
+                winnersArr.push_back(stakingRewardsObj);
             }
 
-            return winners;
+            return winnersArr;
         },
     };
 }

@@ -918,8 +918,9 @@ void Processor::cleanupStakingRewards(const int minHeight) {
     }
 }
 
-bool Processor::getStakingRewardWinners(const BlockHash &prevBlockHash,
-                                        std::vector<CScript> &winners) const {
+bool Processor::getStakingRewardWinners(
+    const BlockHash &prevBlockHash,
+    std::vector<std::pair<ProofId, CScript>> &winners) const {
     LOCK(cs_stakingRewards);
     auto it = stakingRewards.find(prevBlockHash);
     if (it == stakingRewards.end()) {
@@ -930,13 +931,33 @@ bool Processor::getStakingRewardWinners(const BlockHash &prevBlockHash,
     return true;
 }
 
+bool Processor::getStakingRewardWinners(const BlockHash &prevBlockHash,
+                                        std::vector<CScript> &payouts) const {
+    std::vector<std::pair<ProofId, CScript>> winners;
+    if (!getStakingRewardWinners(prevBlockHash, winners)) {
+        return false;
+    }
+
+    payouts.clear();
+    payouts.reserve(winners.size());
+    for (auto &winner : winners) {
+        payouts.push_back(std::move(winner.second));
+    }
+
+    return true;
+}
+
 bool Processor::setStakingRewardWinners(const CBlockIndex *pprev,
-                                        const std::vector<CScript> &winners) {
+                                        const std::vector<CScript> &payouts) {
     assert(pprev);
 
     StakingReward stakingReward;
     stakingReward.blockheight = pprev->nHeight;
-    stakingReward.winners = winners;
+
+    stakingReward.winners.reserve(payouts.size());
+    for (const CScript &payout : payouts) {
+        stakingReward.winners.push_back({ProofId(), payout});
+    }
 
     LOCK(cs_stakingRewards);
     return stakingRewards.insert_or_assign(pprev->GetBlockHash(), stakingReward)

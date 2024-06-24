@@ -271,7 +271,7 @@ class Processor final : public NetEventsInterface {
     struct StakingReward {
         int blockheight;
         // Ordered list of acceptable winners, only the first is used for mining
-        std::vector<CScript> winners;
+        std::vector<std::pair<ProofId, CScript>> winners;
     };
 
     mutable Mutex cs_stakingRewards;
@@ -367,11 +367,15 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     void cleanupStakingRewards(const int minHeight)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
+    bool getStakingRewardWinners(
+        const BlockHash &prevBlockHash,
+        std::vector<std::pair<ProofId, CScript>> &winners) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     bool getStakingRewardWinners(const BlockHash &prevBlockHash,
-                                 std::vector<CScript> &winners) const
+                                 std::vector<CScript> &payouts) const
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     bool setStakingRewardWinners(const CBlockIndex *pprev,
-                                 const std::vector<CScript> &winners)
+                                 const std::vector<CScript> &payouts)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
 
     // Implement NetEventInterface. Only FinalizeNode is of interest.

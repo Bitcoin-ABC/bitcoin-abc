@@ -2316,7 +2316,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
                           /*expirationTime=*/0, payoutScript);
     };
 
-    std::vector<CScript> winners;
+    std::vector<std::pair<ProofId, CScript>> winners;
     // Null pprev
     BOOST_CHECK(!pm.selectStakingRewardWinner(nullptr, winners));
 
@@ -2394,7 +2394,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         BlockHash randomHash = BlockHash(GetRandHash());
         prevBlock.phashBlock = &randomHash;
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
-        winningCounts[FormatScript(winners[0])]++;
+        winningCounts[FormatScript(winners[0].second)]++;
     }
     BOOST_CHECK_EQUAL(winningCounts.size(), numProofs);
 
@@ -2442,7 +2442,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     // Increase the list from 1 to 4 winners by making them flaky
     for (size_t numWinner = 1; numWinner < 4; numWinner++) {
         // Who is the last possible winner ?
-        CScript lastWinner = winners[numWinner - 1];
+        CScript lastWinner = winners[numWinner - 1].second;
 
         // Make the last winner flaky, the other proofs untouched
         ProofId winnerProofId = ProofId(uint256::ZERO);
@@ -2467,7 +2467,7 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
     // One more time and the nodes will be missing too many proofs, so they are
     // no longer considered for flakyness evaluation and we're back to a single
     // winner.
-    CScript lastWinner = winners[3];
+    CScript lastWinner = winners[3].second;
 
     ProofId winnerProofId = ProofId(uint256::ZERO);
     for (const auto &proof : proofs) {
@@ -2532,7 +2532,8 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         prevBlock.nTime = now.count();
         BOOST_CHECK(pm.selectStakingRewardWinner(&prevBlock, winners));
         // With a single proof, it's easy to determine the winner
-        BOOST_CHECK_EQUAL(FormatScript(winners[0]), FormatScript(payoutScript));
+        BOOST_CHECK_EQUAL(FormatScript(winners[0].second),
+                          FormatScript(payoutScript));
 
         // Remove the proof
         BOOST_CHECK(pm.rejectProof(
@@ -2578,15 +2579,16 @@ BOOST_AUTO_TEST_CASE(select_staking_reward_winner) {
         prevBlock.nTime = now.count();
         BOOST_CHECK(!pm.selectStakingRewardWinner(&prevBlock, winners));
 
-        auto checkRegistrationTime = [&](const CScript &payout) {
-            pm.forEachPeer([&](const Peer &peer) {
-                if (peer.proof->getPayoutScript() == payout) {
-                    BOOST_CHECK_LT(peer.registration_time.count(),
-                                   (now - 60min).count());
-                }
-                return true;
-            });
-        };
+        auto checkRegistrationTime =
+            [&](const std::pair<ProofId, CScript> &winner) {
+                pm.forEachPeer([&](const Peer &peer) {
+                    if (peer.proof->getPayoutScript() == winner.second) {
+                        BOOST_CHECK_LT(peer.registration_time.count(),
+                                       (now - 60min).count());
+                    }
+                    return true;
+                });
+            };
 
         // 1 proof has been registered > 60min but < 90min from the previous
         // block time and 1 more has been registered > 30 minutes

@@ -7,3 +7,5 @@ Bitcoin ABC version 0.29.7 is now available from:
 This release includes the following features and fixes:
  - The `-deprecatedrpc=getstakingreward` option was under deprecation for
    several months and has been removed completely.
+ - The `getstakingreward` RPC now returns the `proofid` of the staking reward
+   winner in addition to the payout script.

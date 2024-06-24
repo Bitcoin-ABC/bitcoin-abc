@@ -158,10 +158,18 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             },
         )
 
+        reward = node.getstakingreward(tiphash)
+
+        assert_equal(len(reward), 1)
+        assert "proofid" in reward[0]
+        proofid = reward[0]["proofid"]
+        assert proofid in [uint256_hex(peer.proof.proofid) for peer in quorum]
+
         assert_equal(
-            node.getstakingreward(tiphash),
+            reward,
             [
                 {
+                    "proofid": proofid,
                     "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
                     "hex": "76a914000000000000000000000000000000000000000088ac",
                     "reqSigs": 1,
@@ -196,6 +204,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             node.getstakingreward(tiphash),
             [
                 {
+                    "proofid": "0000000000000000000000000000000000000000000000000000000000000000",
                     "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
                     "hex": "76a914000000000000000000000000000000000000000188ac",
                     "reqSigs": 1,
@@ -217,6 +226,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             node.getstakingreward(tiphash),
             [
                 {
+                    "proofid": "0000000000000000000000000000000000000000000000000000000000000000",
                     "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000001 OP_EQUALVERIFY OP_CHECKSIG",
                     "hex": "76a914000000000000000000000000000000000000000188ac",
                     "reqSigs": 1,
@@ -226,6 +236,7 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                     ],
                 },
                 {
+                    "proofid": "0000000000000000000000000000000000000000000000000000000000000000",
                     "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000002 OP_EQUALVERIFY OP_CHECKSIG",
                     "hex": "76a914000000000000000000000000000000000000000288ac",
                     "reqSigs": 1,
@@ -268,10 +279,18 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             )
 
         self.log.info("Recompute the staking reward")
+        reward = node.getstakingreward(blockhash=tiphash, recompute=True)
+
+        assert_equal(len(reward), 1)
+        assert "proofid" in reward[0]
+        proofid = reward[0]["proofid"]
+        assert proofid in [uint256_hex(peer.proof.proofid) for peer in quorum]
+
         assert_equal(
-            node.getstakingreward(blockhash=tiphash, recompute=True),
+            reward,
             [
                 {
+                    "proofid": proofid,
                     "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
                     "hex": "76a914000000000000000000000000000000000000000088ac",
                     "reqSigs": 1,
