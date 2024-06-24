@@ -294,6 +294,8 @@ class PeerManager {
      */
     CRollingBloomFilter invalidProofs{100000, 0.000001};
 
+    std::unordered_set<ProofId, SaltedProofIdHasher> manualFlakyProofids;
+
 public:
     static constexpr size_t MAX_REMOTE_PROOFS{100};
 
@@ -438,6 +440,9 @@ public:
     bool saveRemoteProof(const ProofId &proofid, const NodeId nodeid,
                          const bool present);
     std::vector<RemoteProof> getRemoteProofs(const NodeId nodeid) const;
+
+    bool setFlaky(const ProofId &proofid);
+    bool unsetFlaky(const ProofId &proofid);
 
     template <typename Callable>
     void updateAvailabilityScores(const double decayFactor,

@@ -1624,6 +1624,51 @@ static RPCHelpMan verifyavalanchedelegation() {
     };
 }
 
+static RPCHelpMan setflakyproof() {
+    return RPCHelpMan{
+        "setflakyproof",
+        "Add or remove a proofid from the flaky list. This means that an "
+        "additional staking reward winner will be accepted if this proof is "
+        "the selected one.\n",
+        {
+            {"proofid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The avalanche proof id."},
+            {"flaky", RPCArg::Type::BOOL, RPCArg::Optional::NO,
+             "Whether to add (true) or remove (false) the proof from the flaky "
+             "list"},
+        },
+        RPCResult{RPCResult::Type::BOOL, "success",
+                  "Whether the addition/removal is successful."},
+        RPCExamples{HelpExampleRpc("setflakyproof", "\"<proofid>\" true")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            avalanche::Processor &avalanche = EnsureAvalanche(node);
+            ChainstateManager &chainman = EnsureChainman(node);
+
+            const auto proofid =
+                avalanche::ProofId::fromHex(request.params[0].get_str());
+            const bool addNotRemove = request.params[1].get_bool();
+
+            if (avalanche.withPeerManager(
+                    [&proofid, addNotRemove](avalanche::PeerManager &pm) {
+                        if (addNotRemove) {
+                            return pm.setFlaky(proofid);
+                        }
+                        return pm.unsetFlaky(proofid);
+                    })) {
+                const CBlockIndex *pprev =
+                    WITH_LOCK(cs_main, return chainman.ActiveTip());
+                // Force recompute the staking reward winner by first erasing
+                // the cached entry if any
+                avalanche.eraseStakingRewardWinner(pprev->GetBlockHash());
+                return avalanche.computeStakingReward(pprev);
+            }
+
+            return false;
+        }};
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -1649,6 +1694,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         sendavalancheproof,        },
         { "avalanche",         verifyavalancheproof,      },
         { "avalanche",         verifyavalanchedelegation, },
+        { "avalanche",         setflakyproof,             },
     };
     // clang-format on
 

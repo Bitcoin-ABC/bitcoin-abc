@@ -318,6 +318,25 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             },
         )
 
+        proofids = []
+        for i in range(1, QUORUM_NODE_COUNT):
+            reward = node.getstakingreward(tiphash)
+            assert_equal(len(reward), i)
+
+            last_proofid = reward[-1]["proofid"]
+            assert node.setflakyproof(last_proofid, True)
+
+            proofids.append(last_proofid)
+
+        for i in range(QUORUM_NODE_COUNT, 1, -1):
+            reward = node.getstakingreward(tiphash)
+            assert_equal(len(reward), i)
+
+            last_proofid = proofids.pop()
+            assert node.setflakyproof(last_proofid, False)
+
+        assert_equal(len(node.getstakingreward(tiphash)), 1)
+
 
 if __name__ == "__main__":
     AbcMiningStakingRewardsTest().main()

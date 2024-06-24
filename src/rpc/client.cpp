@@ -213,6 +213,7 @@ static const CRPCConvertParam vRPCConvertParams[] = {
     {"getremoteproofs", 0, "nodeid"},
     {"getstakingreward", 1, "recompute"},
     {"setstakingreward", 2, "append"},
+    {"setflakyproof", 1, "flaky"},
 };
 
 /**

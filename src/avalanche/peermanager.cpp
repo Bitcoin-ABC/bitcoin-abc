@@ -1116,9 +1116,21 @@ bool PeerManager::selectStakingRewardWinner(
     return true;
 }
 
+bool PeerManager::setFlaky(const ProofId &proofid) {
+    return manualFlakyProofids.insert(proofid).second;
+}
+
+bool PeerManager::unsetFlaky(const ProofId &proofid) {
+    return manualFlakyProofids.erase(proofid) > 0;
+}
+
 bool PeerManager::isFlaky(const ProofId &proofid) const {
     if (localProof && proofid == localProof->getId()) {
         return false;
+    }
+
+    if (manualFlakyProofids.count(proofid) > 0) {
+        return true;
     }
 
     // If we are missing connection to this proof, consider flaky
