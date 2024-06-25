@@ -328,6 +328,10 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
 
             proofids.append(last_proofid)
 
+            flaky_proofs = node.getflakyproofs()
+            assert_equal(len(flaky_proofs), len(proofids))
+            assert last_proofid in [p["proofid"] for p in flaky_proofs]
+
         for i in range(QUORUM_NODE_COUNT, 1, -1):
             reward = node.getstakingreward(tiphash)
             assert_equal(len(reward), i)
@@ -335,7 +339,54 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             last_proofid = proofids.pop()
             assert node.setflakyproof(last_proofid, False)
 
+            flaky_proofs = node.getflakyproofs()
+            assert_equal(len(flaky_proofs), len(proofids))
+            assert last_proofid not in [p["proofid"] for p in flaky_proofs]
+
         assert_equal(len(node.getstakingreward(tiphash)), 1)
+
+        # Add an unknown proof, check the stake amount and payout are not
+        # returned but the proofid always is
+        unknown_proofid = uint256_hex(0)
+        assert node.setflakyproof(unknown_proofid, True)
+        flaky_proofs = node.getflakyproofs()
+        assert_equal(len(flaky_proofs), 1)
+        flaky_proof = flaky_proofs[0]
+        assert_equal(
+            flaky_proof,
+            {
+                "proofid": unknown_proofid,
+            },
+        )
+        assert node.setflakyproof(unknown_proofid, False)
+        assert_equal(node.getflakyproofs(), [])
+
+        known_proofid = node.getstakingreward(blockhash=tiphash, recompute=True)[0][
+            "proofid"
+        ]
+        assert node.setflakyproof(known_proofid, True)
+        flaky_proofs = node.getflakyproofs()
+        assert_equal(len(flaky_proofs), 1)
+        flaky_proof = flaky_proofs[0]
+        staked_amount = node.decodeavalancheproof(
+            node.getrawavalancheproof(known_proofid)["proof"]
+        )["staked_amount"]
+        assert_equal(
+            flaky_proof,
+            {
+                "proofid": known_proofid,
+                "staked_amount": Decimal(staked_amount),
+                "payout": {
+                    "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                    "hex": "76a914000000000000000000000000000000000000000088ac",
+                    "reqSigs": 1,
+                    "type": "pubkeyhash",
+                    "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+                },
+            },
+        )
+        assert node.setflakyproof(known_proofid, False)
+        assert_equal(node.getflakyproofs(), [])
 
 
 if __name__ == "__main__":

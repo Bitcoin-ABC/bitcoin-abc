@@ -443,6 +443,11 @@ public:
 
     bool setFlaky(const ProofId &proofid);
     bool unsetFlaky(const ProofId &proofid);
+    template <typename Callable> void forEachFlakyProof(Callable &&func) const {
+        for (const auto &p : manualFlakyProofids) {
+            func(p);
+        }
+    }
 
     template <typename Callable>
     void updateAvailabilityScores(const double decayFactor,

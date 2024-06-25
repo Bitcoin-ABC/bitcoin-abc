@@ -1669,6 +1669,79 @@ static RPCHelpMan setflakyproof() {
         }};
 }
 
+static RPCHelpMan getflakyproofs() {
+    return RPCHelpMan{
+        "getflakyproofs",
+        "List the flaky proofs (set via setflakyproof).\n",
+        {},
+        RPCResult{
+            RPCResult::Type::ARR,
+            "flaky_proofs",
+            "",
+            {{
+                RPCResult::Type::OBJ,
+                "proof",
+                "",
+                {{
+                    {RPCResult::Type::STR_HEX, "proofid",
+                     "The hex encoded proof identifier."},
+                    {RPCResult::Type::STR_AMOUNT, "staked_amount",
+                     "The proof stake amount, only present if the proof is "
+                     "known."},
+                    {RPCResult::Type::OBJ,
+                     "payout",
+                     "The proof payout script, only present if the proof is "
+                     "known.",
+                     {
+                         {RPCResult::Type::STR, "asm", "Decoded payout script"},
+                         {RPCResult::Type::STR_HEX, "hex",
+                          "Raw payout script in hex format"},
+                         {RPCResult::Type::STR, "type",
+                          "The output type (e.g. " + GetAllOutputTypes() + ")"},
+                         {RPCResult::Type::NUM, "reqSigs",
+                          "The required signatures"},
+                         {RPCResult::Type::ARR,
+                          "addresses",
+                          "",
+                          {
+                              {RPCResult::Type::STR, "address",
+                               "eCash address"},
+                          }},
+                     }},
+                }},
+            }},
+        },
+        RPCExamples{HelpExampleRpc("getflakyproofs", "")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            NodeContext &node = EnsureAnyNodeContext(request.context);
+            avalanche::Processor &avalanche = EnsureAvalanche(node);
+
+            UniValue flakyProofs(UniValue::VARR);
+            avalanche.withPeerManager([&flakyProofs](
+                                          avalanche::PeerManager &pm) {
+                pm.forEachFlakyProof([&](const avalanche::ProofId &proofid) {
+                    UniValue flakyProof(UniValue::VOBJ);
+                    flakyProof.pushKV("proofid", proofid.GetHex());
+
+                    const auto proof = pm.getProof(proofid);
+                    if (proof) {
+                        flakyProof.pushKV("staked_amount",
+                                          proof->getStakedAmount());
+                        UniValue payout(UniValue::VOBJ);
+                        ScriptPubKeyToUniv(proof->getPayoutScript(), payout,
+                                           /*fIncludeHex=*/true);
+                        flakyProof.pushKV("payout", payout);
+                    }
+
+                    flakyProofs.push_back(flakyProof);
+                });
+            });
+
+            return flakyProofs;
+        }};
+}
+
 void RegisterAvalancheRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -1695,6 +1768,7 @@ void RegisterAvalancheRPCCommands(CRPCTable &t) {
         { "avalanche",         verifyavalancheproof,      },
         { "avalanche",         verifyavalanchedelegation, },
         { "avalanche",         setflakyproof,             },
+        { "avalanche",         getflakyproofs,            },
     };
     // clang-format on
 

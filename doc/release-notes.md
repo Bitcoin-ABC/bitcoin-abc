@@ -10,4 +10,5 @@ This release includes the following features and fixes:
  - The `getstakingreward` RPC now returns the `proofid` of the staking reward
    winner in addition to the payout script.
  - A new `setflakyproof` RPC instructs the node to also accept an alternative
-   staking reward winner when the flaky proof would have been selected.
+   staking reward winner when the flaky proof would have been selected. The list
+   of these flaky proofs can be retrieved via the `getflakyproofs` RPC.
