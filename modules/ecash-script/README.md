@@ -51,3 +51,5 @@ See `test/` for additional usage examples.
 2.0.0 Modify `consumeNextPush` to return object `{data, pushedWith}` instead of string `data`
 2.1.0 New function `getStackArray` to return an array of hex pushes from an OP_RETURN outputScript
 2.1.1 Patch export bug for `getStackArray`
+2.1.2 Update dependencies [D14676](https://reviews.bitcoinabc.org/D14676)
+2.1.3 Update dependencies [D16377](https://reviews.bitcoinabc.org/D16377)
