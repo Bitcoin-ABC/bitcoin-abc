@@ -115,3 +115,8 @@ const txBuilder = new TxBuilder({
 const acceptTx = txBuilder.sign(ecc);
 await chronik.broadcastTx(acceptTx.ser());
 ```
+
+## Changelog
+
+-   0.1.0 - MVP [D16087](https://reviews.bitcoinabc.org/D16087) [D16111](https://reviews.bitcoinabc.org/D16111)
+-   0.1.1 - Upgrading dependencies [D16374](https://reviews.bitcoinabc.org/D16374)
