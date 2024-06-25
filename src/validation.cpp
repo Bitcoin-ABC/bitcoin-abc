@@ -475,6 +475,38 @@ private:
                        std::map<const TxId, const MempoolAcceptResult> &results)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_pool.cs);
 
+    // Compare a package's feerate against minimum allowed.
+    bool CheckFeeRate(size_t package_size, size_t package_vsize,
+                      Amount package_fee, TxValidationState &state)
+        EXCLUSIVE_LOCKS_REQUIRED(::cs_main, m_pool.cs) {
+        AssertLockHeld(::cs_main);
+        AssertLockHeld(m_pool.cs);
+
+        const Amount mempoolRejectFee =
+            m_pool.GetMinFee().GetFee(package_vsize);
+
+        if (mempoolRejectFee > Amount::zero() &&
+            package_fee < mempoolRejectFee) {
+            return state.Invalid(
+                TxValidationResult::TX_MEMPOOL_POLICY,
+                "mempool min fee not met",
+                strprintf("%d < %d", package_fee, mempoolRejectFee));
+        }
+
+        // No transactions are allowed below the min relay feerate except from
+        // disconnected blocks.
+        // Do not change this to use virtualsize without coordinating a network
+        // policy upgrade.
+        if (package_fee < m_pool.m_min_relay_feerate.GetFee(package_size)) {
+            return state.Invalid(
+                TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
+                strprintf("%d < %d", package_fee,
+                          m_pool.m_min_relay_feerate.GetFee(package_size)));
+        }
+
+        return true;
+    }
+
 private:
     CTxMemPool &m_pool;
     CCoinsViewCache m_view;
@@ -629,18 +661,6 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     unsigned int nSize = tx.GetTotalSize();
 
-    // No transactions are allowed below the min relay feerate except from
-    // disconnected blocks.
-    // Do not change this to use virtualsize without coordinating a network
-    // policy upgrade.
-    if (!bypass_limits &&
-        ws.m_modified_fees < m_pool.m_min_relay_feerate.GetFee(nSize)) {
-        return state.Invalid(
-            TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
-            strprintf("%d < %d", ws.m_modified_fees,
-                      m_pool.m_min_relay_feerate.GetFee(nSize)));
-    }
-
     // Validate input scripts against standard script flags.
     const uint32_t scriptVerifyFlags =
         ws.m_next_block_script_verify_flags | STANDARD_SCRIPT_VERIFY_FLAGS;
@@ -658,12 +678,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     ws.m_vsize = ws.m_entry->GetTxVirtualSize();
 
-    Amount mempoolRejectFee = m_pool.GetMinFee().GetFee(ws.m_vsize);
-    if (!bypass_limits && mempoolRejectFee > Amount::zero() &&
-        ws.m_modified_fees < mempoolRejectFee) {
-        return state.Invalid(
-            TxValidationResult::TX_MEMPOOL_POLICY, "mempool min fee not met",
-            strprintf("%d < %d", ws.m_modified_fees, mempoolRejectFee));
+    if (!bypass_limits &&
+        !CheckFeeRate(nSize, ws.m_vsize, ws.m_modified_fees, state)) {
+        return false;
     }
 
     return true;
