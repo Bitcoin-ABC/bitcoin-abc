@@ -95,11 +95,11 @@ const OnMaxBtn = styled.button`
     cursor: ${props => (props.disabled ? 'not-allowed' : 'pointer')};
     color: ${props =>
         props.invalid ? props.theme.forms.error : props.theme.contrast};
-    border-radius 0 9px 9px 0;
-    background-color: ${props => props.theme.forms.selectionBackground};    
+    border-radius: 0 9px 9px 0;
+    background-color: ${props => props.theme.forms.selectionBackground};
     border-left: none !important;
     font-size: 18px;
-    padding: 16px;    
+    padding: 16px;
 `;
 
 const OnMaxBtnToken = styled(OnMaxBtn)`
