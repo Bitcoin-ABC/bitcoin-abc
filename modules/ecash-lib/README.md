@@ -97,3 +97,4 @@ console.log(toHex(rawTx));
 ## Changelog
 
 -   0.1.1 - Validation that feePerKb is an integer
+-   0.1.2 - Upgrade dependencies [D16373](https://reviews.bitcoinabc.org/D16373)
