@@ -19,9 +19,6 @@
 #include <scheduler.h>
 #include <util/time.h>
 #include <util/translation.h> // For bilingual_str
-// D6970 moved LookupBlockIndex from chain.h to validation.h TODO: remove this
-// when LookupBlockIndex is refactored out of validation
-#include <validation.h>
 
 #include <avalanche/test/util.h>
 #include <test/util/setup_common.h>
