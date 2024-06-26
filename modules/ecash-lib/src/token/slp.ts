@@ -197,7 +197,7 @@ function pushdataOpSlp(pushdata: Uint8Array): Op {
     return pushBytesOp(pushdata);
 }
 
-function slpAmount(amount: Amount): Uint8Array {
+export function slpAmount(amount: Amount): Uint8Array {
     if (amount < 0 || BigInt(amount) > 0xffffffffffffffffn) {
         throw new Error(`Amount out of range: ${amount}`);
     }
