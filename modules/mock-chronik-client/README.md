@@ -136,3 +136,7 @@ If you have any implementation questions regarding this mock tool please check t
 
 -   Support `blockTxs` endpoint
 -   Update websocket subs shape to match ChronikClientNode
+
+1.9.1
+
+-   Upgrading npm dependencies [D16380](https://reviews.bitcoinabc.org/D16380)
