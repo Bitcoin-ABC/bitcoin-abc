@@ -177,6 +177,24 @@ it('We can also set and get tx history by tokenId', async function () {
     );
 });
 
+it('We can also set and get tx history by lokadId', async function () {
+    // Initialize chronik mock with history info
+    const mockedChronik = new MockChronikClient();
+    const lokadId = '63686174';
+    mockedChronik.setLokadId(lokadId);
+    mockedChronik.setTxHistoryByLokadId(lokadId, mockTxHistory.txs);
+
+    // Execute the API call
+    const result = await mockedChronik.lokadId(lokadId).history(0, 2);
+    assert.deepEqual(result, mockTxHistory);
+
+    // We can also call this without page size
+    assert.deepEqual(
+        await mockedChronik.lokadId(lokadId).history(),
+        mockTxHistory,
+    );
+});
+
 it('We can get blockTxs by height', async function () {
     // Initialize chronik mock with history info
     const mockedChronik = new MockChronikClient();

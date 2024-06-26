@@ -82,6 +82,11 @@ module.exports = {
                 return self.mockedMethods[tokenId];
             };
 
+            // Return assigned lokadId mocks
+            self.lokadId = function (lokadId) {
+                return self.mockedMethods[lokadId];
+            };
+
             // Checks whether the user set this mock response to be an error.
             // If so, throw it to simulate an API error response.
             function throwOrReturnValue(mockResponse) {
@@ -237,6 +242,10 @@ module.exports = {
                 self.mockedResponses[tokenId].txHistory = txHistory;
             };
 
+            self.setTxHistoryByLokadId = function (lokadId, txHistory) {
+                self.mockedResponses[lokadId].txHistory = txHistory;
+            };
+
             self.setTxHistoryByBlock = function (hashOrHeight, txHistory) {
                 // Set all expected tx history as array where it can be accessed by mock method
                 self.mockedResponses[hashOrHeight] = { txHistory };
@@ -355,6 +364,31 @@ module.exports = {
                     utxos: async function () {
                         return throwOrReturnValue(
                             self.mockedResponses[tokenId].utxos,
+                        );
+                    },
+                };
+            };
+
+            // Allow users to set expected chronik lokadId call responses
+            self.setLokadId = function (lokadId) {
+                // Initialize object that will hold utxos if set
+                self.mockedResponses[lokadId] = {};
+
+                self.mockedMethods[lokadId] = {
+                    history: async function (
+                        pageNumber = 0,
+                        pageSize = CHRONIK_DEFAULT_PAGESIZE,
+                    ) {
+                        if (
+                            self.mockedResponses[lokadId].txHistory instanceof
+                            Error
+                        ) {
+                            throw self.mockedResponses[lokadId].txHistory;
+                        }
+                        return self.getTxHistory(
+                            pageNumber,
+                            pageSize,
+                            self.mockedResponses[lokadId].txHistory,
                         );
                     },
                 };

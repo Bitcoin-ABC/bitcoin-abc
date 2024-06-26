@@ -140,3 +140,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.9.1
 
 -   Upgrading npm dependencies [D16380](https://reviews.bitcoinabc.org/D16380)
+
+1.10.0
+
+-   Allow getting and setting `history()` by `lokadId` [D16382](https://reviews.bitcoinabc.org/D16382)
