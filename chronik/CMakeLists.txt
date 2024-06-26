@@ -7,7 +7,7 @@ include(FetchContent)
 FetchContent_Declare(
     Corrosion
     GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
-    GIT_TAG v0.4.7
+    GIT_TAG v0.5.0
 )
 FetchContent_MakeAvailable(Corrosion)
 
@@ -88,7 +88,7 @@ add_crate_test_targets(abc-rust)
 add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(chronik)
 
-# Compile Rust, generates chronik-lib
+# Compile Rust, generates chronik_lib
 corrosion_import_crate(
     MANIFEST_PATH "chronik-lib/Cargo.toml"
     NO_LINKER_OVERRIDE
@@ -96,7 +96,7 @@ corrosion_import_crate(
         ${CHRONIK_CARGO_FLAGS}
         ${CHRONIK_FEATURE_FLAGS}
     CRATES
-        chronik-lib
+        chronik_lib
 )
 
 set(Rust_TRIPLE
@@ -115,7 +115,7 @@ set(CXXBRIDGE_GENERATED_FOLDER
 set(CHRONIK_BRIDGE_GENERATED_CPP_FILES
     "${CXXBRIDGE_GENERATED_FOLDER}/chronik-bridge/src/ffi.rs.cc")
 set(CHRONIK_LIB_GENERATED_CPP_FILES
-    "${CXXBRIDGE_GENERATED_FOLDER}/chronik-lib/src/ffi.rs.cc")
+    "${CXXBRIDGE_GENERATED_FOLDER}/chronik_lib/src/ffi.rs.cc")
 
 add_custom_command(
     OUTPUT
@@ -125,7 +125,7 @@ add_custom_command(
         "${CMAKE_COMMAND}"
         -E env
         "echo" "Generating cxx bridge files"
-    DEPENDS $<TARGET_PROPERTY:chronik-lib,INTERFACE_LINK_LIBRARIES>
+    DEPENDS $<TARGET_PROPERTY:chronik_lib,INTERFACE_LINK_LIBRARIES>
 )
 
 # Chronik-bridge library
@@ -155,7 +155,7 @@ add_library(chronik
 )
 target_link_libraries(chronik
     chronik-bridge
-    chronik-lib
+    chronik_lib
 )
 
 # Plugins require us to link agains libpython

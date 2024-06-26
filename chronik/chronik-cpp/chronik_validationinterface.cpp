@@ -4,7 +4,7 @@
 
 #include <blockindex.h>
 #include <chronik-cpp/util/hash.h>
-#include <chronik-lib/src/ffi.rs.h>
+#include <chronik_lib/src/ffi.rs.h>
 #include <node/context.h>
 #include <primitives/block.h>
 #include <txmempool.h>

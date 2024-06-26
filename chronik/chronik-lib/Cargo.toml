@@ -1,7 +1,7 @@
 # Copyright (c) 2022 The Bitcoin developers
 
 [package]
-name = "chronik-lib"
+name = "chronik_lib"
 version = "0.1.0"
 edition = "2021"
 rust-version.workspace = true

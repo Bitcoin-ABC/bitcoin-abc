@@ -15,7 +15,7 @@
 
 #include <chronik-cpp/chronik.h>
 #include <chronik-cpp/chronik_validationinterface.h>
-#include <chronik-lib/src/ffi.rs.h>
+#include <chronik_lib/src/ffi.rs.h>
 
 namespace chronik {
 

@@ -369,25 +369,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "chronik-lib"
-version = "0.1.0"
-dependencies = [
- "abc-rust-error",
- "abc-rust-lint",
- "bitcoinsuite-core",
- "chronik-bridge",
- "chronik-db",
- "chronik-http",
- "chronik-indexer",
- "chronik-plugin",
- "chronik-util",
- "cxx",
- "cxx-build",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "chronik-plugin"
 version = "0.1.0"
 dependencies = [
@@ -422,6 +403,25 @@ name = "chronik-util"
 version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
+]
+
+[[package]]
+name = "chronik_lib"
+version = "0.1.0"
+dependencies = [
+ "abc-rust-error",
+ "abc-rust-lint",
+ "bitcoinsuite-core",
+ "chronik-bridge",
+ "chronik-db",
+ "chronik-http",
+ "chronik-indexer",
+ "chronik-plugin",
+ "chronik-util",
+ "cxx",
+ "cxx-build",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]
