@@ -114,7 +114,6 @@ CMessageHeader::CMessageHeader(const MessageMagic &pchMessageStartIn,
 }
 
 std::string CMessageHeader::GetCommand() const {
-    // return std::string(pchCommand.begin(), pchCommand.end());
     return std::string(pchCommand.data(),
                        pchCommand.data() +
                            strnlen(pchCommand.data(), COMMAND_SIZE));
