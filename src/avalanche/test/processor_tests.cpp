@@ -127,7 +127,7 @@ struct AvalancheProcessorTestingSetup : public AvalancheTestChain100Setup {
     CNode *ConnectNode(ServiceFlags nServices) {
         static NodeId id = 0;
 
-        CAddress addr(ip(GetRand<uint32_t>()), NODE_NONE);
+        CAddress addr(ip(FastRandomContext().rand<uint32_t>()), NODE_NONE);
         auto node =
             new CNode(id++, /*sock=*/nullptr, addr,
                       /* nKeyedNetGroupIn */ 0,

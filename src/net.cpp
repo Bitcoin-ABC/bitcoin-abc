@@ -455,8 +455,9 @@ CNode *CConnman::ConnectNode(CAddress addrConnect, const char *pszDest,
         if (Lookup(pszDest, resolved, default_port,
                    fNameLookup && !HaveNameProxy(), 256) &&
             !resolved.empty()) {
-            addrConnect =
-                CAddress(resolved[GetRand(resolved.size())], NODE_NONE);
+            addrConnect = CAddress(
+                resolved[FastRandomContext().randrange(resolved.size())],
+                NODE_NONE);
             if (!addrConnect.IsValid()) {
                 LogPrint(BCLog::NET,
                          "Resolver returned invalid address %s for %s\n",
@@ -1954,7 +1955,8 @@ void CConnman::ThreadOpenConnections(
             if (fFeeler) {
                 // Add small amount of random noise before connection to avoid
                 // synchronization.
-                int randsleep = GetRand<int>(FEELER_SLEEP_WINDOW * 1000);
+                int randsleep = FastRandomContext().randrange<int>(
+                    FEELER_SLEEP_WINDOW * 1000);
                 if (!interruptNet.sleep_for(
                         std::chrono::milliseconds(randsleep))) {
                     return;

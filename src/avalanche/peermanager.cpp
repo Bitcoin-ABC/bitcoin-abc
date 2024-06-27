@@ -776,7 +776,8 @@ PeerId PeerManager::selectPeer() const {
 
     const uint64_t max = slotCount;
     for (int retry = 0; retry < SELECT_PEER_MAX_RETRY; retry++) {
-        size_t i = selectPeerImpl(slots, GetRand(max), max);
+        size_t i =
+            selectPeerImpl(slots, FastRandomContext().randrange(max), max);
         if (i != NO_PEER) {
             return i;
         }

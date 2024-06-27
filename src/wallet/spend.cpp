@@ -833,7 +833,8 @@ static util::Result<CreatedTransactionResult> CreateTransactionInternal(
                 } else {
                     if (nChangePosInOut == -1) {
                         // Insert change txn at random position:
-                        nChangePosInOut = GetRand<int>(txNew.vout.size() + 1);
+                        nChangePosInOut = FastRandomContext().randrange<int>(
+                            txNew.vout.size() + 1);
                     } else if ((unsigned int)nChangePosInOut >
                                txNew.vout.size()) {
                         return util::Error{_("Change index out of range")};

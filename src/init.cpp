@@ -2333,13 +2333,14 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
         node.addrman = std::move(*addrman);
     }
 
+    FastRandomContext rng;
     assert(!node.banman);
     node.banman = std::make_unique<BanMan>(
         args.GetDataDirNet() / "banlist.dat", config.GetChainParams(),
         &uiInterface, args.GetIntArg("-bantime", DEFAULT_MISBEHAVING_BANTIME));
     assert(!node.connman);
     node.connman = std::make_unique<CConnman>(
-        config, GetRand<uint64_t>(), GetRand<uint64_t>(), *node.addrman,
+        config, rng.rand64(), rng.rand64(), *node.addrman,
         args.GetBoolArg("-networkactive", true));
 
     // sanitize comments per BIP-0014, format user agent and check total size

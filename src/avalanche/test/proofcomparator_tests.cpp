@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
 
     auto prevProof = proofMinScore;
     for (size_t i = 0; i < 100; i++) {
-        score += 1000 + GetRand<int>(10000);
+        score += 1000 + FastRandomContext().randrange<int>(10000);
         auto higherScoreProof = buildRandomProof(active_chainstate, score);
         BOOST_CHECK(comparator(higherScoreProof, proofMinScore));
         BOOST_CHECK(comparator(higherScoreProof, prevProof));
@@ -44,7 +44,7 @@ BOOST_AUTO_TEST_CASE(proof_shared_pointer_comparator) {
     // Decrement slower than we incremented, so we don't have to check whether
     // the score reached the minimal value.
     for (size_t i = 0; i < 100; i++) {
-        score -= 1 + GetRand<int>(100);
+        score -= 1 + FastRandomContext().randrange<int>(100);
         auto lowerScoreProof = buildRandomProof(active_chainstate, score);
         BOOST_CHECK(comparator(lowerScoreProof, proofMinScore));
         BOOST_CHECK(!comparator(lowerScoreProof, prevProof));

@@ -393,7 +393,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
         return;
     }
 
-    if (GetRand(m_check_ratio) >= 1) {
+    if (FastRandomContext().randrange(m_check_ratio) >= 1) {
         return;
     }
 

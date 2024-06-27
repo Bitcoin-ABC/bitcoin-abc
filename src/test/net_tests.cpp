@@ -64,9 +64,9 @@ struct CConnmanTest : public CConnman {
     ~CConnmanTest() { ClearNodes(); }
 
     void AddNode(ConnectionType type) {
-        CAddress addr(
-            CService(ip(GetRand<uint32_t>()), Params().GetDefaultPort()),
-            NODE_NONE);
+        CAddress addr(CService(ip(FastRandomContext().rand<uint32_t>()),
+                               Params().GetDefaultPort()),
+                      NODE_NONE);
 
         return AddNode(addr, type);
     }
@@ -1373,8 +1373,8 @@ BOOST_AUTO_TEST_CASE(already_connected_to_address) {
     CConnmanTest connman(m_node.chainman->GetConfig(), 0x1337, 0x1337,
                          *m_node.addrman);
 
-    CNetAddr ip1 = ip(GetRand<uint32_t>());
-    CNetAddr ip2 = ip(GetRand<uint32_t>());
+    CNetAddr ip1 = ip(FastRandomContext().rand<uint32_t>());
+    CNetAddr ip2 = ip(FastRandomContext().rand<uint32_t>());
     BOOST_CHECK_NE(ip1.ToStringIP(), ip2.ToStringIP());
 
     CAddress ip1port1{{ip1, 2001}, NODE_NETWORK};

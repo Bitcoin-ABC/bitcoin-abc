@@ -8,14 +8,14 @@
 #include <limits>
 
 SaltedUint256Hasher::SaltedUint256Hasher()
-    : k0(GetRand<uint64_t>()), k1(GetRand<uint64_t>()) {}
+    : k0{FastRandomContext().rand64()}, k1{FastRandomContext().rand64()} {}
 
 SaltedOutpointHasher::SaltedOutpointHasher(bool deterministic)
-    : k0(deterministic ? 0x8e819f2607a18de6 : GetRand<uint64_t>()),
-      k1(deterministic ? 0xf4020d2e3983b0eb : GetRand<uint64_t>()) {}
+    : k0{deterministic ? 0x8e819f2607a18de6 : FastRandomContext().rand64()},
+      k1{deterministic ? 0xf4020d2e3983b0eb : FastRandomContext().rand64()} {}
 
 SaltedSipHasher::SaltedSipHasher()
-    : m_k0(GetRand<uint64_t>()), m_k1(GetRand<uint64_t>()) {}
+    : m_k0{FastRandomContext().rand64()}, m_k1{FastRandomContext().rand64()} {}
 
 size_t SaltedSipHasher::operator()(const Span<const uint8_t> &script) const {
     return CSipHasher(m_k0, m_k1).Write(script).Finalize();

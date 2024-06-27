@@ -579,7 +579,8 @@ public:
 class CServiceHash {
 public:
     CServiceHash()
-        : m_salt_k0{GetRand<uint64_t>()}, m_salt_k1{GetRand<uint64_t>()} {}
+        : m_salt_k0{FastRandomContext().rand64()},
+          m_salt_k1{FastRandomContext().rand64()} {}
 
     CServiceHash(uint64_t salt_k0, uint64_t salt_k1)
         : m_salt_k0{salt_k0}, m_salt_k1{salt_k1} {}

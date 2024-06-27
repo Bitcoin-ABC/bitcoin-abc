@@ -94,7 +94,8 @@ BOOST_AUTO_TEST_CASE(compactproofs_roundtrip) {
         for (size_t i = 0; i < numofPrefilledProof; i++) {
             TestCompactProofs::addPrefilledProof(
                 cpw, prefilledProofIndex++,
-                buildRandomProof(active_chainstate, GetRand<uint32_t>()));
+                buildRandomProof(active_chainstate,
+                                 FastRandomContext().rand<uint32_t>()));
         }
         auto prefilledProofs = TestCompactProofs::getPrefilledProofs(cpw);
         BOOST_CHECK_EQUAL(prefilledProofs.size(), numofPrefilledProof);
