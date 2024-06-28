@@ -42,6 +42,11 @@ enum class TxValidationResult {
     TX_MEMPOOL_POLICY,
     //! this node does not have a mempool so can't validate the transaction
     TX_NO_MEMPOOL,
+    //! fails some policy, but might be acceptable if submitted in a (different)
+    //! package
+    TX_RECONSIDERABLE,
+    //! transaction was not validated because package failed
+    TX_UNKNOWN,
 };
 
 /**

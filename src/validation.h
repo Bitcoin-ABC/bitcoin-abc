@@ -179,9 +179,30 @@ double GuessVerificationProgress(const ChainTxData &data,
 void PruneBlockFilesManual(Chainstate &active_chainstate,
                            int nManualPruneHeight);
 
+// clang-format off
 /**
- * Validation result for a single transaction mempool acceptance.
+ * Validation result for a transaction evaluated by MemPoolAccept (single or
+ * package).
+ * Here are the expected fields and properties of a result depending on its
+ * ResultType, applicable to results returned from package evaluation:
+ *+--------------------------+-----------+---------------------------------+----------------+
+ *| Field or property        |   VALID   |             INVALID             |  MEMPOOL_ENTRY |
+ *|                          |           |---------------------------------|                |
+ *|                          |           | TX_RECONSIDERABLE |    Other    |                |
+ *+--------------------------+-----------+-------------------+-------------+----------------+
+ *| txid in mempool?         | yes       | no                | no*         | yes            |
+ *| m_state                  | IsValid() | IsInvalid()       | IsInvalid() | IsValid()      |
+ *| m_replaced_transactions  | yes       | no                | no          | no             |
+ *| m_vsize                  | yes       | no                | no          | yes            |
+ *| m_base_fees              | yes       | no                | no          | yes            |
+ *| m_effective_feerate      | yes       | yes               | no          | no             |
+ *| m_txids_fee_calculations | yes       | yes               | no          | no             |
+ *+--------------------------+-----------+-------------------+-------------+----------------+
+ * (*) Individual transaction acceptance doesn't return MEMPOOL_ENTRY. It
+ * returns INVALID, with the error txn-already-in-mempool. In this case, the
+ * txid may be in the mempool for a TX_CONFLICT.
  */
+// clang-format on
 struct MempoolAcceptResult {
     /** Used to indicate the results of mempool validation. */
     enum class ResultType {
@@ -198,8 +219,6 @@ struct MempoolAcceptResult {
     /** Contains information about why the transaction failed. */
     const TxValidationState m_state;
 
-    // The following fields are only present when m_result_type =
-    // ResultType::VALID or MEMPOOL_ENTRY
     /**
      * Virtual size as used by the mempool, calculated using serialized size
      * and sigchecks.
@@ -212,8 +231,7 @@ struct MempoolAcceptResult {
      * fee delta added using prioritisetransaction (i.e. modified fees). If this
      * transaction was submitted as a package, this is the package feerate,
      * which may also include its descendants and/or ancestors
-     * (see m_txids_fee_calculations below). Only present when
-     * m_result_type = ResultType::VALID.
+     * (see m_txids_fee_calculations below).
      */
     const std::optional<CFeeRate> m_effective_feerate;
     /**
@@ -221,11 +239,18 @@ struct MempoolAcceptResult {
      * Includes this transaction's txid and may include others if this
      * transaction was validated as part of a package. This is not necessarily
      * equivalent to the list of transactions passed to ProcessNewPackage().
-     * Only present when m_result_type = ResultType::VALID. */
+     */
     const std::optional<std::vector<TxId>> m_txids_fee_calculations;
 
     static MempoolAcceptResult Failure(TxValidationState state) {
         return MempoolAcceptResult(state);
+    }
+
+    static MempoolAcceptResult
+    FeeFailure(TxValidationState state, CFeeRate effective_feerate,
+               const std::vector<TxId> &txids_fee_calculations) {
+        return MempoolAcceptResult(state, effective_feerate,
+                                   txids_fee_calculations);
     }
 
     /** Constructor for success case */
@@ -261,6 +286,14 @@ private:
         CFeeRate effective_feerate,
         const std::vector<TxId> &txids_fee_calculations)
         : m_result_type(result_type), m_vsize{vsize}, m_base_fees(fees),
+          m_effective_feerate(effective_feerate),
+          m_txids_fee_calculations(txids_fee_calculations) {}
+
+    /** Constructor for fee-related failure case */
+    explicit MempoolAcceptResult(
+        TxValidationState state, CFeeRate effective_feerate,
+        const std::vector<TxId> &txids_fee_calculations)
+        : m_result_type(ResultType::INVALID), m_state(state),
           m_effective_feerate(effective_feerate),
           m_txids_fee_calculations(txids_fee_calculations) {}
 

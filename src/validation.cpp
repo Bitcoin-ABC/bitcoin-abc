@@ -529,7 +529,7 @@ private:
         if (mempoolRejectFee > Amount::zero() &&
             package_fee < mempoolRejectFee) {
             return state.Invalid(
-                TxValidationResult::TX_MEMPOOL_POLICY,
+                TxValidationResult::TX_RECONSIDERABLE,
                 "mempool min fee not met",
                 strprintf("%d < %d", package_fee, mempoolRejectFee));
         }
@@ -538,7 +538,7 @@ private:
         // policy upgrade.
         if (package_fee < m_pool.m_min_relay_feerate.GetFee(package_size)) {
             return state.Invalid(
-                TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
+                TxValidationResult::TX_RECONSIDERABLE, "min relay fee not met",
                 strprintf("%d < %d", package_fee,
                           m_pool.m_min_relay_feerate.GetFee(package_size)));
         }
@@ -726,6 +726,9 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
     if (!bypass_limits &&
         ws.m_modified_fees <
             m_pool.m_min_relay_feerate.GetFee(ws.m_ptx->GetTotalSize())) {
+        // Even though this is a fee-related failure, this result is
+        // TX_MEMPOOL_POLICY, not TX_RECONSIDERABLE, because it cannot be
+        // bypassed using package validation.
         return state.Invalid(
             TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
             strprintf("%d < %d", ws.m_modified_fees,
@@ -806,7 +809,9 @@ bool MemPoolAccept::Finalize(const ATMPArgs &args, Workspace &ws) {
     if (!args.m_package_submission && !bypass_limits) {
         m_pool.LimitSize(m_active_chainstate.CoinsTip());
         if (!m_pool.exists(txid)) {
-            return state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
+            // The tx no longer meets our (new) mempool minimum feerate but
+            // could be reconsidered in a package.
+            return state.Invalid(TxValidationResult::TX_RECONSIDERABLE,
                                  "mempool full");
         }
     }
@@ -934,10 +939,19 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     Workspace ws(ptx,
                  GetNextBlockScriptFlags(tip, m_active_chainstate.m_chainman));
 
+    const std::vector<TxId> single_txid{ws.m_ptx->GetId()};
+
     // Perform the inexpensive checks first and avoid hashing and signature
     // verification unless those checks pass, to mitigate CPU exhaustion
     // denial-of-service attacks.
     if (!PreChecks(args, ws)) {
+        if (ws.m_state.GetResult() == TxValidationResult::TX_RECONSIDERABLE) {
+            // Failed for fee reasons. Provide the effective feerate and which
+            // tx was included.
+            return MempoolAcceptResult::FeeFailure(
+                ws.m_state, CFeeRate(ws.m_modified_fees, ws.m_vsize),
+                single_txid);
+        }
         return MempoolAcceptResult::Failure(ws.m_state);
     }
 
@@ -968,7 +982,6 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
 
     const CFeeRate effective_feerate{ws.m_modified_fees,
                                      static_cast<uint32_t>(ws.m_vsize)};
-    const std::vector<TxId> single_txid{ws.m_ptx->GetId()};
     // Tx was accepted, but not added
     if (args.m_test_accept) {
         return MempoolAcceptResult::Success(ws.m_vsize, ws.m_base_fees,
@@ -976,7 +989,12 @@ MemPoolAccept::AcceptSingleTransaction(const CTransactionRef &ptx,
     }
 
     if (!Finalize(args, ws)) {
-        return MempoolAcceptResult::Failure(ws.m_state);
+        // The only possible failure reason is fee-related (mempool full).
+        // Failed for fee reasons. Provide the effective feerate and which txns
+        // were included.
+        Assume(ws.m_state.GetResult() == TxValidationResult::TX_RECONSIDERABLE);
+        return MempoolAcceptResult::FeeFailure(
+            ws.m_state, CFeeRate(ws.m_modified_fees, ws.m_vsize), single_txid);
     }
 
     GetMainSignals().TransactionAddedToMempool(
@@ -1046,20 +1064,24 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptMultipleTransactions(
         workspaces.cbegin(), workspaces.cend(), Amount::zero(),
         [](Amount sum, auto &ws) { return sum + ws.m_modified_fees; });
     const CFeeRate package_feerate(m_total_modified_fees, m_total_vsize);
-    TxValidationState placeholder_state;
-    if (args.m_package_feerates &&
-        !CheckFeeRate(m_total_size, m_total_vsize, m_total_modified_fees,
-                      placeholder_state)) {
-        package_state.Invalid(PackageValidationResult::PCKG_POLICY,
-                              "package-fee-too-low");
-        return PackageMempoolAcceptResult(package_state, {});
-    }
-
     std::vector<TxId> all_package_txids;
     all_package_txids.reserve(workspaces.size());
     std::transform(workspaces.cbegin(), workspaces.cend(),
                    std::back_inserter(all_package_txids),
                    [](const auto &ws) { return ws.m_ptx->GetId(); });
+    TxValidationState placeholder_state;
+    if (args.m_package_feerates &&
+        !CheckFeeRate(m_total_size, m_total_vsize, m_total_modified_fees,
+                      placeholder_state)) {
+        package_state.Invalid(PackageValidationResult::PCKG_TX,
+                              "transaction failed");
+        return PackageMempoolAcceptResult(
+            package_state, {{workspaces.back().m_ptx->GetId(),
+                             MempoolAcceptResult::FeeFailure(
+                                 placeholder_state,
+                                 CFeeRate(m_total_modified_fees, m_total_vsize),
+                                 all_package_txids)}});
+    }
 
     for (Workspace &ws : workspaces) {
         ws.m_package_feerate = package_feerate;
@@ -1214,7 +1236,7 @@ PackageMempoolAcceptResult MemPoolAccept::AcceptPackage(const Package &package,
                 assert(m_pool.exists(txid));
                 results_final.emplace(txid, single_res);
             } else if (single_res.m_state.GetResult() !=
-                           TxValidationResult::TX_MEMPOOL_POLICY &&
+                           TxValidationResult::TX_RECONSIDERABLE &&
                        single_res.m_state.GetResult() !=
                            TxValidationResult::TX_MISSING_INPUTS) {
                 // Package validation policy only differs from individual policy

@@ -57,6 +57,7 @@ add_library(testutil OBJECT
 	util/setup_common.cpp
 	util/str.cpp
 	util/transaction_utils.cpp
+	util/txmempool.cpp
 	util/validation.cpp
 	util/wallet.cpp
 )

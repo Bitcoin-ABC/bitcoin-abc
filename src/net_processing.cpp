@@ -2557,6 +2557,8 @@ bool PeerManagerImpl::MaybePunishNodeForTx(NodeId nodeid,
         case TxValidationResult::TX_CHILD_BEFORE_PARENT:
         case TxValidationResult::TX_MEMPOOL_POLICY:
         case TxValidationResult::TX_NO_MEMPOOL:
+        case TxValidationResult::TX_RECONSIDERABLE:
+        case TxValidationResult::TX_UNKNOWN:
             break;
     }
     if (message != "") {
