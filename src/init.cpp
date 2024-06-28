@@ -2586,7 +2586,7 @@ bool AppInitMain(Config &config, RPCServer &rpcServer,
     if (args.GetBoolArg("-chronik", DEFAULT_CHRONIK)) {
         const bool fReindexChronik =
             fReindex || args.GetBoolArg("-chronikreindex", false);
-        if (!chronik::Start(config, node, fReindexChronik)) {
+        if (!chronik::Start(args, config, node, fReindexChronik)) {
             return false;
         }
     }
