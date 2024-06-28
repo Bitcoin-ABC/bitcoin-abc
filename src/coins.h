@@ -119,6 +119,12 @@ struct CCoinsCacheEntry {
         : coin(std::move(coinIn)), flags(0) {}
     CCoinsCacheEntry(Coin &&coin_, uint8_t flag)
         : coin(std::move(coin_)), flags(flag) {}
+
+    inline void AddFlags(uint8_t flags_) noexcept { flags |= flags_; }
+    inline void ClearFlags() noexcept { flags = 0; }
+    inline uint8_t GetFlags() const noexcept { return flags; }
+    inline bool IsDirty() const noexcept { return flags & DIRTY; }
+    inline bool IsFresh() const noexcept { return flags & FRESH; }
 };
 
 /**

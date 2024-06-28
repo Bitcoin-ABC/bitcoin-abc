@@ -185,7 +185,7 @@ public:
     bool BatchWrite(CCoinsMap &data, const BlockHash &, bool erase) final {
         for (auto it = data.begin(); it != data.end();
              it = erase ? data.erase(it) : std::next(it)) {
-            if (it->second.flags & CCoinsCacheEntry::DIRTY) {
+            if (it->second.IsDirty()) {
                 if (it->second.coin.IsSpent() && (it->first.GetN() % 5) != 4) {
                     m_data.erase(it->first);
                 } else if (erase) {

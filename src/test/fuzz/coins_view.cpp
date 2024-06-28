@@ -129,8 +129,8 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                     CCoinsMap::key_equal{}, &resource};
                 while (fuzzed_data_provider.ConsumeBool()) {
                     CCoinsCacheEntry coins_cache_entry;
-                    coins_cache_entry.flags =
-                        fuzzed_data_provider.ConsumeIntegral<uint8_t>();
+                    coins_cache_entry.AddFlags(
+                        fuzzed_data_provider.ConsumeIntegral<uint8_t>());
                     if (fuzzed_data_provider.ConsumeBool()) {
                         coins_cache_entry.coin = random_coin;
                     } else {

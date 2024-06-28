@@ -59,7 +59,7 @@ public:
                     bool erase = true) override {
         for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();
              it = erase ? mapCoins.erase(it) : std::next(it)) {
-            if (it->second.flags & CCoinsCacheEntry::DIRTY) {
+            if (it->second.IsDirty()) {
                 // Same optimization used in CCoinsViewDB is to only write dirty
                 // entries.
                 map_[it->first] = it->second.coin;
@@ -648,7 +648,7 @@ static size_t InsertCoinMapEntry(CCoinsMap &map, const Amount value,
     }
     assert(flags != NO_ENTRY);
     CCoinsCacheEntry entry;
-    entry.flags = flags;
+    entry.AddFlags(flags);
     SetCoinValue(value, entry.coin);
     auto inserted = map.emplace(OUTPOINT, std::move(entry));
     assert(inserted.second);
@@ -667,7 +667,7 @@ void GetCoinMapEntry(const CCoinsMap &map, Amount &value, char &flags,
         } else {
             value = it->second.coin.GetTxOut().nValue;
         }
-        flags = it->second.flags;
+        flags = it->second.GetFlags();
         assert(flags != NO_ENTRY);
     }
 }
