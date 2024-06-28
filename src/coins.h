@@ -11,6 +11,7 @@
 #include <primitives/blockhash.h>
 #include <serialize.h>
 #include <support/allocators/pool.h>
+#include <util/check.h>
 #include <util/hasher.h>
 
 #include <cassert>
@@ -123,11 +124,23 @@ public:
     CCoinsCacheEntry() noexcept = default;
     explicit CCoinsCacheEntry(Coin &&coin_) : coin(std::move(coin_)) {}
 
-    inline void AddFlags(uint8_t flags) noexcept { m_flags |= flags; }
+    //! Adding a flag also requires a self reference to the pair that contains
+    //! this entry in the CCoinsCache map and a reference to the sentinel of the
+    //! flagged pair linked list.
+    inline void AddFlags(uint8_t flags, CoinsCachePair &self,
+                         CoinsCachePair &sentinel) noexcept {
+        Assume(&self.second == this);
+        m_flags |= flags;
+    }
     inline void ClearFlags() noexcept { m_flags = 0; }
     inline uint8_t GetFlags() const noexcept { return m_flags; }
     inline bool IsDirty() const noexcept { return m_flags & DIRTY; }
     inline bool IsFresh() const noexcept { return m_flags & FRESH; }
+
+    //! Only use this for initializing the linked list sentinel
+    inline void SelfRef(CoinsCachePair &self) noexcept {
+        Assume(&self.second == this);
+    }
 };
 
 /**
@@ -236,6 +249,10 @@ protected:
      */
     mutable BlockHash hashBlock;
     mutable CCoinsMapMemoryResource m_cache_coins_memory_resource{};
+    /**
+     * The starting sentinel of the flagged entry circular doubly linked list.
+     */
+    mutable CoinsCachePair m_sentinel;
     mutable CCoinsMap cacheCoins;
 
     /* Cached dynamic memory usage for the inner Coin objects. */
