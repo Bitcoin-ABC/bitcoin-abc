@@ -89,9 +89,12 @@ public:
  *   flushed to the parent)
  */
 struct CCoinsCacheEntry {
+private:
+    uint8_t m_flags{0};
+
+public:
     // The actual cached data.
     Coin coin;
-    uint8_t flags;
 
     enum Flags {
         /**
@@ -114,17 +117,14 @@ struct CCoinsCacheEntry {
         FRESH = (1 << 1),
     };
 
-    CCoinsCacheEntry() : flags(0) {}
-    explicit CCoinsCacheEntry(Coin coinIn)
-        : coin(std::move(coinIn)), flags(0) {}
-    CCoinsCacheEntry(Coin &&coin_, uint8_t flag)
-        : coin(std::move(coin_)), flags(flag) {}
+    CCoinsCacheEntry() noexcept = default;
+    explicit CCoinsCacheEntry(Coin &&coin_) : coin(std::move(coin_)) {}
 
-    inline void AddFlags(uint8_t flags_) noexcept { flags |= flags_; }
-    inline void ClearFlags() noexcept { flags = 0; }
-    inline uint8_t GetFlags() const noexcept { return flags; }
-    inline bool IsDirty() const noexcept { return flags & DIRTY; }
-    inline bool IsFresh() const noexcept { return flags & FRESH; }
+    inline void AddFlags(uint8_t flags) noexcept { m_flags |= flags; }
+    inline void ClearFlags() noexcept { m_flags = 0; }
+    inline uint8_t GetFlags() const noexcept { return m_flags; }
+    inline bool IsDirty() const noexcept { return m_flags & DIRTY; }
+    inline bool IsFresh() const noexcept { return m_flags & FRESH; }
 };
 
 /**
