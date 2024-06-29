@@ -80,7 +80,7 @@ class CCoinsViewCacheTest : public CCoinsViewCache {
 public:
     explicit CCoinsViewCacheTest(CCoinsView *_base) : CCoinsViewCache(_base) {}
 
-    void SelfTest() const {
+    void SelfTest(bool sanity_check = true) const {
         // Manually recompute the dynamic usage of the whole data, and compare
         // it.
         size_t ret = memusage::DynamicUsage(cacheCoins);
@@ -91,6 +91,9 @@ public:
         }
         BOOST_CHECK_EQUAL(GetCacheSize(), count);
         BOOST_CHECK_EQUAL(DynamicMemoryUsage(), ret);
+        if (sanity_check) {
+            SanityCheck();
+        }
     }
 
     CCoinsMap &map() const { return cacheCoins; }
@@ -688,7 +691,7 @@ static void CheckAccessCoin(const Amount base_value, const Amount cache_value,
                             char expected_flags) {
     SingleEntryCacheTest test(base_value, cache_value, cache_flags);
     test.cache.AccessCoin(OUTPOINT);
-    test.cache.SelfTest();
+    test.cache.SelfTest(/*sanity_check=*/false);
 
     Amount result_value;
     char result_flags;
@@ -860,7 +863,7 @@ void CheckWriteCoin(Amount parent_value, Amount child_value,
     char result_flags;
     try {
         WriteCoinViewEntry(test.cache, child_value, child_flags);
-        test.cache.SelfTest();
+        test.cache.SelfTest(/*sanity_check=*/false);
         GetCoinMapEntry(test.cache.map(), result_value, result_flags);
     } catch (std::logic_error &) {
         result_value = FAIL;
@@ -984,6 +987,7 @@ void TestFlushBehavior(
         // up.
         for (auto i = all_caches.rbegin(); i != all_caches.rend(); ++i) {
             auto &cache = *i;
+            cache->SanityCheck();
             // hashBlock must be filled before flushing to disk; value is
             // unimportant here. This is normally done during connect/disconnect
             // block.
