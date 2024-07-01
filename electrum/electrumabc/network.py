@@ -40,7 +40,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Un
 
 import socks
 
-from . import bitcoin, blockchain, networks, util, version
+from . import blockchain, networks, util, version
 from .crypto import Hash
 from .i18n import _
 from .interface import Connection, Interface
@@ -352,7 +352,6 @@ class Network(util.DaemonThread):
 
         self.banner = ""
         self.donation_address = ""
-        self.relay_fee = None
         # callbacks passed with subscriptions
         self.subscriptions = defaultdict(list)
         self.sub_cache = {}  # note: needs self.interface_lock
@@ -582,7 +581,6 @@ class Network(util.DaemonThread):
         self.queue_request("server.banner", [])
         self.queue_request("server.donation_address", [])
         self.queue_request("server.peers.subscribe", [])
-        self.queue_request("blockchain.relayfee", [])
         n_defunct = 0
         method = "blockchain.scripthash.subscribe"
         for h in self.subscribed_addresses.copy():
@@ -927,15 +925,6 @@ class Network(util.DaemonThread):
         elif method == "server.donation_address":
             if error is None and isinstance(result, str):
                 self.donation_address = result
-        elif method == "blockchain.relayfee":
-            try:
-                if error is None and isinstance(result, (int, float)):
-                    self.relay_fee = int(result * bitcoin.CASH)
-                    self.print_error("relayfee", self.relay_fee)
-            except (TypeError, ValueError) as e:
-                self.print_error(
-                    "bad server data in blockchain.relayfee:", result, "error:", repr(e)
-                )
         elif method == "blockchain.block.headers":
             try:
                 self.on_block_headers(interface, request, response)
