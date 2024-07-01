@@ -281,7 +281,7 @@ function getHashSizeBits(hash) {
 }
 
 /**
- * Retrieves the the length in bits of the encoded hash from its bit
+ * Retrieves the length in bits of the encoded hash from its bit
  * representation within the version byte.
  *
  * @private
