@@ -371,10 +371,11 @@ class TxInput:
             self._address = address
             return
 
-        # p2sh transaction, m of n
         if not matches_p2sh_ecdsa_multisig_scriptsig(decoded):
+            self._type = ScriptType.unknown
             print_error("cannot find address in input script", bh2u(self.scriptsig))
             return
+        # p2sh transaction, m of n
         x_sig = [x[1] for x in decoded[1:-1]]
         m, n, x_pubkeys, pubkeys, redeemScript = parse_redeemScript(decoded[-1][1])
         # write result in d
@@ -516,18 +517,10 @@ class TxInput:
         d["num_sig"] = 0
 
         if self.scriptsig is not None:
-            try:
-                self.parse_scriptsig()
-            except Exception as e:
-                print_error(
-                    f"{__name__}: Failed to parse tx input {self.outpoint}, probably a "
-                    f"p2sh (non multisig?). Exception was: {repr(e)}"
-                )
-                # that whole heuristic codepath is fragile; just ignore it when it dies.
-                # failing tx examples:
-                # 1c671eb25a20aaff28b2fa4254003c201155b54c73ac7cf9c309d835deed85ee
-                # 08e1026eaf044127d7103415570afd564dfac3131d7a5e4b645f591cd349bb2c
-                # override these once more just to make sure
+            self.parse_scriptsig()
+
+            if self.type == ScriptType.unknown:
+                # Unsupported p2sh type (only standard multisig schemes are supported)
                 d["address"] = UnknownAddress()
                 d["type"] = "unknown"
                 return d
