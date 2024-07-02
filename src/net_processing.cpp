@@ -6505,7 +6505,6 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
 
-        size_t proofCount = 0;
         std::vector<std::pair<avalanche::ProofId, bool>> remoteProofsStatus;
         m_avalanche->withPeerManager([&](const avalanche::PeerManager &pm) {
             pm.forEachPeer([&](const avalanche::Peer &peer) {
@@ -6523,8 +6522,6 @@ void PeerManagerImpl::ProcessMessage(
                     remoteProofsStatus.emplace_back(peer.getProofId(),
                                                     added > 0);
                 }
-
-                proofCount += added;
 
                 // In order to properly determine which proof is missing, we
                 // need to keep scanning for all our proofs.
