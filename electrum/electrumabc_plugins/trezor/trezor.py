@@ -25,13 +25,13 @@ if TYPE_CHECKING:
 try:
     import trezorlib
     import trezorlib.transport
+    from trezorlib.client import PASSPHRASE_ON_DEVICE
     from trezorlib.messages import (
         HDNodePathType,
         HDNodeType,
         InputScriptType,
         MultisigRedeemScriptType,
         OutputScriptType,
-        RecoveryDeviceType,
         TransactionType,
         TxInputType,
         TxOutputBinType,
@@ -39,11 +39,7 @@ try:
     )
 
     from .clientbase import TrezorClientBase, parse_path
-
-    RECOVERY_TYPE_SCRAMBLED_WORDS = RecoveryDeviceType.ScrambledWords
-    RECOVERY_TYPE_MATRIX = RecoveryDeviceType.Matrix
-
-    from trezorlib.client import PASSPHRASE_ON_DEVICE
+    from .compat import RECOVERY_TYPE_MATRIX, RECOVERY_TYPE_SCRAMBLED_WORDS
 
     TREZORLIB = True
 except Exception:

@@ -10,7 +10,7 @@ from trezorlib.exceptions import (
     TrezorException,
     TrezorFailure,
 )
-from trezorlib.messages import ButtonRequestType, RecoveryDeviceType, WordRequestType
+from trezorlib.messages import ButtonRequestType, WordRequestType
 
 from electrumabc.bip32 import serialize_xpub
 from electrumabc.i18n import _
@@ -19,6 +19,7 @@ from electrumabc.printerror import PrintError
 from electrumabc.util import UserCancelled
 
 from ..hw_wallet.plugin import HardwareClientBase
+from .compat import RECOVERY_TYPE_MATRIX
 
 MESSAGES = {
     ButtonRequestType.ConfirmOutput: _(
@@ -365,7 +366,7 @@ class TrezorClientBase(HardwareClientBase, PrintError):
         if recovery_type is None:
             return None
 
-        if recovery_type == RecoveryDeviceType.Matrix:
+        if recovery_type == RECOVERY_TYPE_MATRIX:
             return self._matrix_char
 
         step = 0
