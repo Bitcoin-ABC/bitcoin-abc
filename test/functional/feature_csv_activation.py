@@ -107,7 +107,6 @@ def spend_tx(node, prev_tx, address):
     )
     spendtx.nVersion = prev_tx.nVersion
     pad_tx(spendtx)
-    spendtx.rehash()
     return spendtx
 
 
@@ -117,7 +116,7 @@ def create_bip112special(node, txid, txversion, address):
     tx.vout[0].scriptPubKey = CScript([-1, OP_CHECKSEQUENCEVERIFY, OP_DROP, OP_TRUE])
     tx.rehash()
     signtx = sign_transaction(node, tx)
-    signtx.rehash()
+    pad_tx(signtx)
 
     return signtx
 
@@ -150,7 +149,7 @@ def create_bip68txs(node, bip68inputs, txversion, address, locktime_delta=0):
         tx.nVersion = txversion
         tx.vin[0].nSequence = locktime + locktime_delta
         tx = sign_transaction(node, tx)
-        tx.rehash()
+        pad_tx(tx)
         txs.append({"tx": tx, "sdf": sdf, "stf": stf})
 
     return txs
@@ -182,7 +181,7 @@ def create_bip112txs(
             )
         tx.rehash()
         signtx = sign_transaction(node, tx)
-        signtx.rehash()
+        pad_tx(signtx)
         txs.append({"tx": signtx, "sdf": sdf, "stf": stf})
     return txs
 
