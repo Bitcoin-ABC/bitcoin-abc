@@ -98,35 +98,33 @@ def load_ca_list():
 
 
 def get_payment_request(url):
-    data = error = None
     try:
         u = urllib.parse.urlparse(url)
     except ValueError as e:
-        error = str(e)
-    else:
-        if u.scheme in ["http", "https"]:
-            try:
-                response = requests.request("GET", url, headers=REQUEST_HEADERS)
-                response.raise_for_status()
-                # Guard against `ecash:`-URIs with invalid payment request URLs
-                if (
-                    "Content-Type" not in response.headers
-                    or response.headers["Content-Type"]
-                    != "application/ecash-paymentrequest"
-                ):
-                    error = (
-                        "payment URL not pointing to a ecash payment request handling"
-                        " server"
-                    )
-                else:
-                    data = response.content
-                print_error("fetched payment request", url, len(response.content))
-            except requests.exceptions.RequestException as e:
-                error = str(e)
-        else:
-            error = f"unknown scheme: '{u.scheme}'"
+        return PaymentRequest(data=None, error=str(e))
 
-    return PaymentRequest(data, error)
+    if u.scheme not in ["http", "https"]:
+        return PaymentRequest(data=None, error=f"unknown scheme: '{u.scheme}'")
+
+    try:
+        response = requests.request("GET", url, headers=REQUEST_HEADERS)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        return PaymentRequest(data=None, error=str(e))
+
+    # Guard against `ecash:`-URIs with invalid payment request URLs
+    if (
+        "Content-Type" not in response.headers
+        or response.headers["Content-Type"] != "application/ecash-paymentrequest"
+    ):
+        return PaymentRequest(
+            data=None,
+            error="payment URL not pointing to a ecash payment request handling server",
+        )
+
+    data = response.content
+    print_error("fetched payment request", url, len(response.content))
+    return PaymentRequest(data)
 
 
 class PaymentRequest:
