@@ -11,6 +11,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <list>
 #include <map>
 #include <memory>
 #include <set>
@@ -159,6 +160,17 @@ static inline size_t DynamicUsage(const std::shared_ptr<X> &p) {
     // can't observe the difference, however, so assume the worst.
     return p ? MallocUsage(sizeof(X)) + MallocUsage(sizeof(stl_shared_counter))
              : 0;
+}
+
+template <typename X> struct list_node {
+private:
+    void *ptr_next;
+    void *ptr_prev;
+    X x;
+};
+
+template <typename X> static inline size_t DynamicUsage(const std::list<X> &l) {
+    return MallocUsage(sizeof(list_node<X>)) * l.size();
 }
 
 // Boost data structures

@@ -5,6 +5,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <logging.h>
+#include <memusage.h>
 #include <util/fs.h>
 
 #include <util/string.h>
@@ -40,7 +41,7 @@ BCLog::Logger &LogInstance() {
     return *g_logger;
 }
 
-static int FileWriteStr(const std::string &str, FILE *fp) {
+static int FileWriteStr(std::string_view str, FILE *fp) {
     return fwrite(str.data(), 1, str.size(), fp);
 }
 
@@ -67,8 +68,21 @@ bool BCLog::Logger::StartLogging() {
 
     // Dump buffered messages from before we opened the log.
     m_buffering = false;
+    if (m_buffer_lines_discarded > 0) {
+        LogPrintStr_(
+            strprintf(
+                "Early logging buffer overflowed, %d log lines discarded.\n",
+                m_buffer_lines_discarded),
+            __func__, __FILE__, __LINE__, BCLog::ALL, Level::Info);
+    }
     while (!m_msgs_before_open.empty()) {
-        const std::string &s = m_msgs_before_open.front();
+        const auto &buflog = m_msgs_before_open.front();
+        std::string s{buflog.str};
+        FormatLogStrInPlace(s, buflog.category, buflog.level,
+                            buflog.source_file, buflog.source_line,
+                            buflog.logging_function, buflog.threadname,
+                            buflog.now, buflog.mocktime);
+        m_msgs_before_open.pop_front();
 
         if (m_print_to_file) {
             FileWriteStr(s, m_fileout);
@@ -79,9 +93,8 @@ bool BCLog::Logger::StartLogging() {
         for (const auto &cb : m_print_callbacks) {
             cb(s);
         }
-
-        m_msgs_before_open.pop_front();
     }
+    m_cur_buffer_memusage = 0;
     if (m_print_to_console) {
         fflush(stdout);
     }
@@ -97,50 +110,66 @@ void BCLog::Logger::DisconnectTestLogger() {
     }
     m_fileout = nullptr;
     m_print_callbacks.clear();
+    m_max_buffer_memusage = DEFAULT_MAX_LOG_BUFFER;
+    m_cur_buffer_memusage = 0;
+    m_buffer_lines_discarded = 0;
+    m_msgs_before_open.clear();
 }
 
-static const std::map<std::string, BCLog::LogFlags> LOG_CATEGORIES_BY_STR{
-    {"0", BCLog::NONE},
-    {"", BCLog::NONE},
-    {"net", BCLog::NET},
-    {"tor", BCLog::TOR},
-    {"mempool", BCLog::MEMPOOL},
-    {"http", BCLog::HTTP},
-    {"bench", BCLog::BENCH},
-    {"zmq", BCLog::ZMQ},
-    {"walletdb", BCLog::WALLETDB},
-    {"rpc", BCLog::RPC},
-    {"estimatefee", BCLog::ESTIMATEFEE},
-    {"addrman", BCLog::ADDRMAN},
-    {"selectcoins", BCLog::SELECTCOINS},
-    {"reindex", BCLog::REINDEX},
-    {"cmpctblock", BCLog::CMPCTBLOCK},
-    {"rand", BCLog::RAND},
-    {"prune", BCLog::PRUNE},
-    {"proxy", BCLog::PROXY},
-    {"mempoolrej", BCLog::MEMPOOLREJ},
-    {"libevent", BCLog::LIBEVENT},
-    {"coindb", BCLog::COINDB},
-    {"qt", BCLog::QT},
-    {"leveldb", BCLog::LEVELDB},
-    {"validation", BCLog::VALIDATION},
-    {"avalanche", BCLog::AVALANCHE},
-    {"i2p", BCLog::I2P},
-    {"chronik", BCLog::CHRONIK},
+void BCLog::Logger::DisableLogging() {
+    {
+        StdLockGuard scoped_lock(m_cs);
+        assert(m_buffering);
+        assert(m_print_callbacks.empty());
+    }
+    m_print_to_file = false;
+    m_print_to_console = false;
+    StartLogging();
+}
+
+static const std::map<std::string, BCLog::LogFlags, std::less<>>
+    LOG_CATEGORIES_BY_STR{
+        {"0", BCLog::NONE},
+        {"", BCLog::NONE},
+        {"net", BCLog::NET},
+        {"tor", BCLog::TOR},
+        {"mempool", BCLog::MEMPOOL},
+        {"http", BCLog::HTTP},
+        {"bench", BCLog::BENCH},
+        {"zmq", BCLog::ZMQ},
+        {"walletdb", BCLog::WALLETDB},
+        {"rpc", BCLog::RPC},
+        {"estimatefee", BCLog::ESTIMATEFEE},
+        {"addrman", BCLog::ADDRMAN},
+        {"selectcoins", BCLog::SELECTCOINS},
+        {"reindex", BCLog::REINDEX},
+        {"cmpctblock", BCLog::CMPCTBLOCK},
+        {"rand", BCLog::RAND},
+        {"prune", BCLog::PRUNE},
+        {"proxy", BCLog::PROXY},
+        {"mempoolrej", BCLog::MEMPOOLREJ},
+        {"libevent", BCLog::LIBEVENT},
+        {"coindb", BCLog::COINDB},
+        {"qt", BCLog::QT},
+        {"leveldb", BCLog::LEVELDB},
+        {"validation", BCLog::VALIDATION},
+        {"avalanche", BCLog::AVALANCHE},
+        {"i2p", BCLog::I2P},
+        {"chronik", BCLog::CHRONIK},
 #ifdef DEBUG_LOCKCONTENTION
-    {"lock", BCLog::LOCK},
+        {"lock", BCLog::LOCK},
 #endif
-    {"blockstorage", BCLog::BLOCKSTORE},
-    {"netdebug", BCLog::NETDEBUG},
-    {"txpackages", BCLog::TXPACKAGES},
-    {"1", BCLog::ALL},
-    {"all", BCLog::ALL},
-};
+        {"blockstorage", BCLog::BLOCKSTORE},
+        {"netdebug", BCLog::NETDEBUG},
+        {"txpackages", BCLog::TXPACKAGES},
+        {"1", BCLog::ALL},
+        {"all", BCLog::ALL},
+    };
 
 static const std::unordered_map<BCLog::LogFlags, std::string>
     LOG_CATEGORIES_BY_FLAG{
         // Swap keys and values from LOG_CATEGORIES_BY_STR.
-        [](const std::map<std::string, BCLog::LogFlags> &in) {
+        [](const auto &in) {
             std::unordered_map<BCLog::LogFlags, std::string> out;
             for (const auto &[k, v] : in) {
                 switch (v) {
@@ -157,7 +186,7 @@ static const std::unordered_map<BCLog::LogFlags, std::string>
             return out;
         }(LOG_CATEGORIES_BY_STR)};
 
-bool GetLogCategory(BCLog::LogFlags &flag, const std::string &str) {
+bool GetLogCategory(BCLog::LogFlags &flag, std::string_view str) {
     if (str.empty()) {
         flag = BCLog::ALL;
         return true;
@@ -192,7 +221,7 @@ std::string LogCategoryToStr(BCLog::LogFlags category) {
     return it->second;
 }
 
-static std::optional<BCLog::Level> GetLogLevel(const std::string &level_str) {
+static std::optional<BCLog::Level> GetLogLevel(std::string_view level_str) {
     if (level_str == "trace") {
         return BCLog::Level::Trace;
     } else if (level_str == "debug") {
@@ -236,33 +265,30 @@ std::string BCLog::Logger::LogLevelsString() const {
                 [](BCLog::Level level) { return LogLevelToStr(level); });
 }
 
-std::string BCLog::Logger::LogTimestampStr(const std::string &str) {
+std::string
+BCLog::Logger::LogTimestampStr(SystemClock::time_point now,
+                               std::chrono::seconds mocktime) const {
     std::string strStamped;
 
     if (!m_log_timestamps) {
-        return str;
+        return strStamped;
     }
 
-    if (m_started_new_line) {
-        const auto now{SystemClock::now()};
-        const auto now_seconds{
-            std::chrono::time_point_cast<std::chrono::seconds>(now)};
-        strStamped = FormatISO8601DateTime(
-            TicksSinceEpoch<std::chrono::seconds>(now_seconds));
-        if (m_log_time_micros) {
-            strStamped.pop_back();
-            strStamped += strprintf(
-                ".%06dZ", Ticks<std::chrono::microseconds>(now - now_seconds));
-        }
-        std::chrono::seconds mocktime = GetMockTime();
-        if (mocktime > 0s) {
-            strStamped += " (mocktime: " +
-                          FormatISO8601DateTime(count_seconds(mocktime)) + ")";
-        }
-        strStamped += ' ' + str;
-    } else {
-        strStamped = str;
+    const auto now_seconds{
+        std::chrono::time_point_cast<std::chrono::seconds>(now)};
+    strStamped = FormatISO8601DateTime(
+        TicksSinceEpoch<std::chrono::seconds>(now_seconds));
+    if (m_log_time_micros && !strStamped.empty()) {
+        strStamped.pop_back();
+        strStamped += strprintf(
+            ".%06dZ", Ticks<std::chrono::microseconds>(now - now_seconds));
     }
+    if (mocktime > 0s) {
+        strStamped +=
+            " (mocktime: " + FormatISO8601DateTime(count_seconds(mocktime)) +
+            ")";
+    }
+    strStamped += ' ';
 
     return strStamped;
 }
@@ -275,7 +301,7 @@ namespace BCLog {
  * It escapes instead of removes them to still allow for troubleshooting
  * issues where they accidentally end up in strings.
  */
-std::string LogEscapeMessage(const std::string &str) {
+std::string LogEscapeMessage(std::string_view str) {
     std::string ret;
     for (char ch_in : str) {
         uint8_t ch = (uint8_t)ch_in;
@@ -323,36 +349,98 @@ std::string BCLog::Logger::GetLogPrefix(BCLog::LogFlags category,
     return s;
 }
 
-void BCLog::Logger::LogPrintStr(const std::string &str,
-                                const std::string &logging_function,
-                                const std::string &source_file, int source_line,
+static size_t MemUsage(const BCLog::Logger::BufferedLog &buflog) {
+    return buflog.str.size() + buflog.logging_function.size() +
+           buflog.source_file.size() + buflog.threadname.size() +
+           memusage::MallocUsage(
+               sizeof(memusage::list_node<BCLog::Logger::BufferedLog>));
+}
+
+void BCLog::Logger::FormatLogStrInPlace(
+    std::string &str, BCLog::LogFlags category, BCLog::Level level,
+    std::string_view source_file, int source_line,
+    std::string_view logging_function, std::string_view threadname,
+    SystemClock::time_point now, std::chrono::seconds mocktime) const {
+    str.insert(0, GetLogPrefix(category, level));
+
+    if (m_log_sourcelocations) {
+        str.insert(0, strprintf("[%s:%d] [%s] ",
+                                RemovePrefixView(source_file, "./"),
+                                source_line, logging_function));
+    }
+
+    if (m_log_threadnames) {
+        str.insert(0, strprintf("[%s] ",
+                                (threadname.empty() ? "unknown" : threadname)));
+    }
+
+    str.insert(0, LogTimestampStr(now, mocktime));
+}
+
+void BCLog::Logger::LogPrintStr(std::string_view str,
+                                std::string_view logging_function,
+                                std::string_view source_file, int source_line,
                                 BCLog::LogFlags category, BCLog::Level level) {
     StdLockGuard scoped_lock(m_cs);
+    return LogPrintStr_(str, logging_function, source_file, source_line,
+                        category, level);
+}
+
+void BCLog::Logger::LogPrintStr_(std::string_view str,
+                                 std::string_view logging_function,
+                                 std::string_view source_file, int source_line,
+                                 BCLog::LogFlags category, BCLog::Level level) {
     std::string str_prefixed = LogEscapeMessage(str);
 
-    if (m_started_new_line) {
-        str_prefixed.insert(0, GetLogPrefix(category, level));
-    }
-
-    if (m_log_sourcelocations && m_started_new_line) {
-        str_prefixed.insert(0, "[" + RemovePrefix(source_file, "./") + ":" +
-                                   ToString(source_line) + "] [" +
-                                   logging_function + "] ");
-    }
-
-    if (m_log_threadnames && m_started_new_line) {
-        const auto &threadname = util::ThreadGetInternalName();
-        str_prefixed.insert(0, "[" + threadname + "] ");
-    }
-
-    str_prefixed = LogTimestampStr(str_prefixed);
-
+    const bool starts_new_line = m_started_new_line;
     m_started_new_line = !str.empty() && str[str.size() - 1] == '\n';
 
     if (m_buffering) {
-        // buffer if we haven't started logging yet
-        m_msgs_before_open.push_back(str_prefixed);
+        if (!starts_new_line) {
+            if (!m_msgs_before_open.empty()) {
+                m_msgs_before_open.back().str += str_prefixed;
+                m_cur_buffer_memusage += str_prefixed.size();
+                return;
+            } else {
+                // unlikely edge case; add a marker that something was trimmed
+                str_prefixed.insert(0, "[...] ");
+            }
+        }
+
+        {
+            BufferedLog buf{
+                .now = SystemClock::now(),
+                .mocktime = GetMockTime(),
+                .str = str_prefixed,
+                .logging_function = std::string(logging_function),
+                .source_file = std::string(source_file),
+                .threadname = util::ThreadGetInternalName(),
+                .source_line = source_line,
+                .category = category,
+                .level = level,
+            };
+            m_cur_buffer_memusage += MemUsage(buf);
+            m_msgs_before_open.push_back(std::move(buf));
+        }
+
+        while (m_cur_buffer_memusage > m_max_buffer_memusage) {
+            if (m_msgs_before_open.empty()) {
+                m_cur_buffer_memusage = 0;
+                break;
+            }
+            m_cur_buffer_memusage -= MemUsage(m_msgs_before_open.front());
+            m_msgs_before_open.pop_front();
+            ++m_buffer_lines_discarded;
+        }
+
         return;
+    }
+
+    if (starts_new_line) {
+        FormatLogStrInPlace(str_prefixed, category, level, source_file,
+                            source_line, logging_function,
+                            util::ThreadGetInternalName(), SystemClock::now(),
+                            GetMockTime());
     }
 
     if (m_print_to_console) {
@@ -424,7 +512,7 @@ void BCLog::Logger::EnableCategory(LogFlags category) {
     m_categories |= category;
 }
 
-bool BCLog::Logger::EnableCategory(const std::string &str) {
+bool BCLog::Logger::EnableCategory(std::string_view str) {
     BCLog::LogFlags flag;
     if (!GetLogCategory(flag, str)) {
         return false;
@@ -437,7 +525,7 @@ void BCLog::Logger::DisableCategory(LogFlags category) {
     m_categories &= ~category;
 }
 
-bool BCLog::Logger::DisableCategory(const std::string &str) {
+bool BCLog::Logger::DisableCategory(std::string_view str) {
     BCLog::LogFlags flag;
     if (!GetLogCategory(flag, str)) {
         return false;
@@ -480,7 +568,7 @@ bool BCLog::Logger::DefaultShrinkDebugFile() const {
     return m_categories != BCLog::NONE;
 }
 
-bool BCLog::Logger::SetLogLevel(const std::string &level_str) {
+bool BCLog::Logger::SetLogLevel(std::string_view level_str) {
     const auto level = GetLogLevel(level_str);
     if (!level.has_value() || level.value() > MAX_USER_SETABLE_SEVERITY_LEVEL) {
         return false;
@@ -489,8 +577,8 @@ bool BCLog::Logger::SetLogLevel(const std::string &level_str) {
     return true;
 }
 
-bool BCLog::Logger::SetCategoryLogLevel(const std::string &category_str,
-                                        const std::string &level_str) {
+bool BCLog::Logger::SetCategoryLogLevel(std::string_view category_str,
+                                        std::string_view level_str) {
     BCLog::LogFlags flag;
     if (!GetLogCategory(flag, category_str)) {
         return false;

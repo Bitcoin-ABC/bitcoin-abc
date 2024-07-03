@@ -42,6 +42,12 @@
 #include <memory>
 
 int main(int argc, char *argv[]) {
+    // We do not enable logging for this app, so explicitly disable it.
+    // To enable logging instead, replace with:
+    //    LogInstance().m_print_to_console = true;
+    //    LogInstance().StartLogging();
+    LogInstance().DisableLogging();
+
     // SETUP: Argument parsing and handling
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " DATADIR" << std::endl
