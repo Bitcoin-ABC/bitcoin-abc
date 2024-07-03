@@ -10,6 +10,7 @@ from test_framework.blocktools import create_confirmed_utxos, send_big_transacti
 # FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
 from test_framework.messages import COIN
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
 
@@ -17,12 +18,10 @@ from test_framework.util import assert_equal, assert_raises_rpc_error
 class PrioritiseTransactionTest(BitcoinTestFramework):
     def set_test_params(self):
         self.setup_clean_chain = True
-        self.num_nodes = 2
+        self.num_nodes = 1
         # TODO: remove -txindex. Currently required for getrawtransaction call
         # (called by calculate_fee_from_txid)
-        self.extra_args = [
-            ["-printpriority=1", "-acceptnonstdtxn=1", "-txindex"]
-        ] * self.num_nodes
+        self.extra_args = [["-printpriority=1", "-acceptnonstdtxn=1", "-txindex"]]
         self.supports_cli = False
 
     def skip_test_if_missing_module(self):
@@ -223,6 +222,7 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
         # getblocktemplate to (eventually) return a new block.
         mock_time = int(time.time())
         self.nodes[0].setmocktime(mock_time)
+        self.nodes[0].add_p2p_connection(P2PInterface())
         template = self.nodes[0].getblocktemplate()
         self.nodes[0].prioritisetransaction(
             txid=tx_id, fee_delta=-int(self.relayfee * COIN)
