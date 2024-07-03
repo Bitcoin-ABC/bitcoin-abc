@@ -4,15 +4,21 @@
 """Test the prioritisetransaction mining RPC."""
 
 import time
+from decimal import Decimal
 
-from test_framework.blocktools import create_confirmed_utxos, send_big_transactions
+from test_framework.blocktools import (
+    COINBASE_MATURITY,
+    create_confirmed_utxos,
+    send_big_transactions,
+)
 
 # FIXME: review how this test needs to be adapted w.r.t _LEGACY_MAX_BLOCK_SIZE
 from test_framework.cdefs import LEGACY_MAX_BLOCK_SIZE
-from test_framework.messages import COIN
+from test_framework.messages import COIN, XEC
 from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.wallet import MiniWallet
 
 
 class PrioritiseTransactionTest(BitcoinTestFramework):
@@ -27,7 +33,129 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
 
+    def test_diamond(self):
+        self.log.info("Test diamond-shape package with priority")
+        self.generate(self.wallet, COINBASE_MATURITY + 1)
+        mock_time = int(time.time())
+        self.nodes[0].setmocktime(mock_time)
+
+        #      tx_a
+        #      / \
+        #     /   \
+        #   tx_b  tx_c
+        #     \   /
+        #      \ /
+        #      tx_d
+
+        tx_o_a = self.wallet.send_self_transfer_multi(
+            from_node=self.nodes[0],
+            num_outputs=2,
+        )
+        txid_a = tx_o_a["txid"]
+
+        tx_o_b, tx_o_c = [
+            self.wallet.send_self_transfer(
+                from_node=self.nodes[0],
+                utxo_to_spend=u,
+            )
+            for u in tx_o_a["new_utxos"]
+        ]
+        txid_b = tx_o_b["txid"]
+        txid_c = tx_o_c["txid"]
+
+        tx_o_d = self.wallet.send_self_transfer_multi(
+            from_node=self.nodes[0],
+            utxos_to_spend=[
+                self.wallet.get_utxo(txid=txid_b),
+                self.wallet.get_utxo(txid=txid_c),
+            ],
+        )
+        txid_d = tx_o_d["txid"]
+
+        self.log.info("Test priority while txs are in mempool")
+        raw_before = self.nodes[0].getrawmempool(verbose=True)
+        assert_equal(
+            raw_before[txid_a]["fees"]["base"], raw_before[txid_a]["fees"]["modified"]
+        )
+        assert_equal(
+            raw_before[txid_b]["fees"]["base"], raw_before[txid_b]["fees"]["modified"]
+        )
+        assert_equal(
+            raw_before[txid_c]["fees"]["base"], raw_before[txid_c]["fees"]["modified"]
+        )
+        assert_equal(
+            raw_before[txid_d]["fees"]["base"], raw_before[txid_d]["fees"]["modified"]
+        )
+        fee_delta_b = Decimal(9999) / XEC
+        fee_delta_c_1 = Decimal(-1234) / XEC
+        fee_delta_c_2 = Decimal(8888) / XEC
+        self.nodes[0].prioritisetransaction(
+            txid=txid_b, fee_delta=int(fee_delta_b * XEC)
+        )
+        self.nodes[0].prioritisetransaction(
+            txid=txid_c, fee_delta=int(fee_delta_c_1 * XEC)
+        )
+        self.nodes[0].prioritisetransaction(
+            txid=txid_c, fee_delta=int(fee_delta_c_2 * XEC)
+        )
+        raw_after = self.nodes[0].getrawmempool(verbose=True)
+        assert_equal(
+            raw_after[txid_a]["fees"]["modified"], raw_before[txid_a]["fees"]["base"]
+        )
+        assert_equal(
+            raw_after[txid_b]["fees"]["modified"],
+            raw_before[txid_b]["fees"]["base"] + fee_delta_b,
+        )
+        assert_equal(
+            raw_after[txid_c]["fees"]["modified"],
+            raw_before[txid_c]["fees"]["base"] + fee_delta_c_1 + fee_delta_c_2,
+        )
+        assert_equal(
+            raw_after[txid_d]["fees"]["modified"], raw_before[txid_d]["fees"]["base"]
+        )
+
+        self.log.info("Test priority while txs are not in mempool")
+        self.restart_node(0, extra_args=["-nopersistmempool"])
+        self.nodes[0].setmocktime(mock_time)
+        assert_equal(self.nodes[0].getmempoolinfo()["size"], 0)
+        self.nodes[0].prioritisetransaction(
+            txid=txid_b, fee_delta=int(fee_delta_b * XEC)
+        )
+        self.nodes[0].prioritisetransaction(
+            txid=txid_c, fee_delta=int(fee_delta_c_1 * XEC)
+        )
+        self.nodes[0].prioritisetransaction(
+            txid=txid_c, fee_delta=int(fee_delta_c_2 * XEC)
+        )
+        for t in [tx_o_a["hex"], tx_o_b["hex"], tx_o_c["hex"], tx_o_d["hex"]]:
+            self.nodes[0].sendrawtransaction(t)
+        raw_after = self.nodes[0].getrawmempool(verbose=True)
+        assert_equal(raw_before[txid_a], raw_after[txid_a])
+        assert_equal(
+            raw_after[txid_a]["fees"]["modified"], raw_before[txid_a]["fees"]["base"]
+        )
+        assert_equal(
+            raw_after[txid_b]["fees"]["modified"],
+            raw_before[txid_b]["fees"]["base"] + fee_delta_b,
+        )
+        assert_equal(
+            raw_after[txid_c]["fees"]["modified"],
+            raw_before[txid_c]["fees"]["base"] + fee_delta_c_1 + fee_delta_c_2,
+        )
+        assert_equal(
+            raw_after[txid_d]["fees"]["modified"], raw_before[txid_d]["fees"]["base"]
+        )
+
+        # Clear mempool
+        self.generate(self.nodes[0], 1)
+        assert_equal(len(self.nodes[0].getrawmempool()), 0)
+
+        # Use default extra_args
+        self.restart_node(0)
+
     def run_test(self):
+        self.wallet = MiniWallet(self.nodes[0])
+
         # Test `prioritisetransaction` required parameters
         assert_raises_rpc_error(
             -1, "prioritisetransaction", self.nodes[0].prioritisetransaction
@@ -95,6 +223,8 @@ class PrioritiseTransactionTest(BitcoinTestFramework):
             txid=txid,
             fee_delta="foo",
         )
+
+        self.test_diamond()
 
         self.relayfee = self.nodes[0].getnetworkinfo()["relayfee"]
 
