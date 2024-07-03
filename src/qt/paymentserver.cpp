@@ -714,6 +714,17 @@ bool PaymentServer::processPaymentRequest(const PaymentRequestPlus &request,
     return true;
 }
 
+void PaymentServer::dataDownloaded() {
+    if (paymentRequestReply->bytesAvailable() > BIP70_MAX_PAYMENTREQUEST_SIZE) {
+        qWarning() << "PaymentServer::dataDownloaded: Payment request size "
+                      "bigger than expected - aborting";
+        // Note that we use finished() instead of abort() so the data remains
+        // readable and the actual oversize error can be catched during the
+        // netRequestFinished processing
+        paymentRequestReply->finished();
+    }
+}
+
 void PaymentServer::fetchRequest(const QUrl &url) {
     QNetworkRequest netRequest;
     netRequest.setAttribute(QNetworkRequest::User,
@@ -721,7 +732,18 @@ void PaymentServer::fetchRequest(const QUrl &url) {
     netRequest.setUrl(url);
     netRequest.setRawHeader("User-Agent", CLIENT_NAME.c_str());
     netRequest.setRawHeader("Accept", BIP71_MIMETYPE_PAYMENTREQUEST);
-    netManager->get(netRequest);
+
+    // Start the download
+    paymentRequestReply = netManager->get(netRequest);
+    assert(paymentRequestReply);
+
+    // Set the read buffer size to max size + 1000 bytes which is enough to
+    // detect if the downloaded content is too big while not overshooting too
+    // much.
+    paymentRequestReply->setReadBufferSize(BIP70_MAX_PAYMENTREQUEST_SIZE +
+                                           1000);
+    connect(paymentRequestReply, &QIODevice::readyRead, this,
+            &PaymentServer::dataDownloaded);
 }
 
 void PaymentServer::fetchPaymentACK(interfaces::Wallet &wallet,
@@ -791,12 +813,15 @@ void PaymentServer::netRequestFinished(QNetworkReply *reply) {
     reply->deleteLater();
 
     // BIP70 DoS protection
+    // Since the download is aborted as soon as the data size is over the limit,
+    // we don't know the actual size of the payment request so there is no point
+    // printing it. This is still printed to the debug.log so we can check the
+    // proper behavior.
     if (!verifySize(reply->size())) {
         Q_EMIT message(
             tr("Payment request rejected"),
-            tr("Payment request %1 is too large (%2 bytes, allowed %3 bytes).")
+            tr("Payment request %1 is larger than the max allowed %2 bytes).")
                 .arg(reply->request().url().toString())
-                .arg(reply->size())
                 .arg(BIP70_MAX_PAYMENTREQUEST_SIZE),
             CClientUIInterface::MSG_ERROR);
         return;
@@ -900,7 +925,7 @@ bool PaymentServer::verifySize(qint64 requestSize) {
     bool fVerified = (requestSize <= BIP70_MAX_PAYMENTREQUEST_SIZE);
     if (!fVerified) {
         qWarning() << QString("PaymentServer::%1: Payment request too large "
-                              "(%2 bytes, allowed %3 bytes).")
+                              "(downloaded %2 bytes, max allowed %3 bytes).")
                           .arg(__func__)
                           .arg(requestSize)
                           .arg(BIP70_MAX_PAYMENTREQUEST_SIZE);

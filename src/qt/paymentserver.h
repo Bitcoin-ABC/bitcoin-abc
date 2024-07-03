@@ -137,6 +137,7 @@ private Q_SLOTS:
     void netRequestFinished(QNetworkReply *);
     void reportSslErrors(QNetworkReply *, const QList<QSslError> &);
     void handlePaymentACK(const QString &paymentACKMsg);
+    void dataDownloaded();
 #endif
 
 protected:
@@ -164,6 +165,7 @@ private:
 
     // Used to fetch payment requests
     QNetworkAccessManager *netManager;
+    QNetworkReply *paymentRequestReply{nullptr};
 #endif
 };
 
