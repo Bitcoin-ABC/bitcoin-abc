@@ -88,41 +88,7 @@ class TestPaymentRequests(unittest.TestCase):
 
     # Verify that a trivial payment request can be parsed and sent
     def test_get_paymentrequest_trivial_parse(self):
-        class RequestHandler(SimpleHTTPRequestHandler):
-            def do_GET(self):
-                resp = b""
-                if self.path == "/invoice":
-                    pr = pb2.PaymentRequest()
-                    pd = pb2.PaymentDetails()
-                    pd.memo = "dummy_memo"
-                    pd.time = 0
-                    pd.payment_url = "http://localhost:1234/pay"
-                    pd.outputs.add(amount=0, script=b"")
-                    pr.serialized_payment_details = pd.SerializeToString()
-                    resp = pr.SerializeToString()
-
-                self.send_response(200)
-                self.send_header("Content-type", "application/ecash-paymentrequest")
-                self.send_header("Content-length", len(resp))
-                self.end_headers()
-                self.wfile.write(resp)
-
-            def do_POST(self):
-                resp = b""
-                if self.path == "/pay":
-                    pa = pb2.PaymentACK()
-                    post_data = self.rfile.read(int(self.headers["Content-Length"]))
-                    pa.payment.ParseFromString(post_data)
-                    pa.memo = "dummy_memo_ack"
-                    resp = pa.SerializeToString()
-
-                self.send_response(200)
-                self.send_header("Content-type", "application/bitcoin-paymentack")
-                self.send_header("Content-length", len(resp))
-                self.end_headers()
-                self.wfile.write(resp)
-
-        self.serv = DummyServer(RequestHandler)
+        self.serv = DummyServer(TrivialRequestHandler)
         self.th = Thread(target=self.serv.start_serve)
         self.th.start()
         pr = get_payment_request("http://localhost:1234/invoice")
@@ -136,6 +102,41 @@ class TestPaymentRequests(unittest.TestCase):
         )
         self.assertEqual(ack, True)
         self.assertEqual(memo, "dummy_memo_ack")
+
+
+class TrivialRequestHandler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        resp = b""
+        if self.path == "/invoice":
+            pr = pb2.PaymentRequest()
+            pd = pb2.PaymentDetails()
+            pd.memo = "dummy_memo"
+            pd.time = 0
+            pd.payment_url = "http://localhost:1234/pay"
+            pd.outputs.add(amount=0, script=b"")
+            pr.serialized_payment_details = pd.SerializeToString()
+            resp = pr.SerializeToString()
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/ecash-paymentrequest")
+        self.send_header("Content-length", len(resp))
+        self.end_headers()
+        self.wfile.write(resp)
+
+    def do_POST(self):
+        resp = b""
+        if self.path == "/pay":
+            pa = pb2.PaymentACK()
+            post_data = self.rfile.read(int(self.headers["Content-Length"]))
+            pa.payment.ParseFromString(post_data)
+            pa.memo = "dummy_memo_ack"
+            resp = pa.SerializeToString()
+
+        self.send_response(200)
+        self.send_header("Content-type", "application/bitcoin-paymentack")
+        self.send_header("Content-length", len(resp))
+        self.end_headers()
+        self.wfile.write(resp)
 
 
 class DummyServer:
