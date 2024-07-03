@@ -103,6 +103,13 @@ class TestPaymentRequests(unittest.TestCase):
         self.assertEqual(ack, True)
         self.assertEqual(memo, "dummy_memo_ack")
 
+    def test_get_paymentrequest_oversized(self):
+        self.serv = DummyServer(TrivialRequestHandler)
+        self.th = Thread(target=self.serv.start_serve)
+        self.th.start()
+        pr = get_payment_request("http://localhost:1234/invoice", max_size=10)
+        self.assertEqual(pr.error, "oversized payment request data")
+
 
 class TrivialRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):

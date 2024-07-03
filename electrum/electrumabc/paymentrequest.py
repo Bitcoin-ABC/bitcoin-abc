@@ -56,6 +56,8 @@ def _(message):
     return message
 
 
+MAX_PAYMENTREQUEST_SIZE = 50_000
+
 # status of payment requests
 PR_UNPAID = 0
 PR_EXPIRED = 1
@@ -97,7 +99,7 @@ def load_ca_list():
         ca_list, ca_keyID = x509.load_certificates(ca_path)
 
 
-def get_payment_request(url):
+def get_payment_request(url, max_size=MAX_PAYMENTREQUEST_SIZE):
     try:
         u = urllib.parse.urlparse(url)
     except ValueError as e:
@@ -106,11 +108,25 @@ def get_payment_request(url):
     if u.scheme not in ["http", "https"]:
         return PaymentRequest(data=None, error=f"unknown scheme: '{u.scheme}'")
 
+    timeout = 30
     try:
-        response = requests.request("GET", url, headers=REQUEST_HEADERS)
+        response = requests.request(
+            "GET", url, headers=REQUEST_HEADERS, timeout=timeout, stream=True
+        )
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         return PaymentRequest(data=None, error=str(e))
+
+    data = b""
+    start = time.time()
+    for chunk in response.iter_content(1024):
+        data += chunk
+        if len(data) > max_size:
+            return PaymentRequest(data=None, error="oversized payment request data")
+        if time.time() - start > timeout:
+            return PaymentRequest(
+                data=None, error="fetching payment request data timed out"
+            )
 
     # Guard against `ecash:`-URIs with invalid payment request URLs
     if (
@@ -122,8 +138,7 @@ def get_payment_request(url):
             error="payment URL not pointing to a ecash payment request handling server",
         )
 
-    data = response.content
-    print_error("fetched payment request", url, len(response.content))
+    print_error("fetched payment request", url, len(data))
     return PaymentRequest(data)
 
 
