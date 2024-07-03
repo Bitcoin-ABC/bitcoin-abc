@@ -6706,7 +6706,8 @@ util::Result<CBlockIndex *> ChainstateManager::ActivateSnapshot(
                 "without AssumeUtxo.")};
         }
 
-        if (Assert(m_active_chainstate->GetMempool())->size() > 0) {
+        auto mempool{m_active_chainstate->GetMempool()};
+        if (mempool && mempool->size() > 0) {
             return util::Error{Untranslated(
                 "Can't activate a snapshot when mempool not empty.")};
         }
@@ -6823,7 +6824,8 @@ util::Result<CBlockIndex *> ChainstateManager::ActivateSnapshot(
 
     // Transfer possession of the mempool to the snapshot chainstate.
     // Mempool is empty at this point because we're still in IBD.
-    Assert(m_active_chainstate->m_mempool->size() == 0);
+    Assert(!m_active_chainstate->m_mempool ||
+           m_active_chainstate->m_mempool->size() == 0);
     Assert(!m_snapshot_chainstate->m_mempool);
     m_snapshot_chainstate->m_mempool = m_active_chainstate->m_mempool;
     m_active_chainstate->m_mempool = nullptr;
