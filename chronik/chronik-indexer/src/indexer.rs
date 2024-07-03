@@ -218,7 +218,7 @@ impl ChronikIndexer {
             subs: RwLock::new(Subs::new(ScriptGroup)),
             perf_path: params.enable_perf_stats.then_some(perf_path),
             is_token_index_enabled: params.enable_token_index,
-            is_lokad_id_index_enabled: params.enable_token_index,
+            is_lokad_id_index_enabled: params.enable_lokad_id_index,
             needs_lokad_id_reindex,
         })
     }

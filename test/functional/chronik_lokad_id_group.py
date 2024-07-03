@@ -268,6 +268,15 @@ class ChronikLokadIdGroup(BitcoinTestFramework):
         assert_equal(lokad_id_history(b"lok1"), [])
         assert_equal(lokad_id_history(b"lok2"), [])
 
+        # Restarting with chroniklokadidindex=0 and chroniktokenindex=1 DOES NOT reindex the LOKAD ID index
+        self.restart_node(
+            0,
+            ["-chronik", "-reindex", "-chroniktokenindex=1", "-chroniklokadidindex=0"],
+        )
+        assert_equal(lokad_id_conf(b"lok0"), [])
+        assert_equal(lokad_id_conf(b"lok1"), [])
+        assert_equal(lokad_id_conf(b"lok2"), [])
+
 
 if __name__ == "__main__":
     ChronikLokadIdGroup().main()
