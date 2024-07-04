@@ -6,7 +6,7 @@
 from test_framework.blocktools import COINBASE_MATURITY
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
-from test_framework.wallet import create_raw_chain
+from test_framework.wallet import MiniWallet
 
 LEGACY_MAX_CHAINED_TX = 5
 
@@ -16,40 +16,18 @@ class ChainedTxTest(BitcoinTestFramework):
         self.num_nodes = 1
         self.setup_clean_chain = True
 
-    def skip_test_if_missing_module(self):
-        self.skip_if_no_wallet()
-
     def run_test(self):
         node = self.nodes[0]
 
-        self.privkeys = [node.get_deterministic_priv_key().key]
-        self.address = node.get_deterministic_priv_key().address
-        self.coins = []
-        # The last 100 coinbase transactions are premature
-        for b in self.generatetoaddress(node, COINBASE_MATURITY + 2, self.address)[:2]:
-            coinbase = node.getblock(blockhash=b, verbosity=2)["tx"][0]
-            self.coins.append(
-                {
-                    "txid": coinbase["txid"],
-                    "amount": coinbase["vout"][0]["value"],
-                    "scriptPubKey": coinbase["vout"][0]["scriptPubKey"],
-                }
-            )
+        wallet = MiniWallet(node)
 
-        self.log.info(
-            "Since Wellington activation, the chained-tx limit no longer applies"
-        )
+        self.generate(wallet, COINBASE_MATURITY + 2)
+        chain_hex = wallet.create_self_transfer_chain(
+            chain_length=LEGACY_MAX_CHAINED_TX * 2
+        )["chain_hex"]
 
-        chain_hex, _ = create_raw_chain(
-            node,
-            self.coins.pop(),
-            self.address,
-            self.privkeys,
-            chain_length=LEGACY_MAX_CHAINED_TX * 2,
-        )
-
-        for i in range(LEGACY_MAX_CHAINED_TX * 2):
-            txid = node.sendrawtransaction(chain_hex[i])
+        for i, tx_hex in enumerate(chain_hex):
+            txid = wallet.sendrawtransaction(from_node=node, tx_hex=tx_hex)
             mempool = node.getrawmempool()
             assert_equal(len(mempool), i + 1)
             assert txid in mempool
