@@ -1,0 +1,12 @@
+# Copyright (c) 2024 The Bitcoin developers
+
+[package]
+name = "chronik-plugin-common"
+version = "0.1.0"
+edition = "2021"
+rust-version.workspace = true
+
+[dependencies]
+abc-rust-lint = { path = "../abc-rust-lint" }
+
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }

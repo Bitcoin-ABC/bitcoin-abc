@@ -13,6 +13,8 @@ members = [
     "chronik/chronik-indexer",
     "chronik/chronik-lib",
     "chronik/chronik-plugin",
+    "chronik/chronik-plugin-common",
+    "chronik/chronik-plugin-impl",
     "chronik/chronik-proto",
     "chronik/chronik-util",
     "modules/ecash-lib-wasm",

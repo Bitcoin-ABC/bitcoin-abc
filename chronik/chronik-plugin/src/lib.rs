@@ -8,6 +8,8 @@
 //! protocols.
 
 abc_rust_lint::lint! {
+    pub use chronik_plugin_common::*;
+
     // When the plugin system is enabled, we simply re-export the impl
     #[cfg(feature = "enabled")]
     pub use chronik_plugin_impl::*;

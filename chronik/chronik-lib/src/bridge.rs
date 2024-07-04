@@ -6,12 +6,16 @@
 
 use std::{
     net::{AddrParseError, IpAddr, SocketAddr},
+    path::PathBuf,
     sync::Arc,
     time::Duration,
 };
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{Tx, TxId};
+use bitcoinsuite_core::{
+    net::Net,
+    tx::{Tx, TxId},
+};
 use chronik_bridge::{ffi::init_error, util::expect_unique_ptr};
 use chronik_db::{index_tx::TxNumCacheSettings, mem::MempoolTx};
 use chronik_http::server::{
@@ -21,7 +25,7 @@ use chronik_indexer::{
     indexer::{ChronikIndexer, ChronikIndexerParams, Node},
     pause::Pause,
 };
-use chronik_plugin::context::PluginContext;
+use chronik_plugin::{context::PluginContext, params::PluginParams};
 use chronik_util::{log, log_chronik, mount_loggers, Loggers};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -34,6 +38,10 @@ pub enum ChronikError {
     /// Chronik host address failed to parse
     #[error("Invalid Chronik host address {0:?}: {1}")]
     InvalidChronikHost(String, AddrParseError),
+
+    /// Unknown net repr
+    #[error("Unknown net repr {0}")]
+    UnknownNetRepr(u8),
 }
 
 use self::ChronikError::*;
@@ -66,7 +74,18 @@ fn try_setup_chronik(
         .into_iter()
         .map(|host| parse_socket_addr(host, params.default_port))
         .collect::<Result<Vec<_>>>()?;
-    PluginContext::setup()?;
+    let datadir: PathBuf = params.datadir.into();
+    let net = match params.net {
+        ffi::Net::Mainnet => Net::Mainnet,
+        ffi::Net::Testnet => Net::Testnet,
+        ffi::Net::Regtest => Net::Regtest,
+        _ => return Err(UnknownNetRepr(params.net.repr).into()),
+    };
+    PluginContext::setup(PluginParams {
+        net,
+        plugins_dir: datadir.join("plugins"),
+        plugins_conf: datadir.join("plugins.toml"),
+    })?;
     log!("Starting Chronik bound to {:?}\n", hosts);
     let bridge = chronik_bridge::ffi::make_bridge(node_context);
     let bridge_ref = expect_unique_ptr("make_bridge", &bridge);

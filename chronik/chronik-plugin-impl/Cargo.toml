@@ -13,6 +13,26 @@ abc-rust-error = { path = "../abc-rust-error" }
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
 
+chronik-plugin-common = { path = "../chronik-plugin-common" }
 chronik-util = { path = "../chronik-util" }
 
+# Efficient byte strings, with ref counted substrings
+bytes = "1.6"
+
+# Converts to and from various cases
+convert_case = "0.6"
+
+# Rust bindings for the Python interpreter 
 pyo3 = { version = "0.20" }
+
+# Serialize structs
+serde = { version = "1.0", features = ["derive"] }
+
+# Derive error enums
+thiserror = "1.0"
+
+# TOML parser
+toml = "0.8"
+
+# Semantic version string parser
+versions = "6.2"

@@ -13,6 +13,10 @@ mod ffi_inner {
     /// Params for setting up Chronik
     #[derive(Debug)]
     pub struct SetupParams {
+        /// Which net this Chronik instance is running on
+        pub net: Net,
+        /// Where the data of the blockchain is stored, independent of network
+        pub datadir: String,
         /// Where the data of the blockchain is stored, dependent on network
         /// (mainnet, testnet, regtest)
         pub datadir_net: String,
@@ -48,12 +52,20 @@ mod ffi_inner {
         pub bucket_size: usize,
     }
 
+    /// Net we're running on
+    #[derive(Clone, Copy, Debug)]
+    pub enum Net {
+        /// Mainnet
+        Mainnet,
+        /// Testnet
+        Testnet,
+        /// Regtest
+        Regtest,
+    }
+
     extern "Rust" {
         type Chronik;
-        fn setup_chronik(
-            params: SetupParams,
-            node: &NodeContext,
-        ) -> bool;
+        fn setup_chronik(params: SetupParams, node: &NodeContext) -> bool;
 
         fn handle_tx_added_to_mempool(
             &self,

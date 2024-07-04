@@ -5,6 +5,7 @@
 //! Module for [`PluginContext`].
 
 use abc_rust_error::Result;
+use chronik_plugin_common::params::PluginParams;
 
 /// Dummy plugin context that does nothing, used when the plugin system is
 /// disabled
@@ -13,7 +14,7 @@ pub struct PluginContext;
 
 impl PluginContext {
     /// Fallback for the real PluginContext::setup that does nothing
-    pub fn setup() -> Result<Self> {
+    pub fn setup(_params: PluginParams) -> Result<Self> {
         Ok(PluginContext)
     }
 }

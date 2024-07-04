@@ -14,6 +14,8 @@ enabled = ["chronik-plugin-impl"]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
 
+chronik-plugin-common = { path = "../chronik-plugin-common" }
+
 [dependencies.chronik-plugin-impl]
 path = "../chronik-plugin-impl"
 optional = true

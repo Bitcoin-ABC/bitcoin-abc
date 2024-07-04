@@ -36,6 +36,17 @@ template <typename T, typename C> rust::Vec<T> ToRustVec(const C &container) {
     return vec;
 }
 
+chronik_bridge::Net ParseNet(const std::string &net_str) {
+    if (net_str == CBaseChainParams::MAIN) {
+        return chronik_bridge::Net::Mainnet;
+    } else if (net_str == CBaseChainParams::TESTNET) {
+        return chronik_bridge::Net::Testnet;
+    } else if (net_str == CBaseChainParams::REGTEST) {
+        return chronik_bridge::Net::Regtest;
+    }
+    throw std::runtime_error("Unknown net string");
+}
+
 util::Result<chronik_bridge::SetupParams>
 ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
     const bool is_pause_allowed = args.GetBoolArg("-chronikallowpause", false);
@@ -45,6 +56,8 @@ ParseChronikParams(const ArgsManager &args, const Config &config, bool fWipe) {
                    "for security reasons.")}};
     }
     return {{
+        .net = ParseNet(params.NetworkIDString()),
+        .datadir = args.GetDataDirBase().u8string(),
         .datadir_net = args.GetDataDirNet().u8string(),
         .hosts = ToRustVec<rust::String>(args.IsArgSet("-chronikbind")
                                              ? args.GetArgs("-chronikbind")

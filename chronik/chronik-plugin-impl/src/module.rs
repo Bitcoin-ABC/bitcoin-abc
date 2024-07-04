@@ -23,6 +23,12 @@ pub fn chronik_plugin(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     );
     PyModule::from_code(
         py,
+        include_str!("plugin.py"),
+        "plugin.py",
+        "chronik_plugin.plugin",
+    )?;
+    PyModule::from_code(
+        py,
         include_str!("token.py"),
         "token.py",
         "chronik_plugin.token",
