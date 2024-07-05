@@ -1872,4 +1872,29 @@ export default {
             },
         ],
     },
+    isTokenDustChangeOutput: {
+        expectedReturns: [
+            {
+                description:
+                    'A token dust change targetOutput is recognized as such',
+                targetOutput: { value: appConfig.dustSats },
+                returned: true,
+            },
+            {
+                description:
+                    'If value is 1 satoshi more than dust, not a token dust change output',
+                targetOutput: { value: appConfig.dustSats + 1 },
+                returned: false,
+            },
+            {
+                description:
+                    'If we have a key other than value, not a token dust change output',
+                targetOutput: {
+                    value: appConfig.dustSats,
+                    script: 'some script',
+                },
+                returned: false,
+            },
+        ],
+    },
 };

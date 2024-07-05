@@ -6,6 +6,7 @@ import * as wif from 'wif';
 import cashaddr from 'ecashaddrjs';
 import { isValidMultiSendUserInput } from 'validation';
 import { toSatoshis } from 'wallet';
+import { isTokenDustChangeOutput } from 'slpv1';
 import {
     Script,
     fromHex,
@@ -57,15 +58,12 @@ export const sendXec = async (
             outputs.push(targetOutput);
             continue;
         }
-        if (
-            !('address' in targetOutput) &&
-            targetOutput.value === appConfig.dustSats
-        ) {
-            // If we have no address and no script, assign change address
-            outputs.push({
-                value: targetOutput.value,
-                script: Script.p2pkh(fromHex(wallet.paths.get(1899).hash)),
-            });
+        if (isTokenDustChangeOutput(targetOutput)) {
+            // Add script for the address of the sending wallet to token dust change outputs
+            targetOutput.script = Script.p2pkh(
+                fromHex(wallet.paths.get(1899).hash),
+            );
+            outputs.push(targetOutput);
             continue;
         }
         // We must convert address to the appropriate outputScript

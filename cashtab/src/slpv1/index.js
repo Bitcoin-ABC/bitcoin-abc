@@ -12,6 +12,11 @@ export const SLP_1_NFT_COLLECTION_PROTOCOL_NUMBER = 129;
 export const SLP_1_NFT_PROTOCOL_NUMBER = 65;
 // 0xffffffffffffffff
 export const MAX_MINT_AMOUNT_TOKEN_SATOSHIS = '18446744073709551615';
+
+// Cashtab spec
+// This is how Cashtab defines a token utxo to be received
+// by the wallet broadcasting this transaction.
+export const TOKEN_DUST_CHANGE_OUTPUT = { value: appConfig.dustSats };
 // SLP1 supports up to 19 outputs
 // https://github.com/simpleledger/slp-specifications/blob/master/slp-token-type-1.md#send--transfer
 // This value is defined by the spec, i.e. an SLP1 SEND tx with more outputs is invalid
@@ -63,9 +68,7 @@ export const getSlpGenesisTargetOutput = (
     // In Cashtab, we mint genesis txs to our own Path1899 address
     // Expected behavior for Cashtab tx building is to add change address to output
     // with no address
-    targetOutputs.push({
-        value: appConfig.dustSats,
-    });
+    targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
 
     // If the user specified the creation of a mint baton, add it
     // Note: Cashtab only supports the creation of one mint baton at index 2
@@ -111,12 +114,8 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
 
     // sendAmounts can only be length 1 or 2
     if (sendAmounts.length > 1) {
-        // Add another targetOutput
-        // Note that change addresses are added in the sendXec function
-        // Change output is denoted by lack of address key
-        targetOutputs.push({
-            value: appConfig.dustSats,
-        });
+        // Add dust output to hold token change
+        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
     }
 
     return targetOutputs;
@@ -242,7 +241,7 @@ export const getSlpBurnTargetOutputs = tokenInputInfo => {
     // burn tx logic separate from ecash tx creation logic
     // But lets just add the min output
 
-    return [{ value: 0, script }, { value: appConfig.dustSats }];
+    return [{ value: 0, script }, TOKEN_DUST_CHANGE_OUTPUT];
 };
 
 /**
@@ -296,13 +295,9 @@ export const getMintTargetOutputs = (tokenId, decimals, mintQty) => {
         // SLP 1 script
         { value: 0, script },
         // Dust output for mint qty
-        {
-            value: appConfig.dustSats,
-        },
+        TOKEN_DUST_CHANGE_OUTPUT,
         // Dust output for mint baton
-        {
-            value: appConfig.dustSats,
-        },
+        TOKEN_DUST_CHANGE_OUTPUT,
     ];
 };
 
@@ -358,16 +353,12 @@ export const getNftParentGenesisTargetOutputs = (
     // Per SLP v1 spec, genesis tx is minted to output at index 1
     // In Cashtab, we mint genesis txs to our own Path1899 address
     // If an output does not have an address, Cashtab will add its change address
-    targetOutputs.push({
-        value: appConfig.dustSats,
-    });
+    targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
 
     // If the user specified the creation of a mint baton, add it
     // Note: Cashtab only supports the creation of one mint baton at index 2
     if (typeof mintBatonOutIdx !== 'undefined' && mintBatonOutIdx === 2) {
-        targetOutputs.push({
-            value: appConfig.dustSats,
-        });
+        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
     }
 
     return targetOutputs;
@@ -397,13 +388,9 @@ export const getNftParentMintTargetOutputs = (tokenId, mintQty) => {
         // SLP Script
         { value: 0, script },
         // Dust output to hold mint qty
-        {
-            value: appConfig.dustSats,
-        },
+        TOKEN_DUST_CHANGE_OUTPUT,
         // Dust output to hold mint baton
-        {
-            value: appConfig.dustSats,
-        },
+        TOKEN_DUST_CHANGE_OUTPUT,
     ];
 };
 
@@ -499,7 +486,7 @@ export const getNftParentFanTxTargetOutputs = fanInputs => {
     // Note that Cashtab will add the creating wallet's change address
     // to any output not including an address or script key
     for (let i = 0; i < fanOutputs; i += 1) {
-        targetOutputs.push({ value: appConfig.dustSats });
+        targetOutputs.push(TOKEN_DUST_CHANGE_OUTPUT);
     }
 
     return targetOutputs;
@@ -549,7 +536,7 @@ export const getNftChildGenesisTargetOutputs = genesisInfo => {
     );
     // We always mint exactly 1 NFT per child genesis tx, so no change is expected
     // Will always have exactly 1 dust utxo at index 1 to hold this NFT
-    return [{ value: 0, script }, { value: appConfig.dustSats }];
+    return [{ value: 0, script }, TOKEN_DUST_CHANGE_OUTPUT];
 };
 
 /**
@@ -603,4 +590,21 @@ export const getNftChildSendTargetOutputs = (tokenId, destinationAddress) => {
         { value: 0, script },
         { address: destinationAddress, value: appConfig.dustSats },
     ];
+};
+
+/**
+ * Test if a given targetOutput is TOKEN_DUST_CHANGE_OUTPUT
+ * Such an output needs 'script' added for the sending wallet's address
+ * @param {object} targetOutput
+ * @returns {boolean}
+ */
+export const isTokenDustChangeOutput = targetOutput => {
+    return (
+        // We have only one key
+        Object.keys(targetOutput).length === 1 &&
+        // It's "value"
+        'value' in targetOutput &&
+        // it's equal to 546
+        targetOutput.value === appConfig.dustSats
+    );
 };

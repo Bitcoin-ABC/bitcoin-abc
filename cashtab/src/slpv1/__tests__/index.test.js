@@ -19,6 +19,7 @@ import {
     getNftChildGenesisTargetOutputs,
     getNft,
     getNftChildSendTargetOutputs,
+    isTokenDustChangeOutput,
 } from 'slpv1';
 import vectors from '../fixtures/vectors';
 import { SEND_DESTINATION_ADDRESS } from '../fixtures/vectors';
@@ -348,6 +349,17 @@ describe('slpv1 methods', () => {
                 expect(
                     getNftChildSendTargetOutputs(tokenId, destinationAddress),
                 ).toStrictEqual(returned);
+            });
+        });
+    });
+    describe('isTokenDustChangeOutput correctly identifies a token dust change output', () => {
+        const { expectedReturns } = vectors.isTokenDustChangeOutput;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, targetOutput, returned } = expectedReturn;
+            it(`isTokenDustChangeOutput: ${description}`, () => {
+                expect(isTokenDustChangeOutput(targetOutput)).toStrictEqual(
+                    returned,
+                );
             });
         });
     });
