@@ -601,6 +601,6 @@ export const getNftChildSendTargetOutputs = (tokenId, destinationAddress) => {
     // Therefore, we will have no change, and every send tx will have only one token utxo output
     return [
         { value: 0, script },
-        { address: destinationAddress, value: 546 },
+        { address: destinationAddress, value: appConfig.dustSats },
     ];
 };
