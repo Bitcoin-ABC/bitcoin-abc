@@ -3,7 +3,6 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as wif from 'wif';
-import cashaddr from 'ecashaddrjs';
 import { isValidMultiSendUserInput } from 'validation';
 import { toSatoshis } from 'wallet';
 import { isTokenDustChangeOutput } from 'slpv1';
@@ -65,29 +64,6 @@ export const sendXec = async (
             );
             outputs.push(targetOutput);
             continue;
-        }
-        // We must convert address to the appropriate outputScript
-        const { type, hash } = cashaddr.decode(targetOutput.address, true);
-        switch (type) {
-            case 'p2pkh': {
-                outputs.push({
-                    value: targetOutput.value,
-                    script: Script.p2pkh(fromHex(hash)),
-                });
-                break;
-            }
-            case 'p2sh': {
-                outputs.push({
-                    value: targetOutput.value,
-                    script: Script.p2sh(fromHex(hash)),
-                });
-                break;
-            }
-            default: {
-                throw new Error(
-                    `Unsupported address type for ${targetOutput.address}`,
-                );
-            }
         }
     }
 
@@ -283,7 +259,7 @@ export const getMultisendTargetOutputs = userMultisendInput => {
         // targetOutputs expects satoshis at value key
         const valueSats = toSatoshis(valueXec);
         targetOutputs.push({
-            address: addressValueLineArray[0].trim(),
+            script: Script.fromAddress(addressValueLineArray[0].trim()),
             value: valueSats,
         });
     }

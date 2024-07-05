@@ -51,6 +51,7 @@ import {
 } from 'components/Common/Inputs';
 import Switch from 'components/Common/Switch';
 import { opReturn } from 'config/opreturn';
+import { Script } from 'ecash-lib';
 
 const SendXecForm = styled.div`
     margin: 12px 0;
@@ -473,7 +474,7 @@ const SendXec = () => {
                     : fiatToSatoshis(formData.amount, fiatPrice);
 
             targetOutputs.push({
-                address: cleanAddress,
+                script: Script.fromAddress(cleanAddress),
                 value: satoshisToSend,
             });
 

@@ -12,7 +12,7 @@ import {
     allTheXecWallet,
     walletWithTokensInNode,
 } from './mocks';
-
+import { Script } from 'ecash-lib';
 import { getCashtabMsgTargetOutput } from 'opreturn';
 const OP_RETURN_CASHTAB_MSG_TEST = getCashtabMsgTargetOutput('test');
 
@@ -25,7 +25,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -40,7 +42,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -55,7 +59,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
                 OP_RETURN_CASHTAB_MSG_TEST,
             ],
@@ -72,7 +78,9 @@ export const sendXecVectors = {
                 OP_RETURN_CASHTAB_MSG_TEST,
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -87,7 +95,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    script: Script.fromAddress(
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -101,7 +111,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 10000,
@@ -115,7 +127,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 24808,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -130,7 +144,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 24808,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -145,7 +161,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 88800,
-                    address: 'ecash:qzr03ye2jhrxmw97g9hv4s05364qgsdqzsjre4krry',
+                    script: Script.fromAddress(
+                        'ecash:qzr03ye2jhrxmw97g9hv4s05364qgsdqzsjre4krry',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -160,7 +178,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -175,23 +195,33 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
                 {
                     value: 2000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
                 {
                     value: 3000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
                 {
                     value: 4000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
                 {
                     value: 5000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -206,23 +236,33 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    script: Script.fromAddress(
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ),
                 },
                 {
                     value: 2000,
-                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    script: Script.fromAddress(
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ),
                 },
                 {
                     value: 3000,
-                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    script: Script.fromAddress(
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ),
                 },
                 {
                     value: 4000,
-                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    script: Script.fromAddress(
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ),
                 },
                 {
                     value: 5000,
-                    address: 'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    script: Script.fromAddress(
+                        'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -238,7 +278,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 545,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -252,7 +294,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: wallet.state.balanceSats + 1,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -267,7 +311,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: wallet.state.balanceSats - 50,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -282,7 +328,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -296,7 +344,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -310,7 +360,9 @@ export const sendXecVectors = {
             targetOutputs: [
                 {
                     value: 1000,
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                 },
             ],
             satsPerKb: 1000,
@@ -328,27 +380,39 @@ export const getMultisendTargetOutputsVectors = {
             userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,150\necash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035,50\necash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6,150\necash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj,4400\necash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly,50\necash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m,200`,
             targetOutputs: [
                 {
-                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    script: Script.fromAddress(
+                        'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    ),
                     value: 15000,
                 },
                 {
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                     value: 5000,
                 },
                 {
-                    address: 'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                    script: Script.fromAddress(
+                        'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                    ),
                     value: 15000,
                 },
                 {
-                    address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    script: Script.fromAddress(
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    ),
                     value: 440000,
                 },
                 {
-                    address: 'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                    script: Script.fromAddress(
+                        'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                    ),
                     value: 5000,
                 },
                 {
-                    address: 'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                    script: Script.fromAddress(
+                        'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                    ),
                     value: 20000,
                 },
             ],
@@ -359,11 +423,15 @@ export const getMultisendTargetOutputsVectors = {
             userMultisendInput: `   ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr   ,   150\n   ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035 ,     50       `,
             targetOutputs: [
                 {
-                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    script: Script.fromAddress(
+                        'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    ),
                     value: 15000,
                 },
                 {
-                    address: 'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    script: Script.fromAddress(
+                        'ecash:qz2708636snqhsxu8wnlka78h6fdp77ar59jrf5035',
+                    ),
                     value: 5000,
                 },
             ],
@@ -373,7 +441,9 @@ export const getMultisendTargetOutputsVectors = {
             userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,150`,
             targetOutputs: [
                 {
-                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    script: Script.fromAddress(
+                        'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    ),
                     value: 15000,
                 },
             ],
@@ -383,23 +453,33 @@ export const getMultisendTargetOutputsVectors = {
             userMultisendInput: `ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr,151.52\necash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6,151.52\necash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj,4444.44\necash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly,50.51\necash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m,202.02`,
             targetOutputs: [
                 {
-                    address: 'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    script: Script.fromAddress(
+                        'ecash:qzj5zu6fgg8v2we82gh76xnrk9njcreglum9ffspnr',
+                    ),
                     value: 15152,
                 },
                 {
-                    address: 'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                    script: Script.fromAddress(
+                        'ecash:qr204yfphngxthvnukyrz45u7500tf60vyqspva5a6',
+                    ),
                     value: 15152,
                 },
                 {
-                    address: 'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    script: Script.fromAddress(
+                        'ecash:qpmytrdsakt0axrrlswvaj069nat3p9s7cjctmjasj',
+                    ),
                     value: 444444,
                 },
                 {
-                    address: 'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                    script: Script.fromAddress(
+                        'ecash:qrq64hyel9hulnl9vsk29xjnuuqlpwqpcv6mk9pqly',
+                    ),
                     value: 5051,
                 },
                 {
-                    address: 'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                    script: Script.fromAddress(
+                        'ecash:qzn3gqf7vvm2qdu2rac6m6r4kgfcsyaras7jfqja3m',
+                    ),
                     value: 20202,
                 },
             ],

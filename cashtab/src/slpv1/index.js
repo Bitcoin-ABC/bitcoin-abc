@@ -4,7 +4,7 @@
 
 import appConfig from 'config/app';
 import { undecimalizeTokenAmount, decimalizeTokenAmount } from 'wallet';
-import { slpGenesis, slpSend, slpMint } from 'ecash-lib';
+import { Script, slpGenesis, slpSend, slpMint } from 'ecash-lib';
 
 // Constants for SLP 1 token types as returned by chronik-client
 export const SLP_1_PROTOCOL_NUMBER = 1;
@@ -109,7 +109,7 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
     // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
     targetOutputs.push({
         value: appConfig.dustSats,
-        address: destinationAddress,
+        script: Script.fromAddress(destinationAddress),
     });
 
     // sendAmounts can only be length 1 or 2
@@ -588,7 +588,10 @@ export const getNftChildSendTargetOutputs = (tokenId, destinationAddress) => {
     // Therefore, we will have no change, and every send tx will have only one token utxo output
     return [
         { value: 0, script },
-        { address: destinationAddress, value: appConfig.dustSats },
+        {
+            script: Script.fromAddress(destinationAddress),
+            value: appConfig.dustSats,
+        },
     ];
 };
 

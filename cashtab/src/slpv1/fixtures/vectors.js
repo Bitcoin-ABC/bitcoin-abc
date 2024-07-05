@@ -540,7 +540,7 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: SEND_DESTINATION_ADDRESS,
+                        script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                     },
                     {
                         value: appConfig.dustSats,
@@ -610,7 +610,7 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: SEND_DESTINATION_ADDRESS,
+                        script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                     },
                 ],
             },
@@ -670,7 +670,7 @@ export default {
                     },
                     {
                         value: appConfig.dustSats,
-                        address: SEND_DESTINATION_ADDRESS,
+                        script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                     },
                     {
                         value: appConfig.dustSats,
@@ -1865,7 +1865,7 @@ export default {
                         ),
                     },
                     {
-                        address: SEND_DESTINATION_ADDRESS,
+                        script: Script.fromAddress(SEND_DESTINATION_ADDRESS),
                         value: appConfig.dustSats,
                     },
                 ],
