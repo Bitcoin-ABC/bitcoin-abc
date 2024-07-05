@@ -34,6 +34,7 @@ import {
     flagSignature,
 } from '../src/txBuilder.js';
 import { UnsignedTxInput } from '../src/unsignedTx.js';
+import * as cashaddr from 'ecashaddrjs';
 
 const NUM_COINS = 500;
 const COIN_VALUE = 100000;
@@ -64,7 +65,7 @@ describe('TxBuilder', () => {
         runner.stop();
     });
 
-    it('TxBuilder P2PKH Wallet', async () => {
+    it('TxBuilder P2PKH Wallet with mixed outputs (TxOutput, TxOutput with Script.fromAddress(p2pkh), TxOutput with Script.fromAddress(p2sh))', async () => {
         // Setup simple single-address P2PKH wallet
         const sk = fromHex(
             '112233445566778899001122334455667788990011223344556677889900aabb',
@@ -78,6 +79,20 @@ describe('TxBuilder', () => {
             '0123456789012345678901234567890123456789',
         );
         const recipientScript = Script.p2pkh(recipientPkh);
+
+        // Add another p2pkh recipient using an address
+        const otherRecipientAddressP2pkh = cashaddr.encode(
+            'ecash',
+            'p2pkh',
+            '9876543210987654321098765432109876543210',
+        );
+
+        // Add a p2sh recipient using an address
+        const otherRecipientAddressP2sh = cashaddr.encode(
+            'ecash',
+            'p2sh',
+            '9876543210987654321098765432109876543210',
+        );
 
         // Send some UTXOs to the wallet
         await runner.sendToScript(90000, p2pkh);
@@ -101,6 +116,16 @@ describe('TxBuilder', () => {
             outputs: [
                 // Recipient using a TxOutput
                 { value: 120000, script: recipientScript },
+                // Recipient using a TxOutputAddress (p2pkh)
+                {
+                    value: 10000,
+                    script: Script.fromAddress(otherRecipientAddressP2pkh),
+                },
+                // Recipient using a TxOutputAddress (p2sh)
+                {
+                    value: 10000,
+                    script: Script.fromAddress(otherRecipientAddressP2sh),
+                },
                 // Leftover change back to wallet
                 p2pkh,
             ],
@@ -114,11 +139,11 @@ describe('TxBuilder', () => {
             {
                 outpoint: {
                     txid,
-                    outIdx: 1,
+                    outIdx: 3,
                 },
                 blockHeight: -1,
                 isCoinbase: false,
-                value: 90000 * 2 - 120000 - spendTx.serSize(),
+                value: 90000 * 2 - 120000 - 10000 - 10000 - spendTx.serSize(),
                 isFinal: false,
             },
         ]);
@@ -476,6 +501,83 @@ describe('TxBuilder', () => {
         expect(() => txBuild.sign(ecc, 1000000, 546)).to.throw(
             `Insufficient input value (90000): Can only pay for 40000 fees, ` +
                 `but ${spendTx.serSize() * 1000} required`,
+        );
+    });
+
+    it('TxBuilder leftover using Script.fromAddress for leftover (change) output', async () => {
+        const sk1 = fromHex('11'.repeat(32));
+        const pk1 = ecc.derivePubkey(sk1);
+        const sk2 = fromHex('22'.repeat(32));
+        const pk2 = ecc.derivePubkey(sk2);
+        const leftoverAddress = cashaddr.encode(
+            'ecash',
+            'p2pkh',
+            fromHex('33'.repeat(20)),
+        );
+        const redeemScript = Script.fromOps([
+            pushBytesOp(pk1),
+            OP_CHECKSIGVERIFY,
+            pushBytesOp(pk2),
+            OP_CHECKSIG,
+        ]);
+        const p2sh = Script.p2sh(shaRmd160(redeemScript.bytecode));
+        const txid = await runner.sendToScript(90000, p2sh);
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid,
+                            outIdx: 0,
+                        },
+                        signData: {
+                            value: 90000,
+                            redeemScript,
+                        },
+                    },
+                    signatory: (ecc: Ecc, input: UnsignedTxInput): Script => {
+                        const sks = [sk1, sk2];
+                        const sigs = [...Array(2).keys()].map(i => {
+                            const preimage = input.sigHashPreimage(ALL_BIP143);
+                            return flagSignature(
+                                ecc.schnorrSign(
+                                    sks[i],
+                                    sha256d(preimage.bytes),
+                                ),
+                                ALL_BIP143,
+                            );
+                        });
+                        return Script.fromOps([
+                            pushBytesOp(sigs[1]),
+                            pushBytesOp(sigs[0]),
+                            pushBytesOp(redeemScript.bytecode),
+                        ]);
+                    },
+                },
+            ],
+            outputs: [
+                {
+                    value: 20000,
+                    script: Script.p2pkh(shaRmd160(pk1)),
+                },
+                {
+                    value: 30000,
+                    script: Script.p2pkh(shaRmd160(pk2)),
+                },
+                // Leftover (change) output is specified as Script
+                Script.fromAddress(leftoverAddress),
+            ],
+        });
+
+        // 0sats/kB (not broadcast)
+        let spendTx = txBuild.sign(ecc, 0, 546);
+        expect(spendTx.outputs[2].value).to.equal(40000n);
+
+        // 1ksats/kB
+        spendTx = txBuild.sign(ecc, 1000, 546);
+        await chronik.broadcastTx(spendTx.ser());
+        expect(spendTx.outputs[2].value).to.equal(
+            BigInt(40000 - spendTx.serSize()),
         );
     });
 

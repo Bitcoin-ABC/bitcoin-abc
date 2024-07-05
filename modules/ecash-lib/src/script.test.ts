@@ -100,6 +100,38 @@ describe('Script', () => {
         ).to.deep.equal('00ac4e04000000cafeb0ba6302765468');
     });
 
+    it.only('Script.fromAddress() can convert a p2pkh address to ecash-lib Script', () => {
+        expect(
+            Script.fromAddress(
+                'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
+            ).bytecode,
+        ).to.deep.equal(
+            Script.p2pkh(fromHex('821407ac2993f8684227004f4086082f3f801da7'))
+                .bytecode,
+        );
+    });
+
+    it.only('Script.fromAddress() can convert a p2sh address to ecash-lib Script', () => {
+        expect(
+            Script.fromAddress(
+                'ecash:prfhcnyqnl5cgrnmlfmms675w93ld7mvvqd0y8lz07',
+            ).bytecode,
+        ).to.deep.equal(
+            Script.p2sh(fromHex('d37c4c809fe9840e7bfa77b86bd47163f6fb6c60'))
+                .bytecode,
+        );
+    });
+
+    it.only('Script.fromAddress() throws expected decode error from ecashaddrjs', () => {
+        expect(() => {
+            Script.fromAddress(
+                '41047fa64f6874fb7213776b24c40bc915451b57ef7f17ad7b982561f99f7cdc7010d141b856a092ee169c5405323895e1962c6b0d7c101120d360164c9e4b3997bdac',
+            );
+        }).to.throw(
+            'Error decoding address "41047fa64f6874fb7213776b24c40bc915451b57ef7f17ad7b982561f99f7cdc7010d141b856a092ee169c5405323895e1962c6b0d7c101120d360164c9e4b3997bdac": ValidationError: Invalid value: 1.',
+        );
+    });
+
     it('Script.ops', () => {
         const script = new Script(fromHex('00ac4e04000000cafeb0ba6302765468'));
         const ops = script.ops();

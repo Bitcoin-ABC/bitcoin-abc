@@ -99,3 +99,4 @@ console.log(toHex(rawTx));
 -   0.1.1 - Validation that feePerKb is an integer
 -   0.1.2 - Upgrade dependencies [D16373](https://reviews.bitcoinabc.org/D16373)
 -   0.1.3 - Export `slpAmount` function [D16379](https://reviews.bitcoinabc.org/D16379)
+-   0.2.0 - Add `Script.fromAddress` method to convert cashaddr addresses to `Script`
