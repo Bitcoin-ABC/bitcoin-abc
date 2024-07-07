@@ -911,6 +911,9 @@ static RPCHelpMan getblocktemplate() {
             static unsigned int nTransactionsUpdatedLast;
             const CTxMemPool &mempool = EnsureMemPool(node);
 
+            const Consensus::Params &consensusParams =
+                chainparams.GetConsensus();
+
             if (!lpval.isNull()) {
                 // Wait to respond until either the best block changes, OR a
                 // minute has passed and there are more transactions
@@ -939,7 +942,9 @@ static RPCHelpMan getblocktemplate() {
                                   std::chrono::minutes(1);
 
                     WAIT_LOCK(g_best_block_mutex, lock);
-                    while (g_best_block == hashWatchedChain && IsRPCRunning()) {
+                    while (g_best_block &&
+                           g_best_block->GetBlockHash() == hashWatchedChain &&
+                           IsRPCRunning()) {
                         if (g_best_block_cv.wait_until(lock, checktxtime) ==
                             std::cv_status::timeout) {
                             // Timeout: Check transactions for update
@@ -951,6 +956,19 @@ static RPCHelpMan getblocktemplate() {
                             }
                             checktxtime += std::chrono::seconds(10);
                         }
+                    }
+
+                    if (node.avalanche && IsStakingRewardsActivated(
+                                              consensusParams, g_best_block)) {
+                        // At this point the staking reward winner might not be
+                        // computed yet. Make sure we don't miss the staking
+                        // reward winner on first return of getblocktemplate
+                        // after a block is found when using longpoll.
+                        // Note that if the computation was done already this is
+                        // a no-op. It can only be done now because we're not
+                        // holding cs_main, which would cause a lock order issue
+                        // otherwise.
+                        node.avalanche->computeStakingReward(g_best_block);
                     }
                 }
                 ENTER_CRITICAL_SECTION(cs_main);
@@ -1042,8 +1060,6 @@ static RPCHelpMan getblocktemplate() {
             UniValue aux(UniValue::VOBJ);
 
             UniValue minerFundList(UniValue::VARR);
-            const Consensus::Params &consensusParams =
-                chainparams.GetConsensus();
             for (const auto &fundDestination :
                  GetMinerFundWhitelist(consensusParams)) {
                 minerFundList.push_back(

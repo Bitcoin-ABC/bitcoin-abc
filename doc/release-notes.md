@@ -14,3 +14,5 @@ This release includes the following features and fixes:
    includes any modified fees from prioritisetransaction. The
    `effective-includes` result lists the txids of transactions whose modified
    fees and sizes were used in the effective-feerate.
+ - Fix a data race that could prevent the staking reward winner from being
+   added to the block template when the longpoll feature is used.

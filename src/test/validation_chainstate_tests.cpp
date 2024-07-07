@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(validation_chainstate_resize_caches) {
 //! of what it does for the active chainstate.
 BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
-    BlockHash curr_tip = BlockHash{::g_best_block};
+    const CBlockIndex *curr_tip = ::g_best_block;
 
     // Mine 10 more blocks, putting at us height 110 where a valid assumeutxo
     // value can be found.
@@ -84,7 +84,7 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
     // Ensure our active chain is the snapshot chainstate.
     BOOST_CHECK(WITH_LOCK(::cs_main, return chainman.IsSnapshotActive()));
 
-    curr_tip = BlockHash{::g_best_block};
+    curr_tip = ::g_best_block;
 
     // Mine a new block on top of the activated snapshot chainstate.
     // Defined in TestChain100Setup.
@@ -94,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(chainstate_update_tip, TestChain100Setup) {
     // changed.
     BOOST_CHECK(::g_best_block != curr_tip);
 
-    curr_tip = BlockHash{::g_best_block};
+    curr_tip = ::g_best_block;
 
     BOOST_CHECK_EQUAL(chainman.GetAll().size(), 2);
 

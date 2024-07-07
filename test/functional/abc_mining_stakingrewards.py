@@ -5,22 +5,42 @@
 Tests for Bitcoin ABC mining with staking rewards
 """
 
+import threading
 import time
 from decimal import Decimal
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
-from test_framework.messages import XEC, AvalancheProofVoteResponse
+from test_framework.blocktools import create_block
+from test_framework.messages import XEC, AvalancheProofVoteResponse, CTxOut, msg_block
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_equal,
     assert_greater_than_or_equal,
     assert_raises_rpc_error,
+    get_rpc_proxy,
     uint256_hex,
 )
 
 QUORUM_NODE_COUNT = 16
 STAKING_REWARDS_COINBASE_RATIO_PERCENT = 10
+
+
+class LongpollThread(threading.Thread):
+
+    def __init__(self, node, longpollid):
+        threading.Thread.__init__(self)
+        self.longpollid = longpollid
+        # create a new connection to the node, we can't use the same
+        # connection from two threads
+        self.node = get_rpc_proxy(
+            node.url, 1, timeout=600, coveragedir=node.coverage_dir
+        )
+
+    def run(self):
+        self.longpoll_template = self.node.getblocktemplate(
+            {"longpollid": self.longpollid}
+        )
 
 
 class AbcMiningStakingRewardsTest(BitcoinTestFramework):
@@ -317,6 +337,65 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
                 ),
             },
         )
+
+        self.log.info("Check it works with longpoll")
+
+        mining_peer = quorum[0]
+
+        for _ in range(50):
+            block = create_block(tmpl=gbt)
+            staking_reward_amount = int(
+                block_reward * STAKING_REWARDS_COINBASE_RATIO_PERCENT // 100 * XEC
+            )
+            block.vtx[0].vout[0].nValue -= staking_reward_amount
+            block.vtx[0].vout.append(
+                CTxOut(
+                    staking_reward_amount,
+                    bytes.fromhex("76a914000000000000000000000000000000000000000088ac"),
+                )
+            )
+            block.vtx[0].rehash()
+            block.hashMerkleRoot = block.calc_merkle_root()
+            block.solve()
+
+            expected_tip = block.hash
+
+            msg = msg_block(block)
+
+            thr = LongpollThread(node, gbt["longpollid"])
+            thr.start()
+
+            mining_peer.send_message(msg)
+
+            thr.join(5)
+            assert not thr.is_alive()
+
+            assert_equal(thr.longpoll_template["previousblockhash"], expected_tip)
+            assert (
+                "stakingrewards" in thr.longpoll_template["coinbasetxn"]
+            ), thr.longpoll_template
+            assert_equal(
+                thr.longpoll_template["coinbasetxn"]["stakingrewards"],
+                {
+                    "payoutscript": {
+                        "asm": "OP_DUP OP_HASH160 0000000000000000000000000000000000000000 OP_EQUALVERIFY OP_CHECKSIG",
+                        "hex": "76a914000000000000000000000000000000000000000088ac",
+                        "reqSigs": 1,
+                        "type": "pubkeyhash",
+                        "addresses": [ADDRESS_ECREG_UNSPENDABLE],
+                    },
+                    "minimumvalue": Decimal(
+                        block_reward
+                        * STAKING_REWARDS_COINBASE_RATIO_PERCENT
+                        // 100
+                        * XEC
+                    ),
+                },
+            )
+
+            gbt = thr.longpoll_template
+
+        tiphash = node.getbestblockhash()
 
         proofids = []
         for i in range(1, QUORUM_NODE_COUNT):
