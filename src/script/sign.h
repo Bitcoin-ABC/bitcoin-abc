@@ -25,7 +25,7 @@ class SigningProvider;
 /** Interface for signature creators. */
 class BaseSignatureCreator {
 public:
-    virtual ~BaseSignatureCreator() {}
+    virtual ~BaseSignatureCreator() = default;
     virtual const BaseSignatureChecker &Checker() const = 0;
 
     /** Create a singular (non-script) signature. */
@@ -82,7 +82,7 @@ struct SignatureData {
     /// ScriptID of the missing redeemScript (if any)
     uint160 missing_redeem_script;
 
-    SignatureData() {}
+    SignatureData() = default;
     explicit SignatureData(const CScript &script) : scriptSig(script) {}
     void MergeSignatureData(SignatureData sigdata);
 };

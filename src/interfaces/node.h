@@ -58,7 +58,7 @@ struct BlockAndHeaderTipInfo {
 //! Top-level interface for a bitcoin node (bitcoind process).
 class Node {
 public:
-    virtual ~Node() {}
+    virtual ~Node() = default;
 
     //! Init logging.
     virtual void initLogging() = 0;

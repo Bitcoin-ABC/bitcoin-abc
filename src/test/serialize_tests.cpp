@@ -442,7 +442,7 @@ struct DifferentialIndexedItem {
         return os;
     }
 
-    DifferentialIndexedItem() {}
+    DifferentialIndexedItem() = default;
     DifferentialIndexedItem(uint32_t indexIn)
         : index(indexIn), text(ToString(index)) {}
 };

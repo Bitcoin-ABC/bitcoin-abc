@@ -107,7 +107,7 @@ ValidationSignals::ValidationSignals(
     : m_internals{
           std::make_unique<ValidationSignalsImpl>(std::move(task_runner))} {}
 
-ValidationSignals::~ValidationSignals() {}
+ValidationSignals::~ValidationSignals() = default;
 
 void ValidationSignals::FlushBackgroundCallbacks() {
     m_internals->m_task_runner->flush();

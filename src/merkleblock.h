@@ -172,7 +172,7 @@ public:
     CMerkleBlock(const CBlock &block, const std::set<TxId> &txids)
         : CMerkleBlock(block, nullptr, &txids) {}
 
-    CMerkleBlock() {}
+    CMerkleBlock() = default;
 
     SERIALIZE_METHODS(CMerkleBlock, obj) { READWRITE(obj.header, obj.txn); }
 

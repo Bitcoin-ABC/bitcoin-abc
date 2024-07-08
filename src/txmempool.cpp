@@ -125,7 +125,7 @@ CTxMemPool::CTxMemPool(const Config &config, Options opts)
     _clear();
 }
 
-CTxMemPool::~CTxMemPool() {}
+CTxMemPool::~CTxMemPool() = default;
 
 bool CTxMemPool::isSpent(const COutPoint &outpoint) const {
     LOCK(cs);

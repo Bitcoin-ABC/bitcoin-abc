@@ -443,7 +443,7 @@ protected:
     }
 
 public:
-    CScript() {}
+    CScript() = default;
     CScript(const_iterator pbegin, const_iterator pend)
         : CScriptBase(pbegin, pend) {}
     CScript(std::vector<uint8_t>::const_iterator pbegin,

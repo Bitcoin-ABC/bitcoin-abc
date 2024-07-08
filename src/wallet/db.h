@@ -30,8 +30,8 @@ private:
     virtual bool HasKey(DataStream &&key) = 0;
 
 public:
-    explicit DatabaseBatch() {}
-    virtual ~DatabaseBatch() {}
+    explicit DatabaseBatch() = default;
+    virtual ~DatabaseBatch() = default;
 
     DatabaseBatch(const DatabaseBatch &) = delete;
     DatabaseBatch &operator=(const DatabaseBatch &) = delete;
@@ -101,7 +101,7 @@ class WalletDatabase {
 public:
     /** Create dummy DB handle */
     WalletDatabase() : nUpdateCounter(0) {}
-    virtual ~WalletDatabase() {};
+    virtual ~WalletDatabase() = default;
 
     /** Open the database if it is not already opened. */
     virtual void Open() = 0;

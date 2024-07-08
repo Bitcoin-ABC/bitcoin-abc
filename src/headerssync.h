@@ -97,7 +97,7 @@ struct CompressedHeader {
 
 class HeadersSyncState {
 public:
-    ~HeadersSyncState() {}
+    ~HeadersSyncState() = default;
 
     enum class State {
         /**

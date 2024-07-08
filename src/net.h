@@ -298,7 +298,7 @@ public:
                                    bool &reject_message) = 0;
     virtual bool HasData() const = 0;
 
-    virtual ~TransportDeserializer() {}
+    virtual ~TransportDeserializer() = default;
 };
 
 class V1TransportDeserializer final : public TransportDeserializer {

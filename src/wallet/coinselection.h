@@ -89,7 +89,7 @@ struct OutputGroup {
     Amount long_term_fee = Amount::zero();
     CFeeRate m_long_term_feerate{Amount::zero()};
 
-    OutputGroup() {}
+    OutputGroup() = default;
     OutputGroup(const CFeeRate &effective_feerate,
                 const CFeeRate &long_term_feerate)
         : m_effective_feerate(effective_feerate),

@@ -61,7 +61,7 @@ using WalletValueMap = std::map<std::string, std::string>;
 //! Interface for accessing a wallet.
 class Wallet {
 public:
-    virtual ~Wallet() {}
+    virtual ~Wallet() = default;
 
     //! Encrypt wallet.
     virtual bool encryptWallet(const SecureString &wallet_passphrase) = 0;

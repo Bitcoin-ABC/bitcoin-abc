@@ -28,7 +28,7 @@ public:
                           TransactionRecord *rec, int unit);
 
 private:
-    TransactionDesc() {}
+    TransactionDesc() = default;
 
     static QString FormatTxStatus(const interfaces::WalletTx &wtx,
                                   const interfaces::WalletTxStatus &status,

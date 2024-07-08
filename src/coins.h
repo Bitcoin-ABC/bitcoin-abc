@@ -217,7 +217,7 @@ using CCoinsMapMemoryResource = CCoinsMap::allocator_type::ResourceType;
 class CCoinsViewCursor {
 public:
     CCoinsViewCursor(const BlockHash &hashBlockIn) : hashBlock(hashBlockIn) {}
-    virtual ~CCoinsViewCursor() {}
+    virtual ~CCoinsViewCursor() = default;
 
     virtual bool GetKey(COutPoint &key) const = 0;
     virtual bool GetValue(Coin &coin) const = 0;
@@ -328,7 +328,7 @@ public:
     virtual CCoinsViewCursor *Cursor() const;
 
     //! As we use CCoinsViews polymorphically, have a virtual destructor
-    virtual ~CCoinsView() {}
+    virtual ~CCoinsView() = default;
 
     //! Estimate database size (0 if not implemented)
     virtual size_t EstimateSize() const { return 0; }

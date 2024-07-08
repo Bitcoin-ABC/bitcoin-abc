@@ -12,15 +12,15 @@
 #include <string>
 
 struct FlatFilePos {
-    int nFile;
-    unsigned int nPos;
+    int nFile{-1};
+    unsigned int nPos{0};
 
     SERIALIZE_METHODS(FlatFilePos, obj) {
         READWRITE(VARINT_MODE(obj.nFile, VarIntMode::NONNEGATIVE_SIGNED),
                   VARINT(obj.nPos));
     }
 
-    FlatFilePos() : nFile(-1), nPos(0) {}
+    FlatFilePos() = default;
 
     FlatFilePos(int nFileIn, unsigned int nPosIn)
         : nFile(nFileIn), nPos(nPosIn) {}

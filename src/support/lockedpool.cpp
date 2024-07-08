@@ -52,7 +52,7 @@ Arena::Arena(void *base_in, size_t size_in, size_t alignment_in)
     chunks_free_end.emplace(base + size_in, it);
 }
 
-Arena::~Arena() {}
+Arena::~Arena() = default;
 
 void *Arena::alloc(size_t size) {
     // Round to next multiple of alignment

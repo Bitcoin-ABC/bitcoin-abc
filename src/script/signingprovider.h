@@ -19,7 +19,7 @@ struct KeyOriginInfo;
  */
 class SigningProvider {
 public:
-    virtual ~SigningProvider() {}
+    virtual ~SigningProvider() = default;
     virtual bool GetCScript(const CScriptID &scriptid, CScript &script) const {
         return false;
     }

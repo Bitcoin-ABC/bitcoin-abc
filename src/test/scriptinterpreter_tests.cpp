@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_SUITE(scriptinterpreter_tests)
 
 class DummySignatureChecker final : public BaseSignatureChecker {
 public:
-    DummySignatureChecker() {}
+    DummySignatureChecker() = default;
     bool CheckSig(const std::vector<uint8_t> &scriptSig,
                   const std::vector<uint8_t> &vchPubKey,
                   const CScript &scriptCode, uint32_t flags) const override {

@@ -135,7 +135,7 @@ public:
 //!   node (https://github.com/bitcoin/bitcoin/issues/11756)
 class Chain {
 public:
-    virtual ~Chain() {}
+    virtual ~Chain() = default;
 
     //! Get current chain height, not including genesis block (returns 0 if
     //! chain only contains genesis block, std::nullopt if chain does not
@@ -256,7 +256,7 @@ public:
     //! Chain notifications.
     class Notifications {
     public:
-        virtual ~Notifications() {}
+        virtual ~Notifications() = default;
         virtual void transactionAddedToMempool(const CTransactionRef &tx,
                                                uint64_t mempool_sequence) {}
         virtual void transactionRemovedFromMempool(const CTransactionRef &ptx,
@@ -331,7 +331,7 @@ public:
 //! monitoring and analysis in the future).
 class ChainClient {
 public:
-    virtual ~ChainClient() {}
+    virtual ~ChainClient() = default;
 
     //! Register rpcs.
     virtual void registerRpcs() = 0;

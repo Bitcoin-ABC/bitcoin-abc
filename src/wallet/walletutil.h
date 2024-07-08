@@ -108,7 +108,7 @@ public:
         SER_READ(obj, obj.DeserializeDescriptor(descriptor_str));
     }
 
-    WalletDescriptor() {}
+    WalletDescriptor() = default;
     WalletDescriptor(std::shared_ptr<Descriptor> descriptor_,
                      uint64_t creation_time_, int32_t range_start_,
                      int32_t range_end_, int32_t next_index_)

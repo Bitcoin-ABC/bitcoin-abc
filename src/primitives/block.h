@@ -119,7 +119,7 @@ struct CBlockLocator {
 
     std::vector<BlockHash> vHave;
 
-    CBlockLocator() {}
+    CBlockLocator() = default;
 
     explicit CBlockLocator(std::vector<BlockHash> &&vHaveIn)
         : vHave(std::move(vHaveIn)) {}

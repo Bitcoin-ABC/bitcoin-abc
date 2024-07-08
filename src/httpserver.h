@@ -126,7 +126,7 @@ public:
 class HTTPClosure {
 public:
     virtual void operator()() = 0;
-    virtual ~HTTPClosure() {}
+    virtual ~HTTPClosure() = default;
 };
 
 /**

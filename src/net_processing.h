@@ -98,7 +98,7 @@ public:
     make(CConnman &connman, AddrMan &addrman, BanMan *banman,
          ChainstateManager &chainman, CTxMemPool &pool,
          avalanche::Processor *const avalanche, Options opts);
-    virtual ~PeerManager() {}
+    virtual ~PeerManager() = default;
 
     /**
      * Attempt to manually fetch block from a given peer. We must already have

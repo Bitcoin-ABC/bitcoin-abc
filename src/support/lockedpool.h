@@ -18,7 +18,7 @@
  */
 class LockedPageAllocator {
 public:
-    virtual ~LockedPageAllocator() {}
+    virtual ~LockedPageAllocator() = default;
     /**
      * Allocate and lock memory pages.
      * If len is not a multiple of the system page size, it is rounded up.

@@ -21,7 +21,7 @@ namespace interfaces {
 //! the registration and prevent any future notifications.
 class Handler {
 public:
-    virtual ~Handler() {}
+    virtual ~Handler() = default;
 
     //! Disconnect the handler.
     virtual void disconnect() = 0;

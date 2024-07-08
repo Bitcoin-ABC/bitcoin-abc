@@ -170,7 +170,7 @@ public:
     TestNet(const ChainOptions &options);
 
 protected:
-    CChainParams() {}
+    CChainParams() = default;
 
     Consensus::Params consensus;
     CMessageHeader::MessageMagic diskMagic;

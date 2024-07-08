@@ -32,7 +32,7 @@ private:
 public:
     static constexpr size_t OUTPUT_SIZE = 32;
 
-    SHA3_256() {}
+    SHA3_256() = default;
     SHA3_256 &Write(Span<const uint8_t> data);
     SHA3_256 &Finalize(Span<uint8_t> output);
     SHA3_256 &Reset();

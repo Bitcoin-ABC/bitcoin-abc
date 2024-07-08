@@ -14,7 +14,7 @@
 #include <netbase.h>
 #include <primitives/block.h>
 
-CZMQNotificationInterface::CZMQNotificationInterface() : pcontext(nullptr) {}
+CZMQNotificationInterface::CZMQNotificationInterface() = default;
 
 CZMQNotificationInterface::~CZMQNotificationInterface() {
     Shutdown();
