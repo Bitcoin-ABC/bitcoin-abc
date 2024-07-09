@@ -49,8 +49,7 @@ export const sendXec = async (
     tokenInputs = [],
     isBurn = false,
 ) => {
-    // Prepare outputs for ecash-lib by applying correct types
-    // TODO refactor so this "prep" is not necessary (update ecash-lib to accept address input)
+    // Add change address to token dust change outputs, if present
     const outputs = [];
     for (const targetOutput of targetOutputs) {
         if ('script' in targetOutput) {
