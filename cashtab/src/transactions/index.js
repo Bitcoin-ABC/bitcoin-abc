@@ -35,7 +35,8 @@ const DUMMY_P2PKH = Script.p2pkh(
  * @param {array} targetOutputs
  * @param {number} satsPerKb integer, fee in satoshis per kb
  * @param {number} chaintipBlockheight
- * @param {array} tokenInputs
+ * @param {array} requiredInputs inputs that must be included in this tx
+ * e.g. token utxos for token txs, or p2sh scripts with lokadid for ecash-agora ad txs
  * @param {boolean} isBurn
  * @throws {error} if error building or broadcasting tx
  */
@@ -46,7 +47,7 @@ export const sendXec = async (
     targetOutputs,
     satsPerKb,
     chaintipBlockheight,
-    tokenInputs = [],
+    requiredInputs = [],
     isBurn = false,
 ) => {
     // Add change address to token dust change outputs, if present
@@ -95,78 +96,92 @@ export const sendXec = async (
     // These inputs are required for the tx if present, so there is no selection algorithm for them here
     const inputs = [];
     let inputSatoshis = 0;
-    for (const tokenInput of tokenInputs) {
-        const sk = wif.decode(wallet.paths.get(tokenInput.path).wif).privateKey;
+    for (const requiredInput of requiredInputs) {
+        const sk = wif.decode(
+            wallet.paths.get(requiredInput.path).wif,
+        ).privateKey;
         const pk = ecc.derivePubkey(sk);
         inputs.push({
             input: {
-                prevOut: tokenInput.outpoint,
+                prevOut: requiredInput.outpoint,
                 signData: {
-                    value: tokenInput.value,
+                    value: requiredInput.value,
                     // Cashtab inputs will always be p2pkh utxos
                     outputScript: Script.p2pkh(
-                        fromHex(wallet.paths.get(tokenInput.path).hash),
+                        fromHex(wallet.paths.get(requiredInput.path).hash),
                     ),
                 },
             },
             signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
         });
-        inputSatoshis += tokenInput.value;
+        inputSatoshis += requiredInput.value;
     }
 
-    // Add and sign required inputUtxos to create tx with specified targetOutputs
-    let txBuilder;
-    for (const utxo of spendableUtxos) {
-        const sk = wif.decode(wallet.paths.get(utxo.path).wif).privateKey;
-        const pk = ecc.derivePubkey(sk);
-        inputs.push({
-            input: {
-                prevOut: utxo.outpoint,
-                signData: {
-                    value: utxo.value,
-                    // Cashtab inputs will always be p2pkh utxos
-                    outputScript: Script.p2pkh(
-                        fromHex(wallet.paths.get(utxo.path).hash),
-                    ),
-                },
-            },
-            signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
-        });
-        inputSatoshis += utxo.value;
+    let needsAnotherUtxo = inputSatoshis <= satoshisToSend;
 
-        if (inputSatoshis > satoshisToSend) {
-            // If value of inputs exceeds value of outputs, we check to see if we also cover the fee
-            // Determine if you have enough inputs to cover this tx
-            // Initialize TransactionBuilder
-            txBuilder = new TxBuilder({
-                inputs,
-                outputs,
+    // Add and sign required inputUtxos to create tx with specified targetOutputs
+    for (const utxo of spendableUtxos) {
+        if (needsAnotherUtxo) {
+            // If inputSatoshis is less than or equal to satoshisToSend, we know we need
+            // to add another input
+            const sk = wif.decode(wallet.paths.get(utxo.path).wif).privateKey;
+            const pk = ecc.derivePubkey(sk);
+            inputs.push({
+                input: {
+                    prevOut: utxo.outpoint,
+                    signData: {
+                        value: utxo.value,
+                        // Cashtab inputs will always be p2pkh utxos
+                        outputScript: Script.p2pkh(
+                            fromHex(wallet.paths.get(utxo.path).hash),
+                        ),
+                    },
+                },
+                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
             });
-            let tx;
-            try {
-                tx = txBuilder.sign(ecc, satsPerKb, 546);
-            } catch (err) {
-                if (
-                    typeof err.message !== 'undefined' &&
-                    err.message.startsWith('Insufficient input value')
-                ) {
-                    // If we have insufficient funds to cover satoshisToSend + fee
-                    // we need to add another input
-                    continue;
-                }
-                // Throw any other error
-                throw err;
+            inputSatoshis += utxo.value;
+
+            needsAnotherUtxo = inputSatoshis <= satoshisToSend;
+
+            if (needsAnotherUtxo) {
+                // Do not bother trying to build and broadcast the tx unless
+                // we probably have enough inputSatoshis to cover satoshisToSend + fee
+                continue;
+            }
+        }
+
+        // If value of inputs exceeds value of outputs, we check to see if we also cover the fee
+
+        const txBuilder = new TxBuilder({
+            inputs,
+            outputs,
+        });
+        let tx;
+        try {
+            tx = txBuilder.sign(ecc, satsPerKb, 546);
+        } catch (err) {
+            if (
+                typeof err.message !== 'undefined' &&
+                err.message.startsWith('Insufficient input value')
+            ) {
+                // If we have insufficient funds to cover satoshisToSend + fee
+                // we need to add another input
+                needsAnotherUtxo = true;
+                continue;
             }
 
-            // Otherwise, broadcast the tx
-            const txSer = tx.ser();
-            const hex = toHex(txSer);
-            // Will throw error on node failing to broadcast tx
-            // e.g. 'txn-mempool-conflict (code 18)'
-            const response = await chronik.broadcastTx(hex, isBurn);
-
-            return { hex, response };
+            // Throw any other error
+            throw err;
         }
+
+        // Otherwise, broadcast the tx
+        const txSer = tx.ser();
+        const hex = toHex(txSer);
+        // Will throw error on node failing to broadcast tx
+        // e.g. 'txn-mempool-conflict (code 18)'
+        const response = await chronik.broadcastTx(hex, isBurn);
+
+        return { hex, response };
     }
     // If we go over all input utxos but do not have enough to send the tx, throw Insufficient funds error
     throw new Error('Insufficient funds');

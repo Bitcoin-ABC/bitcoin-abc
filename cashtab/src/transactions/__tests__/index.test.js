@@ -21,7 +21,7 @@ import {
     sendSlp,
 } from '../fixtures/vectors';
 import slpv1Vectors from 'slpv1/fixtures/vectors';
-import { walletWithTokensInNode } from 'transactions/fixtures/mocks';
+import { wallet, walletWithTokensInNode } from 'transactions/fixtures/mocks';
 import { Ecc, initWasm, Script, fromHex } from 'ecash-lib';
 
 describe('Cashtab functions that build and broadcast rawtxs', () => {
@@ -89,6 +89,147 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                 ).rejects.toThrow(msg);
             });
         });
+    });
+    it('We can build a tx to get the exact fee, then add another utxo if necessary', async () => {
+        /**
+         * We send 2000 satoshis with utxos of 1000, 1001, and 1000
+         * Expected behavior
+         * sendXec will build and attempt to broadcast the tx with total inputs of 2001 satoshis,
+         * as 2001 > 2000
+         * This will fail because tx fee is greater than 1 satoshi
+         * Cashtab will add another input and successfully broadcast the tx
+         */
+        const chronik = new MockChronikClient();
+        const hex =
+            '0200000003c31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef154680000000064417353fc52d6f47efffddf90656dcbd4313f476c292625e24c71660b7b075f36f2c163ff2c713ad8e593490cbbaa32b424c93671908731912de255327e394c65eb4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468010000006441ef045f01ba4b6dd75b470787de704c366ad8869369ae445f9fb744ee3ec220533324423ae6028e6fb72fbd3d7f6359eb9c1b35322ced7e2d263170a4092bebaa4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffffc31d0b990c5a707dca806648fe5036dbb3f9590b3e22e026392912edeef15468020000006441faa831725c8e38a909cbf3ba594360b2d51fd884397347f4c0ce0d1379096636db4126d7f9caf34f7480d3700ffbed062352ea7e0b2fac15f5a35df880b9154c4121031d4603bdc23aca9432f903e3cf5975a3f655cc3fa5057c61d00dfc1ca5dfd02dffffffff01d0070000000000001976a9144e532257c01b310b3b5c1fd947c79a72addf852388ac00000000';
+        const txid =
+            '73af2c7dcf70811ef6fa68c671673529289b1304e1cb3979f9792780f2b885ab';
+        chronik.setMock('broadcastTx', {
+            input: hex,
+            output: {
+                txid,
+            },
+        });
+        const walletWithEdgeCaseUtxos = {
+            ...wallet,
+            state: {
+                ...wallet.state,
+                nonSlpUtxos: [
+                    {
+                        outpoint: {
+                            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+                            outIdx: 0,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        value: 1000,
+                        network: 'XEC',
+                        path: 1899,
+                    },
+                    {
+                        outpoint: {
+                            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+                            outIdx: 1,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        value: 1001,
+                        network: 'XEC',
+                        path: 1899,
+                    },
+                    {
+                        outpoint: {
+                            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+                            outIdx: 2,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        value: 1000,
+                        network: 'XEC',
+                        path: 1899,
+                    },
+                ],
+            },
+        };
+        expect(
+            await sendXec(
+                chronik,
+                ecc,
+                walletWithEdgeCaseUtxos,
+                [
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                        ),
+
+                        value: 2000,
+                    },
+                ],
+                1000,
+                800000,
+            ),
+        ).toStrictEqual({ hex, response: { txid } });
+    });
+    it('We will throw expected insufficient funds error if we have enough utxos to cover target send amount but not enough to cover the fee', async () => {
+        /**
+         * We send 2000 satoshis with utxos of 1000, and 1001
+         * Expected behavior
+         * sendXec will build and attempt to broadcast the tx with total inputs of 2001 satoshis,
+         * as 2001 > 2000
+         * This will fail because tx fee is greater than 1 satoshi
+         * Cashtab will try to add another input, but no other inputs are available
+         * So we get insufficient funds error
+         */
+        const chronik = new MockChronikClient();
+
+        const walletWithEdgeCaseUtxos = {
+            ...wallet,
+            state: {
+                ...wallet.state,
+                nonSlpUtxos: [
+                    {
+                        outpoint: {
+                            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+                            outIdx: 0,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        value: 1000,
+                        network: 'XEC',
+                        path: 1899,
+                    },
+                    {
+                        outpoint: {
+                            txid: '6854f1eeed12293926e0223e0b59f9b3db3650fe486680ca7d705a0c990b1dc3',
+                            outIdx: 1,
+                        },
+                        blockHeight: -1,
+                        isCoinbase: false,
+                        value: 1001,
+                        network: 'XEC',
+                        path: 1899,
+                    },
+                ],
+            },
+        };
+        await expect(
+            sendXec(
+                chronik,
+                ecc,
+                walletWithEdgeCaseUtxos,
+                [
+                    {
+                        script: Script.fromAddress(
+                            'ecash:qp89xgjhcqdnzzemts0aj378nfe2mhu9yvxj9nhgg6',
+                        ),
+
+                        value: 2000,
+                    },
+                ],
+                1000,
+                800000,
+            ),
+        ).rejects.toThrow('Insufficient funds');
     });
     describe('Forming multisend targetOutputs', () => {
         // Unit test for each vector in fixtures for the getMultisendTargetOutputs case
