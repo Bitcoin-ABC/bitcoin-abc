@@ -160,7 +160,7 @@ source ~/.bashrc
 
 # Install npm v10.x and nodejs v20.x
 wget https://deb.nodesource.com/setup_20.x -O nodesetup.sh
-echo "f8fb478685fb916cc70858200595a4f087304bcde1e69aa713bf2eb41695afc1 nodesetup.sh" | sha256sum -c
+echo "17b8dec9ab416231386946f61bac5af396fa8ad50189b6abcfb2e8d775f72788 nodesetup.sh" | sha256sum -c
 chmod +x nodesetup.sh
 ./nodesetup.sh
 apt-get install -y nodejs
