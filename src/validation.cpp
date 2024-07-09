@@ -717,9 +717,23 @@ bool MemPoolAccept::PreChecks(ATMPArgs &args, Workspace &ws) {
 
     ws.m_vsize = ws.m_entry->GetTxVirtualSize();
 
-    // No individual transactions are allowed below minRelayTxFee and mempool
-    // min fee except from disconnected blocks and transactions in a package.
-    // Package transactions will be checked using package feerate later.
+    // No individual transactions are allowed below the min relay feerate except
+    // from disconnected blocks. This requirement, unlike CheckFeeRate, cannot
+    // be bypassed using m_package_feerates because, while a tx could be package
+    // CPFP'd when entering the mempool, we do not have a DoS-resistant method
+    // of ensuring the tx remains bumped. For example, the fee-bumping child
+    // could disappear due to a replacement.
+    if (!bypass_limits &&
+        ws.m_modified_fees <
+            m_pool.m_min_relay_feerate.GetFee(ws.m_ptx->GetTotalSize())) {
+        return state.Invalid(
+            TxValidationResult::TX_MEMPOOL_POLICY, "min relay fee not met",
+            strprintf("%d < %d", ws.m_modified_fees,
+                      m_pool.m_min_relay_feerate.GetFee(nSize)));
+    }
+    // No individual transactions are allowed below the mempool min feerate
+    // except from disconnected blocks and transactions in a package. Package
+    // transactions will be checked using package feerate later.
     if (!bypass_limits && !args.m_package_feerates &&
         !CheckFeeRate(nSize, ws.m_vsize, ws.m_modified_fees, state)) {
         return false;
@@ -898,6 +912,8 @@ bool MemPoolAccept::SubmitPackage(
             all_submitted = false;
             ws.m_state.Invalid(TxValidationResult::TX_MEMPOOL_POLICY,
                                "mempool full");
+            package_state.Invalid(PackageValidationResult::PCKG_TX,
+                                  "transaction failed");
             results.emplace(ws.m_ptx->GetId(),
                             MempoolAcceptResult::Failure(ws.m_state));
         }

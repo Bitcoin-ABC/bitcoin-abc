@@ -497,6 +497,38 @@ TestChain100Setup::PopulateMempool(FastRandomContext &det_rand,
     return mempool_transactions;
 }
 
+void TestChain100Setup::MockMempoolMinFee(const CFeeRate &target_feerate) {
+    LOCK2(cs_main, m_node.mempool->cs);
+    // Transactions in the mempool will affect the new minimum feerate.
+    assert(m_node.mempool->size() == 0);
+    // The target feerate cannot be too low...
+    // ...otherwise the transaction's feerate will need to be negative.
+    assert(target_feerate > MEMPOOL_FULL_FEE_INCREMENT);
+    // ...otherwise this is not meaningful. The feerate policy uses the maximum
+    // of both feerates.
+    assert(target_feerate > m_node.mempool->m_min_relay_feerate);
+
+    // Manually create an invalid transaction. Manually set the fee in the
+    // CTxMemPoolEntry to achieve the exact target feerate.
+    CMutableTransaction mtx = CMutableTransaction();
+    mtx.vin.push_back(CTxIn{COutPoint{TxId{g_insecure_rand_ctx.rand256()}, 0}});
+    mtx.vout.push_back(CTxOut(
+        1 * COIN, GetScriptForDestination(ScriptHash(CScript() << OP_TRUE))));
+    const auto tx{MakeTransactionRef(mtx)};
+    // The new mempool min feerate is equal to the removed package's feerate +
+    // incremental feerate.
+    const auto tx_fee =
+        target_feerate.GetFee(GetVirtualTransactionSize(*tx)) -
+        MEMPOOL_FULL_FEE_INCREMENT.GetFee(GetVirtualTransactionSize(*tx));
+    TestMemPoolEntryHelper entryHelper;
+    auto entry =
+        entryHelper.Fee(tx_fee).Time(0).Height(1).SigChecks(1).FromTx(tx);
+    m_node.mempool->addUnchecked(std::move(entry));
+
+    m_node.mempool->TrimToSize(0);
+    assert(m_node.mempool->GetMinFee() == target_feerate);
+}
+
 CTxMemPoolEntryRef
 TestMemPoolEntryHelper::FromTx(const CMutableTransaction &tx) const {
     return FromTx(MakeTransactionRef(tx));

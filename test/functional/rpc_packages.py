@@ -401,61 +401,6 @@ class RPCPackagesTest(BitcoinTestFramework):
         peer.wait_for_broadcast([tx["tx"].get_id() for tx in package_txns])
         self.generate(node, 1)
 
-    def test_submit_cpfp(self):
-        node = self.nodes[0]
-        peer = node.add_p2p_connection(P2PTxInvStore())
-
-        tx_poor = self.wallet.create_self_transfer(fee=0, fee_rate=0)
-        tx_rich = self.wallet.create_self_transfer(fee=DEFAULT_FEE)
-        package_txns = [tx_rich, tx_poor]
-        coins = [tx["new_utxo"] for tx in package_txns]
-        tx_child = self.wallet.create_self_transfer_multi(
-            utxos_to_spend=coins, fee_per_output=10000
-        )
-        package_txns.append(tx_child)
-
-        submitpackage_result = node.submitpackage([tx["hex"] for tx in package_txns])
-
-        rich_parent_result = submitpackage_result["tx-results"][tx_rich["txid"]]
-        poor_parent_result = submitpackage_result["tx-results"][tx_poor["txid"]]
-        child_result = submitpackage_result["tx-results"][tx_child["txid"]]
-        assert_equal(rich_parent_result["fees"]["base"], DEFAULT_FEE)
-        assert_equal(poor_parent_result["fees"]["base"], 0)
-        assert_equal(child_result["fees"]["base"], DEFAULT_FEE)
-        assert_fee_amount(
-            DEFAULT_FEE,
-            tx_rich["tx"].billable_size(),
-            rich_parent_result["fees"]["effective-feerate"],
-        )
-        assert_equal(
-            rich_parent_result["fees"]["effective-includes"], [tx_rich["txid"]]
-        )
-        # The "poor" parent and child's effective feerates are the same,
-        # composed of the child's fee divided by their combined vsize.
-        assert_fee_amount(
-            DEFAULT_FEE,
-            tx_poor["tx"].billable_size() + tx_child["tx"].billable_size(),
-            poor_parent_result["fees"]["effective-feerate"],
-        )
-        assert_fee_amount(
-            DEFAULT_FEE,
-            tx_poor["tx"].billable_size() + tx_child["tx"].billable_size(),
-            child_result["fees"]["effective-feerate"],
-        )
-        assert_equal(
-            [tx_poor["txid"], tx_child["txid"]],
-            poor_parent_result["fees"]["effective-includes"],
-        )
-        assert_equal(
-            [tx_poor["txid"], tx_child["txid"]],
-            child_result["fees"]["effective-includes"],
-        )
-
-        # The node will broadcast each transaction, still abiding by its peer's
-        # fee filter
-        peer.wait_for_broadcast([tx["txid"] for tx in package_txns])
-        self.generate(node, 1)
-
     def test_submitpackage(self):
         node = self.nodes[0]
 
@@ -465,9 +410,6 @@ class RPCPackagesTest(BitcoinTestFramework):
         for num_parents in [1, 2, 24]:
             self.test_submit_child_with_parents(num_parents, False)
             self.test_submit_child_with_parents(num_parents, True)
-
-        self.log.info("Submitpackage valid packages with CPFP")
-        self.test_submit_cpfp()
 
         self.log.info("Submitpackage only allows packages of 1 child with its parents")
         # Chain of 3 transactions has too many generations
