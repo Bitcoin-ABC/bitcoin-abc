@@ -158,7 +158,7 @@ export const sendXec = async (
         });
         let tx;
         try {
-            tx = txBuilder.sign(ecc, satsPerKb, 546);
+            tx = txBuilder.sign(ecc, satsPerKb, appConfig.dustSats);
         } catch (err) {
             if (
                 typeof err.message !== 'undefined' &&
