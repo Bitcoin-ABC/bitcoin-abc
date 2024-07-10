@@ -35,10 +35,10 @@ export const wallets = [
         features: ['eTokens', 'Message Signing'],
     },
     {
-        name: 'ViaWallet',
-        text: 'Backed by CoinEx, ViaWallet is a multi-chain non-custodial mobile wallet that supports eCash (XEC). With ViaWallet you can send, receive and manage your XEC coins securely. ViaWallet is available for both Android & iOS devices.',
-        image: '/images/via-wallet.png',
-        link: 'https://viawallet.com/',
+        name: 'CoinEx Wallet',
+        text: 'CoinEx Wallet is a multi-chain non-custodial mobile wallet that supports eCash (XEC). With CoinEx Wallet you can send, receive and manage your XEC coins securely. CoinEx Wallet is available for both Android & iOS devices.',
+        image: '/images/coinex-wallet.png',
+        link: 'https://wallet.coinex.com/',
         availableOn: ['iOS', 'Android'],
     },
     {
