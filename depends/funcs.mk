@@ -176,7 +176,7 @@ endif
 # directory, which might be "lib64" or something else, not "lib", on multiarch systems.
 $(1)_cmake=env CC="$$($(1)_cc)" \
                CFLAGS="$$($(1)_cppflags) $$($(1)_cflags)" \
-               CXX="$$($(1)_xx)" \
+               CXX="$$($(1)_cxx)" \
                CXXFLAGS="$$($(1)_cppflags) $$($(1)_cxxflags)" \
                LDFLAGS="$$($(1)_ldflags)" \
                cmake -GNinja \
