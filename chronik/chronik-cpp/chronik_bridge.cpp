@@ -198,6 +198,18 @@ ChronikBridge::lookup_block_index(std::array<uint8_t, 32> hash) const {
     return *pindex;
 }
 
+const CBlockIndex &
+ChronikBridge::lookup_block_index_by_height(int height) const {
+    // The boundary check is performed in the CChain::operator[](int nHeight)
+    // method, a nullptr is returned if height is out of bounds.
+    const CBlockIndex *pindex =
+        WITH_LOCK(cs_main, return m_node.chainman->ActiveChain()[height]);
+    if (!pindex) {
+        throw block_index_not_found();
+    }
+    return *pindex;
+}
+
 std::unique_ptr<CBlock>
 ChronikBridge::load_block(const CBlockIndex &bindex) const {
     CBlock block;

@@ -18,6 +18,12 @@ message Blocks {
     repeated BlockInfo blocks = 1;
 }
 
+// Header on the blockchain
+message BlockHeader {
+    // Raw data
+    bytes raw_header = 1;
+}
+
 // Info about the state of the blockchain.
 message BlockchainInfo {
     // Hash (little-endian) of the current tip

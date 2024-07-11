@@ -59,6 +59,8 @@ public:
 
     const CBlockIndex &lookup_block_index(std::array<uint8_t, 32> hash) const;
 
+    const CBlockIndex &lookup_block_index_by_height(int height) const;
+
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
 
     std::unique_ptr<CBlockUndo>

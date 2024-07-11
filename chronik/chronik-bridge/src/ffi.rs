@@ -199,6 +199,13 @@ mod ffi_inner {
             hash: [u8; 32],
         ) -> Result<&CBlockIndex>;
 
+        /// Lookup the block index with the given height, or throw an error
+        /// if it couldn't be found.
+        fn lookup_block_index_by_height(
+            self: &ChronikBridge,
+            height: i32,
+        ) -> Result<&CBlockIndex>;
+
         /// Load the CBlock data of this CBlockIndex from the disk
         fn load_block(
             self: &ChronikBridge,
