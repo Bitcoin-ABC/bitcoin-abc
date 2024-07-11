@@ -80,6 +80,9 @@ static const std::string allNetMessageTypes[] = {
     NetMsgType::CMPCTBLOCK,  NetMsgType::GETBLOCKTXN,  NetMsgType::BLOCKTXN,
     NetMsgType::GETCFILTERS, NetMsgType::CFILTER,      NetMsgType::GETCFHEADERS,
     NetMsgType::CFHEADERS,   NetMsgType::GETCFCHECKPT, NetMsgType::CFCHECKPT,
+    NetMsgType::AVAHELLO,    NetMsgType::AVAPOLL,      NetMsgType::AVARESPONSE,
+    NetMsgType::AVAPROOF,    NetMsgType::GETAVAADDR,   NetMsgType::GETAVAPROOFS,
+    NetMsgType::AVAPROOFS,   NetMsgType::AVAPROOFSREQ,
 };
 static const std::vector<std::string>
     allNetMessageTypesVec(std::begin(allNetMessageTypes),
