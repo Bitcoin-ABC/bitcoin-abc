@@ -186,9 +186,7 @@ mod ffi_inner {
         );
 
         /// Make the bridge given the NodeContext
-        fn make_bridge(
-            node: &NodeContext,
-        ) -> UniquePtr<ChronikBridge>;
+        fn make_bridge(node: &NodeContext) -> UniquePtr<ChronikBridge>;
 
         /// Return the tip of the chain of the node.
         /// Returns hash=000...000, height=-1 if there's no block on the chain.
@@ -292,6 +290,9 @@ mod ffi_inner {
 
         /// Get a BlockInfo for this CBlockIndex.
         fn get_block_info(block_index: &CBlockIndex) -> BlockInfo;
+
+        /// Get the serialized block header for this CBlockIndex.
+        fn get_block_header(block_index: &CBlockIndex) -> [u8; 80];
 
         /// CBlockIndex::GetAncestor
         fn get_block_ancestor(

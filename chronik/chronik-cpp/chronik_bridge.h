@@ -91,6 +91,8 @@ Block bridge_block(const CBlock &block, const CBlockUndo &block_undo,
 
 BlockInfo get_block_info(const CBlockIndex &index);
 
+std::array<uint8_t, 80> get_block_header(const CBlockIndex &index);
+
 const CBlockIndex &get_block_ancestor(const CBlockIndex &index, int32_t height);
 
 rust::Vec<uint8_t> compress_script(rust::Slice<const uint8_t> script);

@@ -254,6 +254,22 @@ BOOST_FIXTURE_TEST_CASE(test_get_block_info, TestChain100Setup) {
     BOOST_CHECK(chronik_bridge::get_block_info(tip) == expected_tip_info);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_get_block_header, TestChain100Setup) {
+    LOCK(::cs_main);
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    const CBlockIndex &tip = *chainman.ActiveTip();
+
+    BOOST_CHECK_EQUAL(
+        HexStr(chronik_bridge::get_block_header(*tip.GetAncestor(0))),
+        "0100000000000000000000000000000000000000000000000000000000000000000000"
+        "003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5"
+        "494dffff7f2002000000");
+    BOOST_CHECK_EQUAL(HexStr(chronik_bridge::get_block_header(tip)),
+                      "00000020e0d8e43b1b228a5e07415ea057c06b3a8caf4e9d82c9af6c"
+                      "f04aa87229fa3e507c4ada19c5746e61699678baa1edc97f3258c613"
+                      "64d4f8614e6a0801896ee66773184d5fffff7f2000000000");
+}
+
 BOOST_FIXTURE_TEST_CASE(test_bridge_broadcast_tx, TestChain100Setup) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     const chronik_bridge::ChronikBridge bridge(m_node);
