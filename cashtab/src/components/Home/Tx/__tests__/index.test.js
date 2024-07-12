@@ -2335,7 +2335,8 @@ describe('<Tx />', () => {
 
         // We see expected explorer link generated
         expect(screen.getByText('Paywall Article')).toHaveAttribute(
-            'href', 'https://explorer.e.cash/tx/4d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4'
+            'href',
+            'https://www.ecashchat.com/?sharedArticleTxid=4d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4',
         );
     });
     it('Invalid paywall payment tx', async () => {
@@ -2348,8 +2349,7 @@ describe('<Tx />', () => {
                             outputs: [
                                 {
                                     ...paywallPaymentTx.tx.outputs[0],
-                                    outputScript:
-                                        '6a0470617977', // no data after the paywall lokad ID
+                                    outputScript: '6a0470617977', // no data after the paywall lokad ID
                                 },
                                 ...paywallPaymentTx.tx.outputs.slice(1),
                             ],
@@ -2380,8 +2380,6 @@ describe('<Tx />', () => {
         expect(screen.getByText('-')).toBeInTheDocument();
 
         // We see the invalid paywall tx description
-        expect(
-            screen.getByText('Invalid Paywall Payment'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('Invalid Paywall Payment')).toBeInTheDocument();
     });
 });

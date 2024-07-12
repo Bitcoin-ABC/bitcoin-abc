@@ -425,9 +425,7 @@ const Tx = ({
                             </IconAndLabel>
                             <AppDescMsg>
                                 <a
-                                    href={`${
-                                        explorer.blockExplorerUrl
-                                    }/tx/${Buffer.from(
+                                    href={`https://www.ecashchat.com/?sharedArticleTxid=${Buffer.from(
                                         stackArray[1],
                                         'hex',
                                     ).toString()}`}
@@ -591,16 +589,16 @@ const Tx = ({
             parsedTokenType !== 'NFT Collection'
                 ? xecTxType
                 : // Note the only type of SEND tx for NFT Collection that Cashtab supports is a fan-out tx
-                txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
-                ? 'Fan-out'
-                : txType === 'GENESIS' && parsedTokenType !== 'NFT'
-                ? 'Created'
-                : isUnintentionalBurn || txType === 'BURN'
-                ? 'Burned'
-                : txType === 'MINT' ||
-                  (txType === 'GENESIS' && parsedTokenType === 'NFT')
-                ? 'Minted'
-                : txType;
+                  txType !== 'GENESIS' && parsedTokenType === 'NFT Collection'
+                  ? 'Fan-out'
+                  : txType === 'GENESIS' && parsedTokenType !== 'NFT'
+                    ? 'Created'
+                    : isUnintentionalBurn || txType === 'BURN'
+                      ? 'Burned'
+                      : txType === 'MINT' ||
+                          (txType === 'GENESIS' && parsedTokenType === 'NFT')
+                        ? 'Minted'
+                        : txType;
         if (typeof cachedTokenInfo === 'undefined') {
             tokenActions.push(
                 <TokenAction tokenTxType={renderedTxType}>
@@ -669,9 +667,9 @@ const Tx = ({
                 renderedTxType === 'Received'
                     ? amountThisWallet
                     : renderedTxType === 'Created' ||
-                      renderedTxType === 'Minted'
-                    ? amountTotal
-                    : amountTotal - amountThisWallet;
+                        renderedTxType === 'Minted'
+                      ? amountTotal
+                      : amountTotal - amountThisWallet;
 
             const decimalizedAmount = decimalizeTokenAmount(
                 renderedTokenAmount.toString(),
