@@ -6,7 +6,6 @@
 #include <net_processing.h>
 
 #include <addrman.h>
-#include <avalanche/avalanche.h>
 #include <avalanche/compactproofs.h>
 #include <avalanche/peermanager.h>
 #include <avalanche/processor.h>
@@ -19,7 +18,6 @@
 #include <blockvalidity.h>
 #include <chain.h>
 #include <chainparams.h>
-#include <common/args.h>
 #include <config.h>
 #include <consensus/amount.h>
 #include <consensus/validation.h>
@@ -6012,13 +6010,12 @@ void PeerManagerImpl::ProcessMessage(
             return;
         }
         const auto now = Now<SteadyMilliseconds>();
-        const int64_t cooldown =
-            gArgs.GetIntArg("-avacooldown", AVALANCHE_DEFAULT_COOLDOWN);
 
         const auto last_poll = pfrom.m_last_poll;
         pfrom.m_last_poll = now;
 
-        if (now < last_poll + std::chrono::milliseconds(cooldown)) {
+        if (now <
+            last_poll + std::chrono::milliseconds(m_opts.avalanche_cooldown)) {
             LogPrint(BCLog::AVALANCHE,
                      "Ignoring repeated avapoll from peer %d: cooldown not "
                      "elapsed\n",
@@ -6058,8 +6055,7 @@ void PeerManagerImpl::ProcessMessage(
             // If inv's type is known, get a vote for its hash
             switch (inv.type) {
                 case MSG_TX: {
-                    if (gArgs.GetBoolArg("-avalanchepreconsensus",
-                                         DEFAULT_AVALANCHE_PRECONSENSUS)) {
+                    if (m_opts.avalanche_preconsensus) {
                         vote = WITH_LOCK(cs_main, return GetAvalancheVoteForTx(
                                                       TxId(inv.hash)));
                     }
@@ -6084,7 +6080,8 @@ void PeerManagerImpl::ProcessMessage(
 
         // Send the query to the node.
         m_avalanche->sendResponse(
-            &pfrom, avalanche::Response(round, cooldown, std::move(votes)));
+            &pfrom, avalanche::Response(round, m_opts.avalanche_cooldown,
+                                        std::move(votes)));
         return;
     }
 
@@ -6180,9 +6177,6 @@ void PeerManagerImpl::ProcessMessage(
 
         bool shouldActivateBestChain = false;
 
-        const bool fPreConsensus = gArgs.GetBoolArg(
-            "-avalanchepreconsensus", DEFAULT_AVALANCHE_PRECONSENSUS);
-
         for (const auto &u : updates) {
             const avalanche::AnyVoteItem &item = u.getVoteItem();
 
@@ -6222,10 +6216,8 @@ void PeerManagerImpl::ProcessMessage(
                         }
                         break;
                     case avalanche::VoteStatus::Finalized:
-                        nextCooldownTimePoint +=
-                            std::chrono::seconds(gArgs.GetIntArg(
-                                "-avalanchepeerreplacementcooldown",
-                                AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN));
+                        nextCooldownTimePoint += std::chrono::seconds(
+                            m_opts.avalanche_peer_replacement_cooldown);
                     case avalanche::VoteStatus::Accepted:
                         if (!m_avalanche->withPeerManager(
                                 [&](avalanche::PeerManager &pm) {
@@ -6285,7 +6277,7 @@ void PeerManagerImpl::ProcessMessage(
                             m_chainman.ActiveChainstate().UnparkBlock(pindex);
                         }
 
-                        if (fPreConsensus) {
+                        if (m_opts.avalanche_preconsensus) {
                             // First check if the block is cached before reading
                             // from disk.
                             auto pblock = WITH_LOCK(m_most_recent_block_mutex,
@@ -6318,7 +6310,7 @@ void PeerManagerImpl::ProcessMessage(
                 }
             }
 
-            if (!fPreConsensus) {
+            if (!m_opts.avalanche_preconsensus) {
                 continue;
             }
 

@@ -6,6 +6,7 @@
 #ifndef BITCOIN_NET_PROCESSING_H
 #define BITCOIN_NET_PROCESSING_H
 
+#include <avalanche/avalanche.h>
 #include <net.h>
 #include <sync.h>
 #include <validationinterface.h>
@@ -68,6 +69,15 @@ public:
         //! This can be modified for tests only. Changing it on main net may
         //! cause disconnections.
         size_t max_addr_to_send{MAX_ADDR_TO_SEND};
+
+        //! Minimum time between two AVAPOLL messages.
+        int64_t avalanche_cooldown{AVALANCHE_DEFAULT_COOLDOWN};
+        //! Minimum time before we will consider replacing a finalized proof
+        //! with a conflicting one.
+        int64_t avalanche_peer_replacement_cooldown{
+            AVALANCHE_DEFAULT_PEER_REPLACEMENT_COOLDOWN};
+        //! Whether this node has enabled avalanche preconsensus.
+        bool avalanche_preconsensus{DEFAULT_AVALANCHE_PRECONSENSUS};
     };
 
     static std::unique_ptr<PeerManager>

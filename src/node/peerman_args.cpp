@@ -31,6 +31,19 @@ void ApplyArgsManOptions(const ArgsManager &argsman,
     if (auto value{argsman.GetIntArg("-maxaddrtosend")}) {
         options.max_addr_to_send = size_t(std::max(int64_t{0}, *value));
     }
+
+    if (auto value{argsman.GetIntArg("-avacooldown")}) {
+        options.avalanche_cooldown = std::max(int64_t{0}, *value);
+    }
+
+    if (auto value{argsman.GetIntArg("-avalanchepeerreplacementcooldown")}) {
+        options.avalanche_peer_replacement_cooldown =
+            std::max(int64_t{0}, *value);
+    }
+
+    if (auto value{argsman.GetBoolArg("-avalanchepreconsensus")}) {
+        options.avalanche_preconsensus = *value;
+    }
 }
 
 } // namespace node
