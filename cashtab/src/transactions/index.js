@@ -92,29 +92,37 @@ export const sendXec = async (
     // Ignore immature coinbase utxos
     const spendableUtxos = ignoreUnspendableUtxos(utxos, chaintipBlockheight);
 
-    // Sign token inputs, if present
+    // Sign required inputs, if present
     // These inputs are required for the tx if present, so there is no selection algorithm for them here
     const inputs = [];
     let inputSatoshis = 0;
     for (const requiredInput of requiredInputs) {
-        const sk = wif.decode(
-            wallet.paths.get(requiredInput.path).wif,
-        ).privateKey;
-        const pk = ecc.derivePubkey(sk);
-        inputs.push({
-            input: {
-                prevOut: requiredInput.outpoint,
-                signData: {
-                    value: requiredInput.value,
-                    // Cashtab inputs will always be p2pkh utxos
-                    outputScript: Script.p2pkh(
-                        fromHex(wallet.paths.get(requiredInput.path).hash),
-                    ),
+        if (isFinalizedInput(requiredInput)) {
+            // If this input is already completely ready for ecash-lib
+            // i.e. it has a custom signatory from ecash-agora and does
+            // require a p2pkh signature
+            inputs.push(requiredInput);
+            inputSatoshis += requiredInput.input.signData.value;
+        } else {
+            const sk = wif.decode(
+                wallet.paths.get(requiredInput.path).wif,
+            ).privateKey;
+            const pk = ecc.derivePubkey(sk);
+            inputs.push({
+                input: {
+                    prevOut: requiredInput.outpoint,
+                    signData: {
+                        value: requiredInput.value,
+                        // Cashtab inputs will always be p2pkh utxos
+                        outputScript: Script.p2pkh(
+                            fromHex(wallet.paths.get(requiredInput.path).hash),
+                        ),
+                    },
                 },
-            },
-            signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
-        });
-        inputSatoshis += requiredInput.value;
+                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+            });
+            inputSatoshis += requiredInput.value;
+        }
     }
 
     let needsAnotherUtxo = inputSatoshis <= satoshisToSend;
@@ -300,4 +308,30 @@ export const ignoreUnspendableUtxos = (
                         COINBASE_REQUIRED_CONFS_TO_SPEND)
         );
     });
+};
+
+/**
+ * Check if a given input is finalized, i.e. already signed and ready for
+ * ecash-lib's TxBuilder.sign() method
+ *
+ * Note that we do not do full validation here. ecash-lib handles this.
+ *
+ * We are only looking to distinguish between
+ *
+ * 1) finalizedInput - an input required for a tx that does not require signing by the wallet's private key
+ * For now, this only happens with ecash-agora txs
+ * However it could also happen with other specially-prepared inputs going forward
+ *
+ * 2) normal cashtab input, how cashtab stores its utxos
+ * It's impractical for cashtab to "pre-sign" every utxo, so it makes sense that some kind of function
+ * would need to sign and prepare utxos for ecash-lib TxBuilder for normal txs
+ * @param {object} requiredInput
+ * @returns {boolean}
+ */
+export const isFinalizedInput = requiredInput => {
+    return (
+        'signatory' in requiredInput &&
+        'input' in requiredInput &&
+        'signData' in requiredInput.input
+    );
 };

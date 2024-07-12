@@ -686,3 +686,61 @@ export const sendSlp = {
         },
     ],
 };
+
+export default {
+    isFinalizedInput: {
+        expectedReturns: [
+            {
+                description: 'A finalized input',
+                requiredInput: {
+                    signatory: 'some signatory',
+                    input: { signData: 'some signData' },
+                },
+                returned: true,
+            },
+            {
+                description:
+                    'A normal Cashtab XEC utxo as stored in wallet.state.nonSlpUtxos',
+                requiredInput: {
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    isFinal: true,
+                    outpoint: {
+                        outIdx: 1,
+                        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                    },
+                    path: 1899,
+                    value: 10000,
+                },
+                returned: false,
+            },
+            {
+                description:
+                    'A normal Cashtab token utxo as stored in wallet.state.slpUtxos',
+                requiredInput: {
+                    blockHeight: 800000,
+                    isCoinbase: false,
+                    isFinal: true,
+                    outpoint: {
+                        outIdx: 1,
+                        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                    },
+                    path: 1899,
+                    token: {
+                        amount: '1000',
+                        isMintBaton: false,
+                        tokenId:
+                            '2222222222222222222222222222222222222222222222222222222222222222',
+                        tokenType: {
+                            number: 1,
+                            protocol: 'SLP',
+                            type: 'SLP_TOKEN_TYPE_FUNGIBLE',
+                        },
+                    },
+                    value: 546,
+                },
+                returned: false,
+            },
+        ],
+    },
+};

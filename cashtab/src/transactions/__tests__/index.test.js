@@ -7,6 +7,7 @@ import {
     getMultisendTargetOutputs,
     ignoreUnspendableUtxos,
     getMaxSendAmountSatoshis,
+    isFinalizedInput,
 } from 'transactions';
 import {
     getSendTokenInputs,
@@ -14,7 +15,7 @@ import {
     getSlpBurnTargetOutputs,
 } from 'slpv1';
 import { MockChronikClient } from '../../../../modules/mock-chronik-client';
-import {
+import vectors, {
     sendXecVectors,
     getMultisendTargetOutputsVectors,
     ignoreUnspendableUtxosVectors,
@@ -503,6 +504,15 @@ describe('Cashtab functions that build and broadcast rawtxs', () => {
                     SATOSHIS_PER_KB,
                 ),
             ).toStrictEqual(999630);
+        });
+    });
+    describe('We can tell whether or not a requiredInput needs a normal p2pkh signature from the wallet', () => {
+        const { expectedReturns } = vectors.isFinalizedInput;
+        expectedReturns.forEach(expectedReturn => {
+            const { description, requiredInput, returned } = expectedReturn;
+            it(`isFinalizedInput: ${description}`, () => {
+                expect(isFinalizedInput(requiredInput)).toBe(returned);
+            });
         });
     });
 });
