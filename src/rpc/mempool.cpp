@@ -784,7 +784,7 @@ static RPCHelpMan submitpackage() {
         "Submit a package of raw transactions (serialized, hex-encoded) to "
         "local node (-regtest only).\n"
         "The package will be validated according to consensus and mempool "
-        "policy rules. If all transactions pass, they will be accepted to "
+        "policy rules. If any transaction passes, it will be accepted to "
         "mempool.\n"
         "This RPC is experimental and the interface may be unstable. Refer to "
         "doc/policy/packages.md for documentation on package policies.\n"
@@ -811,6 +811,10 @@ static RPCHelpMan submitpackage() {
             "",
             "",
             {
+                {RPCResult::Type::STR, "package_msg",
+                 "The transaction package result message. \"success\" "
+                 "indicates all transactions were accepted into or are already "
+                 "in the mempool."},
                 {RPCResult::Type::OBJ_DYN,
                  "tx-results",
                  "transaction results keyed by txid",
@@ -818,10 +822,11 @@ static RPCHelpMan submitpackage() {
                    "txid",
                    "transaction txid",
                    {
-                       {RPCResult::Type::NUM, "vsize",
+                       {RPCResult::Type::NUM, "vsize", /*optional=*/true,
                         "Virtual transaction size."},
                        {RPCResult::Type::OBJ,
                         "fees",
+                        /*optional=*/true,
                         "Transaction fees",
                         {
                             {RPCResult::Type::STR_AMOUNT, "base",
@@ -841,6 +846,9 @@ static RPCHelpMan submitpackage() {
                                            "transaction txid in hex"},
                              }},
                         }},
+                       {RPCResult::Type::STR, "error", /*optional=*/true,
+                        "The transaction error string, if it was rejected by "
+                        "the mempool"},
                    }}}},
             },
         },
@@ -881,39 +889,48 @@ static RPCHelpMan submitpackage() {
                 ::cs_main, return ProcessNewPackage(chainstate, mempool, txns,
                                                     /*test_accept=*/false));
 
-            // First catch any errors.
+            std::string package_msg = "success";
+
+            // First catch package-wide errors, continue if we can
             switch (package_result.m_state.GetResult()) {
-                case PackageValidationResult::PCKG_RESULT_UNSET:
+                case PackageValidationResult::PCKG_RESULT_UNSET: {
+                    // Belt-and-suspenders check; everything should be
+                    // successful here
+                    CHECK_NONFATAL(package_result.m_tx_results.size() ==
+                                   txns.size());
+                    for (const auto &tx : txns) {
+                        CHECK_NONFATAL(mempool.exists(tx->GetId()));
+                    }
                     break;
-                case PackageValidationResult::PCKG_POLICY: {
-                    throw JSONRPCTransactionError(
-                        TransactionError::INVALID_PACKAGE,
-                        package_result.m_state.GetRejectReason());
                 }
                 case PackageValidationResult::PCKG_MEMPOOL_ERROR: {
+                    // This only happens with internal bug; user should stop and
+                    // report
                     throw JSONRPCTransactionError(
                         TransactionError::MEMPOOL_ERROR,
                         package_result.m_state.GetRejectReason());
                 }
+                case PackageValidationResult::PCKG_POLICY:
                 case PackageValidationResult::PCKG_TX: {
-                    for (const auto &tx : txns) {
-                        auto it = package_result.m_tx_results.find(tx->GetId());
-                        if (it != package_result.m_tx_results.end() &&
-                            it->second.m_state.IsInvalid()) {
-                            throw JSONRPCTransactionError(
-                                TransactionError::MEMPOOL_REJECTED,
-                                strprintf(
-                                    "%s failed: %s", tx->GetHash().ToString(),
-                                    it->second.m_state.GetRejectReason()));
-                        }
-                    }
-                    // If a PCKG_TX error was returned, there must have been an
-                    // invalid transaction.
-                    NONFATAL_UNREACHABLE();
+                    // Package-wide error we want to return, but we also want to
+                    // return individual responses
+                    package_msg = package_result.m_state.GetRejectReason();
+                    CHECK_NONFATAL(package_result.m_tx_results.size() ==
+                                       txns.size() ||
+                                   package_result.m_tx_results.empty());
+                    break;
                 }
             }
             size_t num_broadcast{0};
             for (const auto &tx : txns) {
+                // We don't want to re-submit the txn for validation in
+                // BroadcastTransaction
+                if (!mempool.exists(tx->GetId())) {
+                    continue;
+                }
+
+                // We do not expect an error here; we are only broadcasting
+                // things already/still in mempool
                 std::string err_string;
                 const auto err = BroadcastTransaction(
                     node, tx, err_string, /*max_tx_fee=*/Amount::zero(),
@@ -921,47 +938,57 @@ static RPCHelpMan submitpackage() {
                 if (err != TransactionError::OK) {
                     throw JSONRPCTransactionError(
                         err,
-                        strprintf("transaction broadcast failed: %s (all "
-                                  "transactions were submitted, %d "
+                        strprintf("transaction broadcast failed: %s (%d "
                                   "transactions were broadcast successfully)",
                                   err_string, num_broadcast));
                 }
                 num_broadcast++;
             }
+
             UniValue rpc_result{UniValue::VOBJ};
+            rpc_result.pushKV("package_msg", package_msg);
             UniValue tx_result_map{UniValue::VOBJ};
             for (const auto &tx : txns) {
-                auto it = package_result.m_tx_results.find(tx->GetId());
-                CHECK_NONFATAL(it != package_result.m_tx_results.end());
                 UniValue result_inner{UniValue::VOBJ};
+                auto it = package_result.m_tx_results.find(tx->GetId());
+                if (it == package_result.m_tx_results.end()) {
+                    // No results, report error and continue
+                    result_inner.pushKV("error", "unevaluated");
+                    continue;
+                }
                 const auto &tx_result = it->second;
-                if (it->second.m_result_type ==
-                        MempoolAcceptResult::ResultType::VALID ||
-                    it->second.m_result_type ==
-                        MempoolAcceptResult::ResultType::MEMPOOL_ENTRY) {
-                    result_inner.pushKV("vsize",
-                                        int64_t{it->second.m_vsize.value()});
-                    UniValue fees(UniValue::VOBJ);
-                    fees.pushKV("base", it->second.m_base_fees.value());
-                    if (tx_result.m_result_type ==
-                        MempoolAcceptResult::ResultType::VALID) {
-                        // Effective feerate is not provided for MEMPOOL_ENTRY
-                        // (already in mempool) transactions even though
-                        // modified fees is known, because it is unknown whether
-                        // package feerate was used when it was originally
-                        // submitted.
-                        fees.pushKV(
-                            "effective-feerate",
-                            tx_result.m_effective_feerate.value().GetFeePerK());
-                        UniValue effective_includes_res(UniValue::VARR);
-                        for (const auto &txid :
-                             tx_result.m_txids_fee_calculations.value()) {
-                            effective_includes_res.push_back(txid.ToString());
+                switch (it->second.m_result_type) {
+                    case MempoolAcceptResult::ResultType::INVALID:
+                        result_inner.pushKV("error",
+                                            it->second.m_state.ToString());
+                        break;
+                    case MempoolAcceptResult::ResultType::VALID:
+                    case MempoolAcceptResult::ResultType::MEMPOOL_ENTRY:
+                        result_inner.pushKV(
+                            "vsize", int64_t{it->second.m_vsize.value()});
+                        UniValue fees(UniValue::VOBJ);
+                        fees.pushKV("base", it->second.m_base_fees.value());
+                        if (tx_result.m_result_type ==
+                            MempoolAcceptResult::ResultType::VALID) {
+                            // Effective feerate is not provided for
+                            // MEMPOOL_ENTRY (already in mempool) transactions
+                            // even though modified fees is known, because it is
+                            // unknown whether package feerate was used when it
+                            // was originally submitted.
+                            fees.pushKV("effective-feerate",
+                                        tx_result.m_effective_feerate.value()
+                                            .GetFeePerK());
+                            UniValue effective_includes_res(UniValue::VARR);
+                            for (const auto &txid :
+                                 tx_result.m_txids_fee_calculations.value()) {
+                                effective_includes_res.push_back(
+                                    txid.ToString());
+                            }
+                            fees.pushKV("effective-includes",
+                                        effective_includes_res);
                         }
-                        fees.pushKV("effective-includes",
-                                    effective_includes_res);
-                    }
-                    result_inner.pushKV("fees", fees);
+                        result_inner.pushKV("fees", fees);
+                        break;
                 }
                 tx_result_map.pushKV(tx->GetId().GetHex(), result_inner);
             }

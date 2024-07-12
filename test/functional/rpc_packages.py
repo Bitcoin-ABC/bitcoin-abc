@@ -11,7 +11,7 @@ from test_framework.messages import CTransaction, FromHex, ToHex
 from test_framework.p2p import P2PTxInvStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, assert_fee_amount, assert_raises_rpc_error
+from test_framework.util import assert_equal, assert_fee_amount
 from test_framework.wallet import DEFAULT_FEE, MiniWallet
 
 
@@ -380,6 +380,7 @@ class RPCPackagesTest(BitcoinTestFramework):
         )
 
         # Check that each result is present, with the correct size and fees
+        assert_equal(submitpackage_result["package_msg"], "success")
         for package_txn in package_txns:
             tx = package_txn["tx"]
             assert (txid := tx.get_id()) in submitpackage_result["tx-results"]
@@ -415,12 +416,32 @@ class RPCPackagesTest(BitcoinTestFramework):
 
         self.log.info("Submitpackage only allows packages of 1 child with its parents")
         # Chain of 3 transactions has too many generations
+        legacy_pool = node.getrawmempool()
         chain_hex = [
             t["hex"] for t in self.wallet.create_self_transfer_chain(chain_length=25)
         ]
-        assert_raises_rpc_error(
-            -25, "not-child-with-parents", node.submitpackage, chain_hex
+        res = node.submitpackage(chain_hex)
+        assert_equal(res["package_msg"], "package-not-child-with-parents")
+        assert_equal(legacy_pool, node.getrawmempool())
+
+        # Create a transaction chain such as only the parent gets accepted (by
+        # making the child's version non-standard). Make sure the parent does
+        # get broadcast.
+        self.log.info(
+            "If a package is partially submitted, transactions included in mempool get broadcast"
         )
+        peer = node.add_p2p_connection(P2PTxInvStore())
+        txs = self.wallet.create_self_transfer_chain(chain_length=2)
+        bad_child = FromHex(CTransaction(), txs[1]["hex"])
+        bad_child.nVersion = -1
+        hex_partial_acceptance = [txs[0]["hex"], bad_child.serialize().hex()]
+        res = node.submitpackage(hex_partial_acceptance)
+        assert_equal(res["package_msg"], "transaction failed")
+        first_txid = txs[0]["txid"]
+        assert "error" not in res["tx-results"][first_txid]
+        sec_txid = bad_child.get_id()
+        assert_equal(res["tx-results"][sec_txid]["error"], "version")
+        peer.wait_for_broadcast([first_txid])
 
 
 if __name__ == "__main__":
