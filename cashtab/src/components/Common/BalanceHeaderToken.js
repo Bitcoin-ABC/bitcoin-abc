@@ -25,7 +25,10 @@ const BalanceHeaderToken = ({
 }) => {
     return (
         <TokenBalance>
-            {formattedDecimalizedTokenBalance} {name} ({ticker})
+            {typeof formattedDecimalizedTokenBalance === 'string'
+                ? formattedDecimalizedTokenBalance
+                : ''}{' '}
+            {name} ({ticker})
         </TokenBalance>
     );
 };

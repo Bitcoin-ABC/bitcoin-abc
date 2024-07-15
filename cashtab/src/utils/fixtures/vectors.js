@@ -76,6 +76,12 @@ export default {
                 userLocale: 'ar',
                 returned: '1٬000',
             },
+            {
+                description: 'NFT group mint with no decimals and de-DE locale',
+                decimalizedTokenQty: '100',
+                userLocale: 'de-DE',
+                returned: '100',
+            },
         ],
     },
     toFormattedXec: {

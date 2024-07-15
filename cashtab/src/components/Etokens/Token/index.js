@@ -87,6 +87,7 @@ import {
     getChildNftsFromParent,
     getTokenGenesisInfo,
 } from 'chronik';
+import { InlineLoader } from 'components/Common/Spinner';
 
 const Token = () => {
     let navigate = useNavigate();
@@ -995,10 +996,14 @@ const Token = () => {
                             </>
                         ) : (
                             <BalanceHeaderToken
-                                formattedDecimalizedTokenBalance={decimalizedTokenQtyToLocaleFormat(
-                                    tokenBalance,
-                                    userLocale,
-                                )}
+                                formattedDecimalizedTokenBalance={
+                                    typeof tokenBalance === 'string'
+                                        ? decimalizedTokenQtyToLocaleFormat(
+                                              tokenBalance,
+                                              userLocale,
+                                          )
+                                        : null
+                                }
                                 ticker={tokenTicker}
                                 name={tokenName}
                             />
@@ -1100,9 +1105,14 @@ const Token = () => {
                                             Genesis Qty:
                                         </TokenStatsLabel>
                                         <TokenStatsCol>
-                                            {decimalizedTokenQtyToLocaleFormat(
-                                                genesisSupply,
-                                                userLocale,
+                                            {typeof genesisSupply ===
+                                            'string' ? (
+                                                decimalizedTokenQtyToLocaleFormat(
+                                                    genesisSupply,
+                                                    userLocale,
+                                                )
+                                            ) : (
+                                                <InlineLoader />
                                             )}
                                         </TokenStatsCol>
                                     </TokenStatsTableRow>
@@ -1114,19 +1124,21 @@ const Token = () => {
                                         </TokenStatsLabel>
                                         <TokenStatsCol>
                                             {typeof uncachedTokenInfo.circulatingSupply ===
-                                            'string'
-                                                ? `${decimalizedTokenQtyToLocaleFormat(
-                                                      uncachedTokenInfo.circulatingSupply,
-                                                      userLocale,
-                                                  )}${
-                                                      uncachedTokenInfo.mintBatons ===
-                                                      0
-                                                          ? ' (fixed)'
-                                                          : ' (var.)'
-                                                  }`
-                                                : uncachedTokenInfoError
-                                                ? 'Error fetching supply'
-                                                : 'Loading...'}
+                                            'string' ? (
+                                                `${decimalizedTokenQtyToLocaleFormat(
+                                                    uncachedTokenInfo.circulatingSupply,
+                                                    userLocale,
+                                                )}${
+                                                    uncachedTokenInfo.mintBatons ===
+                                                    0
+                                                        ? ' (fixed)'
+                                                        : ' (var.)'
+                                                }`
+                                            ) : uncachedTokenInfoError ? (
+                                                'Error fetching supply'
+                                            ) : (
+                                                <InlineLoader />
+                                            )}
                                         </TokenStatsCol>
                                     </TokenStatsTableRow>
                                 )}
