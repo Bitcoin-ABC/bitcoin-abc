@@ -69,8 +69,8 @@ export const sendXec = async (
 
     // Get the total amount of satoshis being sent in this tx
     const satoshisToSend = outputs.reduce(
-        (prevSatoshis, output) => prevSatoshis + output.value,
-        0,
+        (prevSatoshis, output) => prevSatoshis + BigInt(output.value),
+        0n,
     );
 
     if (satoshisToSend < appConfig.dustSats) {
@@ -95,14 +95,14 @@ export const sendXec = async (
     // Sign required inputs, if present
     // These inputs are required for the tx if present, so there is no selection algorithm for them here
     const inputs = [];
-    let inputSatoshis = 0;
+    let inputSatoshis = 0n;
     for (const requiredInput of requiredInputs) {
         if (isFinalizedInput(requiredInput)) {
             // If this input is already completely ready for ecash-lib
             // i.e. it has a custom signatory from ecash-agora and does
             // require a p2pkh signature
             inputs.push(requiredInput);
-            inputSatoshis += requiredInput.input.signData.value;
+            inputSatoshis += BigInt(requiredInput.input.signData.value);
         } else {
             const sk = wif.decode(
                 wallet.paths.get(requiredInput.path).wif,
@@ -121,7 +121,7 @@ export const sendXec = async (
                 },
                 signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
             });
-            inputSatoshis += requiredInput.value;
+            inputSatoshis += BigInt(requiredInput.value);
         }
     }
 
@@ -147,7 +147,7 @@ export const sendXec = async (
                 },
                 signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
             });
-            inputSatoshis += utxo.value;
+            inputSatoshis += BigInt(utxo.value);
 
             needsAnotherUtxo = inputSatoshis <= satoshisToSend;
 
