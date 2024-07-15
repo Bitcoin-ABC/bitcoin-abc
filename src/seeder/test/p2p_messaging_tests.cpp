@@ -188,6 +188,16 @@ BOOST_AUTO_TEST_CASE(ban_too_many_headers) {
     BOOST_CHECK(testNode->GetBan() > 0);
 }
 
+BOOST_AUTO_TEST_CASE(empty_headers) {
+    // Check that an empty headers message does not cause issues
+    CDataStream zeroHeadersMessage(SER_NETWORK, 0);
+    zeroHeadersMessage.SetVersion(INIT_PROTO_VERSION);
+    WriteCompactSize(zeroHeadersMessage, 0);
+    testNode->TestProcessMessage(NetMsgType::HEADERS, zeroHeadersMessage,
+                                 PeerMessagingState::AwaitingMessages);
+    BOOST_CHECK_EQUAL(testNode->GetBan(), 0);
+}
+
 BOOST_FIXTURE_TEST_CASE(good_checkpoint, MainNetSeederTestingSetup) {
     BlockHash recentCheckpoint =
         ::Params().Checkpoints().mapCheckpoints.rbegin()->second;

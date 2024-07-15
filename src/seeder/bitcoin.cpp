@@ -126,6 +126,11 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
 
     if (strCommand == NetMsgType::HEADERS) {
         uint64_t nCount = ReadCompactSize(recv);
+        if (nCount == 0) {
+            // Empty HEADERS messages can be sent when the peer does not have
+            // enough chainwork.
+            return PeerMessagingState::AwaitingMessages;
+        }
         if (nCount > MAX_HEADERS_RESULTS) {
             ban = 100000;
             return PeerMessagingState::Finished;
@@ -138,7 +143,6 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
         // that the first header it will send will be the one just after
         // that checkpoint, as we claim to have the checkpoint as our starting
         // height in the version message.
-        std::cout << GetRequireHeight() << GetStartingHeight() << std::endl;
         if (!Params().Checkpoints().mapCheckpoints.empty() &&
             nStartingHeight > GetRequireHeight() &&
             header.hashPrevBlock !=
