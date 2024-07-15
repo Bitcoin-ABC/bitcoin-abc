@@ -38,6 +38,13 @@ static const int DISCOURAGEMENT_THRESHOLD{100};
 /** The maximum number of address records permitted in an ADDR message. */
 static constexpr size_t MAX_ADDR_TO_SEND{1000};
 
+/**
+ * Number of headers sent in one getheaders result. We rely on the assumption
+ * that if a peer sends less than this number, we reached its tip. Changing
+ * this value is a protocol upgrade.
+ */
+static const unsigned int MAX_HEADERS_RESULTS = 2000;
+
 struct CNodeStateStats {
     int nSyncHeight = -1;
     int nCommonHeight = -1;

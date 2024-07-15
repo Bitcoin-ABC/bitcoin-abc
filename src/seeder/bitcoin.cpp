@@ -8,6 +8,7 @@
 #include <clientversion.h>
 #include <common/args.h>
 #include <hash.h>
+#include <net_processing.h>
 #include <netbase.h>
 #include <primitives/blockhash.h>
 #include <seeder/db.h>
@@ -16,6 +17,7 @@
 #include <uint256.h>
 #include <util/sock.h>
 #include <util/time.h>
+#include <validation.h>
 
 #include <algorithm>
 
@@ -120,6 +122,37 @@ PeerMessagingState CSeederNode::ProcessMessage(std::string strCommand,
             }
         }
         return PeerMessagingState::AwaitingMessages;
+    }
+
+    if (strCommand == NetMsgType::HEADERS) {
+        uint64_t nCount = ReadCompactSize(recv);
+        if (nCount > MAX_HEADERS_RESULTS) {
+            ban = 100000;
+            return PeerMessagingState::Finished;
+        }
+
+        CBlockHeader header;
+        recv >> header;
+
+        // If the peer has a chain longer than our last checkpoint, we expect
+        // that the first header it will send will be the one just after
+        // that checkpoint, as we claim to have the checkpoint as our starting
+        // height in the version message.
+        std::cout << GetRequireHeight() << GetStartingHeight() << std::endl;
+        if (!Params().Checkpoints().mapCheckpoints.empty() &&
+            nStartingHeight > GetRequireHeight() &&
+            header.hashPrevBlock !=
+                Params().Checkpoints().mapCheckpoints.rbegin()->second) {
+            // This node is synced higher than the last checkpoint height but
+            // does not have the checkpoint block in its chain.
+            // This means it must be on the wrong chain. We treat these nodes
+            // the same as nodes with the wrong net magic.
+            // std::fprintf(stdout, "%s: BAD \"%s\" (wrong chain)\n",
+            //              ToString(you).c_str(), strSubVer.c_str());
+
+            ban = 100000;
+            return PeerMessagingState::Finished;
+        }
     }
 
     return PeerMessagingState::AwaitingMessages;
