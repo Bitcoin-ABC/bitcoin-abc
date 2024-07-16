@@ -774,7 +774,6 @@ class HeaderAndShortIDs:
         key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
         return [key0, key1]
 
-    # Version 2 compact blocks use wtxid in shortids (rather than txid)
     def initialize_from_block(self, block, nonce=0, prefill_list=None):
         if prefill_list is None:
             prefill_list = [0]
