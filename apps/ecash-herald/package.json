@@ -29,7 +29,7 @@
         "chronik-client": "file:../../modules/chronik-client",
         "ecash-script": "file:../../modules/ecash-script",
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
-        "node-telegram-bot-api": "^0.61.0"
+        "node-telegram-bot-api": "^0.66.0"
     },
     "devDependencies": {
         "@sinonjs/fake-timers": "^11.2.2",
