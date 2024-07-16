@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:20-buster-slim
 
 ARG PREVIEW_BUILD=next.config.js
 
