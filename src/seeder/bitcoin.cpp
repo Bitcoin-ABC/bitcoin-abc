@@ -225,10 +225,7 @@ bool CSeederNode::ProcessMessages() {
 }
 
 CSeederNode::CSeederNode(const CService &ip, std::vector<CAddress> *vAddrIn)
-    : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), nHeaderStart(-1),
-      nMessageStart(-1), nVersion(0), vAddr(vAddrIn), ban(0),
-      doneAfter(NodeSeconds{0s}), you(ip),
-      yourServices(ServiceFlags(NODE_NETWORK)) {
+    : vSend(SER_NETWORK, 0), vRecv(SER_NETWORK, 0), vAddr(vAddrIn), you(ip) {
     if (GetTime() > 1329696000) {
         vSend.SetVersion(209);
         vRecv.SetVersion(209);
