@@ -897,10 +897,18 @@ private:
      * Handle a transaction whose result was not
      * MempoolAcceptResult::ResultType::VALID.
      *
-     * Updates m_txrequest, m_recent_rejects and m_orphanage.
+     * @param[in] maybe_add_extra_compact_tx Whether this tx should be added to
+     *                                       vExtraTxnForCompact. Set to false
+     *                                       if the tx has already been rejected
+     *                                       before, e.g. is an orphan, to avoid
+     *                                       adding duplicate entries.
+     *
+     * Updates m_txrequest, m_recent_rejects, m_orphanage and
+     * vExtraTxnForCompact.
      */
     void ProcessInvalidTx(NodeId nodeid, const CTransactionRef &tx,
-                          const TxValidationState &result)
+                          const TxValidationState &result,
+                          bool maybe_add_extra_compact_tx)
         EXCLUSIVE_LOCKS_REQUIRED(!m_peer_mutex, g_msgproc_mutex, cs_main);
 
     /**
@@ -3990,7 +3998,8 @@ void PeerManagerImpl::ProcessHeadersMessage(const Config &config, CNode &pfrom,
 
 void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
                                        const CTransactionRef &ptx,
-                                       const TxValidationState &state) {
+                                       const TxValidationState &state,
+                                       bool maybe_add_extra_compact_tx) {
     AssertLockNotHeld(m_peer_mutex);
     AssertLockHeld(g_msgproc_mutex);
     AssertLockHeld(cs_main);
@@ -4004,6 +4013,10 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
 
     m_recent_rejects.insert(ptx->GetId());
     m_txrequest.ForgetInvId(ptx->GetId());
+
+    if (maybe_add_extra_compact_tx && RecursiveDynamicUsage(*ptx) < 100000) {
+        AddToCompactExtraTransactions(ptx);
+    }
 
     MaybePunishNodeForTx(nodeid, state);
 
@@ -4066,7 +4079,8 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
                        state.GetResult() != TxValidationResult::TX_NO_MEMPOOL &&
                        state.GetResult() !=
                            TxValidationResult::TX_RESULT_UNSET)) {
-                ProcessInvalidTx(peer.m_id, porphanTx, state);
+                ProcessInvalidTx(peer.m_id, porphanTx, state,
+                                 /*maybe_add_extra_compact_tx=*/false);
             }
 
             return true;
@@ -5435,7 +5449,8 @@ void PeerManagerImpl::ProcessMessage(
             }
         }
         if (state.IsInvalid()) {
-            ProcessInvalidTx(pfrom.GetId(), ptx, state);
+            ProcessInvalidTx(pfrom.GetId(), ptx, state,
+                             /*maybe_add_extra_compact_tx=*/true);
         }
         return;
     }

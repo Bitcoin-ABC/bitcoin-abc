@@ -9,7 +9,11 @@ Only testing Version 1 compact blocks (txids)
 
 import random
 
-from test_framework.blocktools import COINBASE_MATURITY, create_block
+from test_framework.blocktools import (
+    COINBASE_MATURITY,
+    create_block,
+    make_conform_to_ctor,
+)
 from test_framework.messages import (
     MSG_BLOCK,
     MSG_CMPCT_BLOCK,
@@ -473,6 +477,7 @@ class CompactBlocksTest(BitcoinTestFramework):
 
         def test_tip_after_message(node, peer, msg, tip):
             peer.send_and_ping(msg)
+            assert_equal(node.getbestblockhash(), uint256_hex(tip))
             assert_equal(int(node.getbestblockhash(), 16), tip)
 
         # First try announcing compactblocks that won't reconstruct, and verify
@@ -532,6 +537,29 @@ class CompactBlocksTest(BitcoinTestFramework):
         mempool = node.getrawmempool()
         for tx in block.vtx[1:]:
             assert tx.hash in mempool
+
+        # Attempt to add an extra transaction that will not make it into the
+        # mempool because it pays no fee
+        utxo = self.utxos.pop(0)
+        tx_no_fee = CTransaction()
+        tx_no_fee.vin.append(CTxIn(COutPoint(utxo[0], utxo[1]), b""))
+        tx_no_fee.vout.append(CTxOut(utxo[2], CScript([OP_TRUE])))
+        pad_tx(tx_no_fee)
+        tx_no_fee.rehash()
+
+        # Check this doesn't make it into the mempool. The tx should be cached
+        # into vExtraTxnForCompact and will not be requested when reconstructing
+        # the block.
+        with node.assert_debug_log(["min relay fee not met"]):
+            test_node.send_message(msg_tx(tx_no_fee))
+            test_node.sync_with_ping()
+        assert tx_no_fee.hash not in node.getrawmempool()
+
+        # Add this tx to the block
+        block.vtx.append(tx_no_fee)
+        make_conform_to_ctor(block)
+        block.hashMerkleRoot = block.calc_merkle_root()
+        block.solve()
 
         # Clear out last request.
         with p2p_lock:
