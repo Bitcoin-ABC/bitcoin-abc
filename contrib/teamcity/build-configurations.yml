@@ -795,6 +795,12 @@ builds:
       npm ci
       npm run build
 
+       # ecash-agora
+      echo "Installing ecash-agora dependencies..."
+      pushd "${TOPLEVEL}/modules/ecash-agora"
+      npm ci
+      npm run build
+
       pushd "${TOPLEVEL}/cashtab"
       npm ci
       npm run build

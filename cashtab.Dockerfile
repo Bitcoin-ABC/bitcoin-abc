@@ -55,6 +55,11 @@ WORKDIR /app/modules/ecash-lib
 RUN npm ci
 RUN npm run build
 
+# ecash-agora
+WORKDIR /app/modules/ecash-agora
+RUN npm ci
+RUN npm run build
+
 # ecash-script
 WORKDIR /app/modules/ecash-script
 COPY modules/ecash-script/ .
