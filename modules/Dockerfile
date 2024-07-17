@@ -5,6 +5,12 @@
 # Stage 1
 FROM node:20-buster-slim AS builder
 
+# Build ecashaddrjs, local dependency of chronik-client
+WORKDIR /app/ecashaddrjs
+COPY ecashaddrjs/ .
+RUN npm ci
+RUN npm run build
+
 # First, copy chronik-client and install its dependencies at the same relative path
 WORKDIR /app/chronik-client
 COPY chronik-client/ .
