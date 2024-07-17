@@ -114,9 +114,6 @@ public:
     }
 
     bool IsReliable() const {
-        if (ip.GetPort() != GetDefaultPort()) {
-            return false;
-        }
         if (!(services & NODE_NETWORK)) {
             return false;
         }

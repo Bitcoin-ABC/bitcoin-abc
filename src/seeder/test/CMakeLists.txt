@@ -12,6 +12,7 @@ add_boost_unit_tests_to_suite(seeder test-seeder
 	fixture.cpp
 
 	TESTS
+		db_tests.cpp
 		message_writer_tests.cpp
 		options_tests.cpp
 		p2p_messaging_tests.cpp
