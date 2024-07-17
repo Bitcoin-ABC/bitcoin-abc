@@ -614,3 +614,53 @@ export const getChildNftsFromParent = (
     }
     return childNftsFromThisParent;
 };
+
+/**
+ * Get all tx history of a lokad id
+ * In Cashtab, this is used to get NFT listings
+ * Tx history is paginated by chronik, so we need to get all the pages
+ * @param {ChronikClientNode} chronik
+ * @param {string} lokadId
+ * @param {number} pageSize usually 200, the chronik max, but accept a parameter to simplify unit testing
+ * @returns
+ */
+export const getAllTxHistoryByLokadId = async (
+    chronik,
+    lokadId,
+    pageSize = CHRONIK_MAX_PAGE_SIZE,
+) => {
+    // We will throw an error if we get an error from chronik fetch
+    const firstPageResponse = await chronik
+        .lokadId(lokadId)
+        // call with page=0 (to get first page) and max page size, as we want all the history
+        .history(0, pageSize);
+    const { txs, numPages } = firstPageResponse;
+    // Get tx history from all pages
+    // We start with i = 1 because we already have the data from page 0
+    const lokadHistoryPromises = [];
+    for (let i = 1; i < numPages; i += 1) {
+        lokadHistoryPromises.push(
+            new Promise((resolve, reject) => {
+                chronik
+                    .lokadId(lokadId)
+                    .history(i, pageSize)
+                    .then(
+                        result => {
+                            resolve(result.txs);
+                        },
+                        err => {
+                            reject(err);
+                        },
+                    );
+            }),
+        );
+    }
+    // Get rest of txHistory using Promise.all() to execute requests in parallel
+    const restOfTxHistory = await Promise.all(lokadHistoryPromises);
+    // Flatten so we have an array of tx objects, and not an array of arrays of tx objects
+    const flatTxHistory = restOfTxHistory.flat();
+    // Combine with the first page
+    const allHistory = txs.concat(flatTxHistory);
+
+    return allHistory;
+};
