@@ -948,3 +948,45 @@ export const getContactNameError = (name, contacts) => {
     }
     return false;
 };
+
+/**
+ * Validation for a user-input price for listing an NFT, in XEC or fiat
+ * @param {string} xecListPrice user input list price of an NFT in XEC or fiat
+ * @param {string} selectedCurrency e.g. XEC, USD (comes from Select dropdown)
+ * @param {number} fiatPrice price of XEC in selectedCurrency
+ */
+export const getXecListPriceError = (
+    xecListPrice,
+    selectedCurrency,
+    fiatPrice,
+) => {
+    if (xecListPrice === '') {
+        return 'List price is required.';
+    }
+    if (selectedCurrency !== 'XEC' && fiatPrice === null) {
+        // Should never happen as screen using this function sets selectedCurrency to XEC on fiatPrice becoming null
+        return `Cannot input price in ${selectedCurrency} while fiat price is unavailable.`;
+    }
+    if (!STRINGIFIED_DECIMALIZED_REGEX.test(xecListPrice)) {
+        // Must be a number (can't necessarily rely on Number input field to validate this)
+        return 'List price must be a number greater than 5.46 XEC.';
+    }
+    if (xecListPrice.includes('.')) {
+        if (xecListPrice.split('.')[1].length > appConfig.cashDecimals) {
+            return `List price supports up to ${appConfig.cashDecimals} decimal places.`;
+        }
+    }
+    const priceSatoshis =
+        selectedCurrency !== 'XEC'
+            ? toSatoshis(
+                  parseFloat((parseFloat(xecListPrice) / fiatPrice).toFixed(2)),
+              )
+            : toSatoshis(xecListPrice);
+    if (priceSatoshis < appConfig.dustSats) {
+        // We cannot enforce an output to have less than dust satoshis
+        return 'List price cannot be less than dust (5.46 XEC).';
+    }
+
+    // If we get here, there is no error in the XEC list price for this NFT
+    return false;
+};

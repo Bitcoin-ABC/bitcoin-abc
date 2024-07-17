@@ -32,6 +32,7 @@ import {
     getContactAddressError,
     getWalletNameError,
     TOKEN_DOCUMENT_URL_MAX_CHARACTERS,
+    getXecListPriceError,
 } from 'validation';
 import {
     validXecAirdropExclusionList,
@@ -536,6 +537,27 @@ describe('Cashtab validation functions', () => {
             const { description, name, wallets, returned } = expectedReturn;
             it(`getWalletNameError: ${description}`, () => {
                 expect(getWalletNameError(name, wallets)).toBe(returned);
+            });
+        });
+    });
+    describe('Gets error or false for list price input', () => {
+        const { expectedReturns } = vectors.getXecListPriceError;
+        expectedReturns.forEach(expectedReturn => {
+            const {
+                description,
+                xecListPrice,
+                selectedCurrency,
+                fiatPrice,
+                returned,
+            } = expectedReturn;
+            it(`getXecListPriceError: ${description}`, () => {
+                expect(
+                    getXecListPriceError(
+                        xecListPrice,
+                        selectedCurrency,
+                        fiatPrice,
+                    ),
+                ).toBe(returned);
             });
         });
     });

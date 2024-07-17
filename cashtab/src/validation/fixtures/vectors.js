@@ -2118,4 +2118,134 @@ export default {
             },
         ],
     },
+    getXecListPriceError: {
+        expectedReturns: [
+            {
+                description: 'Accepts dust if price is in XEC',
+                xecListPrice: '5.46',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects input of one satoshi less than dust if price is in XEC',
+                xecListPrice: '5.45',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: 'List price cannot be less than dust (5.46 XEC).',
+            },
+            {
+                description: 'Accepts dust if price is in fiat',
+                xecListPrice: '5.46',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                returned: false,
+            },
+            {
+                description:
+                    'Rejects input of one satoshi less than dust if price is in fiat',
+                xecListPrice: '5.45',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                returned: 'List price cannot be less than dust (5.46 XEC).',
+            },
+            {
+                description:
+                    'Accepts a price with 2-decimal places for XEC input',
+                xecListPrice: '111.12',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: false,
+            },
+            {
+                description:
+                    'Accepts a price with 2-decimal places for fiat input',
+                xecListPrice: '111.12',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                returned: false,
+            },
+            {
+                description:
+                    'Accepts a price with 0-decimal places but a decimal point anyway for XEC input',
+                xecListPrice: '111.',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: false,
+            },
+            {
+                description:
+                    'Accepts a price with 0-decimal places but a decimal point anyway for fiat input',
+                xecListPrice: '111.',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                returned: false,
+            },
+            {
+                description: `Rejects input of greater than ${appConfig.cashDecimals} decimal places for XEC input`,
+                xecListPrice: '111.123',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: `List price supports up to ${appConfig.cashDecimals} decimal places.`,
+            },
+            {
+                description: `Rejects input of greater than ${appConfig.cashDecimals} decimal places for fiat input`,
+                xecListPrice: '111.123',
+                selectedCurrency: 'USD',
+                fiatPrice: 1,
+                returned: `List price supports up to ${appConfig.cashDecimals} decimal places.`,
+            },
+            {
+                description: 'Rejects negative number for XEC input',
+                xecListPrice: '-33',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: 'List price must be a number greater than 5.46 XEC.',
+            },
+            {
+                description: 'Rejects negative number for fiat input',
+                xecListPrice: '-33',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                returned: 'List price must be a number greater than 5.46 XEC.',
+            },
+            {
+                description: 'Rejects non-number input for XEC',
+                xecListPrice: 'abc',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: 'List price must be a number greater than 5.46 XEC.',
+            },
+            {
+                description: 'Rejects non-number input for fiat',
+                xecListPrice: 'abc',
+                selectedCurrency: 'CAD',
+                fiatPrice: 1,
+                returned: 'List price must be a number greater than 5.46 XEC.',
+            },
+            {
+                description: 'Rejects empty input for XEC',
+                xecListPrice: '',
+                selectedCurrency: 'XEC',
+                fiatPrice: null,
+                returned: 'List price is required.',
+            },
+            {
+                description: 'Rejects empty input for fiat',
+                xecListPrice: '',
+                selectedCurrency: 'GBP',
+                fiatPrice: 1,
+                returned: 'List price is required.',
+            },
+            {
+                description: 'Rejects fiat input if fiatPrice is null',
+                xecListPrice: '100',
+                selectedCurrency: 'GBP',
+                fiatPrice: null,
+                returned:
+                    'Cannot input price in GBP while fiat price is unavailable.',
+            },
+        ],
+    },
 };
