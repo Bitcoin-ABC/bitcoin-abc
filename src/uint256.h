@@ -1,5 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2016 The Bitcoin Core developers
+// Copyright (c) 2009-present The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,12 +8,14 @@
 
 #include <crypto/common.h>
 #include <span.h>
+#include <util/strencodings.h>
 
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 #include <string>
 
 /** Template base class for fixed-sized opaque blobs. */
@@ -95,6 +97,9 @@ public:
     std::string GetHex() const;
 
     /**
+     * Unlike FromHex this accepts any invalid input, thus it is fragile
+     * and deprecated
+     *
      * - Hex numbers that don't specify enough bytes to fill the internal array
      *   will be treated as setting the beginning of it, which corresponds to
      *   the least significant bytes when converted to base_uint.
@@ -133,6 +138,23 @@ public:
     }
 };
 
+namespace detail {
+/**
+ * Writes the hex string (treated as little-endian) into a new uintN_t object
+ * and only returns a value iff all of the checks pass:
+ *   - Input length is uintN_t::size()*2
+ *   - All characters are hex
+ */
+template <class uintN_t> std::optional<uintN_t> FromHex(std::string_view str) {
+    if (uintN_t::size() * 2 != str.size() || !IsHex(str)) {
+        return std::nullopt;
+    }
+    uintN_t rv;
+    rv.SetHexDeprecated(str);
+    return rv;
+}
+} // namespace detail
+
 /**
  * 160-bit opaque blob.
  * @note This type is called uint160 for historical reasons only. It is an
@@ -140,6 +162,9 @@ public:
  */
 class uint160 : public base_blob<160> {
 public:
+    static std::optional<uint160> FromHex(std::string_view str) {
+        return detail::FromHex<uint160>(str);
+    }
     constexpr uint160() = default;
     constexpr explicit uint160(Span<const uint8_t> vch) : base_blob<160>(vch) {}
 };
@@ -152,6 +177,9 @@ public:
  */
 class uint256 : public base_blob<256> {
 public:
+    static std::optional<uint256> FromHex(std::string_view str) {
+        return detail::FromHex<uint256>(str);
+    }
     constexpr uint256() = default;
     constexpr explicit uint256(uint8_t v) : base_blob<256>(v) {}
     constexpr explicit uint256(Span<const uint8_t> vch) : base_blob<256>(vch) {}
@@ -160,6 +188,8 @@ public:
 };
 
 /**
+ * DEPRECATED. Unlike FromHex this accepts any invalid input, thus it is
+ * fragile and deprecated!
  * uint256 from std::string_view,  containing byte-reversed hex encoding.
  * This is not a uint256 constructor because of historical fears of uint256(0)
  * resolving to a NULL string and crashing.
