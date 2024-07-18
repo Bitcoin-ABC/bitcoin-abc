@@ -45,15 +45,6 @@ std::string ScriptToAsmStr(const CScript &script,
 [[nodiscard]] bool DecodeHexBlk(CBlock &, const std::string &strHexBlk);
 bool DecodeHexBlockHeader(CBlockHeader &, const std::string &hex_header);
 
-/**
- * Parse a hex string into 256 bits
- * @param[in] strHex a hex-formatted, 64-character string
- * @param[out] result the result of the parasing
- * @returns true if successful, false if not
- *
- * @see ParseHashV for an RPC-oriented version of this
- */
-bool ParseHashStr(const std::string &strHex, uint256 &result);
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName);
 SigHashType ParseSighashString(const UniValue &sighash);
 

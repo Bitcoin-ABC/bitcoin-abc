@@ -157,8 +157,7 @@ BOOST_AUTO_TEST_CASE(blockfilters_json_test) {
 
         size_t pos = 0;
         /*int block_height =*/test[pos++].getInt<int>();
-        uint256 block_hash;
-        BOOST_CHECK(ParseHashStr(test[pos++].get_str(), block_hash));
+        BOOST_CHECK(BlockHash::FromHex(test[pos++].get_str()));
 
         CBlock block;
         BOOST_REQUIRE(DecodeHexBlk(block, test[pos++].get_str()));
@@ -175,12 +174,11 @@ BOOST_AUTO_TEST_CASE(blockfilters_json_test) {
             tx_undo.vprevout.emplace_back(txout, 0, false);
         }
 
-        uint256 prev_filter_header_basic;
-        BOOST_CHECK(
-            ParseHashStr(test[pos++].get_str(), prev_filter_header_basic));
+        uint256 prev_filter_header_basic{
+            *Assert(uint256::FromHex(test[pos++].get_str()))};
         std::vector<uint8_t> filter_basic = ParseHex(test[pos++].get_str());
-        uint256 filter_header_basic;
-        BOOST_CHECK(ParseHashStr(test[pos++].get_str(), filter_header_basic));
+        uint256 filter_header_basic{
+            *Assert(uint256::FromHex(test[pos++].get_str()))};
 
         BlockFilter computed_filter_basic(BlockFilterType::BASIC, block,
                                           block_undo);

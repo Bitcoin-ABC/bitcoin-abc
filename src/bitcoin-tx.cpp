@@ -277,12 +277,10 @@ static void MutateTxAddInput(CMutableTransaction &tx,
     }
 
     // extract and validate TXID
-    uint256 hash;
-    if (!ParseHashStr(vStrInputParts[0], hash)) {
+    auto txid{TxId::FromHex(vStrInputParts[0])};
+    if (!txid) {
         throw std::runtime_error("invalid TX input txid");
     }
-
-    TxId txid(hash);
 
     static const unsigned int minTxOutSz = 9;
     static const unsigned int maxVout = MAX_TX_SIZE / minTxOutSz;
@@ -302,7 +300,7 @@ static void MutateTxAddInput(CMutableTransaction &tx,
     }
 
     // append to transaction input list
-    CTxIn txin(txid, vout, CScript(), nSequenceIn);
+    CTxIn txin(*txid, vout, CScript(), nSequenceIn);
     tx.vin.push_back(txin);
 }
 
@@ -631,20 +629,18 @@ static void MutateTxSign(CMutableTransaction &tx, const std::string &flagStr) {
             throw std::runtime_error("prevtxs internal object typecheck fail");
         }
 
-        uint256 hash;
-        if (!ParseHashStr(prevOut["txid"].get_str(), hash)) {
+        auto txid{TxId::FromHex(prevOut["txid"].get_str())};
+        if (!txid) {
             throw std::runtime_error("txid must be hexadecimal string (not '" +
                                      prevOut["txid"].get_str() + "')");
         }
-
-        TxId txid(hash);
 
         const int nOut = prevOut["vout"].getInt<int>();
         if (nOut < 0) {
             throw std::runtime_error("vout cannot be negative");
         }
 
-        COutPoint out(txid, nOut);
+        COutPoint out(*txid, nOut);
         std::vector<uint8_t> pkData(
             ParseHexUV(prevOut["scriptPubKey"], "scriptPubKey"));
         CScript scriptPubKey(pkData.begin(), pkData.end());

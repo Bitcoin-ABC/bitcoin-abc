@@ -203,12 +203,10 @@ static bool rest_headers(Config &config, const std::any &context,
     }
 
     const std::string &hashStr = path[1];
-    uint256 rawHash;
-    if (!ParseHashStr(hashStr, rawHash)) {
+    auto hash{BlockHash::FromHex(hashStr)};
+    if (!hash) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
     }
-
-    const BlockHash hash(rawHash);
 
     const CBlockIndex *tip = nullptr;
     std::vector<const CBlockIndex *> headers;
@@ -222,7 +220,7 @@ static bool rest_headers(Config &config, const std::any &context,
         LOCK(cs_main);
         CChain &active_chain = chainman.ActiveChain();
         tip = active_chain.Tip();
-        const CBlockIndex *pindex = chainman.m_blockman.LookupBlockIndex(hash);
+        const CBlockIndex *pindex{chainman.m_blockman.LookupBlockIndex(*hash)};
         while (pindex != nullptr && active_chain.Contains(pindex)) {
             headers.push_back(pindex);
             if (headers.size() == size_t(count)) {
@@ -284,12 +282,10 @@ static bool rest_block(const Config &config, const std::any &context,
     std::string hashStr;
     const RetFormat rf = ParseDataFormat(hashStr, strURIPart);
 
-    uint256 rawHash;
-    if (!ParseHashStr(hashStr, rawHash)) {
+    auto hash{BlockHash::FromHex(hashStr)};
+    if (!hash) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
     }
-
-    const BlockHash hash(rawHash);
 
     CBlock block;
     const CBlockIndex *pblockindex = nullptr;
@@ -302,7 +298,7 @@ static bool rest_block(const Config &config, const std::any &context,
     {
         LOCK(cs_main);
         tip = chainman.ActiveTip();
-        pblockindex = chainman.m_blockman.LookupBlockIndex(hash);
+        pblockindex = chainman.m_blockman.LookupBlockIndex(*hash);
         if (!pblockindex) {
             return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");
         }
@@ -462,13 +458,10 @@ static bool rest_tx(Config &config, const std::any &context, HTTPRequest *req,
     std::string hashStr;
     const RetFormat rf = ParseDataFormat(hashStr, strURIPart);
 
-    uint256 hash;
-    if (!ParseHashStr(hashStr, hash)) {
+    auto txid{TxId::FromHex(hashStr)};
+    if (!txid) {
         return RESTERR(req, HTTP_BAD_REQUEST, "Invalid hash: " + hashStr);
     }
-
-    const TxId txid(hash);
-
     if (g_txindex) {
         g_txindex->BlockUntilSyncedToCurrentChain();
     }
@@ -479,7 +472,7 @@ static bool rest_tx(Config &config, const std::any &context, HTTPRequest *req,
     }
     BlockHash hashBlock;
     const CTransactionRef tx =
-        GetTransaction(/* block_index */ nullptr, node->mempool.get(), txid,
+        GetTransaction(/* block_index */ nullptr, node->mempool.get(), *txid,
                        hashBlock, node->chainman->m_blockman);
     if (!tx) {
         return RESTERR(req, HTTP_NOT_FOUND, hashStr + " not found");

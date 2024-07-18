@@ -244,15 +244,6 @@ bool DecodeHexBlk(CBlock &block, const std::string &strHexBlk) {
     return true;
 }
 
-bool ParseHashStr(const std::string &strHex, uint256 &result) {
-    if ((strHex.size() != 64) || !IsHex(strHex)) {
-        return false;
-    }
-
-    result.SetHexDeprecated(strHex);
-    return true;
-}
-
 std::vector<uint8_t> ParseHexUV(const UniValue &v, const std::string &strName) {
     std::string strHex;
     if (v.isStr()) {
