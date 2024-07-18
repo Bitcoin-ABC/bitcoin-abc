@@ -348,7 +348,7 @@ class PackageRelayTest(BitcoinTestFramework):
         with node.assert_debug_log(
             [
                 f'removed orphan tx {high_fee_child["txid"]}',
-                f"Erased 1 orphan tx from peer={package_sender_peer_id}",
+                f"Erased 1 orphan transaction(s) from peer={package_sender_peer_id}",
             ]
         ):
             package_sender.peer_disconnect()

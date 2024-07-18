@@ -47,8 +47,10 @@ bool TxOrphanage::AddTx(const CTransactionRef &tx, NodeId peer) {
         m_outpoint_to_orphan_it[txin.prevout].insert(ret.first);
     }
 
-    LogPrint(BCLog::TXPACKAGES, "stored orphan tx %s (mapsz %u outsz %u)\n",
-             txid.ToString(), m_orphans.size(), m_outpoint_to_orphan_it.size());
+    LogPrint(BCLog::TXPACKAGES,
+             "stored orphan tx %s, size: %u (mapsz %u outsz %u)\n",
+             txid.ToString(), sz, m_orphans.size(),
+             m_outpoint_to_orphan_it.size());
     return true;
 }
 
@@ -83,7 +85,14 @@ int TxOrphanage::EraseTxNoLock(const TxId &txid) {
         m_orphan_list[old_pos] = it_last;
         it_last->second.list_pos = old_pos;
     }
-    LogPrint(BCLog::TXPACKAGES, "   removed orphan tx %s \n", txid.ToString());
+
+    // Time spent in orphanage = difference between current and entry time.
+    // Entry time is equal to ORPHAN_TX_EXPIRE_TIME earlier than entry's expiry.
+    LogPrint(BCLog::TXPACKAGES, "   removed orphan tx %s after %ds\n",
+             txid.ToString(),
+             Ticks<std::chrono::seconds>(NodeClock::now() +
+                                         ORPHAN_TX_EXPIRE_TIME -
+                                         it->second.nTimeExpire));
     m_orphan_list.pop_back();
 
     m_orphans.erase(it);
@@ -98,15 +107,16 @@ void TxOrphanage::EraseForPeer(NodeId peer) {
     int nErased = 0;
     std::map<TxId, OrphanTx>::iterator iter = m_orphans.begin();
     while (iter != m_orphans.end()) {
-        std::map<TxId, OrphanTx>::iterator maybeErase =
-            iter++; // increment to avoid iterator becoming invalid
-        if (maybeErase->second.fromPeer == peer) {
-            nErased += EraseTxNoLock(maybeErase->second.tx->GetId());
+        // increment to avoid iterator becoming invalid after erasure
+        const auto &[txid, orphan] = *iter++;
+        if (orphan.fromPeer == peer) {
+            nErased += EraseTxNoLock(txid);
         }
     }
     if (nErased > 0) {
-        LogPrint(BCLog::TXPACKAGES, "Erased %d orphan tx from peer=%d\n",
-                 nErased, peer);
+        LogPrint(BCLog::TXPACKAGES,
+                 "Erased %d orphan transaction(s) from peer=%d\n", nErased,
+                 peer);
     }
 }
 
@@ -236,9 +246,10 @@ void TxOrphanage::EraseForBlock(const CBlock &block) {
         for (const auto &orphanId : vOrphanErase) {
             nErased += EraseTxNoLock(orphanId);
         }
-        LogPrint(BCLog::TXPACKAGES,
-                 "Erased %d orphan tx included or conflicted by block\n",
-                 nErased);
+        LogPrint(
+            BCLog::TXPACKAGES,
+            "Erased %d orphan transaction(s) included or conflicted by block\n",
+            nErased);
     }
 }
 
