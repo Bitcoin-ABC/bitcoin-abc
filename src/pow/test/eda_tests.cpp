@@ -8,6 +8,7 @@
 #include <chain.h>
 #include <chainparams.h>
 #include <config.h>
+#include <primitives/blockhash.h>
 #include <util/chaintype.h>
 
 #include <test/util/random.h>
@@ -113,31 +114,28 @@ BOOST_AUTO_TEST_CASE(get_next_work_upper_limit_actual) {
 BOOST_AUTO_TEST_CASE(CheckProofOfWork_test_negative_target) {
     const auto consensus =
         CreateChainParams(*m_node.args, ChainType::MAIN)->GetConsensus();
-    BlockHash hash;
     unsigned int nBits;
     nBits = UintToArith256(consensus.powLimit).GetCompact(true);
-    hash.SetHex("0x1");
+    BlockHash hash{uint256::ONE};
     BOOST_CHECK(!CheckProofOfWork(hash, nBits, consensus));
 }
 
 BOOST_AUTO_TEST_CASE(CheckProofOfWork_test_overflow_target) {
     const auto consensus =
         CreateChainParams(*m_node.args, ChainType::MAIN)->GetConsensus();
-    BlockHash hash;
     unsigned int nBits = ~0x00800000;
-    hash.SetHex("0x1");
+    BlockHash hash{uint256::ONE};
     BOOST_CHECK(!CheckProofOfWork(hash, nBits, consensus));
 }
 
 BOOST_AUTO_TEST_CASE(CheckProofOfWork_test_too_easy_target) {
     const auto consensus =
         CreateChainParams(*m_node.args, ChainType::MAIN)->GetConsensus();
-    BlockHash hash;
     unsigned int nBits;
     arith_uint256 nBits_arith = UintToArith256(consensus.powLimit);
     nBits_arith *= 2;
     nBits = nBits_arith.GetCompact();
-    hash.SetHex("0x1");
+    BlockHash hash{uint256::ONE};
     BOOST_CHECK(!CheckProofOfWork(hash, nBits, consensus));
 }
 
