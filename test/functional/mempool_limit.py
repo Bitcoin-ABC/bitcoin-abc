@@ -27,6 +27,7 @@ class MempoolLimitTest(BitcoinTestFramework):
                 "-acceptnonstdtxn=1",
                 "-maxmempool=5",
                 "-spendzeroconfchange=0",
+                "-whitelist=noban@127.0.0.1",
             ]
         ]
         self.supports_cli = False
