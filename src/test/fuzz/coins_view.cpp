@@ -125,6 +125,7 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
             [&] {
                 CoinsCachePair sentinel{};
                 sentinel.second.SelfRef(sentinel);
+                size_t usage{0};
                 CCoinsMapMemoryResource resource;
                 CCoinsMap coins_map{
                     0, SaltedOutpointHasher{/*deterministic=*/true},
@@ -148,11 +149,14 @@ FUZZ_TARGET_INIT(coins_view, initialize_coins_view) {
                                          std::move(coins_cache_entry))
                                 .first};
                     it->second.AddFlags(flags, *it, sentinel);
+                    usage += it->second.coin.DynamicMemoryUsage();
                 }
                 bool expected_code_path = false;
                 try {
+                    auto cursor{CoinsViewCacheCursor(usage, sentinel, coins_map,
+                                                     /*will_erase=*/true)};
                     coins_view_cache.BatchWrite(
-                        coins_map,
+                        cursor,
                         fuzzed_data_provider.ConsumeBool()
                             ? BlockHash{ConsumeUInt256(fuzzed_data_provider)}
                             : coins_view_cache.GetBestBlock());

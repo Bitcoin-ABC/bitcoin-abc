@@ -227,6 +227,37 @@ private:
     BlockHash hashBlock;
 };
 
+/**
+ * Cursor for iterating over the linked list of flagged entries in
+ * CCoinsViewCache.
+ */
+struct CoinsViewCacheCursor {
+    CoinsViewCacheCursor(size_t &usage LIFETIMEBOUND,
+                         CoinsCachePair &sentinel LIFETIMEBOUND,
+                         CCoinsMap &map LIFETIMEBOUND, bool will_erase) noexcept
+        : m_usage(usage), m_sentinel(sentinel), m_map(map),
+          m_will_erase(will_erase) {}
+
+    inline CoinsCachePair *Begin() const noexcept {
+        return m_sentinel.second.Next();
+    }
+    inline CoinsCachePair *End() const noexcept { return &m_sentinel; }
+
+    inline CoinsCachePair *NextAndMaybeErase(CoinsCachePair &current) noexcept {
+        return current.second.Next();
+    }
+
+    inline bool WillErase(CoinsCachePair &current) const noexcept {
+        return m_will_erase;
+    }
+
+private:
+    [[maybe_unused]] size_t &m_usage;
+    CoinsCachePair &m_sentinel;
+    [[maybe_unused]] CCoinsMap &m_map;
+    bool m_will_erase;
+};
+
 /** Abstract view on the open txout dataset. */
 class CCoinsView {
 public:
@@ -251,9 +282,9 @@ public:
     virtual std::vector<BlockHash> GetHeadBlocks() const;
 
     //! Do a bulk modification (multiple Coin changes + BestBlock change).
-    //! The passed mapCoins can be modified.
-    virtual bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
-                            bool erase = true);
+    //! The passed cursor is used to iterate through the coins.
+    virtual bool BatchWrite(CoinsViewCacheCursor &cursor,
+                            const BlockHash &hashBlock);
 
     //! Get a cursor to iterate over the whole state
     virtual CCoinsViewCursor *Cursor() const;
@@ -277,8 +308,8 @@ public:
     BlockHash GetBestBlock() const override;
     std::vector<BlockHash> GetHeadBlocks() const override;
     void SetBackend(CCoinsView &viewIn);
-    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
-                    bool erase = true) override;
+    bool BatchWrite(CoinsViewCacheCursor &cursor,
+                    const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override;
     size_t EstimateSize() const override;
 };
@@ -320,8 +351,8 @@ public:
     bool HaveCoin(const COutPoint &outpoint) const override;
     BlockHash GetBestBlock() const override;
     void SetBestBlock(const BlockHash &hashBlock);
-    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
-                    bool erase = true) override;
+    bool BatchWrite(CoinsViewCacheCursor &cursor,
+                    const BlockHash &hashBlock) override;
     CCoinsViewCursor *Cursor() const override {
         throw std::logic_error(
             "CCoinsViewCache cursor iteration not supported.");

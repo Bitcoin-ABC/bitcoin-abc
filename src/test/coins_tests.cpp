@@ -55,10 +55,10 @@ public:
 
     BlockHash GetBestBlock() const override { return hashBestBlock_; }
 
-    bool BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
-                    bool erase = true) override {
-        for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();
-             it = erase ? mapCoins.erase(it) : std::next(it)) {
+    bool BatchWrite(CoinsViewCacheCursor &cursor,
+                    const BlockHash &hashBlock) override {
+        for (auto it{cursor.Begin()}; it != cursor.End();
+             it = cursor.NextAndMaybeErase(*it)) {
             if (it->second.IsDirty()) {
                 // Same optimization used in CCoinsViewDB is to only write dirty
                 // entries.
@@ -667,8 +667,10 @@ void WriteCoinViewEntry(CCoinsView &view, const Amount value, char flags) {
     sentinel.second.SelfRef(sentinel);
     CCoinsMapMemoryResource resource;
     CCoinsMap map{0, CCoinsMap::hasher{}, CCoinsMap::key_equal{}, &resource};
-    InsertCoinMapEntry(map, sentinel, value, flags);
-    BOOST_CHECK(view.BatchWrite(map, BlockHash()));
+    auto usage{InsertCoinMapEntry(map, sentinel, value, flags)};
+    auto cursor{
+        CoinsViewCacheCursor(usage, sentinel, map, /*will_erase=*/true)};
+    BOOST_CHECK(view.BatchWrite(cursor, BlockHash{}));
 }
 
 class SingleEntryCacheTest {

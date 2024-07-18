@@ -116,8 +116,8 @@ std::vector<BlockHash> CCoinsViewDB::GetHeadBlocks() const {
     return vhashHeadBlocks;
 }
 
-bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
-                              bool erase) {
+bool CCoinsViewDB::BatchWrite(CoinsViewCacheCursor &cursor,
+                              const BlockHash &hashBlock) {
     CDBBatch batch(*m_db);
     size_t count = 0;
     size_t changed = 0;
@@ -140,7 +140,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
     batch.Erase(DB_BEST_BLOCK);
     batch.Write(DB_HEAD_BLOCKS, Vector(hashBlock, old_tip));
 
-    for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end();) {
+    for (auto it{cursor.Begin()}; it != cursor.End();) {
         if (it->second.IsDirty()) {
             CoinEntry entry(&it->first);
             if (it->second.coin.IsSpent()) {
@@ -151,7 +151,7 @@ bool CCoinsViewDB::BatchWrite(CCoinsMap &mapCoins, const BlockHash &hashBlock,
             changed++;
         }
         count++;
-        it = erase ? mapCoins.erase(it) : std::next(it);
+        it = cursor.NextAndMaybeErase(*it);
         if (batch.SizeEstimate() > m_options.batch_write_bytes) {
             LogPrint(BCLog::COINDB, "Writing partial batch of %.2f MiB\n",
                      batch.SizeEstimate() * (1.0 / 1048576.0));

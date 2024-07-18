@@ -182,13 +182,13 @@ public:
     CCoinsViewCursor *Cursor() const final { return {}; }
     size_t EstimateSize() const final { return m_data.size(); }
 
-    bool BatchWrite(CCoinsMap &data, const BlockHash &, bool erase) final {
-        for (auto it = data.begin(); it != data.end();
-             it = erase ? data.erase(it) : std::next(it)) {
+    bool BatchWrite(CoinsViewCacheCursor &cursor, const BlockHash &) final {
+        for (auto it{cursor.Begin()}; it != cursor.End();
+             it = cursor.NextAndMaybeErase(*it)) {
             if (it->second.IsDirty()) {
                 if (it->second.coin.IsSpent() && (it->first.GetN() % 5) != 4) {
                     m_data.erase(it->first);
-                } else if (erase) {
+                } else if (cursor.WillErase(*it)) {
                     m_data[it->first] = std::move(it->second.coin);
                 } else {
                     m_data[it->first] = it->second.coin;
