@@ -16,6 +16,8 @@ import {
     clearLocalForage,
 } from 'components/App/fixtures/helpers';
 import CashtabTestWrapper from 'components/App/fixtures/CashtabTestWrapper';
+import userEvent from '@testing-library/user-event';
+import { token as tokenConfig } from 'config/token';
 
 // https://stackoverflow.com/questions/39830580/jest-test-fails-typeerror-window-matchmedia-is-not-a-function
 Object.defineProperty(window, 'matchMedia', {
@@ -131,12 +133,24 @@ describe('<Home />', () => {
             await screen.findByText('Error in chronik connection'),
         ).toBeInTheDocument();
     });
-    it('Renders backup warning and QR Code if user loads with a new wallet', async () => {
+    it('Renders backup warning, Airdrop button, and QR Code if user loads with a new wallet', async () => {
         // localforage defaults
         const mockedChronik = await initializeCashtabStateForTests(
             walletWithZeroBalanceZeroHistory,
             localforage,
         );
+        const address = walletWithZeroBalanceZeroHistory.Path1899.cashAddress;
+        // Mock successful claim rewards call
+        when(fetch)
+            .calledWith(`${tokenConfig.rewardsServerBaseUrl}/claim/${address}`)
+            .mockResolvedValue({
+                json: () =>
+                    Promise.resolve({
+                        address,
+                        msg: 'Success',
+                        txid: '1111111111111111111111111111111111111111111111111111111111111111',
+                    }),
+            });
         render(<CashtabTestWrapper chronik={mockedChronik} />);
 
         // Wait for the component to finish loading
@@ -153,7 +167,34 @@ describe('<Home />', () => {
         );
         await screen.findByText('Do not share your backup with anyone.');
 
+        // Airdrop button is present
+        const airdropButton = screen.getByRole('button', {
+            name: /Claim Airdrop/,
+        });
+
+        expect(airdropButton).toBeInTheDocument();
+
+        // Airdrop button is NOT disabled
+        expect(airdropButton).toHaveProperty('disabled', false);
+
         // Receive QR code is rendered
         expect(screen.getByTitle('Receive')).toBeInTheDocument();
+
+        // We can claim an airdrop on a new wallet
+        await userEvent.click(airdropButton);
+
+        // Airdrop button is disabled after clicking for claim
+        expect(airdropButton).toHaveProperty('disabled', true);
+
+        // We see a toast for the successful rewards claim
+        expect(
+            await screen.findByText(
+                'Airdrop claimed! Check "Rewards" menu option for more.',
+            ),
+        ).toBeInTheDocument();
+
+        // Note we cannot test that these options go away after the tx is received without
+        // regtest-integrated integration testing
+        // This test cannot see an incoming tx
     });
 });
