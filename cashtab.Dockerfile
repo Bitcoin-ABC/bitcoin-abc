@@ -57,6 +57,7 @@ RUN npm run build
 
 # ecash-agora
 WORKDIR /app/modules/ecash-agora
+COPY modules/ecash-agora/ .
 RUN npm ci
 RUN npm run build
 
