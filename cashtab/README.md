@@ -17,6 +17,7 @@ Note that some Cashtab dependencies are pulled locally from the monorepo. These 
 
 -   `ecash-lib-wasm` (dependency of `ecash-lib`)
 -   `ecash-lib`
+-   `ecash-agora`
 -   `ecashaddrjs`
 -   `ecash-script`
 -   `chronik-client`
@@ -122,10 +123,13 @@ A web app can request an extension user's active address. For an example impleme
 
 ## Docker deployment
 
+See `cashtab.Dockerfile` in the top level of the monorepo. To test this build locally, you must manually change `ARG NGINX_CONF=nginx.conf` to `ARG NGINX_CONF=nginx-preview.conf`.
+
+Then,
+
 ```
-npm install
-docker-compose build
-docker-compose up
+docker build -f cashtab.Dockerfile -t cashtab_local .
+docker run --rm -p 8080:80 --name cashtab cashtab_local
 ```
 
 Navigate to `localhost:8080` to see the app.
