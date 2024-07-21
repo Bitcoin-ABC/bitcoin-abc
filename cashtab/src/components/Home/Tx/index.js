@@ -447,6 +447,71 @@ const Tx = ({
                 }
                 break;
             }
+            case opReturn.appPrefixesHex.eCashChatArticle: {
+                if (typeof stackArray[1] !== 'undefined') {
+                    // If this is a reply to a blog post then index 2 is txid of article and index 3 is the reply
+                    if (
+                        stackArray[1] ===
+                        opReturn.appPrefixesHex.eCashChatArticleReply
+                    ) {
+                        if (stackArray.length === 4) {
+                            appActions.push(
+                                <>
+                                    <IconAndLabel>
+                                        <ChatIcon />
+                                        <AppDescLabel>
+                                            eCash Chat - Reply to
+                                            <a
+                                                href={`https://www.ecashchat.com/?sharedArticleTxid=${stackArray[2]}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                &nbsp;article
+                                            </a>
+                                        </AppDescLabel>
+                                    </IconAndLabel>
+                                    <AppDescMsg>
+                                        {Buffer.from(
+                                            stackArray[3],
+                                            'hex',
+                                        ).toString('utf8')}
+                                    </AppDescMsg>
+                                </>,
+                            );
+                        } else {
+                            appActions.push(
+                                <IconAndLabel>
+                                    <ChatIcon />
+                                    <AppDescLabel>
+                                        Invalid eCashChat Article Reply
+                                    </AppDescLabel>
+                                </IconAndLabel>,
+                            );
+                        }
+                    } else {
+                        appActions.push(
+                            <>
+                                <IconAndLabel>
+                                    <ChatIcon />
+                                    <AppDescLabel>
+                                        eCash Chat article created
+                                    </AppDescLabel>
+                                </IconAndLabel>
+                            </>,
+                        );
+                    }
+                } else {
+                    appActions.push(
+                        <IconAndLabel>
+                            <ChatIcon />
+                            <AppDescLabel>
+                                Invalid eCashChat Article
+                            </AppDescLabel>
+                        </IconAndLabel>,
+                    );
+                }
+                break;
+            }
             case opReturn.appPrefixesHex.cashtab: {
                 if (typeof stackArray[1] !== 'undefined') {
                     appActions.push(

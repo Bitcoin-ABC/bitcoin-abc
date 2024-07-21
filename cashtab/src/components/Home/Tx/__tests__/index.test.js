@@ -48,6 +48,8 @@ import {
     SlpParentGenesisTxMock,
     oneOutputReceivedTx,
     paywallPaymentTx,
+    eCashChatArticleTx,
+    eCashChatArticleReplyTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -2381,5 +2383,163 @@ describe('<Tx />', () => {
 
         // We see the invalid paywall tx description
         expect(screen.getByText('Invalid Paywall Payment')).toBeInTheDocument();
+    });
+    it('Sent eCashChat article reply tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={eCashChatArticleReplyTx.tx}
+                        hashes={[
+                            eCashChatArticleReplyTx.tx.outputs[2].outputScript,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the article reply description
+        expect(screen.getByText('eCash Chat - Reply to')).toBeInTheDocument();
+
+        // We see expected explorer link generated
+        expect(screen.getByText('article')).toHaveAttribute(
+            'href',
+            'https://www.ecashchat.com/?sharedArticleTxid=fc1bec473c0c8de408b8587ead6d31ad1d8854835c19947488fa7b30b7992267',
+        );
+    });
+    it('Invalid eCashChat article reply tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...eCashChatArticleReplyTx.tx,
+                            outputs: [
+                                {
+                                    ...eCashChatArticleReplyTx.tx.outputs[0],
+                                    outputScript: '6a04626c6f6704726c6f67', // no data after the article reply lokad ID i.e. stackArray !== 4
+                                },
+                                ...eCashChatArticleReplyTx.tx.outputs.slice(1),
+                            ],
+                        }}
+                        hashes={[
+                            eCashChatArticleReplyTx.tx.outputs[2].outputScript,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the invalid article tx description
+        expect(
+            screen.getByText('Invalid eCashChat Article Reply'),
+        ).toBeInTheDocument();
+    });
+    it('Sent eCashChat article tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={eCashChatArticleTx.tx}
+                        hashes={[eCashChatArticleTx.tx.outputs[2].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the article tx description
+        expect(
+            screen.getByText('eCash Chat article created'),
+        ).toBeInTheDocument();
+    });
+    it('Invalid eCashChat article tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={{
+                            ...eCashChatArticleTx.tx,
+                            outputs: [
+                                {
+                                    ...eCashChatArticleTx.tx.outputs[0],
+                                    outputScript: '6a04626c6f67', // no data after the article lokad ID
+                                },
+                                ...eCashChatArticleTx.tx.outputs.slice(1),
+                            ],
+                        }}
+                        hashes={[eCashChatArticleTx.tx.outputs[2].outputScript]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the Self Send icon
+        expect(screen.getByTitle('Self Send')).toBeInTheDocument();
+
+        // We see expected label
+        expect(screen.getByText(/Sent to self/)).toBeInTheDocument();
+
+        // We see the expected self-send amount
+        expect(screen.getByText('-')).toBeInTheDocument();
+
+        // We see the invalid article tx description
+        expect(
+            screen.getByText('Invalid eCashChat Article'),
+        ).toBeInTheDocument();
     });
 });
