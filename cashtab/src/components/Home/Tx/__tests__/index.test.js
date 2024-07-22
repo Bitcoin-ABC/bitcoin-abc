@@ -2334,7 +2334,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('-')).toBeInTheDocument();
 
         // We see the paywall description
-        expect(screen.getByText('Paywall Payment')).toBeInTheDocument();
+        expect(screen.getByText('Paywall payment')).toBeInTheDocument();
     });
     it('Invalid paywall payment tx', async () => {
         render(
@@ -2378,7 +2378,7 @@ describe('<Tx />', () => {
 
         // We see the invalid paywall tx description
         expect(
-            screen.getByText('Invalid eCashChat Paywall Payment'),
+            screen.getByText('Invalid eCashChat paywall payment'),
         ).toBeInTheDocument();
     });
 });

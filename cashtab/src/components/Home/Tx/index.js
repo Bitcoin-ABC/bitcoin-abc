@@ -423,7 +423,7 @@ const Tx = ({
                                 <PaywallPaymentIcon />
                                 <AppDescLabel>eCashChat</AppDescLabel>
                             </IconAndLabel>
-                            <AppDescMsg>Paywall Payment</AppDescMsg>
+                            <AppDescMsg>Paywall payment</AppDescMsg>
                         </>,
                     );
                 } else {
@@ -431,7 +431,7 @@ const Tx = ({
                         <IconAndLabel>
                             <PaywallPaymentIcon />
                             <AppDescLabel>
-                                Invalid eCashChat Paywall Payment
+                                Invalid eCashChat paywall payment
                             </AppDescLabel>
                         </IconAndLabel>,
                     );
