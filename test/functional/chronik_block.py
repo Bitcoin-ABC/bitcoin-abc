@@ -103,7 +103,6 @@ class ChronikBlockTest(BitcoinTestFramework):
             expected_proto_blocks.append(expected_proto)
             assert_equal(proto_block, expected_proto)
             assert_equal(proto_block, chronik.block(block_hashes[i]).ok())
-            block_hashes.append(proto_block.block_info.hash)
 
         # Using -chronikreindex results in the same data
         self.restart_node(0, ["-chronik", "-chronikreindex"])
