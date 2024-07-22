@@ -421,27 +421,18 @@ const Tx = ({
                         <>
                             <IconAndLabel>
                                 <PaywallPaymentIcon />
-                                <AppDescLabel>Paywall Payment</AppDescLabel>
+                                <AppDescLabel>eCashChat</AppDescLabel>
                             </IconAndLabel>
-                            <AppDescMsg>
-                                <a
-                                    href={`https://www.ecashchat.com/?sharedArticleTxid=${Buffer.from(
-                                        stackArray[1],
-                                        'hex',
-                                    ).toString()}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Paywall Article
-                                </a>
-                            </AppDescMsg>
+                            <AppDescMsg>Paywall Payment</AppDescMsg>
                         </>,
                     );
                 } else {
                     appActions.push(
                         <IconAndLabel>
                             <PaywallPaymentIcon />
-                            <AppDescLabel>Invalid Paywall Payment</AppDescLabel>
+                            <AppDescLabel>
+                                Invalid eCashChat Paywall Payment
+                            </AppDescLabel>
                         </IconAndLabel>,
                     );
                 }

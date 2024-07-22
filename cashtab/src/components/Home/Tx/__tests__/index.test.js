@@ -2321,6 +2321,9 @@ describe('<Tx />', () => {
         // We render the timestamp
         expect(screen.getByText('May 23, 2024, 14:33:47')).toBeInTheDocument();
 
+        // We see the tx label
+        expect(screen.getByText('eCashChat')).toBeInTheDocument();
+
         // We see the Self Send icon
         expect(screen.getByTitle('Self Send')).toBeInTheDocument();
 
@@ -2331,13 +2334,7 @@ describe('<Tx />', () => {
         expect(screen.getByText('-')).toBeInTheDocument();
 
         // We see the paywall description
-        expect(screen.getByText('Paywall Article')).toBeInTheDocument();
-
-        // We see expected explorer link generated
-        expect(screen.getByText('Paywall Article')).toHaveAttribute(
-            'href',
-            'https://www.ecashchat.com/?sharedArticleTxid=4d7a62ebb7f06fd7a86f861280853e6fce3c117c73598fe284190260abd5ddc4',
-        );
+        expect(screen.getByText('Paywall Payment')).toBeInTheDocument();
     });
     it('Invalid paywall payment tx', async () => {
         render(
@@ -2380,6 +2377,8 @@ describe('<Tx />', () => {
         expect(screen.getByText('-')).toBeInTheDocument();
 
         // We see the invalid paywall tx description
-        expect(screen.getByText('Invalid Paywall Payment')).toBeInTheDocument();
+        expect(
+            screen.getByText('Invalid eCashChat Paywall Payment'),
+        ).toBeInTheDocument();
     });
 });
