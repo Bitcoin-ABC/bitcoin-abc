@@ -46,13 +46,22 @@ const renderInput = data => {
     );
 };
 
+const escapeHtml = unsafe => {
+    return unsafe
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+};
+
 const renderOutput = (satsOutput, _type, row) => {
     if (row.token) {
         var ticker =
             '<a href="/tx/' +
             row.txHash +
             '" class="num-col-suffix" data-suffix=' +
-            row.token.tokenTicker +
+            escapeHtml(row.token.tokenTicker) +
             '></a>';
         return renderAmount(row.stats.tokenOutput, row.token.decimals) + ticker;
     }
