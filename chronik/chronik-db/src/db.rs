@@ -45,6 +45,8 @@ pub const CF_LOOKUP_BLK_BY_HASH: &str = "lookup_blk_by_hash";
 pub const CF_LOOKUP_TX_BY_HASH: &str = "lookup_tx_by_hash";
 /// Column family name for db metadata.
 pub const CF_META: &str = "meta";
+/// Column family to store plugin metadata.
+pub const CF_PLUGIN_META: &str = "plugin_meta";
 /// Column family to store tx history by script.
 pub const CF_SCRIPT_HISTORY: &str = "script_history";
 /// Column family to store number of txs by script.

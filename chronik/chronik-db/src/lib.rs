@@ -11,6 +11,7 @@ abc_rust_lint::lint! {
     pub mod io;
     pub mod mem;
     pub mod index_tx;
+    pub mod plugins;
     mod reverse_lookup;
     pub mod ser;
     #[cfg(test)]
