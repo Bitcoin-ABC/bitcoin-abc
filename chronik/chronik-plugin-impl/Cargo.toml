@@ -23,7 +23,7 @@ bytes = "1.6"
 convert_case = "0.6"
 
 # Rust bindings for the Python interpreter 
-pyo3 = { version = "0.20" }
+pyo3 = { version = "0.22" }
 
 # Serialize structs
 serde = { version = "1.0", features = ["derive"] }

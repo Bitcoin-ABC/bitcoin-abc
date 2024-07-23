@@ -4,6 +4,8 @@
 
 //! Module for [`Script`] and [`Op`] for plugins.
 
+#![allow(unsafe_code)]
+
 use bitcoinsuite_core::script;
 use pyo3::{exceptions::PyValueError, prelude::*, types::PyBytes};
 
@@ -38,7 +40,7 @@ impl Script {
 impl Script {
     /// Create a new [`Script`] from a `bytes` object.
     #[new]
-    pub fn __init__(bytes: &PyBytes) -> Self {
+    pub fn __init__(bytes: Bound<'_, PyBytes>) -> Self {
         Script::new(script::Script::new(bytes.as_bytes().to_vec().into()))
     }
 
@@ -54,8 +56,8 @@ impl Script {
     }
 
     /// The serialized bytecode of the Script
-    pub fn bytecode<'py>(&self, py: Python<'py>) -> &'py PyBytes {
-        PyBytes::new(py, self.script.bytecode())
+    pub fn bytecode<'py>(&self, py: Python<'py>) -> Bound<'py, PyBytes> {
+        PyBytes::new_bound(py, self.script.bytecode())
     }
 
     /// List of the operations in this script.
@@ -71,7 +73,7 @@ impl Script {
                     pushdata: match op {
                         script::Op::Code(_) => None,
                         script::Op::Push(_, bytes) => {
-                            Some(PyBytes::new(py, &bytes).into())
+                            Some(PyBytes::new_bound(py, &bytes).into())
                         }
                     },
                 })

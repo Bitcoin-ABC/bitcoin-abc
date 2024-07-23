@@ -29,7 +29,10 @@ use chronik_plugin_impl::{
     module::{add_test_framework_to_pythonpath, load_plugin_module},
     tx::TxModule,
 };
-use pyo3::{types::PyModule, PyErr, PyObject, PyResult, Python};
+use pyo3::{
+    types::{PyAnyMethods, PyModule},
+    PyErr, PyObject, PyResult, Python,
+};
 
 fn make_py_tx(
     py: Python<'_>,
@@ -129,7 +132,7 @@ fn test_tx_to_py() -> Result<()> {
 
         let tx_module = TxModule::import(py)?;
 
-        let test_module = PyModule::from_code(
+        let test_module = PyModule::from_code_bound(
             py,
             include_str!("test_tx_to_py.py"),
             "test_tx_to_py.py",

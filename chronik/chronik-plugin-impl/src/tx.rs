@@ -31,7 +31,7 @@ pub struct TxModule {
 impl TxModule {
     /// Import the `tx.py` module
     pub fn import(py: Python<'_>) -> PyResult<Self> {
-        let tx_module = PyModule::import(py, "chronik_plugin.tx")?;
+        let tx_module = PyModule::import_bound(py, "chronik_plugin.tx")?;
         Ok(TxModule {
             cls_tx: tx_module.getattr("Tx")?.into(),
             cls_out_point: tx_module.getattr("OutPoint")?.into(),
@@ -48,7 +48,7 @@ impl TxModule {
         tx: &Tx,
         token_data: Option<(&TokenTx, &[Option<SpentToken>])>,
     ) -> PyResult<PyObject> {
-        let py_empp_data = PyList::empty(py);
+        let py_empp_data = PyList::empty_bound(py);
         if let Some(first_output) = tx.outputs.first() {
             let empp_data = empp::parse(&first_output.script)
                 .ok()
@@ -72,7 +72,7 @@ impl TxModule {
             spent_tokens = Some(tokens);
             output_tokens = Some(&token_tx.outputs);
         }
-        let kwargs = PyDict::new(py);
+        let kwargs = PyDict::new_bound(py);
         kwargs.set_item("txid", to_bytes(py, tx.txid().as_bytes()))?;
         kwargs.set_item("version", tx.version)?;
         kwargs.set_item(
@@ -111,7 +111,7 @@ impl TxModule {
         kwargs.set_item("lock_time", tx.locktime)?;
         kwargs.set_item("token_entries", py_entries)?;
         kwargs.set_item("empp_data", py_empp_data)?;
-        self.cls_tx.call(py, (), Some(kwargs))
+        self.cls_tx.call_bound(py, (), Some(&kwargs))
     }
 
     /// Bridge the [`OutPoint`] to its Python equivalent
@@ -132,7 +132,7 @@ impl TxModule {
         token_output: Option<&TokenOutput>,
         py_token_entries: &[PyObject],
     ) -> PyResult<PyObject> {
-        let kwargs = PyDict::new(py);
+        let kwargs = PyDict::new_bound(py);
         kwargs.set_item(
             "script",
             Py::new(py, Script::new(output.script.clone()))?,
@@ -151,7 +151,7 @@ impl TxModule {
                 })
                 .transpose()?,
         )?;
-        self.cls_tx_output.call(py, (), Some(kwargs))
+        self.cls_tx_output.call_bound(py, (), Some(&kwargs))
     }
 
     /// Bridge the [`TxInput`] and attached token data to is Python equivalent.
@@ -163,7 +163,7 @@ impl TxModule {
         py_token_entries: &[PyObject],
         entries: &[TokenTxEntry],
     ) -> PyResult<PyObject> {
-        let kwargs = PyDict::new(py);
+        let kwargs = PyDict::new_bound(py);
         kwargs.set_item(
             "prev_out",
             self.bridge_out_point(py, &input.prev_out)?,
@@ -189,7 +189,7 @@ impl TxModule {
                 .transpose()?,
         )?;
         kwargs.set_item("sequence", input.sequence)?;
-        self.cls_tx_input.call(py, (), Some(kwargs))
+        self.cls_tx_input.call_bound(py, (), Some(&kwargs))
     }
 
     fn bridge_input_output(
@@ -200,7 +200,7 @@ impl TxModule {
         py_token_entries: &[PyObject],
         entries: &[TokenTxEntry],
     ) -> PyResult<PyObject> {
-        let kwargs = PyDict::new(py);
+        let kwargs = PyDict::new_bound(py);
         kwargs.set_item(
             "script",
             Py::new(py, Script::new(output.script.clone()))?,
@@ -222,6 +222,6 @@ impl TxModule {
                 })
                 .transpose()?,
         )?;
-        self.cls_tx_output.call(py, (), Some(kwargs))
+        self.cls_tx_output.call_bound(py, (), Some(&kwargs))
     }
 }

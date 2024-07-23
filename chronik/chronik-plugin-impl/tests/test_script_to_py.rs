@@ -8,7 +8,10 @@ use chronik_plugin_impl::{
     module::{add_test_framework_to_pythonpath, load_plugin_module},
     script::Script,
 };
-use pyo3::{types::PyModule, Python};
+use pyo3::{
+    types::{PyAnyMethods, PyModule},
+    Python,
+};
 
 #[test]
 fn test_py_script() -> Result<()> {
@@ -17,7 +20,7 @@ fn test_py_script() -> Result<()> {
     Python::with_gil(|py| -> Result<_> {
         add_test_framework_to_pythonpath(py)?;
 
-        let test_module = PyModule::from_code(
+        let test_module = PyModule::from_code_bound(
             py,
             include_str!("test_script_to_py.py"),
             "test_script_to_py.py",

@@ -5,5 +5,5 @@
 use pyo3::{types::PyBytes, Py, Python};
 
 pub(crate) fn to_bytes(py: Python<'_>, bytes: &[u8]) -> Py<PyBytes> {
-    PyBytes::new(py, bytes).into()
+    PyBytes::new_bound(py, bytes).into()
 }
