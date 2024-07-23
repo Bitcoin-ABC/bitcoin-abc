@@ -13,10 +13,11 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
+    data::DbOutpoint,
     db::{Db, CF},
     group::{Group, GroupQuery, UtxoData},
     index_tx::IndexTx,
-    io::{group_utxos::GroupUtxoError::*, merge::catch_merge_errors, TxNum},
+    io::{group_utxos::GroupUtxoError::*, merge::catch_merge_errors},
     ser::{db_deserialize, db_deserialize_vec, db_serialize, db_serialize_vec},
 };
 
@@ -35,31 +36,11 @@ struct GroupUtxoColumn<'a> {
     cf: &'a CF,
 }
 
-/// Outpoint in the DB, but with [`TxNum`] instead of `TxId` for the txid.
-#[derive(
-    Clone,
-    Copy,
-    Debug,
-    Default,
-    Deserialize,
-    Eq,
-    Ord,
-    PartialEq,
-    PartialOrd,
-    Serialize,
-)]
-pub struct UtxoOutpoint {
-    /// [`TxNum`] of tx of the outpoint.
-    pub tx_num: TxNum,
-    /// Output of the tx referenced by the outpoint.
-    pub out_idx: u32,
-}
-
 /// Entry in the UTXO DB for a group.
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct UtxoEntry<D> {
     /// Outpoint of the UTXO.
-    pub outpoint: UtxoOutpoint,
+    pub outpoint: DbOutpoint,
 
     /// Data attached to the UTXO attached to the UTXO for easy access, e.g.
     /// the UTXO value and/or script.
@@ -103,11 +84,11 @@ pub enum GroupUtxoError {
     #[error(
         "Duplicate UTXO: {0:?} has been added twice to the member's UTXOs"
     )]
-    DuplicateUtxo(UtxoOutpoint),
+    DuplicateUtxo(DbOutpoint),
 
     /// UTXO already in the DB
     #[error("UTXO doesn't exist: {0:?} is not in the member's UTXOs")]
-    UtxoDoesntExist(UtxoOutpoint),
+    UtxoDoesntExist(DbOutpoint),
 
     /// Used merge_cf incorrectly, prefix must either be I or D.
     #[error(
@@ -173,8 +154,7 @@ fn apply_merge_utxos<D: for<'a> Deserialize<'a>>(
             }
         }
         DELETE => {
-            let delete_outpoint =
-                db_deserialize::<UtxoOutpoint>(&operand[1..])?;
+            let delete_outpoint = db_deserialize::<DbOutpoint>(&operand[1..])?;
             match entries.binary_search_by_key(&&delete_outpoint, |entry| {
                 &entry.outpoint
             }) {
@@ -379,7 +359,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         idx: usize,
     ) -> UtxoEntry<G::UtxoData> {
         UtxoEntry {
-            outpoint: UtxoOutpoint {
+            outpoint: DbOutpoint {
                 tx_num: index_tx.tx_num,
                 out_idx: idx as u32,
             },
@@ -392,7 +372,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         idx: usize,
     ) -> UtxoEntry<G::UtxoData> {
         UtxoEntry {
-            outpoint: UtxoOutpoint {
+            outpoint: DbOutpoint {
                 tx_num: index_tx.input_nums[idx],
                 out_idx: index_tx.tx.inputs[idx].prev_out.out_idx,
             },
@@ -422,7 +402,7 @@ impl<'a, G: Group> GroupUtxoWriter<'a, G> {
         &self,
         batch: &mut WriteBatch,
         member: &G::Member<'_>,
-        delete_outpoint: &UtxoOutpoint,
+        delete_outpoint: &DbOutpoint,
     ) -> Result<()> {
         batch.merge_cf(
             self.col.cf,
@@ -480,11 +460,12 @@ mod tests {
     use rocksdb::WriteBatch;
 
     use crate::{
+        data::DbOutpoint,
         db::Db,
         index_tx::prepare_indexed_txs,
         io::{
             BlockTxs, GroupUtxoMemData, GroupUtxoReader, GroupUtxoWriter,
-            TxEntry, TxWriter, TxsMemData, UtxoEntry, UtxoOutpoint,
+            TxEntry, TxWriter, TxsMemData, UtxoEntry,
         },
         test::{make_inputs_tx, ser_value, ValueGroup},
     };
@@ -551,7 +532,7 @@ mod tests {
             Ok(())
         };
         let utxo = |tx_num, out_idx, value| UtxoEntry {
-            outpoint: UtxoOutpoint { tx_num, out_idx },
+            outpoint: DbOutpoint { tx_num, out_idx },
             data: value,
         };
         let read_utxos = |val: i64| group_reader.utxos(&ser_value(val));

@@ -5,6 +5,7 @@
 //! Stores and retrieves data for Chronik in a database.
 
 abc_rust_lint::lint! {
+    pub mod data;
     pub mod db;
     pub mod group;
     pub mod groups;
