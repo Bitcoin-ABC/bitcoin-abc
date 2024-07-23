@@ -10,7 +10,7 @@ use chronik_plugin_common::plugin::Plugin;
 use convert_case::{Case, Casing};
 use pyo3::{
     types::{PyAnyMethods, PyDict, PyModule},
-    Bound, PyAny, Python,
+    Bound, PyAny, PyObject, Python,
 };
 use thiserror::Error;
 use versions::SemVer;
@@ -60,7 +60,7 @@ pub(crate) fn load_plugin<'py>(
     module_name: String,
     class_name: Option<String>,
     plugin_cls: &Bound<'py, PyAny>,
-) -> Result<Plugin> {
+) -> Result<(Plugin, PyObject)> {
     let module = PyModule::import_bound(py, module_name.as_str())
         .map_err(|err| FailedImportingModule(err.to_string()))?;
 
@@ -97,10 +97,13 @@ pub(crate) fn load_plugin<'py>(
     let version = SemVer::new(version)
         .ok_or_else(|| InvalidVersion(version.to_string()))?;
 
-    Ok(Plugin {
-        module_name,
-        class_name,
-        version,
-        lokad_ids: vec![lokad_id],
-    })
+    Ok((
+        Plugin {
+            module_name,
+            class_name,
+            version,
+            lokad_ids: vec![lokad_id],
+        },
+        plugin_instance.into(),
+    ))
 }

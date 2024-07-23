@@ -11,6 +11,13 @@ use bimap::BiMap;
 /// Index of a plugin to uniquely identify it
 pub type PluginIdx = u32;
 
+/// Data attached to a tx's outputs by plugins
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct PluginTxOutputs {
+    /// Map from output index to the data attached by plugins to that output
+    pub outputs: BTreeMap<u32, PluginOutput>,
+}
+
 /// Data attached to an output by all loaded plugins.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct PluginOutput {

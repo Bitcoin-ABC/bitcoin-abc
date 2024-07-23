@@ -36,3 +36,10 @@ toml = "0.8"
 
 # Semantic version string parser
 versions = "6.2"
+
+[dev-dependencies]
+# Colorful diffs for assertions
+pretty_assertions = "1.0"
+
+# Temporary directory that's deleted when dropped
+tempdir = "0.3"
