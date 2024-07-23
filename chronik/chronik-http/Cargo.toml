@@ -7,6 +7,10 @@ edition = "2021"
 rust-version.workspace = true
 license = "MIT"
 
+[features]
+default = []
+plugins = ["chronik-db/plugins", "chronik-indexer/plugins"]
+
 [dependencies]
 abc-rust-error = { path = "../abc-rust-error" }
 abc-rust-lint = { path = "../abc-rust-lint" }

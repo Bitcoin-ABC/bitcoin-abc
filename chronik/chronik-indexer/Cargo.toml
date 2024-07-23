@@ -7,6 +7,10 @@ edition = "2021"
 rust-version.workspace = true
 license = "MIT"
 
+[features]
+default = []
+plugins = ["chronik-db/plugins", "chronik-plugin/enabled"]
+
 [dependencies]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
@@ -16,6 +20,7 @@ bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
 
 chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
+chronik-plugin = { path = "../chronik-plugin" }
 chronik-proto = { path = "../chronik-proto" }
 chronik-util = { path = "../chronik-util" }
 

@@ -10,3 +10,7 @@ rust-version.workspace = true
 abc-rust-lint = { path = "../abc-rust-lint" }
 
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
+
+# Semantic version string parser
+versions = "6.2"

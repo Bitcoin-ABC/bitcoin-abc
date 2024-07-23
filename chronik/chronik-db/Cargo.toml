@@ -7,6 +7,10 @@ edition = "2021"
 rust-version.workspace = true
 license = "MIT"
 
+[features]
+default = []
+plugins = ["chronik-plugin/enabled"]
+
 [dependencies]
 abc-rust-error = { path = "../abc-rust-error" }
 abc-rust-lint = { path = "../abc-rust-lint" }
@@ -15,6 +19,7 @@ bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
 
 chronik-util = { path = "../chronik-util" }
+chronik-plugin = { path = "../chronik-plugin" }
 
 # Map that goes in both directions
 bimap = "0.6"

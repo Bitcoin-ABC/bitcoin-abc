@@ -4,7 +4,7 @@
 
 //! Module containing [`ChronikIndexer`] to index blocks and txs.
 
-use std::{io::Write, path::PathBuf};
+use std::{collections::BTreeMap, io::Write, path::PathBuf, sync::Arc};
 
 use abc_rust_error::{Result, WrapErr};
 use bitcoinsuite_core::{
@@ -29,7 +29,9 @@ use chronik_db::{
         TxReader, TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
+    plugins::{PluginMeta, PluginsReader, PluginsWriter},
 };
+use chronik_plugin::context::PluginContext;
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -65,6 +67,8 @@ pub struct ChronikIndexerParams {
     pub enable_perf_stats: bool,
     /// Settings for tuning TxNumCache.
     pub tx_num_cache: TxNumCacheSettings,
+    /// Plugin context
+    pub plugin_ctx: Arc<PluginContext>,
 }
 
 /// Struct for indexing blocks and txs. Maintains db handles and mempool.
@@ -169,6 +173,23 @@ pub enum ChronikIndexerError {
          token index again."
     )]
     CannotEnableTokenIndex,
+
+    /// Currently, plugins must match their version exactly
+    #[error(
+        "Cannot use different version for plugin {plugin_name:?}. Previously, \
+         we indexed using version {db_version}, but now version \
+         {loaded_version} has been loaded. This version of Chronik doesn't \
+         support automatically updating plugins; either downgrade the plugin \
+         or use -chronikreindex to reindex using the new version."
+    )]
+    PluginVersionMismatch {
+        /// Name of the plugin that has a version mismatch
+        plugin_name: String,
+        /// Previously used version in the DB
+        db_version: String,
+        /// New version of the loaded plugin
+        loaded_version: String,
+    },
 }
 
 impl ChronikIndexer {
@@ -201,6 +222,7 @@ impl ChronikIndexer {
             params.enable_lokad_id_index,
         )?;
         upgrade_db_if_needed(&db, schema_version, params.enable_token_index)?;
+        update_plugins_index(&db, &params.plugin_ctx)?;
 
         let mempool = Mempool::new(
             ScriptGroup,
@@ -965,6 +987,53 @@ fn verify_lokad_id_index(
     Ok(false)
 }
 
+fn update_plugins_index(db: &Db, plugin_ctx: &PluginContext) -> Result<()> {
+    let plugins_reader = PluginsReader::new(db)?;
+    let plugins_writer = PluginsWriter::new(db)?;
+    let db_plugins = plugins_reader
+        .metas()?
+        .into_iter()
+        .collect::<BTreeMap<_, _>>();
+    let mut next_plugin_idx = db_plugins
+        .values()
+        .map(|plugin| plugin.plugin_idx)
+        .max()
+        .map(|max_idx| max_idx + 1)
+        .unwrap_or_default();
+    let mut batch = WriteBatch::default();
+    for plugin in plugin_ctx.plugins() {
+        // Plugins are identified by module name
+        match db_plugins.get(&plugin.module_name) {
+            Some(db_plugin) => {
+                // In this initial version, plugins must match exactly otherwise
+                // reindex is required
+                if plugin.version.to_string() != db_plugin.version {
+                    return Err(PluginVersionMismatch {
+                        plugin_name: plugin.module_name.clone(),
+                        db_version: db_plugin.version.clone(),
+                        loaded_version: plugin.version.to_string(),
+                    }
+                    .into());
+                }
+            }
+            None => {
+                plugins_writer.write_meta(
+                    &mut batch,
+                    &plugin.module_name,
+                    &PluginMeta {
+                        plugin_idx: next_plugin_idx,
+                        sync_height: 0,
+                        version: plugin.version.to_string(),
+                    },
+                )?;
+                next_plugin_idx += 1;
+            }
+        }
+    }
+    db.write_batch(batch)?;
+    Ok(())
+}
+
 impl Node {
     /// If `result` is [`Err`], logs and aborts the node.
     pub fn ok_or_abort<T>(&self, func_name: &str, result: Result<T>) {
@@ -995,12 +1064,14 @@ mod tests {
     use chronik_db::{
         db::{Db, WriteBatch, CF_META},
         io::{BlockReader, BlockTxs, DbBlock, MetadataReader, MetadataWriter},
+        plugins::{PluginMeta, PluginsReader},
     };
+    use chronik_plugin::{context::PluginContext, plugin::Plugin};
     use pretty_assertions::assert_eq;
 
     use crate::indexer::{
-        ChronikBlock, ChronikIndexer, ChronikIndexerError,
-        ChronikIndexerParams, CURRENT_INDEXER_VERSION,
+        update_plugins_index, ChronikBlock, ChronikIndexer,
+        ChronikIndexerError, ChronikIndexerParams, CURRENT_INDEXER_VERSION,
     };
 
     #[test]
@@ -1014,6 +1085,7 @@ mod tests {
             enable_lokad_id_index: false,
             enable_perf_stats: false,
             tx_num_cache: Default::default(),
+            plugin_ctx: Default::default(),
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
@@ -1084,6 +1156,7 @@ mod tests {
             enable_lokad_id_index: false,
             enable_perf_stats: false,
             tx_num_cache: Default::default(),
+            plugin_ctx: Default::default(),
         };
 
         // Setting up DB first time sets the schema version
@@ -1174,6 +1247,135 @@ mod tests {
             wipe_db: true,
             ..new_params
         })?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_plugin_versions() -> Result<()> {
+        let dir = tempdir::TempDir::new("chronik-indexer--plugin_versions")?;
+        let db = Db::open(dir.path())?;
+        let plugin_reader = PluginsReader::new(&db)?;
+
+        update_plugins_index(&db, &PluginContext::default())?;
+
+        update_plugins_index(
+            &db,
+            &PluginContext {
+                plugins: vec![Plugin {
+                    module_name: "plg1".to_string(),
+                    class_name: "Plg1".to_string(),
+                    version: "0.1.0".parse()?,
+                    lokad_ids: vec![],
+                }],
+            },
+        )?;
+        assert_eq!(
+            plugin_reader.metas()?,
+            vec![(
+                "plg1".to_string(),
+                PluginMeta {
+                    plugin_idx: 0,
+                    version: "0.1.0".to_string(),
+                    sync_height: 0,
+                },
+            )],
+        );
+
+        update_plugins_index(
+            &db,
+            &PluginContext {
+                plugins: vec![Plugin {
+                    module_name: "plg2".to_string(),
+                    class_name: "Plg2".to_string(),
+                    version: "0.2.0".parse()?,
+                    lokad_ids: vec![],
+                }],
+            },
+        )?;
+        assert_eq!(
+            plugin_reader.metas()?,
+            vec![
+                (
+                    "plg1".to_string(),
+                    PluginMeta {
+                        plugin_idx: 0,
+                        version: "0.1.0".to_string(),
+                        sync_height: 0,
+                    },
+                ),
+                (
+                    "plg2".to_string(),
+                    PluginMeta {
+                        plugin_idx: 1,
+                        version: "0.2.0".to_string(),
+                        sync_height: 0,
+                    },
+                ),
+            ],
+        );
+
+        update_plugins_index(
+            &db,
+            &PluginContext {
+                plugins: vec![
+                    Plugin {
+                        module_name: "plg1".to_string(),
+                        class_name: "Plg1".to_string(),
+                        version: "0.1.0".parse()?,
+                        lokad_ids: vec![],
+                    },
+                    Plugin {
+                        module_name: "plg2".to_string(),
+                        class_name: "Plg2".to_string(),
+                        version: "0.2.0".parse()?,
+                        lokad_ids: vec![],
+                    },
+                ],
+            },
+        )?;
+        assert_eq!(
+            plugin_reader.metas()?,
+            vec![
+                (
+                    "plg1".to_string(),
+                    PluginMeta {
+                        plugin_idx: 0,
+                        version: "0.1.0".to_string(),
+                        sync_height: 0,
+                    },
+                ),
+                (
+                    "plg2".to_string(),
+                    PluginMeta {
+                        plugin_idx: 1,
+                        version: "0.2.0".to_string(),
+                        sync_height: 0,
+                    },
+                ),
+            ],
+        );
+
+        assert_eq!(
+            update_plugins_index(
+                &db,
+                &PluginContext {
+                    plugins: vec![Plugin {
+                        module_name: "plg1".to_string(),
+                        class_name: "Plg1".to_string(),
+                        version: "0.2.0".parse()?,
+                        lokad_ids: vec![],
+                    }],
+                },
+            )
+            .unwrap_err()
+            .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::PluginVersionMismatch {
+                plugin_name: "plg1".to_string(),
+                db_version: "0.1.0".to_string(),
+                loaded_version: "0.2.0".to_string(),
+            },
+        );
 
         Ok(())
     }

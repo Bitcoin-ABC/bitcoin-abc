@@ -3,9 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use abc_rust_error::Result;
-#[cfg(test)]
-use rocksdb::ColumnFamilyDescriptor;
-use rocksdb::{Direction, WriteBatch};
+use rocksdb::{ColumnFamilyDescriptor, Direction, WriteBatch};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -85,7 +83,6 @@ impl<'a> PluginsWriter<'a> {
         Ok(())
     }
 
-    #[cfg(test)]
     pub(crate) fn add_cfs(columns: &mut Vec<ColumnFamilyDescriptor>) {
         columns.push(ColumnFamilyDescriptor::new(
             CF_PLUGIN_META,

@@ -305,6 +305,7 @@ dependencies = [
  "bitcoinsuite-core",
  "bitcoinsuite-slp",
  "bytes",
+ "chronik-plugin",
  "chronik-util",
  "fastrand",
  "hex",
@@ -357,6 +358,7 @@ dependencies = [
  "bytes",
  "chronik-bridge",
  "chronik-db",
+ "chronik-plugin",
  "chronik-proto",
  "chronik-util",
  "cxx",
@@ -384,6 +386,8 @@ version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
  "bitcoinsuite-core",
+ "bitcoinsuite-slp",
+ "versions",
 ]
 
 [[package]]

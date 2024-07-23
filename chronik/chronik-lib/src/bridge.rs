@@ -81,7 +81,7 @@ fn try_setup_chronik(
         ffi::Net::Regtest => Net::Regtest,
         _ => return Err(UnknownNetRepr(params.net.repr).into()),
     };
-    PluginContext::setup(PluginParams {
+    let plugin_ctx = PluginContext::setup(PluginParams {
         net,
         plugins_dir: datadir.join("plugins"),
         plugins_conf: datadir.join("plugins.toml"),
@@ -100,6 +100,7 @@ fn try_setup_chronik(
             bucket_size: params.tx_num_cache.bucket_size,
             num_buckets: params.tx_num_cache.num_buckets,
         },
+        plugin_ctx: Arc::new(plugin_ctx),
     })?;
     indexer.resync_indexer(bridge_ref)?;
     if bridge.shutdown_requested() {

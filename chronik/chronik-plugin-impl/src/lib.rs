@@ -10,7 +10,7 @@
 abc_rust_lint::lint! {
     pub mod context;
     pub mod module;
-    pub mod plugin;
+    mod plugin;
     pub mod script;
     pub mod token;
     pub mod tx;

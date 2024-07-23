@@ -22,6 +22,7 @@ use crate::{
         token::TokenWriter, BlockStatsWriter, BlockWriter, MetadataWriter,
         SpentByWriter, TxWriter,
     },
+    plugins::PluginsWriter,
 };
 
 // All column family names used by Chronik should be defined here
@@ -110,6 +111,7 @@ impl Db {
         TokenIdHistoryWriter::add_cfs(&mut cfs);
         TokenIdUtxoWriter::add_cfs(&mut cfs);
         LokadIdHistoryWriter::add_cfs(&mut cfs);
+        PluginsWriter::add_cfs(&mut cfs);
         Self::open_with_cfs(path, cfs)
     }
 

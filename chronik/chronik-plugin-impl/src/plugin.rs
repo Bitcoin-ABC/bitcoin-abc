@@ -6,6 +6,7 @@
 
 use abc_rust_error::Result;
 use bitcoinsuite_slp::lokad_id::LokadId;
+use chronik_plugin_common::plugin::Plugin;
 use convert_case::{Case, Casing};
 use pyo3::{
     types::{PyDict, PyModule},
@@ -16,22 +17,9 @@ use versions::SemVer;
 
 use crate::plugin::PluginError::*;
 
-/// Individual handle on a plugin
-#[derive(Debug)]
-pub struct Plugin {
-    /// Name of the plugin module
-    pub module_name: String,
-    /// Class name of the plugin
-    pub class_name: String,
-    /// version() of the plugin
-    pub version: SemVer,
-    /// lokad_id() of the plugin
-    pub lokad_ids: Vec<LokadId>,
-}
-
 /// Errors for PluginContext.
 #[derive(Debug, Eq, Error, PartialEq)]
-pub enum PluginError {
+pub(crate) enum PluginError {
     /// Failed importing plugin module
     #[error("Failed importing plugin module: {0}")]
     FailedImportingModule(String),
@@ -67,56 +55,54 @@ pub enum PluginError {
     InvalidVersion(String),
 }
 
-impl Plugin {
-    pub(crate) fn load<'py>(
-        py: Python<'py>,
-        module_name: String,
-        class_name: Option<String>,
-        plugin_cls: &'py PyAny,
-    ) -> Result<Self> {
-        let module = PyModule::import(py, module_name.as_str())
-            .map_err(|err| FailedImportingModule(err.to_string()))?;
+pub(crate) fn load_plugin<'py>(
+    py: Python<'py>,
+    module_name: String,
+    class_name: Option<String>,
+    plugin_cls: &'py PyAny,
+) -> Result<Plugin> {
+    let module = PyModule::import(py, module_name.as_str())
+        .map_err(|err| FailedImportingModule(err.to_string()))?;
 
-        // Class name is either NamePascalCasePlugin, or manually specified
-        let class_name = match class_name {
-            Some(class_name) => class_name,
-            None => format!("{}Plugin", module_name.to_case(Case::Pascal)),
-        };
+    // Class name is either NamePascalCasePlugin, or manually specified
+    let class_name = match class_name {
+        Some(class_name) => class_name,
+        None => format!("{}Plugin", module_name.to_case(Case::Pascal)),
+    };
 
-        let class = module
-            .getattr(class_name.as_str())
-            .map_err(|_| ClassNotFound(class_name.clone()))?;
+    let class = module
+        .getattr(class_name.as_str())
+        .map_err(|_| ClassNotFound(class_name.clone()))?;
 
-        // Empty config object for now
-        let config = PyDict::new(py);
-        let plugin_instance = class.call1((config,))?;
+    // Empty config object for now
+    let config = PyDict::new(py);
+    let plugin_instance = class.call1((config,))?;
 
-        // Must be a Plugin instance
-        if !plugin_instance.is_instance(plugin_cls)? {
-            return Err(ClassMustDerivePlugin(class_name.clone()).into());
-        }
-
-        let lokad_id = plugin_instance
-            .getattr("lokad_id")?
-            .call0()?
-            .extract::<&[u8]>()
-            .map_err(|err| InvalidLokadIdType(err.to_string()))?;
-        let lokad_id: LokadId = lokad_id
-            .try_into()
-            .map_err(|_| InvalidLokadIdLen(lokad_id.len()))?;
-        let version = plugin_instance
-            .getattr("version")?
-            .call0()?
-            .extract::<&str>()
-            .map_err(|err| InvalidVersionType(err.to_string()))?;
-        let version = SemVer::new(version)
-            .ok_or_else(|| InvalidVersion(version.to_string()))?;
-
-        Ok(Plugin {
-            module_name,
-            class_name,
-            version,
-            lokad_ids: vec![lokad_id],
-        })
+    // Must be a Plugin instance
+    if !plugin_instance.is_instance(plugin_cls)? {
+        return Err(ClassMustDerivePlugin(class_name.clone()).into());
     }
+
+    let lokad_id = plugin_instance
+        .getattr("lokad_id")?
+        .call0()?
+        .extract::<&[u8]>()
+        .map_err(|err| InvalidLokadIdType(err.to_string()))?;
+    let lokad_id: LokadId = lokad_id
+        .try_into()
+        .map_err(|_| InvalidLokadIdLen(lokad_id.len()))?;
+    let version = plugin_instance
+        .getattr("version")?
+        .call0()?
+        .extract::<&str>()
+        .map_err(|err| InvalidVersionType(err.to_string()))?;
+    let version = SemVer::new(version)
+        .ok_or_else(|| InvalidVersion(version.to_string()))?;
+
+    Ok(Plugin {
+        module_name,
+        class_name,
+        version,
+        lokad_ids: vec![lokad_id],
+    })
 }

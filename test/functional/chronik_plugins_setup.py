@@ -151,6 +151,34 @@ class ChronikPluginsSetup(BitcoinTestFramework):
         ):
             self.start_node(0, ["-chronik"])
 
+        # Upgrading plugin version without reindex not allowed
+        with open(plugin_module, "w", encoding="utf-8") as f:
+            print("from chronik_plugin.plugin import Plugin", file=f)
+            print("class MyPluginPlugin(Plugin):", file=f)
+            print("  def lokad_id(self):", file=f)
+            print("    return b'TEST'", file=f)
+            print("  def version(self):", file=f)
+            print("    return '0.2.0'", file=f)
+            print("  def run(self, tx):", file=f)
+            print("    return []", file=f)
+        self.stop_node(0)
+        assert_start_raises(
+            'Error: Cannot use different version for plugin "my_plugin". Previously, '
+            "we indexed using version 0.1.0-aleph+bet, but now version 0.2.0 has been "
+            "loaded. This version of Chronik doesn't support automatically updating "
+            "plugins; either downgrade the plugin or use -chronikreindex to reindex "
+            "using the new version.",
+        )
+
+        # With chronikreindex, we're all good
+        with node.assert_debug_log(
+            [
+                "Plugin context initialized Python",
+                'Loaded plugin my_plugin.MyPluginPlugin (version 0.2.0) with LOKAD IDs [b"TEST"]',
+            ]
+        ):
+            self.start_node(0, ["-chronik", "-chronikreindex"])
+
         # Use different class name
         with open(plugins_toml, "w", encoding="utf-8") as f:
             print("[regtest.plugin.my_plugin]", file=f)

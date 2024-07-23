@@ -13,7 +13,7 @@ use std::{
 use abc_rust_error::Result;
 use bitcoinsuite_core::net::Net;
 use bytes::Bytes;
-use chronik_plugin_common::params::PluginParams;
+use chronik_plugin_common::{params::PluginParams, plugin::Plugin};
 use chronik_util::log;
 use pyo3::{
     types::{PyList, PyModule},
@@ -23,7 +23,8 @@ use serde::Deserialize;
 use thiserror::Error;
 
 use crate::{
-    context::PluginContextError::*, module::load_plugin_module, plugin::Plugin,
+    context::PluginContextError::*, module::load_plugin_module,
+    plugin::load_plugin,
 };
 
 /// Struct managing all things relating to Chronik plugins.
@@ -126,7 +127,7 @@ impl PluginContext {
 
             let mut plugins = Vec::with_capacity(net_plugins.plugin.len());
             for (module_name, plugin_spec) in net_plugins.plugin {
-                let plugin = match Plugin::load(
+                let plugin = match load_plugin(
                     py,
                     module_name.clone(),
                     plugin_spec.class,
