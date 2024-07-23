@@ -39,6 +39,7 @@ function Mining(props) {
                 image={mining}
                 h2subtext="Nakamoto Consensus powered by SHA256 Proof-of-Work "
                 h2text="Mining"
+                noLoop
             >
                 <p>
                     eCash blocks are produced through a process called mining.

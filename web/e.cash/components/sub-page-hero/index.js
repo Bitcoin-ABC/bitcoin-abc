@@ -14,6 +14,7 @@ export default function SubPageHero({
     h2subtext, // h2 subheadline string
     h2text, // h2 text string
     children, // any children
+    noLoop = false, // Only play the animation one time
 }) {
     return (
         <OuterHeroCtn>
@@ -25,6 +26,7 @@ export default function SubPageHero({
                             image={image}
                             speed={imagespeed}
                             reverse={imagereverse}
+                            noLoop={noLoop}
                         />
                     </ImgCtn>
                     <TextCtn>

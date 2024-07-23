@@ -7,7 +7,14 @@ import { ThemeContext } from 'styled-components';
 
 // image | lottie json file to be rendered
 // speed | optional number value to set the speed of the animation. Lower number is slower. Adjust to get the desired frame rate.
-export default function AnimateImage({ image, speed, reverse }) {
+// reverse | loop animation front to back, then back to front, etc
+// noLoop | only play the animation one time
+export default function AnimateImage({
+    image,
+    speed,
+    reverse,
+    noLoop = false,
+}) {
     const [direction, setDirection] = useState(1);
     const themeContext = useContext(ThemeContext);
     const lottieRef = useRef();
@@ -26,9 +33,9 @@ export default function AnimateImage({ image, speed, reverse }) {
         <Lottie
             lottieRef={lottieRef}
             animationData={image}
-            loop={!reverse}
+            loop={!reverse && !noLoop}
             style={{ height: '100%' }}
-            onComplete={reverse ? Reverse : null}
+            onComplete={reverse && !noLoop ? Reverse : null}
         />
     );
 }

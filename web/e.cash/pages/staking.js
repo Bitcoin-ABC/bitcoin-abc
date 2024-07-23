@@ -16,6 +16,7 @@ function Staking(props) {
                 image={staking}
                 h2subtext="Avalanche Consensus powered by eCash Stakers"
                 h2text="Staking"
+                noLoop
             >
                 <p>
                     Stakers have an important job: to participate in
