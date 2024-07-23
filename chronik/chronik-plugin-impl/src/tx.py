@@ -8,6 +8,16 @@ from chronik_plugin.script import Script
 from chronik_plugin.token import Token, TokenTxEntry
 
 
+class PluginOutputEntry(NamedTuple):
+    # Groups assigned to the output
+    groups: List[bytes]
+    # Data assigned to the output
+    data: List[bytes]
+
+
+PluginOutput = dict[str, PluginOutputEntry]
+
+
 class OutPoint(NamedTuple):
     # TxId of the tx whose output is being spent, in little-endian
     txid: bytes
@@ -37,6 +47,9 @@ class TxInput(NamedTuple):
 
     # nSequence of the input
     sequence: int
+
+    # Plugin data from other plugins, if any
+    plugin: PluginOutput
 
 
 class Tx(NamedTuple):

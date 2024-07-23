@@ -2,6 +2,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+use std::collections::BTreeMap;
+
 use abc_rust_error::Result;
 use bitcoinsuite_core::{
     hash::ShaRmd160,
@@ -25,6 +27,9 @@ use bitcoinsuite_slp::{
     token_type::{AlpTokenType, SlpTokenType},
     verify::{SpentToken, VerifyContext},
 };
+use chronik_plugin_common::data::{
+    PluginNameMap, PluginOutput, PluginOutputEntry,
+};
 use chronik_plugin_impl::{
     module::{add_test_framework_to_pythonpath, load_plugin_module},
     tx::TxModule,
@@ -34,24 +39,33 @@ use pyo3::{
     PyErr, PyObject, PyResult, Python,
 };
 
-fn make_py_tx(
-    py: Python<'_>,
-    tx_module: &TxModule,
+#[derive(Clone, Debug, Default)]
+struct MakePyTxParams<'a> {
     txid_num: u8,
     num_outputs: usize,
     op_return_script: Script,
-    spent_tokens: &[Option<SpentToken>],
+    spent_tokens: &'a [Option<SpentToken>],
+    plugin_outputs: &'a [Option<PluginOutput>],
+    plugin_names: &'a [&'a str],
+}
+
+fn make_py_tx(
+    py: Python<'_>,
+    tx_module: &TxModule,
+    params: MakePyTxParams<'_>,
 ) -> PyResult<PyObject> {
     let tx = Tx::with_txid(
-        TxId::from([txid_num; 32]),
+        TxId::from([params.txid_num; 32]),
         TxMut {
             version: 0,
-            inputs: spent_tokens
+            inputs: params
+                .spent_tokens
                 .iter()
-                .map(|_| TxInput {
+                .enumerate()
+                .map(|(idx, _)| TxInput {
                     prev_out: OutPoint {
                         txid: TxId::from([2; 32]),
-                        out_idx: 1,
+                        out_idx: idx as u32,
                     },
                     coin: Some(Coin::default()),
                     ..Default::default()
@@ -59,26 +73,45 @@ fn make_py_tx(
                 .collect(),
             outputs: [TxOutput {
                 value: 0,
-                script: op_return_script.clone(),
+                script: params.op_return_script.clone(),
             }]
             .into_iter()
-            .chain((0..num_outputs).map(|_| TxOutput::default()))
+            .chain((0..params.num_outputs).map(|_| TxOutput::default()))
             .collect(),
             locktime: 0,
         },
     );
+    let plugin_outputs = params
+        .plugin_outputs
+        .iter()
+        .zip(&tx.inputs)
+        .filter_map(|(plugin_output, input)| {
+            let plugin_output = plugin_output.as_ref()?;
+            Some((input.prev_out, plugin_output.clone()))
+        })
+        .collect::<BTreeMap<_, _>>();
     let colored_tx = ColoredTx::color_tx(&tx).unwrap_or_else(|| ColoredTx {
         outputs: vec![None; tx.outputs.len()],
         ..Default::default()
     });
     let context = VerifyContext {
-        spent_tokens,
+        spent_tokens: params.spent_tokens,
         spent_scripts: None,
         genesis_info: None,
         override_has_mint_vault: None,
     };
     let token_tx = context.verify(colored_tx);
-    tx_module.bridge_tx(py, &tx, Some((&token_tx, spent_tokens)))
+    tx_module.bridge_tx(
+        py,
+        &tx,
+        Some((&token_tx, params.spent_tokens)),
+        &plugin_outputs,
+        &PluginNameMap::new(params.plugin_names.iter().enumerate().map(
+            |(plugin_idx, plugin_name)| {
+                (plugin_idx as u32, plugin_name.to_string())
+            },
+        )),
+    )
 }
 
 #[test]
@@ -141,30 +174,38 @@ fn test_tx_to_py() -> Result<()> {
 
         test_module
             .getattr("test_non_token_tx")?
-            .call1((tx_module.bridge_tx(py, &non_token_tx, None)?,))
+            .call1((tx_module.bridge_tx(
+                py,
+                &non_token_tx,
+                None,
+                &BTreeMap::new(),
+                &Default::default(),
+            )?,))
             .map_err(handle_exc)?;
 
         let slp_genesis_tx = make_py_tx(
             py,
             &tx_module,
-            2,
-            2,
-            genesis_opreturn(
-                &GenesisInfo {
-                    token_ticker: b"SLP FUNGIBLE".as_ref().into(),
-                    token_name: b"Slp Fungible".as_ref().into(),
-                    mint_vault_scripthash: None,
-                    url: b"https://slp.fungible".as_ref().into(),
-                    hash: Some([b'x'; 32]),
-                    data: None,
-                    auth_pubkey: None,
-                    decimals: 4,
-                },
-                SlpTokenType::Fungible,
-                Some(2),
-                1234,
-            ),
-            &[],
+            MakePyTxParams {
+                txid_num: 2,
+                num_outputs: 2,
+                op_return_script: genesis_opreturn(
+                    &GenesisInfo {
+                        token_ticker: b"SLP FUNGIBLE".as_ref().into(),
+                        token_name: b"Slp Fungible".as_ref().into(),
+                        mint_vault_scripthash: None,
+                        url: b"https://slp.fungible".as_ref().into(),
+                        hash: Some([b'x'; 32]),
+                        data: None,
+                        auth_pubkey: None,
+                        decimals: 4,
+                    },
+                    SlpTokenType::Fungible,
+                    Some(2),
+                    1234,
+                ),
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_slp_genesis_tx")?
@@ -174,24 +215,26 @@ fn test_tx_to_py() -> Result<()> {
         let slp_mint_vault_genesis_tx = make_py_tx(
             py,
             &tx_module,
-            2,
-            1,
-            genesis_opreturn(
-                &GenesisInfo {
-                    token_ticker: b"SLP MINT VAULT".as_ref().into(),
-                    token_name: b"Slp Mint Vault".as_ref().into(),
-                    mint_vault_scripthash: Some(ShaRmd160([5; 20])),
-                    url: b"https://slp.mintvault".as_ref().into(),
-                    hash: None,
-                    data: None,
-                    auth_pubkey: None,
-                    decimals: 4,
-                },
-                SlpTokenType::MintVault,
-                None,
-                1234,
-            ),
-            &[],
+            MakePyTxParams {
+                txid_num: 2,
+                num_outputs: 1,
+                op_return_script: genesis_opreturn(
+                    &GenesisInfo {
+                        token_ticker: b"SLP MINT VAULT".as_ref().into(),
+                        token_name: b"Slp Mint Vault".as_ref().into(),
+                        mint_vault_scripthash: Some(ShaRmd160([5; 20])),
+                        url: b"https://slp.mintvault".as_ref().into(),
+                        hash: None,
+                        data: None,
+                        auth_pubkey: None,
+                        decimals: 4,
+                    },
+                    SlpTokenType::MintVault,
+                    None,
+                    1234,
+                ),
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_slp_mint_vault_genesis_tx")?
@@ -201,18 +244,21 @@ fn test_tx_to_py() -> Result<()> {
         let slp_nft1_child_genesis_tx = make_py_tx(
             py,
             &tx_module,
-            2,
-            1,
-            genesis_opreturn(
-                &GenesisInfo::empty_slp(),
-                SlpTokenType::Nft1Child,
-                None,
-                1,
-            ),
-            &[spent_amount(
-                meta_slp(TOKEN_ID3, SlpTokenType::Nft1Group),
-                1,
-            )],
+            MakePyTxParams {
+                txid_num: 2,
+                num_outputs: 1,
+                op_return_script: genesis_opreturn(
+                    &GenesisInfo::empty_slp(),
+                    SlpTokenType::Nft1Child,
+                    None,
+                    1,
+                ),
+                spent_tokens: &[spent_amount(
+                    meta_slp(TOKEN_ID3, SlpTokenType::Nft1Group),
+                    1,
+                )],
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_slp_nft1_child_genesis_tx")?
@@ -222,10 +268,21 @@ fn test_tx_to_py() -> Result<()> {
         let slp_mint_tx = make_py_tx(
             py,
             &tx_module,
-            2,
-            2,
-            mint_opreturn(&TOKEN_ID3, SlpTokenType::Fungible, Some(2), 1234),
-            &[spent_baton(meta_slp(TOKEN_ID3, SlpTokenType::Fungible))],
+            MakePyTxParams {
+                txid_num: 2,
+                num_outputs: 2,
+                op_return_script: mint_opreturn(
+                    &TOKEN_ID3,
+                    SlpTokenType::Fungible,
+                    Some(2),
+                    1234,
+                ),
+                spent_tokens: &[spent_baton(meta_slp(
+                    TOKEN_ID3,
+                    SlpTokenType::Fungible,
+                ))],
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_slp_mint_tx")?
@@ -235,13 +292,20 @@ fn test_tx_to_py() -> Result<()> {
         let slp_send_tx = make_py_tx(
             py,
             &tx_module,
-            2,
-            3,
-            send_opreturn(&TOKEN_ID3, SlpTokenType::Fungible, &[5, 6, 7]),
-            &[spent_amount(
-                meta_slp(TOKEN_ID3, SlpTokenType::Fungible),
-                20,
-            )],
+            MakePyTxParams {
+                txid_num: 2,
+                num_outputs: 3,
+                op_return_script: send_opreturn(
+                    &TOKEN_ID3,
+                    SlpTokenType::Fungible,
+                    &[5, 6, 7],
+                ),
+                spent_tokens: &[spent_amount(
+                    meta_slp(TOKEN_ID3, SlpTokenType::Fungible),
+                    20,
+                )],
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_slp_send_tx")?
@@ -251,13 +315,20 @@ fn test_tx_to_py() -> Result<()> {
         let slp_burn_tx = make_py_tx(
             py,
             &tx_module,
-            2,
-            0,
-            burn_opreturn(&TOKEN_ID3, SlpTokenType::Fungible, 500),
-            &[spent_amount(
-                meta_slp(TOKEN_ID3, SlpTokenType::Fungible),
-                600,
-            )],
+            MakePyTxParams {
+                txid_num: 2,
+                num_outputs: 0,
+                op_return_script: burn_opreturn(
+                    &TOKEN_ID3,
+                    SlpTokenType::Fungible,
+                    500,
+                ),
+                spent_tokens: &[spent_amount(
+                    meta_slp(TOKEN_ID3, SlpTokenType::Fungible),
+                    600,
+                )],
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_slp_burn_tx")?
@@ -267,78 +338,90 @@ fn test_tx_to_py() -> Result<()> {
         let alp_tx = make_py_tx(
             py,
             &tx_module,
-            1,
-            10,
-            sections_opreturn(vec![
-                genesis_section(
-                    AlpTokenType::Standard,
-                    &GenesisInfo {
-                        token_ticker: b"ALP STANDARD".as_ref().into(),
-                        token_name: b"Alp Standard".as_ref().into(),
-                        mint_vault_scripthash: None,
-                        url: b"https://alp.std".as_ref().into(),
-                        hash: None,
-                        data: Some(b"ALP DATA".as_ref().into()),
-                        auth_pubkey: Some(b"ALP PubKey".as_ref().into()),
-                        decimals: 2,
-                    },
-                    &ParsedMintData {
-                        amounts: vec![0, 0, 10, 0, 0],
-                        num_batons: 2,
-                    },
-                ),
-                mint_section(
-                    &TOKEN_ID2,
-                    AlpTokenType::Standard,
-                    &ParsedMintData {
-                        amounts: vec![1000, 0, 0],
-                        num_batons: 1,
-                    },
-                ),
-                send_section(
-                    &TOKEN_ID3,
-                    AlpTokenType::Standard,
-                    vec![0, 500, 0, 0, 0, 0, 0, 0, 6000],
-                ),
-                burn_section(&TOKEN_ID3, AlpTokenType::Standard, 1000),
-                send_section(
-                    &TOKEN_ID8,
-                    AlpTokenType::Standard,
-                    vec![0, 0, 0, 0, 40],
-                ),
-                b"SLP2\x02".as_ref().into(),
-            ]),
-            &[
-                spent_baton(meta_alp(TOKEN_ID2)),
-                None,
-                spent_amount(meta_alp(TOKEN_ID3), 2000),
-                spent_amount(meta_alp(TOKEN_ID3), 5000),
-                spent_amount(meta_slp(TOKEN_ID4, SlpTokenType::Fungible), 30),
-                spent_amount(meta_slp(TOKEN_ID5, SlpTokenType::MintVault), 20),
-                spent_amount(meta_slp(TOKEN_ID6, SlpTokenType::Nft1Group), 20),
-                spent_amount_group(
-                    meta_slp(TOKEN_ID7, SlpTokenType::Nft1Child),
-                    1,
-                    meta_slp(TOKEN_ID6, SlpTokenType::Nft1Group),
-                ),
-                Some(SpentToken {
-                    token: Token {
-                        meta: meta_alp_unknown(EMPTY_TOKEN_ID, 3),
-                        variant: TokenVariant::Unknown(3),
-                    },
-                    group_token_meta: None,
-                }),
-                Some(SpentToken {
-                    token: Token {
-                        meta: meta_slp(
-                            EMPTY_TOKEN_ID,
-                            SlpTokenType::Unknown(3),
-                        ),
-                        variant: TokenVariant::Unknown(3),
-                    },
-                    group_token_meta: None,
-                }),
-            ],
+            MakePyTxParams {
+                txid_num: 1,
+                num_outputs: 10,
+                op_return_script: sections_opreturn(vec![
+                    genesis_section(
+                        AlpTokenType::Standard,
+                        &GenesisInfo {
+                            token_ticker: b"ALP STANDARD".as_ref().into(),
+                            token_name: b"Alp Standard".as_ref().into(),
+                            mint_vault_scripthash: None,
+                            url: b"https://alp.std".as_ref().into(),
+                            hash: None,
+                            data: Some(b"ALP DATA".as_ref().into()),
+                            auth_pubkey: Some(b"ALP PubKey".as_ref().into()),
+                            decimals: 2,
+                        },
+                        &ParsedMintData {
+                            amounts: vec![0, 0, 10, 0, 0],
+                            num_batons: 2,
+                        },
+                    ),
+                    mint_section(
+                        &TOKEN_ID2,
+                        AlpTokenType::Standard,
+                        &ParsedMintData {
+                            amounts: vec![1000, 0, 0],
+                            num_batons: 1,
+                        },
+                    ),
+                    send_section(
+                        &TOKEN_ID3,
+                        AlpTokenType::Standard,
+                        vec![0, 500, 0, 0, 0, 0, 0, 0, 6000],
+                    ),
+                    burn_section(&TOKEN_ID3, AlpTokenType::Standard, 1000),
+                    send_section(
+                        &TOKEN_ID8,
+                        AlpTokenType::Standard,
+                        vec![0, 0, 0, 0, 40],
+                    ),
+                    b"SLP2\x02".as_ref().into(),
+                ]),
+                spent_tokens: &[
+                    spent_baton(meta_alp(TOKEN_ID2)),
+                    None,
+                    spent_amount(meta_alp(TOKEN_ID3), 2000),
+                    spent_amount(meta_alp(TOKEN_ID3), 5000),
+                    spent_amount(
+                        meta_slp(TOKEN_ID4, SlpTokenType::Fungible),
+                        30,
+                    ),
+                    spent_amount(
+                        meta_slp(TOKEN_ID5, SlpTokenType::MintVault),
+                        20,
+                    ),
+                    spent_amount(
+                        meta_slp(TOKEN_ID6, SlpTokenType::Nft1Group),
+                        20,
+                    ),
+                    spent_amount_group(
+                        meta_slp(TOKEN_ID7, SlpTokenType::Nft1Child),
+                        1,
+                        meta_slp(TOKEN_ID6, SlpTokenType::Nft1Group),
+                    ),
+                    Some(SpentToken {
+                        token: Token {
+                            meta: meta_alp_unknown(EMPTY_TOKEN_ID, 3),
+                            variant: TokenVariant::Unknown(3),
+                        },
+                        group_token_meta: None,
+                    }),
+                    Some(SpentToken {
+                        token: Token {
+                            meta: meta_slp(
+                                EMPTY_TOKEN_ID,
+                                SlpTokenType::Unknown(3),
+                            ),
+                            variant: TokenVariant::Unknown(3),
+                        },
+                        group_token_meta: None,
+                    }),
+                ],
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_alp_tx")?
@@ -348,14 +431,67 @@ fn test_tx_to_py() -> Result<()> {
         let non_token_burn_tx = make_py_tx(
             py,
             &tx_module,
-            1,
-            1,
-            Script::default(),
-            &[spent_amount(meta_alp(TOKEN_ID2), 200)],
+            MakePyTxParams {
+                txid_num: 1,
+                num_outputs: 1,
+                op_return_script: Script::default(),
+                spent_tokens: &[spent_amount(meta_alp(TOKEN_ID2), 200)],
+                ..Default::default()
+            },
         )?;
         test_module
             .getattr("test_non_token_burn_tx")?
             .call1((non_token_burn_tx,))
+            .map_err(handle_exc)?;
+
+        let plugin_inputs_tx = make_py_tx(
+            py,
+            &tx_module,
+            MakePyTxParams {
+                txid_num: 1,
+                num_outputs: 1,
+                op_return_script: Script::default(),
+                spent_tokens: &[None, None],
+                plugin_outputs: &[
+                    Some(PluginOutput {
+                        plugins: vec![
+                            (
+                                0,
+                                PluginOutputEntry {
+                                    groups: vec![
+                                        b"grp1".to_vec(),
+                                        b"grp2".to_vec(),
+                                    ],
+                                    data: vec![b"dat1".to_vec()],
+                                },
+                            ),
+                            (
+                                1,
+                                PluginOutputEntry {
+                                    groups: vec![b"2grp".to_vec()],
+                                    data: vec![b"2dat".to_vec()],
+                                },
+                            ),
+                            (
+                                // Entries without loaded plugin are skipped
+                                1337,
+                                PluginOutputEntry {
+                                    groups: vec![b"doesntexist".to_vec()],
+                                    data: vec![b"doesntexist".to_vec()],
+                                },
+                            ),
+                        ]
+                        .into_iter()
+                        .collect(),
+                    }),
+                    None,
+                ],
+                plugin_names: &["plg1", "plg2"],
+            },
+        )?;
+        test_module
+            .getattr("test_plugin_inputs_tx")?
+            .call1((plugin_inputs_tx,))
             .map_err(handle_exc)?;
 
         Ok(())

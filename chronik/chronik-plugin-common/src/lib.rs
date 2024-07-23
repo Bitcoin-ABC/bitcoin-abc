@@ -5,6 +5,7 @@
 //! Common structs for the Chronik plugin system.
 
 abc_rust_lint::lint! {
+    pub mod data;
     pub mod params;
     pub mod plugin;
 }

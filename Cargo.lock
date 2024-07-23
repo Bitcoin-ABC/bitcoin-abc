@@ -385,6 +385,7 @@ name = "chronik-plugin-common"
 version = "0.1.0"
 dependencies = [
  "abc-rust-lint",
+ "bimap",
  "bitcoinsuite-core",
  "bitcoinsuite-slp",
  "versions",

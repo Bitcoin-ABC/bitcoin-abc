@@ -12,5 +12,8 @@ abc-rust-lint = { path = "../abc-rust-lint" }
 bitcoinsuite-core = { path = "../bitcoinsuite-core" }
 bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
 
+# Map that goes in both directions
+bimap = "0.6"
+
 # Semantic version string parser
 versions = "6.2"

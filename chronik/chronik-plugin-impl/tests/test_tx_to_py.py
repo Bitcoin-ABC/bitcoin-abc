@@ -4,7 +4,7 @@
 
 from chronik_plugin.script import Script
 from chronik_plugin.token import GenesisInfo, Token, TokenTxEntry
-from chronik_plugin.tx import OutPoint, Tx, TxInput, TxOutput
+from chronik_plugin.tx import OutPoint, PluginOutputEntry, Tx, TxInput, TxOutput
 from test_framework.util import assert_equal
 
 
@@ -69,12 +69,14 @@ def test_non_token_tx(tx: Tx):
                     token=None,
                 ),
                 sequence=0x12345678,
+                plugin={},
             ),
             TxInput(
                 prev_out=OutPoint(b"\x08" * 32, 22),
                 script=Script(b""),
                 output=None,
                 sequence=0,
+                plugin={},
             ),
         ],
     )
@@ -470,4 +472,17 @@ def test_non_token_burn_tx(tx: Tx):
     assert_equal(
         [output.token for output in tx.outputs],
         [None, None],
+    )
+
+
+def test_plugin_inputs_tx(tx: Tx):
+    assert_equal(
+        [inpt.plugin for inpt in tx.inputs],
+        [
+            {
+                "plg1": PluginOutputEntry(groups=[b"grp1", b"grp2"], data=[b"dat1"]),
+                "plg2": PluginOutputEntry(groups=[b"2grp"], data=[b"2dat"]),
+            },
+            {},
+        ],
     )

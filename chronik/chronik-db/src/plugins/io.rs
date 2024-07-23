@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 use abc_rust_error::Result;
+use chronik_plugin::data::PluginIdx;
 use rocksdb::{ColumnFamilyDescriptor, Direction, WriteBatch};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -13,9 +14,6 @@ use crate::{
     plugins::PluginDbError::*,
     ser::{db_deserialize, db_serialize},
 };
-
-/// Index of a plugin to uniquely identify it
-pub type PluginIdx = u32;
 
 struct PluginsCol<'a> {
     db: &'a Db,
