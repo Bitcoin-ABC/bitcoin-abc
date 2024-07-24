@@ -376,6 +376,8 @@ version = "0.1.0"
 dependencies = [
  "abc-rust-error",
  "abc-rust-lint",
+ "bitcoinsuite-core",
+ "bitcoinsuite-slp",
  "chronik-plugin-common",
  "chronik-plugin-impl",
 ]
@@ -388,6 +390,7 @@ dependencies = [
  "bimap",
  "bitcoinsuite-core",
  "bitcoinsuite-slp",
+ "serde",
  "versions",
 ]
 

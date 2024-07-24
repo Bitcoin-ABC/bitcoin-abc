@@ -14,6 +14,9 @@ enabled = ["chronik-plugin-impl"]
 abc-rust-lint = { path = "../abc-rust-lint" }
 abc-rust-error = { path = "../abc-rust-error" }
 
+bitcoinsuite-core = { path = "../bitcoinsuite-core" }
+bitcoinsuite-slp = { path = "../bitcoinsuite-slp" }
+
 chronik-plugin-common = { path = "../chronik-plugin-common" }
 
 [dependencies.chronik-plugin-impl]

@@ -48,6 +48,8 @@ pub const CF_LOOKUP_TX_BY_HASH: &str = "lookup_tx_by_hash";
 pub const CF_META: &str = "meta";
 /// Column family to store plugin metadata.
 pub const CF_PLUGIN_META: &str = "plugin_meta";
+/// Column family to store plugin outputs.
+pub const CF_PLUGIN_OUTPUTS: &str = "plugin_outputs";
 /// Column family to store tx history by script.
 pub const CF_SCRIPT_HISTORY: &str = "script_history";
 /// Column family to store number of txs by script.

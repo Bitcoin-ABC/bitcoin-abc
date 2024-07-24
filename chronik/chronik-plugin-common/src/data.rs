@@ -7,6 +7,7 @@
 use std::collections::BTreeMap;
 
 use bimap::BiMap;
+use serde::{Deserialize, Serialize};
 
 /// Index of a plugin to uniquely identify it
 pub type PluginIdx = u32;
@@ -19,14 +20,14 @@ pub struct PluginTxOutputs {
 }
 
 /// Data attached to an output by all loaded plugins.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Default, Eq, PartialEq, Serialize)]
 pub struct PluginOutput {
     /// Entries for each plugin, indentified by plugin ID
     pub plugins: BTreeMap<PluginIdx, PluginOutputEntry>,
 }
 
 /// Data attached to an output by an individual plugin.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Default, Eq, PartialEq, Serialize)]
 pub struct PluginOutputEntry {
     /// Groups assigned to the output
     pub groups: Vec<Vec<u8>>,

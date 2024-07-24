@@ -16,7 +16,9 @@ use bitcoinsuite_core::{
     tx::{OutPoint, Tx, TxId},
 };
 use bitcoinsuite_slp::{
-    lokad_id::parse_tx_lokad_ids, token_tx::TokenTx, verify::SpentToken,
+    lokad_id::{parse_tx_lokad_ids, LokadId},
+    token_tx::TokenTx,
+    verify::SpentToken,
 };
 use bytes::Bytes;
 use chronik_plugin_common::{
@@ -48,6 +50,7 @@ pub struct PluginContext {
     instances: Vec<PyObject>,
     tx_module: Option<TxModule>,
     plugin_output_cls: Option<PyObject>,
+    lokad_ids: BTreeSet<LokadId>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -83,7 +86,7 @@ pub enum PluginContextError {
     PluginIdxNotFound(String),
 
     /// Running a plugin failed
-    #[error("Plugin {plugin_name} failed indexing tx {txid}: {error}")]
+    #[error("Plugin {plugin_name:?} failed indexing tx {txid}: {error}")]
     PluginRunFailed {
         /// TxId that failed
         txid: TxId,
@@ -251,6 +254,7 @@ impl PluginContext {
 
             let mut plugins = Vec::with_capacity(net_plugins.plugin.len());
             let mut instances = Vec::with_capacity(plugins.len());
+            let mut lokad_ids = BTreeSet::new();
             for (module_name, plugin_spec) in net_plugins.plugin {
                 let (plugin, instance) = match load_plugin(
                     py,
@@ -264,6 +268,9 @@ impl PluginContext {
                         return Err(err);
                     }
                 };
+                for &lokad_id in &plugin.lokad_ids {
+                    lokad_ids.insert(lokad_id);
+                }
                 let lokad_ids = plugin
                     .lokad_ids
                     .iter()
@@ -284,6 +291,7 @@ impl PluginContext {
                 instances,
                 tx_module: Some(tx_module),
                 plugin_output_cls: Some(plugin_output_cls.into()),
+                lokad_ids,
             })
         })
     }
@@ -422,6 +430,24 @@ impl PluginContext {
     /// Plugins loaded in this context
     pub fn plugins(&self) -> &[Plugin] {
         &self.plugins
+    }
+
+    /// Whether any plugin has the given lokad ID
+    pub fn has_plugin_with_lokad_id(&self, lokad_id: LokadId) -> bool {
+        self.lokad_ids.contains(&lokad_id)
+    }
+
+    /// Acquire the Python GIL and run `f` if the Plugin context is initialized,
+    /// otherwise just return `R::default()`.
+    pub fn with_py<F, R>(&self, f: F) -> Result<R>
+    where
+        F: for<'py> FnOnce(Python<'py>) -> Result<R>,
+        R: Default,
+    {
+        if self.tx_module.is_none() || self.plugins.is_empty() {
+            return Ok(R::default());
+        }
+        Python::with_gil(f)
     }
 }
 

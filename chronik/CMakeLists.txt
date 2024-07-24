@@ -88,6 +88,15 @@ add_crate_test_targets(abc-rust)
 add_crate_test_targets(bitcoinsuite)
 add_crate_test_targets(chronik)
 
+if(BUILD_BITCOIN_CHRONIK_PLUGINS)
+    add_cargo_custom_target(chronik-db-plugins-test
+        test
+        --package chronik-db
+        ${CHRONIK_FEATURE_FLAGS}
+    )
+    add_dependencies("check-crates" "chronik-db-plugins-test")
+endif()
+
 # Compile Rust, generates chronik_lib
 corrosion_import_crate(
     MANIFEST_PATH "chronik-lib/Cargo.toml"

@@ -989,7 +989,7 @@ fn verify_lokad_id_index(
 
 fn update_plugins_index(db: &Db, plugin_ctx: &PluginContext) -> Result<()> {
     let plugins_reader = PluginsReader::new(db)?;
-    let plugins_writer = PluginsWriter::new(db)?;
+    let plugins_writer = PluginsWriter::new(db, plugin_ctx)?;
     let db_plugins = plugins_reader
         .metas()?
         .into_iter()
