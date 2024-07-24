@@ -123,3 +123,40 @@ export function pushBytesOp(data: Uint8Array): Op {
     }
     return { opcode, data };
 }
+
+/**
+ * Returns an Op that pushes the minimally encoded byte representation of a
+ * number to the stack. The bytes pushed to the stack can be used directly
+ * without the need for OP_BIN2NUM.
+ */
+export function pushNumberOp(value: number | bigint): Op {
+    if (value == 0) {
+        return OP_0;
+    }
+
+    // Prepare number for encoding. The algorithm below replicates the one used
+    // in `src/script/script.h` intentionally to avoid discrepancies.
+    const auxValue = BigInt(value);
+    let bytes: number[] = [];
+    let negative = auxValue < 0;
+    let absvalue = negative ? ~auxValue + 1n : auxValue;
+
+    // Encode value in little endian byte order by iteratively pushing the
+    // least significant byte until shifting right 1 more byte produces 0
+    while (absvalue) {
+        bytes.push(Number(absvalue & 0xffn));
+        absvalue >>= 8n;
+    }
+
+    // The MSB will encode the sign which means that, if the previous encoding
+    // of the absolute value uses that bit, a new byte must be added to encode
+    // the sign. If bit is not set, then it must be set for negative numbers.
+    let last = bytes[bytes.length - 1];
+    if (last & 0x80) {
+        bytes.push(negative ? 0x80 : 0x00);
+    } else if (negative) {
+        bytes[bytes.length - 1] = last | 0x80;
+    }
+
+    return pushBytesOp(Uint8Array.from(bytes));
+}

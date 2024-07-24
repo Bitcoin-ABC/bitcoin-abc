@@ -21,7 +21,7 @@ import {
     OP_PUSHDATA2,
     OP_PUSHDATA4,
 } from './opcode.js';
-import { isPushOp, pushBytesOp, readOp, writeOp } from './op.js';
+import { isPushOp, pushBytesOp, pushNumberOp, readOp, writeOp } from './op.js';
 import { fromHex, toHex } from './io/hex.js';
 import { Bytes } from './io/bytes.js';
 import { WriterBytes } from './io/writerbytes.js';
@@ -296,6 +296,56 @@ describe('Op', () => {
         expect(pushBytesOp(new Uint8Array(0x10000))).to.deep.equal({
             opcode: OP_PUSHDATA4,
             data: new Uint8Array(0x10000),
+        });
+    });
+    it('pushNumberOp', () => {
+        expect(pushNumberOp(0x00)).to.deep.equal(OP_0);
+        expect(pushNumberOp(0x01)).to.deep.equal(OP_1);
+        expect(pushNumberOp(-0x01)).to.deep.equal(OP_1NEGATE);
+        expect(pushNumberOp(0x02)).to.deep.equal(OP_2);
+        expect(pushNumberOp(0x7f)).to.deep.equal({
+            opcode: 1,
+            data: new Uint8Array([0x7f]),
+        });
+        expect(pushNumberOp(0x80)).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([0x80, 0x00]),
+        });
+        expect(pushNumberOp(-0xff)).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([0xff, 0x80]),
+        });
+        expect(pushNumberOp(0x0100)).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([0x00, 0x01]),
+        });
+        expect(pushNumberOp(0x7fff)).to.deep.equal({
+            opcode: 2,
+            data: new Uint8Array([0xff, 0x7f]),
+        });
+        expect(pushNumberOp(-0x010000)).to.deep.equal({
+            opcode: 3,
+            data: new Uint8Array([0x00, 0x00, 0x81]),
+        });
+        expect(pushNumberOp(0xffffff)).to.deep.equal({
+            opcode: 4,
+            data: new Uint8Array([0xff, 0xff, 0xff, 0x00]),
+        });
+        expect(pushNumberOp(0x80000000)).to.deep.equal({
+            opcode: 5,
+            data: new Uint8Array([0x00, 0x00, 0x00, 0x80, 0x00]),
+        });
+        expect(pushNumberOp(-0xffffffff)).to.deep.equal({
+            opcode: 5,
+            data: new Uint8Array([0xff, 0xff, 0xff, 0xff, 0x80]),
+        });
+        expect(pushNumberOp(0x010000000000)).to.deep.equal({
+            opcode: 6,
+            data: new Uint8Array([0x00, 0x00, 0x00, 0x00, 0x00, 0x01]),
+        });
+        expect(pushNumberOp(0x0775f05a074000n)).to.deep.equal({
+            opcode: 7,
+            data: new Uint8Array([0x00, 0x40, 0x07, 0x5a, 0xf0, 0x75, 0x07]),
         });
     });
 });
