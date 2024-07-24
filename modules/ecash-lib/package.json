@@ -6,8 +6,8 @@
     "browser": "./dist/indexBrowser.js",
     "scripts": {
         "build": "tsc && tsc -p ./tsconfig.build.json && cp -r ./src/ffi ./dist",
-        "test": "mocha --import=tsx ./src/*.test.ts ./src/**/*.test.ts",
-        "integration-tests": "mocha --import=tsx ./tests/*.test.ts --timeout 60000",
+        "test": "mocha --forbid-only --import=tsx ./src/*.test.ts ./src/**/*.test.ts",
+        "integration-tests": "mocha --forbid-only --import=tsx ./tests/*.test.ts --timeout 60000",
         "coverage": "nyc npm run test",
         "junit": "npm run test --reporter mocha-junit-reporter"
     },
