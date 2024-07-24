@@ -20,7 +20,7 @@ use crate::io::token::{
 
 fn info(ticker: &'static [u8]) -> GenesisInfo {
     GenesisInfo {
-        token_ticker: ticker.as_ref().into(),
+        token_ticker: ticker.into(),
         ..GenesisInfo::empty_slp()
     }
 }

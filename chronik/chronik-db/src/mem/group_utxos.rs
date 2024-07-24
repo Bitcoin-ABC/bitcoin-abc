@@ -216,16 +216,13 @@ impl<G: Group> MempoolGroupUtxos<G> {
             },
             None => UtxoDoesntExistForRemoval(*outpoint),
         };
-        let utxos = self
-            .utxos
-            .get_mut(member_ser.as_ref())
-            .ok_or_else(make_err)?;
+        let utxos = self.utxos.get_mut(member_ser).ok_or_else(make_err)?;
         if !utxos.remove(outpoint) {
             return Err(make_err());
         }
         if utxos.is_empty() {
             // Clean up if there's no utxos for this member anymore
-            self.utxos.remove(member_ser.as_ref()).unwrap();
+            self.utxos.remove(member_ser).unwrap();
         }
         Ok(())
     }
