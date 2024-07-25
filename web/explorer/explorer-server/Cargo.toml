@@ -27,3 +27,4 @@ humansize = "1.1.1"
 eyre = "0.6"
 axum = "0.5.7"
 tower-http = { version = "0.3.4", features = ["fs"] }
+regex = "1.10.5"

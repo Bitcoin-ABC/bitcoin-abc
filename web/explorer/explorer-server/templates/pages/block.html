@@ -109,7 +109,7 @@ footer_classes %}hidden{% endblock %} {% block content %}
 
                             <tr>
                                 <td>Mined by</td>
-                                <td>Unknown</td>
+                                <td>{{ coinbase_data|render_miner }}</td>
                             </tr>
 
                             <tr>

@@ -7,6 +7,7 @@ use chrono_humanize::HumanTime;
 use humansize::{file_size_opts as options, FileSize};
 use maud::{html, PreEscaped};
 use num_format::{Locale, ToFormattedString};
+use regex::bytes::Regex;
 
 use crate::blockchain;
 
@@ -118,6 +119,77 @@ pub fn render_difficulty(difficulty: &f64) -> askama::Result<String> {
     Ok(output.into_string())
 }
 
+pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
+    // Miners identified exactly by utf8 string in coinbase data
+    let self_identified_miners = [
+        "Mining-Dutch",
+        "ZULUPooL",
+        "zpool.ca",
+        "molepool.com",
+        "CoinMinerz.com",
+        "zergpool.com",
+        "solopool.org",
+        "p2p-spb.xyz",
+        "Cminors-Pools",
+        "with Om Power",
+    ];
+
+    for &str_to_match in &self_identified_miners {
+        if contains_subslice(coinbase_data, str_to_match.as_bytes()) {
+            return Ok(str_to_match.to_string());
+        }
+    }
+
+    // Miners with identifying coinbase data substring that must be clarified
+    // for the user
+    let partial_string_miners = [("Hath", "Hathor-MM")];
+
+    for &(str_to_match, str_to_show) in &partial_string_miners {
+        if contains_subslice(coinbase_data, str_to_match.as_bytes()) {
+            return Ok(str_to_show.to_string());
+        }
+    }
+
+    // Pools with identifiable miners
+
+    // ViaBTC
+    let reg_viabtc =
+        Regex::new(r"ViaBTC(.*/Mined by (?P<mined_by>\w+)/)?").unwrap();
+    if let Some(captures) = reg_viabtc.captures(coinbase_data) {
+        if let Some(mined_by) = captures.name("mined_by") {
+            return Ok(format!(
+                "ViaBTC | Mined by {}",
+                String::from_utf8_lossy(mined_by.as_bytes())
+            ));
+        };
+        return Ok("ViaBTC".to_string());
+    };
+
+    // CK Pool
+    // Note: CK Pool software is used by solo miners
+    // Parse as solo miners unless CK Pool is the only identifier
+    let reg_ckpool =
+        Regex::new(r"ckpool(.*/mined by (?P<mined_by>\w+)/)?").unwrap();
+    if let Some(captures) = reg_ckpool.captures(coinbase_data) {
+        if let Some(mined_by) = captures.name("mined_by") {
+            return Ok(format!(
+                "{}",
+                String::from_utf8_lossy(mined_by.as_bytes())
+            ));
+        };
+        return Ok("CK Pool".to_string());
+    };
+
+    // Miner not recognized, return "Unknown"
+    return Ok("Unknown".to_string());
+}
+
+pub fn contains_subslice(haystack: &[u8], needle: &[u8]) -> bool {
+    haystack
+        .windows(needle.len())
+        .any(|window| window == needle)
+}
+
 pub fn render_integer_with_commas(int: &u64) -> askama::Result<String> {
     let string = int.to_formatted_string(&Locale::en);
     let parts = string.split(',').collect::<Vec<_>>();
@@ -219,4 +291,171 @@ pub fn get_token<'a>(
     token_id: &str,
 ) -> askama::Result<Option<&'a TokenInfo>> {
     Ok(tokens.get(token_id))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::templating::filters::{contains_subslice, render_miner};
+
+    #[test]
+    fn test_contains_subslice() {
+        // Returns true if substring is present
+        assert_eq!(contains_subslice(b"abcdefViaBTCghijk", b"ViaBTC"), true);
+        // Returns false if substring is not present
+        assert_eq!(
+            contains_subslice(b"abcdefViaBTCghijk", b"Mining-Dutch"),
+            false
+        );
+        // Returns true if substring matches whole string
+        assert_eq!(
+            contains_subslice(b"abcdefViaBTCghijk", b"abcdefViaBTCghijk"),
+            true
+        );
+        // Returns true if substring occurs more than once
+        assert_eq!(contains_subslice(b"abcabcabc", b"abc"), true);
+    }
+    #[test]
+    fn test_render_miner() {
+        // ViaBTC 791160 (mined by 260786)
+
+        // Note: To build mocks using coinbase hex as bytes:
+        // 1 - In python, run bytes.fromhex("<coinbase_hex_of_block>")
+        // 2 - Use double quotes to wrap output, not single quotes ("" not '')
+        // 3 - Manually format across multiple lines by adding '\' before
+        //     line breaks
+        // 4 - Any double quotes inside the bytes string must be escaped with
+        // '\'
+
+        let via_coinbase_hex = b"\x03x\x12\x0c\x18/ViaBTC/Mined by \
+        260786/\x10;o\xa2\x0f\xf3d\x8ai\xac\xc3\x1e\xd9\xb4\x94l\x00";
+        assert_eq!(
+            render_miner(via_coinbase_hex).unwrap(),
+            "ViaBTC | Mined by 260786"
+        );
+
+        // ViaBTC 852373 (mined by zuberjawan)
+        let via_zuberjawan_coinbase_hex = b"\x03\x95\x01\r\x1c/ViaBTC\
+        /Mined by zuberjawan/\x10\xbf\xde\xb8\x0bV\xe4=\xed\xd0\x03PN\
+        \xa2\xaa\x0f\x00";
+        assert_eq!(
+            render_miner(via_zuberjawan_coinbase_hex).unwrap(),
+            "ViaBTC | Mined by zuberjawan"
+        );
+
+        // Mining-Dutch 854964
+        let md_coinbase_hex = b"\x03\xb4\x0b\r\x04\xca\xa4\xa3f\x08\xfa\
+        \xbemmU\xa9\x8co\xaa\xf7\xa7ta\xd5\xe7/\x05d'\x8akl\x94\xe8x\
+        \x8bJy\x1a\x01\x90\xc3\xbc\x8e\x04\x8c\x00\x01\x00\x00\x00\x00\
+        \x00\x00\x04\xe2H\xcb]A\x00\x00Z\x00\x12/Mining-Dutch/-114";
+        assert_eq!(render_miner(md_coinbase_hex).unwrap(), "Mining-Dutch");
+
+        // Hathor-MM 823276
+        let hathor_coinbase_hex = b"\x03\xec\x8f\x0cHath=\xec\";v5D\xf2\
+        \x88\x19\xdf\x8b\xa9W\x94K\xba\xc2\xe3\\\xb8\xde\x15\x1b\x03\
+        \x0e\xde\xe8\x8a\x90\x13Ps\xe0/\x19\x1d\x00\x00\x00";
+        assert_eq!(render_miner(hathor_coinbase_hex).unwrap(), "Hathor-MM");
+
+        // Zulu Pool 785677
+        // A block with both Hathor and Zulu hex strings is returned as Zulu
+        let zulu_coinbase_hex = b"\x03\r\xfd\x0bHath\xa8\x81\xa5K_\xbc(\
+        \xb2~\xb3\xedY\xfcI$\xa3\xb9\x91\x03?\xeezx\xb9\x19\x17\n\x92\xd9\
+        \xb7\xbe\xafZULUPooL-XEC\x00\x00\x11\xd8\xe9\xbb\x1b\x00";
+        assert_eq!(render_miner(zulu_coinbase_hex).unwrap(), "ZULUPooL");
+
+        // CK Pool specified miner TinyChipHub
+        // 854770
+        let ck_tinychiphub_coinbase_hex = b"\x03\xf2\n\r\x00\x04\xfa\xe1\
+        \xa1f\x04Z\x8c\xe5\x02\x0c,^\x9ffX\xe1o>\x86\xee^\x00\nckpool\
+        \x16/mined by TinyChipHub/";
+        assert_eq!(
+            render_miner(ck_tinychiphub_coinbase_hex).unwrap(),
+            "TinyChipHub"
+        );
+
+        // CK Pool unspecified miner
+        // 788631
+        let ck_unspecified_coinbase_hex = b"\x03\x97\x08\x0c\x04\x18\
+        \x16x\xa1\x04d\x98Ad\x04\xbbg\xca\r\x0c6\x92Adwc\x01\x00\x00\
+        \x00\x00\x00\nckpool";
+        assert_eq!(
+            render_miner(ck_unspecified_coinbase_hex).unwrap(),
+            "CK Pool"
+        );
+
+        // zpool 790863
+        let zpool_coinbase_hex = b"\x03O\x11\x0c\x04`*Wd\x08B\x00\x07\
+        \x90wB+\x01zpool.ca\x00\xfa\xbemm\xa8!)D&e.\xbd\x8c\xff\x8d\xf5\
+        \xe0/\xfc\xbb\xdc\x1b\x1d\x9e\x90\"\x83*\xcfM\x07\x1e\x9b\xfa-\
+        \x95 \x00\x00\x00\x00\x00\x00\x00";
+        assert_eq!(render_miner(zpool_coinbase_hex).unwrap(), "zpool.ca");
+
+        // molepool.com 796646
+        let molepool_coinbase_hex = b"\x03\xe6'\x0c\x04}%\x8cd\x00\x18\
+        \x96 \xe6\xfe\xe4\xe2\x17\x0e/molepool.com/";
+        assert_eq!(
+            render_miner(molepool_coinbase_hex).unwrap(),
+            "molepool.com"
+        );
+
+        // CoinMinerz.com 787515
+        let coinminerz_coinbase_hex = b"\x03;\x04\x0c\x04\x92\x9a7d\
+        \x08b\xc9\xc3\x13\x19\x1b\x1e\x00\x10/CoinMinerz.com/";
+        assert_eq!(
+            render_miner(coinminerz_coinbase_hex).unwrap(),
+            "CoinMinerz.com"
+        );
+
+        // zergpool.com 806676
+        let zergpool_coinbase_hex = b"\x03\x14O\x0c\x04\xb0\x1e\xe7d\
+        \x08\x81\x06\t\x08-\xc3\x06\x00zergpool.com\x00\xfa\xbemm'@\
+        \x1f=\xb7\xd7\xaf\x86Z\xfe\xba\xb8\r|\xb55~}\xf5\xaa\xe8b\
+        \x1eF\xc2\xaa|\x90\xbb\xfc\xdb\xca\x02\x00\x00\x00\x00\x00\
+        \x00\x00";
+        assert_eq!(
+            render_miner(zergpool_coinbase_hex).unwrap(),
+            "zergpool.com"
+        );
+
+        // solopool.org 806713
+        let solopool_coinbase_hex = b"\x039O\x0c\x04R\x9e\xe7d\x08\
+        \xf5\x1e\xec\xb6Q\xd0I\x04\x0csolopool.org";
+        assert_eq!(
+            render_miner(solopool_coinbase_hex).unwrap(),
+            "solopool.org"
+        );
+
+        // p2p-spb 821556
+        let p2pspb_coinbase_hex = b"\x034\x89\x0c,\xfa\xbemm*5\x7f\
+        \xe8\xc5f\x8c\x1e\xddX\xa4.\xaa\xa1\x81\xf4\x9a\xfc\xf3\x97\
+        \xcdj\xe2GS\x93\xec\x06\xcf\xcab\xf0\x10\x00\x00\x00\x00\
+        \x00\x00\x00p2p-spb.xyz";
+        assert_eq!(render_miner(p2pspb_coinbase_hex).unwrap(), "p2p-spb.xyz");
+
+        // Cminors-Pools 827550
+        let cminors_coinbase_hex = b"\x03\x9e\xa0\x0c\x04)\xc1\xa7e\
+        \x08\x81\x00\x00\x1f\xa1Zh\x00Cminors-Pools\x00\xfa\xbemm\
+        \xf3o<\xed\x97\xaa\xc3c\xe4\xf5 .K9\xd59EM\x9d!\xc4\x08\xdf\
+        \x8a\xc4\xbe\x8e\xb96`B\x0b\x01\x00\x00\x00\x00\x00\x00\x00";
+        assert_eq!(
+            render_miner(cminors_coinbase_hex).unwrap(),
+            "Cminors-Pools"
+        );
+
+        // AnandrajSingh Pool 840619
+        let anandra_coinbase_hex = b"\x03\xab\xd3\x0c\x00\x04j6!f\x04\
+        i\x94\xe2\x10\x0c`\x1f!f\x88hD\x00\x00\x00\x00\
+        \x00 Mined by with Om Power /AnandrajSingh Pool/\r \xf0\x9f\
+        \x8f\x86\xf0\x9f\x8f\x86\xf0\x9f\x8f\x86";
+        assert_eq!(
+            render_miner(anandra_coinbase_hex).unwrap(),
+            "with Om Power"
+        );
+
+        // Unknown miner
+        // genesis block 0
+        let unknown_coinbase_hex = b"\x04\xff\xff\x00\x1d\x01\x04\
+        EThe Times 03/Jan/2009 Chancellor on brink of second \
+        bailout for banks";
+        assert_eq!(render_miner(unknown_coinbase_hex).unwrap(), "Unknown");
+    }
 }
