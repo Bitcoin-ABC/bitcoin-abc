@@ -177,12 +177,45 @@ void TxDownloadManagerImpl::DisconnectedPeer(NodeId nodeid) {
 bool TxDownloadManagerImpl::AddTxAnnouncement(NodeId peer, const TxId &txid,
                                               std::chrono::microseconds now,
                                               bool p2p_inv) {
+    // If this is an orphan we are trying to resolve, consider this peer as a
+    // orphan resolution candidate instead.
+    // - received as an p2p inv
+    // - exists in orphanage
+    // - peer can be an orphan resolution candidate
+    if (p2p_inv) {
+        if (auto orphan_tx{m_opts.m_mempool.withOrphanage(
+                [&txid](const TxOrphanage &orphanage) {
+                    return orphanage.GetTx(txid);
+                })}) {
+            auto unique_parents{GetUniqueParents(*orphan_tx)};
+            std::erase_if(unique_parents, [&](const auto &parent_txid) {
+                return AlreadyHaveTx(parent_txid,
+                                     /*include_reconsiderable=*/false);
+            });
+
+            // The missing parents may have all been rejected or accepted since
+            // the orphan was added to the orphanage. Do not delete from the
+            // orphanage, as it may be queued for processing.
+            if (unique_parents.empty()) {
+                return true;
+            }
+
+            if (MaybeAddOrphanResolutionCandidate(unique_parents, txid, peer,
+                                                  now)) {
+                m_opts.m_mempool.withOrphanage(
+                    [&txid, peer](TxOrphanage &orphanage) {
+                        orphanage.AddAnnouncer(txid, peer);
+                    });
+            }
+
+            // Return even if the peer isn't an orphan resolution candidate.
+            // This would be caught by AlreadyHaveTx.
+            return true;
+        }
+    }
+
     // If this is an inv received from a peer and we already have it, we can
     // drop it.
-    // If this is a request for the parent of an orphan, we don't drop
-    // transactions that we already have. In particular, we *do* want to request
-    // parents that are in m_recent_rejects_package_reconsiderable, since they
-    // can be CPFP'd.
     if (p2p_inv && AlreadyHaveTx(txid, /*include_reconsiderable=*/true)) {
         return true;
     }
@@ -208,6 +241,54 @@ bool TxDownloadManagerImpl::AddTxAnnouncement(NodeId peer, const TxId &txid,
     m_txrequest.ReceivedInv(peer, txid, info.m_preferred, reqtime);
 
     return false;
+}
+
+bool TxDownloadManagerImpl::MaybeAddOrphanResolutionCandidate(
+    const std::vector<TxId> &unique_parents, const TxId &txid, NodeId nodeid,
+    std::chrono::microseconds now) {
+    auto it_peer = m_peer_info.find(nodeid);
+    if (it_peer == m_peer_info.end()) {
+        return false;
+    }
+    if (m_opts.m_mempool.withOrphanage(
+            [&txid, nodeid](const TxOrphanage &orphanage) {
+                return orphanage.HaveTxFromPeer(txid, nodeid);
+            })) {
+        return false;
+    }
+
+    const auto &peer_entry = m_peer_info.at(nodeid);
+    const auto &info = peer_entry.m_connection_info;
+
+    // TODO: add delays and limits based on the amount of orphan resolution we
+    // are already doing with this peer, how much they are using the orphanage,
+    // etc.
+    if (!info.m_relay_permissions) {
+        // This mirrors the delaying and dropping behavior in AddTxAnnouncement
+        // in order to preserve existing behavior: drop if we are tracking too
+        // many invs for this peer already. Each orphan resolution involves at
+        // least 1 transaction request which may or may not be currently tracked
+        // in m_txrequest, so we include that in the count.
+        if (m_txrequest.Count(nodeid) + unique_parents.size() >
+            TX_REQUEST_PARAMS.max_peer_announcements) {
+            return false;
+        }
+    }
+
+    const auto reqtime = ComputeRequestTime(
+        m_txrequest, nodeid, TX_REQUEST_PARAMS, now, info.m_preferred,
+        /*bypass_limits=*/info.m_relay_permissions);
+
+    // Treat finding orphan resolution candidate as equivalent to the peer
+    // announcing all missing parents.
+    // In the future, orphan resolution may include more explicit steps
+    for (const auto &parent_txid : unique_parents) {
+        m_txrequest.ReceivedInv(nodeid, parent_txid, info.m_preferred, reqtime);
+    }
+    LogDebug(BCLog::TXPACKAGES,
+             "added peer=%d as a candidate for resolving orphan %s\n", nodeid,
+             txid.ToString());
+    return true;
 }
 
 std::vector<TxId> TxDownloadManagerImpl::GetRequestsToSend(
@@ -404,18 +485,43 @@ RejectedTxTodo TxDownloadManagerImpl::MempoolRejectedTx(
                     return AlreadyHaveTx(parent_txid,
                                          /*include_reconsiderable=*/false);
                 });
-                const auto current_time{GetTime<std::chrono::microseconds>()};
+                const auto now{GetTime<std::chrono::microseconds>()};
+                // Potentially flip add_extra_compact_tx to false if tx is
+                // already in orphanage, which means it was already added to
+                // vExtraTxnForCompact.
+                add_extra_compact_tx &= !m_opts.m_mempool.withOrphanage(
+                    [&txid](const TxOrphanage &orphanage) {
+                        return orphanage.HaveTx(txid);
+                    });
 
-                for (const TxId &parent_txid : unique_parents) {
-                    AddTxAnnouncement(nodeid, parent_txid, current_time,
-                                      /*p2p_inv=*/false);
+                // If there is no candidate for orphan resolution, AddTx will
+                // not be called. This means that if a peer is overloading us
+                // with invs and orphans, they will eventually not be able to
+                // add any more transactions to the orphanage.
+                std::vector<NodeId> orphan_resolution_candidates{nodeid};
+                m_txrequest.GetCandidatePeers(txid,
+                                              orphan_resolution_candidates);
+
+                for (const auto &candidate : orphan_resolution_candidates) {
+                    if (MaybeAddOrphanResolutionCandidate(unique_parents, txid,
+                                                          candidate, now)) {
+                        m_opts.m_mempool.withOrphanage(
+                            [&ptx, candidate](TxOrphanage &orphanage) {
+                                orphanage.AddTx(ptx, candidate);
+                            });
+                    }
                 }
 
+                // Once added to the orphan pool, a tx is considered
+                // AlreadyHave, and we shouldn't request it anymore.
+                m_txrequest.ForgetInvId(tx.GetId());
+
+                // DoS prevention: do not allow the orphanage to grow unbounded
+                // (see CVE-2012-3789). Note that, if the orphanage reaches
+                // capacity, it's possible that we immediately evict the
+                // transaction we just added.
                 unsigned int nEvicted =
                     m_opts.m_mempool.withOrphanage([&](TxOrphanage &orphanage) {
-                        // Potentially flip add_extra_compact_tx to false if
-                        // AddTx returns false because the tx was already there
-                        add_extra_compact_tx &= orphanage.AddTx(ptx, nodeid);
                         return orphanage.LimitTxs(m_opts.m_max_orphan_txs,
                                                   m_rng);
                     });
@@ -423,10 +529,6 @@ RejectedTxTodo TxDownloadManagerImpl::MempoolRejectedTx(
                     LogDebug(BCLog::TXPACKAGES,
                              "orphanage overflow, removed %u tx\n", nEvicted);
                 }
-
-                // Once added to the orphan pool, a tx is considered
-                // AlreadyHave, and we shouldn't request it anymore.
-                m_txrequest.ForgetInvId(tx.GetId());
 
             } else {
                 unique_parents.clear();

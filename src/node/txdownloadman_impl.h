@@ -173,6 +173,18 @@ public:
 protected:
     /** Helper for getting deduplicated vector of Txids in vin. */
     std::vector<TxId> GetUniqueParents(const CTransaction &tx);
+
+    /**
+     * If this peer is an orphan resolution candidate for this transaction,
+     * treat the unique_parents as announced by this peer; add them as new invs
+     * to m_txrequest.
+     * @returns whether this transaction was a valid orphan resolution
+     * candidate.
+     */
+    bool
+    MaybeAddOrphanResolutionCandidate(const std::vector<TxId> &unique_parents,
+                                      const TxId &txid, NodeId nodeid,
+                                      std::chrono::microseconds now);
 };
 } // namespace node
 #endif // BITCOIN_NODE_TXDOWNLOADMAN_IMPL_H

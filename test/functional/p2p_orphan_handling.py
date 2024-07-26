@@ -47,6 +47,10 @@ def cleanup(func):
             self.generate(self.nodes[0], 1)
             self.nodes[0].disconnect_p2ps()
             self.nodes[0].bumpmocktime(LONG_TIME_SKIP)
+            # Check that mempool and orphanage have been cleared
+            assert_equal(0, len(self.nodes[0].getorphantxs()))
+            assert_equal(0, len(self.nodes[0].getrawmempool()))
+            self.wallet.rescan_utxos(include_mempool=True)
 
     return wrapper
 
@@ -391,6 +395,189 @@ class OrphanHandlingTest(BitcoinTestFramework):
         self.nodes[0].bumpmocktime(NONPREF_PEER_TX_DELAY + TXID_RELAY_DELAY)
         peer.wait_for_parent_requests([int(missing_parent["txid"], 16)])
 
+    @cleanup
+    def test_orphan_handling_prefer_outbound(self):
+        self.log.info("Test that the node prefers requesting from outbound peers")
+        node = self.nodes[0]
+        orphan_txid, orphan_tx, parent_tx = self.create_parent_and_child()
+        orphan_inv = CInv(t=MSG_TX, h=int(orphan_txid, 16))
+
+        peer_inbound = node.add_p2p_connection(PeerTxRelayer())
+        peer_outbound = node.add_outbound_p2p_connection(PeerTxRelayer(), p2p_idx=1)
+
+        # Inbound peer relays the transaction.
+        peer_inbound.send_and_ping(msg_inv([orphan_inv]))
+        self.nodes[0].bumpmocktime(TXREQUEST_TIME_SKIP)
+        peer_inbound.wait_for_getdata([int(orphan_txid, 16)])
+
+        # Both peers send invs for the orphan, so the node can expect both to
+        # know its ancestors.
+        peer_outbound.send_and_ping(msg_inv([orphan_inv]))
+
+        peer_inbound.send_and_ping(msg_tx(orphan_tx))
+
+        # There should be 1 orphan with 2 announcers (we don't know what their
+        # peer IDs are)
+        orphanage = node.getorphantxs(verbosity=2)
+        assert_equal(orphanage[0]["txid"], orphan_txid)
+        assert_equal(len(orphanage[0]["from"]), 2)
+
+        # The outbound peer should be preferred for getting orphan parents
+        self.nodes[0].bumpmocktime(TXID_RELAY_DELAY)
+        peer_outbound.wait_for_parent_requests([parent_tx.txid_int])
+
+        # There should be no request to the inbound peer
+        peer_inbound.assert_never_requested(parent_tx.txid_int)
+
+        self.log.info(
+            "Test that, if the preferred peer doesn't respond, the node sends another request"
+        )
+        self.nodes[0].bumpmocktime(GETDATA_TX_INTERVAL)
+        peer_inbound.sync_with_ping()
+        peer_inbound.wait_for_parent_requests([parent_tx.txid_int])
+
+    @cleanup
+    def test_announcers_before_and_after(self):
+        self.log.info(
+            "Test that the node uses all peers who announced the tx prior to realizing it's an orphan"
+        )
+        node = self.nodes[0]
+        orphan_txid, orphan_tx, parent_tx = self.create_parent_and_child()
+        orphan_inv = CInv(t=MSG_TX, h=int(orphan_txid, 16))
+
+        # Announces before tx is sent, disconnects while node is requesting
+        # parents
+        peer_early_disconnected = node.add_outbound_p2p_connection(
+            PeerTxRelayer(), p2p_idx=3
+        )
+        # Announces before tx is sent, doesn't respond to parent request
+        peer_early_unresponsive = node.add_p2p_connection(PeerTxRelayer())
+
+        # Announces after tx is sent
+        peer_late_announcer = node.add_p2p_connection(PeerTxRelayer())
+
+        # Both peers send invs for the orphan, so the node can expect both to
+        # know its ancestors.
+        peer_early_disconnected.send_and_ping(msg_inv([orphan_inv]))
+        self.nodes[0].bumpmocktime(TXREQUEST_TIME_SKIP)
+        peer_early_disconnected.wait_for_getdata([int(orphan_txid, 16)])
+        peer_early_unresponsive.send_and_ping(msg_inv([orphan_inv]))
+        peer_early_disconnected.send_and_ping(msg_tx(orphan_tx))
+
+        # There should be 1 orphan with 2 announcers (we don't know what their
+        # peer IDs are)
+        orphanage = node.getorphantxs(verbosity=2)
+        assert_equal(len(orphanage), 1)
+        assert_equal(orphanage[0]["txid"], orphan_txid)
+        assert_equal(len(orphanage[0]["from"]), 2)
+
+        # Peer disconnects before responding to request
+        self.nodes[0].bumpmocktime(TXID_RELAY_DELAY)
+        peer_early_disconnected.wait_for_parent_requests([parent_tx.txid_int])
+        peer_early_disconnected.peer_disconnect()
+
+        # The orphan should have 1 announcer left after the node finishes
+        # disconnecting peer_early_disconnected.
+        self.wait_until(lambda: len(node.getorphantxs(verbosity=2)[0]["from"]) == 1)
+
+        # The node should retry with the other peer that announced the orphan
+        # earlier. This node's request was additionally delayed because it's an
+        # inbound peer.
+        self.nodes[0].bumpmocktime(NONPREF_PEER_TX_DELAY)
+        peer_early_unresponsive.wait_for_parent_requests([parent_tx.txid_int])
+
+        self.log.info(
+            "Test that the node uses peers who announce the tx after realizing it's an orphan"
+        )
+        peer_late_announcer.send_and_ping(msg_inv([orphan_inv]))
+
+        # The orphan should have 2 announcers now
+        orphanage = node.getorphantxs(verbosity=2)
+        assert_equal(orphanage[0]["txid"], orphan_txid)
+        assert_equal(len(orphanage[0]["from"]), 2)
+
+        self.nodes[0].bumpmocktime(GETDATA_TX_INTERVAL)
+        peer_late_announcer.wait_for_parent_requests([parent_tx.txid_int])
+
+    @cleanup
+    def test_parents_change(self):
+        self.log.info(
+            "Test that, if a parent goes missing during orphan reso, it is requested"
+        )
+        node = self.nodes[0]
+        # Orphan will have 2 parents, 1 missing and 1 already in the orphanage
+        # when received.
+        # Create missing parent.
+        parent_missing = self.wallet.create_self_transfer()
+
+        # Create a parent that will already be in the orphanage, but become
+        # missing during orphan resolution, when it is removed from the
+        # orphanage. This parent is itself an orphan because its own parent is
+        # missing.
+        grandparent = self.wallet.create_self_transfer()
+        parent_peekaboo = self.wallet.create_self_transfer(
+            utxo_to_spend=grandparent["new_utxo"]
+        )
+
+        orphan = self.wallet.create_self_transfer_multi(
+            utxos_to_spend=[parent_peekaboo["new_utxo"], parent_missing["new_utxo"]]
+        )
+        orphan_txid = orphan["txid"]
+        orphan_inv = CInv(t=MSG_TX, h=int(orphan_txid, 16))
+
+        # peer0 sends parent_peekaboo, which starts out in the orphanage
+        peer0 = node.add_p2p_connection(PeerTxRelayer())
+        self.relay_transaction(peer0, parent_peekaboo["tx"])
+        self.wait_until(
+            lambda: node.getorphantxs(verbosity=0) == [parent_peekaboo["txid"]]
+        )
+
+        # peer1 sends the orphan and gets a request for the missing parent
+        peer1 = node.add_p2p_connection(PeerTxRelayer())
+        peer1.send_and_ping(msg_inv([orphan_inv]))
+        node.bumpmocktime(TXREQUEST_TIME_SKIP)
+        peer1.wait_for_getdata([int(orphan_txid, 16)])
+        peer1.send_and_ping(msg_tx(orphan["tx"]))
+        self.wait_until(
+            lambda: (
+                sorted(node.getorphantxs(verbosity=0))
+                == sorted([parent_peekaboo["txid"], orphan_txid])
+            )
+        )
+        node.bumpmocktime(NONPREF_PEER_TX_DELAY + TXID_RELAY_DELAY)
+        peer1.wait_for_getdata([int(parent_missing["txid"], 16)])
+        peer1.assert_never_requested(int(parent_peekaboo["txid"], 16))
+
+        # Disconnect peer0, which removes parent_peekaboo from the orphanage
+        # so that it is a newly missing parent.
+        peer0.peer_disconnect()
+        self.wait_until(lambda: node.getorphantxs(verbosity=0) == [orphan_txid])
+
+        # Second peer is an additional announcer for this orphan, but its
+        # missing parents are different from when it was previously announced.
+        peer2 = node.add_p2p_connection(PeerTxRelayer())
+        peer2.send_and_ping(msg_inv([orphan_inv]))
+        assert_equal(len(node.getorphantxs(verbosity=2)[0]["from"]), 2)
+
+        # Disconnect peer1. peer2 should become the new candidate for orphan
+        # resolution.
+        peer1.peer_disconnect()
+        node.bumpmocktime(TXREQUEST_TIME_SKIP)
+        self.wait_until(lambda: len(node.getorphantxs(verbosity=2)[0]["from"]) == 1)
+        # Both parents should be requested, now that they are both missing.
+        peer2.wait_for_parent_requests(
+            [int(parent_peekaboo["txid"], 16), int(parent_missing["txid"], 16)]
+        )
+        peer2.send_and_ping(msg_tx(parent_missing["tx"]))
+        peer2.send_and_ping(msg_tx(grandparent["tx"]))
+        peer2.send_and_ping(msg_tx(parent_peekaboo["tx"]))
+
+        final_mempool = node.getrawmempool()
+        assert parent_missing["txid"] in final_mempool
+        assert grandparent["txid"] in final_mempool
+        assert parent_peekaboo["txid"] in final_mempool
+        assert orphan_txid in final_mempool
+
     def run_test(self):
         self.nodes[0].setmocktime(int(time.time()))
         self.wallet_p2pk = MiniWallet(self.nodes[0], mode=MiniWalletMode.RAW_P2PK)
@@ -402,6 +589,9 @@ class OrphanHandlingTest(BitcoinTestFramework):
         self.test_orphan_multiple_parents()
         self.test_orphans_overlapping_parents()
         self.test_orphan_of_orphan()
+        self.test_orphan_handling_prefer_outbound()
+        self.test_announcers_before_and_after()
+        self.test_parents_change()
 
 
 if __name__ == "__main__":
