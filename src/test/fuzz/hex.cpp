@@ -27,7 +27,6 @@ FUZZ_TARGET(hex) {
     if (IsHex(random_hex_string)) {
         assert(ToLower(random_hex_string) == hex_data);
     }
-    (void)IsHexNumber(random_hex_string);
     (void)uint256::FromHex(random_hex_string);
     (void)uint256S(random_hex_string);
     try {

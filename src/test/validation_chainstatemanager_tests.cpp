@@ -1015,6 +1015,10 @@ BOOST_FIXTURE_TEST_CASE(chainstatemanager_args, BasicTestingSetup) {
 
     // invalid hex characters
     BOOST_CHECK(!get_opts({"-minimumchainwork=xyz"}));
+    // > 64 hex chars
+    BOOST_CHECK(!get_opts(
+        {"-minimumchainwork="
+         "01234567890123456789012345678901234567890123456789012345678901234"}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

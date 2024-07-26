@@ -58,10 +58,6 @@ std::vector<Byte> ParseHex(std::string_view hex_str) {
  * number of hex digits.
  */
 bool IsHex(std::string_view str);
-/**
- * Return true if the string is a hex number, optionally prefixed with "0x"
- */
-bool IsHexNumber(std::string_view str);
 std::optional<std::vector<uint8_t>> DecodeBase64(std::string_view str);
 std::string EncodeBase64(Span<const uint8_t> input);
 inline std::string EncodeBase64(Span<const std::byte> input) {

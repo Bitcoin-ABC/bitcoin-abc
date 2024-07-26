@@ -36,13 +36,13 @@ ApplyArgsManOptions(const ArgsManager &args, ChainstateManager::Options &opts) {
     }
 
     if (auto value{args.GetArg("-minimumchainwork")}) {
-        if (!IsHexNumber(*value)) {
-            return strprintf(
-                Untranslated(
-                    "Invalid non-hex (%s) minimum chain work value specified"),
-                *value);
+        if (auto min_work{uint256::FromUserHex(*value)}) {
+            opts.minimum_chain_work = UintToArith256(*min_work);
+        } else {
+            return strprintf(Untranslated("Invalid minimum work specified "
+                                          "(%s), must be up to %d hex digits"),
+                             *value, uint256::size() * 2);
         }
-        opts.minimum_chain_work = UintToArith256(uint256S(*value));
     }
 
     if (auto value{args.GetArg("-assumevalid")}) {
