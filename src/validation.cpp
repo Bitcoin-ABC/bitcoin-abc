@@ -2871,59 +2871,14 @@ static int64_t nTimeFlush = 0;
 static int64_t nTimeChainState = 0;
 static int64_t nTimePostConnect = 0;
 
-struct PerBlockConnectTrace {
-    CBlockIndex *pindex = nullptr;
-    std::shared_ptr<const CBlock> pblock;
-    PerBlockConnectTrace() {}
-};
-
-/**
- * Used to track blocks whose transactions were applied to the UTXO state as a
- * part of a single ActivateBestChainStep call.
- *
- * This class is single-use, once you call GetBlocksConnected() you have to
- * throw it away and make a new one.
- */
-class ConnectTrace {
-private:
-    std::vector<PerBlockConnectTrace> blocksConnected;
-
-public:
-    explicit ConnectTrace() : blocksConnected(1) {}
-
-    void BlockConnected(CBlockIndex *pindex,
-                        std::shared_ptr<const CBlock> pblock) {
-        assert(!blocksConnected.back().pindex);
-        assert(pindex);
-        assert(pblock);
-        blocksConnected.back().pindex = pindex;
-        blocksConnected.back().pblock = std::move(pblock);
-        blocksConnected.emplace_back();
-    }
-
-    std::vector<PerBlockConnectTrace> &GetBlocksConnected() {
-        // We always keep one extra block at the end of our list because blocks
-        // are added after all the conflicted transactions have been filled in.
-        // Thus, the last entry should always be an empty one waiting for the
-        // transactions from the next block. We pop the last entry here to make
-        // sure the list we return is sane.
-        assert(!blocksConnected.back().pindex);
-        blocksConnected.pop_back();
-        return blocksConnected;
-    }
-};
-
 /**
  * Connect a new block to m_chain. pblock is either nullptr or a pointer to
  * a CBlock corresponding to pindexNew, to bypass loading it again from disk.
- *
- * The block is added to connectTrace if connection succeeds.
  */
 bool Chainstate::ConnectTip(BlockValidationState &state,
                             BlockPolicyValidationState &blockPolicyState,
                             CBlockIndex *pindexNew,
                             const std::shared_ptr<const CBlock> &pblock,
-                            ConnectTrace &connectTrace,
                             DisconnectedBlockTransactions &disconnectpool,
                             const avalanche::Processor *const avalanche) {
     AssertLockHeld(cs_main);
@@ -3098,7 +3053,7 @@ bool Chainstate::ConnectTip(BlockValidationState &state,
         m_chainman.MaybeCompleteSnapshotValidation();
     }
 
-    connectTrace.BlockConnected(pindexNew, std::move(pthisBlock));
+    GetMainSignals().BlockConnected(pthisBlock, pindexNew);
     return true;
 }
 
@@ -3293,7 +3248,7 @@ void Chainstate::PruneBlockIndexCandidates() {
 bool Chainstate::ActivateBestChainStep(
     BlockValidationState &state, CBlockIndex *pindexMostWork,
     const std::shared_ptr<const CBlock> &pblock, bool &fInvalidFound,
-    ConnectTrace &connectTrace, const avalanche::Processor *const avalanche) {
+    const avalanche::Processor *const avalanche) {
     AssertLockHeld(cs_main);
     if (m_mempool) {
         AssertLockHeld(m_mempool->cs);
@@ -3357,7 +3312,7 @@ bool Chainstate::ActivateBestChainStep(
                             pindexConnect == pindexMostWork
                                 ? pblock
                                 : std::shared_ptr<const CBlock>(),
-                            connectTrace, disconnectpool, avalanche)) {
+                            disconnectpool, avalanche)) {
                 if (state.IsInvalid()) {
                     // The block violates a consensus rule.
                     if (state.GetResult() !=
@@ -3515,16 +3470,13 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
         {
             LOCK(cs_main);
             // Lock transaction pool for at least as long as it takes for
-            // connectTrace to be consumed
+            // updateMempoolForReorg to be executed if needed
             LOCK(MempoolMutex());
             CBlockIndex *starting_tip = m_chain.Tip();
             do {
                 // We absolutely may not unlock cs_main until we've made forward
                 // progress (with the exception of shutdown due to hardware
                 // issues, low disk space, etc).
-
-                // Destructed before cs_main is unlocked
-                ConnectTrace connectTrace;
 
                 if (pindexMostWork == nullptr) {
                     pindexMostWork =
@@ -3545,7 +3497,7 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                                       pindexMostWork->GetBlockHash()
                             ? pblock
                             : nullBlockPtr,
-                        fInvalidFound, connectTrace, avalanche)) {
+                        fInvalidFound, avalanche)) {
                     // A system error occurred
                     return false;
                 }
@@ -3558,11 +3510,6 @@ bool Chainstate::ActivateBestChain(BlockValidationState &state,
                 }
 
                 pindexNewTip = m_chain.Tip();
-                for (const PerBlockConnectTrace &trace :
-                     connectTrace.GetBlocksConnected()) {
-                    assert(trace.pblock && trace.pindex);
-                    GetMainSignals().BlockConnected(trace.pblock, trace.pindex);
-                }
 
                 // This will have been toggled in
                 // ActivateBestChainStep -> ConnectTip ->

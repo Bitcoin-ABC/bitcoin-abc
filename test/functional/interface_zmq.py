@@ -296,9 +296,6 @@ class ZMQTest(BitcoinTestFramework):
         # -> BlockDisconnected
         assert_equal(hashtx.receive().hex(), disconnect_cb)
         assert_equal(hashtx.receive().hex(), payment_txid)
-        # And the payment transaction again due to mempool entry
-        # -> TransactionAddedToMempool
-        assert_equal(hashtx.receive().hex(), payment_txid)
         # And the new connected coinbases
         # -> BlockConnected
         for i in [0, 1]:
@@ -306,6 +303,9 @@ class ZMQTest(BitcoinTestFramework):
                 hashtx.receive().hex(),
                 self.nodes[1].getblock(connect_blocks[i])["tx"][0],
             )
+        # And the payment transaction again due to mempool entry
+        # -> TransactionAddedToMempool
+        assert_equal(hashtx.receive().hex(), payment_txid)
 
         # If we do a simple invalidate we announce the disconnected coinbase
         self.nodes[0].invalidateblock(connect_blocks[1])

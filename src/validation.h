@@ -416,8 +416,6 @@ public:
     }
 };
 
-class ConnectTrace;
-
 /**
  * Check whether all of this transaction's input scripts succeed.
  *
@@ -1100,19 +1098,16 @@ public:
     }
 
 private:
-    bool
-    ActivateBestChainStep(BlockValidationState &state,
-                          CBlockIndex *pindexMostWork,
-                          const std::shared_ptr<const CBlock> &pblock,
-                          bool &fInvalidFound, ConnectTrace &connectTrace,
-                          const avalanche::Processor *const avalanche = nullptr)
+    bool ActivateBestChainStep(
+        BlockValidationState &state, CBlockIndex *pindexMostWork,
+        const std::shared_ptr<const CBlock> &pblock, bool &fInvalidFound,
+        const avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs,
                                  !cs_avalancheFinalizedBlockIndex);
     bool ConnectTip(BlockValidationState &state,
                     BlockPolicyValidationState &blockPolicyState,
                     CBlockIndex *pindexNew,
                     const std::shared_ptr<const CBlock> &pblock,
-                    ConnectTrace &connectTrace,
                     DisconnectedBlockTransactions &disconnectpool,
                     const avalanche::Processor *const avalanche = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs_main, m_mempool->cs,
