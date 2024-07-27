@@ -61,6 +61,10 @@ pub enum PluginDbError {
     /// Inconsistent DB: Plugin name is not UTF-8
     #[error("Inconsistent DB: Plugin name is not UTF-8: {0}: {1:?}")]
     PluginNameNotUtf8(String, Vec<u8>),
+
+    /// Plugin loaded but not in name map
+    #[error("Plugin {0:?} loaded but not in name map")]
+    PluginLoadedButNotInNameMap(String),
 }
 
 impl<'a> PluginsCol<'a> {
@@ -133,6 +137,33 @@ impl<'a> PluginsWriter<'a> {
             plugin_name,
             db_serialize(plugin_meta)?,
         );
+        Ok(())
+    }
+
+    /// Update the last synced height of all loaded plugins
+    pub fn update_sync_height(
+        &self,
+        batch: &mut WriteBatch,
+        block_height: BlockHeight,
+        plugin_name_map: &PluginNameMap,
+    ) -> Result<()> {
+        for plugin in self.ctx.plugins() {
+            let plugin_idx = plugin_name_map
+                .idx_by_name(&plugin.module_name)
+                .ok_or_else(|| {
+                PluginLoadedButNotInNameMap(plugin.module_name.clone())
+            })?;
+            self.write_meta(
+                batch,
+                &plugin.module_name,
+                &PluginMeta {
+                    plugin_idx,
+                    version: plugin.version.to_string(),
+                    sync_height: block_height,
+                },
+            )?;
+        }
+
         Ok(())
     }
 
@@ -338,6 +369,7 @@ mod tests {
         data::{PluginNameMap, PluginOutput, PluginOutputEntry},
         params::PluginParams,
     };
+    use pretty_assertions::assert_eq;
     use rocksdb::WriteBatch;
 
     use crate::{
@@ -530,9 +562,10 @@ class FailPlugin(Plugin):
          -> Result<()> {
             let mut batch = WriteBatch::default();
             *block_height.borrow_mut() += 1;
+            let block_txs = txs_batch(txs);
             let first_tx_num = tx_writer.insert(
                 &mut batch,
-                &txs_batch(txs),
+                &block_txs,
                 &mut TxsMemData::default(),
             )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
@@ -542,18 +575,29 @@ class FailPlugin(Plugin):
                 processed_token_data,
                 &plugin_name_map,
             )?;
+            plugins_writer.update_sync_height(
+                &mut batch,
+                block_txs.block_height,
+                &plugin_name_map,
+            )?;
             db.write_batch(batch)?;
             Ok(())
         };
         let disconnect_block = |txs: &[Tx]| -> Result<()> {
             let mut batch = WriteBatch::default();
+            let block_txs = txs_batch(txs);
             let first_tx_num = tx_writer.delete(
                 &mut batch,
-                &txs_batch(txs),
+                &block_txs,
                 &mut TxsMemData::default(),
             )?;
             let index_txs = prepare_indexed_txs(&db, first_tx_num, txs)?;
             plugins_writer.delete(&mut batch, &index_txs)?;
+            plugins_writer.update_sync_height(
+                &mut batch,
+                block_txs.block_height - 1,
+                &plugin_name_map,
+            )?;
             db.write_batch(batch)?;
             *block_height.borrow_mut() -= 1;
             Ok(())
@@ -579,6 +623,33 @@ class FailPlugin(Plugin):
                 .collect(),
             }),
         );
+        let mut metas = vec![
+            (
+                "counter".to_string(),
+                PluginMeta {
+                    plugin_idx: 0,
+                    sync_height: 0,
+                    version: "0.0.0".to_string(),
+                },
+            ),
+            (
+                "fail".to_string(),
+                PluginMeta {
+                    plugin_idx: 2,
+                    sync_height: 0,
+                    version: "0.0.0".to_string(),
+                },
+            ),
+            (
+                "summer".to_string(),
+                PluginMeta {
+                    plugin_idx: 1,
+                    sync_height: 0,
+                    version: "0.0.0".to_string(),
+                },
+            ),
+        ];
+        assert_eq!(plugins_reader.metas()?, metas);
 
         // Block spending 1 -> 4 -> 3 -> 5 with the "counter" plugin
         // We sort topologically, so this will work fine
@@ -632,6 +703,10 @@ class FailPlugin(Plugin):
                 .collect(),
             }),
         );
+        metas[0].1.sync_height = 1;
+        metas[1].1.sync_height = 1;
+        metas[2].1.sync_height = 1;
+        assert_eq!(plugins_reader.metas()?, metas);
 
         let block3 = [
             make_tx(6, [], 1, Script::default()),
@@ -698,6 +773,10 @@ class FailPlugin(Plugin):
                 .collect(),
             }),
         );
+        metas[0].1.sync_height = 2;
+        metas[1].1.sync_height = 2;
+        metas[2].1.sync_height = 2;
+        assert_eq!(plugins_reader.metas()?, metas);
 
         disconnect_block(&block3)?;
 
@@ -706,6 +785,10 @@ class FailPlugin(Plugin):
         assert!(plugins_reader.plugin_output(&db_outpoint(4, 1))?.is_some());
         assert!(plugins_reader.plugin_output(&db_outpoint(5, 1))?.is_some());
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(7, 1))?, None);
+        metas[0].1.sync_height = 1;
+        metas[1].1.sync_height = 1;
+        metas[2].1.sync_height = 1;
+        assert_eq!(plugins_reader.metas()?, metas);
 
         disconnect_block(&block2)?;
 
@@ -714,6 +797,10 @@ class FailPlugin(Plugin):
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(4, 1))?, None);
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(5, 1))?, None);
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(7, 1))?, None);
+        metas[0].1.sync_height = 0;
+        metas[1].1.sync_height = 0;
+        metas[2].1.sync_height = 0;
+        assert_eq!(plugins_reader.metas()?, metas);
 
         disconnect_block(&block1)?;
 
@@ -722,6 +809,10 @@ class FailPlugin(Plugin):
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(4, 1))?, None);
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(5, 1))?, None);
         assert_eq!(plugins_reader.plugin_output(&db_outpoint(7, 1))?, None);
+        metas[0].1.sync_height = -1;
+        metas[1].1.sync_height = -1;
+        metas[2].1.sync_height = -1;
+        assert_eq!(plugins_reader.metas()?, metas);
 
         assert_eq!(
             connect_block(

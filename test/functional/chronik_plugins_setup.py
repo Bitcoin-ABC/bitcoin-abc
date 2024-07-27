@@ -7,6 +7,7 @@ Test the Chronik plugin system gets sets up correctly.
 
 import os
 
+from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
 from test_framework.test_framework import BitcoinTestFramework
 
 
@@ -133,7 +134,7 @@ class ChronikPluginsSetup(BitcoinTestFramework):
             'Error: Invalid version "ver", must follow semantic versioning (see https://semver.org/)',
         )
 
-        # Successful plugin load
+        # We already have an existing chain (with the genesis), so we need a -chronikreindex
         with open(plugin_module, "w", encoding="utf-8") as f:
             print("from chronik_plugin.plugin import Plugin", file=f)
             print("class MyPluginPlugin(Plugin):", file=f)
@@ -143,13 +144,21 @@ class ChronikPluginsSetup(BitcoinTestFramework):
             print("    return '0.1.0-aleph+bet'", file=f)
             print("  def run(self, tx):", file=f)
             print("    return []", file=f)
+        assert_start_raises(
+            'Error: Cannot load new plugin "my_plugin" on non-empty DB. Chronik is '
+            "already synced to height 0, but this version of Chronik doesn't support "
+            "automatically re-syncing plugins. Either disable the plugin or use "
+            "-chronikreindex to reindex.",
+        )
+
+        # Successful plugin load + reindex
         with node.assert_debug_log(
             [
                 "Plugin context initialized Python",
                 'Loaded plugin my_plugin.MyPluginPlugin (version 0.1.0-aleph+bet) with LOKAD IDs [b"TEST"]',
             ]
         ):
-            self.start_node(0, ["-chronik"])
+            self.start_node(0, ["-chronik", "-chronikreindex"])
 
         # Upgrading plugin version without reindex not allowed
         with open(plugin_module, "w", encoding="utf-8") as f:
@@ -171,6 +180,31 @@ class ChronikPluginsSetup(BitcoinTestFramework):
         )
 
         # With chronikreindex, we're all good
+        with node.assert_debug_log(
+            [
+                "Plugin context initialized Python",
+                'Loaded plugin my_plugin.MyPluginPlugin (version 0.2.0) with LOKAD IDs [b"TEST"]',
+            ]
+        ):
+            self.start_node(0, ["-chronik", "-chronikreindex"])
+
+        # Disable plugin and generate a few blocks
+        open(plugins_toml, "w", encoding="utf-8").close()
+        self.restart_node(0, ["-chronik"])
+        self.generatetoaddress(node, 5, ADDRESS_ECREG_UNSPENDABLE)
+
+        # Re-enable plugin, now our plugin is out-of-sync and needs a reindex
+        with open(plugins_toml, "w", encoding="utf-8") as f:
+            print("[regtest.plugin.my_plugin]", file=f)
+        self.stop_node(0)
+        assert_start_raises(
+            'Error: Plugin "my_plugin" desynced from DB. Plugin has block height 0, but '
+            "the rest of Chronik is synced to height 5. This version of Chronik "
+            "doesn't support automatically re-syncing plugins. Either disable the "
+            "plugin or use -chronikreindex to reindex.",
+        )
+
+        # With another chronikreindex, we're all good
         with node.assert_debug_log(
             [
                 "Plugin context initialized Python",

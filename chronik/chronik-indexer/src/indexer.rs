@@ -31,7 +31,7 @@ use chronik_db::{
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
     plugins::{PluginMeta, PluginsReader, PluginsWriter},
 };
-use chronik_plugin::context::PluginContext;
+use chronik_plugin::{context::PluginContext, data::PluginNameMap};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -86,6 +86,8 @@ pub struct ChronikIndexer {
     /// Whether the LOKAD ID index needs to be reindexed, will be set to
     /// `false` after it caught up with the rest of Chronik.
     needs_lokad_id_reindex: bool,
+    plugin_ctx: Arc<PluginContext>,
+    plugin_name_map: PluginNameMap,
 }
 
 /// Access to the bitcoind node.
@@ -190,6 +192,39 @@ pub enum ChronikIndexerError {
         /// New version of the loaded plugin
         loaded_version: String,
     },
+
+    /// Currently, plugins must always be synched from Genesis and may never
+    /// desync
+    #[error(
+        "Cannot load new plugin {plugin_name:?} on non-empty DB. Chronik is \
+         already synced to height {db_height}, but this version of Chronik \
+         doesn't support automatically re-syncing plugins. Either disable the \
+         plugin or use -chronikreindex to reindex."
+    )]
+    NewPluginOnNonEmptyDb {
+        /// Name of the plugin that has a version mismatch
+        plugin_name: String,
+        /// Height Chronik is synced to
+        db_height: BlockHeight,
+    },
+
+    /// Currently, plugins must always be synched from Genesis and may never
+    /// desync
+    #[error(
+        "Plugin {plugin_name:?} desynced from DB. Plugin has block height \
+         {plugin_height}, but the rest of Chronik is synced to height \
+         {db_height}. This version of Chronik doesn't support automatically \
+         re-syncing plugins. Either disable the plugin or use -chronikreindex \
+         to reindex."
+    )]
+    PluginDesynchedHeight {
+        /// Name of the plugin that has a version mismatch
+        plugin_name: String,
+        /// Height Chronik is synced to
+        db_height: BlockHeight,
+        /// Height the plugin is synced to
+        plugin_height: BlockHeight,
+    },
 }
 
 impl ChronikIndexer {
@@ -222,7 +257,7 @@ impl ChronikIndexer {
             params.enable_lokad_id_index,
         )?;
         upgrade_db_if_needed(&db, schema_version, params.enable_token_index)?;
-        update_plugins_index(&db, &params.plugin_ctx)?;
+        let plugin_name_map = update_plugins_index(&db, &params.plugin_ctx)?;
 
         let mempool = Mempool::new(
             ScriptGroup,
@@ -242,6 +277,8 @@ impl ChronikIndexer {
             is_token_index_enabled: params.enable_token_index,
             is_lokad_id_index_enabled: params.enable_lokad_id_index,
             needs_lokad_id_reindex,
+            plugin_ctx: params.plugin_ctx,
+            plugin_name_map,
         })
     }
 
@@ -469,6 +506,7 @@ impl ChronikIndexer {
             TokenIdUtxoWriter::new(&self.db, TokenIdGroup)?;
         let lokad_id_history_writer =
             LokadIdHistoryWriter::new(&self.db, LokadIdGroup)?;
+        let plugins_writer = PluginsWriter::new(&self.db, &self.plugin_ctx)?;
         block_writer.insert(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.insert(
             &mut batch,
@@ -530,6 +568,11 @@ impl ChronikIndexer {
         } else {
             token_id_aux = TokenIdGroupAux::default();
         }
+        plugins_writer.update_sync_height(
+            &mut batch,
+            block.db_block.height,
+            &self.plugin_name_map,
+        )?;
         self.db.write_batch(batch)?;
         for tx in &block.block_txs.txs {
             self.mempool.remove_mined(&tx.txid)?;
@@ -570,6 +613,7 @@ impl ChronikIndexer {
             TokenIdUtxoWriter::new(&self.db, TokenIdGroup)?;
         let lokad_id_history_writer =
             LokadIdHistoryWriter::new(&self.db, LokadIdGroup)?;
+        let plugins_writer = PluginsWriter::new(&self.db, &self.plugin_ctx)?;
         block_writer.delete(&mut batch, &block.db_block)?;
         let first_tx_num = tx_writer.delete(
             &mut batch,
@@ -628,6 +672,11 @@ impl ChronikIndexer {
             )?;
             token_writer.delete(&mut batch, &index_txs)?;
         }
+        plugins_writer.update_sync_height(
+            &mut batch,
+            block.db_block.height - 1,
+            &self.plugin_name_map,
+        )?;
         self.avalanche.disconnect_block(block.db_block.height)?;
         self.db.write_batch(batch)?;
         let subs = self.subs.get_mut();
@@ -987,9 +1036,13 @@ fn verify_lokad_id_index(
     Ok(false)
 }
 
-fn update_plugins_index(db: &Db, plugin_ctx: &PluginContext) -> Result<()> {
+fn update_plugins_index(
+    db: &Db,
+    plugin_ctx: &PluginContext,
+) -> Result<PluginNameMap> {
     let plugins_reader = PluginsReader::new(db)?;
     let plugins_writer = PluginsWriter::new(db, plugin_ctx)?;
+    let block_reader = BlockReader::new(db)?;
     let db_plugins = plugins_reader
         .metas()?
         .into_iter()
@@ -1000,6 +1053,8 @@ fn update_plugins_index(db: &Db, plugin_ctx: &PluginContext) -> Result<()> {
         .max()
         .map(|max_idx| max_idx + 1)
         .unwrap_or_default();
+    let db_block_height = block_reader.height()?;
+    let mut name_mapping = Vec::with_capacity(plugin_ctx.plugins().len());
     let mut batch = WriteBatch::default();
     for plugin in plugin_ctx.plugins() {
         // Plugins are identified by module name
@@ -1015,23 +1070,45 @@ fn update_plugins_index(db: &Db, plugin_ctx: &PluginContext) -> Result<()> {
                     }
                     .into());
                 }
+                if db_block_height != -1
+                    && db_plugin.sync_height != db_block_height
+                {
+                    return Err(PluginDesynchedHeight {
+                        plugin_name: plugin.module_name.clone(),
+                        db_height: db_block_height,
+                        plugin_height: db_plugin.sync_height,
+                    }
+                    .into());
+                }
+                name_mapping
+                    .push((db_plugin.plugin_idx, plugin.module_name.clone()));
             }
             None => {
+                if db_block_height != -1 {
+                    // Currently, can only load new plugins on an empty DB
+                    return Err(NewPluginOnNonEmptyDb {
+                        plugin_name: plugin.module_name.clone(),
+                        db_height: db_block_height,
+                    }
+                    .into());
+                }
                 plugins_writer.write_meta(
                     &mut batch,
                     &plugin.module_name,
                     &PluginMeta {
                         plugin_idx: next_plugin_idx,
-                        sync_height: 0,
+                        sync_height: -1,
                         version: plugin.version.to_string(),
                     },
                 )?;
+                name_mapping
+                    .push((next_plugin_idx, plugin.module_name.clone()));
                 next_plugin_idx += 1;
             }
         }
     }
     db.write_batch(batch)?;
-    Ok(())
+    Ok(PluginNameMap::new(name_mapping))
 }
 
 impl Node {
@@ -1277,7 +1354,7 @@ mod tests {
                 PluginMeta {
                     plugin_idx: 0,
                     version: "0.1.0".to_string(),
-                    sync_height: 0,
+                    sync_height: -1,
                 },
             )],
         );
@@ -1301,7 +1378,7 @@ mod tests {
                     PluginMeta {
                         plugin_idx: 0,
                         version: "0.1.0".to_string(),
-                        sync_height: 0,
+                        sync_height: -1,
                     },
                 ),
                 (
@@ -1309,7 +1386,7 @@ mod tests {
                     PluginMeta {
                         plugin_idx: 1,
                         version: "0.2.0".to_string(),
-                        sync_height: 0,
+                        sync_height: -1,
                     },
                 ),
             ],
@@ -1342,7 +1419,7 @@ mod tests {
                     PluginMeta {
                         plugin_idx: 0,
                         version: "0.1.0".to_string(),
-                        sync_height: 0,
+                        sync_height: -1,
                     },
                 ),
                 (
@@ -1350,7 +1427,7 @@ mod tests {
                     PluginMeta {
                         plugin_idx: 1,
                         version: "0.2.0".to_string(),
-                        sync_height: 0,
+                        sync_height: -1,
                     },
                 ),
             ],
