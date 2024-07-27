@@ -60,4 +60,9 @@ impl PluginNameMap {
     pub fn idx_by_name(&self, name: &str) -> Option<PluginIdx> {
         self.plugins_name.get_by_right(name).copied()
     }
+
+    /// Whether there's any plugins in the map
+    pub fn is_empty(&self) -> bool {
+        self.plugins_name.is_empty()
+    }
 }

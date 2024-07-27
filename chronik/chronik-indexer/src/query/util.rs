@@ -16,12 +16,13 @@ use bitcoinsuite_core::{
 use chronik_db::io::{
     BlockHeight, DbBlock, SpentByEntry, SpentByReader, TxNum, TxReader,
 };
+use chronik_plugin::data::{PluginNameMap, PluginOutput};
 use chronik_proto::proto;
 use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
-    query::{QueryUtilError::*, TxTokenData},
+    query::{make_plugins_proto, QueryUtilError::*, TxTokenData},
 };
 
 /// Errors indicating something went wrong with reading txs.
@@ -44,16 +45,21 @@ pub enum QueryUtilError {
     NotHashOrHeight(String),
 }
 
+pub(crate) struct MakeTxProtoParams<'a> {
+    pub(crate) tx: &'a Tx,
+    pub(crate) outputs_spent: &'a OutputsSpent<'a>,
+    pub(crate) time_first_seen: i64,
+    pub(crate) is_coinbase: bool,
+    pub(crate) block: Option<&'a DbBlock>,
+    pub(crate) avalanche: &'a Avalanche,
+    pub(crate) token: Option<&'a TxTokenData<'a>>,
+    pub(crate) plugin_outputs: &'a BTreeMap<OutPoint, PluginOutput>,
+    pub(crate) plugin_name_map: &'a PluginNameMap,
+}
+
 /// Make a [`proto::Tx`].
-pub(crate) fn make_tx_proto(
-    tx: &Tx,
-    outputs_spent: &OutputsSpent<'_>,
-    time_first_seen: i64,
-    is_coinbase: bool,
-    block: Option<&DbBlock>,
-    avalanche: &Avalanche,
-    token: Option<&TxTokenData<'_>>,
-) -> proto::Tx {
+pub(crate) fn make_tx_proto(params: MakeTxProtoParams<'_>) -> proto::Tx {
+    let tx = params.tx;
     proto::Tx {
         txid: tx.txid().to_vec(),
         version: tx.version,
@@ -74,8 +80,19 @@ pub(crate) fn make_tx_proto(
                     output_script,
                     value,
                     sequence_no: input.sequence,
-                    token: token
+                    token: params
+                        .token
                         .and_then(|token| token.input_token_proto(input_idx)),
+                    plugins: params
+                        .plugin_outputs
+                        .get(&input.prev_out)
+                        .map(|plugin_output| {
+                            make_plugins_proto(
+                                plugin_output,
+                                params.plugin_name_map,
+                            )
+                        })
+                        .unwrap_or_default(),
                 }
             })
             .collect(),
@@ -86,22 +103,39 @@ pub(crate) fn make_tx_proto(
             .map(|(output_idx, output)| proto::TxOutput {
                 value: output.value,
                 output_script: output.script.to_vec(),
-                spent_by: outputs_spent
+                spent_by: params
+                    .outputs_spent
                     .spent_by(output_idx as u32)
                     .map(|spent_by| make_spent_by_proto(&spent_by)),
-                token: token
+                token: params
+                    .token
                     .and_then(|token| token.output_token_proto(output_idx)),
+                plugins: params
+                    .plugin_outputs
+                    .get(&OutPoint {
+                        txid: tx.txid(),
+                        out_idx: output_idx as u32,
+                    })
+                    .map(|plugin_output| {
+                        make_plugins_proto(
+                            plugin_output,
+                            params.plugin_name_map,
+                        )
+                    })
+                    .unwrap_or_default(),
             })
             .collect(),
         lock_time: tx.locktime,
-        block: block.map(|block| proto::BlockMetadata {
+        block: params.block.map(|block| proto::BlockMetadata {
             hash: block.hash.to_vec(),
             height: block.height,
             timestamp: block.timestamp,
-            is_final: avalanche.is_final_height(block.height),
+            is_final: params.avalanche.is_final_height(block.height),
         }),
-        token_entries: token.map_or(vec![], |token| token.entries_proto()),
-        token_failed_parsings: token.map_or(vec![], |token| {
+        token_entries: params
+            .token
+            .map_or(vec![], |token| token.entries_proto()),
+        token_failed_parsings: params.token.map_or(vec![], |token| {
             token
                 .tx
                 .failed_parsings
@@ -115,7 +149,7 @@ pub(crate) fn make_tx_proto(
                 })
                 .collect()
         }),
-        token_status: match token {
+        token_status: match params.token {
             Some(token) => {
                 if token.tx.failed_parsings.is_empty()
                     && token.tx.entries.iter().all(|entry| entry.is_normal())
@@ -127,9 +161,9 @@ pub(crate) fn make_tx_proto(
             }
             None => proto::TokenStatus::NonToken as _,
         },
-        time_first_seen,
+        time_first_seen: params.time_first_seen,
         size: tx.ser_len() as u32,
-        is_coinbase,
+        is_coinbase: params.is_coinbase,
     }
 }
 

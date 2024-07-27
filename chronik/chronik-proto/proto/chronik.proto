@@ -157,6 +157,8 @@ message TxInput {
     uint32 sequence_no = 5;
     // Token value attached to this input
     Token token = 8;
+    // Data attached to this output by plugins
+    map<string, PluginEntry> plugins = 9;
 }
 
 // CTxOut, creates a new coin.
@@ -169,6 +171,8 @@ message TxOutput {
     SpentBy spent_by = 4;
     // Token value attached to this output
     Token token = 5;
+    // Data attached to this output by plugins
+    map<string, PluginEntry> plugins = 6;
 }
 
 // Data about a block which a Tx is in.
@@ -336,6 +340,14 @@ message TokenFailedColoring {
     int32 pushdata_idx = 1;
     // Human-readable message of what went wrong
     string error = 3;
+}
+
+// Data attached by a plugin to an output
+message PluginEntry {
+    // Groups assigned to this output
+    repeated bytes groups = 1;
+    // Data assigned to the output
+    repeated bytes data = 2;
 }
 
 // Page with txs

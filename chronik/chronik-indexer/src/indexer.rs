@@ -23,10 +23,12 @@ use chronik_db::{
         prepare_indexed_txs_cached, PrepareUpdateMode, TxNumCacheSettings,
     },
     io::{
-        merge, token::TokenWriter, BlockHeight, BlockReader, BlockStatsWriter,
-        BlockTxs, BlockWriter, DbBlock, GroupHistoryMemData, GroupUtxoMemData,
-        MetadataReader, MetadataWriter, SchemaVersion, SpentByWriter, TxEntry,
-        TxReader, TxWriter,
+        merge,
+        token::{ProcessedTokenTxBatch, TokenWriter},
+        BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
+        DbBlock, GroupHistoryMemData, GroupUtxoMemData, MetadataReader,
+        MetadataWriter, SchemaVersion, SpentByWriter, TxEntry, TxReader,
+        TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
     plugins::{PluginMeta, PluginsReader, PluginsWriter},
@@ -548,8 +550,9 @@ impl ChronikIndexer {
             )?;
         }
         let token_id_aux;
+        let processed_token_batch;
         if self.is_token_index_enabled {
-            let processed_token_batch =
+            processed_token_batch =
                 token_writer.insert(&mut batch, &index_txs)?;
             token_id_aux =
                 TokenIdGroupAux::from_batch(&index_txs, &processed_token_batch);
@@ -566,8 +569,15 @@ impl ChronikIndexer {
                 &mut GroupUtxoMemData::default(),
             )?;
         } else {
+            processed_token_batch = ProcessedTokenTxBatch::default();
             token_id_aux = TokenIdGroupAux::default();
         }
+        plugins_writer.insert(
+            &mut batch,
+            &index_txs,
+            &processed_token_batch,
+            &self.plugin_name_map,
+        )?;
         plugins_writer.update_sync_height(
             &mut batch,
             block.db_block.height,
@@ -672,6 +682,7 @@ impl ChronikIndexer {
             )?;
             token_writer.delete(&mut batch, &index_txs)?;
         }
+        plugins_writer.delete(&mut batch, &index_txs)?;
         plugins_writer.update_sync_height(
             &mut batch,
             block.db_block.height - 1,
@@ -732,6 +743,7 @@ impl ChronikIndexer {
             mempool: &self.mempool,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         }
     }
 
@@ -743,6 +755,7 @@ impl ChronikIndexer {
             mempool: &self.mempool,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         }
     }
 
@@ -754,6 +767,7 @@ impl ChronikIndexer {
             mempool: &self.mempool,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         }
     }
 
@@ -771,6 +785,7 @@ impl ChronikIndexer {
             group: self.script_group.clone(),
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         })
     }
 
@@ -803,6 +818,7 @@ impl ChronikIndexer {
             group: TokenIdGroup,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         }
     }
 
@@ -835,6 +851,7 @@ impl ChronikIndexer {
             group: LokadIdGroup,
             node,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         }
     }
 

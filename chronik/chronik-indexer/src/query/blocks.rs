@@ -17,13 +17,17 @@ use chronik_db::{
     },
     mem::Mempool,
 };
+use chronik_plugin::data::PluginNameMap;
 use chronik_proto::proto;
 use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
     indexer::Node,
-    query::{make_tx_proto, HashOrHeight, OutputsSpent, TxTokenData},
+    query::{
+        make_tx_proto, read_plugin_outputs, HashOrHeight, MakeTxProtoParams,
+        OutputsSpent, TxTokenData,
+    },
 };
 
 const MAX_BLOCKS_PAGE_SIZE: usize = 500;
@@ -46,6 +50,8 @@ pub struct QueryBlocks<'a> {
     pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
+    /// Map plugin name <-> plugin idx of all loaded plugins
+    pub plugin_name_map: &'a PluginNameMap,
 }
 
 /// Errors indicating something went wrong with querying blocks.
@@ -221,15 +227,23 @@ impl<'a> QueryBlocks<'a> {
                 &tx,
                 self.is_token_index_enabled,
             )?;
-            txs.push(make_tx_proto(
+            let plugin_outputs = read_plugin_outputs(
+                self.db,
                 &tx,
-                &outputs_spent,
-                db_tx.entry.time_first_seen,
-                db_tx.entry.is_coinbase,
-                Some(&db_block),
-                self.avalanche,
-                token.as_ref(),
-            ));
+                Some(tx_num),
+                !self.plugin_name_map.is_empty(),
+            )?;
+            txs.push(make_tx_proto(MakeTxProtoParams {
+                tx: &tx,
+                outputs_spent: &outputs_spent,
+                time_first_seen: db_tx.entry.time_first_seen,
+                is_coinbase: db_tx.entry.is_coinbase,
+                block: Some(&db_block),
+                avalanche: self.avalanche,
+                token: token.as_ref(),
+                plugin_outputs: &plugin_outputs,
+                plugin_name_map: self.plugin_name_map,
+            }));
         }
         let total_num_txs = (tx_range.end - tx_range.start) as usize;
         let total_num_pages =

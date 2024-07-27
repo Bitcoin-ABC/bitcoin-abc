@@ -252,6 +252,10 @@ impl<'a> PluginsWriter<'a> {
         batch: &mut WriteBatch,
         txs: &[IndexTx<'_>],
     ) -> Result<()> {
+        if self.ctx.plugins().is_empty() {
+            return Ok(());
+        }
+
         let plugin_outputs =
             self.col.fetch_plugin_outputs(txs.iter().flat_map(|tx| {
                 (0..tx.tx.outputs.len()).map(|out_idx| {
@@ -339,6 +343,15 @@ impl<'a> PluginsReader<'a> {
             return Ok(None);
         };
         Ok(Some(db_deserialize::<PluginOutput>(&output)?))
+    }
+
+    /// Read all the given outpoints by [`DbOutpoint`] and return them as map by
+    /// [`OutPoint`].
+    pub fn plugin_outputs(
+        &self,
+        outpoints: impl IntoIterator<Item = (OutPoint, TxNum)> + Clone,
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
+        self.col.fetch_plugin_outputs(outpoints)
     }
 }
 

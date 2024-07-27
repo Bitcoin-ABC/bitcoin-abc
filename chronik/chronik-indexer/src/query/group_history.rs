@@ -14,6 +14,7 @@ use chronik_db::{
     io::{BlockReader, GroupHistoryReader, SpentByReader, TxNum, TxReader},
     mem::{Mempool, MempoolGroupHistory},
 };
+use chronik_plugin::data::PluginNameMap;
 use chronik_proto::proto;
 use chronik_util::log;
 use thiserror::Error;
@@ -21,7 +22,10 @@ use thiserror::Error;
 use crate::{
     avalanche::Avalanche,
     indexer::Node,
-    query::{make_tx_proto, OutputsSpent, TxTokenData},
+    query::{
+        make_tx_proto, read_plugin_outputs, MakeTxProtoParams, OutputsSpent,
+        TxTokenData,
+    },
 };
 
 /// Smallest allowed page size
@@ -48,6 +52,8 @@ pub struct QueryGroupHistory<'a, G: Group> {
     pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
+    /// Map plugin name <-> plugin idx of all loaded plugins
+    pub plugin_name_map: &'a PluginNameMap,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -264,18 +270,28 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             .take(request_page_size);
         for (_, txid) in page_mempool_txs_iter {
             let entry = self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
-            page_txs.push(make_tx_proto(
-                &entry.tx,
-                &OutputsSpent::new_mempool(
+            page_txs.push(make_tx_proto(MakeTxProtoParams {
+                tx: &entry.tx,
+                outputs_spent: &OutputsSpent::new_mempool(
                     self.mempool.spent_by().outputs_spent(txid),
                 ),
-                entry.time_first_seen,
-                false,
-                None,
-                self.avalanche,
-                TxTokenData::from_mempool(self.mempool.tokens(), &entry.tx)
-                    .as_ref(),
-            ));
+                time_first_seen: entry.time_first_seen,
+                is_coinbase: false,
+                block: None,
+                avalanche: self.avalanche,
+                token: TxTokenData::from_mempool(
+                    self.mempool.tokens(),
+                    &entry.tx,
+                )
+                .as_ref(),
+                plugin_outputs: &read_plugin_outputs(
+                    self.db,
+                    &entry.tx,
+                    None,
+                    !self.plugin_name_map.is_empty(),
+                )?,
+                plugin_name_map: self.plugin_name_map,
+            }));
         }
 
         // If we filled up the page with mempool txs, or there's no DB txs on
@@ -348,21 +364,28 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 .map(|(_, txid)| -> Result<_> {
                     let entry =
                         self.mempool.tx(txid).ok_or(MissingMempoolTx(*txid))?;
-                    Ok(make_tx_proto(
-                        &entry.tx,
-                        &OutputsSpent::new_mempool(
+                    Ok(make_tx_proto(MakeTxProtoParams {
+                        tx: &entry.tx,
+                        outputs_spent: &OutputsSpent::new_mempool(
                             self.mempool.spent_by().outputs_spent(txid),
                         ),
-                        entry.time_first_seen,
-                        false,
-                        None,
-                        self.avalanche,
-                        TxTokenData::from_mempool(
+                        time_first_seen: entry.time_first_seen,
+                        is_coinbase: false,
+                        block: None,
+                        avalanche: self.avalanche,
+                        token: TxTokenData::from_mempool(
                             self.mempool.tokens(),
                             &entry.tx,
                         )
                         .as_ref(),
-                    ))
+                        plugin_outputs: &read_plugin_outputs(
+                            self.db,
+                            &entry.tx,
+                            None,
+                            !self.plugin_name_map.is_empty(),
+                        )?,
+                        plugin_name_map: self.plugin_name_map,
+                    }))
                 })
                 .collect::<Result<Vec<_>>>()?,
             None => vec![],
@@ -400,14 +423,22 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
             &tx,
             self.is_token_index_enabled,
         )?;
-        Ok(make_tx_proto(
+        let plugin_outputs = read_plugin_outputs(
+            self.db,
             &tx,
-            &outputs_spent,
-            block_tx.entry.time_first_seen,
-            block_tx.entry.is_coinbase,
-            Some(&block),
-            self.avalanche,
-            token.as_ref(),
-        ))
+            Some(tx_num),
+            !self.plugin_name_map.is_empty(),
+        )?;
+        Ok(make_tx_proto(MakeTxProtoParams {
+            tx: &tx,
+            outputs_spent: &outputs_spent,
+            time_first_seen: block_tx.entry.time_first_seen,
+            is_coinbase: block_tx.entry.is_coinbase,
+            block: Some(&block),
+            avalanche: self.avalanche,
+            token: token.as_ref(),
+            plugin_outputs: &plugin_outputs,
+            plugin_name_map: self.plugin_name_map,
+        }))
     }
 }

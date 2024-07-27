@@ -11,13 +11,17 @@ use bitcoinsuite_core::{
 use bytes::Bytes;
 use chronik_bridge::ffi;
 use chronik_db::{db::Db, mem::Mempool};
+use chronik_plugin::data::PluginNameMap;
 use chronik_proto::proto;
 use thiserror::Error;
 
 use crate::{
     avalanche::Avalanche,
     indexer::Node,
-    query::{make_tx_proto, OutputsSpent, QueryBroadcastError::*, TxTokenData},
+    query::{
+        make_tx_proto, read_plugin_outputs, MakeTxProtoParams, OutputsSpent,
+        QueryBroadcastError::*, TxTokenData,
+    },
 };
 
 /// Struct for broadcasting txs on the network
@@ -33,6 +37,8 @@ pub struct QueryBroadcast<'a> {
     pub node: &'a Node,
     /// Whether the SLP/ALP token index is enabled
     pub is_token_index_enabled: bool,
+    /// Map plugin name <-> plugin idx of all loaded plugins
+    pub plugin_name_map: &'a PluginNameMap,
 }
 
 /// Errors indicating something went wrong with reading txs.
@@ -151,14 +157,22 @@ impl QueryBroadcast<'_> {
         } else {
             None
         };
-        Ok(make_tx_proto(
+        let plugin_outputs = read_plugin_outputs(
+            self.db,
             &tx,
-            &OutputsSpent::default(),
-            0,
-            false,
             None,
-            self.avalanche,
-            token.as_ref(),
-        ))
+            !self.plugin_name_map.is_empty(),
+        )?;
+        Ok(make_tx_proto(MakeTxProtoParams {
+            tx: &tx,
+            outputs_spent: &OutputsSpent::default(),
+            time_first_seen: 0,
+            is_coinbase: false,
+            block: None,
+            avalanche: self.avalanche,
+            token: token.as_ref(),
+            plugin_outputs: &plugin_outputs,
+            plugin_name_map: self.plugin_name_map,
+        }))
     }
 }
