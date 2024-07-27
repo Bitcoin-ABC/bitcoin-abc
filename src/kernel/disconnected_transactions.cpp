@@ -204,10 +204,20 @@ void DisconnectedBlockTransactions::updateMempoolForReorg(
                 /*bypass_limits=*/true, /*test_accept=*/false,
                 /*heightOverride=*/ptxInfo ? ptxInfo->height : 0);
             if (result.m_result_type !=
-                    MempoolAcceptResult::ResultType::VALID &&
-                hasFeeDelta) {
-                // tx not accepted: undo mapDelta insertion from above
-                pool.mapDeltas.erase(tx->GetId());
+                MempoolAcceptResult::ResultType::VALID) {
+                LogPrint(
+                    BCLog::MEMPOOLREJ,
+                    "AcceptToMemoryPool: tx %s rejected after reorg (%s)\n",
+                    tx->GetId().ToString(), result.m_state.ToString());
+
+                if (hasFeeDelta) {
+                    // tx not accepted: undo mapDelta insertion from above
+                    pool.mapDeltas.erase(tx->GetId());
+                }
+            } else {
+                LogPrint(BCLog::MEMPOOL,
+                         "AcceptToMemoryPool: tx %s accepted after reorg\n",
+                         tx->GetId().ToString());
             }
         }
     }
