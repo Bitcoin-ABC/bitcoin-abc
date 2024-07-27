@@ -82,6 +82,7 @@ impl<'a> QueryTxs<'a> {
                     .as_ref(),
                 plugin_outputs: &read_plugin_outputs(
                     self.db,
+                    self.mempool,
                     &tx.tx,
                     None,
                     !self.plugin_name_map.is_empty(),
@@ -131,6 +132,7 @@ impl<'a> QueryTxs<'a> {
                     token: token.as_ref(),
                     plugin_outputs: &read_plugin_outputs(
                         self.db,
+                        self.mempool,
                         &tx,
                         Some(tx_num),
                         !self.plugin_name_map.is_empty(),

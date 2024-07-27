@@ -159,6 +159,7 @@ impl QueryBroadcast<'_> {
         };
         let plugin_outputs = read_plugin_outputs(
             self.db,
+            self.mempool,
             &tx,
             None,
             !self.plugin_name_map.is_empty(),

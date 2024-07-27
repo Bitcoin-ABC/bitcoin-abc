@@ -108,10 +108,18 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx1)
         node.sendrawtransaction(tx1.serialize().hex())
 
-        # Plugins are currently not indexed for mempool txs
+        # Plugin ran on the mempool tx
         proto_tx1 = chronik.tx(tx1.hash).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
-        assert_equal([output.plugins for output in proto_tx1.outputs], [{}, {}, {}, {}])
+        assert_equal(
+            [output.plugins for output in proto_tx1.outputs],
+            [
+                {},
+                {"my_plugin": pb.PluginEntry(data=[b"argo"])},
+                {"my_plugin": pb.PluginEntry(data=[b"alef"])},
+                {"my_plugin": pb.PluginEntry(data=[b"abc"])},
+            ],
+        )
 
         tx2 = CTransaction()
         tx2.vin = [CTxIn(COutPoint(tx1.sha256, 3), SCRIPTSIG_OP_TRUE)]
@@ -124,10 +132,20 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx2)
         node.sendrawtransaction(tx2.serialize().hex())
 
-        # Plugins are currently not indexed for mempool txs
         proto_tx2 = chronik.tx(tx2.hash).ok()
-        assert_equal([inpt.plugins for inpt in proto_tx2.inputs], [{}])
-        assert_equal([output.plugins for output in proto_tx2.outputs], [{}, {}, {}, {}])
+        assert_equal(
+            [inpt.plugins for inpt in proto_tx2.inputs],
+            [{"my_plugin": pb.PluginEntry(data=[b"abc"])}],
+        )
+        assert_equal(
+            [output.plugins for output in proto_tx2.outputs],
+            [
+                {},
+                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
+                {"my_plugin": pb.PluginEntry(data=[b"borg"])},
+                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
+            ],
+        )
 
         # Mine tx1 and tx2
         block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
@@ -171,7 +189,6 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx3)
         node.sendrawtransaction(tx3.serialize().hex())
 
-        # Mined outputs show up even when mempool tx spend them
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
@@ -180,7 +197,10 @@ class MyPluginPlugin(Plugin):
                 {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
             ],
         )
-        assert_equal([output.plugins for output in proto_tx3.outputs], [{}, {}])
+        assert_equal(
+            [output.plugins for output in proto_tx3.outputs],
+            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+        )
 
         # Mine tx3
         block2 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
@@ -198,7 +218,7 @@ class MyPluginPlugin(Plugin):
             [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
         )
 
-        # Disconnect block2, outputs are now gone (inputs remain)
+        # Disconnect block2, inputs + outputs still work
         node.invalidateblock(block2)
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
@@ -208,21 +228,51 @@ class MyPluginPlugin(Plugin):
                 {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
             ],
         )
-        assert_equal([output.plugins for output in proto_tx3.outputs], [{}, {}])
+        assert_equal(
+            [output.plugins for output in proto_tx3.outputs],
+            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+        )
 
-        # Disconnect block1, all outputs and inputs empty now
         node.invalidateblock(block1)
         proto_tx1 = chronik.tx(tx1.hash).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
-        assert_equal([output.plugins for output in proto_tx1.outputs], [{}, {}, {}, {}])
+        assert_equal(
+            [output.plugins for output in proto_tx1.outputs],
+            [
+                {},
+                {"my_plugin": pb.PluginEntry(data=[b"argo"])},
+                {"my_plugin": pb.PluginEntry(data=[b"alef"])},
+                {"my_plugin": pb.PluginEntry(data=[b"abc"])},
+            ],
+        )
 
         proto_tx2 = chronik.tx(tx2.hash).ok()
-        assert_equal([inpt.plugins for inpt in proto_tx2.inputs], [{}])
-        assert_equal([output.plugins for output in proto_tx2.outputs], [{}, {}, {}, {}])
+        assert_equal(
+            [inpt.plugins for inpt in proto_tx2.inputs],
+            [{"my_plugin": pb.PluginEntry(data=[b"abc"])}],
+        )
+        assert_equal(
+            [output.plugins for output in proto_tx2.outputs],
+            [
+                {},
+                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
+                {"my_plugin": pb.PluginEntry(data=[b"borg"])},
+                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
+            ],
+        )
 
         proto_tx3 = chronik.tx(tx3.hash).ok()
-        assert_equal([inpt.plugins for inpt in proto_tx3.inputs], [{}, {}])
-        assert_equal([output.plugins for output in proto_tx3.outputs], [{}, {}])
+        assert_equal(
+            [inpt.plugins for inpt in proto_tx3.inputs],
+            [
+                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
+                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
+            ],
+        )
+        assert_equal(
+            [output.plugins for output in proto_tx3.outputs],
+            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+        )
 
 
 if __name__ == "__main__":

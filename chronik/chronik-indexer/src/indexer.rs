@@ -464,7 +464,12 @@ impl ChronikIndexer {
         &mut self,
         mempool_tx: MempoolTx,
     ) -> Result<()> {
-        let result = self.mempool.insert(&self.db, mempool_tx)?;
+        let result = self.mempool.insert(
+            &self.db,
+            mempool_tx,
+            &self.plugin_ctx,
+            &self.plugin_name_map,
+        )?;
         self.subs.get_mut().handle_tx_event(
             &result.mempool_tx.tx,
             TxMsgType::AddedToMempool,

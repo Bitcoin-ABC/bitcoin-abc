@@ -5,5 +5,7 @@
 //! Indexing data from plugins.
 
 mod io;
+mod mem;
 
 pub use crate::plugins::io::*;
+pub use crate::plugins::mem::*;

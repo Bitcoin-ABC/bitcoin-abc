@@ -6,16 +6,13 @@ use std::collections::{BTreeMap, HashMap};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{OutPoint, Tx};
-use chronik_db::{
-    db::Db,
-    io::{TxNum, TxReader},
-    plugins::PluginsReader,
-};
+use chronik_db::{db::Db, io::TxNum, mem::Mempool};
 use chronik_plugin::data::{PluginNameMap, PluginOutput};
 use chronik_proto::proto;
 
 pub(crate) fn read_plugin_outputs(
     db: &Db,
+    mempool: &Mempool,
     tx: &Tx,
     tx_num: Option<TxNum>,
     has_any_plugins: bool,
@@ -23,29 +20,21 @@ pub(crate) fn read_plugin_outputs(
     if !has_any_plugins {
         return Ok(BTreeMap::new());
     }
-    let tx_reader = TxReader::new(db)?;
-    let mut outpoints = Vec::new();
-    for input in &tx.inputs {
-        let Some(input_tx_num) =
-            tx_reader.tx_num_by_txid(&input.prev_out.txid)?
-        else {
-            continue;
-        };
-        outpoints.push((input.prev_out, input_tx_num));
-    }
-    let plugin_reader = PluginsReader::new(db)?;
-    if let Some(tx_num) = tx_num {
-        for out_idx in 0..tx.outputs.len() {
-            outpoints.push((
-                OutPoint {
-                    txid: tx.txid(),
-                    out_idx: out_idx as u32,
-                },
-                tx_num,
-            ));
-        }
-    }
-    plugin_reader.plugin_outputs(outpoints)
+    Ok(mempool.plugins().fetch_plugin_outputs(
+        tx.inputs.iter().map(|input| (input.prev_out, None)).chain(
+            (0..tx.outputs.len()).map(|out_idx| {
+                (
+                    OutPoint {
+                        txid: tx.txid(),
+                        out_idx: out_idx as u32,
+                    },
+                    tx_num,
+                )
+            }),
+        ),
+        db,
+        |txid| mempool.tx(txid).is_some(),
+    )??)
 }
 
 pub(crate) fn make_plugins_proto(

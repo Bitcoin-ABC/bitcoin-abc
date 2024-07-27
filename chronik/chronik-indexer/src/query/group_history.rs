@@ -286,6 +286,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                 .as_ref(),
                 plugin_outputs: &read_plugin_outputs(
                     self.db,
+                    self.mempool,
                     &entry.tx,
                     None,
                     !self.plugin_name_map.is_empty(),
@@ -380,6 +381,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
                         .as_ref(),
                         plugin_outputs: &read_plugin_outputs(
                             self.db,
+                            self.mempool,
                             &entry.tx,
                             None,
                             !self.plugin_name_map.is_empty(),
@@ -425,6 +427,7 @@ impl<'a, G: Group> QueryGroupHistory<'a, G> {
         )?;
         let plugin_outputs = read_plugin_outputs(
             self.db,
+            self.mempool,
             &tx,
             Some(tx_num),
             !self.plugin_name_map.is_empty(),

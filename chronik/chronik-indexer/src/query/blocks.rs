@@ -229,6 +229,7 @@ impl<'a> QueryBlocks<'a> {
             )?;
             let plugin_outputs = read_plugin_outputs(
                 self.db,
+                self.mempool,
                 &tx,
                 Some(tx_num),
                 !self.plugin_name_map.is_empty(),
