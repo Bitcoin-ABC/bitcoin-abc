@@ -236,6 +236,17 @@ class AbcMiningStakingRewardsTest(BitcoinTestFramework):
             ],
         )
 
+        # Try appending the same winner again
+        self.log.info(tiphash)
+        assert_raises_rpc_error(
+            -32603,
+            f"Staking rewards winner is already set for block {tiphash}",
+            node.setstakingreward,
+            tiphash,
+            "76a914000000000000000000000000000000000000000188ac",
+            True,
+        )
+
         # Append another acceptable winner
         assert node.setstakingreward(
             tiphash,

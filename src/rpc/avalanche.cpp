@@ -1151,6 +1151,15 @@ static RPCHelpMan setstakingreward() {
                 avalanche.getStakingRewardWinners(blockhash, payoutScripts);
             }
 
+            if (std::find(payoutScripts.begin(), payoutScripts.end(),
+                          payoutScript) != payoutScripts.end()) {
+                throw JSONRPCError(
+                    RPC_INTERNAL_ERROR,
+                    strprintf(
+                        "Staking rewards winner is already set for block %s\n",
+                        blockhash.ToString()));
+            }
+
             payoutScripts.push_back(std::move(payoutScript));
 
             // This will return true upon insertion or false upon replacement.
