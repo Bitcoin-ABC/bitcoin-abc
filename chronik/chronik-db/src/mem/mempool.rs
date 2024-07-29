@@ -178,7 +178,8 @@ impl Mempool {
         } else {
             token_id_aux = TokenIdGroupAux::default();
         }
-        self.plugins.remove(&mempool_tx)?;
+        self.plugins
+            .remove(&mempool_tx, |txid| self.txs.contains_key(txid))?;
         if self.is_lokad_id_index_enabled {
             self.lokad_id_history.remove(&mempool_tx, &());
         }
@@ -201,7 +202,7 @@ impl Mempool {
                 self.token_id_utxos.remove_mined(&mempool_tx, &token_id_aux);
                 self.tokens.remove(txid);
             }
-            self.plugins.remove(&mempool_tx)?;
+            self.plugins.remove_mined(&mempool_tx)?;
             if self.is_lokad_id_index_enabled {
                 self.lokad_id_history.remove(&mempool_tx, &());
             }

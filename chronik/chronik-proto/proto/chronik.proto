@@ -107,6 +107,8 @@ message ScriptUtxo {
     bool is_final = 10;
     // Token value attached to this UTXO
     Token token = 11;
+    // Data attached to this output by plugins
+    map<string, PluginEntry> plugins = 12;
 }
 
 // UTXO, but with a script attached.
@@ -125,6 +127,8 @@ message Utxo {
     bool is_final = 6;
     // Token value attached to this UTXO
     Token token = 7;
+    // Data attached to this output by plugins
+    map<string, PluginEntry> plugins = 8;
 }
 
 // COutPoint, points to a coin being spent by an input.

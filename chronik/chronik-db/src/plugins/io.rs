@@ -20,10 +20,16 @@ use crate::{
     data::DbOutpoint,
     db::{Db, CF, CF_PLUGIN_META, CF_PLUGIN_OUTPUTS},
     index_tx::IndexTx,
-    io::{token::ProcessedTokenTxBatch, BlockHeight, TxNum},
-    plugins::PluginDbError::*,
+    io::{
+        token::ProcessedTokenTxBatch, BlockHeight, GroupUtxoMemData,
+        GroupUtxoWriter, TxNum,
+    },
+    plugins::{PluginDbError::*, PluginsGroup},
     ser::{db_deserialize, db_serialize},
 };
+
+/// Index the UTXOs of plugins in the DB
+pub type PluginsUtxoWriter<'a> = GroupUtxoWriter<'a, PluginsGroup>;
 
 struct PluginsCol<'a> {
     db: &'a Db,
@@ -243,6 +249,14 @@ impl<'a> PluginsWriter<'a> {
             Ok(())
         })?;
 
+        let group_utxos = PluginsUtxoWriter::new(self.col.db, PluginsGroup)?;
+        group_utxos.insert(
+            batch,
+            txs,
+            &plugin_outputs,
+            &mut GroupUtxoMemData::default(),
+        )?;
+
         Ok(())
     }
 
@@ -256,17 +270,25 @@ impl<'a> PluginsWriter<'a> {
             return Ok(());
         }
 
+        // Fetch plugins for both inputs and outputs, for groups
         let plugin_outputs =
             self.col.fetch_plugin_outputs(txs.iter().flat_map(|tx| {
-                (0..tx.tx.outputs.len()).map(|out_idx| {
-                    (
-                        OutPoint {
-                            txid: tx.tx.txid(),
-                            out_idx: out_idx as u32,
-                        },
-                        tx.tx_num,
-                    )
-                })
+                tx.tx
+                    .inputs
+                    .iter()
+                    .zip(&tx.input_nums)
+                    .map(|(input, &input_tx_num)| {
+                        (input.prev_out, input_tx_num)
+                    })
+                    .chain((0..tx.tx.outputs.len()).map(|out_idx| {
+                        (
+                            OutPoint {
+                                txid: tx.tx.txid(),
+                                out_idx: out_idx as u32,
+                            },
+                            tx.tx_num,
+                        )
+                    }))
             }))?;
 
         for tx in txs {
@@ -288,6 +310,14 @@ impl<'a> PluginsWriter<'a> {
             }
         }
 
+        let group_utxos = PluginsUtxoWriter::new(self.col.db, PluginsGroup)?;
+        group_utxos.delete(
+            batch,
+            txs,
+            &plugin_outputs,
+            &mut GroupUtxoMemData::default(),
+        )?;
+
         Ok(())
     }
 
@@ -300,6 +330,7 @@ impl<'a> PluginsWriter<'a> {
             CF_PLUGIN_OUTPUTS,
             rocksdb::Options::default(),
         ));
+        PluginsUtxoWriter::add_cfs(columns);
     }
 }
 
@@ -352,6 +383,32 @@ impl<'a> PluginsReader<'a> {
         outpoints: impl IntoIterator<Item = (OutPoint, TxNum)> + Clone,
     ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
         self.col.fetch_plugin_outputs(outpoints)
+    }
+
+    /// Read all the given outpoints by [`DbOutpoint`]s and return them as
+    /// `Vec`.
+    pub fn plugin_db_outputs(
+        &self,
+        outpoints: impl IntoIterator<Item = DbOutpoint>,
+    ) -> Result<Vec<Option<PluginOutput>>> {
+        let ser_outputs = self.col.db.multi_get(
+            self.col.cf_plugin_outputs,
+            outpoints
+                .into_iter()
+                .map(|db_outpoint| db_serialize(&db_outpoint).unwrap()),
+            false,
+        )?;
+        let mut outputs = Vec::new();
+        for ser_output in ser_outputs {
+            outputs.push(
+                ser_output
+                    .map(|ser_output| {
+                        db_deserialize::<PluginOutput>(&ser_output)
+                    })
+                    .transpose()?,
+            );
+        }
+        Ok(outputs)
     }
 }
 

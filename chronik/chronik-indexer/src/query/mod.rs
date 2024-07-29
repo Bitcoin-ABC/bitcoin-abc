@@ -17,7 +17,7 @@ pub use self::blocks::*;
 pub use self::broadcast::*;
 pub use self::group_history::*;
 pub use self::group_utxos::*;
-pub(crate) use self::plugins::*;
+pub use self::plugins::*;
 pub use self::tx_token_data::*;
 pub use self::txs::*;
 pub use self::util::*;

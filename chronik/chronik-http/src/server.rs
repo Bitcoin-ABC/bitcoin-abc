@@ -222,6 +222,10 @@ impl ChronikServer {
                 "/lokad-id/:lokad_id/unconfirmed-txs",
                 routing::get(handle_lokad_id_unconfirmed_txs),
             )
+            .route(
+                "/plugin/:plugin_name/:group_hex/utxos",
+                routing::get(handle_plugin_utxos),
+            )
             .route("/ws", routing::get(handle_ws))
             .route("/pause", routing::get(handle_pause))
             .route("/resume", routing::get(handle_resume))
@@ -561,6 +565,16 @@ async fn handle_lokad_id_unconfirmed_txs(
             &node,
         )
         .await?,
+    ))
+}
+
+async fn handle_plugin_utxos(
+    Path((script_type, payload)): Path<(String, String)>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::Utxos>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_plugin_utxos(&script_type, &payload, &indexer).await?,
     ))
 }
 

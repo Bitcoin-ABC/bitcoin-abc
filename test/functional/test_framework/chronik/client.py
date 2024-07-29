@@ -135,6 +135,17 @@ class ChronikLokadIdClient:
         )
 
 
+class ChronikPluginClient:
+    def __init__(self, client: "ChronikClient", plugin_name: str) -> None:
+        self.client = client
+        self.plugin_name = plugin_name
+
+    def utxos(self, group: bytes):
+        return self.client._request_get(
+            f"/plugin/{self.plugin_name}/{group.hex()}/utxos", pb.Utxos
+        )
+
+
 class ChronikWs:
     def __init__(self, client: "ChronikClient", **kwargs) -> None:
         self.messages: List[pb.WsMsg] = []
@@ -357,6 +368,9 @@ class ChronikClient:
 
     def lokad_id(self, lokad_id_hex: str) -> ChronikLokadIdClient:
         return ChronikLokadIdClient(self, lokad_id_hex)
+
+    def plugin(self, plugin_name: str) -> ChronikPluginClient:
+        return ChronikPluginClient(self, plugin_name)
 
     def pause(self) -> ChronikResponse:
         return self._request_get("/pause", pb.Empty)

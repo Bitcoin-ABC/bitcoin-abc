@@ -70,12 +70,15 @@ class MyPluginPlugin(Plugin):
         outputs = []
         for idx, (op, _) in enumerate(zip(ops[2:], tx.outputs[1:])):
             data = [op.pushdata]
+            group = []
+            if op.pushdata:
+                group = [op.pushdata[:1]]
             if idx < len(tx.inputs):
                 tx_input = tx.inputs[idx]
                 if 'my_plugin' in tx_input.plugin:
                     data += tx_input.plugin['my_plugin'].data
             outputs.append(
-                PluginOutput(idx=idx + 1, data=data, group=[])
+                PluginOutput(idx=idx + 1, data=data, group=group)
             )
         return outputs
 """,
@@ -110,15 +113,21 @@ class MyPluginPlugin(Plugin):
 
         # Plugin ran on the mempool tx
         proto_tx1 = chronik.tx(tx1.hash).ok()
+        tx1_plugin_outputs = [
+            {},
+            {"my_plugin": pb.PluginEntry(data=[b"argo"], groups=[b"a"])},
+            {"my_plugin": pb.PluginEntry(data=[b"alef"], groups=[b"a"])},
+            {"my_plugin": pb.PluginEntry(data=[b"abc"], groups=[b"a"])},
+        ]
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(
             [output.plugins for output in proto_tx1.outputs],
-            [
-                {},
-                {"my_plugin": pb.PluginEntry(data=[b"argo"])},
-                {"my_plugin": pb.PluginEntry(data=[b"alef"])},
-                {"my_plugin": pb.PluginEntry(data=[b"abc"])},
-            ],
+            tx1_plugin_outputs,
+        )
+        proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos1],
+            tx1_plugin_outputs[1:],
         )
 
         tx2 = CTransaction()
@@ -133,18 +142,30 @@ class MyPluginPlugin(Plugin):
         node.sendrawtransaction(tx2.serialize().hex())
 
         proto_tx2 = chronik.tx(tx2.hash).ok()
+        tx2_plugin_inputs = [tx1_plugin_outputs[3]]
+        tx2_plugin_outputs = [
+            {},
+            {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"], groups=[b"b"])},
+            {"my_plugin": pb.PluginEntry(data=[b"borg"], groups=[b"b"])},
+            {"my_plugin": pb.PluginEntry(data=[b"bjork"], groups=[b"b"])},
+        ]
         assert_equal(
             [inpt.plugins for inpt in proto_tx2.inputs],
-            [{"my_plugin": pb.PluginEntry(data=[b"abc"])}],
+            tx2_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx2.outputs],
-            [
-                {},
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"borg"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx2_plugin_outputs,
+        )
+        proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos1],
+            [tx1_plugin_outputs[1], tx1_plugin_outputs[2]],  # "abc" spent
+        )
+        proto_utxos2 = chronik.plugin("my_plugin").utxos(b"b").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos2],
+            tx2_plugin_outputs[1:],
         )
 
         # Mine tx1 and tx2
@@ -154,27 +175,27 @@ class MyPluginPlugin(Plugin):
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(
             [output.plugins for output in proto_tx1.outputs],
-            [
-                {},
-                {"my_plugin": pb.PluginEntry(data=[b"argo"])},
-                {"my_plugin": pb.PluginEntry(data=[b"alef"])},
-                {"my_plugin": pb.PluginEntry(data=[b"abc"])},
-            ],
+            tx1_plugin_outputs,
         )
 
         proto_tx2 = chronik.tx(tx2.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx2.inputs],
-            [{"my_plugin": pb.PluginEntry(data=[b"abc"])}],
+            tx2_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx2.outputs],
-            [
-                {},
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"borg"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx2_plugin_outputs,
+        )
+        proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos1],
+            [tx1_plugin_outputs[1], tx1_plugin_outputs[2]],  # "abc" spent
+        )
+        proto_utxos2 = chronik.plugin("my_plugin").utxos(b"b").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos2],
+            tx2_plugin_outputs[1:],
         )
 
         tx3 = CTransaction()
@@ -190,16 +211,32 @@ class MyPluginPlugin(Plugin):
         node.sendrawtransaction(tx3.serialize().hex())
 
         proto_tx3 = chronik.tx(tx3.hash).ok()
+        tx3_plugin_inputs = [tx2_plugin_outputs[1], tx2_plugin_outputs[3]]
+        tx3_plugin_outputs = [
+            {},
+            {
+                "my_plugin": pb.PluginEntry(
+                    data=[b"carp", b"blub", b"abc"], groups=[b"c"]
+                ),
+            },
+        ]
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
-            [
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx3_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx3.outputs],
-            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+            tx3_plugin_outputs,
+        )
+        proto_utxos2 = chronik.plugin("my_plugin").utxos(b"b").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos2],
+            [tx2_plugin_outputs[2]],  # only "borg" remaining
+        )
+        proto_utxos3 = chronik.plugin("my_plugin").utxos(b"c").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos3],
+            tx3_plugin_outputs[1:],
         )
 
         # Mine tx3
@@ -208,14 +245,16 @@ class MyPluginPlugin(Plugin):
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
-            [
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx3_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx3.outputs],
-            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+            tx3_plugin_outputs,
+        )
+        proto_utxos3 = chronik.plugin("my_plugin").utxos(b"c").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos3],
+            tx3_plugin_outputs[1:],
         )
 
         # Disconnect block2, inputs + outputs still work
@@ -223,14 +262,16 @@ class MyPluginPlugin(Plugin):
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
-            [
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx3_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx3.outputs],
-            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+            tx3_plugin_outputs,
+        )
+        proto_utxos3 = chronik.plugin("my_plugin").utxos(b"c").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos3],
+            tx3_plugin_outputs[1:],
         )
 
         node.invalidateblock(block1)
@@ -238,40 +279,42 @@ class MyPluginPlugin(Plugin):
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(
             [output.plugins for output in proto_tx1.outputs],
-            [
-                {},
-                {"my_plugin": pb.PluginEntry(data=[b"argo"])},
-                {"my_plugin": pb.PluginEntry(data=[b"alef"])},
-                {"my_plugin": pb.PluginEntry(data=[b"abc"])},
-            ],
+            tx1_plugin_outputs,
+        )
+        proto_utxos1 = chronik.plugin("my_plugin").utxos(b"a").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos1],
+            [tx1_plugin_outputs[1], tx1_plugin_outputs[2]],
         )
 
         proto_tx2 = chronik.tx(tx2.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx2.inputs],
-            [{"my_plugin": pb.PluginEntry(data=[b"abc"])}],
+            tx2_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx2.outputs],
-            [
-                {},
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"borg"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx2_plugin_outputs,
+        )
+        proto_utxos2 = chronik.plugin("my_plugin").utxos(b"b").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos2],
+            [tx2_plugin_outputs[2]],
         )
 
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
-            [
-                {"my_plugin": pb.PluginEntry(data=[b"blub", b"abc"])},
-                {"my_plugin": pb.PluginEntry(data=[b"bjork"])},
-            ],
+            tx3_plugin_inputs,
         )
         assert_equal(
             [output.plugins for output in proto_tx3.outputs],
-            [{}, {"my_plugin": pb.PluginEntry(data=[b"carp", b"blub", b"abc"])}],
+            tx3_plugin_outputs,
+        )
+        proto_utxos3 = chronik.plugin("my_plugin").utxos(b"c").ok().utxos
+        assert_equal(
+            [utxo.plugins for utxo in proto_utxos3],
+            tx3_plugin_outputs[1:],
         )
 
 

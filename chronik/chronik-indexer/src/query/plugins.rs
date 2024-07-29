@@ -6,9 +6,69 @@ use std::collections::{BTreeMap, HashMap};
 
 use abc_rust_error::Result;
 use bitcoinsuite_core::tx::{OutPoint, Tx};
-use chronik_db::{db::Db, io::TxNum, mem::Mempool};
+use chronik_db::{
+    db::Db,
+    io::TxNum,
+    mem::Mempool,
+    plugins::{PluginMember, PluginsGroup},
+};
 use chronik_plugin::data::{PluginNameMap, PluginOutput};
 use chronik_proto::proto;
+use thiserror::Error;
+
+use crate::{
+    avalanche::Avalanche,
+    query::{QueryGroupUtxos, QueryPluginsError::*, UtxoProtobufOutput},
+};
+
+/// Struct for querying indices created by plugins.
+#[derive(Debug)]
+pub struct QueryPlugins<'a> {
+    /// Database
+    pub db: &'a Db,
+    /// Avalanche
+    pub avalanche: &'a Avalanche,
+    /// Mempool
+    pub mempool: &'a Mempool,
+    /// Whether the SLP/ALP token index is enabled
+    pub is_token_index_enabled: bool,
+    /// Plugin name map
+    pub plugin_name_map: &'a PluginNameMap,
+}
+
+/// Errors indicating something went wrong with reading plugin data.
+#[derive(Debug, Error, PartialEq)]
+pub enum QueryPluginsError {
+    /// Plugin with the given name not loaded.
+    #[error("404: Plugin {0:?} not loaded")]
+    PluginNotLoaded(String),
+}
+
+impl<'a> QueryPlugins<'a> {
+    /// Query the UTXOs a plugin has grouped for one member of the group
+    pub fn utxos(
+        &self,
+        plugin_name: &str,
+        group: &[u8],
+    ) -> Result<Vec<proto::Utxo>> {
+        let plugin_idx = self
+            .plugin_name_map
+            .idx_by_name(plugin_name)
+            .ok_or_else(|| PluginNotLoaded(plugin_name.to_string()))?;
+        let utxos: QueryGroupUtxos<'_, PluginsGroup, UtxoProtobufOutput> =
+            QueryGroupUtxos {
+                db: self.db,
+                avalanche: self.avalanche,
+                mempool: self.mempool,
+                mempool_utxos: self.mempool.plugins().group_utxos(),
+                group: PluginsGroup,
+                utxo_mapper: UtxoProtobufOutput,
+                is_token_index_enabled: self.is_token_index_enabled,
+                plugin_name_map: self.plugin_name_map,
+            };
+        utxos.utxos(PluginMember { plugin_idx, group }.ser())
+    }
+}
 
 pub(crate) fn read_plugin_outputs(
     db: &Db,

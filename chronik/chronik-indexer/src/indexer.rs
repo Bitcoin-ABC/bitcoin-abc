@@ -43,7 +43,7 @@ use crate::{
     indexer::ChronikIndexerError::*,
     query::{
         QueryBlocks, QueryBroadcast, QueryGroupHistory, QueryGroupUtxos,
-        QueryTxs, UtxoProtobufOutput, UtxoProtobufValue,
+        QueryPlugins, QueryTxs, UtxoProtobufOutput, UtxoProtobufValue,
     },
     subs::{BlockMsg, BlockMsgType, Subs},
     subs_group::TxMsgType,
@@ -806,6 +806,7 @@ impl ChronikIndexer {
             group: self.script_group.clone(),
             utxo_mapper: UtxoProtobufValue,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         })
     }
 
@@ -839,6 +840,7 @@ impl ChronikIndexer {
             group: TokenIdGroup,
             utxo_mapper: UtxoProtobufOutput,
             is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
         }
     }
 
@@ -855,6 +857,18 @@ impl ChronikIndexer {
             mempool_history: self.mempool.lokad_id_history(),
             group: LokadIdGroup,
             node,
+            is_token_index_enabled: self.is_token_index_enabled,
+            plugin_name_map: &self.plugin_name_map,
+        }
+    }
+
+    /// Return [`QueryGroupHistory`] for LOKAD IDs to query the tx history of
+    /// LOKAD IDs.
+    pub fn plugins(&self) -> QueryPlugins<'_> {
+        QueryPlugins {
+            db: &self.db,
+            avalanche: &self.avalanche,
+            mempool: &self.mempool,
             is_token_index_enabled: self.is_token_index_enabled,
             plugin_name_map: &self.plugin_name_map,
         }

@@ -11,7 +11,7 @@ use thiserror::Error;
 
 use crate::{
     error::ReportError,
-    parse::{parse_lokad_id_hex, parse_script_variant_hex},
+    parse::{parse_hex, parse_lokad_id_hex, parse_script_variant_hex},
 };
 
 /// Errors for HTTP handlers.
@@ -243,4 +243,16 @@ pub async fn handle_lokad_id_unconfirmed_txs(
     let lokad_id = parse_lokad_id_hex(lokad_id_hex)?;
     let lokad_id_history = indexer.lokad_id_history(node);
     lokad_id_history.unconfirmed_txs(lokad_id)
+}
+
+/// Return the UTXOs of the given plugin and group.
+pub async fn handle_plugin_utxos(
+    plugin_name: &str,
+    group_hex: &str,
+    indexer: &ChronikIndexer,
+) -> Result<proto::Utxos> {
+    let group = parse_hex(group_hex)?;
+    let plugin = indexer.plugins();
+    let utxos = plugin.utxos(plugin_name, &group)?;
+    Ok(proto::Utxos { utxos })
 }

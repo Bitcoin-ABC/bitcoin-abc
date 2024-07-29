@@ -16,14 +16,18 @@ use thiserror::Error;
 use crate::{
     db::Db,
     io::{TxNum, TxReader},
-    mem::MempoolTx,
-    plugins::{MempoolPluginsError::*, PluginsReader},
+    mem::{MempoolGroupUtxos, MempoolTx},
+    plugins::{MempoolPluginsError::*, PluginsGroup, PluginsReader},
 };
+
+/// Index the mempool UTXOs of plugin groups
+pub type MempoolPluginUtxos = MempoolGroupUtxos<PluginsGroup>;
 
 /// Plugin data of the mempool
 #[derive(Debug)]
 pub struct MempoolPlugins {
     plugin_outputs: BTreeMap<OutPoint, PluginOutput>,
+    group_utxos: MempoolPluginUtxos,
 }
 
 /// Error indicating something went wrong with [`MempoolPlugins`].
@@ -42,6 +46,7 @@ impl MempoolPlugins {
     pub fn new() -> Self {
         MempoolPlugins {
             plugin_outputs: BTreeMap::new(),
+            group_utxos: MempoolPluginUtxos::new(PluginsGroup),
         }
     }
 
@@ -59,7 +64,7 @@ impl MempoolPlugins {
             return Ok(());
         }
 
-        let plugin_outputs = self.fetch_plugin_outputs(
+        let mut plugin_outputs = self.fetch_plugin_outputs(
             tx.tx.inputs.iter().map(|input| (input.prev_out, None)),
             db,
             &is_mempool_tx,
@@ -75,23 +80,43 @@ impl MempoolPlugins {
             )?;
 
             for (out_idx, plugin_output) in result.outputs {
-                self.plugin_outputs.insert(
-                    OutPoint {
-                        txid: tx.tx.txid(),
-                        out_idx,
-                    },
-                    plugin_output,
-                );
+                let outpoint = OutPoint {
+                    txid: tx.tx.txid(),
+                    out_idx,
+                };
+                self.plugin_outputs.insert(outpoint, plugin_output.clone());
+                plugin_outputs.insert(outpoint, plugin_output);
             }
 
             Ok(())
         })?;
 
+        self.group_utxos
+            .insert(tx, &is_mempool_tx, &plugin_outputs)?;
+
         Ok(())
     }
 
     /// Remove a tx from the plugin mempool index
-    pub fn remove(&mut self, tx: &MempoolTx) -> Result<()> {
+    pub fn remove(
+        &mut self,
+        tx: &MempoolTx,
+        is_mempool_tx: impl Fn(&TxId) -> bool,
+    ) -> Result<()> {
+        self.group_utxos
+            .remove(tx, &is_mempool_tx, &self.plugin_outputs)?;
+        for output_idx in 0..tx.tx.outputs.len() {
+            self.plugin_outputs.remove(&OutPoint {
+                txid: tx.tx.txid(),
+                out_idx: output_idx as u32,
+            });
+        }
+        Ok(())
+    }
+
+    /// Remove a mined tx from the plugin mempool index
+    pub fn remove_mined(&mut self, tx: &MempoolTx) -> Result<()> {
+        self.group_utxos.remove_mined(tx, &self.plugin_outputs);
         for output_idx in 0..tx.tx.outputs.len() {
             self.plugin_outputs.remove(&OutPoint {
                 txid: tx.tx.txid(),
@@ -149,6 +174,16 @@ impl MempoolPlugins {
         plugin_outputs.append(&mut db_plugin_outputs);
 
         Ok(Ok(plugin_outputs))
+    }
+
+    /// Plugin output with the given outpoint
+    pub fn plugin_output(&self, outpoint: &OutPoint) -> Option<&PluginOutput> {
+        self.plugin_outputs.get(outpoint)
+    }
+
+    /// Mempool UTXOs grouped by plugin groups
+    pub fn group_utxos(&self) -> &MempoolPluginUtxos {
+        &self.group_utxos
     }
 }
 
