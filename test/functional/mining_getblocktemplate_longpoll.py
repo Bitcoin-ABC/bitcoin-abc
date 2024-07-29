@@ -35,10 +35,6 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
 
     def run_test(self):
         self.log.info(
-            "Warning: this test will take about 70 seconds in the best case. Be"
-            " patient."
-        )
-        self.log.info(
             "Test that longpollid doesn't change between successive getblocktemplate()"
             " invocations if nothing else happens"
         )
@@ -92,9 +88,10 @@ class GetBlockTemplateLPTest(BitcoinTestFramework):
         miniwallets[0].send_self_transfer(
             from_node=random.choice(self.nodes), fee_rate=fee_rate
         )
-        # after one minute, every 10 seconds the mempool is probed, so in 80
-        # seconds it should have returned
-        thr.join(60 + 20)
+        # after 5 seconds (1 minute on mainnet and testnet), every second (10s
+        # on mainnet and testnet) the mempool is probed, so in 7 seconds it
+        # should have returned
+        thr.join(7)
         assert not thr.is_alive()
 
 

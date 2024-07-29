@@ -935,11 +935,15 @@ static RPCHelpMan getblocktemplate() {
                     nTransactionsUpdatedLastLP = nTransactionsUpdatedLast;
                 }
 
+                const bool isRegtest = chainparams.MineBlocksOnDemand();
+                const auto initialLongpollDelay = isRegtest ? 5s : 1min;
+                const auto newTxCheckLongpollDelay = isRegtest ? 1s : 10s;
+
                 // Release lock while waiting
                 LEAVE_CRITICAL_SECTION(cs_main);
                 {
-                    checktxtime = std::chrono::steady_clock::now() +
-                                  std::chrono::minutes(1);
+                    checktxtime =
+                        std::chrono::steady_clock::now() + initialLongpollDelay;
 
                     WAIT_LOCK(g_best_block_mutex, lock);
                     while (g_best_block &&
@@ -954,7 +958,7 @@ static RPCHelpMan getblocktemplate() {
                                 nTransactionsUpdatedLastLP) {
                                 break;
                             }
-                            checktxtime += std::chrono::seconds(10);
+                            checktxtime += newTxCheckLongpollDelay;
                         }
                     }
 
