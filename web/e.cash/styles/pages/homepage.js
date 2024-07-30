@@ -2,95 +2,117 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import styled from 'styled-components';
-import Neoncity from '/public/images/neon-city.png';
 import { motion } from 'framer-motion';
 import { getAnimationSettings } from '/styles/framer-motion';
+import Link from 'next/link';
 
-export const Hero = styled(motion.div).attrs(() =>
-    getAnimationSettings({ duration: 2, delay: 0.4, displacement: 300 }),
-)`
+export const Hero = styled.div`
     width: 100%;
-    height: 100vh;
-    min-height: 600px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     position: relative;
     z-index: 1;
+    padding: 200px 0 200px 0;
+    position: relative;
 
-    .social-ctn {
-        display: flex;
-        align-items: center;
-        position: absolute;
-        bottom: 30px;
-        left: 20px;
-        right: 0;
-        margin: auto;
-        max-width: 1400px;
+    ${props => props.theme.breakpoint.medium} {
+        padding: 120px 0 100px 0;
     }
+`;
 
-    .social-icon-ctn {
-        width: 20px;
-        height: 20px;
-        position: relative;
-        margin-right: 20px;
-        transition: all ease-in-out 200ms;
-    }
+export const BlackGradient = styled.div`
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100px;
+    background: linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0) 100%
+    );
+`;
 
-    .social-icon-ctn:hover {
-        transform: scale(1.4);
+export const HeroContentCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings({ duration: 2, delay: 0.4, displacement: 300 }),
+)`
+    display: flex;
+    width: 100%;
+    align-items: center;
+    ${props => props.theme.breakpoint.medium} {
+        flex-direction: column;
     }
+`;
+
+export const HeroTextCtn = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    align-items: flex-start;
 
     h1 {
         font-family: 'Montserrat', sans-serif;
-        font-size: 7.5vw;
-        line-height: 0.8;
+        font-size: 110px;
+        line-height: 0.7em;
         font-weight: 700;
         text-shadow: 6px 6px 12px rgb(0 0 0 / 70%);
         margin: 0;
         text-align: center;
         display: flex;
+        flex-direction: column;
         justify-content: center;
-        margin-bottom: 40px;
-    }
-
-    @media screen and (min-width: 2000px) {
-        h1 {
-            font-size: 120px;
-        }
+        align-items: flex-start;
+        margin-bottom: 30px;
     }
 
     h1 span {
-        margin-right: 20px;
         font-weight: 400;
+        font-size: 70px;
+        margin-bottom: 10px;
+    }
+
+    p {
+        text-align: left;
+        ${props => props.theme.breakpoint.medium} {
+            text-align: center;
+        }
     }
 
     ${props => props.theme.breakpoint.medium} {
+        width: 100%;
+        text-align: center;
+        align-items: center;
         h1 {
-            font-size: 14vw;
-            line-height: 1;
-            display: inline-block;
-            text-align: center;
-            margin-bottom: 10px;
+            font-size: 15vw;
+            align-items: center;
+            width: 100%;
         }
 
         h1 span {
-            margin-right: 0;
+            font-size: 10vw;
+            margin-bottom: 10px;
+            text-align: center;
         }
     }
+`;
 
-    @media (max-width: 480px) {
-        .social-ctn {
-            display: none;
-        }
+export const Tagline = styled.span`
+    color: ${props => props.theme.colors.primaryLight};
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    ${props => props.theme.breakpoint.medium} {
+        font-size: 6vw;
     }
 `;
 
 export const ButtonCtn = styled.div`
     display: flex;
-    justify-content: center;
     margin-top: 40px;
+    ${props => props.theme.breakpoint.medium} {
+        margin-top: 20px;
+    }
     ${props => props.theme.breakpoint.small} {
         flex-direction: column;
         a {
@@ -107,24 +129,12 @@ export const MarginButtonWrapper = styled.div`
 `;
 
 export const HeroImage = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: auto;
-    width: 80%;
-    max-width: 800px;
-    height: 100%;
-    z-index: -1;
+    width: 50%;
+    height: 500px;
     animation: bounce 6s infinite;
+    position: relative;
 
     img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
         object-fit: contain;
         ${props => props.theme.filters.grayscale};
     }
@@ -140,6 +150,12 @@ export const HeroImage = styled.div`
             transform: translateY(0);
         }
     }
+
+    ${props => props.theme.breakpoint.medium} {
+        width: 100%;
+        height: 400px;
+        margin-top: 80px;
+    }
 `;
 
 export const StoryAndWhySection = styled.div`
@@ -148,9 +164,11 @@ export const StoryAndWhySection = styled.div`
     background-repeat: no-repeat;
     background-position: center;
     width: 100%;
-    padding: 200px 0 400px;
+    padding: 0 0 400px;
     position: relative;
-    ${props => props.theme.filters.grayscale};
+    ${props => props.theme.breakpoint.medium} {
+        padding-bottom: 200px;
+    }
 `;
 
 export const Overlay = styled.div`
@@ -163,112 +181,77 @@ export const Overlay = styled.div`
     background-image: linear-gradient(180deg, #000, rgba(39, 52, 152, 0.57));
 `;
 
-export const GradientSpacer = styled.div`
-    height: 100px;
-    width: 100%;
-    background-image: linear-gradient(
-        180deg,
-        ${props => props.theme.colors.darkBlue},
-        ${props => props.theme.colors.black}
+export const ExchangeTileCtn = styled.div`
+    --color-text: navy;
+    --color-bg: papayawhip;
+    --color-bg-accent: #ecdcc0;
+    --size: clamp(10rem, 1rem + 40vmin, 30rem);
+    --gap: calc(var(--size) / 14);
+    --scroll-start: 0;
+    --scroll-end: calc(-100% - var(--gap));
+
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+    gap: var(--gap);
+    mask-image: linear-gradient(
+        var(--mask-direction, to right),
+        hsl(0 0% 0% / 0),
+        hsl(0 0% 0% / 1) 20%,
+        hsl(0 0% 0% / 1) 80%,
+        hsl(0 0% 0% / 0)
     );
 `;
 
-export const StorySection = styled(motion.div).attrs(() =>
-    getAnimationSettings(),
-)`
+export const ExchangeWrapper = styled.div`
     display: flex;
-    gap: 30px;
-    position: relative;
-
-    > :first-child {
-        width: 45%;
+    flex-direction: column;
+    gap: 80px;
+    margin: auto;
+    max-width: 2000px;
+    ${props => props.theme.breakpoint.medium} {
+        gap: 50px;
     }
+`;
 
-    > :last-child {
-        width: 55%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+export const ExchangeTileGroup = styled.div`
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: var(--gap);
+    min-width: 100%;
+    animation: scroll-x 60s linear infinite;
+    animation-direction: ${({ reverse }) => (reverse ? 'reverse' : 'normal')};
+    animation-delay: ${({ reverse }) => (reverse ? '-3s' : '0s')};
+    @keyframes scroll-x {
+        from {
+            transform: translateX(var(--scroll-start));
+        }
+        to {
+            transform: translateX(var(--scroll-end));
+        }
+    }
+`;
+
+export const ExchangeTile = styled(Link)`
+    width: 200px;
+    height: 80px;
+    position: relative;
+    :hover {
+        img {
+            filter: invert(50%) sepia(93%) saturate(2193%) hue-rotate(161deg)
+                brightness(96%) contrast(101%);
+        }
     }
 
     ${props => props.theme.breakpoint.medium} {
-        flex-direction: column;
-
-        > :first-child,
-        > :last-child {
-            width: 100%;
-        }
-
-        > :last-child {
-            margin-top: 30px;
-        }
-    }
-`;
-
-export const YouTubeVideo = styled.div`
-    clip-path: polygon(
-        23% 0,
-        26% 0,
-        95% 0,
-        98% 5%,
-        98% 33%,
-        100% 36%,
-        100% 97%,
-        81% 97%,
-        78% 100%,
-        15% 100%,
-        0 74%,
-        0 0
-    );
-    position: relative;
-    z-index: 2;
-    overflow: hidden;
-    width: 100%;
-    padding: 4px;
-    background-color: #00abe7;
-    background-image: -webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        from(#273498),
-        color-stop(53%, #0074c2),
-        to(#00abe7)
-    );
-    background-image: linear-gradient(180deg, #273498, #0074c2 53%, #00abe7);
-    -webkit-transform: translate(0, -30px);
-    -ms-transform: translate(0, -30px);
-    transform: translate(0, -30px);
-    filter: drop-shadow(
-        10px 8px 14px hsla(221.45454545454544, 100%, 7.33%, 0.94)
-    );
-
-    > :first-child {
-        clip-path: polygon(
-            23% 0,
-            26% 0,
-            95% 0,
-            98% 5%,
-            98% 33%,
-            100% 36%,
-            100% 97%,
-            81% 97%,
-            78% 100%,
-            15% 100%,
-            0 74%,
-            0 0
-        );
-        position: relative;
-        padding-top: 56.25%;
+        width: 150px;
+        height: 60px;
     }
 
-    iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border: 0px;
+    img {
+        object-fit: contain;
     }
 `;
 
@@ -283,14 +266,63 @@ export const PixelBorder = styled.div`
     background-repeat: repeat-x;
     background-image: url('/images/pixel-border.svg'),
         linear-gradient(180deg, transparent 79%, rgba(0, 0, 0, 0.67) 97%, #000);
+    ${props => props.theme.breakpoint.medium} {
+        height: 100px;
+        background-image: url('/images/pixel-border.svg');
+        background-repeat: no-repeat;
+        background-size: cover;
+        margin-top: -100px;
+    }
 `;
 
-export const RoadmapSection = styled.div`
+export const BuildSection = styled.div`
     width: 100%;
     text-align: center;
     background-color: ${props => props.theme.colors.black};
-    padding: 120px 0;
+    padding: 150px 0;
     position: relative;
+    ${props => props.theme.breakpoint.medium} {
+        padding: 80px 0;
+    }
+`;
+
+export const BuildSectionCtn = styled(motion.div).attrs(() =>
+    getAnimationSettings(),
+)`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    ${props => props.theme.breakpoint.medium} {
+        flex-direction: column;
+    }
+
+    > div:first-child {
+        width: 50%;
+        text-align: left;
+        padding-right: 40px;
+        ${props => props.theme.breakpoint.medium} {
+            width: 100%;
+            padding-right: 0;
+        }
+
+        p {
+            margin-bottom: 50px;
+        }
+    }
+
+    > div:nth-child(2) {
+        width: 50%;
+        height: 500px;
+        position: relative;
+        ${props => props.theme.breakpoint.medium} {
+            width: 100%;
+            height: 400px;
+        }
+
+        img {
+            object-fit: contain;
+        }
+    }
 `;
 
 export const TilesSectionCtn = styled(motion.div).attrs(() =>
@@ -298,4 +330,13 @@ export const TilesSectionCtn = styled(motion.div).attrs(() =>
 )`
     margin-top: 200px;
     text-align: center;
+    ${props => props.theme.breakpoint.medium} {
+        margin-top: 80px;
+    }
+`;
+
+export const LearnMoreBtnCtn = styled.div`
+    display: flex;
+    margin-top: 60px;
+    justify-content: center;
 `;

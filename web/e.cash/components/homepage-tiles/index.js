@@ -9,19 +9,19 @@ import { GridCtn } from './styles.js';
 const tiles = [
     {
         title: 'Avalanche',
-        text: 'A consensus protocol to enhance blockchain security, enable near-instant confirmation times, and streamline future network upgrades.',
+        text: "Avalanche is a revolutionary consensus algorithm integrated with eCash's core Proof-of-Work, enabling instant transactions, enhanced security, subnets, staking rewards for node operators and fork-free upgrades.",
         link: '/core-tech#avalanche',
         image: '/images/tile1.png',
     },
     {
         title: 'Staking',
-        text: 'Decentralized governance by incentivized stakeholders.',
+        text: 'Earn rewards for holding XEC. Staking rewards incentivize running eCash avalanche nodes, to improve the security and performance of eCash. Anyone can now earn while holding their XEC.',
         link: '/staking',
         image: '/images/tile2.png',
     },
     {
-        title: 'eTokens',
-        text: 'eCash supports tokens and dividend payments. Create your own token with customized name, supply, decimal places, and icon.',
+        title: 'eTokens and NFTs',
+        text: 'eCash supports tokens that anyone can create and trade with a few clicks. Instantly create your own custom NFT collection, and permissionlessly offer them for sale on-chain. Or create fungible tokens with their own name, supply, decimal places and icon.',
         link: '/core-tech#etokens',
         image: '/images/tile3.png',
     },
@@ -31,58 +31,25 @@ const tiles = [
         link: '/core-tech#subnets',
         image: '/images/tile4.png',
     },
-    {
-        title: 'Learn More',
-        link: '/core-tech',
-        image: '/images/tile5.png',
-        featured: true,
-    },
 ];
 
 export default function HomepageTiles() {
     return (
         <GridCtn>
-            {tiles.map((tile, index) => {
-                if (tile.featured) {
-                    return (
-                        <Link
-                            className="grid-item-feature"
-                            href={tile.link}
-                            key={index}
-                        >
-                            <div className="feature-tile-image-ctn">
-                                <Image
-                                    src={tile.image}
-                                    alt={tile.title}
-                                    fill
-                                    sizes="20vw"
-                                />
-                            </div>
-                            <h3>
-                                <GlitchText text="Learn More" />
-                            </h3>
-                        </Link>
-                    );
-                } else
-                    return (
-                        <Link
-                            className="grid-item"
-                            href={tile.link}
-                            key={index}
-                        >
-                            <h4>{tile.title}</h4>
-                            <p>{tile.text}</p>
-                            <div className="tile-image-ctn">
-                                <Image
-                                    src={tile.image}
-                                    alt={tile.title}
-                                    fill
-                                    sizes="20vw"
-                                />
-                            </div>
-                        </Link>
-                    );
-            })}
+            {tiles.map((tile, index) => (
+                <Link className="grid-item" href={tile.link} key={index}>
+                    <h4>{tile.title}</h4>
+                    <p>{tile.text}</p>
+                    <div className="tile-image-ctn">
+                        <Image
+                            src={tile.image}
+                            alt={tile.title}
+                            fill
+                            sizes="20vw"
+                        />
+                    </div>
+                </Link>
+            ))}
         </GridCtn>
     );
 }

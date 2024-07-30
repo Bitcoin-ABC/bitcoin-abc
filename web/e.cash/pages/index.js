@@ -2,141 +2,183 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 import Image from 'next/image';
-import Link from 'next/link';
 import Layout from '/components/layout';
 import VideoBackground from '/components/videobackground';
 import GlitchText from '/components/glitch-text';
 import { Container } from '/components/atoms';
-import { socials } from '/data/socials';
 import {
     Hero,
     ButtonCtn,
     HeroImage,
-    GradientSpacer,
     StoryAndWhySection,
     Overlay,
-    StorySection,
-    YouTubeVideo,
     PixelBorder,
-    RoadmapSection,
     TilesSectionCtn,
     MarginButtonWrapper,
+    HeroContentCtn,
+    HeroTextCtn,
+    Tagline,
+    BlackGradient,
+    ExchangeTileCtn,
+    ExchangeTileGroup,
+    ExchangeTile,
+    ExchangeWrapper,
+    BuildSection,
+    BuildSectionCtn,
+    LearnMoreBtnCtn,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
-import Hand from '/public/images/hand.png';
+import Hand from '/public/images/hand-logo.png';
+import Rockets from '/public/images/rocket.png';
 import HomepageTiles from '/components/homepage-tiles';
-import Roadmap from '/components/roadmap';
+import { getScoreCardData } from '/data/scores.js';
 
-export default function Home() {
-    return (
-        <Layout>
-            <VideoBackground videoname="purple-abstract" />
-            <Hero>
-                <Container>
-                    <h1>
-                        <span>WEALTH</span>
-                        <GlitchText text="REDEFINED" />
-                    </h1>
-                    <p>
-                        Simple. Instant. Secure.
-                        <br />
-                        Experience the revolutionary new money powered by
-                        Avalanche.
-                    </p>
-                    <HeroImage>
-                        <Image src={Hand} alt="eCash" fill priority />
-                    </HeroImage>
-                    <ButtonCtn>
-                        <Button
-                            text="About eCash"
-                            link="#about-ecash"
-                            corner="topLeft"
-                        />
-                        <MarginButtonWrapper>
-                            <Button
-                                text="Avalanche Consensus"
-                                link="https://avalanche.cash/"
-                                color="white"
-                                glow
-                            />
-                        </MarginButtonWrapper>
-                        <Button
-                            text="Get eCash"
-                            link="/get-ecash"
-                            color="accent"
-                            corner="bottomRight"
-                        />
-                    </ButtonCtn>
-                    <div className="social-ctn">
-                        {socials.map(social => (
-                            <Link
-                                className="social-icon-ctn"
-                                href={social.link}
+function Home(props) {
+    const ExchangeTiles = ({ reverse, set2 }) => {
+        return (
+            <ExchangeTileGroup reverse={reverse}>
+                {props.exchanges
+                    .slice(set2 ? 7 : 0, set2 ? 13 : 6)
+                    .map((item, index) => {
+                        const logoSrc = Array.isArray(item.attributes.logo.data)
+                            ? item.attributes.logo.data[0].attributes
+                            : item.attributes.logo.data.attributes;
+                        return (
+                            <ExchangeTile
+                                key={index}
+                                href={item.attributes.url}
                                 target="_blank"
-                                rel="noreferrer"
-                                key={social.name}
                             >
                                 <Image
-                                    src={`/images/${social.name}.svg`}
-                                    alt={social.name}
+                                    src={
+                                        process.env
+                                            .NEXT_PUBLIC_STRAPI_SCORECARD_URL +
+                                        logoSrc.url
+                                    }
                                     fill
+                                    sizes="12vw"
+                                    alt={item.attributes.name}
                                 />
-                            </Link>
-                        ))}
-                    </div>
+                            </ExchangeTile>
+                        );
+                    })}
+            </ExchangeTileGroup>
+        );
+    };
+    return (
+        <Layout>
+            <Hero>
+                <VideoBackground videoname="purple-abstract" />
+                <Container>
+                    <HeroContentCtn>
+                        <HeroTextCtn>
+                            <h1>
+                                <span>Cash for the</span>
+                                <GlitchText text="Internet" />
+                            </h1>
+                            <Tagline>Fast. Secure. Scalable.</Tagline>
+                            <p>
+                                Experience the revolutionary new money powered
+                                by
+                                <b> Avalanche</b>.
+                            </p>
+
+                            <ButtonCtn>
+                                <MarginButtonWrapper>
+                                    <Button
+                                        id="create_wallet_hero"
+                                        text="Create Wallet"
+                                        link="https://cashtab.com"
+                                        color="white"
+                                        glow
+                                        corner="topLeft"
+                                    />
+                                </MarginButtonWrapper>
+                                <Button
+                                    id="get_ecash_hero"
+                                    text="Get eCash"
+                                    link="/get-ecash"
+                                    color="accent"
+                                    corner="bottomRight"
+                                    glow
+                                />
+                            </ButtonCtn>
+                        </HeroTextCtn>
+                        <HeroImage>
+                            <Image src={Hand} alt="eCash" fill priority />
+                        </HeroImage>
+                    </HeroContentCtn>
                 </Container>
+                <BlackGradient />
             </Hero>
-            <GradientSpacer />
             <StoryAndWhySection>
                 <Overlay />
+                <ExchangeWrapper>
+                    <ExchangeTileCtn>
+                        <ExchangeTiles />
+                        <ExchangeTiles />
+                    </ExchangeTileCtn>
+                    <ExchangeTileCtn>
+                        <ExchangeTiles reverse set2 />
+                        <ExchangeTiles reverse set2 />
+                    </ExchangeTileCtn>
+                </ExchangeWrapper>
                 <Container>
-                    <StorySection>
-                        <div id="about-ecash">
-                            <H2
-                                subtext="The eCash Story"
-                                text="Introducing eCash"
-                            />
-                            <p>
-                                The battle-tested cryptocurrency forged from
-                                centuries of economic theory and over a decade
-                                of real-world crypto experience. This
-                                groundbreaking network is the realization of
-                                tech-secured sound money, as envisioned by
-                                luminaries of free-market philosophy.
-                            </p>
-                        </div>
-                        <div>
-                            <YouTubeVideo>
-                                <div>
-                                    <iframe
-                                        src="https://www.youtube.com/embed/tAl6sPRFQgk?rel=1&amp;controls=0&amp;autoplay=0&amp;mute=0&amp;start=0"
-                                        allow="autoplay; encrypted-media"
-                                        allowFullScreen
-                                        title="eCash - Wealth Redefined"
-                                    ></iframe>
-                                </div>
-                            </YouTubeVideo>
-                        </div>
-                    </StorySection>
                     <TilesSectionCtn>
-                        <H2
-                            subtext="Why eCash? Key Features"
-                            text="What makes eCash unique?"
-                            center
-                        />
+                        <H2 subtext="Why eCash?" text="Core Tech" center />
                     </TilesSectionCtn>
                     <HomepageTiles />
+                    <LearnMoreBtnCtn>
+                        <Button
+                            text="Learn More"
+                            link="/core-tech"
+                            color="primary"
+                            corner="bottomRight"
+                        />
+                    </LearnMoreBtnCtn>
                 </Container>
             </StoryAndWhySection>
             <PixelBorder />
-            <RoadmapSection>
+            <BuildSection>
                 <Container>
-                    <div id="roadmap" />
-                    <H2 subtext="Now & Future" text="ROADMAP" center />
-                    <Roadmap />
+                    <BuildSectionCtn>
+                        <div>
+                            <H2 text="Build on eCash" />
+                            <p>
+                                eCash is programmable cash anyone can work with.
+                                We’ve made it a snap to create your own eTokens,
+                                develop apps, or explore the blockchain.
+                            </p>
+                            <Button
+                                text="Start Building"
+                                link="/build"
+                                color="primary"
+                                corner="bottomRight"
+                                glow
+                            />
+                        </div>
+                        <div>
+                            <Image src={Rockets} alt="Build on eCash" fill />
+                        </div>
+                    </BuildSectionCtn>
                 </Container>
-            </RoadmapSection>
+            </BuildSection>
         </Layout>
     );
 }
+
+/**
+ * Call function to fetch scorecard api data and return scored and sorted arrays.
+ * This only runs at build time, and the build should fail if the api call fails
+ * @returns {object} props - page props to pass to the page
+ * @throws {error} on bad API call or failure to parse API result
+ */
+export async function getStaticProps() {
+    const response = await getScoreCardData();
+    return {
+        props: response.props,
+    };
+}
+
+export default Home;
