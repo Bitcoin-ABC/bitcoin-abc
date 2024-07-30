@@ -58,6 +58,8 @@ templates:
   #    the mock-chronik-client library, otherwise unset
   #  - DEPENDS_ECASH_LIB_WASM: "true" if these tests require ecash-lib-wasm
   #    to be built, otherwise unset
+  #  - DEPENDS_ECASH_LIB: "true" if these tests require ecash-lib to be
+  #    built, otherwise unset
   #  - DEPENDS_CHRONIK_CLIENT: "true" if these tests require chronik-client
   #    to be build, otherwise unset
   js-mocha:
@@ -108,6 +110,15 @@ templates:
         echo "Test depends on chronik-client. Building TypeScript..."
         pushd "${TOPLEVEL}/modules/chronik-client"
         npm ci
+      fi
+
+      if [ -z "${DEPENDS_ECASH_LIB+x}" ] ; then
+        echo "Test does not depend on ecash-lib"
+      else
+        echo "Test depends on ecash-lib. Building TypeScript..."
+        pushd "${TOPLEVEL}/modules/ecash-lib"
+        npm ci
+        npm run build
       fi
 
       # Install ecash-script dependencies if this test uses them
@@ -864,7 +875,8 @@ builds:
       DEPENDS_MOCK_CHRONIK_CLIENT: "true"
       DEPENDS_ECASHADDRJS: "true"
       DEPENDS_CHRONIK_CLIENT: "true"
-      DEPENDS_ECASH_COINSELECT: "true"
+      DEPENDS_ECASH_LIB_WASM: "true"
+      DEPENDS_ECASH_LIB: "true"
       RUN_NPM_BUILD: "true"
     templates:
       - js-mocha

@@ -48,13 +48,12 @@
         "typescript": "^5.3.3"
     },
     "dependencies": {
-        "@bitgo/utxo-lib": "^9.35.0",
         "bip32": "^4.0.0",
         "bip39": "^3.1.0",
         "chronik-client": "file:../../modules/chronik-client",
         "cors": "^2.8.5",
         "dotenv": "^16.4.5",
-        "ecash-coinselect": "file:../../modules/ecash-coinselect",
+        "ecash-lib": "file:../../modules/ecash-lib",
         "ecashaddrjs": "file:../../modules/ecashaddrjs",
         "ecpair": "^2.1.0",
         "ethereum-blockies-base64": "^1.0.2",
@@ -63,7 +62,6 @@
         "multer": "^1.4.5-lts.1",
         "node-telegram-bot-api": "^0.65.1",
         "sharp": "^0.33.2",
-        "slp-mdm": "^0.0.7",
         "tiny-secp256k1": "^2.2.3"
     }
 }

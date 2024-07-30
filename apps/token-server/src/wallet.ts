@@ -16,7 +16,7 @@ const bip32 = BIP32Factory(ecc);
 
 export interface ServerWallet {
     address: string;
-    wif: string;
+    sk: Uint8Array;
     utxos?: ScriptUtxo_InNode[];
 }
 
@@ -40,10 +40,16 @@ export function getWalletFromSeed(mnemonic: string): ServerWallet {
 
     const child = root.derivePath(ECASH_DERIVATION_PATH_TOKENS);
 
-    const wif = child.toWIF();
+    // Get private key and public key
+    const { privateKey, identifier } = child;
+
+    // bip32 child.privateKey is Buffer | undefined
+    const skString = privateKey!.toString('hex');
+    console.log(`sk as hex string: ${skString}`);
+
     const address = cashaddr.encode('ecash', 'p2pkh', child.identifier);
 
-    return { address, wif };
+    return { address, sk: Uint8Array.from(Buffer.from(skString, 'hex')) };
 }
 
 /**

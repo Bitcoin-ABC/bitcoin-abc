@@ -19,6 +19,7 @@ import makeBlockie from 'ethereum-blockies-base64';
 import TelegramBot from 'node-telegram-bot-api';
 import { alertNewTokenIcon } from '../src/telegram';
 import cashaddr from 'ecashaddrjs';
+import { Ecc } from 'ecash-lib';
 
 /**
  * routes.ts
@@ -62,6 +63,7 @@ export const startExpressServer = (
     chronik: ChronikClientNode,
     telegramBot: TelegramBot,
     fs: any,
+    ecc: Ecc,
 ): http.Server => {
     // Initialize express
     const app: Express = express();
@@ -217,8 +219,8 @@ export const startExpressServer = (
         try {
             rewardSuccess = await sendReward(
                 chronik,
+                ecc,
                 secrets.prod.wallet,
-                1, // Send txs at 1 satoshi per byte
                 config.rewardsTokenId,
                 config.rewardAmountTokenSats,
                 address,

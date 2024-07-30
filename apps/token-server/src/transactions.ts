@@ -7,28 +7,31 @@
  * methods for building token reward transtaction
  */
 
-import { BN, TokenType1 } from 'slp-mdm';
 import { ChronikClientNode, ScriptUtxo_InNode } from 'chronik-client';
 import { syncWallet, ServerWallet } from './wallet';
-import { coinSelect } from 'ecash-coinselect';
-import * as utxolib from '@bitgo/utxo-lib';
-import cashaddr from 'ecashaddrjs';
+import {
+    Script,
+    slpSend,
+    Ecc,
+    toHex,
+    TxBuilder,
+    P2PKHSignatory,
+    ALL_BIP143,
+    TxOutput,
+    TxBuilderOutput,
+} from 'ecash-lib';
 
 const DUST_SATS = 546;
+const SATS_PER_KB = 1000;
 const HASH_TYPES = {
     SIGHASH_ALL: 0x01,
     SIGHASH_FORKID: 0x40,
 };
-
-interface TargetOutput {
-    value: number;
-    script?: Uint8Array | Buffer;
-    address?: string;
-}
+const SLP_1_PROTOCOL_NUMBER = 1;
 
 export interface SlpInputsAndOutputs {
     slpInputs: ScriptUtxo_InNode[];
-    slpOutputs: TargetOutput[];
+    slpOutputs: TxOutput[];
 }
 
 /**
@@ -39,15 +42,16 @@ export interface SlpInputsAndOutputs {
  * @param utxos array of utxos available to token-server
  */
 export function getSlpInputsAndOutputs(
-    rewardAmountTokenSats: string,
+    rewardAmountTokenSats: bigint,
     destinationAddress: string,
     tokenId: string,
     utxos: ScriptUtxo_InNode[],
+    changeAddress: string,
 ): SlpInputsAndOutputs {
     const slpInputs: ScriptUtxo_InNode[] = [];
 
-    let totalSendQty = BigInt(0);
-    let change = BigInt(0);
+    let totalSendQty = 0n;
+    let change = 0n;
     let sufficientTokenUtxos = false;
     for (const utxo of utxos) {
         if (
@@ -56,8 +60,8 @@ export function getSlpInputsAndOutputs(
         ) {
             totalSendQty += BigInt(utxo.token.amount);
             slpInputs.push(utxo);
-            change = totalSendQty - BigInt(rewardAmountTokenSats);
-            if (change >= BigInt(0)) {
+            change = totalSendQty - rewardAmountTokenSats;
+            if (change >= 0n) {
                 sufficientTokenUtxos = true;
                 break;
             }
@@ -69,33 +73,31 @@ export function getSlpInputsAndOutputs(
         throw new Error('Insufficient token utxos');
     }
 
-    // slp-mdm requires sendAmounts to be BN[];
-    const sendAmounts: BN[] = [new BN(rewardAmountTokenSats)];
+    const sendAmounts = [rewardAmountTokenSats];
 
-    if (change > 0) {
-        sendAmounts.push(new BN(change.toString()));
+    if (change > 0n) {
+        sendAmounts.push(change);
     }
 
     // Build target output(s) per spec
-    const script = TokenType1.send(tokenId, sendAmounts);
+    const script = slpSend(tokenId, SLP_1_PROTOCOL_NUMBER, sendAmounts);
 
-    const slpOutputs: TargetOutput[] = [{ script, value: 0 }];
+    const slpOutputs: TxOutput[] = [{ script, value: 0 }];
+
     // Add first 'to' amount to 1 index. This could be any index between 1 and 19.
     slpOutputs.push({
         value: DUST_SATS,
-        address: destinationAddress,
+        script: Script.fromAddress(destinationAddress),
     });
 
     // On token-server, sendAmounts can only be length 1 or 2
     // For now, we do not batch reward txs
     if (sendAmounts.length > 1) {
         // Add another targetOutput
-        // Note that change addresses are added after ecash-coinselect by wallet
         // Change output is denoted by lack of address key
         slpOutputs.push({
             value: DUST_SATS,
-            // Note that address: is intentionally omitted
-            // We will add change address to any outputs with no address or script when the tx is built
+            script: Script.fromAddress(changeAddress),
         });
     }
 
@@ -121,16 +123,16 @@ export interface RewardBroadcastSuccess {
  */
 export const sendReward = async (
     chronik: ChronikClientNode,
+    ecc: Ecc,
     wallet: ServerWallet,
-    feeRate: number = 1,
     tokenId: string,
-    rewardAmountTokenSats: string,
+    rewardAmountTokenSats: bigint,
     destinationAddress: string,
 ): Promise<RewardBroadcastSuccess> => {
     // Sync wallet to get latest utxo set
     await syncWallet(chronik, wallet);
 
-    const { utxos } = wallet;
+    const { utxos, address } = wallet;
 
     // Note that utxos will be defined here
     // If there was an error in syncWallet, an error would have thrown
@@ -140,59 +142,115 @@ export const sendReward = async (
         destinationAddress,
         tokenId,
         utxos!, // assert utxos is defined
+        address,
     );
 
-    let { inputs, outputs } = coinSelect(utxos, slpOutputs, feeRate, slpInputs);
-
-    // Initialize TransactionBuilder
-    let txBuilder = utxolib.bitgo.createTransactionBuilderForNetwork(
-        utxolib.networks.ecash,
+    // Determine how many satoshis are being sent
+    // This is usually 546*2 (token output and token change)
+    // But calculate to support anything
+    const satoshisToSend = slpOutputs.reduce(
+        (prevSatoshis, output) => prevSatoshis + Number(output.value),
+        0,
     );
 
-    for (const input of inputs) {
-        txBuilder.addInput(input.outpoint.txid, input.outpoint.outIdx);
+    // Add a change output (for XEC change, not token change)
+    const outputs: TxBuilderOutput[] = [
+        ...slpOutputs,
+        Script.fromAddress(wallet.address),
+    ];
+
+    // Prepare inputs
+    // Note slpInputs are required for this token tx
+    // Will also need (some, probably) xec inputs from other utxo set
+
+    // First, see where you are at with the required utxos
+    // Then add xec utxos until you don't need anymore
+    const inputs = [];
+    let inputSatoshis = 0;
+
+    // For token-server, every utxo will have the same sk
+    const { sk } = wallet;
+    const pk = ecc.derivePubkey(sk);
+
+    for (const slpInput of slpInputs) {
+        inputs.push({
+            input: {
+                prevOut: slpInput.outpoint,
+                signData: {
+                    value: slpInput.value,
+                    outputScript: Script.fromAddress(wallet.address),
+                },
+            },
+            signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+        });
+        inputSatoshis += slpInput.value;
     }
 
-    for (const output of outputs) {
-        let isOpReturn = 'script' in output;
-        let isChange = !isOpReturn && !('address' in output);
-        if (isChange) {
-            // Note that you may now have a change output with no specified address
-            // This is expected behavior of coinSelect
-            // User provides target output, coinSelect adds change output if necessary (with no address key)
+    let needsAnotherUtxo = inputSatoshis <= satoshisToSend;
 
-            // Change address is wallet address
-            output.address = wallet.address;
+    // Add and sign required inputUtxos to create tx with specified targetOutputs
+    for (const utxo of utxos!) {
+        if (needsAnotherUtxo) {
+            // If inputSatoshis is less than or equal to satoshisToSend, we know we need
+            // to add another input
+
+            inputs.push({
+                input: {
+                    prevOut: utxo.outpoint,
+                    signData: {
+                        value: utxo.value,
+                        outputScript: Script.fromAddress(wallet.address),
+                    },
+                },
+                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+            });
+            inputSatoshis += utxo.value;
+
+            needsAnotherUtxo = inputSatoshis <= satoshisToSend;
+
+            if (needsAnotherUtxo) {
+                // Do not bother trying to build and broadcast the tx unless
+                // we probably have enough inputSatoshis to cover satoshisToSend + fee
+                continue;
+            }
         }
 
-        txBuilder.addOutput(
-            isOpReturn ? output.script : cashaddr.toLegacy(output.address),
-            output.value,
-        );
+        // If value of inputs exceeds value of outputs, we check to see if we also cover the fee
+
+        const txBuilder = new TxBuilder({
+            inputs,
+            outputs,
+        });
+        let tx;
+        try {
+            tx = txBuilder.sign(ecc, SATS_PER_KB, DUST_SATS);
+        } catch (err) {
+            if (
+                typeof err === 'object' &&
+                err !== null &&
+                'message' in err &&
+                typeof err.message === 'string' &&
+                err.message.startsWith('Insufficient input value')
+            ) {
+                // If we have insufficient funds to cover satoshisToSend + fee
+                // we need to add another input
+                needsAnotherUtxo = true;
+                continue;
+            }
+
+            // Throw any other error
+            throw err;
+        }
+
+        // Otherwise, broadcast the tx
+        const txSer = tx.ser();
+        const hex = toHex(txSer);
+        // Will throw error on node failing to broadcast tx
+        // e.g. 'txn-mempool-conflict (code 18)'
+        const response = await chronik.broadcastTx(hex);
+
+        return { hex, response };
     }
-
-    // Sign inputs
-    inputs.forEach((input: any, index: number) => {
-        const utxoECPair = utxolib.ECPair.fromWIF(
-            wallet.wif,
-            utxolib.networks.ecash,
-        );
-
-        // Sign this input
-        txBuilder.sign(
-            index, // vin
-            utxoECPair, // keyPair
-            undefined, // redeemScript
-            HASH_TYPES.SIGHASH_ALL | HASH_TYPES.SIGHASH_FORKID, // hashType
-            input.value, // value
-        );
-    });
-
-    const hex = txBuilder.build().toHex();
-
-    // Will throw error on node failing to broadcast tx
-    // e.g. 'txn-mempool-conflict (code 18)'
-    const response = await chronik.broadcastTx(hex);
-
-    return { hex, response };
+    // If we go over all input utxos but do not have enough to send the tx, throw Insufficient funds error
+    throw new Error('Insufficient funds');
 };

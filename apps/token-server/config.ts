@@ -7,7 +7,7 @@ interface TokenServerConfig {
     chronikUrls: string[];
     eligibilityResetSeconds: number;
     rewardsTokenId: string;
-    rewardAmountTokenSats: string;
+    rewardAmountTokenSats: bigint;
     imageDir: string;
     rejectedDir: string;
     maxUploadSize: number;
@@ -26,7 +26,7 @@ const config: TokenServerConfig = {
     // Cachet
     rewardsTokenId:
         'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
-    rewardAmountTokenSats: '10000', // Cachet is a 2-decimal token, so this is 100.00 Cachet
+    rewardAmountTokenSats: 10000n, // Cachet is a 2-decimal token, so this is 100.00 Cachet
     // Note: this must be the target= parameter for the --mount instruction of docker run
     // See Production Step 3 in README.md
     imageDir: '/token-server/token-icons',

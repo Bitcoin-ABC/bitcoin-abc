@@ -18,8 +18,17 @@ import {
     MOCK_OUTPOINT,
     MOCK_UTXO_TOKEN,
 } from './vectors';
+import { Ecc, initWasm } from 'ecash-lib';
 
 describe('routes.js', async function () {
+    let ecc: Ecc;
+    before(async () => {
+        // Initialize web assembly
+        await initWasm();
+        // Initialize Ecc
+        ecc = new Ecc();
+    });
+
     let app: http.Server;
     const SERVER_WALLET_ADDRESS = secrets.prod.wallet.address;
     const SERVER_WALLET_OUTPUTSCRIPT = cashaddr.getOutputScriptFromAddress(
@@ -79,9 +88,9 @@ describe('routes.js', async function () {
         ],
     });
     mockedChronikClient.setMock('broadcastTx', {
-        input: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006a473044022077c0f7bcaf84b8ed1eb56f633f7e055237df780b9807237ff098ad63de3111de0220755dde78b5255c6934f9ba1270e62e771120fd119e21c06ccf79a418b59c115841210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff1111111111111111111111111111111111111111111111111111111111111111000000006b483045022100953c76d9605bd522feef785afbbbf47bf0ebf40a0d34fbcbdf947e9dd726d872022040b4f0f0b8b352c712d4610f34c882e2678b0c6ae3f95b2c33c763852be64fe141210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac5a250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
+        input: '02000000021111111111111111111111111111111111111111111111111111111111111111010000006441aa58606dc2133b1547da04323797794c8ae8a245518c82b6a360db52f9451b33b301eeb18c5851fd98989a7c24b384bfb49c18e37d1ffdf4e6bc42c30575913041210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff111111111111111111111111111111111111111111111111111111111111111100000000644168bf907b93ffc6f1dad8378ca5de1a35e4b3d3fae7f151fed92eabffa301ba01dce9d79108e4a4374414f5ac7364d99ef5ff506ef5a69cc58e91e4871e4f27f541210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff030000000000000000376a04534c500001010453454e4420aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb108000000000000271022020000000000001976a9146ffbe7c7d7bd01295eb1e371de9550339bdcf9fd88ac68250000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
         output: {
-            txid: '3b15da50052e8884a9d089920bc23d4a05da44e3c20c41eba954bf4ce3326d59',
+            txid: '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
         },
     });
     // Set an ineligible mock
@@ -127,6 +136,7 @@ describe('routes.js', async function () {
             mockedChronikClient,
             mockedTgBot as unknown as TelegramBot,
             fs,
+            ecc,
         );
     });
     afterEach(async () => {
@@ -221,7 +231,7 @@ describe('routes.js', async function () {
             .expect({
                 address: ELIGIBLE_ADDRESS,
                 msg: 'Success',
-                txid: '3b15da50052e8884a9d089920bc23d4a05da44e3c20c41eba954bf4ce3326d59',
+                txid: '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
             });
     });
     it('We get a rendered blockie for a valid token image request', function () {

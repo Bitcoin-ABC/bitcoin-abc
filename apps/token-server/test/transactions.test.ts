@@ -6,8 +6,16 @@ import * as assert from 'assert';
 import { getSlpInputsAndOutputs, sendReward } from '../src/transactions';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import vectors from './vectors';
+import { Ecc, initWasm } from 'ecash-lib';
 
 describe('transactions.ts', function () {
+    let ecc: Ecc;
+    before(async () => {
+        // Initialize web assembly
+        await initWasm();
+        // Initialize Ecc
+        ecc = new Ecc();
+    });
     describe('We can get slpInputs and slpOutputs for a token rewards tx to one destinationAddress', function () {
         const { returns, errors } = vectors.getSlpInputsAndOutputs;
         returns.forEach(vector => {
@@ -17,6 +25,7 @@ describe('transactions.ts', function () {
                 destinationAddress,
                 tokenId,
                 utxos,
+                changeAddress,
                 returned,
             } = vector;
             it(description, function () {
@@ -26,6 +35,7 @@ describe('transactions.ts', function () {
                         destinationAddress,
                         tokenId,
                         utxos,
+                        changeAddress,
                     ),
                     returned,
                 );
@@ -38,6 +48,7 @@ describe('transactions.ts', function () {
                 destinationAddress,
                 tokenId,
                 utxos,
+                changeAddress,
                 error,
             } = vector;
             it(description, function () {
@@ -48,6 +59,7 @@ describe('transactions.ts', function () {
                             destinationAddress,
                             tokenId,
                             utxos,
+                            changeAddress,
                         ),
                     error,
                 );
@@ -61,7 +73,6 @@ describe('transactions.ts', function () {
                 description,
                 wallet,
                 utxos,
-                feeRate,
                 tokenId,
                 rewardAmountTokenSats,
                 destinationAddress,
@@ -82,8 +93,8 @@ describe('transactions.ts', function () {
                 assert.deepEqual(
                     await sendReward(
                         mockedChronik,
+                        ecc,
                         wallet,
-                        feeRate,
                         tokenId,
                         rewardAmountTokenSats,
                         destinationAddress,
@@ -97,7 +108,6 @@ describe('transactions.ts', function () {
                 description,
                 wallet,
                 utxos,
-                feeRate,
                 tokenId,
                 rewardAmountTokenSats,
                 destinationAddress,
@@ -116,8 +126,8 @@ describe('transactions.ts', function () {
                 await assert.rejects(
                     sendReward(
                         mockedChronik,
+                        ecc,
                         wallet,
-                        feeRate,
                         tokenId,
                         rewardAmountTokenSats,
                         destinationAddress,
