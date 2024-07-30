@@ -6,7 +6,10 @@
 
 use std::collections::BTreeMap;
 
-use bitcoinsuite_core::tx::{OutPoint, Tx, TxInput, TxOutput};
+use bitcoinsuite_core::{
+    script::Script,
+    tx::{OutPoint, Tx, TxInput, TxOutput},
+};
 use bitcoinsuite_slp::{
     empp,
     structs::TokenOutput,
@@ -16,10 +19,10 @@ use bitcoinsuite_slp::{
 use chronik_plugin_common::data::{PluginNameMap, PluginOutput};
 use pyo3::{
     prelude::*,
-    types::{PyDict, PyList},
+    types::{PyBytes, PyDict, PyList},
 };
 
-use crate::{script::Script, token::TokenModule, util::to_bytes};
+use crate::{token::TokenModule, util::to_bytes};
 
 /// `tx.py` module handles
 #[derive(Debug)]
@@ -29,6 +32,7 @@ pub struct TxModule {
     cls_tx_input: PyObject,
     cls_tx_output: PyObject,
     cls_plugin_output_entry: PyObject,
+    cls_script: PyObject,
     token_module: TokenModule,
 }
 
@@ -36,6 +40,8 @@ impl TxModule {
     /// Import the `tx.py` module
     pub fn import(py: Python<'_>) -> PyResult<Self> {
         let tx_module = PyModule::import_bound(py, "chronik_plugin.tx")?;
+        let script_module =
+            PyModule::import_bound(py, "chronik_plugin.script")?;
         Ok(TxModule {
             cls_tx: tx_module.getattr("Tx")?.into(),
             cls_out_point: tx_module.getattr("OutPoint")?.into(),
@@ -44,6 +50,7 @@ impl TxModule {
             cls_plugin_output_entry: tx_module
                 .getattr("PluginOutputEntry")?
                 .into(),
+            cls_script: script_module.getattr("CScript")?.into(),
             token_module: TokenModule::import(py)?,
         })
     }
@@ -144,10 +151,7 @@ impl TxModule {
         py_token_entries: &[PyObject],
     ) -> PyResult<PyObject> {
         let kwargs = PyDict::new_bound(py);
-        kwargs.set_item(
-            "script",
-            Py::new(py, Script::new(output.script.clone()))?,
-        )?;
+        kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
         kwargs.set_item("value", output.value)?;
         kwargs.set_item(
             "token",
@@ -182,10 +186,7 @@ impl TxModule {
             "prev_out",
             self.bridge_out_point(py, &input.prev_out)?,
         )?;
-        kwargs.set_item(
-            "script",
-            Py::new(py, Script::new(input.script.clone()))?,
-        )?;
+        kwargs.set_item("script", self.bridge_script(py, &input.script)?)?;
         kwargs.set_item(
             "output",
             input
@@ -219,10 +220,7 @@ impl TxModule {
         entries: &[TokenTxEntry],
     ) -> PyResult<PyObject> {
         let kwargs = PyDict::new_bound(py);
-        kwargs.set_item(
-            "script",
-            Py::new(py, Script::new(output.script.clone()))?,
-        )?;
+        kwargs.set_item("script", self.bridge_script(py, &output.script)?)?;
         kwargs.set_item("value", output.value)?;
         kwargs.set_item(
             "token",
@@ -280,5 +278,14 @@ impl TxModule {
             )?;
         }
         Ok(plugin_data)
+    }
+
+    fn bridge_script(
+        &self,
+        py: Python<'_>,
+        script: &Script,
+    ) -> PyResult<PyObject> {
+        let bytes = PyBytes::new_bound(py, script.bytecode().as_ref());
+        self.cls_script.call1(py, (bytes,))
     }
 }

@@ -4,31 +4,26 @@
 
 //! Module for Python module related things
 
-use pyo3::{prelude::*, py_run, types::PyList};
-
-use crate::script::{Op, Script};
+use pyo3::{prelude::*, types::PyList};
 
 /// Python module for Chronik plugins
 #[pymodule]
 pub fn chronik_plugin(
     py: Python<'_>,
-    module: Bound<'_, PyModule>,
+    _module: Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let script_module = PyModule::new_bound(py, "script")?;
-    script_module.add_class::<Op>()?;
-    script_module.add_class::<Script>()?;
-    module.add_submodule(&script_module)?;
-    // Need to register submodule manually, see PyO3#759
-    py_run!(
-        py,
-        script_module,
-        "import sys; sys.modules['chronik_plugin.script'] = script_module"
-    );
     PyModule::from_code_bound(
         py,
         include_str!("plugin.py"),
         "plugin.py",
         "chronik_plugin.plugin",
+    )?;
+    // Re-use `script.py` from the test framework
+    PyModule::from_code_bound(
+        py,
+        include_str!("../../../test/functional/test_framework/script.py"),
+        "script.py",
+        "chronik_plugin.script",
     )?;
     PyModule::from_code_bound(
         py,

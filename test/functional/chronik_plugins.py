@@ -53,6 +53,7 @@ class ChronikPlugins(BitcoinTestFramework):
             print(
                 """
 from chronik_plugin.plugin import Plugin, PluginOutput
+from chronik_plugin.script import OP_RETURN
 
 class MyPluginPlugin(Plugin):
     def lokad_id(self):
@@ -62,17 +63,17 @@ class MyPluginPlugin(Plugin):
         return '0.1.0'
 
     def run(self, tx):
-        ops = tx.outputs[0].script.ops()
-        if ops[0].opcode != 0x6a: # OP_RETURN
+        ops = list(tx.outputs[0].script)
+        if ops[0] != OP_RETURN:
             return []
-        if ops[1].pushdata != b'TEST':
+        if ops[1] != b'TEST':
             return []
         outputs = []
         for idx, (op, _) in enumerate(zip(ops[2:], tx.outputs[1:])):
-            data = [op.pushdata]
+            data = [op]
             group = []
-            if op.pushdata:
-                group = [op.pushdata[:1]]
+            if op:
+                group = [op[:1]]
             if idx < len(tx.inputs):
                 tx_input = tx.inputs[idx]
                 if 'my_plugin' in tx_input.plugin:

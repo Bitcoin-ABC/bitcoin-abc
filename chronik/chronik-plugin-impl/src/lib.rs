@@ -11,7 +11,6 @@ abc_rust_lint::lint! {
     pub mod context;
     pub mod module;
     mod plugin;
-    pub mod script;
     pub mod token;
     pub mod tx;
     mod util;

@@ -4,7 +4,7 @@
 
 from typing import List, NamedTuple, Optional
 
-from chronik_plugin.script import Script
+from chronik_plugin.script import CScript
 from chronik_plugin.token import Token, TokenTxEntry
 
 
@@ -27,7 +27,7 @@ class OutPoint(NamedTuple):
 
 class TxOutput(NamedTuple):
     # scriptPubKey, script locking the output
-    script: Script
+    script: CScript
 
     # value of the output, in satoshis
     value: int
@@ -39,8 +39,8 @@ class TxOutput(NamedTuple):
 class TxInput(NamedTuple):
     prev_out: OutPoint
 
-    # scriptSig of the input, as a handy `Script` object to simplify parsing
-    script: Script
+    # scriptSig of the input, as a handy `CScript` object to simplify parsing
+    script: CScript
 
     # Output spent by the input
     output: TxOutput
