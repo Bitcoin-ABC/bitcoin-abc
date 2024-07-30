@@ -24,9 +24,11 @@ from test_framework.script import (
     OP_EQUAL,
     OP_EQUALVERIFY,
     OP_HASH160,
+    CScript,
+)
+from test_framework.signature_hash import (
     SIGHASH_ALL,
     SIGHASH_FORKID,
-    CScript,
     SignatureHashForkId,
 )
 from test_framework.txtools import pad_tx

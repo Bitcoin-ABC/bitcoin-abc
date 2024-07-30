@@ -35,9 +35,11 @@ from test_framework.script import (
     OP_INVALIDOPCODE,
     OP_RETURN,
     OP_TRUE,
+    CScript,
+)
+from test_framework.signature_hash import (
     SIGHASH_ALL,
     SIGHASH_FORKID,
-    CScript,
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework

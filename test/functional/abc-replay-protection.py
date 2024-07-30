@@ -19,12 +19,10 @@ from test_framework.blocktools import (
 from test_framework.key import ECKey
 from test_framework.messages import COIN, COutPoint, CTransaction, CTxIn, CTxOut, ToHex
 from test_framework.p2p import P2PDataStore
-from test_framework.script import (
-    OP_CHECKSIG,
-    OP_TRUE,
+from test_framework.script import OP_CHECKSIG, OP_TRUE, CScript
+from test_framework.signature_hash import (
     SIGHASH_ALL,
     SIGHASH_FORKID,
-    CScript,
     SignatureHashForkId,
 )
 from test_framework.test_framework import BitcoinTestFramework

@@ -6,7 +6,8 @@
 import unittest
 
 from .hash import hash160
-from .script import OP_TRUE, CScript, CScriptOp, hash256
+from .messages import hash256
+from .script import OP_TRUE, CScript, CScriptOp
 from .util import assert_equal
 
 ADDRESS_ECREG_UNSPENDABLE = "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt"
@@ -69,6 +70,11 @@ def base58_to_byte(s):
     assert_equal(hash256(res[:-4])[:4], res[-4:])
 
     return res[1:-4], int(res[0])
+
+
+def convert_p2pkh(s, net=30):
+    b, _ = base58_to_byte(s)
+    return byte_to_base58(b, net)
 
 
 def keyhash_to_p2pkh(keyhash, main=False):
