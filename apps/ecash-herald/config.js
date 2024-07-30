@@ -8,6 +8,7 @@ module.exports = {
     xecSendDisplayCount: 12,
     chronik: [
         'https://chronik-native1.fabien.cash',
+        'https://chronik-native2.fabien.cash',
         'https://chronik-native.fabien.cash',
         'https://chronik.pay2stay.com/xec',
         'https://chronik.be.cash/xec2',
