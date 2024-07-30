@@ -27,7 +27,7 @@ import unittest
 from base64 import b64decode, b64encode
 from enum import IntEnum
 from io import BytesIO
-from typing import List
+from typing import List, Optional
 
 from test_framework.siphash import siphash256
 from test_framework.util import assert_equal, uint256_hex
@@ -1424,8 +1424,8 @@ class msg_tx:
     __slots__ = ("tx",)
     msgtype = b"tx"
 
-    def __init__(self, tx=CTransaction()):
-        self.tx = tx
+    def __init__(self, tx: Optional[CTransaction] = None):
+        self.tx = tx or CTransaction()
 
     def deserialize(self, f):
         self.tx.deserialize(f)
