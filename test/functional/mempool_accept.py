@@ -5,6 +5,7 @@
 
 from decimal import Decimal
 
+from test_framework.hash import hash160
 from test_framework.key import ECKey
 from test_framework.messages import (
     MAX_BLOCK_BASE_SIZE,
@@ -26,7 +27,6 @@ from test_framework.script import (
     OP_HASH160,
     OP_RETURN,
     CScript,
-    hash160,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error

@@ -6,6 +6,7 @@ that it might try to spend."""
 
 from decimal import Decimal
 
+from test_framework.hash import hash160
 from test_framework.messages import CTransaction, CTxOut, FromHex, ToHex
 from test_framework.script import (
     OP_1,
@@ -17,7 +18,6 @@ from test_framework.script import (
     OP_HASH160,
     OP_PUSHDATA1,
     CScript,
-    hash160,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, assert_raises_rpc_error

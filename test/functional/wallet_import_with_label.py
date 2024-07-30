@@ -10,13 +10,13 @@ with and without a label.
 """
 
 from test_framework.address import script_to_p2sh
+from test_framework.hash import hash160
 from test_framework.script import (
     OP_CHECKSIG,
     OP_DUP,
     OP_EQUALVERIFY,
     OP_HASH160,
     CScript,
-    hash160,
 )
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.wallet_util import test_address

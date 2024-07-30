@@ -19,9 +19,10 @@ from test_framework.blocktools import (
 )
 from test_framework.chronik.slp import slp_genesis, slp_mint_vault, slp_send
 from test_framework.chronik.token_tx import TokenTx
+from test_framework.hash import hash160
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
-from test_framework.script import OP_12, OP_EQUAL, OP_HASH160, CScript, hash160
+from test_framework.script import OP_12, OP_EQUAL, OP_HASH160, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
 

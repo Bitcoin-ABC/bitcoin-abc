@@ -5,8 +5,8 @@
 
 from test_framework import cashaddr
 from test_framework.blocktools import COINBASE_MATURITY
+from test_framework.hash import hash160
 from test_framework.key import ECKey
-from test_framework.script import hash160
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import (
     assert_array_result,

@@ -5,7 +5,8 @@
 
 import unittest
 
-from .script import OP_TRUE, CScript, CScriptOp, hash160, hash256
+from .hash import hash160
+from .script import OP_TRUE, CScript, CScriptOp, hash256
 from .util import assert_equal
 
 ADDRESS_ECREG_UNSPENDABLE = "ecregtest:qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqcrl5mqkt"

@@ -23,6 +23,7 @@ from typing import Optional
 
 from test_framework import script as sc
 from test_framework.blocktools import create_tx_with_script
+from test_framework.hash import hash160
 from test_framework.messages import MAX_MONEY, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import (
     OP_2DIV,
@@ -35,7 +36,7 @@ from test_framework.script import (
 )
 from test_framework.txtools import pad_tx
 
-basic_p2sh = sc.CScript([sc.OP_HASH160, sc.hash160(sc.CScript([sc.OP_0])), sc.OP_EQUAL])
+basic_p2sh = sc.CScript([sc.OP_HASH160, hash160(sc.CScript([sc.OP_0])), sc.OP_EQUAL])
 
 
 class BadTxTemplate:

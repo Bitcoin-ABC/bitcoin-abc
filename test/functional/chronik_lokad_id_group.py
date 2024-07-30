@@ -12,16 +12,10 @@ from test_framework.address import (
     SCRIPTSIG_OP_TRUE,
 )
 from test_framework.blocktools import COINBASE_MATURITY, create_block, create_coinbase
+from test_framework.hash import hash160
 from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.p2p import P2PDataStore
-from test_framework.script import (
-    OP_EQUAL,
-    OP_HASH160,
-    OP_RESERVED,
-    OP_RETURN,
-    CScript,
-    hash160,
-)
+from test_framework.script import OP_EQUAL, OP_HASH160, OP_RESERVED, OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, chronik_sub_lokad_id
 

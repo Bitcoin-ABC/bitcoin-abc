@@ -5,6 +5,7 @@
 from collections import namedtuple
 
 from test_framework.address import byte_to_base58, key_to_p2pkh, script_to_p2sh
+from test_framework.hash import hash160
 from test_framework.key import ECKey
 from test_framework.script import (
     OP_2,
@@ -16,7 +17,6 @@ from test_framework.script import (
     OP_EQUALVERIFY,
     OP_HASH160,
     CScript,
-    hash160,
 )
 
 Key = namedtuple("Key", ["privkey", "pubkey", "p2pkh_script", "p2pkh_addr"])

@@ -15,6 +15,7 @@ from test_framework.address import (
     key_to_p2pkh,
 )
 from test_framework.blocktools import COINBASE_MATURITY
+from test_framework.hash import hash160
 from test_framework.key import ECKey
 from test_framework.messages import XEC, COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import (
@@ -27,7 +28,6 @@ from test_framework.script import (
     SIGHASH_FORKID,
     CScript,
     SignatureHashForkId,
-    hash160,
 )
 from test_framework.txtools import pad_tx
 from test_framework.util import (

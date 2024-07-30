@@ -16,17 +16,11 @@ from .messages import (
     hash256,
     ser_string,
     ser_uint256,
-    sha256,
     uint256_from_str,
 )
-from .ripemd160 import ripemd160
 
 MAX_SCRIPT_ELEMENT_SIZE = 520
 OPCODE_NAMES: Dict["CScriptOp", str] = {}
-
-
-def hash160(s: bytes) -> bytes:
-    return ripemd160(sha256(s))
 
 
 def bn2vch(v):
