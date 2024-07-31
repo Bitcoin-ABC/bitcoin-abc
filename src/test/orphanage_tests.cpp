@@ -25,15 +25,15 @@ class TxOrphanageTest : public TxOrphanage {
 public:
     inline size_t CountOrphans() const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
-        return m_orphans.size();
+        return m_pool_txs.size();
     }
 
     CTransactionRef RandomOrphan() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
-        std::map<TxId, OrphanTx>::iterator it;
-        it = m_orphans.lower_bound(TxId{InsecureRand256()});
-        if (it == m_orphans.end()) {
-            it = m_orphans.begin();
+        std::map<TxId, PoolTx>::iterator it;
+        it = m_pool_txs.lower_bound(TxId{InsecureRand256()});
+        if (it == m_pool_txs.end()) {
+            it = m_pool_txs.begin();
         }
         return it->second.tx;
     }
@@ -175,13 +175,13 @@ BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
         BOOST_CHECK(orphanage.CountOrphans() < sizeBefore);
     }
 
-    // Test LimitOrphanTxSize() function:
+    // Test LimitTxs() function:
     FastRandomContext rng{/*fDeterministic=*/true};
-    orphanage.LimitOrphans(40, rng);
+    orphanage.LimitTxs(40, rng);
     BOOST_CHECK(orphanage.CountOrphans() <= 40);
-    orphanage.LimitOrphans(10, rng);
+    orphanage.LimitTxs(10, rng);
     BOOST_CHECK(orphanage.CountOrphans() <= 10);
-    orphanage.LimitOrphans(0, rng);
+    orphanage.LimitTxs(0, rng);
     BOOST_CHECK(orphanage.CountOrphans() == 0);
 }
 
