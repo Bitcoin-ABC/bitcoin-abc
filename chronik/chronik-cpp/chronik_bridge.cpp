@@ -210,6 +210,26 @@ ChronikBridge::lookup_block_index_by_height(int height) const {
     return *pindex;
 }
 
+rust::Vec<RawBlockHeader>
+ChronikBridge::get_block_headers_by_range(int start, int end) const {
+    if (start < 0 || end < start) {
+        throw invalid_block_range();
+    }
+    LOCK(cs_main);
+    std::vector<RawBlockHeader> headers;
+    for (int height = start; height <= end; height++) {
+        const CBlockIndex *pindex = m_node.chainman->ActiveChain()[height];
+        if (!pindex) {
+            // We allow partial results or empty result.
+            // We can assume that if a block height does not exist the following
+            // ones also will not exist.
+            return chronik::util::ToRustVec<RawBlockHeader>(headers);
+        }
+        headers.push_back({.data = get_block_header(*pindex)});
+    }
+    return chronik::util::ToRustVec<RawBlockHeader>(headers);
+}
+
 std::unique_ptr<CBlock>
 ChronikBridge::load_block(const CBlockIndex &bindex) const {
     CBlock block;

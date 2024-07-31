@@ -126,6 +126,13 @@ mod ffi_inner {
         pub is_coinbase: bool,
     }
 
+    /// Wrapper struct for a raw block header.
+    #[derive(Clone, Debug, Eq, PartialEq)]
+    pub struct RawBlockHeader {
+        /// Raw block header
+        pub data: [u8; 80],
+    }
+
     #[allow(missing_debug_implementations)]
     unsafe extern "C++" {
         include!("blockindex.h");
@@ -205,6 +212,13 @@ mod ffi_inner {
             self: &ChronikBridge,
             height: i32,
         ) -> Result<&CBlockIndex>;
+
+        /// Get a range of consecutive block headers.
+        fn get_block_headers_by_range(
+            self: &ChronikBridge,
+            start: i32,
+            end: i32,
+        ) -> Result<Vec<RawBlockHeader>>;
 
         /// Load the CBlock data of this CBlockIndex from the disk
         fn load_block(

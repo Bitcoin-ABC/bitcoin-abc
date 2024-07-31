@@ -136,12 +136,12 @@ impl<'a> QueryBlocks<'a> {
         })
     }
 
-    /// Query blocks by a range of heights. Start and end height are inclusive.
-    pub fn by_range(
-        &self,
+    /// Check that the start and end heights are consistent for a range of
+    /// blocks, and return the number of blocks.
+    fn check_range_boundaries(
         start_height: BlockHeight,
         end_height: BlockHeight,
-    ) -> Result<proto::Blocks> {
+    ) -> Result<usize> {
         if start_height < 0 {
             return Err(InvalidStartHeight(start_height).into());
         }
@@ -152,6 +152,17 @@ impl<'a> QueryBlocks<'a> {
         if num_blocks > MAX_BLOCKS_PAGE_SIZE {
             return Err(BlocksPageSizeTooLarge(num_blocks).into());
         }
+        Ok(num_blocks)
+    }
+
+    /// Query blocks by a range of heights. Start and end height are inclusive.
+    pub fn by_range(
+        &self,
+        start_height: BlockHeight,
+        end_height: BlockHeight,
+    ) -> Result<proto::Blocks> {
+        let num_blocks =
+            Self::check_range_boundaries(start_height, end_height)?;
         let block_reader = BlockReader::new(self.db)?;
         let block_stats_reader = BlockStatsReader::new(self.db)?;
         let mut blocks = Vec::with_capacity(num_blocks);
@@ -311,5 +322,26 @@ impl<'a> QueryBlocks<'a> {
         Ok(proto::BlockHeader {
             raw_header: ffi::get_block_header(block_index).to_vec(),
         })
+    }
+
+    /// Query headers by a range of heights. Start and end height are inclusive.
+    pub fn headers_by_range(
+        &self,
+        start_height: BlockHeight,
+        end_height: BlockHeight,
+    ) -> Result<proto::BlockHeaders> {
+        Self::check_range_boundaries(start_height, end_height)?;
+        let headers = self
+            .node
+            .bridge
+            .get_block_headers_by_range(start_height, end_height)?;
+        let headers = headers
+            .iter()
+            .map(|h| proto::BlockHeader {
+                raw_header: h.data.to_vec(),
+            })
+            .collect();
+
+        Ok(proto::BlockHeaders { headers })
     }
 }

@@ -163,6 +163,10 @@ impl ChronikServer {
             )
             .route("/block-txs/:hash_or_height", routing::get(handle_block_txs))
             .route("/blocks/:start/:end", routing::get(handle_block_range))
+            .route(
+                "/block-headers/:start/:end",
+                routing::get(handle_block_headers),
+            )
             .route("/chronik-info", routing::get(handle_chronik_info))
             .route("/tx/:txid", routing::get(handle_tx))
             .route("/token/:txid", routing::get(handle_token_info))
@@ -299,6 +303,16 @@ async fn handle_block_header(
     let indexer = indexer.read().await;
     let blocks = indexer.blocks(&node);
     Ok(Protobuf(blocks.header(hash_or_height)?))
+}
+
+async fn handle_block_headers(
+    Path((start_height, end_height)): Path<(i32, i32)>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+    Extension(node): Extension<NodeRef>,
+) -> Result<Protobuf<proto::BlockHeaders>, ReportError> {
+    let indexer = indexer.read().await;
+    let blocks = indexer.blocks(&node);
+    Ok(Protobuf(blocks.headers_by_range(start_height, end_height)?))
 }
 
 async fn handle_block_txs(

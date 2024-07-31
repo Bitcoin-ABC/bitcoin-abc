@@ -1,8 +1,8 @@
-# Copyright (c) 2023 The Bitcoin developers
+# Copyright (c) The Bitcoin developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """
-Test Chronik's /header endpoint.
+Test Chronik's /header and /headers endpoints.
 """
 
 from test_framework.address import ADDRESS_ECREG_P2SH_OP_TRUE, ADDRESS_ECREG_UNSPENDABLE
@@ -12,6 +12,11 @@ from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal
 
 NUM_HEADERS = 10
+
+GENESIS_HEADER = bytes.fromhex(
+    "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7"
+    "a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494dffff7f2002000000"
+)
 
 
 class ChronikHeaderTest(BitcoinTestFramework):
@@ -31,11 +36,10 @@ class ChronikHeaderTest(BitcoinTestFramework):
         from test_framework.chronik.client import pb
 
         expected_genesis_header = pb.BlockHeader(
-            raw_header=bytes.fromhex(
-                "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494dffff7f2002000000"
-            ),
+            raw_header=GENESIS_HEADER,
         )
 
+        self.log.info("Test the /header endpoint before mining any block")
         # Not a valid hash or height
         assert_equal(
             chronik.block_header("1234f").err(400).msg,
@@ -68,6 +72,45 @@ class ChronikHeaderTest(BitcoinTestFramework):
             f'404: Block not found: {"00" * 32}',
         )
 
+        self.log.info("Test the /headers endpoint before mining any block")
+        assert_equal(
+            chronik.block_headers(-1, 0).err(400).msg,
+            "400: Invalid block start height: -1",
+        )
+        assert_equal(
+            chronik.block_headers(-(2**31), 0).err(400).msg,
+            f"400: Invalid block start height: {-2**31}",
+        )
+        assert_equal(
+            chronik.block_headers(2, 1).err(400).msg, "400: Invalid block end height: 1"
+        )
+        assert_equal(
+            chronik.block_headers(1, 501).err(400).msg,
+            "400: Blocks page size too large, may not be above 500 but got 501",
+        )
+        # Doesn't overflow:
+        assert_equal(
+            chronik.block_headers(0, 2**31 - 1).err(400).msg,
+            f"400: Blocks page size too large, may not be above 500 but got {2**31}",
+        )
+
+        assert_equal(
+            chronik.block_headers(0, 100).ok(),
+            pb.BlockHeaders(headers=[expected_genesis_header]),
+        )
+        assert_equal(
+            chronik.block_headers(0, 0).ok(),
+            pb.BlockHeaders(headers=[expected_genesis_header]),
+        )
+        assert_equal(chronik.block_headers(500, 500).ok(), pb.BlockHeaders(headers=[]))
+        assert_equal(chronik.block_headers(1, 500).ok(), pb.BlockHeaders(headers=[]))
+        assert_equal(chronik.block_headers(500, 999).ok(), pb.BlockHeaders(headers=[]))
+        assert_equal(
+            chronik.block_headers(2**31 - 500, 2**31 - 1).ok(),
+            pb.BlockHeaders(headers=[]),
+        )
+
+        self.log.info("Mine blocks and test the endpoints")
         # Generate blocks, verify they form a chain
         block_hashes = [GENESIS_BLOCK_HASH] + self.generatetoaddress(
             node, NUM_HEADERS, ADDRESS_ECREG_P2SH_OP_TRUE
@@ -87,6 +130,14 @@ class ChronikHeaderTest(BitcoinTestFramework):
             assert_equal(proto_header, chronik.block_header(block_hashes[i]).ok())
             assert_equal(hash256(proto_header.raw_header)[::-1].hex(), block_hashes[i])
 
+        assert_equal(
+            [
+                hdr.raw_header
+                for hdr in chronik.block_headers(0, NUM_HEADERS).ok().headers
+            ],
+            block_headers_from_rpc,
+        )
+
         # Invalidate in the middle of the chain. We can no longer query invalidated
         # headers by height, but they remain accessible by hash
         node.invalidateblock(block_hashes[NUM_HEADERS // 2])
@@ -101,6 +152,14 @@ class ChronikHeaderTest(BitcoinTestFramework):
             chronik.block_header(i).ok()
             chronik.block_header(block_hashes[i]).ok()
 
+        assert_equal(
+            [
+                hdr.raw_header
+                for hdr in chronik.block_headers(0, NUM_HEADERS).ok().headers
+            ],
+            block_headers_from_rpc[: NUM_HEADERS // 2],
+        )
+
         # Mine fork block and check it connects
         fork_hash = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[0]
         assert fork_hash != block_hashes[NUM_HEADERS // 2]
@@ -109,6 +168,14 @@ class ChronikHeaderTest(BitcoinTestFramework):
         rpc_header = bytes.fromhex(node.getblockheader(fork_hash, False))
         assert_equal(proto_header, pb.BlockHeader(raw_header=rpc_header))
         assert_equal(chronik.block_header(fork_hash).ok(), proto_header)
+
+        assert_equal(
+            [
+                hdr.raw_header
+                for hdr in chronik.block_headers(0, NUM_HEADERS).ok().headers
+            ],
+            block_headers_from_rpc[: NUM_HEADERS // 2] + [rpc_header],
+        )
 
 
 if __name__ == "__main__":

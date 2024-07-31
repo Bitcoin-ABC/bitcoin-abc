@@ -334,6 +334,11 @@ class ChronikClient:
     def block_header(self, hash_or_height: Union[str, int]) -> ChronikResponse:
         return self._request_get(f"/block-header/{hash_or_height}", pb.BlockHeader)
 
+    def block_headers(self, start_height: int, end_height: int) -> ChronikResponse:
+        return self._request_get(
+            f"/block-headers/{start_height}/{end_height}", pb.BlockHeaders
+        )
+
     def chronik_info(self) -> ChronikResponse:
         return self._request_get("/chronik-info", pb.ChronikInfo)
 

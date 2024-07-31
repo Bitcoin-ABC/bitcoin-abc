@@ -24,6 +24,12 @@ message BlockHeader {
     bytes raw_header = 1;
 }
 
+// Range of headers
+message BlockHeaders {
+    // Queried headers
+    repeated BlockHeader headers = 1;
+}
+
 // Info about the state of the blockchain.
 message BlockchainInfo {
     // Hash (little-endian) of the current tip

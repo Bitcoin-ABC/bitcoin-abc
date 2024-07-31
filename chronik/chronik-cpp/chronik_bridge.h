@@ -31,11 +31,19 @@ struct BlockInfo;
 struct Block;
 struct Tx;
 struct OutPoint;
+struct RawBlockHeader;
 
 class block_index_not_found : public std::exception {
 public:
     const char *what() const noexcept override {
         return "CBlockIndex not found";
+    }
+};
+
+class invalid_block_range : public std::exception {
+public:
+    const char *what() const noexcept override {
+        return "Invalid block range requested";
     }
 };
 
@@ -60,6 +68,9 @@ public:
     const CBlockIndex &lookup_block_index(std::array<uint8_t, 32> hash) const;
 
     const CBlockIndex &lookup_block_index_by_height(int height) const;
+
+    rust::Vec<RawBlockHeader> get_block_headers_by_range(int start,
+                                                         int end) const;
 
     std::unique_ptr<CBlock> load_block(const CBlockIndex &bindex) const;
 
