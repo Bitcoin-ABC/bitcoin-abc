@@ -425,10 +425,7 @@ const Tx = ({
                             </IconAndLabel>
                             <AppDescMsg>
                                 <a
-                                    href={`https://www.ecashchat.com/?sharedArticleTxid=${Buffer.from(
-                                        stackArray[1],
-                                        'hex',
-                                    ).toString()}`}
+                                    href={`https://www.ecashchat.com/?sharedArticleTxid=${stackArray[1]}`}
                                     target="_blank"
                                     rel="noreferrer"
                                 >
