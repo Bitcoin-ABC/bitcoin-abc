@@ -22,7 +22,7 @@ use crate::{
     index_tx::IndexTx,
     io::{
         token::ProcessedTokenTxBatch, BlockHeight, GroupUtxoMemData,
-        GroupUtxoWriter, TxNum,
+        GroupUtxoReader, GroupUtxoWriter, TxNum,
     },
     plugins::{PluginDbError::*, PluginsGroup},
     ser::{db_deserialize, db_serialize},
@@ -30,6 +30,8 @@ use crate::{
 
 /// Index the UTXOs of plugins in the DB
 pub type PluginsUtxoWriter<'a> = GroupUtxoWriter<'a, PluginsGroup>;
+/// Read UTXOs of plugins in the DB
+pub type PluginsUtxoReader<'a> = GroupUtxoReader<'a, PluginsGroup>;
 
 struct PluginsCol<'a> {
     db: &'a Db,

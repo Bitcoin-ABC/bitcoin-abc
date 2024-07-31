@@ -145,6 +145,18 @@ class ChronikPluginClient:
             f"/plugin/{self.plugin_name}/{group.hex()}/utxos", pb.Utxos
         )
 
+    def groups(
+        self,
+        *,
+        prefix: Optional[bytes] = None,
+        start: Optional[bytes] = None,
+        page_size: Optional[int] = None,
+    ):
+        return self.client._request_get(
+            f"/plugin/{self.plugin_name}/groups{_group_query_params(prefix, start, page_size)}",
+            pb.PluginGroups,
+        )
+
 
 class ChronikWs:
     def __init__(self, client: "ChronikClient", **kwargs) -> None:
@@ -391,3 +403,20 @@ def _page_query_params(page=None, page_size=None) -> str:
         return f"?page_size={page_size}"
     else:
         return ""
+
+
+def _group_query_params(prefix=None, start=None, page_size=None) -> str:
+    if prefix is None and start is None and page_size is None:
+        return ""
+    query_string = ""
+    if prefix is not None:
+        query_string += f"prefix={prefix.hex()}"
+    if start is not None:
+        if query_string:
+            query_string += "&"
+        query_string += f"start={start.hex()}"
+    if page_size is not None:
+        if query_string:
+            query_string += "&"
+        query_string += f"page_size={page_size}"
+    return "?" + query_string

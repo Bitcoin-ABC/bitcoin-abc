@@ -354,6 +354,21 @@ message PluginEntry {
     repeated bytes data = 2;
 }
 
+// Data about a plugin group
+message PluginGroup {
+    // Group bytes
+    bytes group = 1;
+}
+
+// List of plugin groups
+message PluginGroups {
+    // Groups
+    repeated PluginGroup groups = 1;
+    // Group that if specified as `start` will give us the next groups,
+    // or empty if groups have been exausted.
+    bytes next_start = 2;
+}
+
 // Page with txs
 message TxHistoryPage {
     // Txs of the page

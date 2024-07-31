@@ -4,15 +4,17 @@
 
 use std::collections::BTreeMap;
 
+use abc_rust_error::Result;
 use bitcoinsuite_core::tx::OutPoint;
 use chronik_plugin::data::{PluginIdx, PluginOutput};
 use serde::Serialize;
+use thiserror::Error;
 
 use crate::{
     db::CF_PLUGIN_GROUP_UTXOS,
     group::{Group, GroupQuery, MemberItem, UtxoDataOutput},
     io::{GroupHistoryConf, GroupUtxoConf},
-    ser::db_serialize,
+    plugins::PluginsGroupError::*,
 };
 
 /// [`Group`] impl for plugins; groups outputs by the groups assigned by plugins
@@ -29,10 +31,32 @@ pub struct PluginMember<'a> {
     pub group: &'a [u8],
 }
 
+/// Errors for [`PluginsGroup`].
+#[derive(Debug, Eq, Error, PartialEq)]
+pub enum PluginsGroupError {
+    /// Inconsistent DB: Couldn't deserialize PluginMember
+    #[error("Inconsistent DB: Deserialize PluginMember failed: {0:?}")]
+    DeserializeMemberFailed(Vec<u8>),
+}
+
 impl PluginMember<'_> {
     /// Serialize the member so we can use it as a key in the DB.
     pub fn ser(&self) -> Vec<u8> {
-        db_serialize::<PluginMember<'_>>(self).unwrap()
+        [self.plugin_idx.to_be_bytes().as_ref(), self.group].concat()
+    }
+
+    /// Deserialize the member
+    pub fn deser(data: &[u8]) -> Result<PluginMember<'_>> {
+        let plugin_idx = PluginIdx::from_be_bytes(
+            data.get(..4)
+                .ok_or_else(|| DeserializeMemberFailed(data.to_vec()))?
+                .try_into()
+                .unwrap(),
+        );
+        Ok(PluginMember {
+            plugin_idx,
+            group: &data[4..],
+        })
     }
 }
 

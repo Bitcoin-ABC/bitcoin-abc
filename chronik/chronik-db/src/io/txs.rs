@@ -440,6 +440,30 @@ impl<'a> TxReader<'a> {
         Ok(Some(TxId::from(ser_tx.txid)))
     }
 
+    /// Read just the [`TxId`]s of the txs by [`TxNum`]s, or [`None`] if one is
+    /// not in the DB. Uses batched reads, so should be faster than
+    /// `txid_by_tx_num` in a loop.
+    pub fn txids_by_tx_nums(
+        &self,
+        tx_nums: impl IntoIterator<Item = TxNum>,
+    ) -> Result<Vec<Option<TxId>>> {
+        self.col
+            .db
+            .multi_get(
+                self.col.cf_tx,
+                tx_nums.into_iter().map(tx_num_to_bytes),
+                false,
+            )?
+            .into_iter()
+            .map(|ser_tx| {
+                ser_tx
+                    .map(|ser_tx| db_deserialize::<SerTx>(&ser_tx))
+                    .transpose()
+            })
+            .map(|tx| tx.map(|tx| tx.map(|tx| TxId::from(tx.txid))))
+            .collect()
+    }
+
     /// Read the first [`TxNum`] of a [`BlockHeight`], or [`None`] if not in the
     /// DB. This is useful for getting all the txs in a block, by iterating
     /// between this (inclusive) and the next block's first tx_num (exclusive),

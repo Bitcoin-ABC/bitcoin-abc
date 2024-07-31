@@ -226,6 +226,10 @@ impl ChronikServer {
                 "/plugin/:plugin_name/:group_hex/utxos",
                 routing::get(handle_plugin_utxos),
             )
+            .route(
+                "/plugin/:plugin_name/groups",
+                routing::get(handle_plugin_groups),
+            )
             .route("/ws", routing::get(handle_ws))
             .route("/pause", routing::get(handle_pause))
             .route("/resume", routing::get(handle_resume))
@@ -569,12 +573,24 @@ async fn handle_lokad_id_unconfirmed_txs(
 }
 
 async fn handle_plugin_utxos(
-    Path((script_type, payload)): Path<(String, String)>,
+    Path((plugin_name, payload)): Path<(String, String)>,
     Extension(indexer): Extension<ChronikIndexerRef>,
 ) -> Result<Protobuf<proto::Utxos>, ReportError> {
     let indexer = indexer.read().await;
     Ok(Protobuf(
-        handlers::handle_plugin_utxos(&script_type, &payload, &indexer).await?,
+        handlers::handle_plugin_utxos(&plugin_name, &payload, &indexer).await?,
+    ))
+}
+
+async fn handle_plugin_groups(
+    Path(plugin_name): Path<String>,
+    Query(query_params): Query<HashMap<String, String>>,
+    Extension(indexer): Extension<ChronikIndexerRef>,
+) -> Result<Protobuf<proto::PluginGroups>, ReportError> {
+    let indexer = indexer.read().await;
+    Ok(Protobuf(
+        handlers::handle_plugin_groups(&plugin_name, &query_params, &indexer)
+            .await?,
     ))
 }
 

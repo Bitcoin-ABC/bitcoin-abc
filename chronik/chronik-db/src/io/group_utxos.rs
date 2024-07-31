@@ -24,6 +24,9 @@ use crate::{
 const INSERT: u8 = b'I';
 const DELETE: u8 = b'D';
 
+/// Shorthand for `UtxoEntry<G::UtxoData>`
+pub type DbGroupUtxo<G> = UtxoEntry<<G as Group>::UtxoData>;
+
 /// Configuration for group utxos reader/writers.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct GroupUtxoConf {
@@ -442,6 +445,39 @@ impl<'a, G: Group> GroupUtxoReader<'a, G> {
             }
             None => Ok(None),
         }
+    }
+
+    /// Iterate over all group members with a given prefix, starting from some
+    /// given prefix
+    pub fn prefix_iterator(
+        &self,
+        member_prefix: &'a [u8],
+        member_start: &'a [u8],
+    ) -> impl Iterator<Item = Result<(Box<[u8]>, Vec<DbGroupUtxo<G>>)>> + 'a
+    {
+        self.col
+            .db
+            .iterator(self.col.cf, member_start, rocksdb::Direction::Forward)
+            .take_while(|entry| -> bool {
+                let Ok((key, _)) = entry else {
+                    return true; // forward errors
+                };
+                key.starts_with(member_prefix)
+            })
+            .filter_map(|entry| {
+                let (key, value) = match entry {
+                    Ok(entry) => entry,
+                    Err(err) => return Some(Err(err)),
+                };
+                if value.is_empty() {
+                    // Filter out empty (compaction hasn't removed this yet)
+                    return None;
+                }
+                match db_deserialize_vec::<UtxoEntry<G::UtxoData>>(&value) {
+                    Ok(utxos) => Some(Ok((key, utxos))),
+                    Err(err) => Some(Err(err)),
+                }
+            })
     }
 }
 

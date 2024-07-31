@@ -256,3 +256,40 @@ pub async fn handle_plugin_utxos(
     let utxos = plugin.utxos(plugin_name, &group)?;
     Ok(proto::Utxos { utxos })
 }
+
+/// Return the groups (with unspent members) of the given plugin, with an
+/// optional prefix and start.
+pub async fn handle_plugin_groups(
+    plugin_name: &str,
+    query_params: &HashMap<String, String>,
+    indexer: &ChronikIndexer,
+) -> Result<proto::PluginGroups> {
+    let page_size: u32 = get_param(query_params, "page_size")?.unwrap_or(25);
+    let group_prefix = match query_params.get("prefix") {
+        Some(prefix_hex) => parse_hex(prefix_hex)?,
+        None => vec![],
+    };
+    let group_start = match query_params.get("start") {
+        Some(start_hex) => parse_hex(start_hex)?,
+        _ => group_prefix.clone(),
+    };
+    if !group_start.starts_with(&group_prefix) {
+        // If start doesn't start with the prefix, we can short-circuit
+        return Ok(proto::PluginGroups::default());
+    }
+    let plugin = indexer.plugins();
+    let groups = plugin.groups_by_prefix(
+        plugin_name,
+        &group_prefix,
+        &group_start,
+        page_size as usize,
+    )?;
+    Ok(proto::PluginGroups {
+        groups: groups
+            .groups
+            .into_iter()
+            .map(|group| proto::PluginGroup { group })
+            .collect(),
+        next_start: groups.next_start.unwrap_or_default(),
+    })
+}
