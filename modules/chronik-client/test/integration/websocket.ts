@@ -416,6 +416,38 @@ describe('Test expected websocket behavior of chronik-client', () => {
         // Only the 4 Tx Confirmed msgs are left in msgCollector
         expect(msgCollector.length).to.eql(4);
     });
+    it('After this block is finalized by Avalanche', async () => {
+        // Wait for expected ws msgs
+        await expectWsMsgs(5, msgCollector);
+
+        // The Block Finalized msg comes first
+        const blockConnectedMsg = msgCollector.shift();
+
+        expect(blockConnectedMsg).to.deep.equal({
+            type: 'Block',
+            msgType: 'BLK_FINALIZED',
+            blockHash: nextBlockhash,
+            blockHeight: finalizedHeight + 1,
+        });
+
+        // The order of confirmed and finalized txs from multiple script subscriptions is indeterminate
+        // See https://reviews.bitcoinabc.org/D15452
+        const txids = [p2pkhTxid, p2shTxid, p2pkTxid, otherTxid];
+        const expectedTxConfirmedMsgs = [];
+        for (const txid of txids) {
+            expectedTxConfirmedMsgs.push({
+                type: 'Tx',
+                msgType: 'TX_FINALIZED',
+                txid: txid,
+            });
+        }
+
+        // Expect a msg for each Finalized tx
+        expect(msgCollector).to.have.deep.members(expectedTxConfirmedMsgs);
+
+        // Only the 4 Tx Finalized msgs are left in msgCollector
+        expect(msgCollector.length).to.eql(4);
+    });
     it('After this block is parked', async () => {
         // Wait for expected ws msgs
         await expectWsMsgs(5, msgCollector);
@@ -546,38 +578,6 @@ describe('Test expected websocket behavior of chronik-client', () => {
         expect(msgCollector).to.have.deep.members(expectedTxMsgs);
 
         // Only the 4 Tx msgs are left in msgCollector
-        expect(msgCollector.length).to.eql(4);
-    });
-    it('After this block is finalized by Avalanche', async () => {
-        // Wait for expected ws msgs
-        await expectWsMsgs(5, msgCollector);
-
-        // The Block Finalized msg comes first
-        const blockConnectedMsg = msgCollector.shift();
-
-        expect(blockConnectedMsg).to.deep.equal({
-            type: 'Block',
-            msgType: 'BLK_FINALIZED',
-            blockHash: nextBlockhash,
-            blockHeight: finalizedHeight + 1,
-        });
-
-        // The order of confirmed and finalized txs from multiple script subscriptions is indeterminate
-        // See https://reviews.bitcoinabc.org/D15452
-        const txids = [p2pkhTxid, p2shTxid, p2pkTxid, otherTxid];
-        const expectedTxConfirmedMsgs = [];
-        for (const txid of txids) {
-            expectedTxConfirmedMsgs.push({
-                type: 'Tx',
-                msgType: 'TX_FINALIZED',
-                txid: txid,
-            });
-        }
-
-        // Expect a msg for each Finalized tx
-        expect(msgCollector).to.have.deep.members(expectedTxConfirmedMsgs);
-
-        // Only the 4 Tx Finalized msgs are left in msgCollector
         expect(msgCollector.length).to.eql(4);
     });
     it('After a tx is broadcast with outputs of each type', async () => {

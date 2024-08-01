@@ -157,33 +157,33 @@ class ChronikClient_Websocket_Setup(SetupFramework):
         assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
-        self.log.info("Step 4: Park the block containing those txs")
-        node.parkblock(next_blockhash)
-        assert_equal(node.getblockcount(), finalized_height)
-        yield True
-
-        self.log.info("Step 5: Unpark the block containing those txs")
-        node.unparkblock(next_blockhash)
-        assert_equal(node.getblockcount(), finalized_height + 1)
-        yield True
-
-        self.log.info("Step 6: Invalidate the block containing those txs")
-        node.invalidateblock(next_blockhash)
-        assert_equal(node.getblockcount(), finalized_height)
-        yield True
-
-        self.log.info("Step 7: Reconsider the block containing those txs")
-        node.reconsiderblock(next_blockhash)
-        assert_equal(node.getblockcount(), finalized_height + 1)
-        yield True
-
-        self.log.info("Step 8: Finalize the block containing these txs with Avalanche")
+        self.log.info("Step 4: Finalize the block containing these txs with Avalanche")
         next_cb_txid = node.getblock(next_blockhash)["tx"][0]
         assert not node.isfinalblock(next_blockhash)
         with node.assert_debug_log([f"Avalanche finalized block {next_blockhash}"]):
             self.wait_until(lambda: is_finalblock(next_blockhash))
         assert_equal(node.getblockcount(), finalized_height + 1)
         assert node.isfinaltransaction(next_cb_txid, next_blockhash)
+        yield True
+
+        self.log.info("Step 5: Park the block containing those txs")
+        node.parkblock(next_blockhash)
+        assert_equal(node.getblockcount(), finalized_height)
+        yield True
+
+        self.log.info("Step 6: Unpark the block containing those txs")
+        node.unparkblock(next_blockhash)
+        assert_equal(node.getblockcount(), finalized_height + 1)
+        yield True
+
+        self.log.info("Step 7: Invalidate the block containing those txs")
+        node.invalidateblock(next_blockhash)
+        assert_equal(node.getblockcount(), finalized_height)
+        yield True
+
+        self.log.info("Step 8: Reconsider the block containing those txs")
+        node.reconsiderblock(next_blockhash)
+        assert_equal(node.getblockcount(), finalized_height + 1)
         yield True
 
         self.log.info("Step 9: Broadcast a tx with mixed outputs")
