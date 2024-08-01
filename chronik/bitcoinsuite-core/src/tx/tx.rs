@@ -119,6 +119,29 @@ pub static EMPTY_TX: TxMut = TxMut {
     locktime: 0,
 };
 
+impl OutPoint {
+    /// Whether this outpoint is a coinbase input.
+    ///
+    /// ```
+    /// # use bitcoinsuite_core::tx::{OutPoint, TxId};
+    /// let txid0 = TxId::from([0; 32]);
+    /// let txid3 = TxId::from([3; 32]);
+    ///
+    /// fn is_coinbase(txid: TxId, out_idx: u32) -> bool {
+    ///     OutPoint { txid, out_idx }.is_coinbase()
+    /// }
+    ///
+    /// assert!(!is_coinbase(txid3, u32::MAX));
+    /// assert!(!is_coinbase(txid3, 0));
+    /// assert!(!is_coinbase(txid0, 0));
+    /// assert!(!is_coinbase(txid0, u32::MAX - 1));
+    /// assert!(is_coinbase(txid0, u32::MAX));
+    /// ```
+    pub fn is_coinbase(&self) -> bool {
+        self.txid == TxId::default() && self.out_idx == u32::MAX
+    }
+}
+
 impl Tx {
     /// Create a new [`Tx`] with a given [`TxId`] and [`TxMut`].
     ///

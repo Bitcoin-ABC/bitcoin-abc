@@ -98,6 +98,9 @@ class MyPluginPlugin(Plugin):
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]
 
+        # Make sure we can query coinbase txs without error
+        chronik.tx(cointx).ok()
+
         self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
         coinvalue = 5000000000

@@ -143,6 +143,9 @@ impl MempoolPlugins {
         // TxNums for which we'll look up plugin data in the DB
         let mut input_db_outpoints = Vec::new();
         for (outpoint, tx_num) in outpoints {
+            if outpoint.is_coinbase() {
+                continue;
+            }
             let input_txid = &outpoint.txid;
             // If we find the prevout in the mempool, set the PluginOutput
             if let Some(plugin_output) = self.plugin_outputs.get(&outpoint) {
