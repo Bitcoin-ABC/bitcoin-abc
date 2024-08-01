@@ -8,7 +8,6 @@ $(package)_cxxflags+=-std=c++17
 
 define $(package)_set_vars
   $(package)_config_opts=--disable-shared --with-protoc=$(build_prefix)/bin/protoc --disable-dependency-tracking
-  $(package)_config_opts_linux=--with-pic
 endef
 
 define $(package)_config_cmds

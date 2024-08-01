@@ -8,7 +8,6 @@ define $(package)_set_vars
 $(package)_config_opts=--disable-shared --without-tools --without-tests --disable-sdltest
 $(package)_config_opts += --disable-gprof --disable-gcov --disable-mudflap
 $(package)_config_opts += --disable-dependency-tracking --enable-option-checking
-$(package)_config_opts_linux=--with-pic
 endef
 
 define $(package)_preprocess_cmds

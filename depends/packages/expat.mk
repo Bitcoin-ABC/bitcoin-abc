@@ -8,7 +8,6 @@ define $(package)_set_vars
   $(package)_config_opts=--disable-shared --without-docbook --without-tests --without-examples
   $(package)_config_opts += --disable-dependency-tracking --enable-option-checking
   $(package)_config_opts += --without-xmlwf
-  $(package)_config_opts_linux=--with-pic
 endef
 
 define $(package)_config_cmds

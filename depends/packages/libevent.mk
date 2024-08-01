@@ -8,7 +8,6 @@ define $(package)_set_vars
   $(package)_config_opts=--disable-shared --disable-openssl --disable-libevent-regress --disable-samples
   $(package)_config_opts += --disable-dependency-tracking --enable-option-checking
   $(package)_config_opts_release=--disable-debug-mode
-  $(package)_config_opts_linux=--with-pic
   # When building for Windows, we set _WIN32_WINNT to target the same Windows
   # version as we do in cmake. Due to quirks in libevents build system, this is
   # also required to enable support for ipv6.
