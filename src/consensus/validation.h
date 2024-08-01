@@ -44,7 +44,7 @@ enum class TxValidationResult {
     TX_NO_MEMPOOL,
     //! fails some policy, but might be acceptable if submitted in a (different)
     //! package
-    TX_RECONSIDERABLE,
+    TX_PACKAGE_RECONSIDERABLE,
     //! transaction was not validated because package failed
     TX_UNKNOWN,
 };

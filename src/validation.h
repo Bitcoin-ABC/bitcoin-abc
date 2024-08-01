@@ -185,19 +185,19 @@ void PruneBlockFilesManual(Chainstate &active_chainstate,
  * package).
  * Here are the expected fields and properties of a result depending on its
  * ResultType, applicable to results returned from package evaluation:
- *+--------------------------+-----------+---------------------------------+----------------+
- *| Field or property        |   VALID   |             INVALID             |  MEMPOOL_ENTRY |
- *|                          |           |---------------------------------|                |
- *|                          |           | TX_RECONSIDERABLE |    Other    |                |
- *+--------------------------+-----------+-------------------+-------------+----------------+
- *| txid in mempool?         | yes       | no                | no*         | yes            |
- *| m_state                  | IsValid() | IsInvalid()       | IsInvalid() | IsValid()      |
- *| m_replaced_transactions  | yes       | no                | no          | no             |
- *| m_vsize                  | yes       | no                | no          | yes            |
- *| m_base_fees              | yes       | no                | no          | yes            |
- *| m_effective_feerate      | yes       | yes               | no          | no             |
- *| m_txids_fee_calculations | yes       | yes               | no          | no             |
- *+--------------------------+-----------+-------------------+-------------+----------------+
+ *+--------------------------+-----------+-------------------------------------------+---------------+
+ *| Field or property        |   VALID   |                   INVALID                 | MEMPOOL_ENTRY |
+ *|                          |           |-------------------------------------------|               |
+ *|                          |           | TX_PACKAGE_RECONSIDERABLE |    Other      |               |
+ *+--------------------------+-----------+---------------------------+---------------+---------------+
+ *| txid in mempool?         | yes       | no                        | no*           | yes           |
+ *| m_state                  | IsValid() | IsInvalid()               | IsInvalid()   | IsValid()     |
+ *| m_replaced_transactions  | yes       | no                        | no            | no            |
+ *| m_vsize                  | yes       | no                        | no            | yes           |
+ *| m_base_fees              | yes       | no                        | no            | yes           |
+ *| m_effective_feerate      | yes       | yes                       | no            | no            |
+ *| m_txids_fee_calculations | yes       | yes                       | no            | no            |
+ *+--------------------------+-----------+---------------------------+---------------+---------------+
  * (*) Individual transaction acceptance doesn't return MEMPOOL_ENTRY. It
  * returns INVALID, with the error txn-already-in-mempool. In this case, the
  * txid may be in the mempool for a TX_CONFLICT.

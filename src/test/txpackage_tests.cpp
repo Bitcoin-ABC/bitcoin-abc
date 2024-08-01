@@ -860,7 +860,7 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
             BOOST_CHECK_EQUAL(
                 submit_package_too_low.m_tx_results.at(tx_parent_cheap->GetId())
                     .m_state.GetResult(),
-                TxValidationResult::TX_RECONSIDERABLE);
+                TxValidationResult::TX_PACKAGE_RECONSIDERABLE);
             BOOST_CHECK(
                 submit_package_too_low.m_tx_results.at(tx_parent_cheap->GetId())
                     .m_effective_feerate.value() ==
@@ -870,7 +870,7 @@ BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
             BOOST_CHECK_EQUAL(
                 submit_package_too_low.m_tx_results.at(tx_child_cheap->GetId())
                     .m_state.GetResult(),
-                TxValidationResult::TX_RECONSIDERABLE);
+                TxValidationResult::TX_PACKAGE_RECONSIDERABLE);
             BOOST_CHECK(
                 submit_package_too_low.m_tx_results.at(tx_child_cheap->GetId())
                     .m_effective_feerate.value() ==
