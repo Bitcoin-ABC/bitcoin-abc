@@ -38,6 +38,13 @@ static constexpr int32_t ADDRMAN_BUCKET_SIZE_LOG2{6};
 static constexpr int ADDRMAN_BUCKET_SIZE{1 << ADDRMAN_BUCKET_SIZE_LOG2};
 
 /**
+ * User-defined type for the internally used nIds
+ * This used to be int, making it feasible for attackers to cause an overflow,
+ * see https://bitcoincore.org/en/2024/07/31/disclose-addrman-int-overflow/
+ */
+using nid_type = int64_t;
+
+/**
  * Extended statistics about a CAddress
  */
 class AddrInfo : public CAddress {
@@ -193,30 +200,32 @@ private:
     static constexpr uint8_t INCOMPATIBILITY_BASE = 32;
 
     //! last used nId
-    int nIdCount GUARDED_BY(cs){0};
+    nid_type nIdCount GUARDED_BY(cs){0};
 
     //! table with information about all nIds
-    std::unordered_map<int, AddrInfo> mapInfo GUARDED_BY(cs);
+    std::unordered_map<nid_type, AddrInfo> mapInfo GUARDED_BY(cs);
 
     //! find an nId based on its network address and port.
-    std::unordered_map<CService, int, CServiceHash> mapAddr GUARDED_BY(cs);
+    std::unordered_map<CService, nid_type, CServiceHash> mapAddr GUARDED_BY(cs);
 
     //! randomly-ordered vector of all nIds
     //! This is mutable because it is unobservable outside the class, so any
     //! changes to it (even in const methods) are also unobservable.
-    mutable std::vector<int> vRandom GUARDED_BY(cs);
+    mutable std::vector<nid_type> vRandom GUARDED_BY(cs);
 
     // number of "tried" entries
     int nTried GUARDED_BY(cs){0};
 
     //! list of "tried" buckets
-    int vvTried[ADDRMAN_TRIED_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
+    nid_type
+        vvTried[ADDRMAN_TRIED_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
 
     //! number of (unique) "new" entries
     int nNew GUARDED_BY(cs){0};
 
     //! list of "new" buckets
-    int vvNew[ADDRMAN_NEW_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
+    nid_type
+        vvNew[ADDRMAN_NEW_BUCKET_COUNT][ADDRMAN_BUCKET_SIZE] GUARDED_BY(cs);
 
     //! last time Good was called (memory only).
     //! Initially set to 1 so that "never" is strictly worse.
@@ -224,7 +233,7 @@ private:
 
     //! Holds addrs inserted into tried table that collide with existing
     //! entries. Test-before-evict discipline used to resolve these collisions.
-    std::set<int> m_tried_collisions;
+    std::set<nid_type> m_tried_collisions;
 
     /**
      * Perform consistency checks every m_consistency_check_ratio operations
@@ -253,27 +262,27 @@ private:
     bool deterministic = false;
 
     //! Find an entry.
-    AddrInfo *Find(const CService &addr, int *pnId = nullptr)
+    AddrInfo *Find(const CService &addr, nid_type *pnId = nullptr)
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! find an entry, creating it if necessary.
     //! nTime and nServices of the found node are updated, if necessary.
     AddrInfo *Create(const CAddress &addr, const CNetAddr &addrSource,
-                     int *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
+                     nid_type *pnId = nullptr) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Swap two elements in vRandom.
     void SwapRandom(unsigned int nRandomPos1, unsigned int nRandomPos2) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Delete an entry. It must not be in tried, and have refcount 0.
-    void Delete(int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void Delete(nid_type nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Clear a position in a "new" table. This is the only place where entries
     //! are actually deleted.
     void ClearNew(int nUBucket, int nUBucketPos) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     //! Move an entry from the "new" table(s) to the "tried" table
-    void MakeTried(AddrInfo &info, int nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
+    void MakeTried(AddrInfo &info, nid_type nId) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /**
      * Attempt to add a single address to addrman's new table.

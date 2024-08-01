@@ -78,13 +78,13 @@ public:
         : AddrMan(asmap, /*deterministic=*/true,
                   /*consistency_check_ratio=*/100) {}
 
-    AddrInfo *Find(const CService &addr, int *pnId = nullptr) {
+    AddrInfo *Find(const CService &addr, nid_type *pnId = nullptr) {
         LOCK(m_impl->cs);
         return m_impl->Find(addr, pnId);
     }
 
     AddrInfo *Create(const CAddress &addr, const CNetAddr &addrSource,
-                     int *pnId = nullptr) {
+                     nid_type *pnId = nullptr) {
         LOCK(m_impl->cs);
         return m_impl->Create(addr, addrSource, pnId);
     }
@@ -97,7 +97,7 @@ public:
     // Used to test deserialization
     std::pair<int, int> GetBucketAndEntry(const CAddress &addr) {
         LOCK(m_impl->cs);
-        int nId = m_impl->mapAddr[addr];
+        nid_type nId = m_impl->mapAddr[addr];
         for (int bucket = 0; bucket < ADDRMAN_NEW_BUCKET_COUNT; ++bucket) {
             for (int entry = 0; entry < ADDRMAN_BUCKET_SIZE; ++entry) {
                 if (nId == m_impl->vvNew[bucket][entry]) {
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE(addrman_create) {
     CAddress addr1 = CAddress(ResolveService("250.1.2.1", 8333), NODE_NONE);
     CNetAddr source1 = ResolveIP("250.1.2.1");
 
-    int nId;
+    nid_type nId;
     AddrInfo *pinfo = addrman.Create(addr1, source1, &nId);
 
     // Test: The result should be the same as the input addr.
@@ -405,7 +405,7 @@ BOOST_AUTO_TEST_CASE(addrman_delete) {
     CAddress addr1 = CAddress(ResolveService("250.1.2.1", 8333), NODE_NONE);
     CNetAddr source1 = ResolveIP("250.1.2.1");
 
-    int nId;
+    nid_type nId;
     addrman.Create(addr1, source1, &nId);
 
     // Test: Delete should actually delete the addr.
