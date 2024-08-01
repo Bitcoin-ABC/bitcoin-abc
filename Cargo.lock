@@ -362,6 +362,8 @@ dependencies = [
  "chronik-proto",
  "chronik-util",
  "cxx",
+ "hex",
+ "hex-literal",
  "pretty_assertions",
  "prost",
  "prost-build",

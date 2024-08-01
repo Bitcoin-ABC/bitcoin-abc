@@ -36,6 +36,12 @@ prost = "0.11"
 # Derive error enums
 thiserror = "1.0"
 
+# En-/decode byte strings from/to hex
+hex = "0.4"
+
+# hex!() macro for byte array hex literals
+hex-literal = "0.3"
+
 # Async runtime
 [dependencies.tokio]
 version = "1.25"

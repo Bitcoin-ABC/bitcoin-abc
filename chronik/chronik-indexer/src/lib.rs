@@ -11,4 +11,5 @@ abc_rust_lint::lint! {
     pub mod pause;
     pub mod query;
     pub mod subs;
+    pub mod merkle;
 }
