@@ -63,7 +63,7 @@ module.exports = {
         }
     },
     /**
-     * Make sure the the database and API server shut down gracefully
+     * Make sure the database and API server shut down gracefully
      * @param {object} server the express server returned by the startServer function in app.js
      * @param {object} mongoClient the mongo client connection
      * @param {object} cache an initialized node-cache instance
