@@ -68,13 +68,9 @@ bool PermittedDifficultyTransition(const Consensus::Params &params,
         return false;
     }
 
-    // Check [0, powLimit] range for all DAA algorithms.
-    bool fNegative;
-    bool fOverflow;
     arith_uint256 observed_new_target;
-    observed_new_target.SetCompact(new_nbits, &fNegative, &fOverflow);
-    if (fNegative || observed_new_target == 0 || fOverflow ||
-        observed_new_target > UintToArith256(params.powLimit)) {
+    // Check [0, powLimit] range for all DAA algorithms.
+    if (!NBitsToTarget(params, new_nbits, observed_new_target)) {
         return false;
     }
 
@@ -90,15 +86,8 @@ bool PermittedDifficultyTransition(const Consensus::Params &params,
 
 bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
                       const Consensus::Params &params) {
-    bool fNegative;
-    bool fOverflow;
     arith_uint256 bnTarget;
-
-    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-
-    // Check range
-    if (fNegative || bnTarget == 0 || fOverflow ||
-        bnTarget > UintToArith256(params.powLimit)) {
+    if (!NBitsToTarget(params, nBits, bnTarget)) {
         return false;
     }
 
@@ -108,4 +97,15 @@ bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
     }
 
     return true;
+}
+
+bool NBitsToTarget(const Consensus::Params &params, uint32_t nBits,
+                   arith_uint256 &target) {
+    bool fNegative;
+    bool fOverflow;
+
+    target.SetCompact(nBits, &fNegative, &fOverflow);
+
+    return !(fNegative || target == 0 || fOverflow ||
+             target > UintToArith256(params.powLimit));
 }

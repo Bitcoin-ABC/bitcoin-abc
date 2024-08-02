@@ -8,6 +8,7 @@
 
 #include <cstdint>
 
+class arith_uint256;
 struct BlockHash;
 class CBlockHeader;
 class CBlockIndex;
@@ -49,4 +50,11 @@ bool CheckProofOfWork(const BlockHash &hash, uint32_t nBits,
 bool PermittedDifficultyTransition(const Consensus::Params &params,
                                    int64_t height, uint32_t old_nbits,
                                    uint32_t new_nbits);
+
+/**
+ * Convert a header bits difficulty representation to a 256 bits hash target.
+ */
+bool NBitsToTarget(const Consensus::Params &params, uint32_t nBits,
+                   arith_uint256 &target);
+
 #endif // BITCOIN_POW_POW_H
