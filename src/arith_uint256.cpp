@@ -8,6 +8,8 @@
 #include <crypto/common.h>
 #include <uint256.h>
 
+#include <cmath>
+
 template <unsigned int BITS>
 base_uint<BITS>::base_uint(const std::string &str) {
     static_assert(BITS / 32 > 0 && BITS % 32 == 0,
@@ -244,6 +246,16 @@ uint32_t arith_uint256::GetCompact(bool fNegative) const {
     nCompact |= nSize << 24;
     nCompact |= (fNegative && (nCompact & 0x007fffff) ? 0x00800000 : 0);
     return nCompact;
+}
+
+arith_uint256 arith_uint256::fromDouble(double d) {
+    arith_uint256 b;
+    for (int i = b.WIDTH - 1; i >= 0; i--) {
+        const double fact = std::pow(4294967296.0, i);
+        b.pn[i] = uint32_t(d / fact);
+        d -= fact * b.pn[i];
+    }
+    return b;
 }
 
 uint256 ArithToUint256(const arith_uint256 &a) {

@@ -666,4 +666,91 @@ BOOST_AUTO_TEST_CASE(getmaxcoverage) {
     CHECKBITWISEOPERATOR(R1, ~R2, &)
 }
 
+BOOST_AUTO_TEST_CASE(double_roundtrip) {
+    FastRandomContext rng;
+
+    BOOST_CHECK_EQUAL(
+        "0000000000000000000000000000000000000000000000000000000000000000",
+        arith_uint256::fromDouble(0.0).ToString());
+    BOOST_CHECK_EQUAL(
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        arith_uint256::fromDouble(1.0).ToString());
+    BOOST_CHECK_EQUAL(
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        arith_uint256::fromDouble(1.5).ToString());
+    BOOST_CHECK_EQUAL(
+        "0000000000000000000000000000000000000000000000000000000000000001",
+        arith_uint256::fromDouble(1.9).ToString());
+    BOOST_CHECK_EQUAL(
+        "0000000000000000000000000000000000000000000000000000000000000002",
+        arith_uint256::fromDouble(2.0).ToString());
+    BOOST_CHECK_EQUAL(
+        "000000000000000000000000000000000000000000000000000000000000002a",
+        arith_uint256::fromDouble(0x2ap0).ToString());
+    // 52 bits
+    BOOST_CHECK_EQUAL(
+        "00000000000000000000000000000000000000000000000000123456789abcde",
+        arith_uint256::fromDouble(0x123456789abcdep0).ToString());
+    // 56 bits
+    BOOST_CHECK_EQUAL(
+        "0000000000000000000000000000000000000000000000000123456789abcdf0",
+        arith_uint256::fromDouble(0x123456789abcdefp0).ToString());
+    // 249 bits
+    BOOST_CHECK_EQUAL(
+        "0123456789abcdf0000000000000000000000000000000000000000000000000",
+        arith_uint256::fromDouble(
+            0x123456789abcdef000000000000000000000000000000000000000000000000p0)
+            .ToString());
+
+    // doubles can store all integers in {0,...,2^54-1} exactly
+    arith_uint256 hashZero{0};
+    BOOST_CHECK_EQUAL(
+        hashZero.ToString(),
+        arith_uint256::fromDouble(hashZero.getdouble()).ToString());
+
+    arith_uint256 hashOne{1};
+    BOOST_CHECK_EQUAL(
+        hashOne.ToString(),
+        arith_uint256::fromDouble(hashOne.getdouble()).ToString());
+
+    for (int i = 53; i >= 0; --i) {
+        const arith_uint256 hashInt = R1L >> (256 - i);
+        BOOST_CHECK_EQUAL(
+            hashInt.ToString(),
+            arith_uint256::fromDouble(hashInt.getdouble()).ToString());
+    }
+
+    for (size_t i = 0; i < 1000; i++) {
+        arith_uint256 hashInt(rng.randbits(53));
+        BOOST_CHECK_EQUAL(
+            hashInt.ToString(),
+            arith_uint256::fromDouble(hashInt.getdouble()).ToString());
+    }
+
+    // Integers above 2^54-1 needs to be subsampled to the compact size
+    // resolution
+    arith_uint256 hashMax{
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
+    hashMax.SetCompact(hashMax.GetCompact());
+    BOOST_CHECK_EQUAL(
+        hashMax.ToString(),
+        arith_uint256::fromDouble(hashMax.getdouble()).ToString());
+
+    for (size_t i = 0; i < 1000; i++) {
+        arith_uint256 hashInt = UintToArith256(rng.rand256());
+        hashInt.SetCompact(hashInt.GetCompact());
+        BOOST_CHECK_EQUAL(
+            hashInt.ToString(),
+            arith_uint256::fromDouble(hashInt.getdouble()).ToString());
+    }
+
+    for (size_t i = 0; i < 1000; i++) {
+        arith_uint256 hashInt = (arith_uint256{1} >> 192) + rng.rand64();
+        hashInt.SetCompact(hashInt.GetCompact());
+        BOOST_CHECK_EQUAL(
+            hashInt.ToString(),
+            arith_uint256::fromDouble(hashInt.getdouble()).ToString());
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

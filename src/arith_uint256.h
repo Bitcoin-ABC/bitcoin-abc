@@ -311,6 +311,8 @@ public:
                               bool *pfOverflow = nullptr);
     uint32_t GetCompact(bool fNegative = false) const;
 
+    static arith_uint256 fromDouble(double d);
+
     friend uint256 ArithToUint256(const arith_uint256 &);
     friend arith_uint256 UintToArith256(const uint256 &);
 };
