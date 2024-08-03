@@ -6,10 +6,12 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use abc_rust_error::Result;
 use bimap::BiMap;
+use bitcoinsuite_core::tx::{OutPoint, Tx, TxId};
 use bitcoinsuite_slp::{
     structs::{GenesisInfo, TokenMeta},
     verify::SpentToken,
 };
+use chronik_util::{log, log_chronik};
 use rocksdb::WriteBatch;
 use thiserror::Error;
 
@@ -17,11 +19,12 @@ use crate::{
     db::{Db, CF, CF_TOKEN_GENESIS_INFO, CF_TOKEN_META, CF_TOKEN_TX},
     index_tx::IndexTx,
     io::{
+        bytes_to_tx_num,
         token::{
-            BatchDbData, BatchProcessor, DbTokenTx, ProcessedTokenTxBatch,
-            TokenIndexError::*,
+            BatchDbData, BatchProcessor, DbToken, DbTokenTx,
+            ProcessedTokenTxBatch, TokenIndexError::*,
         },
-        tx_num_to_bytes, TxNum, TxReader,
+        tx_num_to_bytes, BlockHeight, BlockReader, TxNum, TxReader,
     },
     ser::{db_deserialize, db_serialize},
 };
@@ -99,6 +102,18 @@ pub enum TokenIndexError {
     /// token_tx_num was not found in the DB but should be there
     #[error("Inconsistent DB: Token TxNum {0} not found in DB")]
     TokenTxNumNotFound(TxNum),
+
+    /// Block not found in the DB
+    #[error("Inconsistent DB: Block {0} not found in DB for upgrade to 12")]
+    BlockNotFound(BlockHeight),
+
+    /// Tx not found in the DB
+    #[error("Inconsistent DB: Tx {0} not found in DB for upgrade to 12")]
+    TxNotFound(TxId),
+
+    /// Token output not found in the DB
+    #[error("Inconsistent DB: Token output doesn't exist for upgrade to 12")]
+    TokenOutputDoesntExist(OutPoint),
 }
 
 impl<'a> TokenCol<'a> {
@@ -325,6 +340,136 @@ impl<'a> TokenWriter<'a> {
         );
         batch.delete_range_cf(self.col.cf_token_meta, [].as_ref(), &[0xff; 16]);
         batch.delete_range_cf(self.col.cf_token_tx, [].as_ref(), &[0xff; 16]);
+    }
+
+    /// In version 11, some token inputs were incorrectly indexed, we can fix
+    /// this automatically.
+    pub fn upgrade_11_to_12(
+        &self,
+        load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+    ) -> Result<()> {
+        log!("Upgrading Chronik token index\n");
+        let block_reader = BlockReader::new(self.col.db)?;
+        let tx_reader = TxReader::new(self.col.db)?;
+        let estimated_num_keys = self
+            .col
+            .db
+            .estimate_num_keys(self.col.cf_token_tx)?
+            .unwrap_or(0);
+        let mut batch = WriteBatch::default();
+        for (db_idx, ser_token_tx) in
+            self.col.db.full_iterator(self.col.cf_token_tx).enumerate()
+        {
+            if db_idx % 10000 == 0 {
+                log!(
+                    "Scanned {db_idx}/{estimated_num_keys} (estimated) token \
+                     txs\n"
+                );
+            }
+
+            let (key, ser_token_tx) = ser_token_tx?;
+            let db_token_tx = db_deserialize::<DbTokenTx>(&ser_token_tx)?;
+            if db_token_tx
+                .outputs
+                .iter()
+                .any(|&output| output != DbToken::NoToken)
+            {
+                // Skip txs that have any token outputs
+                continue;
+            }
+
+            // If a token tx only has NoToken outputs, it may have the wrong
+            // input tokens, so we need to reload them
+            let tx_num = bytes_to_tx_num(&key)?;
+            let block_tx = tx_reader
+                .tx_by_tx_num(tx_num)?
+                .ok_or(TokenTxNumNotFound(tx_num))?;
+            let block = block_reader
+                .by_height(block_tx.block_height)?
+                .ok_or(BlockNotFound(block_tx.block_height))?;
+            let tx = load_tx(
+                block.file_num,
+                block_tx.entry.data_pos,
+                block_tx.entry.undo_pos,
+            )?;
+            // load input tx_nums
+            let input_tx_nums = tx_reader
+                .tx_nums_by_txids(
+                    tx.inputs.iter().map(|input| &input.prev_out.txid),
+                )?
+                .into_iter()
+                .enumerate()
+                .map(|(idx, tx_num)| {
+                    tx_num.ok_or(TxNotFound(tx.inputs[idx].prev_out.txid))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            let mut has_any_incorrect = false;
+            let mut new_db_input_tokens =
+                Vec::with_capacity(input_tx_nums.len());
+            for (input_idx, (&input_tx_num, tx_input)) in
+                input_tx_nums.iter().zip(&tx.inputs).enumerate()
+            {
+                let prev_out = tx_input.prev_out;
+
+                // Load original input token, or NoToken
+                let original_input_token = db_token_tx
+                    .inputs
+                    .get(input_idx)
+                    .copied()
+                    .unwrap_or(DbToken::NoToken);
+
+                // Load actual input token and which token tx_num it has
+                let (actual_input_token, token_tx_num) = match self
+                    .col
+                    .fetch_token_tx(input_tx_num)?
+                {
+                    Some(input_db_token_tx) => {
+                        let db_token = *input_db_token_tx
+                            .outputs
+                            .get(prev_out.out_idx as usize)
+                            .ok_or(TokenOutputDoesntExist(prev_out))?;
+                        (db_token, input_db_token_tx.token_tx_num(&db_token))
+                    }
+                    None => (DbToken::NoToken, None),
+                };
+
+                // Create new DbToken based on actual_input_token, but must
+                // update the token_idx to be based on the *spending* tx.
+                let mut new_db_token = actual_input_token;
+                if let Some(token_tx_num) = token_tx_num {
+                    let token_idx = db_token_tx
+                        .token_tx_nums
+                        .iter()
+                        .position(|&num| num == token_tx_num)
+                        .ok_or(TokenTxNumNotFound(token_tx_num))?;
+                    new_db_token = new_db_token.with_idx(token_idx as u32);
+                }
+
+                // Update whether this tx has any incorrect inputs
+                has_any_incorrect =
+                    has_any_incorrect || (original_input_token != new_db_token);
+
+                new_db_input_tokens.push(new_db_token);
+            }
+
+            if !has_any_incorrect {
+                // Avoid writing no-ops to the DB
+                continue;
+            }
+
+            log_chronik!("Fix incorrectly indexed token tx {}\n", tx.txid());
+
+            let mut db_token_tx = db_token_tx;
+            db_token_tx.inputs = new_db_input_tokens;
+            batch.put_cf(
+                self.col.cf_token_tx,
+                tx_num_to_bytes(tx_num),
+                db_serialize::<DbTokenTx>(&db_token_tx)?,
+            );
+        }
+        self.col.db.write_batch(batch)?;
+        log!("Finished upgrading Chronik token index\n");
+        Ok(())
     }
 
     /// Add the column families used for SLPv2.

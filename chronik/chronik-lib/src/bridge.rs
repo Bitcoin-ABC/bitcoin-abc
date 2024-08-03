@@ -90,18 +90,23 @@ fn try_setup_chronik(
     let bridge = chronik_bridge::ffi::make_bridge(node_context);
     let bridge_ref = expect_unique_ptr("make_bridge", &bridge);
     let (pause, pause_notify) = Pause::new_pair(params.is_pause_allowed);
-    let mut indexer = ChronikIndexer::setup(ChronikIndexerParams {
-        datadir_net: params.datadir_net.into(),
-        wipe_db: params.wipe_db,
-        enable_token_index: params.enable_token_index,
-        enable_lokad_id_index: params.enable_lokad_id_index,
-        enable_perf_stats: params.enable_perf_stats,
-        tx_num_cache: TxNumCacheSettings {
-            bucket_size: params.tx_num_cache.bucket_size,
-            num_buckets: params.tx_num_cache.num_buckets,
+    let mut indexer = ChronikIndexer::setup(
+        ChronikIndexerParams {
+            datadir_net: params.datadir_net.into(),
+            wipe_db: params.wipe_db,
+            enable_token_index: params.enable_token_index,
+            enable_lokad_id_index: params.enable_lokad_id_index,
+            enable_perf_stats: params.enable_perf_stats,
+            tx_num_cache: TxNumCacheSettings {
+                bucket_size: params.tx_num_cache.bucket_size,
+                num_buckets: params.tx_num_cache.num_buckets,
+            },
+            plugin_ctx: Arc::new(plugin_ctx),
         },
-        plugin_ctx: Arc::new(plugin_ctx),
-    })?;
+        |file_num, data_pos, undo_pos| {
+            Ok(Tx::from(bridge_ref.load_tx(file_num, data_pos, undo_pos)?))
+        },
+    )?;
     indexer.resync_indexer(bridge_ref)?;
     if bridge.shutdown_requested() {
         // Don't setup Chronik if the user requested shutdown during resync

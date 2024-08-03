@@ -321,6 +321,7 @@ impl<'tx> BatchProcessor<'tx> {
                 .get(&input_tx_num)
                 .or_else(|| db_data.token_txs.get(&input_tx_num));
             let Some(db_token_tx) = db_token_tx else {
+                db_inputs.push(DbToken::NoToken);
                 continue;
             };
             let db_token = &db_token_tx.outputs[out_idx];

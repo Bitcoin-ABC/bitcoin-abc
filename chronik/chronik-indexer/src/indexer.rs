@@ -49,7 +49,7 @@ use crate::{
     subs_group::TxMsgType,
 };
 
-const CURRENT_INDEXER_VERSION: SchemaVersion = 11;
+const CURRENT_INDEXER_VERSION: SchemaVersion = 12;
 const LAST_UPGRADABLE_VERSION: SchemaVersion = 10;
 
 /// Params for setting up a [`ChronikIndexer`] instance.
@@ -231,7 +231,10 @@ pub enum ChronikIndexerError {
 
 impl ChronikIndexer {
     /// Setup the indexer with the given parameters, e.g. open the DB etc.
-    pub fn setup(params: ChronikIndexerParams) -> Result<Self> {
+    pub fn setup(
+        params: ChronikIndexerParams,
+        load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+    ) -> Result<Self> {
         let indexes_path = params.datadir_net.join("indexes");
         let perf_path = params.datadir_net.join("perf");
         if !indexes_path.exists() {
@@ -258,7 +261,12 @@ impl ChronikIndexer {
             is_db_empty,
             params.enable_lokad_id_index,
         )?;
-        upgrade_db_if_needed(&db, schema_version, params.enable_token_index)?;
+        upgrade_db_if_needed(
+            &db,
+            schema_version,
+            params.enable_token_index,
+            load_tx,
+        )?;
         let plugin_name_map = update_plugins_index(&db, &params.plugin_ctx)?;
 
         let mempool = Mempool::new(
@@ -1009,12 +1017,18 @@ fn verify_enable_token_index(db: &Db, enable_token_index: bool) -> Result<()> {
 
 fn upgrade_db_if_needed(
     db: &Db,
-    schema_version: u64,
+    mut schema_version: u64,
     enable_token_index: bool,
+    load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
 ) -> Result<()> {
     // DB has version 10, upgrade to 11
     if schema_version == 10 {
         upgrade_10_to_11(db, enable_token_index)?;
+        schema_version = 11;
+    }
+    // DB has version 11, upgrade to 12
+    if schema_version == 11 {
+        upgrade_11_to_12(db, enable_token_index, &load_tx)?;
     }
     Ok(())
 }
@@ -1032,6 +1046,24 @@ fn upgrade_10_to_11(db: &Db, enable_token_index: bool) -> Result<()> {
     metadata_writer.update_schema_version(&mut batch, 11)?;
     db.write_batch(batch)?;
     log!("Successfully upgraded Chronik DB from version 10 to 11.\n");
+    Ok(())
+}
+
+fn upgrade_11_to_12(
+    db: &Db,
+    enable_token_index: bool,
+    load_tx: impl Fn(u32, u32, u32) -> Result<Tx>,
+) -> Result<()> {
+    log!("Upgrading Chronik DB from version 11 to 12...\n");
+    if enable_token_index {
+        let token_writer = TokenWriter::new(db)?;
+        token_writer.upgrade_11_to_12(load_tx)?;
+    }
+    let mut batch = WriteBatch::default();
+    let metadata_writer = MetadataWriter::new(db)?;
+    metadata_writer.update_schema_version(&mut batch, 12)?;
+    db.write_batch(batch)?;
+    log!("Successfully upgraded Chronik DB from version 11 to 12.\n");
     Ok(())
 }
 
@@ -1189,6 +1221,8 @@ mod tests {
 
     #[test]
     fn test_indexer() -> Result<()> {
+        let load_tx = |_, _, _| unreachable!();
+
         let tempdir = tempdir::TempDir::new("chronik-indexer--indexer")?;
         let datadir_net = tempdir.path().join("regtest");
         let params = ChronikIndexerParams {
@@ -1202,7 +1236,7 @@ mod tests {
         };
         // regtest folder doesn't exist yet -> error
         assert_eq!(
-            ChronikIndexer::setup(params.clone())
+            ChronikIndexer::setup(params.clone(), load_tx)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CreateDirFailed(datadir_net.join("indexes")),
@@ -1210,7 +1244,7 @@ mod tests {
 
         // create regtest folder, setup will work now
         std::fs::create_dir(&datadir_net)?;
-        let mut indexer = ChronikIndexer::setup(params.clone())?;
+        let mut indexer = ChronikIndexer::setup(params.clone(), load_tx)?;
         // indexes and indexes/chronik folder now exist
         assert!(datadir_net.join("indexes").exists());
         assert!(datadir_net.join("indexes").join("chronik").exists());
@@ -1249,10 +1283,13 @@ mod tests {
         // Add block then wipe, block not there
         indexer.handle_block_connected(block)?;
         std::mem::drop(indexer);
-        let indexer = ChronikIndexer::setup(ChronikIndexerParams {
-            wipe_db: true,
-            ..params
-        })?;
+        let indexer = ChronikIndexer::setup(
+            ChronikIndexerParams {
+                wipe_db: true,
+                ..params
+            },
+            load_tx,
+        )?;
         assert_eq!(BlockReader::new(&indexer.db)?.by_height(0)?, None);
 
         Ok(())
@@ -1260,6 +1297,7 @@ mod tests {
 
     #[test]
     fn test_schema_version() -> Result<()> {
+        let load_tx = |_, _, _| unreachable!();
         let dir = tempdir::TempDir::new("chronik-indexer--schema_version")?;
         let chronik_path = dir.path().join("indexes").join("chronik");
         let params = ChronikIndexerParams {
@@ -1273,7 +1311,7 @@ mod tests {
         };
 
         // Setting up DB first time sets the schema version
-        ChronikIndexer::setup(params.clone())?;
+        ChronikIndexer::setup(params.clone(), load_tx)?;
         {
             let db = Db::open(&chronik_path)?;
             assert_eq!(
@@ -1282,7 +1320,7 @@ mod tests {
             );
         }
         // Opening DB again works fine
-        ChronikIndexer::setup(params.clone())?;
+        ChronikIndexer::setup(params.clone(), load_tx)?;
 
         // Override DB schema version to 0
         {
@@ -1293,7 +1331,7 @@ mod tests {
         }
         // -> DB too old
         assert_eq!(
-            ChronikIndexer::setup(params.clone())
+            ChronikIndexer::setup(params.clone(), load_tx)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::DatabaseOutdated(0),
@@ -1311,7 +1349,7 @@ mod tests {
         }
         // -> Chronik too old
         assert_eq!(
-            ChronikIndexer::setup(params.clone())
+            ChronikIndexer::setup(params.clone(), load_tx)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::ChronikOutdated(CURRENT_INDEXER_VERSION + 1),
@@ -1326,7 +1364,7 @@ mod tests {
             db.write_batch(batch)?;
         }
         assert_eq!(
-            ChronikIndexer::setup(params.clone())
+            ChronikIndexer::setup(params.clone(), load_tx)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::CorruptedSchemaVersion,
@@ -1350,16 +1388,19 @@ mod tests {
         }
         // Error: non-empty DB without schema version
         assert_eq!(
-            ChronikIndexer::setup(new_params.clone())
+            ChronikIndexer::setup(new_params.clone(), load_tx)
                 .unwrap_err()
                 .downcast::<ChronikIndexerError>()?,
             ChronikIndexerError::MissingSchemaVersion,
         );
         // with wipe it works
-        ChronikIndexer::setup(ChronikIndexerParams {
-            wipe_db: true,
-            ..new_params
-        })?;
+        ChronikIndexer::setup(
+            ChronikIndexerParams {
+                wipe_db: true,
+                ..new_params
+            },
+            load_tx,
+        )?;
 
         Ok(())
     }
