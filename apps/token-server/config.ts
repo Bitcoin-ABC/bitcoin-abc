@@ -18,9 +18,9 @@ interface TokenServerConfig {
 const config: TokenServerConfig = {
     port: 3333,
     chronikUrls: [
-        'https://chronik-native.fabien.cash',
+        'https://chronik-native1.fabien.cash',
+        'https://chronik-native2.fabien.cash',
         'https://chronik.pay2stay.com/xec',
-        'https://chronik.be.cash/xec2',
     ],
     eligibilityResetSeconds: 86400, // 24 hours
     // Cachet
