@@ -21,6 +21,7 @@ function Upgrade(props) {
                 image={pins}
                 h2subtext="May 15th 2024"
                 h2text="eCash Network Upgrade"
+                noLoop
             >
                 <p>
                     As part of its rapid development roadmap, the eCash network

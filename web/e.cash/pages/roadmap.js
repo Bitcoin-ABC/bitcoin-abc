@@ -12,7 +12,12 @@ import { RoadmapCtn, PixelBorder, ListItem } from '/styles/pages/roadmap.js';
 export default function RoadmapPage() {
     return (
         <Layout metaTitle="Roadmap">
-            <SubPageHero image={pins} h2subtext="Roadmap" h2text="Introduction">
+            <SubPageHero
+                image={pins}
+                h2subtext="Roadmap"
+                h2text="Introduction"
+                noLoop
+            >
                 <p>
                     The goal for eCash is to become sound money that is usable
                     by everyone in the world. This is a civilization-changing
