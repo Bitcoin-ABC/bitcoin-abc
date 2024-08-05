@@ -90,6 +90,7 @@ function Home(props) {
                                         id="create_wallet_hero"
                                         text="Create Wallet"
                                         link="https://cashtab.com"
+                                        openInNewTab
                                         color="white"
                                         glow
                                         corner="topLeft"

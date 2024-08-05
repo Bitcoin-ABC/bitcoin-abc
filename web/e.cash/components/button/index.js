@@ -18,6 +18,7 @@ id = String: optional id tag
 export default function Button({
     text = 'Button',
     link = '/',
+    openInNewTab = false,
     corner = null,
     color = null,
     glow = false,
@@ -45,6 +46,7 @@ export default function Button({
         <ButtonCtn color={color} glow={glow} id={id}>
             <ButtonMain
                 href={link}
+                target={openInNewTab ? '_blank' : undefined}
                 color={color}
                 style={corner ? { clipPath: corners[corner].outer } : null}
             >
