@@ -113,5 +113,12 @@ module.exports = {
                 coinbaseHexFragment: '416e616e6472616a53696e676820506f6f6c', // ascii AnandrajSingh Pool
             },
         ],
+        [
+            '76a91402a7c7b4fdc5047d8789da27ac6c1a659b3edce588ac',
+            {
+                miner: 'nodeStratum',
+                coinbaseHexFragment: '6e6f64655374726174756d', // ascii nodeStratum
+            },
+        ],
     ],
 };

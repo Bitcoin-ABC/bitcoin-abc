@@ -132,6 +132,7 @@ pub fn render_miner(coinbase_data: &[u8]) -> askama::Result<String> {
         "p2p-spb.xyz",
         "Cminors-Pools",
         "with Om Power",
+        "nodeStratum",
     ];
 
     for &str_to_match in &self_identified_miners {
@@ -449,6 +450,16 @@ mod tests {
         assert_eq!(
             render_miner(anandra_coinbase_hex).unwrap(),
             "with Om Power"
+        );
+
+        // nodeStratum 856227
+        let nodestratum_coinbase_hex = b"\x03\xa3\x10\r\x04\xabF\xaef\x08\
+        \xfa\xbemm\x1dYZ\xdbWv\x91,y\xed)d\xf6<\x8a\xdd\x8b7\xdb\x9e=\
+        pR\xaf>+PIpW\xfe\xb5\x04\x00\x00\x00\x00\x00\x00\x00\xb1V\xdbd`\
+        \x14\x00\x00\r/nodeStratum/";
+        assert_eq!(
+            render_miner(nodestratum_coinbase_hex).unwrap(),
+            "nodeStratum"
         );
 
         // Unknown miner

@@ -290,4 +290,19 @@ module.exports = [
         payoutOutputScript: 'not the one so it is parsed from hex',
         parsed: 'AnandrajSingh Pool',
     },
+    {
+        height: '856227',
+        coinbaseHex:
+            '03a3100d04ab46ae6608fabe6d6d1d595adb5776912c79ed2964f63c8add8b37db9e3d7052af3e2b50497057feb50400000000000000b156db64601400000d2f6e6f64655374726174756d2f',
+        payoutOutputScript:
+            '76a91402a7c7b4fdc5047d8789da27ac6c1a659b3edce588ac',
+        parsed: 'nodeStratum',
+    },
+    {
+        height: '856227',
+        coinbaseHex:
+            '03a3100d04ab46ae6608fabe6d6d1d595adb5776912c79ed2964f63c8add8b37db9e3d7052af3e2b50497057feb50400000000000000b156db64601400000d2f6e6f64655374726174756d2f',
+        payoutOutputScript: 'not the one so it is parsed from hex',
+        parsed: 'nodeStratum',
+    },
 ];
