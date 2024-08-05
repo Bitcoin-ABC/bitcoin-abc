@@ -133,7 +133,15 @@ export class FailoverProxy {
                 this._workingIndex = index;
                 return response;
             } catch (err) {
-                if (err instanceof Error && 'code' in err) {
+                if (
+                    err instanceof Error &&
+                    ('code' in err ||
+                        err
+                            .toString()
+                            .includes(
+                                'Unable to decode error msg, chronik server is indexing or in error state',
+                            ))
+                ) {
                     // Server outage, skip to next url in loop
                     // Connection error msgs have a 'code' key of 'ECONNREFUSED'
                     // Error messages from the chronik server (i.e. error
@@ -192,10 +200,26 @@ export class FailoverProxy {
 
     public ensureResponseErrorThrown(response: AxiosResponse, path: string) {
         if (response.status != 200) {
-            const error = proto.Error.decode(new Uint8Array(response.data));
-            throw new Error(
-                `Failed getting ${path} (${error.errorCode}): ${error.msg}`,
-            );
+            let errorCanBeDecoded = false;
+            let error;
+            try {
+                // If we can decode this error with proto, it is an expected chronik error
+                // from a working server and we should return it to the user
+                error = proto.Error.decode(new Uint8Array(response.data));
+                errorCanBeDecoded = true;
+            } catch (err) {
+                // If we can't decode this error with proto, something is wrong with this server instance
+                // It may be indexing
+                // In this case, we should try the next server
+                throw new Error(
+                    'Unable to decode error msg, chronik server is indexing or in error state',
+                );
+            }
+            if (errorCanBeDecoded) {
+                throw new Error(
+                    `Failed getting ${path} (${error.errorCode}): ${error.msg}`,
+                );
+            }
         }
     }
 

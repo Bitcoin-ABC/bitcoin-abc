@@ -110,3 +110,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   0.27.0 - Support for `lokadId` endpoints and websocket subscriptions
 -   0.28.0 - Support for websocket subscriptions by `tokenID`
 -   0.28.1 - Upgrading dependencies [D16375](https://reviews.bitcoinabc.org/D16375)
+-   0.28.2 - Improve failoverProxy to switch servers on error state [D16584](https://reviews.bitcoinabc.org/D16584)
