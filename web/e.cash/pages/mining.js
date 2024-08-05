@@ -96,6 +96,11 @@ function Mining(props) {
                             Molepool
                         </ExternalLink>
                     </li>
+                    <li>
+                        <ExternalLink href="https://solo.minemine.online/">
+                            MineMine
+                        </ExternalLink>
+                    </li>
                 </ul>
                 <h4>Using a mining pool</h4>
                 <p>
@@ -128,6 +133,11 @@ function Mining(props) {
                     <li>
                         <ExternalLink href="https://zpool.ca/">
                             Zpool
+                        </ExternalLink>
+                    </li>
+                    <li>
+                        <ExternalLink href="https://pool.minemine.online/">
+                            MineMine
                         </ExternalLink>
                     </li>
                 </ul>
