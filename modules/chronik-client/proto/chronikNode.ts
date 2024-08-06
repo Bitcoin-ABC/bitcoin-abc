@@ -305,6 +305,18 @@ export interface Blocks {
     blocks: BlockInfo[];
 }
 
+/** Header on the blockchain */
+export interface BlockHeader {
+    /** Raw data */
+    rawHeader: Uint8Array;
+}
+
+/** Range of headers */
+export interface BlockHeaders {
+    /** Queried headers */
+    headers: BlockHeader[];
+}
+
 /** Info about the state of the blockchain. */
 export interface BlockchainInfo {
     /** Hash (little-endian) of the current tip */
@@ -396,6 +408,13 @@ export interface ScriptUtxo {
     isFinal: boolean;
     /** Token value attached to this UTXO */
     token: Token | undefined;
+    /** Data attached to this output by plugins */
+    plugins: { [key: string]: PluginEntry };
+}
+
+export interface ScriptUtxo_PluginsEntry {
+    key: string;
+    value: PluginEntry | undefined;
 }
 
 /** UTXO, but with a script attached. */
@@ -414,6 +433,13 @@ export interface Utxo {
     isFinal: boolean;
     /** Token value attached to this UTXO */
     token: Token | undefined;
+    /** Data attached to this output by plugins */
+    plugins: { [key: string]: PluginEntry };
+}
+
+export interface Utxo_PluginsEntry {
+    key: string;
+    value: PluginEntry | undefined;
 }
 
 /** COutPoint, points to a coin being spent by an input. */
@@ -446,6 +472,13 @@ export interface TxInput {
     sequenceNo: number;
     /** Token value attached to this input */
     token: Token | undefined;
+    /** Data attached to this output by plugins */
+    plugins: { [key: string]: PluginEntry };
+}
+
+export interface TxInput_PluginsEntry {
+    key: string;
+    value: PluginEntry | undefined;
 }
 
 /** CTxOut, creates a new coin. */
@@ -458,6 +491,13 @@ export interface TxOutput {
     spentBy: SpentBy | undefined;
     /** Token value attached to this output */
     token: Token | undefined;
+    /** Data attached to this output by plugins */
+    plugins: { [key: string]: PluginEntry };
+}
+
+export interface TxOutput_PluginsEntry {
+    key: string;
+    value: PluginEntry | undefined;
 }
 
 /** Data about a block which a Tx is in. */
@@ -587,6 +627,31 @@ export interface TokenFailedColoring {
     pushdataIdx: number;
     /** Human-readable message of what went wrong */
     error: string;
+}
+
+/** Data attached by a plugin to an output */
+export interface PluginEntry {
+    /** Groups assigned to this output */
+    groups: Uint8Array[];
+    /** Data assigned to the output */
+    data: Uint8Array[];
+}
+
+/** Data about a plugin group */
+export interface PluginGroup {
+    /** Group bytes */
+    group: Uint8Array;
+}
+
+/** List of plugin groups */
+export interface PluginGroups {
+    /** Groups */
+    groups: PluginGroup[];
+    /**
+     * Group that if specified as `start` will give us the next groups,
+     * or empty if groups have been exausted.
+     */
+    nextStart: Uint8Array;
 }
 
 /** Page with txs */
@@ -879,6 +944,147 @@ export const Blocks = {
         const message = createBaseBlocks();
         message.blocks =
             object.blocks?.map(e => BlockInfo.fromPartial(e)) || [];
+        return message;
+    },
+};
+
+function createBaseBlockHeader(): BlockHeader {
+    return { rawHeader: new Uint8Array(0) };
+}
+
+export const BlockHeader = {
+    encode(
+        message: BlockHeader,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.rawHeader.length !== 0) {
+            writer.uint32(10).bytes(message.rawHeader);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): BlockHeader {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseBlockHeader();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.rawHeader = reader.bytes();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): BlockHeader {
+        return {
+            rawHeader: isSet(object.rawHeader)
+                ? bytesFromBase64(object.rawHeader)
+                : new Uint8Array(0),
+        };
+    },
+
+    toJSON(message: BlockHeader): unknown {
+        const obj: any = {};
+        if (message.rawHeader.length !== 0) {
+            obj.rawHeader = base64FromBytes(message.rawHeader);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<BlockHeader>, I>>(
+        base?: I,
+    ): BlockHeader {
+        return BlockHeader.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<BlockHeader>, I>>(
+        object: I,
+    ): BlockHeader {
+        const message = createBaseBlockHeader();
+        message.rawHeader = object.rawHeader ?? new Uint8Array(0);
+        return message;
+    },
+};
+
+function createBaseBlockHeaders(): BlockHeaders {
+    return { headers: [] };
+}
+
+export const BlockHeaders = {
+    encode(
+        message: BlockHeaders,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.headers) {
+            BlockHeader.encode(v!, writer.uint32(10).fork()).ldelim();
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): BlockHeaders {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseBlockHeaders();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.headers.push(
+                        BlockHeader.decode(reader, reader.uint32()),
+                    );
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): BlockHeaders {
+        return {
+            headers: globalThis.Array.isArray(object?.headers)
+                ? object.headers.map((e: any) => BlockHeader.fromJSON(e))
+                : [],
+        };
+    },
+
+    toJSON(message: BlockHeaders): unknown {
+        const obj: any = {};
+        if (message.headers?.length) {
+            obj.headers = message.headers.map(e => BlockHeader.toJSON(e));
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<BlockHeaders>, I>>(
+        base?: I,
+    ): BlockHeaders {
+        return BlockHeaders.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<BlockHeaders>, I>>(
+        object: I,
+    ): BlockHeaders {
+        const message = createBaseBlockHeaders();
+        message.headers =
+            object.headers?.map(e => BlockHeader.fromPartial(e)) || [];
         return message;
     },
 };
@@ -1643,6 +1849,7 @@ function createBaseScriptUtxo(): ScriptUtxo {
         value: '0',
         isFinal: false,
         token: undefined,
+        plugins: {},
     };
 }
 
@@ -1672,6 +1879,12 @@ export const ScriptUtxo = {
         if (message.token !== undefined) {
             Token.encode(message.token, writer.uint32(90).fork()).ldelim();
         }
+        Object.entries(message.plugins).forEach(([key, value]) => {
+            ScriptUtxo_PluginsEntry.encode(
+                { key: key as any, value },
+                writer.uint32(98).fork(),
+            ).ldelim();
+        });
         return writer;
     },
 
@@ -1725,6 +1938,19 @@ export const ScriptUtxo = {
 
                     message.token = Token.decode(reader, reader.uint32());
                     continue;
+                case 12:
+                    if (tag !== 98) {
+                        break;
+                    }
+
+                    const entry12 = ScriptUtxo_PluginsEntry.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    if (entry12.value !== undefined) {
+                        message.plugins[entry12.key] = entry12.value;
+                    }
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -1752,6 +1978,14 @@ export const ScriptUtxo = {
             token: isSet(object.token)
                 ? Token.fromJSON(object.token)
                 : undefined,
+            plugins: isObject(object.plugins)
+                ? Object.entries(object.plugins).reduce<{
+                      [key: string]: PluginEntry;
+                  }>((acc, [key, value]) => {
+                      acc[key] = PluginEntry.fromJSON(value);
+                      return acc;
+                  }, {})
+                : {},
         };
     },
 
@@ -1775,6 +2009,15 @@ export const ScriptUtxo = {
         if (message.token !== undefined) {
             obj.token = Token.toJSON(message.token);
         }
+        if (message.plugins) {
+            const entries = Object.entries(message.plugins);
+            if (entries.length > 0) {
+                obj.plugins = {};
+                entries.forEach(([k, v]) => {
+                    obj.plugins[k] = PluginEntry.toJSON(v);
+                });
+            }
+        }
         return obj;
     },
 
@@ -1797,6 +2040,107 @@ export const ScriptUtxo = {
             object.token !== undefined && object.token !== null
                 ? Token.fromPartial(object.token)
                 : undefined;
+        message.plugins = Object.entries(object.plugins ?? {}).reduce<{
+            [key: string]: PluginEntry;
+        }>((acc, [key, value]) => {
+            if (value !== undefined) {
+                acc[key] = PluginEntry.fromPartial(value);
+            }
+            return acc;
+        }, {});
+        return message;
+    },
+};
+
+function createBaseScriptUtxo_PluginsEntry(): ScriptUtxo_PluginsEntry {
+    return { key: '', value: undefined };
+}
+
+export const ScriptUtxo_PluginsEntry = {
+    encode(
+        message: ScriptUtxo_PluginsEntry,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.key !== '') {
+            writer.uint32(10).string(message.key);
+        }
+        if (message.value !== undefined) {
+            PluginEntry.encode(
+                message.value,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): ScriptUtxo_PluginsEntry {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseScriptUtxo_PluginsEntry();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.key = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.value = PluginEntry.decode(reader, reader.uint32());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): ScriptUtxo_PluginsEntry {
+        return {
+            key: isSet(object.key) ? globalThis.String(object.key) : '',
+            value: isSet(object.value)
+                ? PluginEntry.fromJSON(object.value)
+                : undefined,
+        };
+    },
+
+    toJSON(message: ScriptUtxo_PluginsEntry): unknown {
+        const obj: any = {};
+        if (message.key !== '') {
+            obj.key = message.key;
+        }
+        if (message.value !== undefined) {
+            obj.value = PluginEntry.toJSON(message.value);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<ScriptUtxo_PluginsEntry>, I>>(
+        base?: I,
+    ): ScriptUtxo_PluginsEntry {
+        return ScriptUtxo_PluginsEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<ScriptUtxo_PluginsEntry>, I>>(
+        object: I,
+    ): ScriptUtxo_PluginsEntry {
+        const message = createBaseScriptUtxo_PluginsEntry();
+        message.key = object.key ?? '';
+        message.value =
+            object.value !== undefined && object.value !== null
+                ? PluginEntry.fromPartial(object.value)
+                : undefined;
         return message;
     },
 };
@@ -1810,6 +2154,7 @@ function createBaseUtxo(): Utxo {
         script: new Uint8Array(0),
         isFinal: false,
         token: undefined,
+        plugins: {},
     };
 }
 
@@ -1842,6 +2187,12 @@ export const Utxo = {
         if (message.token !== undefined) {
             Token.encode(message.token, writer.uint32(58).fork()).ldelim();
         }
+        Object.entries(message.plugins).forEach(([key, value]) => {
+            Utxo_PluginsEntry.encode(
+                { key: key as any, value },
+                writer.uint32(66).fork(),
+            ).ldelim();
+        });
         return writer;
     },
 
@@ -1902,6 +2253,19 @@ export const Utxo = {
 
                     message.token = Token.decode(reader, reader.uint32());
                     continue;
+                case 8:
+                    if (tag !== 66) {
+                        break;
+                    }
+
+                    const entry8 = Utxo_PluginsEntry.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    if (entry8.value !== undefined) {
+                        message.plugins[entry8.key] = entry8.value;
+                    }
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -1932,6 +2296,14 @@ export const Utxo = {
             token: isSet(object.token)
                 ? Token.fromJSON(object.token)
                 : undefined,
+            plugins: isObject(object.plugins)
+                ? Object.entries(object.plugins).reduce<{
+                      [key: string]: PluginEntry;
+                  }>((acc, [key, value]) => {
+                      acc[key] = PluginEntry.fromJSON(value);
+                      return acc;
+                  }, {})
+                : {},
         };
     },
 
@@ -1958,6 +2330,15 @@ export const Utxo = {
         if (message.token !== undefined) {
             obj.token = Token.toJSON(message.token);
         }
+        if (message.plugins) {
+            const entries = Object.entries(message.plugins);
+            if (entries.length > 0) {
+                obj.plugins = {};
+                entries.forEach(([k, v]) => {
+                    obj.plugins[k] = PluginEntry.toJSON(v);
+                });
+            }
+        }
         return obj;
     },
 
@@ -1978,6 +2359,104 @@ export const Utxo = {
         message.token =
             object.token !== undefined && object.token !== null
                 ? Token.fromPartial(object.token)
+                : undefined;
+        message.plugins = Object.entries(object.plugins ?? {}).reduce<{
+            [key: string]: PluginEntry;
+        }>((acc, [key, value]) => {
+            if (value !== undefined) {
+                acc[key] = PluginEntry.fromPartial(value);
+            }
+            return acc;
+        }, {});
+        return message;
+    },
+};
+
+function createBaseUtxo_PluginsEntry(): Utxo_PluginsEntry {
+    return { key: '', value: undefined };
+}
+
+export const Utxo_PluginsEntry = {
+    encode(
+        message: Utxo_PluginsEntry,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.key !== '') {
+            writer.uint32(10).string(message.key);
+        }
+        if (message.value !== undefined) {
+            PluginEntry.encode(
+                message.value,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): Utxo_PluginsEntry {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseUtxo_PluginsEntry();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.key = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.value = PluginEntry.decode(reader, reader.uint32());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): Utxo_PluginsEntry {
+        return {
+            key: isSet(object.key) ? globalThis.String(object.key) : '',
+            value: isSet(object.value)
+                ? PluginEntry.fromJSON(object.value)
+                : undefined,
+        };
+    },
+
+    toJSON(message: Utxo_PluginsEntry): unknown {
+        const obj: any = {};
+        if (message.key !== '') {
+            obj.key = message.key;
+        }
+        if (message.value !== undefined) {
+            obj.value = PluginEntry.toJSON(message.value);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<Utxo_PluginsEntry>, I>>(
+        base?: I,
+    ): Utxo_PluginsEntry {
+        return Utxo_PluginsEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<Utxo_PluginsEntry>, I>>(
+        object: I,
+    ): Utxo_PluginsEntry {
+        const message = createBaseUtxo_PluginsEntry();
+        message.key = object.key ?? '';
+        message.value =
+            object.value !== undefined && object.value !== null
+                ? PluginEntry.fromPartial(object.value)
                 : undefined;
         return message;
     },
@@ -2155,6 +2634,7 @@ function createBaseTxInput(): TxInput {
         value: '0',
         sequenceNo: 0,
         token: undefined,
+        plugins: {},
     };
 }
 
@@ -2181,6 +2661,12 @@ export const TxInput = {
         if (message.token !== undefined) {
             Token.encode(message.token, writer.uint32(66).fork()).ldelim();
         }
+        Object.entries(message.plugins).forEach(([key, value]) => {
+            TxInput_PluginsEntry.encode(
+                { key: key as any, value },
+                writer.uint32(74).fork(),
+            ).ldelim();
+        });
         return writer;
     },
 
@@ -2234,6 +2720,19 @@ export const TxInput = {
 
                     message.token = Token.decode(reader, reader.uint32());
                     continue;
+                case 9:
+                    if (tag !== 74) {
+                        break;
+                    }
+
+                    const entry9 = TxInput_PluginsEntry.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    if (entry9.value !== undefined) {
+                        message.plugins[entry9.key] = entry9.value;
+                    }
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -2261,6 +2760,14 @@ export const TxInput = {
             token: isSet(object.token)
                 ? Token.fromJSON(object.token)
                 : undefined,
+            plugins: isObject(object.plugins)
+                ? Object.entries(object.plugins).reduce<{
+                      [key: string]: PluginEntry;
+                  }>((acc, [key, value]) => {
+                      acc[key] = PluginEntry.fromJSON(value);
+                      return acc;
+                  }, {})
+                : {},
         };
     },
 
@@ -2284,6 +2791,15 @@ export const TxInput = {
         if (message.token !== undefined) {
             obj.token = Token.toJSON(message.token);
         }
+        if (message.plugins) {
+            const entries = Object.entries(message.plugins);
+            if (entries.length > 0) {
+                obj.plugins = {};
+                entries.forEach(([k, v]) => {
+                    obj.plugins[k] = PluginEntry.toJSON(v);
+                });
+            }
+        }
         return obj;
     },
 
@@ -2304,6 +2820,107 @@ export const TxInput = {
             object.token !== undefined && object.token !== null
                 ? Token.fromPartial(object.token)
                 : undefined;
+        message.plugins = Object.entries(object.plugins ?? {}).reduce<{
+            [key: string]: PluginEntry;
+        }>((acc, [key, value]) => {
+            if (value !== undefined) {
+                acc[key] = PluginEntry.fromPartial(value);
+            }
+            return acc;
+        }, {});
+        return message;
+    },
+};
+
+function createBaseTxInput_PluginsEntry(): TxInput_PluginsEntry {
+    return { key: '', value: undefined };
+}
+
+export const TxInput_PluginsEntry = {
+    encode(
+        message: TxInput_PluginsEntry,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.key !== '') {
+            writer.uint32(10).string(message.key);
+        }
+        if (message.value !== undefined) {
+            PluginEntry.encode(
+                message.value,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): TxInput_PluginsEntry {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTxInput_PluginsEntry();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.key = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.value = PluginEntry.decode(reader, reader.uint32());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TxInput_PluginsEntry {
+        return {
+            key: isSet(object.key) ? globalThis.String(object.key) : '',
+            value: isSet(object.value)
+                ? PluginEntry.fromJSON(object.value)
+                : undefined,
+        };
+    },
+
+    toJSON(message: TxInput_PluginsEntry): unknown {
+        const obj: any = {};
+        if (message.key !== '') {
+            obj.key = message.key;
+        }
+        if (message.value !== undefined) {
+            obj.value = PluginEntry.toJSON(message.value);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TxInput_PluginsEntry>, I>>(
+        base?: I,
+    ): TxInput_PluginsEntry {
+        return TxInput_PluginsEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TxInput_PluginsEntry>, I>>(
+        object: I,
+    ): TxInput_PluginsEntry {
+        const message = createBaseTxInput_PluginsEntry();
+        message.key = object.key ?? '';
+        message.value =
+            object.value !== undefined && object.value !== null
+                ? PluginEntry.fromPartial(object.value)
+                : undefined;
         return message;
     },
 };
@@ -2314,6 +2931,7 @@ function createBaseTxOutput(): TxOutput {
         outputScript: new Uint8Array(0),
         spentBy: undefined,
         token: undefined,
+        plugins: {},
     };
 }
 
@@ -2334,6 +2952,12 @@ export const TxOutput = {
         if (message.token !== undefined) {
             Token.encode(message.token, writer.uint32(42).fork()).ldelim();
         }
+        Object.entries(message.plugins).forEach(([key, value]) => {
+            TxOutput_PluginsEntry.encode(
+                { key: key as any, value },
+                writer.uint32(50).fork(),
+            ).ldelim();
+        });
         return writer;
     },
 
@@ -2373,6 +2997,19 @@ export const TxOutput = {
 
                     message.token = Token.decode(reader, reader.uint32());
                     continue;
+                case 6:
+                    if (tag !== 50) {
+                        break;
+                    }
+
+                    const entry6 = TxOutput_PluginsEntry.decode(
+                        reader,
+                        reader.uint32(),
+                    );
+                    if (entry6.value !== undefined) {
+                        message.plugins[entry6.key] = entry6.value;
+                    }
+                    continue;
             }
             if ((tag & 7) === 4 || tag === 0) {
                 break;
@@ -2394,6 +3031,14 @@ export const TxOutput = {
             token: isSet(object.token)
                 ? Token.fromJSON(object.token)
                 : undefined,
+            plugins: isObject(object.plugins)
+                ? Object.entries(object.plugins).reduce<{
+                      [key: string]: PluginEntry;
+                  }>((acc, [key, value]) => {
+                      acc[key] = PluginEntry.fromJSON(value);
+                      return acc;
+                  }, {})
+                : {},
         };
     },
 
@@ -2410,6 +3055,15 @@ export const TxOutput = {
         }
         if (message.token !== undefined) {
             obj.token = Token.toJSON(message.token);
+        }
+        if (message.plugins) {
+            const entries = Object.entries(message.plugins);
+            if (entries.length > 0) {
+                obj.plugins = {};
+                entries.forEach(([k, v]) => {
+                    obj.plugins[k] = PluginEntry.toJSON(v);
+                });
+            }
         }
         return obj;
     },
@@ -2430,6 +3084,107 @@ export const TxOutput = {
         message.token =
             object.token !== undefined && object.token !== null
                 ? Token.fromPartial(object.token)
+                : undefined;
+        message.plugins = Object.entries(object.plugins ?? {}).reduce<{
+            [key: string]: PluginEntry;
+        }>((acc, [key, value]) => {
+            if (value !== undefined) {
+                acc[key] = PluginEntry.fromPartial(value);
+            }
+            return acc;
+        }, {});
+        return message;
+    },
+};
+
+function createBaseTxOutput_PluginsEntry(): TxOutput_PluginsEntry {
+    return { key: '', value: undefined };
+}
+
+export const TxOutput_PluginsEntry = {
+    encode(
+        message: TxOutput_PluginsEntry,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.key !== '') {
+            writer.uint32(10).string(message.key);
+        }
+        if (message.value !== undefined) {
+            PluginEntry.encode(
+                message.value,
+                writer.uint32(18).fork(),
+            ).ldelim();
+        }
+        return writer;
+    },
+
+    decode(
+        input: _m0.Reader | Uint8Array,
+        length?: number,
+    ): TxOutput_PluginsEntry {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBaseTxOutput_PluginsEntry();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.key = reader.string();
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.value = PluginEntry.decode(reader, reader.uint32());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): TxOutput_PluginsEntry {
+        return {
+            key: isSet(object.key) ? globalThis.String(object.key) : '',
+            value: isSet(object.value)
+                ? PluginEntry.fromJSON(object.value)
+                : undefined,
+        };
+    },
+
+    toJSON(message: TxOutput_PluginsEntry): unknown {
+        const obj: any = {};
+        if (message.key !== '') {
+            obj.key = message.key;
+        }
+        if (message.value !== undefined) {
+            obj.value = PluginEntry.toJSON(message.value);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<TxOutput_PluginsEntry>, I>>(
+        base?: I,
+    ): TxOutput_PluginsEntry {
+        return TxOutput_PluginsEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<TxOutput_PluginsEntry>, I>>(
+        object: I,
+    ): TxOutput_PluginsEntry {
+        const message = createBaseTxOutput_PluginsEntry();
+        message.key = object.key ?? '';
+        message.value =
+            object.value !== undefined && object.value !== null
+                ? PluginEntry.fromPartial(object.value)
                 : undefined;
         return message;
     },
@@ -3598,6 +4353,250 @@ export const TokenFailedColoring = {
         const message = createBaseTokenFailedColoring();
         message.pushdataIdx = object.pushdataIdx ?? 0;
         message.error = object.error ?? '';
+        return message;
+    },
+};
+
+function createBasePluginEntry(): PluginEntry {
+    return { groups: [], data: [] };
+}
+
+export const PluginEntry = {
+    encode(
+        message: PluginEntry,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.groups) {
+            writer.uint32(10).bytes(v!);
+        }
+        for (const v of message.data) {
+            writer.uint32(18).bytes(v!);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): PluginEntry {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBasePluginEntry();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.groups.push(reader.bytes());
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.data.push(reader.bytes());
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): PluginEntry {
+        return {
+            groups: globalThis.Array.isArray(object?.groups)
+                ? object.groups.map((e: any) => bytesFromBase64(e))
+                : [],
+            data: globalThis.Array.isArray(object?.data)
+                ? object.data.map((e: any) => bytesFromBase64(e))
+                : [],
+        };
+    },
+
+    toJSON(message: PluginEntry): unknown {
+        const obj: any = {};
+        if (message.groups?.length) {
+            obj.groups = message.groups.map(e => base64FromBytes(e));
+        }
+        if (message.data?.length) {
+            obj.data = message.data.map(e => base64FromBytes(e));
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<PluginEntry>, I>>(
+        base?: I,
+    ): PluginEntry {
+        return PluginEntry.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<PluginEntry>, I>>(
+        object: I,
+    ): PluginEntry {
+        const message = createBasePluginEntry();
+        message.groups = object.groups?.map(e => e) || [];
+        message.data = object.data?.map(e => e) || [];
+        return message;
+    },
+};
+
+function createBasePluginGroup(): PluginGroup {
+    return { group: new Uint8Array(0) };
+}
+
+export const PluginGroup = {
+    encode(
+        message: PluginGroup,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        if (message.group.length !== 0) {
+            writer.uint32(10).bytes(message.group);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): PluginGroup {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBasePluginGroup();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.group = reader.bytes();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): PluginGroup {
+        return {
+            group: isSet(object.group)
+                ? bytesFromBase64(object.group)
+                : new Uint8Array(0),
+        };
+    },
+
+    toJSON(message: PluginGroup): unknown {
+        const obj: any = {};
+        if (message.group.length !== 0) {
+            obj.group = base64FromBytes(message.group);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<PluginGroup>, I>>(
+        base?: I,
+    ): PluginGroup {
+        return PluginGroup.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<PluginGroup>, I>>(
+        object: I,
+    ): PluginGroup {
+        const message = createBasePluginGroup();
+        message.group = object.group ?? new Uint8Array(0);
+        return message;
+    },
+};
+
+function createBasePluginGroups(): PluginGroups {
+    return { groups: [], nextStart: new Uint8Array(0) };
+}
+
+export const PluginGroups = {
+    encode(
+        message: PluginGroups,
+        writer: _m0.Writer = _m0.Writer.create(),
+    ): _m0.Writer {
+        for (const v of message.groups) {
+            PluginGroup.encode(v!, writer.uint32(10).fork()).ldelim();
+        }
+        if (message.nextStart.length !== 0) {
+            writer.uint32(18).bytes(message.nextStart);
+        }
+        return writer;
+    },
+
+    decode(input: _m0.Reader | Uint8Array, length?: number): PluginGroups {
+        const reader =
+            input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+        let end = length === undefined ? reader.len : reader.pos + length;
+        const message = createBasePluginGroups();
+        while (reader.pos < end) {
+            const tag = reader.uint32();
+            switch (tag >>> 3) {
+                case 1:
+                    if (tag !== 10) {
+                        break;
+                    }
+
+                    message.groups.push(
+                        PluginGroup.decode(reader, reader.uint32()),
+                    );
+                    continue;
+                case 2:
+                    if (tag !== 18) {
+                        break;
+                    }
+
+                    message.nextStart = reader.bytes();
+                    continue;
+            }
+            if ((tag & 7) === 4 || tag === 0) {
+                break;
+            }
+            reader.skipType(tag & 7);
+        }
+        return message;
+    },
+
+    fromJSON(object: any): PluginGroups {
+        return {
+            groups: globalThis.Array.isArray(object?.groups)
+                ? object.groups.map((e: any) => PluginGroup.fromJSON(e))
+                : [],
+            nextStart: isSet(object.nextStart)
+                ? bytesFromBase64(object.nextStart)
+                : new Uint8Array(0),
+        };
+    },
+
+    toJSON(message: PluginGroups): unknown {
+        const obj: any = {};
+        if (message.groups?.length) {
+            obj.groups = message.groups.map(e => PluginGroup.toJSON(e));
+        }
+        if (message.nextStart.length !== 0) {
+            obj.nextStart = base64FromBytes(message.nextStart);
+        }
+        return obj;
+    },
+
+    create<I extends Exact<DeepPartial<PluginGroups>, I>>(
+        base?: I,
+    ): PluginGroups {
+        return PluginGroups.fromPartial(base ?? ({} as any));
+    },
+    fromPartial<I extends Exact<DeepPartial<PluginGroups>, I>>(
+        object: I,
+    ): PluginGroups {
+        const message = createBasePluginGroups();
+        message.groups =
+            object.groups?.map(e => PluginGroup.fromPartial(e)) || [];
+        message.nextStart = object.nextStart ?? new Uint8Array(0);
         return message;
     },
 };
@@ -5145,6 +6144,10 @@ function longToString(long: Long) {
 if (_m0.util.Long !== Long) {
     _m0.util.Long = Long as any;
     _m0.configure();
+}
+
+function isObject(value: any): boolean {
+    return typeof value === 'object' && value !== null;
 }
 
 function isSet(value: any): boolean {

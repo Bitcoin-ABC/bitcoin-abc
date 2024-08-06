@@ -164,6 +164,11 @@ export class ChronikClientNode {
         return new LokadIdEndpoint(this._proxyInterface, lokadId);
     }
 
+    /** Create object that allows fetching info about a given plugin */
+    public plugin(pluginName: string): PluginEndpoint {
+        return new PluginEndpoint(this._proxyInterface, pluginName);
+    }
+
     /** Create object that allows fetching script history or UTXOs. */
     public script(
         scriptType: ScriptType_InNode,
@@ -442,6 +447,58 @@ export class LokadIdEndpoint {
             numPages: historyPage.numPages,
             numTxs: historyPage.numTxs,
         };
+    }
+}
+
+/** Allows fetching plugin UTXOs. */
+export class PluginEndpoint {
+    private _proxyInterface: FailoverProxy;
+    private _pluginName: string;
+
+    constructor(proxyInterface: FailoverProxy, pluginName: string) {
+        this._proxyInterface = proxyInterface;
+        this._pluginName = pluginName;
+    }
+
+    /**
+     * Fetches the current UTXO set for this plugin group.
+     */
+    public async utxos(groupHex: string): Promise<PluginUtxos> {
+        const data = await this._proxyInterface.get(
+            `/plugin/${this._pluginName}/${groupHex}/utxos`,
+        );
+        const utxos = proto.Utxos.decode(data);
+        return {
+            pluginName: this._pluginName,
+            groupHex,
+            utxos: utxos.utxos.map(convertToUtxo),
+        };
+    }
+
+    /**
+     * Fetches groups of this plugin.
+     */
+    public async groups(
+        prefixHex?: string,
+        startHex?: string,
+        pageSize?: number,
+    ): Promise<PluginGroups> {
+        const query = new URLSearchParams();
+        if (prefixHex !== undefined) {
+            query.set('prefix', prefixHex);
+        }
+        if (startHex !== undefined) {
+            query.set('start', startHex);
+        }
+        if (pageSize !== undefined) {
+            query.set('page_size', pageSize.toString());
+        }
+        const data = await this._proxyInterface.get(
+            `/plugin/${this._pluginName}/groups?${query.toString()}`,
+        );
+        const groups = proto.PluginGroups.decode(data);
+
+        return convertToPluginGroups(groups);
     }
 }
 
@@ -882,6 +939,10 @@ function convertToTxInput(input: proto.TxInput): TxInput_InNode {
         // We only return a token key if we have token data for this input
         txInput.token = convertToTokenInNode(input.token);
     }
+    if (Object.keys(input.plugins).length > 0) {
+        // We only return a plugins key if we have plugins
+        txInput.plugins = convertToPluginEntries(input.plugins);
+    }
     if (
         typeof input.outputScript !== 'undefined' &&
         input.outputScript.length > 0
@@ -897,6 +958,10 @@ function convertToTxOutput(output: proto.TxOutput): TxOutput_InNode {
         value: parseInt(output.value),
         outputScript: toHex(output.outputScript),
     };
+    if (Object.keys(output.plugins).length > 0) {
+        // We only return a plugins key if we have plugins
+        txOutput.plugins = convertToPluginEntries(output.plugins);
+    }
     if (typeof output.token !== 'undefined') {
         // We only return a token key if we have token data for this input
         txOutput.token = convertToTokenInNode(output.token);
@@ -909,6 +974,35 @@ function convertToTxOutput(output: proto.TxOutput): TxOutput_InNode {
         };
     }
     return txOutput;
+}
+
+function convertToPluginEntries(plugins: {
+    [key: string]: proto.PluginEntry;
+}): PluginEntries {
+    const pluginEntries: PluginEntries = {};
+    for (const [pluginName, plugin] of Object.entries(plugins)) {
+        if (typeof pluginName === 'undefined') {
+            continue;
+        }
+        const { groups, data } = plugin;
+
+        pluginEntries[pluginName] = {
+            groups: groups.map(toHex),
+            data: data.map(toHex),
+        };
+    }
+
+    return pluginEntries;
+}
+
+function convertToPluginGroups(
+    protoPluginGroups: proto.PluginGroups,
+): PluginGroups {
+    const { groups } = protoPluginGroups;
+    return {
+        groups: groups.map(group => ({ group: toHex(group.group) })),
+        nextStart: toHex(protoPluginGroups.nextStart),
+    };
 }
 
 function convertToBlockMeta(block: proto.BlockMetadata): BlockMetadata_InNode {
@@ -943,6 +1037,10 @@ function convertToScriptUtxo(utxo: proto.ScriptUtxo): ScriptUtxo_InNode {
         // We only return a token key if we have token data for this input
         utxoInNode.token = convertToTokenInNode(utxo.token);
     }
+    if (Object.keys(utxo.plugins).length > 0) {
+        // We only return a plugins key if we have plugins
+        utxoInNode.plugins = convertToPluginEntries(utxo.plugins);
+    }
     return utxoInNode;
 }
 
@@ -964,6 +1062,10 @@ function convertToUtxo(utxo: proto.Utxo): Utxo_InNode {
     if (typeof utxo.token !== 'undefined') {
         // We only return a token key if we have token data for this input
         utxoInNode.token = convertToTokenInNode(utxo.token);
+    }
+    if (Object.keys(utxo.plugins).length > 0) {
+        // We only return a plugins key if we have plugins
+        utxoInNode.plugins = convertToPluginEntries(utxo.plugins);
     }
     return utxoInNode;
 }
@@ -1300,6 +1402,8 @@ export interface TxInput_InNode {
     sequenceNo: number;
     /** Token value attached to this input */
     token?: Token_InNode;
+    /** Plugin data attached to this input */
+    plugins?: PluginEntries;
 }
 
 /** Output of a tx, creates new UTXOs. */
@@ -1318,6 +1422,8 @@ export interface TxOutput_InNode {
     spentBy?: OutPoint;
     /** Token value attached to this output */
     token?: Token_InNode;
+    /** Plugin data attached to this output */
+    plugins?: PluginEntries;
 }
 
 /** Metadata of a block, used in transaction data. */
@@ -1483,6 +1589,16 @@ export interface TokenFailedParsing {
     error: string;
 }
 
+/** Data attached by a plugin to an output */
+export interface PluginEntry {
+    /** Groups assigned to this output */
+    groups: string[];
+    /** Data assigned to the output */
+    data: string[];
+}
+
+export type PluginEntries = { [key: string]: PluginEntry };
+
 /** Group of UTXOs by output script. */
 export interface ScriptUtxos_InNode {
     /** Output script in hex. */
@@ -1506,6 +1622,8 @@ export interface ScriptUtxo_InNode {
     isFinal: boolean;
     /** Token value attached to this utxo */
     token?: Token_InNode;
+    /** Plugin data attached to this output */
+    plugins?: PluginEntries;
 }
 
 /**
@@ -1528,6 +1646,8 @@ export interface Utxo_InNode {
     isFinal: boolean;
     /** Token value attached to this utxo */
     token?: Token_InNode;
+    /** Plugin data attached to this output */
+    plugins?: PluginEntries;
 }
 
 /** Token coloring an input or output */
@@ -1639,6 +1759,30 @@ export interface TokenIdUtxos {
     tokenId: string;
     /** UTXOs */
     utxos: Utxo_InNode[];
+}
+
+/** List of UTXOs */
+export interface PluginUtxos {
+    /** Plugin used to fetch these utxos */
+    pluginName: string;
+    /** Group hex */
+    groupHex: string;
+    /** UTXOs */
+    utxos: Utxo_InNode[];
+}
+
+/**
+ * Information about a given plugin group
+ * For now, we just include the group
+ */
+export interface PluginGroup {
+    group: string;
+}
+
+/** List of plugin groups */
+export interface PluginGroups {
+    groups: PluginGroup[];
+    nextStart: string;
 }
 
 /** Info about a token */
