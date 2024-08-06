@@ -11,13 +11,14 @@ use bitcoinsuite_core::{
     block::BlockHash,
     tx::{Tx, TxId},
 };
+use bytes::Bytes;
 use chronik_bridge::{ffi, util::expect_unique_ptr};
 use chronik_db::{
     db::{Db, WriteBatch},
     groups::{
-        LokadIdGroup, LokadIdHistoryWriter, ScriptGroup, ScriptHistoryWriter,
-        ScriptUtxoWriter, TokenIdGroup, TokenIdGroupAux, TokenIdHistoryWriter,
-        TokenIdUtxoWriter,
+        LokadIdGroup, LokadIdHistoryReader, LokadIdHistoryWriter, ScriptGroup,
+        ScriptHistoryWriter, ScriptUtxoWriter, TokenIdGroup, TokenIdGroupAux,
+        TokenIdHistoryWriter, TokenIdUtxoWriter,
     },
     index_tx::{
         prepare_indexed_txs_cached, PrepareUpdateMode, TxNumCacheSettings,
@@ -27,13 +28,15 @@ use chronik_db::{
         token::{ProcessedTokenTxBatch, TokenWriter},
         BlockHeight, BlockReader, BlockStatsWriter, BlockTxs, BlockWriter,
         DbBlock, GroupHistoryMemData, GroupUtxoMemData, MetadataReader,
-        MetadataWriter, SchemaVersion, SpentByWriter, TxEntry, TxReader,
+        MetadataWriter, SchemaVersion, SpentByWriter, TxEntry, TxNum, TxReader,
         TxWriter,
     },
     mem::{MemData, MemDataConf, Mempool, MempoolTx},
     plugins::{PluginMeta, PluginsReader, PluginsWriter},
 };
-use chronik_plugin::{context::PluginContext, data::PluginNameMap};
+use chronik_plugin::{
+    context::PluginContext, data::PluginNameMap, plugin::Plugin,
+};
 use chronik_util::{log, log_chronik};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -178,6 +181,13 @@ pub enum ChronikIndexerError {
     )]
     CannotEnableTokenIndex,
 
+    /// Must enable -chroniklokadidindex
+    #[error(
+        "Plugin system requires the LOKAD ID index to be enabled, enable it \
+         via -chroniklokadidindex"
+    )]
+    PluginSystemRequiresLokadIdIndex,
+
     /// Currently, plugins must match their version exactly
     #[error(
         "Cannot use different version for plugin {plugin_name:?}. Previously, \
@@ -195,38 +205,34 @@ pub enum ChronikIndexerError {
         loaded_version: String,
     },
 
-    /// Currently, plugins must always be synched from Genesis and may never
-    /// desync
+    /// Cannot load plugins as there's already matching txs in the DB
     #[error(
-        "Cannot load new plugin {plugin_name:?} on non-empty DB. Chronik is \
-         already synced to height {db_height}, but this version of Chronik \
-         doesn't support automatically re-syncing plugins. Either disable the \
-         plugin or use -chronikreindex to reindex."
+        "Loading plugins failed, there are already matching txs in the DB for \
+         their LOKAD IDs, the earliest is in transaction {desync_txid} in \
+         block {desync_hash} (height {desync_height}). Chronik is synced to \
+         height {db_height}, but this version of Chronik doesn't support \
+         automatically re-syncing plugins. Either disable the desynced \
+         plugins, use -chronikreindex to reindex, or park the block and index \
+         again."
     )]
-    NewPluginOnNonEmptyDb {
-        /// Name of the plugin that has a version mismatch
-        plugin_name: String,
+    PluginsAlreadyHaveTxs {
         /// Height Chronik is synced to
         db_height: BlockHeight,
+        /// TxId of the tx that has the LOKAD ID
+        desync_txid: TxId,
+        /// First block that has a LOKAD ID of a plugin
+        desync_height: BlockHeight,
+        /// Hash of the min LOKAD ID height
+        desync_hash: BlockHash,
     },
 
-    /// Currently, plugins must always be synched from Genesis and may never
-    /// desync
-    #[error(
-        "Plugin {plugin_name:?} desynced from DB. Plugin has block height \
-         {plugin_height}, but the rest of Chronik is synced to height \
-         {db_height}. This version of Chronik doesn't support automatically \
-         re-syncing plugins. Either disable the plugin or use -chronikreindex \
-         to reindex."
-    )]
-    PluginDesynchedHeight {
-        /// Name of the plugin that has a version mismatch
-        plugin_name: String,
-        /// Height Chronik is synced to
-        db_height: BlockHeight,
-        /// Height the plugin is synced to
-        plugin_height: BlockHeight,
-    },
+    /// Inconsistent DB: Tx doesn't exist
+    #[error("Inconsistent DB: Tx with tx_num {0} doesn't exist")]
+    TxNotFound(TxNum),
+
+    /// Inconsistent DB: Block doesn't exist
+    #[error("Inconsistent DB: Block with height {0} doesn't exist")]
+    BlockNotFound(BlockHeight),
 }
 
 impl ChronikIndexer {
@@ -267,7 +273,11 @@ impl ChronikIndexer {
             params.enable_token_index,
             load_tx,
         )?;
-        let plugin_name_map = update_plugins_index(&db, &params.plugin_ctx)?;
+        let plugin_name_map = update_plugins_index(
+            &db,
+            &params.plugin_ctx,
+            params.enable_lokad_id_index,
+        )?;
 
         let mempool = Mempool::new(
             ScriptGroup,
@@ -1107,10 +1117,15 @@ fn verify_lokad_id_index(
 fn update_plugins_index(
     db: &Db,
     plugin_ctx: &PluginContext,
+    enable_lokad_id_index: bool,
 ) -> Result<PluginNameMap> {
+    if !plugin_ctx.plugins().is_empty() && !enable_lokad_id_index {
+        return Err(PluginSystemRequiresLokadIdIndex.into());
+    }
     let plugins_reader = PluginsReader::new(db)?;
     let plugins_writer = PluginsWriter::new(db, plugin_ctx)?;
     let block_reader = BlockReader::new(db)?;
+    let tx_reader = TxReader::new(db)?;
     let db_plugins = plugins_reader
         .metas()?
         .into_iter()
@@ -1122,9 +1137,16 @@ fn update_plugins_index(
         .map(|max_idx| max_idx + 1)
         .unwrap_or_default();
     let db_block_height = block_reader.height()?;
+
     let mut name_mapping = Vec::with_capacity(plugin_ctx.plugins().len());
     let mut batch = WriteBatch::default();
+    let mut desynced_min_tx_num = TxNum::MAX;
     for plugin in plugin_ctx.plugins() {
+        let plugin_lokad_ids = plugin
+            .lokad_ids
+            .iter()
+            .map(|lokad_id| Bytes::from(lokad_id.to_vec()))
+            .collect::<Vec<_>>();
         // Plugins are identified by module name
         match db_plugins.get(&plugin.module_name) {
             Some(db_plugin) => {
@@ -1141,24 +1163,57 @@ fn update_plugins_index(
                 if db_block_height != -1
                     && db_plugin.sync_height != db_block_height
                 {
-                    return Err(PluginDesynchedHeight {
-                        plugin_name: plugin.module_name.clone(),
-                        db_height: db_block_height,
-                        plugin_height: db_plugin.sync_height,
+                    // If the plugin is out-of-sync, allow if there's no txs yet
+                    // for the required LOKAD IDs
+                    if let Some(min_tx_num) =
+                        verify_plugin_desynced_tx_num(db, plugin)?
+                    {
+                        log!(
+                            "Plugin {:?} desynced, DB is on height \
+                             {db_block_height} but plugin is on height {} \
+                             with existing transactions for the plugin's \
+                             LOKAD IDs {plugin_lokad_ids:?}\n",
+                            plugin.module_name,
+                            db_plugin.sync_height,
+                        );
+                        if min_tx_num < desynced_min_tx_num {
+                            desynced_min_tx_num = min_tx_num;
+                            continue;
+                        }
                     }
-                    .into());
                 }
+                // Mark plugin as synced to the current height
+                plugins_writer.write_meta(
+                    &mut batch,
+                    &plugin.module_name,
+                    &PluginMeta {
+                        plugin_idx: db_plugin.plugin_idx,
+                        sync_height: db_block_height,
+                        version: plugin.version.to_string(),
+                    },
+                )?;
                 name_mapping
                     .push((db_plugin.plugin_idx, plugin.module_name.clone()));
             }
             None => {
                 if db_block_height != -1 {
-                    // Currently, can only load new plugins on an empty DB
-                    return Err(NewPluginOnNonEmptyDb {
-                        plugin_name: plugin.module_name.clone(),
-                        db_height: db_block_height,
+                    // Allow new plugin if there's no txs yet for the required
+                    // LOKAD IDs
+                    if let Some(min_tx_num) =
+                        verify_plugin_desynced_tx_num(db, plugin)?
+                    {
+                        log!(
+                            "Cannot load plugin {:?}, DB is on height \
+                             {db_block_height} but plugin has existing \
+                             transactions for the plugin's LOKAD IDs \
+                             {plugin_lokad_ids:?}\n",
+                            plugin.module_name,
+                        );
+                        if min_tx_num < desynced_min_tx_num {
+                            desynced_min_tx_num = min_tx_num;
+                            continue;
+                        }
                     }
-                    .into());
                 }
                 plugins_writer.write_meta(
                     &mut batch,
@@ -1175,8 +1230,47 @@ fn update_plugins_index(
             }
         }
     }
+    if desynced_min_tx_num != TxNum::MAX {
+        let txid = tx_reader
+            .txid_by_tx_num(desynced_min_tx_num)?
+            .ok_or(TxNotFound(desynced_min_tx_num))?;
+        let block_height =
+            tx_reader.block_height_by_tx_num(desynced_min_tx_num)?;
+        let block_hash = block_reader
+            .by_height(block_height)?
+            .ok_or(BlockNotFound(block_height))?
+            .hash;
+        return Err(PluginsAlreadyHaveTxs {
+            db_height: db_block_height,
+            desync_txid: txid,
+            desync_height: block_height,
+            desync_hash: block_hash,
+        }
+        .into());
+    }
     db.write_batch(batch)?;
     Ok(PluginNameMap::new(name_mapping))
+}
+
+fn verify_plugin_desynced_tx_num(
+    db: &Db,
+    plugin: &Plugin,
+) -> Result<Option<TxNum>> {
+    let lokad_id_reader = LokadIdHistoryReader::new(db)?;
+
+    let mut min_tx_num = None;
+    for lokad_id in &plugin.lokad_ids {
+        let page_tx_nums = lokad_id_reader.page_txs(lokad_id, 0)?;
+        let Some(tx_nums) = page_tx_nums else {
+            continue;
+        };
+        let Some(&first_tx_num) = tx_nums.first() else {
+            continue;
+        };
+        min_tx_num = Some(min_tx_num.unwrap_or(TxNum::MAX).min(first_tx_num));
+    }
+
+    Ok(min_tx_num)
 }
 
 impl Node {
@@ -1411,7 +1505,22 @@ mod tests {
         let db = Db::open(dir.path())?;
         let plugin_reader = PluginsReader::new(&db)?;
 
-        update_plugins_index(&db, &PluginContext::default())?;
+        // Disabled LOKAD ID index is fine if plugin context is empty
+        update_plugins_index(&db, &PluginContext::default(), false)?;
+
+        // Must have LOKAD ID index if we have plugins
+        assert_eq!(
+            update_plugins_index(
+                &db,
+                &PluginContext {
+                    plugins: vec![Plugin::default()]
+                },
+                false,
+            )
+            .unwrap_err()
+            .downcast::<ChronikIndexerError>()?,
+            ChronikIndexerError::PluginSystemRequiresLokadIdIndex,
+        );
 
         update_plugins_index(
             &db,
@@ -1423,6 +1532,7 @@ mod tests {
                     lokad_ids: vec![],
                 }],
             },
+            true,
         )?;
         assert_eq!(
             plugin_reader.metas()?,
@@ -1446,6 +1556,7 @@ mod tests {
                     lokad_ids: vec![],
                 }],
             },
+            true,
         )?;
         assert_eq!(
             plugin_reader.metas()?,
@@ -1487,6 +1598,7 @@ mod tests {
                     },
                 ],
             },
+            true,
         )?;
         assert_eq!(
             plugin_reader.metas()?,
@@ -1521,6 +1633,7 @@ mod tests {
                         lokad_ids: vec![],
                     }],
                 },
+                true,
             )
             .unwrap_err()
             .downcast::<ChronikIndexerError>()?,

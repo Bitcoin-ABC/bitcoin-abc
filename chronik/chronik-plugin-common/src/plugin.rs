@@ -8,7 +8,7 @@ use bitcoinsuite_slp::lokad_id::LokadId;
 use versions::SemVer;
 
 /// Individual handle on a plugin
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Plugin {
     /// Name of the plugin module
     pub module_name: String,

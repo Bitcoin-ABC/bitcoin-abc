@@ -516,7 +516,7 @@ impl<'a> TxReader<'a> {
     }
 
     /// Read the block height the tx_num has. Err if not found.
-    fn block_height_by_tx_num(&self, tx_num: TxNum) -> Result<BlockHeight> {
+    pub fn block_height_by_tx_num(&self, tx_num: TxNum) -> Result<BlockHeight> {
         let mut iter = self.col.db.iterator(
             self.col.cf_blk_by_first_tx,
             &tx_num_to_bytes(tx_num),
