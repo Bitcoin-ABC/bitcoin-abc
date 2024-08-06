@@ -1827,6 +1827,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(voting_parameters, P, VoteItemProviders) {
 BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
     BlockProvider provider(this);
 
+    BOOST_CHECK(!m_processor->hasFinalizedTip());
+
     std::vector<CBlockIndex *> blockIndexes;
     for (size_t i = 0; i < AVALANCHE_MAX_ELEMENT_POLL; i++) {
         CBlockIndex *pindex = provider.buildVoteItem();
@@ -1864,6 +1866,8 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
         BOOST_CHECK(registerVotes(nodeid, resp, updates));
     };
 
+    BOOST_CHECK(!m_processor->hasFinalizedTip());
+
     // Vote for the blocks until the one being accepted finalizes
     bool eleventhBlockFinalized = false;
     for (size_t i = 0; i < 10000 && !eleventhBlockFinalized; i++) {
@@ -1874,10 +1878,14 @@ BOOST_AUTO_TEST_CASE(block_vote_finalization_tip) {
                 provider.fromAnyVoteItem(update.getVoteItem())
                         ->GetBlockHash() == eleventhBlockHash) {
                 eleventhBlockFinalized = true;
+                BOOST_CHECK(m_processor->hasFinalizedTip());
+            } else {
+                BOOST_CHECK(!m_processor->hasFinalizedTip());
             }
         }
     }
     BOOST_CHECK(eleventhBlockFinalized);
+    BOOST_CHECK(m_processor->hasFinalizedTip());
 
     // From now only the 10 blocks with more work are polled for
     invs = getInvsForNextPoll();

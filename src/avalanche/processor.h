@@ -349,6 +349,12 @@ public:
      */
     bool isAvalancheServiceAvailable() { return !!peerData; }
 
+    /** Whether there is a finalized tip */
+    bool hasFinalizedTip() const EXCLUSIVE_LOCKS_REQUIRED(!cs_finalizationTip) {
+        LOCK(cs_finalizationTip);
+        return finalizationTip != nullptr;
+    }
+
     bool startEventLoop(CScheduler &scheduler);
     bool stopEventLoop();
 
