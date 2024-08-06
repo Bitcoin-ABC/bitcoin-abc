@@ -100,7 +100,7 @@ class AssumeutxoTest(BitcoinTestFramework):
         )
 
         self.log.info("  - snapshot file with unsupported version")
-        for version in [0, 2]:
+        for version in [0, 1, 3]:
             with open(bad_snapshot_path, "wb") as f:
                 f.write(
                     valid_snapshot_contents[:5]
@@ -154,33 +154,28 @@ class AssumeutxoTest(BitcoinTestFramework):
         prev_block_hash = self.nodes[0].getblockhash(SNAPSHOT_BASE_HEIGHT - 1)
         # Represents any unknown block hash
         bogus_block_hash = "0" * 64
-        # The height is not used for anything critical currently, so we just
-        # confirm the manipulation in the error message
-        bogus_height = 1337
         for bad_block_hash in [bogus_block_hash, prev_block_hash]:
             with open(bad_snapshot_path, "wb") as f:
                 f.write(
                     valid_snapshot_contents[:11]
-                    + bogus_height.to_bytes(4, "little")
                     + bytes.fromhex(bad_block_hash)[::-1]
-                    + valid_snapshot_contents[47:]
+                    + valid_snapshot_contents[43:]
                 )
 
             msg = (
                 "Unable to load UTXO snapshot: assumeutxo block hash in snapshot "
-                f"metadata not recognized (hash: {bad_block_hash}, height: "
-                f"{bogus_height}). The following snapshot heights are available: 110, "
-                "299."
+                f"metadata not recognized (hash: {bad_block_hash}). The following "
+                f"snapshot heights are available: 110, 299."
             )
             assert_raises_rpc_error(-32603, msg, node.loadtxoutset, bad_snapshot_path)
 
         self.log.info("  - snapshot file with wrong number of coins")
-        valid_num_coins = int.from_bytes(valid_snapshot_contents[47 : 47 + 8], "little")
+        valid_num_coins = int.from_bytes(valid_snapshot_contents[43 : 43 + 8], "little")
         for off in [-1, +1]:
             with open(bad_snapshot_path, "wb") as f:
-                f.write(valid_snapshot_contents[:47])
+                f.write(valid_snapshot_contents[:43])
                 f.write((valid_num_coins + off).to_bytes(8, "little"))
-                f.write(valid_snapshot_contents[47 + 8 :])
+                f.write(valid_snapshot_contents[43 + 8 :])
             expected_error(
                 log_msg=(
                     "bad snapshot - coins left over after deserializing 298 coins"
@@ -252,12 +247,12 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         for content, offset, wrong_hash, custom_message in cases:
             with open(bad_snapshot_path, "wb") as f:
-                # Prior to offset: Snapshot magic, snapshot version, network magic, height, hash, coins count
-                f.write(valid_snapshot_contents[: (5 + 2 + 4 + 4 + 32 + 8 + offset)])
+                # Prior to offset: Snapshot magic, snapshot version, network magic, hash, coins count
+                f.write(valid_snapshot_contents[: (5 + 2 + 4 + 32 + 8 + offset)])
                 f.write(content)
                 f.write(
                     valid_snapshot_contents[
-                        (5 + 2 + 4 + 4 + 32 + 8 + offset + len(content)) :
+                        (5 + 2 + 4 + 32 + 8 + offset + len(content)) :
                     ]
                 )
 

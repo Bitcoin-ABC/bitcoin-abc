@@ -1382,7 +1382,7 @@ public:
     //!   snapshot, faking nTx* block index data along the way.
     //! - Move the new chainstate to `m_snapshot_chainstate` and make it our
     //!   ActiveChainstate().
-    [[nodiscard]] util::Result<void>
+    [[nodiscard]] util::Result<CBlockIndex *>
     ActivateSnapshot(AutoFile &coins_file,
                      const node::SnapshotMetadata &metadata, bool in_memory);
 

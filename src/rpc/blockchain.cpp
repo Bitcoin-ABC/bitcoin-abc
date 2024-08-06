@@ -2958,8 +2958,7 @@ UniValue WriteUTXOSnapshot(Chainstate &chainstate, CCoinsViewCursor *pcursor,
                   tip->nHeight, tip->GetBlockHash().ToString(),
                   fs::PathToString(path), fs::PathToString(temppath)));
 
-    SnapshotMetadata metadata{tip->GetBlockHash(), tip->nHeight,
-                              maybe_stats->coins_count};
+    SnapshotMetadata metadata{tip->GetBlockHash(), maybe_stats->coins_count};
 
     afile << metadata;
 
@@ -3108,6 +3107,8 @@ static RPCHelpMan loadtxoutset() {
                               path.u8string()));
             }
 
+            CBlockIndex &snapshot_index{*CHECK_NONFATAL(*activation_result)};
+
             // Because we can't provide historical blocks during tip or
             // background sync. Update local services to reflect we are a
             // limited peer until we are fully sync.
@@ -3119,8 +3120,8 @@ static RPCHelpMan loadtxoutset() {
 
             UniValue result(UniValue::VOBJ);
             result.pushKV("coins_loaded", metadata.m_coins_count);
-            result.pushKV("tip_hash", metadata.m_base_blockhash.ToString());
-            result.pushKV("base_height", metadata.m_base_blockheight);
+            result.pushKV("tip_hash", snapshot_index.GetBlockHash().ToString());
+            result.pushKV("base_height", snapshot_index.nHeight);
             result.pushKV("path", fs::PathToString(path));
             return result;
         },
