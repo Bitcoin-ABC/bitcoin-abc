@@ -118,7 +118,7 @@ function Build() {
                     single dev can reach millions of customers overnight.
                 </p>
                 <p>
-                    A good strategy to make an app successful is to go though a
+                    A good strategy to make an app successful is to go through a
                     process of trial, error, feedback, and iteration. Reducing
                     the cycle time of this process is critical. This is called
                     rapid prototyping.
