@@ -177,38 +177,23 @@ module.exports = {
         }
 
         if (!minerInfo) {
-            // Test for the "last push" potential pool miner
-            // Probably a pool because
-            // - Different output script for each block
-            // - Coinbase script follows a pattern
-            //   - 36 characters
-            //   - then an accurate ascii push for the last string
-            // Even if not a pool, it's more useful to identify miners who fit this pattern
-            // by this push than by nothing at all
-            // e.g. the genesis block fits this pattern
-            const UNKNOWN_POOL_PAD_CHARS = 36;
+            // We're still unable to identify the miner, so resort to
+            // indentifying by the last chars of the payout address. For now
+            // we assume the ordering of outputs such as the miner reward is at
+            // the first position.
+            const minerPayoutSript = outputs[0].outputScript;
             try {
-                const lastPushdataAndPush = testedCoinbaseScript.slice(
-                    UNKNOWN_POOL_PAD_CHARS,
-                );
-                const { data } = consumeNextPush({
-                    remainingHex: lastPushdataAndPush,
-                });
-                if (containsOnlyPrintableAscii(data)) {
-                    return `unknown, ${Buffer.from(data, 'hex').toString(
-                        'ascii',
-                    )}`;
-                }
+                const minerAddress =
+                    cashaddr.encodeOutputScript(minerPayoutSript);
+                return `unknown, @${minerAddress.slice(-4)}`;
             } catch (err) {
                 console.log(
-                    `Error parsing unknown miner as last push pool`,
+                    `Error converting miner payout script (${minerPayoutSript}) to eCash address`,
                     err,
                 );
-                // Don't know this miner
+                // Give up
                 return 'unknown';
             }
-            // Don't know this miner
-            return 'unknown';
         }
 
         // If you have found the miner, parse coinbase hex for additional info

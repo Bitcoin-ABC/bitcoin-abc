@@ -27,15 +27,6 @@ module.exports = {
             },
         ],
         [
-            '76a914ce8c8cf69a922a607e8e03e27ec014fbc24882e088ac',
-            {
-                miner: 'anon e0',
-                // This miner does tend to have 'mm' in the same position at the coinbase
-                // However we are not sure what this means, so ID only by the same receiving addr
-                coinbaseHexFragment: null,
-            },
-        ],
-        [
             '76a9141c2a7324dc6b7a2fd5d1e385f49f98bbef0e318b88ac',
             {
                 miner: 'Hathor-MM',
