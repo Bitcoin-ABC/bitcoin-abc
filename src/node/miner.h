@@ -123,7 +123,7 @@ private:
 };
 
 int64_t UpdateTime(CBlockHeader *pblock, const CChainParams &chainParams,
-                   const CBlockIndex *pindexPrev);
+                   const CBlockIndex *pindexPrev, int64_t adjustedTime);
 } // namespace node
 
 #endif // BITCOIN_NODE_MINER_H

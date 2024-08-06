@@ -1020,7 +1020,9 @@ static RPCHelpMan getblocktemplate() {
             CBlock *pblock = &pblocktemplate->block;
 
             // Update nTime
-            UpdateTime(pblock, chainparams, pindexPrev);
+            int64_t adjustedTime =
+                TicksSinceEpoch<std::chrono::seconds>(GetAdjustedTime());
+            UpdateTime(pblock, chainparams, pindexPrev, adjustedTime);
             pblock->nNonce = 0;
 
             UniValue aCaps(UniValue::VARR);
