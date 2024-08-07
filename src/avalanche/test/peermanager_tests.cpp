@@ -3151,4 +3151,86 @@ BOOST_AUTO_TEST_CASE(avapeers_dump) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(dangling_proof_invalidation) {
+    ChainstateManager &chainman = *Assert(m_node.chainman);
+    avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
+    Chainstate &active_chainstate = chainman.ActiveChainstate();
+
+    SetMockTime(GetTime<std::chrono::seconds>());
+
+    CKey key = CKey::MakeCompressedKey();
+    auto utxo = createUtxo(active_chainstate, key);
+    auto proof =
+        buildProof(key, {{utxo, PROOF_DUST_THRESHOLD}}, key, 2, 100, false,
+                   GetTime<std::chrono::seconds>().count() + 1000000);
+
+    // Register the proof
+    BOOST_CHECK(pm.registerProof(proof));
+    BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+    BOOST_CHECK(!pm.isDangling(proof->getId()));
+
+    // Elapse the dangling timeout. No nodes are bound, so the proof is now
+    // dangling.
+    SetMockTime(GetTime<std::chrono::seconds>() +
+                avalanche::Peer::DANGLING_TIMEOUT);
+    TestPeerManager::cleanupDanglingProofs(pm);
+    BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
+    BOOST_CHECK(!pm.exists(proof->getId()));
+    BOOST_CHECK(pm.isDangling(proof->getId()));
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = active_chainstate.CoinsTip();
+        // Make proof invalid
+        coins.SpendCoin(utxo);
+    }
+
+    // Trigger proof validity checks
+    pm.updatedBlockTip();
+
+    // The now invalid proof is removed
+    BOOST_CHECK(!pm.exists(proof->getId()));
+    BOOST_CHECK(!pm.isDangling(proof->getId()));
+
+    {
+        LOCK(cs_main);
+        CCoinsViewCache &coins = active_chainstate.CoinsTip();
+        // Add the utxo back so we can make the proof valid again
+        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
+        coins.AddCoin(utxo,
+                      Coin(CTxOut(PROOF_DUST_THRESHOLD, script), 100, false),
+                      false);
+    }
+
+    // Our proof is not expired yet, so it registers fine
+    BOOST_CHECK(pm.registerProof(proof));
+    BOOST_CHECK(pm.isBoundToPeer(proof->getId()));
+    BOOST_CHECK(!pm.isDangling(proof->getId()));
+
+    // Elapse the dangling timeout. No nodes are bound, so the proof is now
+    // dangling.
+    SetMockTime(GetTime<std::chrono::seconds>() +
+                avalanche::Peer::DANGLING_TIMEOUT);
+    TestPeerManager::cleanupDanglingProofs(pm);
+    BOOST_CHECK(!pm.isBoundToPeer(proof->getId()));
+    BOOST_CHECK(!pm.exists(proof->getId()));
+    BOOST_CHECK(pm.isDangling(proof->getId()));
+
+    // Mine blocks until the MTP of the tip moves to the proof expiration
+    for (int64_t i = 0; i < 6; i++) {
+        SetMockTime(proof->getExpirationTime() + i);
+        CreateAndProcessBlock({}, CScript());
+    }
+    BOOST_CHECK_EQUAL(
+        WITH_LOCK(chainman.GetMutex(), return chainman.ActiveTip())
+            ->GetMedianTimePast(),
+        proof->getExpirationTime());
+
+    pm.updatedBlockTip();
+
+    // The now expired proof is removed
+    BOOST_CHECK(!pm.exists(proof->getId()));
+    BOOST_CHECK(!pm.isDangling(proof->getId()));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

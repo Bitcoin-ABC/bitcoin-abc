@@ -14,6 +14,7 @@
 #include <logging.h>
 #include <random.h>
 #include <scheduler.h>
+#include <threadsafety.h>
 #include <uint256.h>
 #include <util/fastrange.h>
 #include <util/fs_helpers.h>
@@ -571,6 +572,23 @@ std::unordered_set<ProofRef, SaltedProofHasher> PeerManager::updatedBlockTip() {
                          p.proof->getId().GetHex(), state.ToString());
             }
         }
+
+        // Disable thread safety analysis here because it does not play nicely
+        // with the lambda
+        danglingProofPool.forEachProof(
+            [&](const ProofRef &proof) NO_THREAD_SAFETY_ANALYSIS {
+                AssertLockHeld(cs_main);
+                ProofValidationState state;
+                if (!proof->verify(stakeUtxoDustThreshold, chainman, state)) {
+                    invalidProofIds.push_back(proof->getId());
+
+                    LogPrint(
+                        BCLog::AVALANCHE,
+                        "Invalidating dangling proof %s: verification failed "
+                        "(%s)\n",
+                        proof->getId().GetHex(), state.ToString());
+                }
+            });
     }
 
     // Remove the invalid proofs before the immature rescan. This makes it
