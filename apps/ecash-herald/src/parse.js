@@ -185,7 +185,7 @@ module.exports = {
             try {
                 const minerAddress =
                     cashaddr.encodeOutputScript(minerPayoutSript);
-                return `unknown, @${minerAddress.slice(-4)}`;
+                return `unknown, ...${minerAddress.slice(-4)}`;
             } catch (err) {
                 console.log(
                     `Error converting miner payout script (${minerPayoutSript}) to eCash address`,

@@ -57,7 +57,7 @@ module.exports = [
             '0372120c04ca6f5a640cfabe6d6d0000000000000000000000000000000000000000000000000000000000000000010000000000000017ffe3db2f2981010000000015663561663031393839363731656539633239383034',
         payoutOutputScript:
             '76a914ce8c8cf69a922a607e8e03e27ec014fbc24882e088ac',
-        parsed: 'unknown, @863u',
+        parsed: 'unknown, ...863u',
     },
     {
         height: 790242,
@@ -65,7 +65,7 @@ module.exports = [
             '03e20e0c04cdc250640cfabe6d6d00000000000000000000000000000000000000000000000000000000000000000100000000000000780131c9f83700000000000015303637373062323039393135643332643630303333',
         payoutOutputScript:
             '76a914ce8c8cf69a922a607e8e03e27ec014fbc24882e088ac',
-        parsed: 'unknown, @863u',
+        parsed: 'unknown, ...863u',
     },
     {
         height: 790837,
@@ -73,7 +73,7 @@ module.exports = [
             '0335110c0408fa56640cfabe6d6d000000000000000000000000000000000000000000000000000000000000000001000000000000005ffff258d57091000000000015653364396135343132373039306165353131333437',
         payoutOutputScript:
             '76a914ce8c8cf69a922a607e8e03e27ec014fbc24882e088ac',
-        parsed: 'unknown, @863u',
+        parsed: 'unknown, ...863u',
     },
     {
         height: 785677,
@@ -236,28 +236,28 @@ module.exports = [
         coinbaseHex: '0389990c04be0697650060002d03f7f5010004656b7534',
         payoutOutputScript:
             '76a91488fd36dad8f1e49913502922c867fab9ce27092288ac',
-        parsed: 'unknown, @pv7l',
+        parsed: 'unknown, ...pv7l',
     },
     {
         height: '826279',
         coinbaseHex: '03a79b0c04f5769c650030000215dacb0200026638',
         payoutOutputScript:
             '76a914fe4e85f56ae06e5a67e402354f8f73cab8fc19ce88ac',
-        parsed: 'unknown, @3cst',
+        parsed: 'unknown, ...3cst',
     },
     {
         height: '826256',
         coinbaseHex: '03909b0c0474679c65003000021796240200026135',
         payoutOutputScript:
             '76a914d4b32e161eec0cb2e63a6a0d82e79463fb7f9f6b88ac',
-        parsed: 'unknown, @qud4',
+        parsed: 'unknown, ...qud4',
     },
     {
         height: '825775',
         coinbaseHex: '03af990c04e68197650060002dbb36000000026f78',
         payoutOutputScript:
             '76a91472dce9d2b169bfc20501b4dac5927b16bd6f71e388ac',
-        parsed: 'unknown, @87xc',
+        parsed: 'unknown, ...87xc',
     },
     // Parsed from coinbase hex fragment
     {
