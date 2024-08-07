@@ -2113,9 +2113,7 @@ BOOST_AUTO_TEST_CASE(register_proof_missing_utxo) {
     BOOST_CHECK(state.GetResult() == ProofRegistrationResult::MISSING_UTXO);
 }
 
-BOOST_AUTO_TEST_CASE(proof_expiry) {
-    gArgs.ForceSetArg("-avalancheconflictingproofcooldown", "0");
-
+BOOST_FIXTURE_TEST_CASE(proof_expiry, NoCoolDownFixture) {
     ChainstateManager &chainman = *Assert(m_node.chainman);
     avalanche::PeerManager pm(PROOF_DUST_THRESHOLD, chainman);
 
@@ -2157,8 +2155,6 @@ BOOST_AUTO_TEST_CASE(proof_expiry) {
 
     // The conflicting proof has been pulled back to the valid pool
     BOOST_CHECK(pm.isBoundToPeer(conflictingProof->getId()));
-
-    gArgs.ClearForcedArg("-avalancheconflictingproofcooldown");
 }
 
 BOOST_AUTO_TEST_CASE(peer_availability_score) {
