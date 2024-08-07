@@ -27,6 +27,7 @@
 #include <util/vector.h>
 
 #include <test/util/net.h>
+#include <test/util/random.h>
 
 #include <optional>
 #include <ostream>
@@ -51,6 +52,9 @@ extern std::vector<const char *> fixture_extra_args;
 struct BasicTestingSetup {
     // keep as first member to be destructed last
     node::NodeContext m_node;
+    // Alias (reference) for the global, to allow easy removal of the global in
+    // the future.
+    FastRandomContext &m_rng{g_insecure_rand_ctx};
 
     explicit BasicTestingSetup(
         const ChainType chainType = ChainType::MAIN,
