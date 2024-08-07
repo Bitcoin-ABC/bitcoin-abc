@@ -41,6 +41,7 @@ export default createGlobalStyle`
 
     html {
         scroll-padding-top: 120px;
+        scroll-behavior: smooth;
     }
     
     html,
@@ -148,5 +149,12 @@ export default createGlobalStyle`
 
     body .wg-drop.weg-openup ul {
         bottom: 50px;
+    }
+
+    .anchor {
+        display: block;
+        height: 150px; 
+        margin-top: -150px; 
+        visibility: hidden;
     }
 `;

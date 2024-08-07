@@ -49,19 +49,26 @@ function TextImageBlock({
     imageHeight = 700,
 }) {
     return (
-        <TextImageBlockCtn id={id}>
-            <LeftTopArrow />
-            <LeftDownArrow />
-            <RightTopArrow />
-            <RightDownArrow />
-            <TextCtn>
-                <H3 text={title} />
-                {children}
-            </TextCtn>
-            <ImageCtn imageHeight={imageHeight}>
-                <AnimateImage image={image} reverse={reverse} speed={speed} />
-            </ImageCtn>
-        </TextImageBlockCtn>
+        <>
+            <span class="anchor" id={id} />
+            <TextImageBlockCtn>
+                <LeftTopArrow />
+                <LeftDownArrow />
+                <RightTopArrow />
+                <RightDownArrow />
+                <TextCtn>
+                    <H3 text={title} />
+                    {children}
+                </TextCtn>
+                <ImageCtn imageHeight={imageHeight}>
+                    <AnimateImage
+                        image={image}
+                        reverse={reverse}
+                        speed={speed}
+                    />
+                </ImageCtn>
+            </TextImageBlockCtn>
+        </>
     );
 }
 
