@@ -1754,7 +1754,7 @@ module.exports = {
         if (blocksLeft > 0) {
             // countdown
             tgMsg.push(
-                `⏰ ${blocksLeft.toLocaleString()} block${
+                `⏰ ${blocksLeft.toLocaleString('en-US')} block${
                     blocksLeft !== 1 ? 's' : ''
                 } until eCash halving`,
             );

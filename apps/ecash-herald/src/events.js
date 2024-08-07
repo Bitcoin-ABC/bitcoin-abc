@@ -47,7 +47,7 @@ module.exports = {
             const errorTgMsg =
                 `New Block Found\n` +
                 `\n` +
-                `${blockHeight.toLocaleString()}\n` +
+                `${blockHeight.toLocaleString('en-US')}\n` +
                 `\n` +
                 `${blockHash}\n` +
                 `\n` +
@@ -162,7 +162,7 @@ module.exports = {
                 config.waitForFinalizationMsecs / 1000
             }s\n` +
             `\n` +
-            `${blockHeight.toLocaleString()}\n` +
+            `${blockHeight.toLocaleString('en-US')}\n` +
             `\n` +
             `${blockHash}`;
 

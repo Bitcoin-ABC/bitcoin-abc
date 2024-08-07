@@ -273,7 +273,9 @@ describe('ecash-herald events.js', async function () {
         assert.strictEqual(telegramBot.messageSent, true);
 
         // Expect the backup msg
-        const expectedMsg = `New Block Found\n\n${thisBlock.parsedBlock.height.toLocaleString()}\n\n${
+        const expectedMsg = `New Block Found\n\n${thisBlock.parsedBlock.height.toLocaleString(
+            'en-US',
+        )}\n\n${
             thisBlock.parsedBlock.hash
         }\n\n<a href="https://explorer.e.cash/block/${
             thisBlock.parsedBlock.hash
