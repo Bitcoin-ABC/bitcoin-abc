@@ -399,6 +399,10 @@ public:
     bool rejectProof(const ProofId &proofid,
                      RejectionMode mode = RejectionMode::DEFAULT);
 
+    /**
+     * Return true if the (valid) proof exists, but only for non-dangling
+     * proofs.
+     */
     bool exists(const ProofId &proofid) const {
         return getProof(proofid) != nullptr;
     }
