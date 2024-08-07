@@ -113,8 +113,8 @@ function UseEcash(props) {
                 <p>
                     As a convenient and reliable form of electronic cash, eCash
                     is meant to be used! Whether it&apos;s sending money to a
-                    friend, buying an online service, or finding more
-                    information, check out the services listed below to start
+                    friend, buying things online or paying for goods at a
+                    point-of-sale. Check out the services listed below to start
                     using your eCash today.
                 </p>
             </SubPageHero>
