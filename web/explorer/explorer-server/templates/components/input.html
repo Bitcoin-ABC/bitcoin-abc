@@ -7,9 +7,8 @@
     token_icon_url) %}
     {% let token_entry = input.token|find_token_entry(token_entries) %}
     {% let genesis_info = token_entry|token_entry_genesis_info %}
-    {% let is_token = input.token|check_is_token %}
-    {% let destination = input.output_script |
-    destination_from_script(is_token, sats_addr_prefix, tokens_addr_prefix) %}
+    {% let
+    destination = input.output_script|cashaddr_from_script(sats_addr_prefix) %}
     {% let decoded_input_script = input.input_script|get_script %}
     {% let prev_out = input.prev_out|unwrap %}
     <div>

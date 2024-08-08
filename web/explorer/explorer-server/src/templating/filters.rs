@@ -44,17 +44,10 @@ pub fn check_is_coinbase(outpoint: &OutPoint) -> askama::Result<bool> {
     Ok(outpoint.txid == [0; 32] && outpoint.out_idx == 0xffff_ffff)
 }
 
-pub fn destination_from_script<'a>(
+pub fn cashaddr_from_script<'a>(
     script: &'a [u8],
-    is_token: &bool,
-    sats_addr_prefix: &'a str,
-    tokens_addr_prefix: &'a str,
+    prefix: &'a str,
 ) -> askama::Result<blockchain::Destination<'a>> {
-    let prefix = if *is_token {
-        tokens_addr_prefix
-    } else {
-        sats_addr_prefix
-    };
     Ok(blockchain::destination_from_script(prefix, script))
 }
 
@@ -77,13 +70,6 @@ pub fn token_entry_genesis_info<'a>(
     entry: &Option<&'a TokenEntryTemplate<'a>>,
 ) -> askama::Result<Option<&'a GenesisInfo>> {
     Ok(entry.and_then(|entry| entry.genesis_info.as_ref()))
-}
-
-pub fn check_is_token(token: &Option<Token>) -> askama::Result<bool> {
-    Ok(token
-        .as_ref()
-        .map(|slp| slp.amount > 0 || slp.is_mint_baton)
-        .unwrap_or(false))
 }
 
 pub fn human_time(
