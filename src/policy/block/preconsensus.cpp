@@ -20,7 +20,7 @@ bool PreConsensusPolicy::operator()(BlockPolicyValidationState &state) {
     // TODO Use a CoinViewCache
     for (const auto &tx : m_block.vtx) {
         for (const auto &txin : tx->vin) {
-            const CTransaction *ptxConflicting =
+            const CTransactionRef ptxConflicting =
                 m_mempool->GetConflictTx(txin.prevout);
 
             // Only allow for the exact txid for each coin spent

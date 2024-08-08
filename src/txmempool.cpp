@@ -168,10 +168,10 @@ void CTxMemPool::addUnchecked(CTxMemPoolEntryRef entry) {
     // further updated.)
     cachedInnerUsage += entry->DynamicMemoryUsage();
 
-    const CTransaction &tx = entry->GetTx();
+    const CTransactionRef tx = entry->GetSharedTx();
     std::set<TxId> setParentTransactions;
-    for (const CTxIn &in : tx.vin) {
-        mapNextTx.insert(std::make_pair(&in.prevout, &tx));
+    for (const CTxIn &in : tx->vin) {
+        mapNextTx.insert(std::make_pair(&in.prevout, tx));
         setParentTransactions.insert(in.prevout.GetTxId());
     }
     // Don't bother worrying about child transactions of this one. It is
@@ -398,7 +398,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
             auto prevoutNextIt = mapNextTx.find(txin.prevout);
             assert(prevoutNextIt != mapNextTx.end());
             assert(prevoutNextIt->first == &txin.prevout);
-            assert(prevoutNextIt->second == &tx);
+            assert(prevoutNextIt->second.get() == &tx);
         }
         auto comp = [](const auto &a, const auto &b) -> bool {
             return a.get()->GetTx().GetId() == b.get()->GetTx().GetId();
@@ -450,7 +450,7 @@ void CTxMemPool::check(const CCoinsViewCache &active_coins_tip,
     for (auto &[_, nextTx] : mapNextTx) {
         txiter it = mapTx.find(nextTx->GetId());
         assert(it != mapTx.end());
-        assert(&(*it)->GetTx() == nextTx);
+        assert((*it)->GetSharedTx() == nextTx);
     }
 
     assert(totalTxSize == checkTotal);
@@ -567,7 +567,7 @@ void CTxMemPool::ClearPrioritisation(const TxId &txid) {
     mapDeltas.erase(txid);
 }
 
-const CTransaction *CTxMemPool::GetConflictTx(const COutPoint &prevout) const {
+CTransactionRef CTxMemPool::GetConflictTx(const COutPoint &prevout) const {
     const auto it = mapNextTx.find(prevout);
     return it == mapNextTx.end() ? nullptr : it->second;
 }

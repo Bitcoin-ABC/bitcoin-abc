@@ -65,12 +65,16 @@ static CBlock BuildBlockTestCase() {
 // (block + mempool + our copy from the GetSharedTx call)
 constexpr long SHARED_TX_OFFSET{3};
 
-static void expectUseCount(const CTxMemPool &pool, const TxId &txid,
+static void expectUseCount(const CTxMemPool &pool, const CTransaction *tx,
                            long expectedCount)
     EXCLUSIVE_LOCKS_REQUIRED(pool.cs) {
     AssertLockHeld(pool.cs);
-    BOOST_CHECK_EQUAL((*pool.mapTx.find(txid))->GetSharedTx().use_count(),
-                      SHARED_TX_OFFSET + expectedCount);
+
+    // Account for the number of shared references in mapNextTx. This should be
+    // equal to the number of inputs for this tx.
+    BOOST_CHECK_EQUAL(
+        (*pool.mapTx.find(tx->GetId()))->GetSharedTx().use_count(),
+        SHARED_TX_OFFSET + tx->vin.size() + expectedCount);
 }
 
 BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
@@ -81,8 +85,8 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
     LOCK2(cs_main, pool.cs);
     pool.addUnchecked(entry.FromTx(block.vtx[2]));
 
-    const TxId block_txid2 = block.vtx[2]->GetId();
-    expectUseCount(pool, block_txid2, 0);
+    const CTransaction *block_tx2 = block.vtx[2].get();
+    expectUseCount(pool, block_tx2, 0);
 
     // Do a simple ShortTxIDs RT
     {
@@ -102,7 +106,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest) {
         BOOST_CHECK(!partialBlock.IsTxAvailable(1));
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
-        expectUseCount(pool, block_txid2, 1);
+        expectUseCount(pool, block_tx2, 1);
 
         size_t poolSize = pool.size();
         pool.removeRecursive(*block.vtx[2], MemPoolRemovalReason::CONFLICT);
@@ -181,8 +185,8 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
     LOCK2(cs_main, pool.cs);
     pool.addUnchecked(entry.FromTx(block.vtx[2]));
 
-    const TxId block_txid2 = block.vtx[2]->GetId();
-    expectUseCount(pool, block_txid2, 0);
+    const CTransaction *block_tx2 = block.vtx[2].get();
+    expectUseCount(pool, block_tx2, 0);
 
     // Test with pre-forwarding tx 1, but not coinbase
     {
@@ -208,7 +212,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
         // +1 because of partialBlock
-        expectUseCount(pool, block_txid2, 1);
+        expectUseCount(pool, block_tx2, 1);
 
         CBlock block2;
         {
@@ -228,7 +232,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
             partialBlock = tmp;
         }
         // +2 because of partialBlock and block2
-        expectUseCount(pool, block_txid2, 2);
+        expectUseCount(pool, block_tx2, 2);
 
         bool mutated;
         BOOST_CHECK(block.hashMerkleRoot != BlockMerkleRoot(block2, &mutated));
@@ -243,18 +247,18 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest) {
         BOOST_CHECK(!mutated);
 
         // +3 because of partialBlock and block2 and block3
-        expectUseCount(pool, block_txid2, 3);
+        expectUseCount(pool, block_tx2, 3);
 
         block.vtx.clear();
         block2.vtx.clear();
         block3.vtx.clear();
 
         // + 1 because of partialBlock; -1 because of block.
-        expectUseCount(pool, block_txid2, 0);
+        expectUseCount(pool, block_tx2, 0);
     }
 
     // -1 because of block
-    expectUseCount(pool, block_txid2, -1);
+    expectUseCount(pool, block_tx2, -1);
 }
 
 BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
@@ -265,8 +269,8 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
     LOCK2(cs_main, pool.cs);
     pool.addUnchecked(entry.FromTx(block.vtx[1]));
 
-    const TxId block_txid1 = block.vtx[1]->GetId();
-    expectUseCount(pool, block_txid1, 0);
+    const CTransaction *block_tx1 = block.vtx[1].get();
+    expectUseCount(pool, block_tx1, 0);
 
     // Test with pre-forwarding coinbase + tx 2 with tx 1 in mempool
     {
@@ -291,7 +295,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         BOOST_CHECK(partialBlock.IsTxAvailable(1));
         BOOST_CHECK(partialBlock.IsTxAvailable(2));
 
-        expectUseCount(pool, block_txid1, 1);
+        expectUseCount(pool, block_tx1, 1);
 
         CBlock block2;
         PartiallyDownloadedBlock partialBlockCopy = partialBlock;
@@ -307,11 +311,11 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest) {
         block2.vtx.clear();
 
         // + 1 because of partialBlock; -1 because of block.
-        expectUseCount(pool, block_txid1, 0);
+        expectUseCount(pool, block_tx1, 0);
     }
 
     // -1 because of block
-    expectUseCount(pool, block_txid1, -1);
+    expectUseCount(pool, block_tx1, -1);
 }
 
 BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest) {

@@ -331,7 +331,7 @@ private:
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
 public:
-    indirectmap<COutPoint, const CTransaction *> mapNextTx GUARDED_BY(cs);
+    indirectmap<COutPoint, CTransactionRef> mapNextTx GUARDED_BY(cs);
     std::map<TxId, Amount> mapDeltas GUARDED_BY(cs);
 
     using Options = kernel::MemPoolOptions;
@@ -397,7 +397,7 @@ public:
     void ClearPrioritisation(const TxId &txid) EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Get the transaction in the pool that spends the same prevout */
-    const CTransaction *GetConflictTx(const COutPoint &prevout) const
+    CTransactionRef GetConflictTx(const COutPoint &prevout) const
         EXCLUSIVE_LOCKS_REQUIRED(cs);
 
     /** Returns an iterator to the given txid, if found */
