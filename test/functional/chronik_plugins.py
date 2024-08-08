@@ -94,6 +94,11 @@ class MyPluginPlugin(Plugin):
         ):
             self.restart_node(0, ["-chronik", "-chronikreindex"])
 
+        assert_equal(
+            chronik.plugin("doesntexist").utxos(b"").err(404).msg,
+            '404: Plugin "doesntexist" not loaded',
+        )
+
         coinblockhash = self.generatetoaddress(node, 1, ADDRESS_ECREG_P2SH_OP_TRUE)[0]
         coinblock = node.getblock(coinblockhash)
         cointx = coinblock["tx"][0]

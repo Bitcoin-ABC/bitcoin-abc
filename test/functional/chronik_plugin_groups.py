@@ -89,6 +89,11 @@ class MyPluginPlugin(Plugin):
             self.restart_node(0, ["-chronik", "-chronikreindex"])
         peer = node.add_p2p_connection(P2PDataStore())
 
+        assert_equal(
+            chronik.plugin("doesntexist").groups().err(404).msg,
+            '404: Plugin "doesntexist" not loaded',
+        )
+
         plugin = chronik.plugin("my_plugin")
         assert_equal(
             plugin.groups(page_size=51).err(400).msg,
