@@ -413,3 +413,15 @@ const copyText = (id, iconid) => {
         });
     return navigator.clipboard.writeText(textToCopy);
 };
+
+const copyString = string => {
+    if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        $('.tooltiptext')
+            .text('Copied!')
+            .delay(1300)
+            .queue(function () {
+                $(this).text('Copy to clipboard').dequeue();
+            });
+        return navigator.clipboard.writeText(string);
+    }
+};

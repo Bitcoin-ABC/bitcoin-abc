@@ -9,10 +9,18 @@ output.output_script|get_script %}
         <div class="output-row-section1">
             {% match destination %} {% when Destination::Address with (address)
             %}
-            <div class="input-hex input-hex-address">
-                <a href="/address/{{ address.as_str() }}">
-                    {{ address.as_str() }}
-                </a>
+            <div class="address-and-copy">
+                <div class="input-hex input-hex-address">
+                    <a href="/address/{{ address.as_str() }}">
+                        {{ address.as_str() }}
+                    </a>
+                </div>
+                <div
+                    class="copy-btn"
+                    onclick="copyString('{{address.as_str()}}')"
+                >
+                    <span class="tooltiptext">Copy to clipboard</span>
+                </div>
             </div>
             {% when Destination::Nulldata with (_ops) %} OP_RETURN data {% when
             Destination::P2PK with (pubkey) %} Pubkey: {{

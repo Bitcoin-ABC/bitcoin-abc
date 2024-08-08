@@ -20,16 +20,24 @@ input.input_script|get_script %}
             </a>
         </div>
         <div class="input-row-section2">
-            <div class="input-hex input-hex-address">
-                {% match destination %} {% when Destination::Address with
-                (address) %}
-                <a href="/address/{{ address.as_str() }}">
-                    {{ address.as_str() }}
-                </a>
-                {% when Destination::P2PK with (pubkey) %} Pubkey: {{
-                pubkey|hexify_u8_vector }} {% when Destination::Unknown with
-                (_bytes) %} Unknown {% when Destination::Nulldata with (_ops) %}
-                Unreachable {% endmatch %}
+            {% match destination %} {% when Destination::Address with (address)
+            %}
+            <div class="address-and-copy">
+                <div
+                    class="copy-btn"
+                    onclick="copyString('{{address.as_str()}}')"
+                >
+                    <span class="tooltiptext">Copy to clipboard</span>
+                </div>
+                <div class="input-hex input-hex-address">
+                    <a href="/address/{{ address.as_str() }}">
+                        {{ address.as_str() }}
+                    </a>
+                    {% when Destination::P2PK with (pubkey) %} Pubkey: {{
+                    pubkey|hexify_u8_vector }} {% when Destination::Unknown with
+                    (_bytes) %} Unknown {% when Destination::Nulldata with
+                    (_ops) %} Unreachable {% endmatch %}
+                </div>
             </div>
 
             <div class="input-hex">

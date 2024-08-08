@@ -1874,3 +1874,20 @@ div.dt-buttons button:hover {
         display: none;
     }
 }
+
+/* Styling for copy paste button on addresses on transaction page */
+.address-and-copy {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+/* Outputs align on the right */
+.output-row-section1 > div.address-and-copy {
+    justify-content: flex-end;
+}
+
+/* We handle spacing with flex gap for these copy-btn divs */
+.address-and-copy > div.copy-btn {
+    margin-left: 0px;
+}
