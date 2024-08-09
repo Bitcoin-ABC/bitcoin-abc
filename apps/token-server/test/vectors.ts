@@ -1094,6 +1094,33 @@ const vectors: TestVectors = {
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error('Insufficient token utxos'),
             },
+            {
+                description:
+                    'Expected error if insufficient non-token utxos to send a tx',
+                wallet: MOCK_WALLET,
+                utxos: [
+                    // Only token utxos are available
+                    // Enough XEC to send the tx, but only if token amounts are calculated properly
+                    // TODO optimize token utxo selection for xec-free txs
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 2 },
+                    },
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 3 },
+                    },
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                        token: { ...MOCK_UTXO_TOKEN, amount: '2' },
+                    },
+                ],
+                tokenId: MOCK_TOKENID_ONES,
+                rewardAmountTokenSats: 2n,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                error: new Error('Insufficient XEC utxos to complete tx'),
+            },
         ],
     },
 };

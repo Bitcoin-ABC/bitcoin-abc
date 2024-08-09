@@ -190,6 +190,10 @@ export const sendReward = async (
 
     // Add and sign required inputUtxos to create tx with specified targetOutputs
     for (const utxo of utxos!) {
+        if ('token' in utxo) {
+            // We do not add token utxos for required inputSatoshis
+            continue;
+        }
         if (needsAnotherUtxo) {
             // If inputSatoshis is less than or equal to satoshisToSend, we know we need
             // to add another input
@@ -245,7 +249,6 @@ export const sendReward = async (
         // Otherwise, broadcast the tx
         const txSer = tx.ser();
         const hex = toHex(txSer);
-        console.log(`reward tx hex`, hex);
         // Will throw error on node failing to broadcast tx
         // e.g. 'txn-mempool-conflict (code 18)'
         const response = await chronik.broadcastTx(hex);
@@ -253,5 +256,5 @@ export const sendReward = async (
         return { hex, response };
     }
     // If we go over all input utxos but do not have enough to send the tx, throw Insufficient funds error
-    throw new Error('Insufficient funds');
+    throw new Error('Insufficient XEC utxos to complete tx');
 };
