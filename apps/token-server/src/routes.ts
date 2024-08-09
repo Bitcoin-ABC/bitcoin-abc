@@ -226,6 +226,9 @@ export const startExpressServer = (
                 address,
             );
         } catch (err) {
+            // Log error for server review
+            console.log(`Error broadcasting rewards tx`);
+            console.log(err);
             // Return server error response
             return res.status(500).json({
                 error: `Error sending rewards tx, please contact admin`,
