@@ -144,3 +144,7 @@ If you have any implementation questions regarding this mock tool please check t
 1.10.0
 
 -   Allow getting and setting `history()` by `lokadId` [D16382](https://reviews.bitcoinabc.org/D16382)
+
+1.10.1
+
+-   Return missing `numTxs` key from `history()` calls

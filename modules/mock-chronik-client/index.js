@@ -407,6 +407,7 @@ module.exports = {
 
             response.txs = thisPage;
             response.numPages = Math.ceil(txHistory.length / pageSize);
+            response.numTxs = txHistory.length;
             return response;
         }
     },
