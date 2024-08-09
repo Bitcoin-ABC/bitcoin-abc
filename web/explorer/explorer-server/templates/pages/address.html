@@ -112,6 +112,12 @@ block content %}
                             json_balance.token_amount|to_i128|render_token_amount(genesis_info.decimals)|safe
                             }}
                         </div>
+                        <div class="etoken-row-cell">
+                            <img
+                                class="token-icon"
+                                src="{{token_icon_url}}/32/{{token_id}}.png"
+                            />
+                        </div>
                         <div class="etoken-row-cell etrc-ticker">
                             {{ genesis_info.token_ticker|string_from_lossy_utf8
                             }}

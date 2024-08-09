@@ -51,6 +51,7 @@ pub struct TransactionTemplate<'a> {
     pub action_str: &'a str,
     pub specification: &'a str,
     pub token_type: &'a str,
+    pub token_icon_url: &'a str,
 }
 
 #[derive(Template)]
@@ -68,6 +69,7 @@ pub struct AddressTemplate<'a> {
     pub json_balances: HashMap<String, JsonBalance>,
     pub encoded_tokens: String,
     pub encoded_balances: String,
+    pub token_icon_url: &'a str,
 }
 
 #[derive(Template)]

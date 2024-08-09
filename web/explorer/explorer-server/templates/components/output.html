@@ -1,7 +1,8 @@
 {% macro render(index, output, tx, slp_genesis_info, sats_addr_prefix,
-tokens_addr_prefix) %} {% let is_token = output.token|check_is_token %} {% let
-destination = output.output_script|destination_from_script(is_token,
-sats_addr_prefix, tokens_addr_prefix) %} {% let decoded_output_script =
+tokens_addr_prefix, token_icon_url) %} {% let is_token =
+output.token|check_is_token %} {% let destination =
+output.output_script|destination_from_script(is_token, sats_addr_prefix,
+tokens_addr_prefix) %} {% let decoded_output_script =
 output.output_script|get_script %}
 
 <div>
@@ -35,8 +36,11 @@ output.output_script|get_script %}
                 <div class="ui green horizontal label">Mint baton</div>
                 {% else %} {{
                 slp_token.amount|to_i128|render_token_amount(genesis_info.decimals)|safe
-                }} {{ genesis_info.token_ticker|string_from_lossy_utf8 }} {%
-                endif %} {% endif %}
+                }} {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
+                {%endif %} {% endif %} {% match token_hex %} {% when Some with
+                (token_hex)%}
+                <img src="{{token_icon_url}}/32/{{token_hex}}.png" />
+                {% when None %} {% endmatch %}
 
                 <div>
                     <small>{{ output.value|render_sats|safe }} XEC</small>

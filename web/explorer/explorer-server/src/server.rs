@@ -42,6 +42,7 @@ pub struct Server {
     base_dir: PathBuf,
     satoshi_addr_prefix: &'static str,
     tokens_addr_prefix: &'static str,
+    token_icon_url: &'static str,
 }
 
 impl Server {
@@ -59,6 +60,7 @@ impl Server {
                 Chain::Regtest => "ecregtest",
             },
             tokens_addr_prefix: "etoken",
+            token_icon_url: "https://icons.etokens.cash",
         })
     }
 
@@ -447,6 +449,7 @@ impl Server {
             action_str: &action_str,
             specification: &specification,
             token_type: &token_type_str,
+            token_icon_url: &self.token_icon_url,
         };
 
         Ok(transaction_template.render().unwrap())
@@ -554,6 +557,7 @@ impl Server {
             json_balances,
             encoded_tokens,
             encoded_balances,
+            token_icon_url: &self.token_icon_url,
         };
 
         Ok(address_template.render().unwrap())

@@ -1,7 +1,13 @@
 {% macro render(tx, slp_genesis_info, slp_meta, token_input, token_output,
-action_str, specification) %} {% match slp_genesis_info %} {% when Some with
-(genesis_info) %}
+action_str, specification, token_icon_url) %} {% match slp_genesis_info %} {%
+when Some with (genesis_info) %}
 <div class="tx-details-half">
+    <div class="tx-details-row">
+        <div>Token Icon</div>
+        {% match token_hex %} {% when Some with (token_hex)%}
+        <img class="token-icon" src="{{token_icon_url}}/32/{{token_hex}}.png" />
+        {% when None %} {% endmatch %}
+    </div>
     <div class="tx-details-row">
         <div>Token Ticker</div>
         <div>{{ genesis_info.token_ticker|string_from_lossy_utf8 }}</div>

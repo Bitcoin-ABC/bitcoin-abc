@@ -1891,3 +1891,8 @@ div.dt-buttons button:hover {
 .address-and-copy > div.copy-btn {
     margin-left: 0px;
 }
+
+.token-icon {
+    max-width: 32px;
+    max-height: 32px;
+}

@@ -198,7 +198,8 @@ import "components/output.html" as output %} {% import
         <h2>{{ token_section_title }}</h2>
         <div class="tx-details-ctn">
             {% call token_info_table::render(tx, slp_genesis_info, slp_meta,
-            token_input, token_output, action_str, specification) %}
+            token_input, token_output, action_str, specification,
+            token_icon_url) %}
         </div>
 
         {% match slp_meta %}{% when Some with(entry) %}{% match slp_genesis_info
@@ -268,7 +269,8 @@ import "components/output.html" as output %} {% import
                     <div id="inputs">
                         {% for input in tx.inputs %} {% call
                         input::render(loop.index0, input, tx, slp_genesis_info,
-                        sats_addr_prefix, tokens_addr_prefix) %} {% endfor %}
+                        sats_addr_prefix, tokens_addr_prefix, token_icon_url) %}
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -281,8 +283,8 @@ import "components/output.html" as output %} {% import
                     <div id="outputs">
                         {% for output in tx.outputs %} {% call
                         output::render(loop.index0, output, tx,
-                        slp_genesis_info, sats_addr_prefix, tokens_addr_prefix)
-                        %} {% endfor %}
+                        slp_genesis_info, sats_addr_prefix, tokens_addr_prefix,
+                        token_icon_url) %} {% endfor %}
                     </div>
                 </div>
             </div>
