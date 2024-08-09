@@ -2,9 +2,43 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-# Node image for prod deployment of token-server
+# Multi-stage
+# 1) rust image for ecash-lib
+# 2) Node image for prod deployment of token-server
+
+# 1) rust image for ecash-lib
+FROM rust:1.76.0 AS wasmbuilder
+
+RUN apt-get update \
+  && apt-get install clang binaryen -y \
+  && rustup target add wasm32-unknown-unknown \
+  && cargo install -f wasm-bindgen-cli@0.2.92
+
+# Copy Cargo.toml
+WORKDIR /app/
+COPY Cargo.toml .
+
+# Copy chronik to same directory structure as monorepo
+# This needs to be in place to run ./build-wasm
+WORKDIR /app/chronik/
+COPY chronik/ .
+
+# Copy ecash-lib and ecash-lib-wasm files to same directory structure as monorepo
+WORKDIR /app/modules/ecash-lib
+COPY modules/ecash-lib .
+WORKDIR /app/modules/ecash-lib-wasm
+COPY modules/ecash-lib-wasm .
+
+# Build web assembly for ecash-lib
+RUN ./build-wasm.sh
+
+# 2) Node image for prod deployment of token-server
 
 FROM node:20-buster-slim
+
+# Copy static assets from wasmbuilder stage (ecash-lib-wasm and ecash-lib, with wasm built in place)
+WORKDIR /app/modules
+COPY --from=wasmbuilder /app/modules .
 
 # Build all local token-server dependencies
 
@@ -20,10 +54,10 @@ COPY modules/chronik-client/ .
 RUN npm ci
 RUN npm run build
 
-# ecash-coinselect
-WORKDIR /app/modules/ecash-coinselect
-COPY modules/ecash-coinselect/ .
+# ecash-lib
+WORKDIR /app/modules/ecash-lib
 RUN npm ci
+RUN npm run build
 
 # Now that local dependencies are ready, build token-server
 WORKDIR /app/apps/token-server
