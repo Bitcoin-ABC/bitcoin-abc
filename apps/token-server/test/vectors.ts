@@ -297,6 +297,29 @@ interface SendRewardError {
     error: Error;
 }
 
+interface SendXecAirdropVector {
+    returns: SendXecAirdropReturn[];
+    errors: SendXecAirdropError[];
+}
+
+interface SendXecAirdropReturn {
+    description: string;
+    wallet: ServerWallet;
+    utxos: ScriptUtxo_InNode[];
+    xecAirdropAmountSats: number;
+    destinationAddress: string;
+    returned: RewardBroadcastSuccess;
+}
+
+interface SendXecAirdropError {
+    description: string;
+    wallet: ServerWallet;
+    utxos: Error | ScriptUtxo_InNode[];
+    xecAirdropAmountSats: number;
+    destinationAddress: string;
+    error: Error;
+}
+
 interface TestVectors {
     hasInputsFromOutputScript: HasInputsFromOutputScriptVector;
     addressReceivedToken: AddressReceivedTokenReturnVector;
@@ -308,6 +331,7 @@ interface TestVectors {
     syncWallet: SyncWalletVector;
     getSlpInputsAndOutputs: GetSlpInputsAndOutputsVector;
     sendReward: SendRewardVector;
+    sendXecAirdrop: SendXecAirdropVector;
 }
 
 const vectors: TestVectors = {
@@ -1120,6 +1144,95 @@ const vectors: TestVectors = {
                 rewardAmountTokenSats: 2n,
                 destinationAddress: MOCK_DESTINATION_ADDRESS,
                 error: new Error('Insufficient XEC utxos to complete tx'),
+            },
+        ],
+    },
+    sendXecAirdrop: {
+        returns: [
+            {
+                description: 'XEC Airdrop with no change',
+                wallet: MOCK_WALLET,
+                utxos: [{ ...MOCK_SCRIPT_UTXO, value: 2185 }],
+                xecAirdropAmountSats: 2000,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                returned: {
+                    hex: '0200000001111111111111111111111111111111111111111111111111111111111111111100000000644119ee30fd7a03ffe1b969c994842e5190a47e64a634efb4a8743762c7db6a9e76996fd119abddbc84c911bcab99da86e361d49d1a7452871f918f9ab7574cf3d041210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
+                    response: {
+                        txid: '9bc8d27609cf7b70317de9c9f1137c5d0211100be38d10847b7054da0feb551c',
+                    },
+                },
+            },
+            {
+                description:
+                    'XEC Airdrop with no change, where we try to build the tx without enough XEC to cover the fee',
+                wallet: MOCK_WALLET,
+                utxos: [
+                    { ...MOCK_SCRIPT_UTXO, value: 2001 },
+                    {
+                        ...MOCK_SCRIPT_UTXO,
+                        value: 546,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                    },
+                ],
+                xecAirdropAmountSats: 2000,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                returned: {
+                    hex: '02000000021111111111111111111111111111111111111111111111111111111111111111000000006441f3db06231bd7aed9e487caf1f509aa99b28b3685ac98b4410003ba1458989989b19d844e987f0b3a7fbfaae5dc56fee2a74c81856d68b492cab1e1321b1e0ca841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff1111111111111111111111111111111111111111111111111111111111111111010000006441cce8ff45845e94742322d073244151c8558c4e346ed5f017dd3e0fc5476a12a7cdffdaf737d2e8a9cdade5a780e1ad96217868cbfc4f06340646d4c2c9b5d70341210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff01d0070000000000001976a914000000000000000000000000000000000000000088ac00000000',
+                    response: {
+                        txid: '00016cda2a142789255bcc5a15fa18744e18f662172159ed90b5e4362cb51e2a',
+                    },
+                },
+            },
+            {
+                description: 'XEC Airdrop with change',
+                wallet: MOCK_WALLET,
+                utxos: [{ ...MOCK_SCRIPT_UTXO, value: 10000 }],
+                xecAirdropAmountSats: 2000,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                returned: {
+                    hex: '02000000011111111111111111111111111111111111111111111111111111111111111111000000006441180e2b57a8e5f90717049afc9800699a95e84b260004c1b67f178e1a111b663cc3692d7b7890b2dce93003ebbfce466c465000137d8c0aa5a4e5c5d3719a729841210357e84997196580b5e39b202f85ca353e92d051efa13f7f356834a15a36076e0affffffff02d0070000000000001976a914000000000000000000000000000000000000000088ac651e0000000000001976a914a5aff40b97ab2a15add0185bdcd4cd0fa3dd7b1888ac00000000',
+                    response: {
+                        txid: '59e8251fec3ef6ead7fde0f23bff39ddd5d814e0d92d7d3e1dc0beca3112db55',
+                    },
+                },
+            },
+        ],
+        errors: [
+            {
+                description: 'Expected error if wallet fails to sync utxo set',
+                wallet: MOCK_WALLET,
+                utxos: new Error('Some chronik error trying to fetch utxos'),
+                xecAirdropAmountSats: 2000,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                error: new Error('Some chronik error trying to fetch utxos'),
+            },
+            {
+                description:
+                    'Expected error if XEC balance is one satoshi too little to cover the tx',
+                wallet: MOCK_WALLET,
+                utxos: [{ ...MOCK_SCRIPT_UTXO, value: 2184 }],
+                xecAirdropAmountSats: 2000,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                error: new Error(
+                    'Insufficient XEC utxos to complete XEC airdrop tx',
+                ),
+            },
+            {
+                description:
+                    'Expected error if XEC balance is sufficient to cover the tx, but the only available utxos are token utxos (we confirm token utxos are not spent)',
+                wallet: MOCK_WALLET,
+                utxos: [
+                    {
+                        ...MOCK_SPENDABLE_TOKEN_UTXO,
+                        value: 20000,
+                        outpoint: { ...MOCK_OUTPOINT, outIdx: 1 },
+                    },
+                ],
+                xecAirdropAmountSats: 2000,
+                destinationAddress: MOCK_DESTINATION_ADDRESS,
+                error: new Error(
+                    'Insufficient XEC utxos to complete XEC airdrop tx',
+                ),
             },
         ],
     },

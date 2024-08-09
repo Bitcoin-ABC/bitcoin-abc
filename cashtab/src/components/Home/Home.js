@@ -13,7 +13,7 @@ import Receive from 'components/Receive/Receive';
 import { Alert } from 'components/Common/Atoms';
 import { getUserLocale } from 'helpers';
 import { getHashes } from 'wallet';
-import PrimaryButton from 'components/Common/Buttons';
+import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
@@ -110,6 +110,12 @@ export const AirdropButton = styled(PrimaryButton)`
         margin: auto;
     }
 `;
+export const TokenRewardButton = styled(SecondaryButton)`
+    margin-bottom: 0;
+    div {
+        margin: auto;
+    }
+`;
 
 const Home = () => {
     const ContextValue = React.useContext(WalletContext);
@@ -130,10 +136,42 @@ const Home = () => {
     const userLocale = getUserLocale(navigator);
 
     const [airdropPending, setAirdropPending] = useState(false);
+    const [tokenRewardsPending, setTokenRewardsPending] = useState(false);
 
     const claimAirdropForNewWallet = async () => {
         // Disable the button to prevent double claims
         setAirdropPending(true);
+        // Claim rewards
+        // We only show this option if wallet has no tx history. Such a wallet is always
+        // expected to be eligible.
+        let claimResponse;
+        try {
+            claimResponse = await (
+                await fetch(
+                    `${tokenConfig.rewardsServerBaseUrl}/claimxec/${
+                        wallet.paths.get(1899).address
+                    }`,
+                )
+            ).json();
+            // Could help in debugging from user reports
+            console.info(claimResponse);
+            if ('error' in claimResponse) {
+                throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
+            }
+            toast.success('Free eCash claimed!');
+            // Note we do not setAirdropPending(false) on a successful claim
+            // The button will disappear when the tx is seen by the wallet
+            // We do not want the button to be enabled before this
+        } catch (err) {
+            setAirdropPending(false);
+            console.error(err);
+            toast.error(`${err}`);
+        }
+    };
+
+    const claimTokenRewardsForNewWallet = async () => {
+        // Disable the button to prevent double claims
+        setTokenRewardsPending(true);
         // Claim rewards
         // We only show this option if wallet has no tx history. Such a wallet is always
         // expected to be eligible.
@@ -152,13 +190,13 @@ const Home = () => {
                 throw new Error(`${claimResponse.error}:${claimResponse.msg}`);
             }
             toast.success(
-                'Airdrop claimed! Check "Rewards" menu option for more.',
+                'Token rewards claimed! Check "Rewards" menu option for more.',
             );
-            // Note we do not setAirdropPending(false) on a successful claim
+            // Note we do not setTokenRewardsPending(false) on a successful claim
             // The button will disappear when the tx is seen by the wallet
             // We do not want the button to be enabled before this
         } catch (err) {
-            setAirdropPending(false);
+            setTokenRewardsPending(false);
             console.error(err);
             toast.error(`${err}`);
         }
@@ -198,16 +236,30 @@ const Home = () => {
                                 <em>Do not share your backup with anyone.</em>
                             </p>
                         </Alert>
-                        <AirdropButton
-                            onClick={claimAirdropForNewWallet}
-                            disabled={airdropPending}
-                        >
-                            {airdropPending ? (
-                                <InlineLoader style={{ margin: 'auto' }} />
-                            ) : (
-                                'Claim Airdrop'
-                            )}
-                        </AirdropButton>
+                        {wallets.length === 1 ? (
+                            <AirdropButton
+                                onClick={claimAirdropForNewWallet}
+                                disabled={airdropPending}
+                            >
+                                {airdropPending ? (
+                                    <InlineLoader style={{ margin: 'auto' }} />
+                                ) : (
+                                    'Claim Free XEC'
+                                )}
+                            </AirdropButton>
+                        ) : (
+                            <TokenRewardButton
+                                onClick={claimTokenRewardsForNewWallet}
+                                disabled={tokenRewardsPending}
+                            >
+                                {tokenRewardsPending ? (
+                                    <InlineLoader style={{ margin: 'auto' }} />
+                                ) : (
+                                    'Claim Token Rewards'
+                                )}
+                            </TokenRewardButton>
+                        )}
+
                         <Receive />
                     </>
                 )}

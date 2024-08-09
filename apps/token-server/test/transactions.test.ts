@@ -3,7 +3,11 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import * as assert from 'assert';
-import { getSlpInputsAndOutputs, sendReward } from '../src/transactions';
+import {
+    getSlpInputsAndOutputs,
+    sendReward,
+    sendXecAirdrop,
+} from '../src/transactions';
 import { MockChronikClient } from '../../../modules/mock-chronik-client';
 import vectors from './vectors';
 import { Ecc, initWasm } from 'ecash-lib';
@@ -130,6 +134,73 @@ describe('transactions.ts', function () {
                         wallet,
                         tokenId,
                         rewardAmountTokenSats,
+                        destinationAddress,
+                    ),
+                    error,
+                );
+            });
+        });
+    });
+    describe('We can build and broadcast an XEC airdrop tx', function () {
+        const { returns, errors } = vectors.sendXecAirdrop;
+        returns.forEach(vector => {
+            const {
+                description,
+                wallet,
+                utxos,
+                xecAirdropAmountSats,
+                destinationAddress,
+                returned,
+            } = vector;
+            // Set mocks in chronik-client
+            const mockedChronik = new MockChronikClient();
+            mockedChronik.setAddress(wallet.address);
+            mockedChronik.setUtxosByAddress(wallet.address, {
+                outputScript: 'outputScript',
+                utxos,
+            });
+            mockedChronik.setMock('broadcastTx', {
+                input: returned.hex,
+                output: { txid: returned.response.txid },
+            });
+            it(description, async function () {
+                assert.deepEqual(
+                    await sendXecAirdrop(
+                        mockedChronik,
+                        ecc,
+                        wallet,
+                        xecAirdropAmountSats,
+                        destinationAddress,
+                    ),
+                    returned,
+                );
+            });
+        });
+        errors.forEach(vector => {
+            const {
+                description,
+                wallet,
+                utxos,
+                xecAirdropAmountSats,
+                destinationAddress,
+                error,
+            } = vector;
+            // Set mocks in chronik-client
+            const mockedChronik = new MockChronikClient();
+            mockedChronik.setAddress(wallet.address);
+            mockedChronik.setUtxosByAddress(
+                wallet.address,
+                utxos instanceof Error
+                    ? utxos
+                    : { outputScript: 'outputScript', utxos },
+            );
+            it(description, async function () {
+                await assert.rejects(
+                    sendXecAirdrop(
+                        mockedChronik,
+                        ecc,
+                        wallet,
+                        xecAirdropAmountSats,
                         destinationAddress,
                     ),
                     error,

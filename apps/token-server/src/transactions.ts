@@ -258,3 +258,118 @@ export const sendReward = async (
     // If we go over all input utxos but do not have enough to send the tx, throw Insufficient funds error
     throw new Error('Insufficient XEC utxos to complete tx');
 };
+
+/**
+ * Create and broadcast an XEC airdrop tx
+ * @param chronik initialized instance of chronik-client
+ * @param wallet
+ * @param feeRate satoshis per byte
+ * @param xecAirdropAmountSats airdrop amount in satoshis
+ * @param destinationAddress airdrop recipient
+ * @throws dust error, balance exceeded error, coinselect errors, and node broadcast errors
+ * @returns
+ */
+export const sendXecAirdrop = async (
+    chronik: ChronikClientNode,
+    ecc: Ecc,
+    wallet: ServerWallet,
+    xecAirdropAmountSats: number,
+    destinationAddress: string,
+): Promise<RewardBroadcastSuccess> => {
+    // Sync wallet to get latest utxo set
+    await syncWallet(chronik, wallet);
+
+    const { utxos, address } = wallet;
+
+    // Note that utxos will be defined here
+    // If there was an error in syncWallet, an error would have thrown
+
+    // Build XEC outputs around target rewards and change
+    const outputs: TxBuilderOutput[] = [
+        {
+            value: xecAirdropAmountSats,
+            script: Script.fromAddress(destinationAddress),
+        },
+        Script.fromAddress(address),
+    ];
+
+    // Prepare inputs
+    const inputs = [];
+    let inputSatoshis = 0;
+
+    // For token-server, every utxo will have the same sk
+    const { sk } = wallet;
+    const pk = ecc.derivePubkey(sk);
+
+    // We start with no inputs, so we will always need at least one utxo
+    let needsAnotherUtxo = true;
+    // Add and sign required inputUtxos to create tx with specified targetOutputs
+    for (const utxo of utxos!) {
+        if ('token' in utxo) {
+            // We do not add token utxos for required inputSatoshis
+            continue;
+        }
+        if (needsAnotherUtxo) {
+            // If inputSatoshis is less than or equal to satoshisToSend, we know we need
+            // to add another input
+
+            inputs.push({
+                input: {
+                    prevOut: utxo.outpoint,
+                    signData: {
+                        value: utxo.value,
+                        outputScript: Script.fromAddress(wallet.address),
+                    },
+                },
+                signatory: P2PKHSignatory(sk, pk, ALL_BIP143),
+            });
+            inputSatoshis += utxo.value;
+
+            needsAnotherUtxo = inputSatoshis <= xecAirdropAmountSats;
+
+            if (needsAnotherUtxo) {
+                // Do not bother trying to build and broadcast the tx unless
+                // we probably have enough inputSatoshis to cover satoshisToSend + fee
+                continue;
+            }
+        }
+
+        // If value of inputs exceeds value of outputs, we check to see if we also cover the fee
+
+        const txBuilder = new TxBuilder({
+            inputs,
+            outputs,
+        });
+        let tx;
+        try {
+            tx = txBuilder.sign(ecc, SATS_PER_KB, DUST_SATS);
+        } catch (err) {
+            if (
+                typeof err === 'object' &&
+                err !== null &&
+                'message' in err &&
+                typeof err.message === 'string' &&
+                err.message.startsWith('Insufficient input value')
+            ) {
+                // If we have insufficient funds to cover satoshisToSend + fee
+                // we need to add another input
+                needsAnotherUtxo = true;
+                continue;
+            }
+
+            // Throw any other error
+            throw err;
+        }
+
+        // Otherwise, broadcast the tx
+        const txSer = tx.ser();
+        const hex = toHex(txSer);
+        // Will throw error on node failing to broadcast tx
+        // e.g. 'txn-mempool-conflict (code 18)'
+        const response = await chronik.broadcastTx(hex);
+
+        return { hex, response };
+    }
+    // If we go over all input utxos but do not have enough to send the tx, throw Insufficient funds error
+    throw new Error('Insufficient XEC utxos to complete XEC airdrop tx');
+};

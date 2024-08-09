@@ -116,6 +116,28 @@ describe('routes.js', async function () {
         new Error('some chronik error'),
     );
 
+    // Address with no tx history
+    // i.e. eligible for an XEC airdrop
+    const NEW_ADDRESS = 'ecash:qrfkcnzdm0dvkrc20dhcf7qv23vt736ynuujzxnzs6';
+    mockedChronikClient.setAddress(NEW_ADDRESS);
+    mockedChronikClient.setTxHistoryByAddress(NEW_ADDRESS, []);
+
+    // Address with tx history
+    // i.e. not eligible for an XEC airdrop
+    const USED_ADDRESS = 'ecash:qrplfw9x5hrdnra3t42s3543gh3vtg8xgyr4t4lrun';
+    mockedChronikClient.setAddress(USED_ADDRESS);
+    mockedChronikClient.setTxHistoryByAddress(USED_ADDRESS, [{ isTx: true }]);
+
+    // Mock an XEC airdrop tx
+    const expectedXecAirdropTxid =
+        'bdb1fc526e3cb00053985d6f9be69882fe302d8cc494b333452b153d519eca06';
+    mockedChronikClient.setMock('broadcastTx', {
+        input: '020000000111111111111111111111111111111111111111111111111111111111111111110000000064417a23b85726e80473ed4f0b544e16a67cf7c6da097bcdec85efef9afddd3cf45f6201fa05dbec60efbe5fbbbe8f4c54961d9dace22091add834ecd36cf96e4d3f41210228363bacbd9e52c1e515e715633fd2376d58671cda418e05685447a4a49b0645ffffffff02b80b0000000000001976a914d36c4c4ddbdacb0f0a7b6f84f80c5458bf47449f88ac7d1a0000000000001976a91476fb100532b1fe23b26930e7001dff7989d2db5588ac00000000',
+        output: {
+            txid: expectedXecAirdropTxid,
+        },
+    });
+
     // Mock a stub telegram bot
     const mockedTgBot = { sendPhoto: () => {} };
 
@@ -232,6 +254,47 @@ describe('routes.js', async function () {
                 address: ELIGIBLE_ADDRESS,
                 msg: 'Success',
                 txid: '1b3cb86a06c64afdbad89ac3660ee724cbb8a5a1b099763b993d63b1285bb404',
+            });
+    });
+    it('/claimxec/:address returns 500 if called with an address that has tx history', function () {
+        return request(app)
+            .get(`/claimxec/${USED_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: USED_ADDRESS,
+                error: `Only unused addresses are eligible for XEC airdrops`,
+            });
+    });
+    it('/claimxec/:address sends an airdrop if called with an address with no tx history', function () {
+        return request(app)
+            .get(`/claimxec/${NEW_ADDRESS}`)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: NEW_ADDRESS,
+                msg: 'Success',
+                txid: expectedXecAirdropTxid,
+            });
+    });
+    it('/claimxec/:address returns expected error status on chronik error', function () {
+        return request(app)
+            .get(`/claimxec/${ERROR_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: ERROR_ADDRESS,
+                error: 'Error querying chronik for address history: Error: some chronik error',
+            });
+    });
+    it('/claimxec/:address returns expected error status if called with invalid address', function () {
+        return request(app)
+            .get(`/claimxec/${INVALID_ADDRESS}`)
+            .expect(500)
+            .expect('Content-Type', /json/)
+            .expect({
+                address: INVALID_ADDRESS,
+                error: 'Invalid eCash address',
             });
     });
     it('We get a rendered blockie for a valid token image request', function () {

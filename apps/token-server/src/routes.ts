@@ -12,7 +12,7 @@ import config from '../config';
 import secrets from '../secrets';
 import { getHistoryAfterTimestamp } from './chronik/clientHandler';
 import { isAddressEligibleForTokenReward } from './rewards';
-import { sendReward } from './transactions';
+import { sendReward, sendXecAirdrop } from './transactions';
 import { ChronikClientNode } from 'chronik-client';
 import { isTokenImageRequest } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
@@ -238,6 +238,77 @@ export const startExpressServer = (
 
         // Get txid before sending response
         const { txid } = rewardSuccess.response;
+        interface SendRewardResponse {
+            address: string;
+            txid?: string;
+            msg: string;
+        }
+        const response: SendRewardResponse = {
+            address,
+            txid,
+            msg: 'Success',
+        };
+
+        return res.status(200).json(response);
+    });
+
+    // Endpoint for Cashtab users to claim an XEC airdrop on creation of a new wallet
+    app.get('/claimxec/:address', async function (req: Request, res: Response) {
+        // Get the requested address
+        const address = req.params.address;
+
+        logIpInfo(req);
+
+        if (!cashaddr.isValidCashAddress(address, 'ecash')) {
+            return res.status(500).json({
+                address,
+                error: `Invalid eCash address`,
+            });
+        }
+
+        let addressUnused;
+        try {
+            addressUnused =
+                (await chronik.address(address).history()).numTxs === 0;
+        } catch (err) {
+            // Handle chronik error
+            return res.status(500).json({
+                address,
+                error: `Error querying chronik for address history: ${err}`,
+            });
+        }
+
+        if (!addressUnused) {
+            return res.status(500).json({
+                address,
+                error: `Only unused addresses are eligible for XEC airdrops`,
+            });
+        }
+
+        // Build and broadcast reward tx
+        let airdropSuccess;
+        try {
+            airdropSuccess = await sendXecAirdrop(
+                chronik,
+                ecc,
+                secrets.prod.wallet,
+                config.xecAirdropAmountSats,
+                address,
+            );
+        } catch (err) {
+            // Log error for server review
+            console.log(`Error broadcasting XEC airdrop tx`);
+            console.log(err);
+
+            // Return server error response
+            return res.status(500).json({
+                error: `Error sending XEC airdrop tx, please contact admin`,
+                msg: `${err}`,
+            });
+        }
+
+        // Get txid before sending response
+        const { txid } = airdropSuccess.response;
         interface SendRewardResponse {
             address: string;
             txid?: string;
