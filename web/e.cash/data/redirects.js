@@ -20,6 +20,11 @@ const redirects = [
         destination: '/build',
         permanent: true,
     },
+    {
+        source: '/wealth-redefined',
+        destination: '/what-is-ecash',
+        permanent: true,
+    },
 ];
 
 module.exports = {

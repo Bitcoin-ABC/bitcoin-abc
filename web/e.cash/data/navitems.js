@@ -6,8 +6,8 @@ export const navitems = [
         nav_item: 'About',
         dropdown_items: [
             {
-                title: 'Wealth Redefined',
-                link: '/wealth-redefined',
+                title: "What's eCash?",
+                link: '/what-is-ecash',
                 icon: '/images/hand-diamond-icon.svg',
             },
             {
