@@ -9572,6 +9572,65 @@ export const tokenBurnDecimals = {
     },
 };
 
+export const eCashChatAuthenticationTx = {
+    tx: {
+        txid: '61838af28ae42e3b6a5fd037e112fe0df936dabf2a6417091abce6a3d830b078',
+        version: 2,
+        inputs: [
+            {
+                prevOut: {
+                    txid: 'f9323576b17aebd302272652ee9990b2a1347da7e3270d19b8d32ae60a0dec2f',
+                    outIdx: 0,
+                },
+                inputScript:
+                    '413fb023c886471d0f7eefcd3e5bf2cdbc0f537edd20b9f515d32da7c80b519b7cdc2da3e6696220addd232ebd8c10d53c092965d6bcce262b1a8745a61a18f3a54121030a06dd7429d8fce700b702a55a012a1f9d1eaa46825bde2d31252ee9cb30e536',
+                value: 3377,
+                sequenceNo: 4294967295,
+                outputScript:
+                    '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+            },
+        ],
+        outputs: [
+            {
+                value: 0,
+                outputScript:
+                    '6a0461757468140644ad85a538657c033e36ce5a3c8cf26076591f',
+            },
+            {
+                value: 550,
+                outputScript:
+                    '76a914b20298c1b5d6a82a61f6c8cd708fa87a1ce1a97a88ac',
+            },
+            {
+                value: 2314,
+                outputScript:
+                    '76a91414582d09f61c6580b8a2b6c8af8d6a13c9128b6f88ac',
+            },
+        ],
+        lockTime: 0,
+        timeFirstSeen: 1723372560,
+        size: 255,
+        isCoinbase: false,
+        tokenEntries: [],
+        tokenFailedParsings: [],
+        tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+        block: {
+            height: 857308,
+            hash: '000000000000000020801fb91e3685a03a8d8f967cd048f58059bda0800a8402',
+            timestamp: 1723373699,
+        },
+        parsed: {
+            xecTxType: 'Sent',
+            satoshisSent: 550,
+            stackArray: [
+                '61757468',
+                '0644ad85a538657c033e36ce5a3c8cf26076591f',
+            ],
+            recipients: ['ecash:qzeq9xxpkht2s2np7myv6uy04papecdf0g0zly33v5'],
+        },
+    },
+};
+
 export const paywallPaymentTx = {
     tx: {
         txid: 'e9692335fdb3b75f2e319cbda1396f7f32c02c3d172e58148abeb2952c7e2460',

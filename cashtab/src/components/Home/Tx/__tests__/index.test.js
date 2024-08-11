@@ -50,6 +50,7 @@ import {
     paywallPaymentTx,
     eCashChatArticleTx,
     eCashChatArticleReplyTx,
+    eCashChatAuthenticationTx,
 } from 'chronik/fixtures/mocks';
 import CashtabState from 'config/CashtabState';
 import { MemoryRouter } from 'react-router-dom';
@@ -2540,6 +2541,48 @@ describe('<Tx />', () => {
         // We see the invalid article tx description
         expect(
             screen.getByText('Invalid eCashChat Article'),
+        ).toBeInTheDocument();
+    });
+    it('Sent eCashChat authentication tx', async () => {
+        render(
+            <MemoryRouter>
+                <ThemeProvider theme={theme}>
+                    <Tx
+                        tx={eCashChatAuthenticationTx.tx}
+                        hashes={[
+                            eCashChatAuthenticationTx.tx.outputs[2]
+                                .outputScript,
+                        ]}
+                        fiatPrice={0.00003}
+                        fiatCurrency="usd"
+                        cashtabState={{
+                            ...new CashtabState(),
+                        }}
+                        chaintipBlockheight={AVALANCHE_FINALIZED_CHAINTIP}
+                    />
+                    ,
+                </ThemeProvider>
+            </MemoryRouter>,
+        );
+
+        // We see the tx sent icon
+        expect(screen.getByTitle('tx-sent')).toBeInTheDocument();
+
+        // We see the tx sent label
+        expect(screen.getByText(/Sent to/)).toBeInTheDocument();
+
+        // For a tx with timeFirstSeen of 0, we render the block timestamp
+        expect(screen.getByText('Aug 11, 2024, 10:36:00')).toBeInTheDocument();
+
+        // We see the formatted XEC amount
+        expect(screen.getByText('-5.5 XEC')).toBeInTheDocument();
+
+        // We see the formatted fiat amount
+        expect(screen.getByText('-$0.00')).toBeInTheDocument();
+
+        // We see the article tx description
+        expect(
+            screen.getByText('eCash Chat Authentication'),
         ).toBeInTheDocument();
     });
 });

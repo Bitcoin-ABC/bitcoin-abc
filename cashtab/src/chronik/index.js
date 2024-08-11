@@ -276,10 +276,10 @@ export const parseTx = (tx, hashes) => {
     const satoshisSent = selfSendTx
         ? outputSatoshis
         : isCoinbase
-        ? change
-        : incoming
-        ? receivedSatoshis
-        : outputSatoshis - change;
+          ? change
+          : incoming
+            ? receivedSatoshis
+            : outputSatoshis - change;
 
     let xecTxType = incoming ? 'Received' : 'Sent';
 

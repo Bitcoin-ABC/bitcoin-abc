@@ -447,6 +447,21 @@ const Tx = ({
                 }
                 break;
             }
+            // eCashChat authentication txs consists of authPrefixHex + a random string
+            // Other apps can use this same prefix followed by an authentication identifier of their choosing
+            case opReturn.appPrefixesHex.authPrefixHex: {
+                appActions.push(
+                    <>
+                        <IconAndLabel>
+                            <ChatIcon />
+                            <AppDescLabel>
+                                eCash Chat Authentication
+                            </AppDescLabel>
+                        </IconAndLabel>
+                    </>,
+                );
+                break;
+            }
             case opReturn.appPrefixesHex.eCashChatArticle: {
                 if (typeof stackArray[1] !== 'undefined') {
                     // If this is a reply to a blog post then index 2 is txid of article and index 3 is the reply
