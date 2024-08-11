@@ -139,4 +139,4 @@ TBC
 
 ## Questions?
 
-If you have any questions regarding these examples please feel free to reach out to the development team via the [eCash Development Telegram](https://t.me/eCashDevelopment).
+If you have any questions regarding these examples please feel free to reach out to the development team via the [eCash Builders Telegram](https://t.me/eCashBuilders).
