@@ -6,6 +6,7 @@ Test inventory download behavior
 """
 
 import functools
+import random
 import time
 
 from test_framework.address import ADDRESS_ECREG_UNSPENDABLE
@@ -13,12 +14,14 @@ from test_framework.avatools import avalanche_proof_from_hex, gen_proof, wait_fo
 from test_framework.key import ECKey
 from test_framework.messages import (
     MSG_AVA_PROOF,
+    MSG_AVA_STAKE_CONTENDER,
     MSG_TX,
     MSG_TYPE_MASK,
     CInv,
     CTransaction,
     FromHex,
     msg_avaproof,
+    msg_getdata,
     msg_inv,
     msg_notfound,
 )
@@ -83,6 +86,19 @@ PROOF_TEST_CONTEXT = TestContext(
         max_getdata_in_flight=100,
         max_peer_announcements=5000,
         bypass_request_limits_permission_flags="bypass_proof_request_limits",
+    ),
+)
+
+STAKE_CONTENDER_TEST_CONTEXT = TestContext(
+    MSG_AVA_STAKE_CONTENDER,
+    "avalanche stake contender",
+    NetConstants(
+        getdata_interval=60,  # seconds
+        inbound_peer_delay=2,  # seconds
+        overloaded_peer_delay=2,  # seconds
+        max_getdata_in_flight=100,
+        max_peer_announcements=5000,
+        bypass_request_limits_permission_flags=None,
     ),
 )
 
@@ -461,7 +477,43 @@ class InventoryDownloadTest(BitcoinTestFramework):
 
         assert all(p.getdata_count == 0 for p in node.p2ps[1:])
 
+    def test_inv_ignore(self, context):
+        self.log.info(
+            f"Announce an item of type {context.inv_name} that is expected to be ignored"
+        )
+        peer = self.nodes[0].add_p2p_connection(context.p2p_conn())
+
+        # Send an inv message to the node. It should not log the inv since this type is ignored.
+        itemid = random.randint(0, 2**256 - 1)
+        inv = CInv(t=context.inv_type, h=itemid)
+        with self.nodes[0].assert_debug_log(
+            ["received: inv (37 bytes)"],
+            unexpected_msgs=["got inv:"],
+        ):
+            peer.send_and_ping(msg_inv([inv]))
+
+        # No getdata request should be made by the node
+        assert peer.getdata_count == 0
+
+        # If we craft a getdata message, it is also ignored by the node
+        with self.nodes[0].assert_debug_log(
+            [
+                "received getdata (1 invsz)",
+                f"received getdata for: 0x{context.inv_type:x} {itemid:x}",
+            ],
+        ):
+            msg = msg_getdata()
+            msg.inv.append(inv)
+            peer.send_and_ping(msg)
+
+        # There should be no notfound message sent in response to the getdata message
+        with p2p_lock:
+            assert "notfound" not in peer.last_message
+
     def run_test(self):
+        for context in [STAKE_CONTENDER_TEST_CONTEXT]:
+            self.test_inv_ignore(context)
+
         for context in [TX_TEST_CONTEXT, PROOF_TEST_CONTEXT]:
             self.log.info(f"Starting tests using {context.inv_name} inventory type")
 

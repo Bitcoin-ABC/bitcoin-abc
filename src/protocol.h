@@ -570,6 +570,7 @@ enum GetDataMsg {
     //! Defined in BIP152
     MSG_CMPCT_BLOCK = 4,
     MSG_AVA_PROOF = 0x1f000001,
+    MSG_AVA_STAKE_CONTENDER = 0x1f000002,
 };
 
 /**
@@ -603,6 +604,10 @@ public:
     bool IsMsgProof() const {
         auto k = GetKind();
         return k == MSG_AVA_PROOF;
+    }
+    bool IsMsgStakeContender() const {
+        auto k = GetKind();
+        return k == MSG_AVA_STAKE_CONTENDER;
     }
     bool IsMsgBlk() const {
         auto k = GetKind();

@@ -62,6 +62,7 @@ MSG_BLOCK = 2
 MSG_FILTERED_BLOCK = 3
 MSG_CMPCT_BLOCK = 4
 MSG_AVA_PROOF = 0x1F000001
+MSG_AVA_STAKE_CONTENDER = 0x1F000002
 MSG_TYPE_MASK = 0xFFFFFFFF >> 2
 
 FILTER_TYPE_BASIC = 0
@@ -302,6 +303,7 @@ class CInv:
         MSG_FILTERED_BLOCK: "filtered Block",
         MSG_CMPCT_BLOCK: "CompactBlock",
         MSG_AVA_PROOF: "avalanche proof",
+        MSG_AVA_STAKE_CONTENDER: "avalanche stake contender",
     }
 
     def __init__(self, t=0, h=0):
