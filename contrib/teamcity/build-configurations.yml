@@ -890,19 +890,6 @@ builds:
     templates:
       - js-mocha
 
-  app-dev-examples:
-    runOnDiffRegex:
-      - apps/examples/
-      - modules/mock-chronik-client/
-    env:
-      JS_PROJECT_ROOT: apps/examples
-      DEPENDS_ECASHADDRJS: "true"
-      DEPENDS_CHRONIK_CLIENT: "true"
-      DEPENDS_MOCK_CHRONIK_CLIENT: "true"
-      DEPENDS_ECASH_COINSELECT: "true"
-    templates:
-      - js-mocha
-
   chronik-client-tests:
     runOnDiffRegex:
       - modules/chronik-client/

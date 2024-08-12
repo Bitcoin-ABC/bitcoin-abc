@@ -60,12 +60,6 @@ const devLinks = [
         anchor: 'examples',
         links: [
             {
-                title: 'App dev examples',
-                description:
-                    'Series of example code to serve as a reference guide for app developers',
-                link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/apps/examples',
-            },
-            {
                 title: 'Cashtab codebase',
                 description: 'Public repo for the CashTab wallet',
                 link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab',
