@@ -47,7 +47,7 @@ export function getWalletFromSeed(mnemonic: string): ServerWallet {
     const skString = privateKey!.toString('hex');
     console.log(`sk as hex string: ${skString}`);
 
-    const address = cashaddr.encode('ecash', 'p2pkh', child.identifier);
+    const address = cashaddr.encode('ecash', 'p2pkh', identifier);
 
     return { address, sk: Uint8Array.from(Buffer.from(skString, 'hex')) };
 }
