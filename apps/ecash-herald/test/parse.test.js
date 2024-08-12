@@ -37,6 +37,7 @@ const {
     aliasRegistrations,
     cashtabMsgs,
     payButtonTxs,
+    paywallTxs,
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
@@ -168,6 +169,17 @@ describe('parse.js functions', function () {
             assert.deepEqual(parseOpReturn(hex), {
                 app: opReturn.knownApps.cashtabMsgEncrypted.app,
                 msg: '',
+                stackArray,
+                tokenId: false,
+            });
+        }
+    });
+    it('parseOpReturn handles paywall payment txs', function () {
+        for (let i = 0; i < paywallTxs.length; i += 1) {
+            const { hex, stackArray, msg } = paywallTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.paywall.app,
+                msg: msg,
                 stackArray,
                 tokenId: false,
             });

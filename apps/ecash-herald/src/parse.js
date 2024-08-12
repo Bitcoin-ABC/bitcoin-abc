@@ -661,6 +661,25 @@ module.exports = {
                 }
                 break;
             }
+            case opReturn.knownApps.paywall.prefix: {
+                app = opReturn.knownApps.paywall.app;
+                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/op_return-prefix-guideline.md
+                // <lokad> <txid of the article this paywall is paying for>
+                if (stackArray.length === 2) {
+                    const articleTxid = stackArray[1];
+                    if (
+                        typeof articleTxid === 'undefined' ||
+                        articleTxid.length !== 64
+                    ) {
+                        msg = `Invalid paywall article txid`;
+                    } else {
+                        msg = `<a href="${config.blockExplorer}/tx/${articleTxid}">Article paywall payment</a>`;
+                    }
+                } else {
+                    msg = '[off spec paywall payment]';
+                }
+                break;
+            }
             default: {
                 // If you do not recognize the protocol identifier, just print the pushes in hex
                 // If it is an app or follows a pattern, can be added later
@@ -1427,6 +1446,10 @@ module.exports = {
                     }
                     case opReturn.knownApps.payButton.app: {
                         appEmoji = emojis.payButton;
+                        break;
+                    }
+                    case opReturn.knownApps.paywall.app: {
+                        appEmoji = emojis.paywall;
                         break;
                     }
                     case opReturn.knownApps.cashtabMsg.app: {

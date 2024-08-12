@@ -578,4 +578,33 @@ module.exports = {
             msg: '[off spec]',
         },
     ],
+    paywallTxs: [
+        // on spec paywall tx with a valid article txid
+        {
+            txid: 'f86d0b60e66888f8d30ea67167e5e4370fee29f13201cf5f32727d41c8a41868',
+            hex: '0470617977200729318a128ee8f11d18b28237c8ae7ffa4e95c88ec69ebce716758e1973c5d4',
+            stackArray: [
+                '70617977',
+                '0729318a128ee8f11d18b28237c8ae7ffa4e95c88ec69ebce716758e1973c5d4',
+            ],
+            msg: '<a href="https://explorer.e.cash/tx/0729318a128ee8f11d18b28237c8ae7ffa4e95c88ec69ebce716758e1973c5d4">Article paywall payment</a>',
+        },
+        // on spec paywall tx with an invalid article txid
+        {
+            txid: 'f86d0b60e66888f8d30ea67167e5e4370fee29f13201cf5f32727d41c8a41868',
+            hex: '04706179771636343934633165663161316435666333398393832655',
+            stackArray: [
+                '70617977',
+                '36343934633165663161316435666333398393832655',
+            ],
+            msg: 'Invalid paywall article txid',
+        },
+        // off spec paywall tx
+        {
+            txid: 'f86d0b60e66888f8d30ea67167e5e4370fee29f13201cf5f32727d41c8a41868',
+            hex: '0470617977',
+            stackArray: ['70617977'],
+            msg: '[off spec paywall payment]',
+        },
+    ],
 };

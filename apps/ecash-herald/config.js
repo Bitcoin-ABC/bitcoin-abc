@@ -65,6 +65,7 @@ module.exports = {
         payButton: '🛒',
         swap: '🤳',
         airdrop: '🪂',
+        paywall: '💸',
         unknown: '❓',
         memo: '🗞',
         bigWhale: '🐋',

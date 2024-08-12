@@ -25,6 +25,7 @@ module.exports = {
         slp2: { prefix: '534c5032', app: 'ALP' },
         alias: { prefix: '2e786563', app: 'Alias (beta)' },
         payButton: { prefix: '50415900', app: 'PayButton' },
+        paywall: { prefix: '70617977', app: 'Paywall' },
     },
     memo: {
         'prefix': '6d',
