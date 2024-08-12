@@ -11,6 +11,8 @@ sudo apt install libssl-dev
 sudo apt install -y protobuf-compiler libprotobuf-dev
 ```
 
+Note: If running Ubuntu at Ubuntu 22.04.4, you may also need `pkg-config`. Install with `sudo apt install pkg-config`
+
 ### 2. Run
 
 ```
