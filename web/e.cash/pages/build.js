@@ -61,7 +61,7 @@ const devLinks = [
         links: [
             {
                 title: 'Cashtab codebase',
-                description: 'Public repo for the CashTab wallet',
+                description: 'Public repo for the Cashtab wallet',
                 link: 'https://github.com/Bitcoin-ABC/bitcoin-abc/tree/master/cashtab',
             },
         ],
