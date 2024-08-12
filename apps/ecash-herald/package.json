@@ -1,6 +1,6 @@
 {
     "name": "ecash-herald",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "A telegram bot to broadcast ecash chain events",
     "main": "index.js",
     "scripts": {

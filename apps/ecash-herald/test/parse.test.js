@@ -38,6 +38,7 @@ const {
     cashtabMsgs,
     payButtonTxs,
     paywallTxs,
+    authenticationTxs,
 } = require('./mocks/appTxSamples');
 
 describe('parse.js functions', function () {
@@ -224,6 +225,17 @@ describe('parse.js functions', function () {
             assert.deepEqual(parseOpReturn(hex), {
                 app: 'EMPP',
                 msg,
+            });
+        }
+    });
+    it('parseOpReturn handles authentication txs', function () {
+        for (let i = 0; i < authenticationTxs.length; i += 1) {
+            const { hex, stackArray, msg } = authenticationTxs[i];
+            assert.deepEqual(parseOpReturn(hex), {
+                app: opReturn.knownApps.authentication.app,
+                msg: msg,
+                stackArray,
+                tokenId: false,
             });
         }
     });

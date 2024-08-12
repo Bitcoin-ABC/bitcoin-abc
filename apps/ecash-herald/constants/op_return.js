@@ -20,6 +20,7 @@ module.exports = {
             app: 'Cashtab Encrypted',
         },
         swap: { prefix: '53575000', app: 'SWaP' },
+        authentication: { prefix: '61757468', app: 'Authentication' },
         fusion: { prefix: '46555a00', app: 'CashFusion' },
         fusionLegacy: { prefix: '5920070', app: 'CashFusion' },
         slp2: { prefix: '534c5032', app: 'ALP' },

@@ -607,4 +607,30 @@ module.exports = {
             msg: '[off spec paywall payment]',
         },
     ],
+    authenticationTxs: [
+        // on spec tx
+        {
+            txid: 'e7a67443354b4df14dcb779de6291ea89e7c0e4fce83d56e87b9694e8f4cb8a9',
+            hex: '04617574681414b9b4971454d1a83c33119f3914a0b747f2f7a7',
+            stackArray: [
+                '61757468',
+                '14b9b4971454d1a83c33119f3914a0b747f2f7a7',
+            ],
+            msg: 'eCashChat authentication via dust tx',
+        },
+        // on spec tx with an empty authentication identifier
+        {
+            txid: 'e7a67443354b4df14dcb779de6291ea89e7c0e4fce83d56e87b9694e8f4cb8a9',
+            hex: '046175746800',
+            stackArray: ['61757468', '00'],
+            msg: 'Invalid eCashChat authentication identifier',
+        },
+        // off spec tx
+        {
+            txid: 'e7a67443354b4df14dcb779de6291ea89e7c0e4fce83d56e87b9694e8f4cb8a9',
+            hex: '0461757468',
+            stackArray: ['61757468'],
+            msg: '[off spec eCashChat authentication]',
+        },
+    ],
 };

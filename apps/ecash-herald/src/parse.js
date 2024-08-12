@@ -680,6 +680,22 @@ module.exports = {
                 }
                 break;
             }
+            case opReturn.knownApps.authentication.prefix: {
+                app = opReturn.knownApps.authentication.app;
+                // https://github.com/Bitcoin-ABC/bitcoin-abc/blob/master/doc/standards/op_return-prefix-guideline.md
+                // <lokad> <authentication identifier>
+                if (stackArray.length === 2) {
+                    const authenticationHex = stackArray[1];
+                    if (authenticationHex === '00') {
+                        msg = `Invalid eCashChat authentication identifier`;
+                    } else {
+                        msg = 'eCashChat authentication via dust tx';
+                    }
+                } else {
+                    msg = '[off spec eCashChat authentication]';
+                }
+                break;
+            }
             default: {
                 // If you do not recognize the protocol identifier, just print the pushes in hex
                 // If it is an app or follows a pattern, can be added later
@@ -1450,6 +1466,10 @@ module.exports = {
                     }
                     case opReturn.knownApps.paywall.app: {
                         appEmoji = emojis.paywall;
+                        break;
+                    }
+                    case opReturn.knownApps.authentication.app: {
+                        appEmoji = emojis.authentication;
                         break;
                     }
                     case opReturn.knownApps.cashtabMsg.app: {
