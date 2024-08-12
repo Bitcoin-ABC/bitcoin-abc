@@ -353,9 +353,17 @@ table.dataTable tbody tr:hover {
     background: rgba(255, 255, 255, 0.05) !important;
 }
 
-.dtr-control::before {
+td.dtr-control {
+    text-align: center;
+}
+
+td.dtr-control::before {
     height: 1em !important;
     width: 1em !important;
+    border-radius: 1em;
+    font-family: 'Courier New', Courier, monospace;
+    line-height: 1em;
+    content: '+' !important;
     background-color: var(--accent) !important;
     border: none !important;
     box-shadow: 2px 2px 15px 8px #000000;
@@ -441,12 +449,12 @@ table.dataTable thead .sorting {
     color: #fff !important;
 }
 
-.dataTables_wrapper .dataTables_length select {
+.dataTables_wrapper .dt-length select {
     border: 1px solid #fff;
     color: #fff;
 }
 
-.dataTables_length {
+.dt-length {
     color: #fff !important;
 }
 
@@ -1050,10 +1058,6 @@ table.tx-details-table tr:last-child td {
 
 .datatable__block_listing-hover {
     background: rgba(251, 123, 129, 0.1);
-}
-
-.block__tx-header {
-    margin-bottom: -29px !important;
 }
 
 .block__advanced-data {
