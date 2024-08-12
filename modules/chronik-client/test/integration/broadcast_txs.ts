@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode } from '../../index';
+import { ChronikClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -17,7 +17,7 @@ import initializeTestRunner, {
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () => {
+describe('Test broadcastTx and broadcastTxs methods from ChronikClient', () => {
     // Define variables used in scope of this test
     const testName = path.basename(__filename);
     let testRunner: ChildProcess;
@@ -130,15 +130,14 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
     });
 
     it('New regtest chain', async () => {
-        // Initialize new ChronikClientNode
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We can't broadcast an invalid tx
         const BAD_RAW_TX =
             '0100000001fa5b8f14f5b63ae42f7624a416214bdfffd1de438e9db843a4ddf4d392302e2100000000020151000000000800000000000000003c6a5039534c5032000747454e4553495300000000000006e80300000000d00700000000b80b00000000a00f0000000088130000000070170000000000102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b87102700000000000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b8760c937278c04000017a914da1745e9b549bd0bfa1a569971c77eba30cd5a4b8700000000';
         await expect(chronik.broadcastTx(BAD_RAW_TX)).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx (): 400: Broadcast failed: Transaction rejected by mempool: bad-txns-in-belowout, value in (25000000.00) < value out (49999999600.00)`,
+            `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: bad-txns-in-belowout, value in (25000000.00) < value out (49999999600.00)`,
         );
 
         // We can broadcast an ALP genesis tx
@@ -155,7 +154,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
 
         await expect(chronik.broadcastTx(alpBurnRawTx)).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx (): 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
+            `Failed getting /broadcast-tx: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
         );
 
         // We also can't broadcast an array of txs if one tx is a burn
@@ -166,7 +165,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
             chronik.broadcastTxs([okRawTx, alpBurnRawTx]),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-txs (): 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
+            `Failed getting /broadcast-txs: 400: Tx ${alpBurnTxid} failed token checks: Unexpected burn: Burns 1 base tokens.`,
         );
 
         // We can't broadcast an array of txs if one tx is invalid
@@ -176,7 +175,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
             chronik.broadcastTxs([okRawTx, BAD_RAW_TX]),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-txs (): 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict`,
+            `Failed getting /broadcast-txs: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict`,
         );
 
         // We can broadcast multiple txs including a burn if we set skipTokenChecks
@@ -211,7 +210,7 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
         // We can't broadcast a rawtx that conflicts with the mempool
         await expect(chronik.broadcastTx(BAD_RAW_TX)).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx (): 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict`,
+            `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction rejected by mempool: txn-mempool-conflict`,
         );
 
         // If we broadcast a tx already in the mempool, we get a normal response
@@ -229,19 +228,18 @@ describe('Test broadcastTx and broadcastTxs methods from ChronikClientNode', () 
             chronik.broadcastTx(INPUTS_DO_NOT_EXIST_RAWTX),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx (): 400: Failed indexing mempool token tx: Tx is spending 1a3fa6b5a219a75bc287c382280ae36f3ff118757330f5670d463e10ec949154 which is found neither in the mempool nor DB`,
+            `Failed getting /broadcast-tx: 400: Failed indexing mempool token tx: Tx is spending 1a3fa6b5a219a75bc287c382280ae36f3ff118757330f5670d463e10ec949154 which is found neither in the mempool nor DB`,
         );
     });
     it('After broadcastTxs are mined', async () => {
-        // Initialize new ChronikClientNode
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         const alpGenesisRawTx = await get_alp_genesis_rawtx;
         // If we broadcast a tx already in the mempool, we get a normal response
 
         await expect(chronik.broadcastTx(alpGenesisRawTx)).to.be.rejectedWith(
             Error,
-            `Failed getting /broadcast-tx (): 400: Broadcast failed: Transaction already in block chain`,
+            `Failed getting /broadcast-tx: 400: Broadcast failed: Transaction already in block chain`,
         );
     });
 });

@@ -3,4 +3,3 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 export * from './src/ChronikClient';
-export * from './src/ChronikClientNode';

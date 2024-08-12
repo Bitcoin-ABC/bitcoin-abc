@@ -12,20 +12,16 @@ Access Chronik Indexer via browser or Node.
 
 ```js
 import { ChronikClient } from 'chronik-client';
-// For XEC, eCash chain:
-const chronik = new ChronikClient('https://chronik.be.cash/xec');
-// For XPI, Lotus chain:
-const chronik = new ChronikClient('https://chronik.be.cash/xpi');
 
-As of version 0.9.0, the ChronikClient constructor can also optionally
-accept an array of chronik urls. e.g.
 const chronik = new ChronikClient([
-    'https://chronik.be.cash/xec',
-    'https://chronik.fabien.cash',
+    'https://yourFirstChronikServerUrl.com',
+    'https://yourSecondChronikServerUrl.com',
+    'https://yourThirdChronikServerUrl.com',
 ]);
-If the first url is non-responsive it will cycle through the rest of the array.
 
-// Get Genesis block (on eCash):
+// If the first url is non-responsive it will cycle through the rest of the array.
+
+// Get Genesis block:
 const block = await chronik.block(
     '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f',
 );
@@ -33,7 +29,7 @@ const block = await chronik.block(
 // Get the first 11 blocks of the chain:
 const blocks = await chronik.blocks(0, 10);
 
-// Get SLP tx details on eCash:
+// Get SLP tx details:
 const tx = await chronik.tx(
     '0f3c3908a2ddec8dea91d2fe1f77295bbbb158af869bff345d44ae800f0a5498',
 );
@@ -43,21 +39,15 @@ const tokenDetails = await chronik.token(
     '0daf200e3418f2df1158efef36fbb507f12928f1fdcf3543703e64e75a4a9073',
 );
 
-// Validate Genesis UTXO (considered 'unspent' by Chronik):
-const validationResult = await chronik.validateUtxos([
-    {
-        txid: '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
-        outIdx: 0,
-    },
-]);
-
 const GENESIS_PK =
     '04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc' +
     '3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f';
+
 // Get first page of tx history of the Genesis pubkey, most recent first:
 const history = await chronik
     .script('p2pk', GENESIS_PK)
     .history(/*page=*/ 0, /*page_size=*/ 10);
+
 // Get all UTXOs of the Genesis pubkey:
 const utxos = await chronik.script('p2pk', GENESIS_PK).utxos();
 
@@ -73,13 +63,19 @@ const ws = chronik.ws({
     // Optional: ping the ws every 30s to reduce disconnects
     keepAlive: true,
 });
+
 // Wait for WS to be connected:
 await ws.waitForOpen();
-// Subscribe to scripts (on Lotus, current ABC payout address):
-// Will give a message on avg every 2 minutes
-ws.subscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
+
+// Subscribe to blocks
+ws.subscribeToBlocks();
+
+// Subscribe to scripts:
+ws.subscribeToScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 // Unsubscribe:
-ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
+ws.unsubscribeFromScript('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
+
+// You may also subscribe to addresses, tokenIds, and lokadIds. See integration tests.
 ```
 
 ## Changelog
@@ -112,3 +108,4 @@ ws.unsubscribe('p2pkh', 'b8ae1c47effb58f72f7bca819fe7fc252f9e852e');
 -   0.28.1 - Upgrading dependencies [D16375](https://reviews.bitcoinabc.org/D16375)
 -   0.28.2 - Improve failoverProxy to switch servers on error state [D16584](https://reviews.bitcoinabc.org/D16584)
 -   0.29.0 - Support for `plugins` endpoints: `utxos` and `groups` [D16605](https://reviews.bitcoinabc.org/D16605)
+-   1.0.0 - Deprecate NNG chronik and rename all `InNode` classes and types [D16627](https://reviews.bitcoinabc.org/D16627)

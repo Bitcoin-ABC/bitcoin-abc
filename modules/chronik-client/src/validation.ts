@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { WsSubScriptClient } from './ChronikClientNode';
+import { WsSubScriptClient } from './ChronikClient';
 
 const VALID_HEX_REGEX = new RegExp(/^[a-f0-9]+$/);
 const VALID_LOKADID_REGEX = new RegExp(/^[a-f0-9]{8}$/);

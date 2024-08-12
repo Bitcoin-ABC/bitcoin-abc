@@ -123,7 +123,7 @@ export const getSlpSendTargetOutputs = (tokenInputInfo, destinationAddress) => {
 
 /**
  * Get all available token utxos for an SLP v1 SEND tx from in-node formatted chronik utxos
- * @param {ScriptUtxo_InNode[]} utxos array of utxos from an in-node instance of chronik
+ * @param {ScriptUtxo[]} utxos array of utxos from an in-node instance of chronik
  * @param {string} tokenId
  * @returns {array} tokenUtxos, all utxos that can be used for slpv1 send tx
  * mint batons are intentionally excluded
@@ -143,7 +143,7 @@ export const getAllSendUtxos = (utxos, tokenId) => {
 
 /**
  * Get send token inputs from in-node input data
- * @param {ScriptUtxo_InNode[]} utxos
+ * @param {ScriptUtxo[]} utxos
  * @param {string} tokenId tokenId of the token you want to send
  * @param {string} sendQty
  * @param {number} decimals 0-9 inclusive, integer. Decimals of this token.
@@ -246,9 +246,9 @@ export const getSlpBurnTargetOutputs = tokenInputInfo => {
 
 /**
  * Get mint baton(s) for a given token
- * @param {ScriptUtxo_InNode[]} utxos
+ * @param {ScriptUtxo[]} utxos
  * @param {string} tokenId
- * @returns {ScriptUtxo_InNode[]}
+ * @returns {ScriptUtxo[]}
  */
 export const getMintBatons = (utxos, tokenId) => {
     // From an array of chronik utxos, return only token utxos related to a given tokenId

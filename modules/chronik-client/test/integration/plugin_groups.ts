@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode } from '../../index';
+import { ChronikClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -25,7 +25,7 @@ describe('chronik-client delivery of groups endpoint for plugins', () => {
     const statusEvent = new EventEmitter();
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
@@ -46,7 +46,7 @@ describe('chronik-client delivery of groups endpoint for plugins', () => {
         const testInfo = await get_test_info;
 
         chronikUrl = [testInfo.chronik];
-        chronik = new ChronikClientNode(chronikUrl);
+        chronik = new ChronikClient(chronikUrl);
         console.info(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
 
         setupScriptTermination = setMochaTimeout(
@@ -112,7 +112,7 @@ describe('chronik-client delivery of groups endpoint for plugins', () => {
             chronik.plugin('doesnotexist').groups(),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/doesnotexist/groups? (): 404: Plugin "doesnotexist" not loaded`,
+            `Failed getting /plugin/doesnotexist/groups?: 404: Plugin "doesnotexist" not loaded`,
         );
 
         // We throw an error if the endpoint is called with an invalid prefix or start hex
@@ -122,13 +122,13 @@ describe('chronik-client delivery of groups endpoint for plugins', () => {
             chronik.plugin(PLUGIN_NAME).groups(badPrefixHex, 'deadbeef'),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=not+hex&start=deadbeef (): 400: Invalid hex: Odd number of digits`,
+            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=not+hex&start=deadbeef: 400: Invalid hex: Odd number of digits`,
         );
         await expect(
             chronik.plugin(PLUGIN_NAME).groups('deadbeef', badStartHex),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=nothex (): 400: Invalid hex: Invalid character 'n' at position 0`,
+            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=nothex: 400: Invalid hex: Invalid character 'n' at position 0`,
         );
 
         // We cannot request pageSize greater than 50
@@ -136,21 +136,21 @@ describe('chronik-client delivery of groups endpoint for plugins', () => {
             chronik.plugin(PLUGIN_NAME).groups('deadbeef', 'deadbeef', 51),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=deadbeef&page_size=51 (): 400: Requested page size 51 is too big, maximum is 50`,
+            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=deadbeef&page_size=51: 400: Requested page size 51 is too big, maximum is 50`,
         );
         // We cannot request pageSize less than 1
         await expect(
             chronik.plugin(PLUGIN_NAME).groups('deadbeef', 'deadbeef', 0),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=deadbeef&page_size=0 (): 400: Requested page size 0 is too small, minimum is 1`,
+            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=deadbeef&page_size=0: 400: Requested page size 0 is too small, minimum is 1`,
         );
         // We cannot request pageSize of way more than 50
         await expect(
             chronik.plugin(PLUGIN_NAME).groups('deadbeef', 'deadbeef', 2 ** 32),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=deadbeef&page_size=4294967296 (): 400: Invalid param page_size: 4294967296, number too large to fit in target type`,
+            `Failed getting /plugin/${PLUGIN_NAME}/groups?prefix=deadbeef&start=deadbeef&page_size=4294967296: 400: Invalid param page_size: 4294967296, number too large to fit in target type`,
         );
     });
     it('After sending a tx to create plugin utxos in multiple groups', async () => {

@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode } from '../../index';
+import { ChronikClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -86,7 +86,7 @@ describe('Get blocktxs and tx', () => {
     let broadcastTxids: string[] = [];
 
     it('New regtest chain', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // Gets the block by height (need the block hash)
         const blockFromHeight = await chronik.block(REGTEST_CHAIN_INIT_HEIGHT);
@@ -131,13 +131,13 @@ describe('Get blocktxs and tx', () => {
         const notTxid = 'thisIsNotATxid';
         await expect(chronik.tx(notTxid)).to.be.rejectedWith(
             Error,
-            `Failed getting /tx/${notTxid} (): 400: Not a txid: ${notTxid}`,
+            `Failed getting /tx/${notTxid}: 400: Not a txid: ${notTxid}`,
         );
 
         // Calling for a rawTx with an invalid txid throws expected error
         await expect(chronik.rawTx(notTxid)).to.be.rejectedWith(
             Error,
-            `Failed getting /raw-tx/${notTxid} (): 400: Not a txid: ${notTxid}`,
+            `Failed getting /raw-tx/${notTxid}: 400: Not a txid: ${notTxid}`,
         );
 
         // Calling for a tx with a txid that does not exist throws expected error
@@ -145,17 +145,17 @@ describe('Get blocktxs and tx', () => {
             'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd';
         await expect(chronik.tx(nonExistentTxid)).to.be.rejectedWith(
             Error,
-            `Failed getting /tx/${nonExistentTxid} (): 404: Transaction ${nonExistentTxid} not found in the index`,
+            `Failed getting /tx/${nonExistentTxid}: 404: Transaction ${nonExistentTxid} not found in the index`,
         );
 
         // Calling for a rawTx with a txid that does not exist throws expected error
         await expect(chronik.rawTx(nonExistentTxid)).to.be.rejectedWith(
             Error,
-            `Failed getting /raw-tx/${nonExistentTxid} (): 404: Transaction ${nonExistentTxid} not found in the index`,
+            `Failed getting /raw-tx/${nonExistentTxid}: 404: Transaction ${nonExistentTxid} not found in the index`,
         );
     });
     it('After some txs have been broadcast', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         txsAndRawTxsBroadcastInTest = await chronik_txs_and_rawtxs;
         broadcastTxids = Object.keys(txsAndRawTxsBroadcastInTest);
 
@@ -172,7 +172,7 @@ describe('Get blocktxs and tx', () => {
         }
     });
     it('After these txs are mined', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We have another block
         const blockFromHeight = await chronik.block(
@@ -245,14 +245,14 @@ describe('Get blocktxs and tx', () => {
         expect(emptyPage.txs.length).to.eql(0);
     });
     it('After this mined block has been parked', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We can't get blockTxs for the now-parked block
         await expect(
             chronik.blockTxs(REGTEST_CHAIN_INIT_HEIGHT + 1),
         ).to.be.rejectedWith(
             Error,
-            'Failed getting /block-txs/201?page=0&page_size=25 (): 404: Block not found: 201',
+            'Failed getting /block-txs/201?page=0&page_size=25: 404: Block not found: 201',
         );
 
         // Gives us a tx by txid

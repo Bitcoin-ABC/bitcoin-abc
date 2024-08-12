@@ -116,7 +116,7 @@ export const getUtxos = async (chronik, wallet) => {
 /**
  * Organize utxos by token and non-token
  * TODO deprecate this and use better coinselect methods
- * @param {Tx_InNode[]} chronikUtxos
+ * @param {Tx[]} chronikUtxos
  * @returns {object} {slpUtxos: [], nonSlpUtxos: []}
  */
 export const organizeUtxosByType = chronikUtxos => {
@@ -136,8 +136,8 @@ export const organizeUtxosByType = chronikUtxos => {
 
 /**
  * Get just the tx objects from chronik history() responses
- * @param {TxHistoryPage_InNode[]} txHistoryOfAllAddresses
- * @returns {Tx_InNode[]}
+ * @param {TxHistoryPage[]} txHistoryOfAllAddresses
+ * @returns {Tx[]}
  */
 export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
     let flatTxHistoryArray = [];
@@ -151,7 +151,7 @@ export const flattenChronikTxHistory = txHistoryOfAllAddresses => {
 
 /**
  * Sort an array of chronik txs chronologically and return the first renderedCount of them
- * @param {Tx_InNode[]} txs
+ * @param {Tx[]} txs
  * @param {number} renderedCount how many txs to return
  * @returns
  */
@@ -192,9 +192,9 @@ export const sortAndTrimChronikTxHistory = (txs, renderedCount) => {
 };
 
 /**
- * Parse a Tx_InNode object for rendering in Cashtab
+ * Parse a Tx object for rendering in Cashtab
  * TODO Potentially more efficient to do this calculation in the Tx.js component
- * @param {Tx_InNode} tx
+ * @param {Tx} tx
  * @param {object} wallet cashtab wallet
  * @param {Map} cachedTokens
  * @returns
@@ -328,7 +328,7 @@ export const parseTx = (tx, hashes) => {
  * @param {ChronikClientNode} chronik chronik-client instance
  * @param {object} wallet cashtab wallet
  * @param {Map} cachedTokens the map stored at cashtabCache.tokens
- * @returns {array} Tx_InNode[], each tx also has a 'parsed' key with other rendering info
+ * @returns {array} Tx[], each tx also has a 'parsed' key with other rendering info
  */
 export const getHistory = async (chronik, wallet, cachedTokens) => {
     const txHistoryPromises = [];
@@ -591,7 +591,7 @@ export const getAllTxHistoryByTokenId = async (
  * Get all child NFTs from a given parent tokenId
  * i.e. get all NFTs in an NFT collection *
  * @param {string} parentTokenId
- * @param {Tx_InNode[]} allParentTokenTxHistory
+ * @param {Tx[]} allParentTokenTxHistory
  */
 export const getChildNftsFromParent = (
     parentTokenId,

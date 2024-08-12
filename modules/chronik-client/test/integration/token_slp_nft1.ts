@@ -7,12 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import {
-    ChronikClientNode,
-    Tx_InNode,
-    WsEndpoint_InNode,
-    WsMsgClient,
-} from '../../index';
+import { ChronikClient, Tx, WsEndpoint, WsMsgClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     expectWsMsgs,
@@ -152,12 +147,12 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
     let slpSendTxid = '';
     let slpChildGenesisTxid = '';
 
-    let slpGenesis: Tx_InNode;
-    let slpMint: Tx_InNode;
-    let slpSend: Tx_InNode;
-    let slpChildGenesis: Tx_InNode;
+    let slpGenesis: Tx;
+    let slpMint: Tx;
+    let slpSend: Tx;
+    let slpChildGenesis: Tx;
 
-    let ws: WsEndpoint_InNode;
+    let ws: WsEndpoint;
 
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',
@@ -171,7 +166,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
     };
 
     it('Gets an SLP NFT1 genesis tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         slpGenesisTxid = await get_slp_nft1_genesis_txid;
 
@@ -269,7 +264,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         ws.subscribeToTokenId(slpGenesisTxid);
     });
     it('Gets an SLP NFT1 mint tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         slpMintTxid = await get_slp_nft1_mint_txid;
 
@@ -348,7 +343,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpMint.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets an SLP NFT1 send tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         slpSendTxid = await get_slp_nft1_send_txid;
 
@@ -446,7 +441,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpSend.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets an SLP NFT1 child genesis tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         slpChildGenesisTxid = await get_slp_nft1_child_genesis1_txid;
 
@@ -559,7 +554,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
         expect(slpChildGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Can get all of the above txs from the blockTxs endpoint after they are mined in a block', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         const blockTxs = await chronik.blockTxs(CHAIN_INIT_HEIGHT + 2);
 
@@ -593,7 +588,7 @@ describe('Get blocktxs, txs, and history for SLP NFT1 token txs', () => {
             slpChildGenesis,
         ].sort((a, b) => a.txid.localeCompare(b.txid));
 
-        // The token fields of Tx_InNode(s) from blockTxs match the Tx_InNode(s) from tx
+        // The token fields of Tx(s) from blockTxs match the Tx(s) from tx
         // Note the txs are not expected to fully match bc now we have block and spentBy keys,
         // which are expected after confirmation
         // Full endpoint output is tested in blocktxs_and_tx_and_rawtx.ts

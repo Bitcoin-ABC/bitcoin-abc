@@ -7,7 +7,7 @@
  * methods for working with a server-based hotwallet
  */
 
-import { ChronikClientNode, ScriptUtxo_InNode } from 'chronik-client';
+import { ChronikClientNode, ScriptUtxo } from 'chronik-client';
 import BIP32Factory from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import * as bip39 from 'bip39';
@@ -17,7 +17,7 @@ const bip32 = BIP32Factory(ecc);
 export interface ServerWallet {
     address: string;
     sk: Uint8Array;
-    utxos?: ScriptUtxo_InNode[];
+    utxos?: ScriptUtxo[];
 }
 
 /**

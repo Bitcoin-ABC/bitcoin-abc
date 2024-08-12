@@ -8,12 +8,12 @@ import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
 import {
-    ChronikClientNode,
+    ChronikClient,
     TokenInfo,
-    Token_InNode,
-    TxHistoryPage_InNode,
-    Tx_InNode,
-    WsEndpoint_InNode,
+    Token,
+    TxHistoryPage,
+    Tx,
+    WsEndpoint,
     WsMsgClient,
 } from '../../index';
 import initializeTestRunner, {
@@ -183,14 +183,14 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     let alpMintTwoTxid = '';
     let alpNonUtf8GenesisTxid = '';
 
-    let alpGenesis: Tx_InNode;
-    let alpMint: Tx_InNode;
-    let alpSend: Tx_InNode;
-    let alpNextGenesis: Tx_InNode;
-    let alpMulti: Tx_InNode;
-    let alpMega: Tx_InNode;
-    let alpMintTwo: Tx_InNode;
-    let alpSendTwo: Tx_InNode;
+    let alpGenesis: Tx;
+    let alpMint: Tx;
+    let alpSend: Tx;
+    let alpNextGenesis: Tx;
+    let alpMulti: Tx;
+    let alpMega: Tx;
+    let alpMintTwo: Tx;
+    let alpSendTwo: Tx;
 
     const alpTokenInfo: TokenInfo = {
         tokenId:
@@ -214,9 +214,9 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         },
     };
 
-    let confirmedTxsForAlpGenesisTxid: TxHistoryPage_InNode;
+    let confirmedTxsForAlpGenesisTxid: TxHistoryPage;
 
-    let ws: WsEndpoint_InNode;
+    let ws: WsEndpoint;
 
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',
@@ -230,7 +230,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
     };
 
     it('Gets an ALP genesis tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         alpGenesisTxid = await get_alp_genesis_txid;
 
@@ -377,13 +377,13 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             output => 'token' in output,
         );
 
-        const utxoTokenKeysFromOutputs: Token_InNode[] = [];
+        const utxoTokenKeysFromOutputs: Token[] = [];
         for (const output of outputsWithTokenKey) {
             if ('token' in output) {
                 const { token } = output;
                 // Remove the entryIdx key from these outputs, as we do not expect to see it in tokenId.utxos() output
-                delete (token as Token_InNode).entryIdx;
-                utxoTokenKeysFromOutputs.push(output.token as Token_InNode);
+                delete (token as Token).entryIdx;
+                utxoTokenKeysFromOutputs.push(output.token as Token);
             }
         }
 
@@ -433,7 +433,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         // Invalid tokenId is rejected
         await expect(chronik.token('somestring')).to.be.rejectedWith(
             Error,
-            `Failed getting /token/somestring (): 400: Not a txid: somestring`,
+            `Failed getting /token/somestring: 400: Not a txid: somestring`,
         );
         // We get expected error for a txid that is not in the mempool
         await expect(
@@ -442,11 +442,11 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             ),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /token/0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f (): 404: Token 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f not found in the index`,
+            `Failed getting /token/0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f: 404: Token 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f not found in the index`,
         );
     });
     it('Gets an ALP mint tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We can get an alp mint tx from the mempool
         alpMintTxid = await get_alp_mint_txid;
@@ -530,11 +530,11 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         // Error is thrown for a txid that is in the mempool but is not a tokenId
         await expect(chronik.token(alpMintTxid)).to.be.rejectedWith(
             Error,
-            `Failed getting /token/0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f (): 404: Token 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f not found in the index`,
+            `Failed getting /token/0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f: 404: Token 0dab1008db30343a4f771983e9fd96cbc15f0c6efc73f5249c9bae311ef1e92f not found in the index`,
         );
     });
     it('Gets an ALP send tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We can get an alp send tx from the mempool
         alpSendTxid = await get_alp_send_txid;
@@ -625,7 +625,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpSend.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets another ALP genesis tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We can get another alp genesis tx from the mempool
         alpNextGenesisTxid = await get_alp_genesis2_txid;
@@ -709,7 +709,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         expect(alpNextGenesis.tokenStatus).to.eql('TOKEN_STATUS_NORMAL');
     });
     it('Gets an ALP genesis, mint, and send (also a burn) combo tx from the mempool', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // We can get an ALP GENESIS + MINT + SEND all in one tx from the mempool
         alpMultiTxid = await get_alp_multi_txid;
@@ -885,7 +885,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         }
     });
     it('Can get all of the above txs, and a wild mega-tx, from the blockTxs endpoint after they are mined in a block', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // Now that we have a block, we get a block key from token info
         const alpGenesisConfirmedInfo = await chronik.token(alpGenesisTxid);
@@ -1191,7 +1191,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
             alpMega,
         ].sort((a, b) => a.txid.localeCompare(b.txid));
 
-        // The token fields of Tx_InNode(s) from blockTxs match the Tx_InNode(s) from tx
+        // The token fields of Tx(s) from blockTxs match the Tx(s) from tx
         // Note the txs are not expected to fully match bc now we have block key and spentBy,
         // expected after confirmation
         // This type of functionality is tested in blocktxs_and_tx_and_rawtx.ts
@@ -1282,7 +1282,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         ]);
     });
     it('Can get confirmed and unconfirmed txs from tokenId.history()', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         alpNonUtf8GenesisTxid = await get_alp_nonutf8_genesis_txid;
         alpMintTwoTxid = await get_alp_mint_two_txid;
@@ -1455,7 +1455,7 @@ describe('Get blocktxs, txs, and history for ALP token txs', () => {
         );
     });
     it('We get tx history in expected order from both tokenId().history() and tokenId.confirmedTxs()', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // Can get all confirmed token txs for alpGenesisTxid
         const confirmedTxs = await chronik

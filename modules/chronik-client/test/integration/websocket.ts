@@ -9,8 +9,8 @@ import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
 import {
-    ChronikClientNode,
-    WsEndpoint_InNode,
+    ChronikClient,
+    WsEndpoint,
     WsMsgClient,
     WsSubScriptClient,
 } from '../../index';
@@ -190,7 +190,7 @@ describe('Test expected websocket behavior of chronik-client', () => {
 
     let mixedOutputTxid = '';
 
-    let ws: WsEndpoint_InNode;
+    let ws: WsEndpoint;
 
     let subscriptions: Array<WsSubScriptClient> = [];
 
@@ -203,8 +203,8 @@ describe('Test expected websocket behavior of chronik-client', () => {
         p2pkScript = await get_p2pk_script;
         otherScript = await get_other_script;
 
-        // Initialize a new instance of ChronikClientNode
-        const chronik = new ChronikClientNode(chronikUrl);
+        // Initialize a new instance of ChronikClient
+        const chronik = new ChronikClient(chronikUrl);
 
         // Connect to the websocket with a testable onMessage handler
         ws = chronik.ws({

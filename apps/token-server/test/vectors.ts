@@ -4,12 +4,12 @@
 
 import {
     OutPoint,
-    TxInput_InNode,
-    TxOutput_InNode,
-    Token_InNode,
-    Tx_InNode,
-    BlockMetadata_InNode,
-    ScriptUtxo_InNode,
+    TxInput,
+    TxOutput,
+    Token,
+    Tx,
+    BlockMetadata,
+    ScriptUtxo,
     TokenType,
 } from 'chronik-client';
 import { ServerWallet } from '../src/wallet';
@@ -54,7 +54,7 @@ export const MOCK_OUTPOINT: OutPoint = {
     outIdx: 0,
 };
 
-const MOCK_TX_INPUT: TxInput_InNode = {
+const MOCK_TX_INPUT: TxInput = {
     outputScript: 'should be overwritten in tests',
     prevOut: MOCK_OUTPOINT,
     inputScript: '',
@@ -62,12 +62,12 @@ const MOCK_TX_INPUT: TxInput_InNode = {
     sequenceNo: 100,
 };
 
-const MOCK_TX_OUTPUT: TxOutput_InNode = {
+const MOCK_TX_OUTPUT: TxOutput = {
     value: 546,
     outputScript: 'to be updated in test',
 };
 
-const MOCK_TX_INNODE: Tx_InNode = {
+const MOCK_TX: Tx = {
     txid: 'n/a',
     version: 2,
     inputs: [MOCK_TX_INPUT],
@@ -81,7 +81,7 @@ const MOCK_TX_INNODE: Tx_InNode = {
     tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
 };
 
-export const MOCK_SCRIPT_UTXO: ScriptUtxo_InNode = {
+export const MOCK_SCRIPT_UTXO: ScriptUtxo = {
     outpoint: MOCK_OUTPOINT,
     blockHeight: 800000,
     isCoinbase: false,
@@ -94,17 +94,17 @@ const MOCK_TOKEN_TYPE: TokenType = {
     type: 'SLP_TOKEN_TYPE_FUNGIBLE',
     number: 1,
 };
-export const MOCK_UTXO_TOKEN: Token_InNode = {
+export const MOCK_UTXO_TOKEN: Token = {
     tokenId: MOCK_TOKENID_ONES,
     tokenType: MOCK_TOKEN_TYPE,
     amount: '1',
     isMintBaton: false,
 };
-export const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo_InNode = {
+export const MOCK_SPENDABLE_TOKEN_UTXO: ScriptUtxo = {
     ...MOCK_SCRIPT_UTXO,
     token: MOCK_UTXO_TOKEN,
 };
-const MOCK_MINT_BATON_TOKEN_UTXO: ScriptUtxo_InNode = {
+const MOCK_MINT_BATON_TOKEN_UTXO: ScriptUtxo = {
     ...MOCK_SPENDABLE_TOKEN_UTXO,
     token: {
         ...MOCK_UTXO_TOKEN,
@@ -113,13 +113,13 @@ const MOCK_MINT_BATON_TOKEN_UTXO: ScriptUtxo_InNode = {
     },
 };
 
-const MOCK_BLOCK_METADATA_INNODE: BlockMetadata_InNode = {
+const MOCK_BLOCK_METADATA: BlockMetadata = {
     hash: '0000000000000000115e051672e3d4a6c523598594825a1194862937941296fe',
     height: 800000,
     timestamp: 1688808780,
 };
 
-const MOCK_TX_OUTPUT_TOKEN: Token_InNode = {
+const MOCK_TX_OUTPUT_TOKEN: Token = {
     tokenId: 'b132878bfa81cf1b9e19192045ed4c797b10944cc17ae07da06aed3d7b566cb7',
     tokenType: {
         protocol: 'SLP',
@@ -137,7 +137,7 @@ interface HasInputsFromOutputScriptVector {
 
 interface HasInputsFromOutputScriptReturn {
     description: string;
-    tx: Tx_InNode;
+    tx: Tx;
     outputScript: string;
     returned: boolean;
 }
@@ -148,7 +148,7 @@ interface AddressReceivedTokenReturnVector {
 
 interface AddressReceivedTokenReturn {
     description: string;
-    tx: Tx_InNode;
+    tx: Tx;
     address: string;
     tokenId: string;
     returned: boolean;
@@ -160,7 +160,7 @@ interface GetTxTimestampReturnVector {
 
 interface GetTxTimestampReturn {
     description: string;
-    tx: Tx_InNode;
+    tx: Tx;
     timestamp: number;
 }
 
@@ -175,7 +175,7 @@ interface GetHistoryAfterTimestampReturn {
     address: string;
     timestamp: number;
     pageSize: number;
-    returned: Tx_InNode[];
+    returned: Tx[];
 }
 
 interface GetHistoryAfterTimestampError {
@@ -188,7 +188,7 @@ interface GetHistoryAfterTimestampError {
 }
 
 interface ChronikMock {
-    history: Tx_InNode[] | Error;
+    history: Tx[] | Error;
 }
 
 interface isAddressEligibleForTokenRewardVector {
@@ -199,7 +199,7 @@ interface isAddressEligibleForTokenRewardReturn {
     address: string;
     tokenId: string;
     tokenServerOutputScript: string;
-    historySinceEligibilityTimestamp: Tx_InNode[];
+    historySinceEligibilityTimestamp: Tx[];
     returned: boolean | number;
 }
 
@@ -238,7 +238,7 @@ interface SyncWalletVector {
 interface SyncWalletReturn {
     description: string;
     wallet: ServerWallet;
-    mockUtxos: ScriptUtxo_InNode[];
+    mockUtxos: ScriptUtxo[];
     returned: ServerWallet;
 }
 
@@ -258,7 +258,7 @@ interface GetSlpInputsAndOutputsReturn {
     rewardAmountTokenSats: bigint;
     destinationAddress: string;
     tokenId: string;
-    utxos: ScriptUtxo_InNode[];
+    utxos: ScriptUtxo[];
     changeAddress: string;
     returned: SlpInputsAndOutputs;
 }
@@ -268,7 +268,7 @@ interface GetSlpInputsAndOutputsError {
     rewardAmountTokenSats: bigint;
     destinationAddress: string;
     tokenId: string;
-    utxos: ScriptUtxo_InNode[];
+    utxos: ScriptUtxo[];
     changeAddress: string;
     error: Error;
 }
@@ -281,7 +281,7 @@ interface SendRewardVector {
 interface SendRewardReturn {
     description: string;
     wallet: ServerWallet;
-    utxos: ScriptUtxo_InNode[];
+    utxos: ScriptUtxo[];
     tokenId: string;
     rewardAmountTokenSats: bigint;
     destinationAddress: string;
@@ -290,7 +290,7 @@ interface SendRewardReturn {
 interface SendRewardError {
     description: string;
     wallet: ServerWallet;
-    utxos: Error | ScriptUtxo_InNode[];
+    utxos: Error | ScriptUtxo[];
     tokenId: string;
     rewardAmountTokenSats: bigint;
     destinationAddress: string;
@@ -305,7 +305,7 @@ interface SendXecAirdropVector {
 interface SendXecAirdropReturn {
     description: string;
     wallet: ServerWallet;
-    utxos: ScriptUtxo_InNode[];
+    utxos: ScriptUtxo[];
     xecAirdropAmountSats: number;
     destinationAddress: string;
     returned: RewardBroadcastSuccess;
@@ -314,7 +314,7 @@ interface SendXecAirdropReturn {
 interface SendXecAirdropError {
     description: string;
     wallet: ServerWallet;
-    utxos: Error | ScriptUtxo_InNode[];
+    utxos: Error | ScriptUtxo[];
     xecAirdropAmountSats: number;
     destinationAddress: string;
     error: Error;
@@ -342,7 +342,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns true for a tx with one input from the given outputScript',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     inputs: [
                         {
                             ...MOCK_TX_INPUT,
@@ -357,7 +357,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns false for a tx with one input not from given outputScript',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     inputs: [
                         {
                             ...MOCK_TX_INPUT,
@@ -372,7 +372,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns true for a multi-input tx with the last input from given outputScript',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     inputs: [
                         {
                             ...MOCK_TX_INPUT,
@@ -395,7 +395,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns false for a multi-input tx with the no inputs from the given outputScript',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     inputs: [
                         {
                             ...MOCK_TX_INPUT,
@@ -422,7 +422,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns true for a one-output tx that includes the given tokenId at the given outputScript',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     outputs: [
                         {
                             ...MOCK_TX_OUTPUT,
@@ -442,7 +442,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns true for tx with multiple outputs that includes an output with the given tokenId at the given outputScript',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     outputs: [
                         {
                             ...MOCK_TX_OUTPUT,
@@ -475,7 +475,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns false for a one-output tx that does not include a token output',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     outputs: [
                         {
                             ...MOCK_TX_OUTPUT,
@@ -492,7 +492,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns false for a one-output tx that includes a token not of the given tokenId',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     outputs: [
                         {
                             ...MOCK_TX_OUTPUT,
@@ -512,7 +512,7 @@ const vectors: TestVectors = {
                 description:
                     'Returns false for a tx with outputs array of length > 1 that includes a token not of the given tokenId and a non-token output',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     outputs: [
                         {
                             ...MOCK_TX_OUTPUT,
@@ -539,17 +539,17 @@ const vectors: TestVectors = {
         returns: [
             {
                 description: 'Returns timeFirstSeen if it is not 0',
-                tx: { ...MOCK_TX_INNODE, timeFirstSeen: 2222222222 },
+                tx: { ...MOCK_TX, timeFirstSeen: 2222222222 },
                 timestamp: 2222222222,
             },
             {
                 description:
                     'Returns block.timestamp if timeFirstSeen is 0 and the tx has confirmed',
                 tx: {
-                    ...MOCK_TX_INNODE,
+                    ...MOCK_TX,
                     timeFirstSeen: 0,
                     block: {
-                        ...MOCK_BLOCK_METADATA_INNODE,
+                        ...MOCK_BLOCK_METADATA,
                         timestamp: 1111111111,
                     },
                 },
@@ -558,7 +558,7 @@ const vectors: TestVectors = {
             {
                 description:
                     'Returns -1 for edge case of timeFirstSeen 0 and unconfirmed tx',
-                tx: { ...MOCK_TX_INNODE, timeFirstSeen: 0 },
+                tx: { ...MOCK_TX, timeFirstSeen: 0 },
                 timestamp: -1,
             },
         ],
@@ -568,15 +568,15 @@ const vectors: TestVectors = {
         returns: [
             {
                 description: 'A tx exactly at the given timestamp is returned',
-                mocks: { history: [{ ...MOCK_TX_INNODE, timeFirstSeen: 10 }] },
+                mocks: { history: [{ ...MOCK_TX, timeFirstSeen: 10 }] },
                 address: IFP_ADDRESS,
                 timestamp: 10,
                 pageSize: 2,
-                returned: [{ ...MOCK_TX_INNODE, timeFirstSeen: 10 }],
+                returned: [{ ...MOCK_TX, timeFirstSeen: 10 }],
             },
             {
                 description: 'A tx before the given timestamp is ignored',
-                mocks: { history: [{ ...MOCK_TX_INNODE, timeFirstSeen: 9 }] },
+                mocks: { history: [{ ...MOCK_TX, timeFirstSeen: 9 }] },
                 address: IFP_ADDRESS,
                 timestamp: 10,
                 pageSize: 2,
@@ -587,8 +587,8 @@ const vectors: TestVectors = {
                     'If all txs on first page are at or before the given timestamp, we return an empty array',
                 mocks: {
                     history: [
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 9 },
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 8 },
+                        { ...MOCK_TX, timeFirstSeen: 9 },
+                        { ...MOCK_TX, timeFirstSeen: 8 },
                     ],
                 },
                 address: IFP_ADDRESS,
@@ -601,18 +601,18 @@ const vectors: TestVectors = {
                     'If all txs on first page are at or after the given timestamp, we get the next page and return the ones there that are also after',
                 mocks: {
                     history: [
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                        { ...MOCK_TX, timeFirstSeen: 12 },
+                        { ...MOCK_TX, timeFirstSeen: 11 },
+                        { ...MOCK_TX, timeFirstSeen: 10 },
                     ],
                 },
                 address: IFP_ADDRESS,
                 timestamp: 10,
                 pageSize: 2,
                 returned: [
-                    { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
-                    { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
-                    { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                    { ...MOCK_TX, timeFirstSeen: 12 },
+                    { ...MOCK_TX, timeFirstSeen: 11 },
+                    { ...MOCK_TX, timeFirstSeen: 10 },
                 ],
             },
             {
@@ -620,19 +620,19 @@ const vectors: TestVectors = {
                     'If all txs on first page are at or after the given timestamp, and some are and some arent on the 2nd page, we only return the txs after expected timestamp',
                 mocks: {
                     history: [
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
-                        { ...MOCK_TX_INNODE, timeFirstSeen: 9 },
+                        { ...MOCK_TX, timeFirstSeen: 12 },
+                        { ...MOCK_TX, timeFirstSeen: 11 },
+                        { ...MOCK_TX, timeFirstSeen: 10 },
+                        { ...MOCK_TX, timeFirstSeen: 9 },
                     ],
                 },
                 address: IFP_ADDRESS,
                 timestamp: 10,
                 pageSize: 2,
                 returned: [
-                    { ...MOCK_TX_INNODE, timeFirstSeen: 12 },
-                    { ...MOCK_TX_INNODE, timeFirstSeen: 11 },
-                    { ...MOCK_TX_INNODE, timeFirstSeen: 10 },
+                    { ...MOCK_TX, timeFirstSeen: 12 },
+                    { ...MOCK_TX, timeFirstSeen: 11 },
+                    { ...MOCK_TX, timeFirstSeen: 10 },
                 ],
             },
         ],
@@ -668,7 +668,7 @@ const vectors: TestVectors = {
                 tokenServerOutputScript: IFP_OUTPUTSCRIPT,
                 historySinceEligibilityTimestamp: [
                     {
-                        ...MOCK_TX_INNODE,
+                        ...MOCK_TX,
                         inputs: [
                             {
                                 ...MOCK_TX_INPUT,
@@ -694,7 +694,7 @@ const vectors: TestVectors = {
                 tokenServerOutputScript: IFP_OUTPUTSCRIPT,
                 historySinceEligibilityTimestamp: [
                     {
-                        ...MOCK_TX_INNODE,
+                        ...MOCK_TX,
                         inputs: [
                             {
                                 ...MOCK_TX_INPUT,
@@ -724,7 +724,7 @@ const vectors: TestVectors = {
                 tokenServerOutputScript: IFP_OUTPUTSCRIPT,
                 historySinceEligibilityTimestamp: [
                     {
-                        ...MOCK_TX_INNODE,
+                        ...MOCK_TX,
                         inputs: [
                             {
                                 ...MOCK_TX_INPUT,

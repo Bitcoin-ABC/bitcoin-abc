@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode } from '../../index';
+import { ChronikClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -25,7 +25,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
     const statusEvent = new EventEmitter();
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
@@ -46,7 +46,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
         const testInfo = await get_test_info;
 
         chronikUrl = [testInfo.chronik];
-        chronik = new ChronikClientNode(chronikUrl);
+        chronik = new ChronikClient(chronikUrl);
         console.info(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
 
         setupScriptTermination = setMochaTimeout(
@@ -135,7 +135,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             chronik.plugin('doesnotexist').utxos(BYTES_a),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/doesnotexist/${BYTES_a}/utxos (): 404: Plugin "doesnotexist" not loaded`,
+            `Failed getting /plugin/doesnotexist/${BYTES_a}/utxos: 404: Plugin "doesnotexist" not loaded`,
         );
 
         // We throw an error if the endpoint is called with an invalid plugin group hex
@@ -143,7 +143,7 @@ describe('chronik-client presentation of plugin entries in tx inputs, outputs an
             chronik.plugin(PLUGIN_NAME).utxos('not a hex string'),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /plugin/${PLUGIN_NAME}/not a hex string/utxos (): 400: Invalid hex: Invalid character 'n' at position 0`,
+            `Failed getting /plugin/${PLUGIN_NAME}/not a hex string/utxos: 400: Invalid hex: Invalid character 'n' at position 0`,
         );
     });
     it('After broadcasting a tx with plugin utxos in group "a"', async () => {

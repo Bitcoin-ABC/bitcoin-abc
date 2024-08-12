@@ -8,7 +8,7 @@ import cashaddr from 'ecashaddrjs';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode, ScriptType_InNode, Tx_InNode } from '../../index';
+import { ChronikClient, ScriptType, Tx } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -170,7 +170,7 @@ describe('Get script().history and script().utxos()', () => {
     let otherTxids: string[] = [];
 
     it('New regtest chain', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         // Get addresses / scripts (used in all tests)
         p2pkhAddress = await get_p2pkh_address;
@@ -201,8 +201,8 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         const checkEmptyScriptMethods = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
             payload: string,
             expectedOutputScript: string,
         ) => {
@@ -273,8 +273,8 @@ describe('Get script().history and script().utxos()', () => {
 
         // Expected errors
         const checkExpectedErrors = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
         ) => {
             const nonHexPayload = 'justsomestring';
             const chronikScriptNonHexPayload = chronik.script(
@@ -285,23 +285,23 @@ describe('Get script().history and script().utxos()', () => {
                 chronikScriptNonHexPayload.history(),
             ).to.be.rejectedWith(
                 Error,
-                `Failed getting /script/${type}/${nonHexPayload}/history?page=0&page_size=25 (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+                `Failed getting /script/${type}/${nonHexPayload}/history?page=0&page_size=25: 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
             );
             await expect(
                 chronikScriptNonHexPayload.confirmedTxs(),
             ).to.be.rejectedWith(
                 Error,
-                `Failed getting /script/${type}/${nonHexPayload}/confirmed-txs?page=0&page_size=25 (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+                `Failed getting /script/${type}/${nonHexPayload}/confirmed-txs?page=0&page_size=25: 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
             );
             await expect(
                 chronikScriptNonHexPayload.unconfirmedTxs(),
             ).to.be.rejectedWith(
                 Error,
-                `Failed getting /script/${type}/${nonHexPayload}/unconfirmed-txs?page=0&page_size=25 (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+                `Failed getting /script/${type}/${nonHexPayload}/unconfirmed-txs?page=0&page_size=25: 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
             );
             await expect(chronikScriptNonHexPayload.utxos()).to.be.rejectedWith(
                 Error,
-                `Failed getting /script/${type}/${nonHexPayload}/utxos (): 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
+                `Failed getting /script/${type}/${nonHexPayload}/utxos: 400: Invalid hex: Invalid character '${nonHexPayload[0]}' at position 0`,
             );
 
             const hexPayload = 'deadbeef';
@@ -312,25 +312,25 @@ describe('Get script().history and script().utxos()', () => {
                     chronikScriptHexPayload.history(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/history?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/history?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.confirmedTxs(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/confirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/confirmed-txs?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.unconfirmedTxs(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.utxos(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/utxos (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/utxos: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected 20 bytes but got 4 bytes`,
                 );
             }
             if (type === 'p2pk') {
@@ -338,25 +338,25 @@ describe('Get script().history and script().utxos()', () => {
                     chronikScriptHexPayload.history(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/history?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/history?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.confirmedTxs(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/confirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/confirmed-txs?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.unconfirmedTxs(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25 (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/unconfirmed-txs?page=0&page_size=25: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
                 );
                 await expect(
                     chronikScriptHexPayload.utxos(),
                 ).to.be.rejectedWith(
                     Error,
-                    `Failed getting /script/${type}/${hexPayload}/utxos (): 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
+                    `Failed getting /script/${type}/${hexPayload}/utxos: 400: Invalid payload for ${type.toUpperCase()}: Invalid length, expected one of [33, 65] but got 4 bytes`,
                 );
             }
 
@@ -385,11 +385,11 @@ describe('Get script().history and script().utxos()', () => {
     it('After some txs have been broadcast', async () => {
         txsBroadcast = parseInt(await get_txs_broadcast);
 
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         const checkScriptMethodsInMempool = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
             payload: string,
             expectedOutputScript: string,
             broadcastTxids: string[],
@@ -404,9 +404,7 @@ describe('Get script().history and script().utxos()', () => {
             // within history txs, confirmed txs are sorted in block order, unconfirmed txs are sorted by timeFirstSeen
             // i.e., history.txs[0] will have the highest timeFirstSeen
             // For txs with the same timeFirstSeen, the alphabetically-last txs appears first
-            const historyClone: Tx_InNode[] = JSON.parse(
-                JSON.stringify(history.txs),
-            );
+            const historyClone: Tx[] = JSON.parse(JSON.stringify(history.txs));
 
             // Sort historyClone by timeFirstSeen and then by txid
             historyClone.sort(
@@ -524,8 +522,8 @@ describe('Get script().history and script().utxos()', () => {
         );
 
         const checkPagination = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
             payload: string,
             txsBroadcast: number,
             customPageSize: number,
@@ -570,7 +568,7 @@ describe('Get script().history and script().utxos()', () => {
             // We cannot use pageSize of 0
             await expect(chronikScript.history(0, 0)).to.be.rejectedWith(
                 Error,
-                `Failed getting /script/${type}/${payload}/history?page=0&page_size=0 (): 400: Requested page size 0 is too small, minimum is 1`,
+                `Failed getting /script/${type}/${payload}/history?page=0&page_size=0: 400: Requested page size 0 is too small, minimum is 1`,
             );
 
             console.log('\x1b[32m%s\x1b[0m', `✔ ${type} pagination`);
@@ -598,11 +596,11 @@ describe('Get script().history and script().utxos()', () => {
         await checkPagination(chronik, 'other', otherScript, txsBroadcast, 50);
     });
     it('After these txs are mined', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         const checkScriptMethodsAfterConfirmation = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
             payload: string,
             expectedOutputScript: string,
             broadcastTxids: string[],
@@ -615,9 +613,7 @@ describe('Get script().history and script().utxos()', () => {
                 broadcastTxids.length,
             );
             // Clone history.txs to test sorting
-            const historyClone: Tx_InNode[] = JSON.parse(
-                JSON.stringify(history.txs),
-            );
+            const historyClone: Tx[] = JSON.parse(JSON.stringify(history.txs));
 
             // history txs within blocks sorting
             // The history endpoint returns confirmed txs sorted by timeFirstSeen (high to low) and then by txid (alphabetical last to first)
@@ -732,11 +728,11 @@ describe('Get script().history and script().utxos()', () => {
         // as 'isFinal' is present only on utxos
         // Potential TODO, add isFinal key to tx proto in chronik
 
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
 
         const checkAvalancheFinalized = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
             payload: string,
             expectedOutputScript: string,
             broadcastTxids: string[],
@@ -802,12 +798,12 @@ describe('Get script().history and script().utxos()', () => {
         );
     });
     it('After a tx is broadcast with outputs of each type', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const mixedTxid = await get_mixed_output_txid;
 
         const checkMixedTxInHistory = async (
-            chronik: ChronikClientNode,
-            type: ScriptType_InNode,
+            chronik: ChronikClient,
+            type: ScriptType,
             payload: string,
             mixedTxid: string,
             txsBroadcast: number,

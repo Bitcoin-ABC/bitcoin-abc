@@ -7,7 +7,7 @@
     "author": "Tobias Ruck",
     "license": "MIT",
     "scripts": {
-        "build-proto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=proto/ ../../chronik/chronik-proto/proto/chronik.proto -I=../../chronik/chronik-proto/proto/ --ts_proto_opt=esModuleInterop=true --ts_proto_opt=forceLong=string && mv proto/chronik.ts proto/chronikNode.ts",
+        "build-proto": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=proto/ ../../chronik/chronik-proto/proto/chronik.proto -I=../../chronik/chronik-proto/proto/ --ts_proto_opt=esModuleInterop=true --ts_proto_opt=forceLong=string",
         "build": "tsc",
         "build-docs": "typedoc --out docs index.ts",
         "test": "mocha -r ts-node/register test/test.ts",

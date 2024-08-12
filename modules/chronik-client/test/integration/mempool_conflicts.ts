@@ -9,10 +9,10 @@ import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
 import {
-    ChronikClientNode,
+    ChronikClient,
     MsgTxClient,
-    ScriptType_InNode,
-    WsEndpoint_InNode,
+    ScriptType,
+    WsEndpoint,
     WsMsgClient,
     WsSubScriptClient,
 } from '../../index';
@@ -121,7 +121,7 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
     let tx2Txid = '';
     let tx3Txid = '';
 
-    let ws: WsEndpoint_InNode;
+    let ws: WsEndpoint;
 
     let subscriptions: Array<WsSubScriptClient> = [];
 
@@ -129,8 +129,8 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
         const { type, hash } =
             cashaddr.getTypeAndHashFromOutputScript(P2SH_OP_TRUE);
 
-        // Initialize a new instance of ChronikClientNode
-        const chronik = new ChronikClientNode(chronikUrl);
+        // Initialize a new instance of ChronikClient
+        const chronik = new ChronikClient(chronikUrl);
 
         // Connect to the websocket with a testable onMessage handler
         ws = chronik.ws({
@@ -143,7 +143,7 @@ describe('Test expected websocket behavior of chronik-client when txs are remove
         // Subscribe to addresses and scripts
         subscriptions = [
             {
-                scriptType: type as ScriptType_InNode,
+                scriptType: type as ScriptType,
                 payload: hash,
             },
         ];

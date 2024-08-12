@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode, WsEndpoint_InNode, WsMsgClient } from '../../index';
+import { ChronikClient, WsEndpoint, WsMsgClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     expectWsMsgs,
@@ -30,7 +30,7 @@ describe('History endpoints and websocket for LOKAD ID', () => {
     const statusEvent = new EventEmitter();
     let get_test_info: Promise<TestInfo>;
     let chronikUrl: string[];
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let setupScriptTermination: ReturnType<typeof setTimeout>;
 
     before(async function () {
@@ -51,7 +51,7 @@ describe('History endpoints and websocket for LOKAD ID', () => {
         const testInfo = await get_test_info;
 
         chronikUrl = [testInfo.chronik];
-        chronik = new ChronikClientNode(chronikUrl);
+        chronik = new ChronikClient(chronikUrl);
         console.info(`chronikUrl set to ${JSON.stringify(chronikUrl)}`);
 
         setupScriptTermination = setMochaTimeout(
@@ -90,8 +90,8 @@ describe('History endpoints and websocket for LOKAD ID', () => {
     const LOKAD2 = Buffer.from('lok2').toString('hex');
     const LOKAD3 = Buffer.from('lok3').toString('hex');
     const LOKAD4 = Buffer.from('lok4').toString('hex');
-    let ws: WsEndpoint_InNode;
-    let ws2: WsEndpoint_InNode;
+    let ws: WsEndpoint;
+    let ws2: WsEndpoint;
 
     const BASE_ADDEDTOMEMPOOL_WSMSG: WsMsgClient = {
         type: 'Tx',
@@ -144,7 +144,7 @@ describe('History endpoints and websocket for LOKAD ID', () => {
             chronik.lokadId('somestring').history(),
         ).to.be.rejectedWith(
             Error,
-            `Failed getting /lokad-id/somestring/history?page=0&page_size=25 (): 400: Invalid hex: Invalid character 's' at position 0`,
+            `Failed getting /lokad-id/somestring/history?page=0&page_size=25: 400: Invalid hex: Invalid character 's' at position 0`,
         );
 
         // Connect to the websocket with a testable onMessage handler

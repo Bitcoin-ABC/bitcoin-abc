@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Tx_InNode } from 'chronik-client';
+import { Tx } from 'chronik-client';
 import {
     hasInputsFromOutputScript,
     addressReceivedToken,
@@ -32,7 +32,7 @@ export function isAddressEligibleForTokenReward(
     address: string,
     tokenId: string,
     tokenServerOutputScript: string,
-    historySinceEligibilityTimestamp: Tx_InNode[],
+    historySinceEligibilityTimestamp: Tx[],
 ): boolean | number {
     // If there is no tx history, the checkedOutputScript is eligible
     if (historySinceEligibilityTimestamp.length === 0) {

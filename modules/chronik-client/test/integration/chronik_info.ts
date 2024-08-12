@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode } from '../../index';
+import { ChronikClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -71,14 +71,14 @@ describe('/chronik-info', () => {
 
     it('gives us the chronik info and throws expected error on bad server connection', async () => {
         const EXPECTED_CHRONIK_VERSION = '0.1.0';
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const chronikInfo = await chronik.chronikInfo();
         expect(chronikInfo.version).to.eql(EXPECTED_CHRONIK_VERSION);
 
         // Throws expected error if called on bad server
 
-        // Create a ChronikClientNode instance with a bad server URL
-        const badChronik = new ChronikClientNode([`${chronikUrl}5`]);
+        // Create a ChronikClient instance with a bad server URL
+        const badChronik = new ChronikClient([`${chronikUrl}5`]);
         await expect(badChronik.chronikInfo()).to.be.rejectedWith(
             Error,
             'Error connecting to known Chronik instances',

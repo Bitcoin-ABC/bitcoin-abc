@@ -7,7 +7,7 @@
  * methods for building token reward transtaction
  */
 
-import { ChronikClientNode, ScriptUtxo_InNode } from 'chronik-client';
+import { ChronikClientNode, ScriptUtxo } from 'chronik-client';
 import { syncWallet, ServerWallet } from './wallet';
 import {
     Script,
@@ -30,7 +30,7 @@ const HASH_TYPES = {
 const SLP_1_PROTOCOL_NUMBER = 1;
 
 export interface SlpInputsAndOutputs {
-    slpInputs: ScriptUtxo_InNode[];
+    slpInputs: ScriptUtxo[];
     slpOutputs: TxOutput[];
 }
 
@@ -45,10 +45,10 @@ export function getSlpInputsAndOutputs(
     rewardAmountTokenSats: bigint,
     destinationAddress: string,
     tokenId: string,
-    utxos: ScriptUtxo_InNode[],
+    utxos: ScriptUtxo[],
     changeAddress: string,
 ): SlpInputsAndOutputs {
-    const slpInputs: ScriptUtxo_InNode[] = [];
+    const slpInputs: ScriptUtxo[] = [];
 
     let totalSendQty = 0n;
     let change = 0n;

@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import { Tx_InNode } from 'chronik-client';
+import { Tx } from 'chronik-client';
 import cashaddr from 'ecashaddrjs';
 
 /**
@@ -20,10 +20,10 @@ import cashaddr from 'ecashaddrjs';
  * @param outputScript outputScript we are checking
  */
 export function hasInputsFromOutputScript(
-    tx: Tx_InNode,
+    tx: Tx,
     outputScript: string,
 ): boolean {
-    const { inputs } = tx; // TxInput_InNode[]
+    const { inputs } = tx;
     for (const input of inputs) {
         if (input.outputScript === outputScript) {
             return true;
@@ -39,11 +39,11 @@ export function hasInputsFromOutputScript(
  * @param tokenId
  */
 export function addressReceivedToken(
-    tx: Tx_InNode,
+    tx: Tx,
     address: string,
     tokenId: string,
 ): boolean {
-    // Tx_InNode outputs have outputScript as a key, not address
+    // Tx outputs have outputScript as a key, not address
     const outputScript = cashaddr.getOutputScriptFromAddress(address);
 
     const { outputs } = tx;
@@ -74,7 +74,7 @@ export function addressReceivedToken(
  * @param tx
  * @returns timestamp (seconds)
  */
-export function getTxTimestamp(tx: Tx_InNode): number {
+export function getTxTimestamp(tx: Tx): number {
     const { timeFirstSeen } = tx;
 
     if (timeFirstSeen !== 0) {

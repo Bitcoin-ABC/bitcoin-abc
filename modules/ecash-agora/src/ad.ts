@@ -29,7 +29,7 @@ export interface ParsedAd extends ParsedAdVariant {
     spentBy: OutPoint | undefined;
 }
 
-export function parseAgoraTx(tx: chronik.Tx_InNode): ParsedAd | undefined {
+export function parseAgoraTx(tx: chronik.Tx): ParsedAd | undefined {
     if (tx.inputs.length === 0) {
         return undefined;
     }

@@ -2,11 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import {
-    ChronikClientNode,
-    TxHistoryPage_InNode,
-    Tx_InNode,
-} from 'chronik-client';
+import { ChronikClientNode, TxHistoryPage, Tx } from 'chronik-client';
 import { getTxTimestamp } from './parse';
 
 /**
@@ -26,7 +22,7 @@ export async function getHistoryAfterTimestamp(
     address: string,
     timestamp: number,
     pageSize = 25,
-): Promise<Tx_InNode[]> {
+): Promise<Tx[]> {
     // The history endpoint is called with (pageNumber, pageSize), where 0 is the first page
     const firstPageHistory = await getTxHistoryPage(
         chronik,
@@ -85,6 +81,6 @@ async function getTxHistoryPage(
     address: string,
     pageNumber: number,
     pageSize = 25,
-): Promise<TxHistoryPage_InNode> {
+): Promise<TxHistoryPage> {
     return await chronik.address(address).history(pageNumber, pageSize);
 }

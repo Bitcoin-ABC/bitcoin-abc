@@ -7,7 +7,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { ChildProcess } from 'node:child_process';
 import { EventEmitter, once } from 'node:events';
 import path from 'path';
-import { ChronikClientNode } from '../../index';
+import { ChronikClient } from '../../index';
 import initializeTestRunner, {
     cleanupMochaRegtest,
     setMochaTimeout,
@@ -76,7 +76,7 @@ describe('/block and /blocks', () => {
     const REGTEST_CHAIN_INIT_HEIGHT = 200;
 
     it('gives us the block and blocks', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const blockFromHeight = await chronik.block(REGTEST_CHAIN_INIT_HEIGHT);
         expect(blockFromHeight.blockInfo.height).to.eql(
             REGTEST_CHAIN_INIT_HEIGHT,
@@ -118,11 +118,11 @@ describe('/block and /blocks', () => {
             ),
         ).to.be.rejectedWith(
             Error,
-            'Failed getting /blocks/200/198 (): 400: Invalid block end height: 198',
+            'Failed getting /blocks/200/198: 400: Invalid block end height: 198',
         );
     });
     it('gives us the block at 10 higher', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 10,
         );
@@ -159,7 +159,7 @@ describe('/block and /blocks', () => {
         }
     });
     it('gives us the block after parking the last block and throws expected error attempting to get parked block', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 9,
         );
@@ -180,7 +180,7 @@ describe('/block and /blocks', () => {
             chronik.block(REGTEST_CHAIN_INIT_HEIGHT + 10),
         ).to.be.rejectedWith(
             Error,
-            'Failed getting /block/210 (): 404: Block not found: 210',
+            'Failed getting /block/210: 404: Block not found: 210',
         );
 
         // blocks does not throw error if asked for parked block, but also does not return it
@@ -211,7 +211,7 @@ describe('/block and /blocks', () => {
         expect(latestBlockAvailableByBlocks).to.deep.equal([]);
     });
     it('gives us the block and blocks after unparking the last block', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 10,
         );
@@ -258,7 +258,7 @@ describe('/block and /blocks', () => {
         );
     });
     it('gives us the block and blocks after invalidating the last block and throws expected error attempting to get invalidated block', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 9,
         );
@@ -279,7 +279,7 @@ describe('/block and /blocks', () => {
             chronik.block(REGTEST_CHAIN_INIT_HEIGHT + 10),
         ).to.be.rejectedWith(
             Error,
-            'Failed getting /block/210 (): 404: Block not found: 210',
+            'Failed getting /block/210: 404: Block not found: 210',
         );
 
         // blocks does not throw error if asked for invalidated block, but also does not return it
@@ -310,7 +310,7 @@ describe('/block and /blocks', () => {
         expect(latestBlockAvailableByBlocks).to.deep.equal([]);
     });
     it('gives us the block and blocks after reconsiderblock called on the last block', async () => {
-        const chronik = new ChronikClientNode(chronikUrl);
+        const chronik = new ChronikClient(chronikUrl);
         const blockFromHeight = await chronik.block(
             REGTEST_CHAIN_INIT_HEIGHT + 10,
         );
