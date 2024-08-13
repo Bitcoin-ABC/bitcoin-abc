@@ -378,17 +378,15 @@ struct TxProvider {
         : fixture(_fixture), invType(MSG_TX) {}
 
     CTransactionRef buildVoteItem() const {
-        auto rng = FastRandomContext();
         CMutableTransaction mtx;
         mtx.nVersion = 2;
-        mtx.vin.emplace_back(COutPoint{TxId(rng.rand256()), 0});
-        mtx.vout.emplace_back(10 * COIN, CScript() << OP_TRUE);
+        mtx.vin.emplace_back(COutPoint{TxId(FastRandomContext().rand256()), 0});
+        mtx.vout.emplace_back(1 * COIN, CScript() << OP_TRUE);
 
         CTransactionRef tx = MakeTransactionRef(std::move(mtx));
 
         TestMemPoolEntryHelper mempoolEntryHelper;
-        auto entry = mempoolEntryHelper.Fee(int64_t(rng.randrange(10)) * COIN)
-                         .FromTx(tx);
+        auto entry = mempoolEntryHelper.FromTx(tx);
 
         CTxMemPool *mempool = Assert(fixture->m_node.mempool.get());
         {
@@ -411,28 +409,11 @@ struct TxProvider {
         std::vector<Vote> votes;
         votes.reserve(numItems);
 
-        CTxMemPool *mempool = Assert(fixture->m_node.mempool.get());
-
-        {
-            LOCK(mempool->cs);
-
-            // Transactions are sorted by modified fee rate as long as they are
-            // in the mempool. Let's keep it simple here and assume it's the
-            // case.
-            std::sort(items.begin(), items.end(),
-                      [mempool](const CTransactionRef &lhs,
-                                const CTransactionRef &rhs)
-                          EXCLUSIVE_LOCKS_REQUIRED(mempool->cs) {
-                              auto lhsIter = mempool->GetIter(lhs->GetId());
-                              auto rhsIter = mempool->GetIter(rhs->GetId());
-                              BOOST_CHECK(lhsIter);
-                              BOOST_CHECK(rhsIter);
-
-                              return CompareTxMemPoolEntryByModifiedFeeRate{}(
-                                  **lhsIter, **rhsIter);
-                          });
-        }
-
+        // Transactions are sorted by TxId
+        std::sort(items.begin(), items.end(),
+                  [](const CTransactionRef &lhs, const CTransactionRef &rhs) {
+                      return lhs->GetId() < rhs->GetId();
+                  });
         for (auto &item : items) {
             votes.emplace_back(error, item->GetId());
         }
@@ -2009,32 +1990,10 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
     }
     Shuffle(indexes.begin(), indexes.end(), rng);
 
-    CTxMemPool *mempool = Assert(m_node.mempool.get());
-    TestMemPoolEntryHelper mempoolEntryHelper;
-    std::vector<CTransactionRef> txs;
-    for (size_t i = 1; i <= numberElementsEachType; i++) {
-        CMutableTransaction mtx;
-        mtx.nVersion = 2;
-        mtx.vin.emplace_back(COutPoint{TxId(rng.rand256()), 0});
-        mtx.vout.emplace_back(1000 * COIN, CScript() << OP_TRUE);
-
-        CTransactionRef tx = MakeTransactionRef(std::move(mtx));
-
-        auto entry = mempoolEntryHelper.Fee(int64_t(i) * COIN).FromTx(tx);
-        {
-            LOCK2(cs_main, mempool->cs);
-            mempool->addUnchecked(entry);
-            BOOST_CHECK(mempool->exists(tx->GetId()));
-        }
-
-        txs.emplace_back(std::move(tx));
-    }
-
-    auto allItems =
-        std::make_tuple(std::move(proofs), std::move(indexes), std::move(txs));
+    auto allItems = std::make_tuple(std::move(proofs), std::move(indexes));
     static const size_t numTypes = std::tuple_size<decltype(allItems)>::value;
 
-    RWCollection<VoteMap> voteMap(VoteMap(m_node.mempool.get()));
+    RWCollection<VoteMap> voteMap;
 
     {
         auto writeView = voteMap.getWriteView();
@@ -2054,11 +2013,6 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
                         writeView->insert(std::make_pair(
                             &std::get<1>(allItems)[i], VoteRecord(true)));
                         break;
-                    // CTransactionRef
-                    case 2:
-                        writeView->insert(std::make_pair(
-                            std::get<2>(allItems)[i], VoteRecord(true)));
-                        break;
                     default:
                         break;
                 }
@@ -2071,8 +2025,7 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
         auto readView = voteMap.getReadView();
         auto it = readView.begin();
 
-        // The first batch of items is the proofs ordered by score
-        // (descending)
+        // The first batch of items is the proofs ordered by score (descending)
         uint32_t lastScore = std::numeric_limits<uint32_t>::max();
         for (size_t i = 0; i < numberElementsEachType; i++) {
             BOOST_CHECK(std::holds_alternative<const ProofRef>(it->first));
@@ -2099,106 +2052,7 @@ BOOST_AUTO_TEST_CASE(vote_map_comparator) {
             it++;
         }
 
-        // The last batch of items is the txs ordered by modified fee rate
-        CFeeRate lastFeeRate{MAX_MONEY};
-        {
-            LOCK(mempool->cs);
-
-            for (size_t i = 0; i < numberElementsEachType; i++) {
-                BOOST_CHECK(
-                    std::holds_alternative<const CTransactionRef>(it->first));
-
-                auto iter = mempool->GetIter(
-                    std::get<const CTransactionRef>(it->first)->GetId());
-                BOOST_CHECK(iter.has_value());
-
-                CFeeRate currentFeeRate = (**iter)->GetModifiedFeeRate();
-
-                BOOST_CHECK(currentFeeRate < lastFeeRate);
-                lastFeeRate = currentFeeRate;
-
-                it++;
-            }
-        }
-
         BOOST_CHECK(it == readView.end());
-    }
-}
-
-BOOST_AUTO_TEST_CASE(vote_map_tx_comparator) {
-    CTxMemPool *mempool = Assert(m_node.mempool.get());
-    TestMemPoolEntryHelper mempoolEntryHelper;
-    TxProvider provider(this);
-
-    std::vector<CTransactionRef> txs;
-    for (size_t i = 0; i < 5; i++) {
-        txs.emplace_back(provider.buildVoteItem());
-    }
-
-    {
-        // When there is no mempool, the txs are sorted by txid
-        RWCollection<VoteMap> voteMap(VoteMap(nullptr));
-        {
-            auto writeView = voteMap.getWriteView();
-            for (const auto &tx : txs) {
-                writeView->insert(std::make_pair(tx, VoteRecord(true)));
-            }
-        }
-
-        auto readView = voteMap.getReadView();
-        TxId lastTxId{uint256::ZERO};
-        for (const auto &[item, vote] : readView) {
-            auto tx = std::get<const CTransactionRef>(item);
-            BOOST_CHECK_GT(tx->GetId(), lastTxId);
-            lastTxId = tx->GetId();
-        }
-    }
-
-    // Remove the 5 first txs from the mempool, and add 5 more
-    mempool->clear();
-    for (size_t i = 0; i < 5; i++) {
-        txs.emplace_back(provider.buildVoteItem());
-    }
-
-    {
-        RWCollection<VoteMap> voteMap((VoteMap(mempool)));
-
-        {
-            auto writeView = voteMap.getWriteView();
-            for (const auto &tx : txs) {
-                writeView->insert(std::make_pair(tx, VoteRecord(true)));
-            }
-        }
-
-        auto readView = voteMap.getReadView();
-        auto it = readView.begin();
-
-        LOCK(mempool->cs);
-
-        // The first 5 txs are sorted by fee
-        CFeeRate lastFeeRate{MAX_MONEY};
-        for (size_t i = 0; i < 5; i++) {
-            auto tx = std::get<const CTransactionRef>(it->first);
-
-            auto iter = mempool->GetIter(tx->GetId());
-            BOOST_CHECK(iter.has_value());
-
-            BOOST_CHECK((**iter)->GetModifiedFeeRate() <= lastFeeRate);
-            lastFeeRate = (**iter)->GetModifiedFeeRate();
-            it++;
-        }
-
-        // The last 5 txs are sorted by txid
-        TxId lastTxId{uint256::ZERO};
-        for (size_t i = 0; i < 5; i++) {
-            auto tx = std::get<const CTransactionRef>(it->first);
-
-            BOOST_CHECK(!mempool->exists(tx->GetId()));
-
-            BOOST_CHECK_GT(tx->GetId(), lastTxId);
-            lastTxId = tx->GetId();
-            it++;
-        }
     }
 }
 

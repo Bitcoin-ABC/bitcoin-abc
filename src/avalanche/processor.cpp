@@ -148,11 +148,10 @@ Processor::Processor(Config avaconfigIn, interfaces::Chain &chain,
                      uint32_t staleVoteThresholdIn, uint32_t staleVoteFactorIn,
                      Amount stakeUtxoDustThreshold, bool preConsensus)
     : avaconfig(std::move(avaconfigIn)), connman(connmanIn),
-      chainman(chainmanIn), mempool(mempoolIn),
-      voteRecords(RWCollection<VoteMap>(VoteMap(VoteMapComparator(mempool)))),
-      round(0), peerManager(std::make_unique<PeerManager>(
-                    stakeUtxoDustThreshold, chainman,
-                    peerDataIn ? peerDataIn->proof : ProofRef())),
+      chainman(chainmanIn), mempool(mempoolIn), round(0),
+      peerManager(std::make_unique<PeerManager>(
+          stakeUtxoDustThreshold, chainman,
+          peerDataIn ? peerDataIn->proof : ProofRef())),
       peerData(std::move(peerDataIn)), sessionKey(std::move(sessionKeyIn)),
       minQuorumScore(minQuorumTotalScoreIn),
       minQuorumConnectedScoreRatio(minQuorumConnectedScoreRatioIn),
@@ -565,8 +564,7 @@ bool Processor::registerVotes(NodeId nodeid, const Response &response,
         }
     }
 
-    std::map<AnyVoteItem, Vote, VoteMapComparator> responseItems(
-        (VoteMapComparator(mempool)));
+    std::map<AnyVoteItem, Vote, VoteMapComparator> responseItems;
 
     // At this stage we are certain that invs[i] matches votes[i], so we can use
     // the inv type to retrieve what is being voted on.

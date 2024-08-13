@@ -98,13 +98,7 @@ public:
     const AnyVoteItem &getVoteItem() const { return item; }
 };
 
-class VoteMapComparator {
-    const CTxMemPool *mempool{nullptr};
-
-public:
-    VoteMapComparator() {}
-    VoteMapComparator(const CTxMemPool *mempoolIn) : mempool(mempoolIn) {}
-
+struct VoteMapComparator {
     bool operator()(const AnyVoteItem &lhs, const AnyVoteItem &rhs) const {
         // If the variants are of different types, sort them by variant index
         if (lhs.index() != rhs.index()) {
@@ -120,36 +114,8 @@ public:
                     // Reverse ordering so we get the highest work first
                     return CBlockIndexWorkComparator()(rhs, lhs);
                 },
-                [this](const CTransactionRef &lhs, const CTransactionRef &rhs) {
-                    const TxId &lhsTxId = lhs->GetId();
-                    const TxId &rhsTxId = rhs->GetId();
-
-                    // If there is no mempool, sort by TxId. Note that polling
-                    // for txs is currently not supported if there is no mempool
-                    // so this is only a safety net.
-                    if (!mempool) {
-                        return lhsTxId < rhsTxId;
-                    }
-
-                    LOCK(mempool->cs);
-
-                    auto lhsOptIter = mempool->GetIter(lhsTxId);
-                    auto rhsOptIter = mempool->GetIter(rhsTxId);
-
-                    // If the transactions are not in the mempool, tie by TxId
-                    if (!lhsOptIter && !rhsOptIter) {
-                        return lhsTxId < rhsTxId;
-                    }
-
-                    // If only one is in the mempool, pick that one
-                    if (lhsOptIter.has_value() != rhsOptIter.has_value()) {
-                        return !!lhsOptIter;
-                    }
-
-                    // Both are in the mempool, select the highest fee rate
-                    // including the fee deltas
-                    return CompareTxMemPoolEntryByModifiedFeeRate{}(
-                        **lhsOptIter, **rhsOptIter);
+                [](const CTransactionRef &lhs, const CTransactionRef &rhs) {
+                    return lhs->GetId() < rhs->GetId();
                 },
                 [](const auto &lhs, const auto &rhs) {
                     // This serves 2 purposes:
