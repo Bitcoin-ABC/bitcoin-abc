@@ -43,8 +43,9 @@ export default function Button({
         },
     };
     return (
-        <ButtonCtn color={color} glow={glow} id={id}>
+        <ButtonCtn color={color} glow={glow}>
             <ButtonMain
+                id={id}
                 href={link}
                 target={openInNewTab ? '_blank' : undefined}
                 color={color}
