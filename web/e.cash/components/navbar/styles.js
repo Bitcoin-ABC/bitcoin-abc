@@ -363,7 +363,10 @@ export const EnvVarMessage = styled.div`
 `;
 
 export const SocialCtn = styled.div`
-    display: flex;
+    display: none;
+    ${props => props.theme.breakpoint.medium} {
+        display: flex;
+    }
     width: 100%;
     margin-top: 10px;
     padding-left: 40px;
