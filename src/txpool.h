@@ -5,15 +5,19 @@
 #ifndef BITCOIN_TXPOOL_H
 #define BITCOIN_TXPOOL_H
 
-#include <net.h>
+#include <nodeid.h>
 #include <primitives/block.h>
 #include <primitives/transaction.h>
+
 #include <sync.h>
 #include <util/time.h>
 
 #include <chrono>
 #include <map>
 #include <set>
+#include <vector>
+
+class FastRandomContext;
 
 /**
  * A class to store and track transactions by peers.
@@ -85,7 +89,7 @@ public:
         EXCLUSIVE_LOCKS_REQUIRED(!m_mutex);
 
     /** Return how many entries exist in the pool */
-    size_t Size() EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
+    size_t Size() const EXCLUSIVE_LOCKS_REQUIRED(!m_mutex) {
         LOCK(m_mutex);
         return m_pool_txs.size();
     }

@@ -8,7 +8,7 @@
 #include <consensus/validation.h>
 #include <logging.h>
 #include <policy/policy.h>
-#include <util/time.h>
+#include <random.h>
 
 #include <cassert>
 
