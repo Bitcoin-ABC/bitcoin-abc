@@ -17,6 +17,7 @@
 #include <primitives/transaction.h>
 #include <radix.h>
 #include <sync.h>
+#include <txorphanage.h>
 #include <uint256radixkey.h>
 #include <util/hasher.h>
 
@@ -27,6 +28,7 @@
 
 #include <atomic>
 #include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <string>
@@ -238,6 +240,10 @@ private:
     //! Used by addUnchecked to generate ever-increasing
     //! CTxMemPoolEntry::entryId's
     uint64_t nextEntryId GUARDED_BY(cs) = 1;
+
+    mutable Mutex cs_orphanage;
+    /** Storage for orphan information */
+    std::unique_ptr<TxOrphanage> m_orphanage GUARDED_BY(cs_orphanage);
 
 public:
     // public only for testing
@@ -544,6 +550,14 @@ public:
 
     uint64_t GetSequence() const EXCLUSIVE_LOCKS_REQUIRED(cs) {
         return m_sequence_number;
+    }
+
+    template <typename Callable>
+    auto withOrphanage(Callable &&func) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_orphanage) {
+        LOCK(cs_orphanage);
+        assert(m_orphanage);
+        return func(*m_orphanage);
     }
 
 private:

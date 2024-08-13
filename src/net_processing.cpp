@@ -1454,9 +1454,6 @@ private:
     /** Number of peers from which we're downloading blocks. */
     int m_peers_downloading_from GUARDED_BY(cs_main) = 0;
 
-    /** Storage for orphan information */
-    TxOrphanage m_orphanage;
-
     void AddToCompactExtraTransactions(const CTransactionRef &tx)
         EXCLUSIVE_LOCKS_REQUIRED(g_msgproc_mutex);
 
@@ -2390,7 +2387,9 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
         for (const QueuedBlock &entry : state->vBlocksInFlight) {
             mapBlocksInFlight.erase(entry.pindex->GetBlockHash());
         }
-        m_orphanage.EraseForPeer(nodeid);
+        m_mempool.withOrphanage([nodeid](TxOrphanage &orphanage) {
+            orphanage.EraseForPeer(nodeid);
+        });
         m_txrequest.DisconnectedPeer(nodeid);
         m_num_preferred_download_peers -= state->fPreferredDownload;
         m_peers_downloading_from -= (state->nBlocksInFlight != 0);
@@ -2408,7 +2407,9 @@ void PeerManagerImpl::FinalizeNode(const Config &config, const CNode &node) {
             assert(m_peers_downloading_from == 0);
             assert(m_outbound_peers_with_protect_from_disconnect == 0);
             assert(m_txrequest.Size() == 0);
-            assert(m_orphanage.Size() == 0);
+            assert(m_mempool.withOrphanage([](const TxOrphanage &orphanage) {
+                return orphanage.Size();
+            }) == 0);
         }
     }
 
@@ -2758,7 +2759,9 @@ void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
  */
 void PeerManagerImpl::BlockConnected(
     const std::shared_ptr<const CBlock> &pblock, const CBlockIndex *pindex) {
-    m_orphanage.EraseForBlock(*pblock);
+    m_mempool.withOrphanage([&pblock](TxOrphanage &orphanage) {
+        orphanage.EraseForBlock(*pblock);
+    });
     m_last_tip_update = GetTime<std::chrono::seconds>();
 
     {
@@ -2963,7 +2966,9 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
         m_recent_rejects_package_reconsiderable.reset();
     }
 
-    if (m_orphanage.HaveTx(txid)) {
+    if (m_mempool.withOrphanage([&txid](TxOrphanage &orphanage) {
+            return orphanage.HaveTx(txid);
+        })) {
         return true;
     }
 
@@ -4095,8 +4100,10 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
     AssertLockHeld(g_msgproc_mutex);
     AssertLockHeld(cs_main);
 
+    const TxId &txid = ptx->GetId();
+
     LogPrint(BCLog::MEMPOOLREJ, "%s from peer=%d was not accepted: %s\n",
-             ptx->GetHash().ToString(), nodeid, state.ToString());
+             txid.ToString(), nodeid, state.ToString());
 
     if (state.GetResult() == TxValidationResult::TX_MISSING_INPUTS) {
         return;
@@ -4107,11 +4114,11 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         // m_recent_rejects_package_reconsiderable because we should not
         // download or submit this transaction by itself again, but may submit
         // it as part of a package later.
-        m_recent_rejects_package_reconsiderable.insert(ptx->GetId());
+        m_recent_rejects_package_reconsiderable.insert(txid);
     } else {
-        m_recent_rejects.insert(ptx->GetId());
+        m_recent_rejects.insert(txid);
     }
-    m_txrequest.ForgetInvId(ptx->GetId());
+    m_txrequest.ForgetInvId(txid);
 
     if (maybe_add_extra_compact_tx && RecursiveDynamicUsage(*ptx) < 100000) {
         AddToCompactExtraTransactions(ptx);
@@ -4122,9 +4129,11 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
     // If the tx failed in ProcessOrphanTx, it should be removed from the
     // orphanage unless the tx was still missing inputs. If the tx was not in
     // the orphanage, EraseTx does nothing and returns 0.
-    if (m_orphanage.EraseTx(ptx->GetId()) > 0) {
+    if (m_mempool.withOrphanage([&txid](TxOrphanage &orphanage) {
+            return orphanage.EraseTx(txid);
+        }) > 0) {
         LogPrint(BCLog::TXPACKAGES, "   removed orphan tx %s\n",
-                 ptx->GetHash().ToString());
+                 txid.ToString());
     }
 }
 
@@ -4137,15 +4146,17 @@ void PeerManagerImpl::ProcessValidTx(NodeId nodeid, const CTransactionRef &tx) {
     // any requests for it. No-op if the tx is not in txrequest.
     m_txrequest.ForgetInvId(tx->GetId());
 
-    m_orphanage.AddChildrenToWorkSet(*tx);
-    // If it came from the orphanage, remove it. No-op if the tx is not in
-    // txorphanage.
-    m_orphanage.EraseTx(tx->GetId());
+    m_mempool.withOrphanage([&tx](TxOrphanage &orphanage) {
+        orphanage.AddChildrenToWorkSet(*tx);
+        // If it came from the orphanage, remove it. No-op if the tx is not in
+        // txorphanage.
+        orphanage.EraseTx(tx->GetId());
+    });
 
     LogPrint(
         BCLog::MEMPOOL,
         "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
-        nodeid, tx->GetHash().ToString(), m_mempool.size(),
+        nodeid, tx->GetId().ToString(), m_mempool.size(),
         m_mempool.DynamicMemoryUsage() / 1000);
 
     RelayTransaction(tx->GetId());
@@ -4226,7 +4237,9 @@ PeerManagerImpl::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
     // (unluckily) keep selecting the fake children instead of the real one
     // provided by the honest peer.
     const auto cpfp_candidates_same_peer{
-        m_orphanage.GetChildrenFromSamePeer(ptx, nodeid)};
+        m_mempool.withOrphanage([&ptx, nodeid](const TxOrphanage &orphanage) {
+            return orphanage.GetChildrenFromSamePeer(ptx, nodeid);
+        })};
 
     // These children should be sorted from newest to oldest.
     for (const auto &child : cpfp_candidates_same_peer) {
@@ -4248,7 +4261,9 @@ PeerManagerImpl::Find1P1CPackage(const CTransactionRef &ptx, NodeId nodeid) {
     // logic to parent + child pairs in which both were provided by the same
     // peer, i.e. delete this step.
     const auto cpfp_candidates_different_peer{
-        m_orphanage.GetChildrenFromDifferentPeer(ptx, nodeid)};
+        m_mempool.withOrphanage([&ptx, nodeid](const TxOrphanage &orphanage) {
+            return orphanage.GetChildrenFromDifferentPeer(ptx, nodeid);
+        })};
 
     // Find the first 1p1c that hasn't already been rejected. We randomize the
     // order to not create a bias that attackers can use to delay package
@@ -4279,7 +4294,9 @@ bool PeerManagerImpl::ProcessOrphanTx(const Config &config, Peer &peer) {
     LOCK(cs_main);
 
     while (CTransactionRef porphanTx =
-               m_orphanage.GetTxToReconsider(peer.m_id)) {
+               m_mempool.withOrphanage([&peer](TxOrphanage &orphanage) {
+                   return orphanage.GetTxToReconsider(peer.m_id);
+               })) {
         const MempoolAcceptResult result =
             m_chainman.ProcessTransaction(porphanTx);
         const TxValidationState &state = result.m_state;
@@ -4569,7 +4586,9 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
     }
 
     // Orphan tx
-    if (m_orphanage.HaveTx(id)) {
+    if (m_mempool.withOrphanage([&id](const TxOrphanage &orphanage) {
+            return orphanage.HaveTx(id);
+        })) {
         return -2;
     }
 
@@ -5705,20 +5724,26 @@ void PeerManagerImpl::ProcessMessage(
                     }
                 }
 
-                if (m_orphanage.AddTx(ptx, pfrom.GetId())) {
-                    AddToCompactExtraTransactions(ptx);
+                // NO_THREAD_SAFETY_ANALYSIS because we can't annotate for
+                // g_msgproc_mutex
+                if (unsigned int nEvicted =
+                        m_mempool.withOrphanage(
+                            [&](TxOrphanage &orphanage)
+                                NO_THREAD_SAFETY_ANALYSIS {
+                                    if (orphanage.AddTx(ptx, pfrom.GetId())) {
+                                        AddToCompactExtraTransactions(ptx);
+                                    }
+                                    return orphanage.LimitTxs(
+                                        m_opts.max_orphan_txs, m_rng);
+                                }) > 0) {
+                    LogPrint(BCLog::TXPACKAGES,
+                             "orphanage overflow, removed %u tx\n", nEvicted);
                 }
 
                 // Once added to the orphan pool, a tx is considered
                 // AlreadyHave, and we shouldn't request it anymore.
                 m_txrequest.ForgetInvId(tx.GetId());
 
-                unsigned int nEvicted =
-                    m_orphanage.LimitTxs(m_opts.max_orphan_txs, m_rng);
-                if (nEvicted > 0) {
-                    LogPrint(BCLog::TXPACKAGES,
-                             "orphanage overflow, removed %u tx\n", nEvicted);
-                }
             } else {
                 LogPrint(BCLog::MEMPOOL,
                          "not keeping orphan with rejected parents %s\n",
@@ -7418,7 +7443,9 @@ bool PeerManagerImpl::ProcessMessages(const Config &config, CNode *pfrom,
         // (Note: we may have provided a parent for an orphan provided by
         // another peer that was already processed; in that case, the extra work
         // may not be noticed, possibly resulting in an unnecessary 100ms delay)
-        if (m_orphanage.HaveTxToReconsider(peer->m_id)) {
+        if (m_mempool.withOrphanage([&peer](TxOrphanage &orphanage) {
+                return orphanage.HaveTxToReconsider(peer->m_id);
+            })) {
             fMoreWork = true;
         }
     } catch (const std::exception &e) {
