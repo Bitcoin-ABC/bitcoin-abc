@@ -1,4 +1,5 @@
 // data table rendering utilities
+const MAX_ROWS_RENDER = 250;
 const renderInt = number => {
     var fmt = Intl.NumberFormat('en-EN').format(number);
     var parts = fmt.split(',');
@@ -70,10 +71,26 @@ const updateLoading = status => {
 
 // data fetching
 const updateTable = (startPosition, endPosition) => {
+    if (startPosition - endPosition > MAX_ROWS_RENDER) {
+        alert(
+            `Error: Explorer can only render ${MAX_ROWS_RENDER} rows at a time.`,
+        );
+        // Reload the page with no parameters (in case the user was requesting too many rows)
+        // Note: In practice, this happens only after the user clicks "OK" on the alert
+        window.location = window.location.href.split('?')[0];
+    }
     updateLoading(true);
+
+    // Set error mode of data table to catch error instead of screen-blocking popup
+    $.fn.dataTable.ext.errMode = function (settings, helpPage, message) {
+        console.error('DataTables() error', message);
+        // In this case, whatever table the user tried to load will fail to load
+        // The issue is typically a server error in fetching the API data, fixed by a refresh
+        // Reload the page with no parameters (in case the user was requesting too many rows)
+        window.location = window.location.href.split('?')[0];
+    };
     $('#blocks-table')
-        .dataTable()
-        .api()
+        .DataTable()
         .ajax.url(`/api/blocks/${endPosition}/${startPosition}`)
         .load();
 };
@@ -104,7 +121,7 @@ const dataTable = () => {
     $('#blocks-table').DataTable({
         searching: false,
         retrieve: true,
-        lengthMenu: [50, 100, 250, 500, 1000],
+        lengthMenu: [50, 100, 250],
         pageLength: DEFAULT_ROWS_PER_PAGE,
         language: {
             loadingRecords: '',
@@ -173,7 +190,7 @@ const dataTable = () => {
     });
 
     params = window.state.getParameters();
-    $('#blocks-table').dataTable().api().page.len(params.rows);
+    $('#blocks-table').DataTable().page.len(params.rows);
 };
 
 // events
@@ -186,9 +203,6 @@ $(window).resize(() => {
 });
 
 // datatable events
-$('#blocks-table').on('init.dt', () => {
-    $('.datatable__length-placeholder').remove();
-});
 
 $('#blocks-table').on('length.dt', (e, settings, rows) => {
     params = window.state.getParameters();
