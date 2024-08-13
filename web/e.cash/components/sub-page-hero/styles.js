@@ -15,8 +15,7 @@ export const HeroCtn = styled(motion.div).attrs(() =>
     display: flex;
     padding-top: 130px;
     position: relative;
-    min-height: 700px;
-    height: 100vh;
+    height: 830px;
     align-items: center;
 
     ${props => props.theme.breakpoint.medium} {
