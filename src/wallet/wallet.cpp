@@ -132,13 +132,17 @@ bool RemoveWallet(WalletContext &context,
 
     // Unregister with the validation interface which also drops shared ponters.
     wallet->m_chain_notifications_handler.reset();
-    LOCK(context.wallets_mutex);
-    std::vector<std::shared_ptr<CWallet>>::iterator i =
-        std::find(context.wallets.begin(), context.wallets.end(), wallet);
-    if (i == context.wallets.end()) {
-        return false;
+    {
+        LOCK(context.wallets_mutex);
+        std::vector<std::shared_ptr<CWallet>>::iterator i =
+            std::find(context.wallets.begin(), context.wallets.end(), wallet);
+        if (i == context.wallets.end()) {
+            return false;
+        }
+        context.wallets.erase(i);
     }
-    context.wallets.erase(i);
+    // Notify unload so that upper layers release the shared pointer.
+    wallet->NotifyUnload();
 
     // Write the wallet setting
     UpdateWalletSetting(chain, name, load_on_start, warnings);
@@ -218,13 +222,10 @@ void UnloadWallet(std::shared_ptr<CWallet> &&wallet) {
     const std::string name = wallet->GetName();
     {
         LOCK(g_wallet_release_mutex);
-        auto it = g_unloading_wallet_set.insert(name);
-        assert(it.second);
+        g_unloading_wallet_set.insert(name);
+        // Do not expect to be the only one removing this wallet.
+        // Multiple threads could simultaneously be waiting for deletion.
     }
-    // The wallet can be in use so it's not possible to explicitly unload here.
-    // Notify the unload intent so that all remaining shared pointers are
-    // released.
-    wallet->NotifyUnload();
 
     // Time to ditch our shared_ptr and wait for ReleaseWallet call.
     wallet.reset();
