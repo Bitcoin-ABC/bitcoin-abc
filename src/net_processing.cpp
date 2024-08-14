@@ -5504,10 +5504,6 @@ void PeerManagerImpl::ProcessMessage(
             if (inv.IsMsgTx()) {
                 LOCK2(cs_main, m_tx_download_mutex);
                 const TxId txid(inv.hash);
-                const bool fAlreadyHave = m_txdownloadman.AlreadyHaveTx(
-                    txid, /*include_reconsiderable=*/true);
-                logInv(inv, fAlreadyHave);
-
                 AddKnownTx(*peer, txid);
                 if (reject_tx_invs) {
                     LogDebug(BCLog::NET,
@@ -5516,9 +5512,15 @@ void PeerManagerImpl::ProcessMessage(
                              txid.ToString(), pfrom.GetId());
                     pfrom.fDisconnect = true;
                     return;
-                } else if (!fAlreadyHave &&
-                           !m_chainman.IsInitialBlockDownload()) {
-                    AddTxAnnouncement(pfrom, txid, current_time);
+                }
+
+                if (!m_chainman.IsInitialBlockDownload()) {
+                    const bool fAlreadyHave = m_txdownloadman.AlreadyHaveTx(
+                        txid, /*include_reconsiderable=*/true);
+                    logInv(inv, fAlreadyHave);
+                    if (!fAlreadyHave) {
+                        AddTxAnnouncement(pfrom, txid, current_time);
+                    }
                 }
 
                 continue;
