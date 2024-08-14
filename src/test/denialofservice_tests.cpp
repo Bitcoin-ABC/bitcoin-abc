@@ -107,28 +107,30 @@ BOOST_AUTO_TEST_CASE(outbound_slow_chain_eviction) {
     peerman.FinalizeNode(config, dummyNode1);
 }
 
-static void AddRandomOutboundPeer(const Config &config,
-                                  std::vector<CNode *> &vNodes,
-                                  PeerManager &peerLogic,
-                                  ConnmanTestMsg *connman) {
-    CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
-    vNodes.emplace_back(new CNode(id++, /*sock=*/nullptr, addr,
-                                  /* nKeyedNetGroupIn */ 0,
-                                  /* nLocalHostNonceIn */ 0,
-                                  /* nLocalExtraEntropyIn */ 0, CAddress(),
-                                  /* pszDest */ "",
-                                  ConnectionType::OUTBOUND_FULL_RELAY,
-                                  /* inbound_onion */ false));
-    CNode &node = *vNodes.back();
-    node.SetCommonVersion(PROTOCOL_VERSION);
+struct OutboundTest : TestingSetup {
+    void AddRandomOutboundPeer(const Config &config,
+                               std::vector<CNode *> &vNodes,
+                               PeerManager &peerLogic,
+                               ConnmanTestMsg *connman) {
+        CAddress addr(ip(g_insecure_rand_ctx.randbits(32)), NODE_NONE);
+        vNodes.emplace_back(new CNode(id++, /*sock=*/nullptr, addr,
+                                      /* nKeyedNetGroupIn */ 0,
+                                      /* nLocalHostNonceIn */ 0,
+                                      /* nLocalExtraEntropyIn */ 0, CAddress(),
+                                      /* pszDest */ "",
+                                      ConnectionType::OUTBOUND_FULL_RELAY,
+                                      /* inbound_onion */ false));
+        CNode &node = *vNodes.back();
+        node.SetCommonVersion(PROTOCOL_VERSION);
 
-    peerLogic.InitializeNode(config, node, ServiceFlags(NODE_NETWORK));
-    node.fSuccessfullyConnected = true;
+        peerLogic.InitializeNode(config, node, ServiceFlags(NODE_NETWORK));
+        node.fSuccessfullyConnected = true;
 
-    connman->AddTestNode(node);
-}
+        connman->AddTestNode(node);
+    }
+}; // struct OutboundTest
 
-BOOST_AUTO_TEST_CASE(stale_tip_peer_management) {
+BOOST_FIXTURE_TEST_CASE(stale_tip_peer_management, OutboundTest) {
     const Config &config = m_node.chainman->GetConfig();
 
     auto connman = std::make_unique<ConnmanTestMsg>(config, 0x1337, 0x1337,

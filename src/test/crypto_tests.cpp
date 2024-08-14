@@ -27,447 +27,460 @@
 
 #include <vector>
 
-BOOST_FIXTURE_TEST_SUITE(crypto_tests, BasicTestingSetup)
-
-template <typename Hasher, typename In, typename Out>
-static void TestVector(const Hasher &h, const In &in, const Out &out) {
-    Out hash;
-    BOOST_CHECK(out.size() == h.OUTPUT_SIZE);
-    hash.resize(out.size());
-    {
-        // Test that writing the whole input string at once works.
-        Hasher(h)
-            .Write((const uint8_t *)in.data(), in.size())
-            .Finalize(hash.data());
-        BOOST_CHECK(hash == out);
+namespace crypto_tests {
+struct CryptoTest : BasicTestingSetup {
+    template <typename Hasher, typename In, typename Out>
+    void TestVector(const Hasher &h, const In &in, const Out &out) {
+        Out hash;
+        BOOST_CHECK(out.size() == h.OUTPUT_SIZE);
+        hash.resize(out.size());
+        {
+            // Test that writing the whole input string at once works.
+            Hasher(h)
+                .Write((const uint8_t *)in.data(), in.size())
+                .Finalize(hash.data());
+            BOOST_CHECK(hash == out);
+        }
+        for (int i = 0; i < 32; i++) {
+            // Test that writing the string broken up in random pieces works.
+            Hasher hasher(h);
+            size_t pos = 0;
+            while (pos < in.size()) {
+                size_t len = InsecureRandRange((in.size() - pos + 1) / 2 + 1);
+                hasher.Write((const uint8_t *)in.data() + pos, len);
+                pos += len;
+                if (pos > 0 && pos + 2 * out.size() > in.size() &&
+                    pos < in.size()) {
+                    // Test that writing the rest at once to a copy of a hasher
+                    // works.
+                    Hasher(hasher)
+                        .Write((const uint8_t *)in.data() + pos,
+                               in.size() - pos)
+                        .Finalize(hash.data());
+                    BOOST_CHECK(hash == out);
+                }
+            }
+            hasher.Finalize(hash.data());
+            BOOST_CHECK(hash == out);
+        }
     }
-    for (int i = 0; i < 32; i++) {
-        // Test that writing the string broken up in random pieces works.
-        Hasher hasher(h);
-        size_t pos = 0;
-        while (pos < in.size()) {
-            size_t len = InsecureRandRange((in.size() - pos + 1) / 2 + 1);
-            hasher.Write((const uint8_t *)in.data() + pos, len);
-            pos += len;
-            if (pos > 0 && pos + 2 * out.size() > in.size() &&
-                pos < in.size()) {
-                // Test that writing the rest at once to a copy of a hasher
-                // works.
-                Hasher(hasher)
-                    .Write((const uint8_t *)in.data() + pos, in.size() - pos)
-                    .Finalize(hash.data());
-                BOOST_CHECK(hash == out);
+
+    void TestSHA1(const std::string &in, const std::string &hexout) {
+        TestVector(CSHA1(), in, ParseHex(hexout));
+    }
+    void TestSHA256(const std::string &in, const std::string &hexout) {
+        TestVector(CSHA256(), in, ParseHex(hexout));
+    }
+    void TestSHA512(const std::string &in, const std::string &hexout) {
+        TestVector(CSHA512(), in, ParseHex(hexout));
+    }
+    void TestRIPEMD160(const std::string &in, const std::string &hexout) {
+        TestVector(CRIPEMD160(), in, ParseHex(hexout));
+    }
+
+    void TestHMACSHA256(const std::string &hexkey, const std::string &hexin,
+                        const std::string &hexout) {
+        std::vector<uint8_t> key = ParseHex(hexkey);
+        TestVector(CHMAC_SHA256(key.data(), key.size()), ParseHex(hexin),
+                   ParseHex(hexout));
+    }
+
+    void TestHMACSHA512(const std::string &hexkey, const std::string &hexin,
+                        const std::string &hexout) {
+        std::vector<uint8_t> key = ParseHex(hexkey);
+        TestVector(CHMAC_SHA512(key.data(), key.size()), ParseHex(hexin),
+                   ParseHex(hexout));
+    }
+
+    void TestAES128(const std::string &hexkey, const std::string &hexin,
+                    const std::string &hexout) {
+        std::vector<uint8_t> key = ParseHex(hexkey);
+        std::vector<uint8_t> in = ParseHex(hexin);
+        std::vector<uint8_t> correctout = ParseHex(hexout);
+        std::vector<uint8_t> buf, buf2;
+
+        assert(key.size() == 16);
+        assert(in.size() == 16);
+        assert(correctout.size() == 16);
+        AES128Encrypt enc(key.data());
+        buf.resize(correctout.size());
+        buf2.resize(correctout.size());
+        enc.Encrypt(buf.data(), in.data());
+        BOOST_CHECK_EQUAL(HexStr(buf), HexStr(correctout));
+        AES128Decrypt dec(key.data());
+        dec.Decrypt(buf2.data(), buf.data());
+        BOOST_CHECK_EQUAL(HexStr(buf2), HexStr(in));
+    }
+
+    void TestAES256(const std::string &hexkey, const std::string &hexin,
+                    const std::string &hexout) {
+        std::vector<uint8_t> key = ParseHex(hexkey);
+        std::vector<uint8_t> in = ParseHex(hexin);
+        std::vector<uint8_t> correctout = ParseHex(hexout);
+        std::vector<uint8_t> buf;
+
+        assert(key.size() == 32);
+        assert(in.size() == 16);
+        assert(correctout.size() == 16);
+        AES256Encrypt enc(key.data());
+        buf.resize(correctout.size());
+        enc.Encrypt(buf.data(), in.data());
+        BOOST_CHECK(buf == correctout);
+        AES256Decrypt dec(key.data());
+        dec.Decrypt(buf.data(), buf.data());
+        BOOST_CHECK(buf == in);
+    }
+
+    void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
+                       bool pad, const std::string &hexin,
+                       const std::string &hexout) {
+        std::vector<uint8_t> key = ParseHex(hexkey);
+        std::vector<uint8_t> iv = ParseHex(hexiv);
+        std::vector<uint8_t> in = ParseHex(hexin);
+        std::vector<uint8_t> correctout = ParseHex(hexout);
+        std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
+
+        // Encrypt the plaintext and verify that it equals the cipher
+        AES128CBCEncrypt enc(key.data(), iv.data(), pad);
+        int size = enc.Encrypt(in.data(), in.size(), realout.data());
+        realout.resize(size);
+        BOOST_CHECK(realout.size() == correctout.size());
+        BOOST_CHECK_MESSAGE(realout == correctout,
+                            HexStr(realout) + std::string(" != ") + hexout);
+
+        // Decrypt the cipher and verify that it equals the plaintext
+        std::vector<uint8_t> decrypted(correctout.size());
+        AES128CBCDecrypt dec(key.data(), iv.data(), pad);
+        size =
+            dec.Decrypt(correctout.data(), correctout.size(), decrypted.data());
+        decrypted.resize(size);
+        BOOST_CHECK(decrypted.size() == in.size());
+        BOOST_CHECK_MESSAGE(decrypted == in,
+                            HexStr(decrypted) + std::string(" != ") + hexin);
+
+        // Encrypt and re-decrypt substrings of the plaintext and verify that
+        // they equal each-other
+        for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
+            std::vector<uint8_t> sub(i, in.end());
+            std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
+            int _size = enc.Encrypt(sub.data(), sub.size(), subout.data());
+            if (_size != 0) {
+                subout.resize(_size);
+                std::vector<uint8_t> subdecrypted(subout.size());
+                _size = dec.Decrypt(subout.data(), subout.size(),
+                                    subdecrypted.data());
+                subdecrypted.resize(_size);
+                BOOST_CHECK(decrypted.size() == in.size());
+                BOOST_CHECK_MESSAGE(subdecrypted == sub,
+                                    HexStr(subdecrypted) + std::string(" != ") +
+                                        HexStr(sub));
             }
         }
-        hasher.Finalize(hash.data());
-        BOOST_CHECK(hash == out);
     }
-}
 
-static void TestSHA1(const std::string &in, const std::string &hexout) {
-    TestVector(CSHA1(), in, ParseHex(hexout));
-}
-static void TestSHA256(const std::string &in, const std::string &hexout) {
-    TestVector(CSHA256(), in, ParseHex(hexout));
-}
-static void TestSHA512(const std::string &in, const std::string &hexout) {
-    TestVector(CSHA512(), in, ParseHex(hexout));
-}
-static void TestRIPEMD160(const std::string &in, const std::string &hexout) {
-    TestVector(CRIPEMD160(), in, ParseHex(hexout));
-}
-
-static void TestHMACSHA256(const std::string &hexkey, const std::string &hexin,
-                           const std::string &hexout) {
-    std::vector<uint8_t> key = ParseHex(hexkey);
-    TestVector(CHMAC_SHA256(key.data(), key.size()), ParseHex(hexin),
-               ParseHex(hexout));
-}
-
-static void TestHMACSHA512(const std::string &hexkey, const std::string &hexin,
-                           const std::string &hexout) {
-    std::vector<uint8_t> key = ParseHex(hexkey);
-    TestVector(CHMAC_SHA512(key.data(), key.size()), ParseHex(hexin),
-               ParseHex(hexout));
-}
-
-static void TestAES128(const std::string &hexkey, const std::string &hexin,
+    void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
+                       bool pad, const std::string &hexin,
                        const std::string &hexout) {
-    std::vector<uint8_t> key = ParseHex(hexkey);
-    std::vector<uint8_t> in = ParseHex(hexin);
-    std::vector<uint8_t> correctout = ParseHex(hexout);
-    std::vector<uint8_t> buf, buf2;
+        std::vector<uint8_t> key = ParseHex(hexkey);
+        std::vector<uint8_t> iv = ParseHex(hexiv);
+        std::vector<uint8_t> in = ParseHex(hexin);
+        std::vector<uint8_t> correctout = ParseHex(hexout);
+        std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
 
-    assert(key.size() == 16);
-    assert(in.size() == 16);
-    assert(correctout.size() == 16);
-    AES128Encrypt enc(key.data());
-    buf.resize(correctout.size());
-    buf2.resize(correctout.size());
-    enc.Encrypt(buf.data(), in.data());
-    BOOST_CHECK_EQUAL(HexStr(buf), HexStr(correctout));
-    AES128Decrypt dec(key.data());
-    dec.Decrypt(buf2.data(), buf.data());
-    BOOST_CHECK_EQUAL(HexStr(buf2), HexStr(in));
-}
+        // Encrypt the plaintext and verify that it equals the cipher
+        AES256CBCEncrypt enc(key.data(), iv.data(), pad);
+        int size = enc.Encrypt(in.data(), in.size(), realout.data());
+        realout.resize(size);
+        BOOST_CHECK(realout.size() == correctout.size());
+        BOOST_CHECK_MESSAGE(realout == correctout,
+                            HexStr(realout) + std::string(" != ") + hexout);
 
-static void TestAES256(const std::string &hexkey, const std::string &hexin,
-                       const std::string &hexout) {
-    std::vector<uint8_t> key = ParseHex(hexkey);
-    std::vector<uint8_t> in = ParseHex(hexin);
-    std::vector<uint8_t> correctout = ParseHex(hexout);
-    std::vector<uint8_t> buf;
+        // Decrypt the cipher and verify that it equals the plaintext
+        std::vector<uint8_t> decrypted(correctout.size());
+        AES256CBCDecrypt dec(key.data(), iv.data(), pad);
+        size =
+            dec.Decrypt(correctout.data(), correctout.size(), decrypted.data());
+        decrypted.resize(size);
+        BOOST_CHECK(decrypted.size() == in.size());
+        BOOST_CHECK_MESSAGE(decrypted == in,
+                            HexStr(decrypted) + std::string(" != ") + hexin);
 
-    assert(key.size() == 32);
-    assert(in.size() == 16);
-    assert(correctout.size() == 16);
-    AES256Encrypt enc(key.data());
-    buf.resize(correctout.size());
-    enc.Encrypt(buf.data(), in.data());
-    BOOST_CHECK(buf == correctout);
-    AES256Decrypt dec(key.data());
-    dec.Decrypt(buf.data(), buf.data());
-    BOOST_CHECK(buf == in);
-}
-
-static void TestAES128CBC(const std::string &hexkey, const std::string &hexiv,
-                          bool pad, const std::string &hexin,
-                          const std::string &hexout) {
-    std::vector<uint8_t> key = ParseHex(hexkey);
-    std::vector<uint8_t> iv = ParseHex(hexiv);
-    std::vector<uint8_t> in = ParseHex(hexin);
-    std::vector<uint8_t> correctout = ParseHex(hexout);
-    std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
-
-    // Encrypt the plaintext and verify that it equals the cipher
-    AES128CBCEncrypt enc(key.data(), iv.data(), pad);
-    int size = enc.Encrypt(in.data(), in.size(), realout.data());
-    realout.resize(size);
-    BOOST_CHECK(realout.size() == correctout.size());
-    BOOST_CHECK_MESSAGE(realout == correctout,
-                        HexStr(realout) + std::string(" != ") + hexout);
-
-    // Decrypt the cipher and verify that it equals the plaintext
-    std::vector<uint8_t> decrypted(correctout.size());
-    AES128CBCDecrypt dec(key.data(), iv.data(), pad);
-    size = dec.Decrypt(correctout.data(), correctout.size(), decrypted.data());
-    decrypted.resize(size);
-    BOOST_CHECK(decrypted.size() == in.size());
-    BOOST_CHECK_MESSAGE(decrypted == in,
-                        HexStr(decrypted) + std::string(" != ") + hexin);
-
-    // Encrypt and re-decrypt substrings of the plaintext and verify that they
-    // equal each-other
-    for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
-        std::vector<uint8_t> sub(i, in.end());
-        std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
-        int _size = enc.Encrypt(sub.data(), sub.size(), subout.data());
-        if (_size != 0) {
-            subout.resize(_size);
-            std::vector<uint8_t> subdecrypted(subout.size());
-            _size =
-                dec.Decrypt(subout.data(), subout.size(), subdecrypted.data());
-            subdecrypted.resize(_size);
-            BOOST_CHECK(decrypted.size() == in.size());
-            BOOST_CHECK_MESSAGE(subdecrypted == sub, HexStr(subdecrypted) +
-                                                         std::string(" != ") +
-                                                         HexStr(sub));
-        }
-    }
-}
-
-static void TestAES256CBC(const std::string &hexkey, const std::string &hexiv,
-                          bool pad, const std::string &hexin,
-                          const std::string &hexout) {
-    std::vector<uint8_t> key = ParseHex(hexkey);
-    std::vector<uint8_t> iv = ParseHex(hexiv);
-    std::vector<uint8_t> in = ParseHex(hexin);
-    std::vector<uint8_t> correctout = ParseHex(hexout);
-    std::vector<uint8_t> realout(in.size() + AES_BLOCKSIZE);
-
-    // Encrypt the plaintext and verify that it equals the cipher
-    AES256CBCEncrypt enc(key.data(), iv.data(), pad);
-    int size = enc.Encrypt(in.data(), in.size(), realout.data());
-    realout.resize(size);
-    BOOST_CHECK(realout.size() == correctout.size());
-    BOOST_CHECK_MESSAGE(realout == correctout,
-                        HexStr(realout) + std::string(" != ") + hexout);
-
-    // Decrypt the cipher and verify that it equals the plaintext
-    std::vector<uint8_t> decrypted(correctout.size());
-    AES256CBCDecrypt dec(key.data(), iv.data(), pad);
-    size = dec.Decrypt(correctout.data(), correctout.size(), decrypted.data());
-    decrypted.resize(size);
-    BOOST_CHECK(decrypted.size() == in.size());
-    BOOST_CHECK_MESSAGE(decrypted == in,
-                        HexStr(decrypted) + std::string(" != ") + hexin);
-
-    // Encrypt and re-decrypt substrings of the plaintext and verify that they
-    // equal each-other
-    for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
-        std::vector<uint8_t> sub(i, in.end());
-        std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
-        int _size = enc.Encrypt(sub.data(), sub.size(), subout.data());
-        if (_size != 0) {
-            subout.resize(_size);
-            std::vector<uint8_t> subdecrypted(subout.size());
-            _size =
-                dec.Decrypt(subout.data(), subout.size(), subdecrypted.data());
-            subdecrypted.resize(_size);
-            BOOST_CHECK(decrypted.size() == in.size());
-            BOOST_CHECK_MESSAGE(subdecrypted == sub, HexStr(subdecrypted) +
-                                                         std::string(" != ") +
-                                                         HexStr(sub));
-        }
-    }
-}
-
-static void TestChaCha20(const std::string &hex_message,
-                         const std::string &hexkey, ChaCha20::Nonce96 nonce,
-                         uint32_t seek, const std::string &hexout) {
-    auto key = ParseHex<std::byte>(hexkey);
-    assert(key.size() == 32);
-    auto m = ParseHex<std::byte>(hex_message);
-    ChaCha20 rng{key};
-    rng.Seek(nonce, seek);
-    std::vector<std::byte> outres;
-    outres.resize(hexout.size() / 2);
-    assert(hex_message.empty() || m.size() * 2 == hexout.size());
-
-    // perform the ChaCha20 round(s), if message is provided it will output the
-    // encrypted ciphertext otherwise the keystream
-    if (!hex_message.empty()) {
-        rng.Crypt(m, outres);
-    } else {
-        rng.Keystream(outres);
-    }
-    BOOST_CHECK_EQUAL(hexout, HexStr(outres));
-    if (!hex_message.empty()) {
-        // Manually XOR with the keystream and compare the output
-        rng.Seek(nonce, seek);
-        std::vector<std::byte> only_keystream(outres.size());
-        rng.Keystream(only_keystream);
-        for (size_t i = 0; i != m.size(); i++) {
-            outres[i] = m[i] ^ only_keystream[i];
-        }
-        BOOST_CHECK_EQUAL(hexout, HexStr(outres));
-    }
-
-    // Repeat 10x, but fragmented into 3 chunks, to exercise the ChaCha20
-    // class's caching.
-    for (int i = 0; i < 10; ++i) {
-        size_t lens[3];
-        lens[0] = InsecureRandRange(hexout.size() / 2U + 1U);
-        lens[1] = InsecureRandRange(hexout.size() / 2U + 1U - lens[0]);
-        lens[2] = hexout.size() / 2U - lens[0] - lens[1];
-
-        rng.Seek(nonce, seek);
-        outres.assign(hexout.size() / 2U, {});
-        size_t pos = 0;
-        for (int j = 0; j < 3; ++j) {
-            if (!hex_message.empty()) {
-                rng.Crypt(Span{m}.subspan(pos, lens[j]),
-                          Span{outres}.subspan(pos, lens[j]));
-            } else {
-                rng.Keystream(Span{outres}.subspan(pos, lens[j]));
+        // Encrypt and re-decrypt substrings of the plaintext and verify that
+        // they equal each-other
+        for (std::vector<uint8_t>::iterator i(in.begin()); i != in.end(); ++i) {
+            std::vector<uint8_t> sub(i, in.end());
+            std::vector<uint8_t> subout(sub.size() + AES_BLOCKSIZE);
+            int _size = enc.Encrypt(sub.data(), sub.size(), subout.data());
+            if (_size != 0) {
+                subout.resize(_size);
+                std::vector<uint8_t> subdecrypted(subout.size());
+                _size = dec.Decrypt(subout.data(), subout.size(),
+                                    subdecrypted.data());
+                subdecrypted.resize(_size);
+                BOOST_CHECK(decrypted.size() == in.size());
+                BOOST_CHECK_MESSAGE(subdecrypted == sub,
+                                    HexStr(subdecrypted) + std::string(" != ") +
+                                        HexStr(sub));
             }
-            pos += lens[j];
+        }
+    }
+
+    void TestChaCha20(const std::string &hex_message, const std::string &hexkey,
+                      ChaCha20::Nonce96 nonce, uint32_t seek,
+                      const std::string &hexout) {
+        auto key = ParseHex<std::byte>(hexkey);
+        assert(key.size() == 32);
+        auto m = ParseHex<std::byte>(hex_message);
+        ChaCha20 rng{key};
+        rng.Seek(nonce, seek);
+        std::vector<std::byte> outres;
+        outres.resize(hexout.size() / 2);
+        assert(hex_message.empty() || m.size() * 2 == hexout.size());
+
+        // perform the ChaCha20 round(s), if message is provided it will output
+        // the encrypted ciphertext otherwise the keystream
+        if (!hex_message.empty()) {
+            rng.Crypt(m, outres);
+        } else {
+            rng.Keystream(outres);
         }
         BOOST_CHECK_EQUAL(hexout, HexStr(outres));
+        if (!hex_message.empty()) {
+            // Manually XOR with the keystream and compare the output
+            rng.Seek(nonce, seek);
+            std::vector<std::byte> only_keystream(outres.size());
+            rng.Keystream(only_keystream);
+            for (size_t i = 0; i != m.size(); i++) {
+                outres[i] = m[i] ^ only_keystream[i];
+            }
+            BOOST_CHECK_EQUAL(hexout, HexStr(outres));
+        }
+
+        // Repeat 10x, but fragmented into 3 chunks, to exercise the ChaCha20
+        // class's caching.
+        for (int i = 0; i < 10; ++i) {
+            size_t lens[3];
+            lens[0] = InsecureRandRange(hexout.size() / 2U + 1U);
+            lens[1] = InsecureRandRange(hexout.size() / 2U + 1U - lens[0]);
+            lens[2] = hexout.size() / 2U - lens[0] - lens[1];
+
+            rng.Seek(nonce, seek);
+            outres.assign(hexout.size() / 2U, {});
+            size_t pos = 0;
+            for (int j = 0; j < 3; ++j) {
+                if (!hex_message.empty()) {
+                    rng.Crypt(Span{m}.subspan(pos, lens[j]),
+                              Span{outres}.subspan(pos, lens[j]));
+                } else {
+                    rng.Keystream(Span{outres}.subspan(pos, lens[j]));
+                }
+                pos += lens[j];
+            }
+            BOOST_CHECK_EQUAL(hexout, HexStr(outres));
+        }
     }
-}
 
-static void TestFSChaCha20(const std::string &hex_plaintext,
-                           const std::string &hexkey, uint32_t rekey_interval,
-                           const std::string &ciphertext_after_rotation) {
-    auto key = ParseHex<std::byte>(hexkey);
-    BOOST_CHECK_EQUAL(FSChaCha20::KEYLEN, key.size());
+    void TestFSChaCha20(const std::string &hex_plaintext,
+                        const std::string &hexkey, uint32_t rekey_interval,
+                        const std::string &ciphertext_after_rotation) {
+        auto key = ParseHex<std::byte>(hexkey);
+        BOOST_CHECK_EQUAL(FSChaCha20::KEYLEN, key.size());
 
-    auto plaintext = ParseHex<std::byte>(hex_plaintext);
+        auto plaintext = ParseHex<std::byte>(hex_plaintext);
 
-    auto fsc20 = FSChaCha20{key, rekey_interval};
-    auto c20 = ChaCha20{key};
+        auto fsc20 = FSChaCha20{key, rekey_interval};
+        auto c20 = ChaCha20{key};
 
-    std::vector<std::byte> fsc20_output;
-    fsc20_output.resize(plaintext.size());
+        std::vector<std::byte> fsc20_output;
+        fsc20_output.resize(plaintext.size());
 
-    std::vector<std::byte> c20_output;
-    c20_output.resize(plaintext.size());
+        std::vector<std::byte> c20_output;
+        c20_output.resize(plaintext.size());
 
-    for (size_t i = 0; i < rekey_interval; i++) {
+        for (size_t i = 0; i < rekey_interval; i++) {
+            fsc20.Crypt(plaintext, fsc20_output);
+            c20.Crypt(plaintext, c20_output);
+            BOOST_CHECK(c20_output == fsc20_output);
+        }
+
+        // At the rotation interval, the outputs will no longer match
         fsc20.Crypt(plaintext, fsc20_output);
+        auto c20_copy = c20;
+        c20.Crypt(plaintext, c20_output);
+        BOOST_CHECK(c20_output != fsc20_output);
+
+        std::byte new_key[FSChaCha20::KEYLEN];
+        c20_copy.Keystream(new_key);
+        c20.SetKey(new_key);
+        c20.Seek({0, 1}, 0);
+
+        // Outputs should match again after simulating key rotation
         c20.Crypt(plaintext, c20_output);
         BOOST_CHECK(c20_output == fsc20_output);
+
+        BOOST_CHECK_EQUAL(HexStr(fsc20_output), ciphertext_after_rotation);
     }
 
-    // At the rotation interval, the outputs will no longer match
-    fsc20.Crypt(plaintext, fsc20_output);
-    auto c20_copy = c20;
-    c20.Crypt(plaintext, c20_output);
-    BOOST_CHECK(c20_output != fsc20_output);
+    void TestPoly1305(const std::string &hexmessage, const std::string &hexkey,
+                      const std::string &hextag) {
+        auto key = ParseHex<std::byte>(hexkey);
+        auto m = ParseHex<std::byte>(hexmessage);
+        std::vector<std::byte> tagres(Poly1305::TAGLEN);
+        Poly1305{key}.Update(m).Finalize(tagres);
+        BOOST_CHECK_EQUAL(HexStr(tagres), hextag);
 
-    std::byte new_key[FSChaCha20::KEYLEN];
-    c20_copy.Keystream(new_key);
-    c20.SetKey(new_key);
-    c20.Seek({0, 1}, 0);
-
-    // Outputs should match again after simulating key rotation
-    c20.Crypt(plaintext, c20_output);
-    BOOST_CHECK(c20_output == fsc20_output);
-
-    BOOST_CHECK_EQUAL(HexStr(fsc20_output), ciphertext_after_rotation);
-}
-
-static void TestPoly1305(const std::string &hexmessage,
-                         const std::string &hexkey, const std::string &hextag) {
-    auto key = ParseHex<std::byte>(hexkey);
-    auto m = ParseHex<std::byte>(hexmessage);
-    std::vector<std::byte> tagres(Poly1305::TAGLEN);
-    Poly1305{key}.Update(m).Finalize(tagres);
-    BOOST_CHECK_EQUAL(HexStr(tagres), hextag);
-
-    // Test incremental interface
-    for (int splits = 0; splits < 10; ++splits) {
-        for (int iter = 0; iter < 10; ++iter) {
-            auto data = Span{m};
-            Poly1305 poly1305{key};
-            for (int chunk = 0; chunk < splits; ++chunk) {
-                size_t now = InsecureRandRange(data.size() + 1);
-                poly1305.Update(data.first(now));
-                data = data.subspan(now);
+        // Test incremental interface
+        for (int splits = 0; splits < 10; ++splits) {
+            for (int iter = 0; iter < 10; ++iter) {
+                auto data = Span{m};
+                Poly1305 poly1305{key};
+                for (int chunk = 0; chunk < splits; ++chunk) {
+                    size_t now = InsecureRandRange(data.size() + 1);
+                    poly1305.Update(data.first(now));
+                    data = data.subspan(now);
+                }
+                tagres.assign(Poly1305::TAGLEN, std::byte{});
+                poly1305.Update(data).Finalize(tagres);
+                BOOST_CHECK_EQUAL(HexStr(tagres), hextag);
             }
-            tagres.assign(Poly1305::TAGLEN, std::byte{});
-            poly1305.Update(data).Finalize(tagres);
-            BOOST_CHECK_EQUAL(HexStr(tagres), hextag);
         }
     }
-}
 
-static void TestChaCha20Poly1305(const std::string &plain_hex,
-                                 const std::string &aad_hex,
-                                 const std::string &key_hex,
-                                 ChaCha20::Nonce96 nonce,
-                                 const std::string &cipher_hex) {
-    auto plain = ParseHex<std::byte>(plain_hex);
-    auto aad = ParseHex<std::byte>(aad_hex);
-    auto key = ParseHex<std::byte>(key_hex);
-    auto expected_cipher = ParseHex<std::byte>(cipher_hex);
+    void TestChaCha20Poly1305(const std::string &plain_hex,
+                              const std::string &aad_hex,
+                              const std::string &key_hex,
+                              ChaCha20::Nonce96 nonce,
+                              const std::string &cipher_hex) {
+        auto plain = ParseHex<std::byte>(plain_hex);
+        auto aad = ParseHex<std::byte>(aad_hex);
+        auto key = ParseHex<std::byte>(key_hex);
+        auto expected_cipher = ParseHex<std::byte>(cipher_hex);
 
-    for (int i = 0; i < 10; ++i) {
-        // During i=0, use single-plain Encrypt/Decrypt; others use a split at
-        // prefix.
-        size_t prefix = i ? InsecureRandRange(plain.size() + 1) : plain.size();
-        // Encrypt.
-        std::vector<std::byte> cipher(plain.size() +
-                                      AEADChaCha20Poly1305::EXPANSION);
-        AEADChaCha20Poly1305 aead{key};
-        if (i == 0) {
-            aead.Encrypt(plain, aad, nonce, cipher);
-        } else {
-            aead.Encrypt(Span{plain}.first(prefix), Span{plain}.subspan(prefix),
-                         aad, nonce, cipher);
-        }
-        BOOST_CHECK(cipher == expected_cipher);
+        for (int i = 0; i < 10; ++i) {
+            // During i=0, use single-plain Encrypt/Decrypt; others use a split
+            // at prefix.
+            size_t prefix =
+                i ? InsecureRandRange(plain.size() + 1) : plain.size();
+            // Encrypt.
+            std::vector<std::byte> cipher(plain.size() +
+                                          AEADChaCha20Poly1305::EXPANSION);
+            AEADChaCha20Poly1305 aead{key};
+            if (i == 0) {
+                aead.Encrypt(plain, aad, nonce, cipher);
+            } else {
+                aead.Encrypt(Span{plain}.first(prefix),
+                             Span{plain}.subspan(prefix), aad, nonce, cipher);
+            }
+            BOOST_CHECK(cipher == expected_cipher);
 
-        // Decrypt.
-        std::vector<std::byte> decipher(cipher.size() -
-                                        AEADChaCha20Poly1305::EXPANSION);
-        bool ret{false};
-        if (i == 0) {
-            ret = aead.Decrypt(cipher, aad, nonce, decipher);
-        } else {
-            ret = aead.Decrypt(cipher, aad, nonce, Span{decipher}.first(prefix),
-                               Span{decipher}.subspan(prefix));
-        }
-        BOOST_CHECK(ret);
-        BOOST_CHECK(decipher == plain);
-    }
-
-    // Test Keystream output.
-    std::vector<std::byte> keystream(plain.size());
-    AEADChaCha20Poly1305 aead{key};
-    aead.Keystream(nonce, keystream);
-    for (size_t i = 0; i < plain.size(); ++i) {
-        BOOST_CHECK_EQUAL(plain[i] ^ keystream[i], expected_cipher[i]);
-    }
-}
-
-static void TestFSChaCha20Poly1305(const std::string &plain_hex,
-                                   const std::string &aad_hex,
-                                   const std::string &key_hex, uint64_t msg_idx,
-                                   const std::string &cipher_hex) {
-    auto plain = ParseHex<std::byte>(plain_hex);
-    auto aad = ParseHex<std::byte>(aad_hex);
-    auto key = ParseHex<std::byte>(key_hex);
-    auto expected_cipher = ParseHex<std::byte>(cipher_hex);
-    std::vector<std::byte> cipher(plain.size() + FSChaCha20Poly1305::EXPANSION);
-
-    for (int it = 0; it < 10; ++it) {
-        // During it==0 we use the single-plain Encrypt/Decrypt; others use a
-        // split at prefix.
-        size_t prefix = it ? InsecureRandRange(plain.size() + 1) : plain.size();
-
-        // Do msg_idx dummy encryptions to seek to the correct packet.
-        FSChaCha20Poly1305 enc_aead{key, 224};
-        for (uint64_t i = 0; i < msg_idx; ++i) {
-            std::byte dummy_tag[FSChaCha20Poly1305::EXPANSION] = {{}};
-            enc_aead.Encrypt(Span{dummy_tag}.first(0), Span{dummy_tag}.first(0),
-                             dummy_tag);
-        }
-
-        // Invoke single-plain or plain1/plain2 Encrypt.
-        if (it == 0) {
-            enc_aead.Encrypt(plain, aad, cipher);
-        } else {
-            enc_aead.Encrypt(Span{plain}.first(prefix),
-                             Span{plain}.subspan(prefix), aad, cipher);
-        }
-        BOOST_CHECK(cipher == expected_cipher);
-
-        // Do msg_idx dummy decryptions to seek to the correct packet.
-        FSChaCha20Poly1305 dec_aead{key, 224};
-        for (uint64_t i = 0; i < msg_idx; ++i) {
-            std::byte dummy_tag[FSChaCha20Poly1305::EXPANSION] = {{}};
-            dec_aead.Decrypt(dummy_tag, Span{dummy_tag}.first(0),
-                             Span{dummy_tag}.first(0));
-        }
-
-        // Invoke single-plain or plain1/plain2 Decrypt.
-        std::vector<std::byte> decipher(cipher.size() -
-                                        AEADChaCha20Poly1305::EXPANSION);
-        bool ret{false};
-        if (it == 0) {
-            ret = dec_aead.Decrypt(cipher, aad, decipher);
-        } else {
-            ret = dec_aead.Decrypt(cipher, aad, Span{decipher}.first(prefix),
+            // Decrypt.
+            std::vector<std::byte> decipher(cipher.size() -
+                                            AEADChaCha20Poly1305::EXPANSION);
+            bool ret{false};
+            if (i == 0) {
+                ret = aead.Decrypt(cipher, aad, nonce, decipher);
+            } else {
+                ret = aead.Decrypt(cipher, aad, nonce,
+                                   Span{decipher}.first(prefix),
                                    Span{decipher}.subspan(prefix));
+            }
+            BOOST_CHECK(ret);
+            BOOST_CHECK(decipher == plain);
         }
-        BOOST_CHECK(ret);
-        BOOST_CHECK(decipher == plain);
+
+        // Test Keystream output.
+        std::vector<std::byte> keystream(plain.size());
+        AEADChaCha20Poly1305 aead{key};
+        aead.Keystream(nonce, keystream);
+        for (size_t i = 0; i < plain.size(); ++i) {
+            BOOST_CHECK_EQUAL(plain[i] ^ keystream[i], expected_cipher[i]);
+        }
     }
-}
 
-static void TestHKDF_SHA256_32(const std::string &ikm_hex,
-                               const std::string &salt_hex,
-                               const std::string &info_hex,
-                               const std::string &okm_check_hex) {
-    std::vector<uint8_t> initial_key_material = ParseHex(ikm_hex);
-    std::vector<uint8_t> salt = ParseHex(salt_hex);
-    std::vector<uint8_t> info = ParseHex(info_hex);
+    void TestFSChaCha20Poly1305(const std::string &plain_hex,
+                                const std::string &aad_hex,
+                                const std::string &key_hex, uint64_t msg_idx,
+                                const std::string &cipher_hex) {
+        auto plain = ParseHex<std::byte>(plain_hex);
+        auto aad = ParseHex<std::byte>(aad_hex);
+        auto key = ParseHex<std::byte>(key_hex);
+        auto expected_cipher = ParseHex<std::byte>(cipher_hex);
+        std::vector<std::byte> cipher(plain.size() +
+                                      FSChaCha20Poly1305::EXPANSION);
 
-    // our implementation only supports strings for the "info" and "salt",
-    // stringify them
-    std::string salt_stringified(reinterpret_cast<char *>(salt.data()),
-                                 salt.size());
-    std::string info_stringified(reinterpret_cast<char *>(info.data()),
-                                 info.size());
+        for (int it = 0; it < 10; ++it) {
+            // During it==0 we use the single-plain Encrypt/Decrypt; others use
+            // a split at prefix.
+            size_t prefix =
+                it ? InsecureRandRange(plain.size() + 1) : plain.size();
 
-    CHKDF_HMAC_SHA256_L32 hkdf32(initial_key_material.data(),
-                                 initial_key_material.size(), salt_stringified);
-    uint8_t out[32];
-    hkdf32.Expand32(info_stringified, out);
-    BOOST_CHECK(HexStr(out) == okm_check_hex);
-}
+            // Do msg_idx dummy encryptions to seek to the correct packet.
+            FSChaCha20Poly1305 enc_aead{key, 224};
+            for (uint64_t i = 0; i < msg_idx; ++i) {
+                std::byte dummy_tag[FSChaCha20Poly1305::EXPANSION] = {{}};
+                enc_aead.Encrypt(Span{dummy_tag}.first(0),
+                                 Span{dummy_tag}.first(0), dummy_tag);
+            }
+
+            // Invoke single-plain or plain1/plain2 Encrypt.
+            if (it == 0) {
+                enc_aead.Encrypt(plain, aad, cipher);
+            } else {
+                enc_aead.Encrypt(Span{plain}.first(prefix),
+                                 Span{plain}.subspan(prefix), aad, cipher);
+            }
+            BOOST_CHECK(cipher == expected_cipher);
+
+            // Do msg_idx dummy decryptions to seek to the correct packet.
+            FSChaCha20Poly1305 dec_aead{key, 224};
+            for (uint64_t i = 0; i < msg_idx; ++i) {
+                std::byte dummy_tag[FSChaCha20Poly1305::EXPANSION] = {{}};
+                dec_aead.Decrypt(dummy_tag, Span{dummy_tag}.first(0),
+                                 Span{dummy_tag}.first(0));
+            }
+
+            // Invoke single-plain or plain1/plain2 Decrypt.
+            std::vector<std::byte> decipher(cipher.size() -
+                                            AEADChaCha20Poly1305::EXPANSION);
+            bool ret{false};
+            if (it == 0) {
+                ret = dec_aead.Decrypt(cipher, aad, decipher);
+            } else {
+                ret =
+                    dec_aead.Decrypt(cipher, aad, Span{decipher}.first(prefix),
+                                     Span{decipher}.subspan(prefix));
+            }
+            BOOST_CHECK(ret);
+            BOOST_CHECK(decipher == plain);
+        }
+    }
+
+    void TestHKDF_SHA256_32(const std::string &ikm_hex,
+                            const std::string &salt_hex,
+                            const std::string &info_hex,
+                            const std::string &okm_check_hex) {
+        std::vector<uint8_t> initial_key_material = ParseHex(ikm_hex);
+        std::vector<uint8_t> salt = ParseHex(salt_hex);
+        std::vector<uint8_t> info = ParseHex(info_hex);
+
+        // our implementation only supports strings for the "info" and "salt",
+        // stringify them
+        std::string salt_stringified(reinterpret_cast<char *>(salt.data()),
+                                     salt.size());
+        std::string info_stringified(reinterpret_cast<char *>(info.data()),
+                                     info.size());
+
+        CHKDF_HMAC_SHA256_L32 hkdf32(initial_key_material.data(),
+                                     initial_key_material.size(),
+                                     salt_stringified);
+        uint8_t out[32];
+        hkdf32.Expand32(info_stringified, out);
+        BOOST_CHECK(HexStr(out) == okm_check_hex);
+    }
+
+    void TestSHA3_256(const std::string &input, const std::string &output);
+}; // struct CryptoTests
+} // namespace crypto_tests
 
 static std::string LongTestString() {
     std::string ret;
@@ -482,6 +495,8 @@ static std::string LongTestString() {
 }
 
 const std::string test1 = LongTestString();
+
+BOOST_FIXTURE_TEST_SUITE(crypto_tests, CryptoTest)
 
 BOOST_AUTO_TEST_CASE(ripemd160_testvectors) {
     TestRIPEMD160("", "9c1185a5c5e9fc54612808977ee8f548b2258d31");
@@ -1357,7 +1372,8 @@ BOOST_AUTO_TEST_CASE(sha256d64) {
     }
 }
 
-static void TestSHA3_256(const std::string &input, const std::string &output) {
+void CryptoTest::TestSHA3_256(const std::string &input,
+                              const std::string &output) {
     const auto in_bytes = ParseHex(input);
     const auto out_bytes = ParseHex(output);
 

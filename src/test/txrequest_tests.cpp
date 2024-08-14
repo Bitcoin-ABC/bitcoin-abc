@@ -13,9 +13,21 @@
 #include <functional>
 #include <vector>
 
-BOOST_FIXTURE_TEST_SUITE(txrequest_tests, BasicTestingSetup)
-
 namespace {
+
+class Scenario;
+
+struct TxRequestTest : BasicTestingSetup {
+    std::chrono::microseconds RandomTime8s();
+    std::chrono::microseconds RandomTime1y();
+    void BuildSingleTest(Scenario &scenario, int config);
+    void BuildPriorityTest(Scenario &scenario, int config);
+    void BuildBigPriorityTest(Scenario &scenario, int peers);
+    void BuildRequestOrderTest(Scenario &scenario, int config);
+    void BuildTimeBackwardsTest(Scenario &scenario);
+    void BuildWeirdRequestsTest(Scenario &scenario);
+    void TestInterleavedScenarios();
+};
 
 constexpr std::chrono::microseconds MIN_TIME = std::chrono::microseconds::min();
 constexpr std::chrono::microseconds MAX_TIME = std::chrono::microseconds::max();
@@ -53,10 +65,10 @@ struct Runner {
     std::multiset<std::pair<NodeId, TxId>> expired;
 };
 
-std::chrono::microseconds RandomTime8s() {
+std::chrono::microseconds TxRequestTest::RandomTime8s() {
     return std::chrono::microseconds{1 + InsecureRandBits(23)};
 }
-std::chrono::microseconds RandomTime1y() {
+std::chrono::microseconds TxRequestTest::RandomTime1y() {
     return std::chrono::microseconds{1 + InsecureRandBits(45)};
 }
 
@@ -278,7 +290,7 @@ public:
  * config is an integer in [0, 32), which controls which variant of the test is
  * used.
  */
-void BuildSingleTest(Scenario &scenario, int config) {
+void TxRequestTest::BuildSingleTest(Scenario &scenario, int config) {
     auto peer = scenario.NewPeer();
     auto txid = scenario.NewTxId();
     bool immediate = config & 1;
@@ -344,7 +356,7 @@ void BuildSingleTest(Scenario &scenario, int config) {
  * config is an integer in [0, 32), which controls which variant of the test is
  * used.
  */
-void BuildPriorityTest(Scenario &scenario, int config) {
+void TxRequestTest::BuildPriorityTest(Scenario &scenario, int config) {
     scenario.SetTestName(strprintf("Priority(config=%i)", config));
 
     // Two peers. They will announce in order {peer1, peer2}.
@@ -420,7 +432,7 @@ void BuildPriorityTest(Scenario &scenario, int config) {
  * Add to scenario a randomized test in which N peers announce the same
  * transaction, to verify the order in which they are requested.
  */
-void BuildBigPriorityTest(Scenario &scenario, int peers) {
+void TxRequestTest::BuildBigPriorityTest(Scenario &scenario, int peers) {
     scenario.SetTestName(strprintf("BigPriority(peers=%i)", peers));
 
     // We will have N peers announce the same transaction.
@@ -521,7 +533,7 @@ void BuildBigPriorityTest(Scenario &scenario, int peers) {
  *  config is an integer in [0, 4) inclusive, and selects the variant of the
  * test.
  */
-void BuildRequestOrderTest(Scenario &scenario, int config) {
+void TxRequestTest::BuildRequestOrderTest(Scenario &scenario, int config) {
     scenario.SetTestName(strprintf("RequestOrder(config=%i)", config));
 
     auto peer = scenario.NewPeer();
@@ -552,7 +564,7 @@ void BuildRequestOrderTest(Scenario &scenario, int config) {
 }
 
 /** Add to scenario a test that exercises clocks that go backwards. */
-void BuildTimeBackwardsTest(Scenario &scenario) {
+void TxRequestTest::BuildTimeBackwardsTest(Scenario &scenario) {
     auto peer1 = scenario.NewPeer();
     auto peer2 = scenario.NewPeer();
     auto txid = scenario.NewTxId({{peer1, peer2}});
@@ -609,7 +621,7 @@ void BuildTimeBackwardsTest(Scenario &scenario) {
  * Add to scenario a test that involves RequestedTx() calls for txids not
  * returned by GetRequestable.
  */
-void BuildWeirdRequestsTest(Scenario &scenario) {
+void TxRequestTest::BuildWeirdRequestsTest(Scenario &scenario) {
     auto peer1 = scenario.NewPeer();
     auto peer2 = scenario.NewPeer();
     auto txid1 = scenario.NewTxId({{peer1, peer2}});
@@ -702,25 +714,27 @@ void BuildWeirdRequestsTest(Scenario &scenario) {
     scenario.Check(peer2, {}, 0, 0, 0, "q23");
 }
 
-void TestInterleavedScenarios() {
+void TxRequestTest::TestInterleavedScenarios() {
     // Create a list of functions which add tests to scenarios.
     std::vector<std::function<void(Scenario &)>> builders;
     // Add instances of every test, for every configuration.
     for (int n = 0; n < 64; ++n) {
-        builders.emplace_back([n](Scenario &scenario) {
+        builders.emplace_back([this, n](Scenario &scenario) {
             BuildRequestOrderTest(scenario, n & 3);
         });
-        builders.emplace_back(
-            [n](Scenario &scenario) { BuildSingleTest(scenario, n & 31); });
-        builders.emplace_back(
-            [n](Scenario &scenario) { BuildPriorityTest(scenario, n & 31); });
-        builders.emplace_back([n](Scenario &scenario) {
+        builders.emplace_back([this, n](Scenario &scenario) {
+            BuildSingleTest(scenario, n & 31);
+        });
+        builders.emplace_back([this, n](Scenario &scenario) {
+            BuildPriorityTest(scenario, n & 31);
+        });
+        builders.emplace_back([this, n](Scenario &scenario) {
             BuildBigPriorityTest(scenario, (n & 7) + 1);
         });
         builders.emplace_back(
-            [](Scenario &scenario) { BuildTimeBackwardsTest(scenario); });
+            [this](Scenario &scenario) { BuildTimeBackwardsTest(scenario); });
         builders.emplace_back(
-            [](Scenario &scenario) { BuildWeirdRequestsTest(scenario); });
+            [this](Scenario &scenario) { BuildWeirdRequestsTest(scenario); });
     }
     // Randomly shuffle all those functions.
     Shuffle(builders.begin(), builders.end(), g_insecure_rand_ctx);
@@ -758,6 +772,8 @@ void TestInterleavedScenarios() {
 }
 
 } // namespace
+
+BOOST_FIXTURE_TEST_SUITE(txrequest_tests, TxRequestTest)
 
 BOOST_AUTO_TEST_CASE(TxRequestTest) {
     for (int i = 0; i < 5; ++i) {

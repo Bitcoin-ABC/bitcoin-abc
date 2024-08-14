@@ -120,84 +120,90 @@ static ScriptError ParseScriptError(const std::string &name) {
     return ScriptError::UNKNOWN;
 }
 
-BOOST_FIXTURE_TEST_SUITE(script_tests, BasicTestingSetup)
-
-static void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
-                   uint32_t flags, const std::string &message,
-                   ScriptError scriptError, const Amount nValue) {
-    bool expect = (scriptError == ScriptError::OK);
-    if (flags & SCRIPT_VERIFY_CLEANSTACK) {
-        flags |= SCRIPT_VERIFY_P2SH;
-    }
-
-    ScriptError err;
-    const CTransaction txCredit{
-        BuildCreditingTransaction(scriptPubKey, nValue)};
-    const CMutableTransaction tx =
-        BuildSpendingTransaction(scriptSig, txCredit);
-    BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, flags,
-                                     MutableTransactionSignatureChecker(
-                                         &tx, 0, txCredit.vout[0].nValue),
-                                     &err) == expect,
-                        message);
-    BOOST_CHECK_MESSAGE(err == scriptError, FormatScriptError(err) + " where " +
-                                                FormatScriptError(scriptError) +
-                                                " expected: " + message);
-
-    // Verify that removing flags from a passing test or adding flags to a
-    // failing test does not change the result, except for some special flags.
-    for (int i = 0; i < 16; ++i) {
-        uint32_t extra_flags = InsecureRandBits(32);
-        // Some flags are not purely-restrictive and thus we can't assume
-        // anything about what happens when they are flipped. Keep them as-is.
-        extra_flags &=
-            ~(SCRIPT_ENABLE_SIGHASH_FORKID | SCRIPT_ENABLE_REPLAY_PROTECTION |
-              SCRIPT_ENABLE_SCHNORR_MULTISIG);
-        uint32_t combined_flags =
-            expect ? (flags & ~extra_flags) : (flags | extra_flags);
-        // Weed out invalid flag combinations.
-        if (combined_flags & SCRIPT_VERIFY_CLEANSTACK) {
-            combined_flags |= SCRIPT_VERIFY_P2SH;
+struct ScriptTest : BasicTestingSetup {
+    void DoTest(const CScript &scriptPubKey, const CScript &scriptSig,
+                uint32_t flags, const std::string &message,
+                ScriptError scriptError, const Amount nValue) {
+        bool expect = (scriptError == ScriptError::OK);
+        if (flags & SCRIPT_VERIFY_CLEANSTACK) {
+            flags |= SCRIPT_VERIFY_P2SH;
         }
 
-        BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey,
-                                         combined_flags,
+        ScriptError err;
+        const CTransaction txCredit{
+            BuildCreditingTransaction(scriptPubKey, nValue)};
+        const CMutableTransaction tx =
+            BuildSpendingTransaction(scriptSig, txCredit);
+        BOOST_CHECK_MESSAGE(VerifyScript(scriptSig, scriptPubKey, flags,
                                          MutableTransactionSignatureChecker(
                                              &tx, 0, txCredit.vout[0].nValue),
                                          &err) == expect,
-                            message + strprintf(" (with %s flags %08x)",
-                                                expect ? "removed" : "added",
-                                                combined_flags ^ flags));
-    }
+                            message);
+        BOOST_CHECK_MESSAGE(err == scriptError,
+                            FormatScriptError(err) + " where " +
+                                FormatScriptError(scriptError) +
+                                " expected: " + message);
+
+        // Verify that removing flags from a passing test or adding flags to a
+        // failing test does not change the result, except for some special
+        // flags.
+        for (int i = 0; i < 16; ++i) {
+            uint32_t extra_flags = InsecureRandBits(32);
+            // Some flags are not purely-restrictive and thus we can't assume
+            // anything about what happens when they are flipped. Keep them
+            // as-is.
+            extra_flags &= ~(SCRIPT_ENABLE_SIGHASH_FORKID |
+                             SCRIPT_ENABLE_REPLAY_PROTECTION |
+                             SCRIPT_ENABLE_SCHNORR_MULTISIG);
+            uint32_t combined_flags =
+                expect ? (flags & ~extra_flags) : (flags | extra_flags);
+            // Weed out invalid flag combinations.
+            if (combined_flags & SCRIPT_VERIFY_CLEANSTACK) {
+                combined_flags |= SCRIPT_VERIFY_P2SH;
+            }
+
+            BOOST_CHECK_MESSAGE(
+                VerifyScript(scriptSig, scriptPubKey, combined_flags,
+                             MutableTransactionSignatureChecker(
+                                 &tx, 0, txCredit.vout[0].nValue),
+                             &err) == expect,
+                message + strprintf(" (with %s flags %08x)",
+                                    expect ? "removed" : "added",
+                                    combined_flags ^ flags));
+        }
 
 #if defined(HAVE_CONSENSUS_LIB)
-    DataStream stream{};
-    stream << tx;
-    uint32_t libconsensus_flags =
-        flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
-    if (libconsensus_flags == flags) {
-        if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
-            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
-                                    scriptPubKey.data(), scriptPubKey.size(),
-                                    txCredit.vout[0].nValue / SATOSHI,
-                                    UCharCast(stream.data()), stream.size(), 0,
-                                    libconsensus_flags, nullptr) == expect,
-                                message);
-        } else {
-            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script_with_amount(
-                                    scriptPubKey.data(), scriptPubKey.size(), 0,
-                                    UCharCast(stream.data()), stream.size(), 0,
-                                    libconsensus_flags, nullptr) == expect,
-                                message);
-            BOOST_CHECK_MESSAGE(bitcoinconsensus_verify_script(
-                                    scriptPubKey.data(), scriptPubKey.size(),
-                                    UCharCast(stream.data()), stream.size(), 0,
-                                    libconsensus_flags, nullptr) == expect,
-                                message);
+        DataStream stream{};
+        stream << tx;
+        uint32_t libconsensus_flags =
+            flags & bitcoinconsensus_SCRIPT_FLAGS_VERIFY_ALL;
+        if (libconsensus_flags == flags) {
+            if (flags & bitcoinconsensus_SCRIPT_ENABLE_SIGHASH_FORKID) {
+                BOOST_CHECK_MESSAGE(
+                    bitcoinconsensus_verify_script_with_amount(
+                        scriptPubKey.data(), scriptPubKey.size(),
+                        txCredit.vout[0].nValue / SATOSHI,
+                        UCharCast(stream.data()), stream.size(), 0,
+                        libconsensus_flags, nullptr) == expect,
+                    message);
+            } else {
+                BOOST_CHECK_MESSAGE(
+                    bitcoinconsensus_verify_script_with_amount(
+                        scriptPubKey.data(), scriptPubKey.size(), 0,
+                        UCharCast(stream.data()), stream.size(), 0,
+                        libconsensus_flags, nullptr) == expect,
+                    message);
+                BOOST_CHECK_MESSAGE(
+                    bitcoinconsensus_verify_script(
+                        scriptPubKey.data(), scriptPubKey.size(),
+                        UCharCast(stream.data()), stream.size(), 0,
+                        libconsensus_flags, nullptr) == expect,
+                    message);
+            }
         }
-    }
 #endif
-}
+    }
+}; // struct ScriptTest
 
 namespace {
 const uint8_t vchKey0[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -494,12 +500,12 @@ public:
         return *this;
     }
 
-    TestBuilder &Test() {
+    TestBuilder &Test(ScriptTest &test) {
         // Make a copy so we can rollback the push.
         TestBuilder copy = *this;
         DoPush();
-        DoTest(creditTx->vout[0].scriptPubKey, spendTx.vin[0].scriptSig, flags,
-               comment, scriptError, nValue);
+        test.DoTest(creditTx->vout[0].scriptPubKey, spendTx.vin[0].scriptSig,
+                    flags, comment, scriptError, nValue);
         *this = copy;
         return *this;
     }
@@ -537,6 +543,8 @@ std::string JSONPrettyPrint(const UniValue &univalue) {
     return ret;
 }
 } // namespace
+
+BOOST_FIXTURE_TEST_SUITE(script_tests, ScriptTest)
 
 BOOST_AUTO_TEST_CASE(script_build) {
     const KeyData keys;
@@ -2375,7 +2383,7 @@ BOOST_AUTO_TEST_CASE(script_build) {
 #endif
 
     for (TestBuilder &test : tests) {
-        test.Test();
+        test.Test(*this);
         std::string str = JSONPrettyPrint(test.GetJSON());
 #ifdef UPDATE_JSON_TESTS
         strGen += str + ",\n";

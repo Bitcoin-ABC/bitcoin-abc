@@ -83,43 +83,46 @@ static uint256 SignatureHashOld(CScript scriptCode, const CTransaction &txTo,
     return ss.GetHash();
 }
 
-static void RandomScript(CScript &script) {
-    static const opcodetype oplist[] = {
-        OP_FALSE, OP_1,        OP_2,
-        OP_3,     OP_CHECKSIG, OP_IF,
-        OP_VERIF, OP_RETURN,   OP_CODESEPARATOR};
-    script = CScript();
-    int ops = (InsecureRandRange(10));
-    for (int i = 0; i < ops; i++) {
-        script << oplist[InsecureRandRange(std::size(oplist))];
+struct SigHashTest : BasicTestingSetup {
+    void RandomScript(CScript &script) {
+        static const opcodetype oplist[] = {
+            OP_FALSE, OP_1,        OP_2,
+            OP_3,     OP_CHECKSIG, OP_IF,
+            OP_VERIF, OP_RETURN,   OP_CODESEPARATOR};
+        script = CScript();
+        int ops = (InsecureRandRange(10));
+        for (int i = 0; i < ops; i++) {
+            script << oplist[InsecureRandRange(std::size(oplist))];
+        }
     }
-}
 
-static void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
-    tx.nVersion = InsecureRand32();
-    tx.vin.clear();
-    tx.vout.clear();
-    tx.nLockTime = (InsecureRandBool()) ? InsecureRand32() : 0;
-    int ins = (InsecureRandBits(2)) + 1;
-    int outs = fSingle ? ins : (InsecureRandBits(2)) + 1;
-    for (int in = 0; in < ins; in++) {
-        tx.vin.push_back(CTxIn());
-        CTxIn &txin = tx.vin.back();
-        txin.prevout = COutPoint(TxId(InsecureRand256()), InsecureRandBits(2));
-        RandomScript(txin.scriptSig);
-        txin.nSequence = InsecureRandBool()
-                             ? InsecureRand32()
-                             : std::numeric_limits<uint32_t>::max();
+    void RandomTransaction(CMutableTransaction &tx, bool fSingle) {
+        tx.nVersion = InsecureRand32();
+        tx.vin.clear();
+        tx.vout.clear();
+        tx.nLockTime = (InsecureRandBool()) ? InsecureRand32() : 0;
+        int ins = (InsecureRandBits(2)) + 1;
+        int outs = fSingle ? ins : (InsecureRandBits(2)) + 1;
+        for (int in = 0; in < ins; in++) {
+            tx.vin.push_back(CTxIn());
+            CTxIn &txin = tx.vin.back();
+            txin.prevout =
+                COutPoint(TxId(InsecureRand256()), InsecureRandBits(2));
+            RandomScript(txin.scriptSig);
+            txin.nSequence = InsecureRandBool()
+                                 ? InsecureRand32()
+                                 : std::numeric_limits<uint32_t>::max();
+        }
+        for (int out = 0; out < outs; out++) {
+            tx.vout.push_back(CTxOut());
+            CTxOut &txout = tx.vout.back();
+            txout.nValue = InsecureRandMoneyAmount();
+            RandomScript(txout.scriptPubKey);
+        }
     }
-    for (int out = 0; out < outs; out++) {
-        tx.vout.push_back(CTxOut());
-        CTxOut &txout = tx.vout.back();
-        txout.nValue = InsecureRandMoneyAmount();
-        RandomScript(txout.scriptPubKey);
-    }
-}
+}; // struct SigHashTest
 
-BOOST_FIXTURE_TEST_SUITE(sighash_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(sighash_tests, SigHashTest)
 
 BOOST_AUTO_TEST_CASE(sighash_test) {
 #if defined(PRINT_SIGHASH_JSON)

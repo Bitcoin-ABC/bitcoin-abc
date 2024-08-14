@@ -20,36 +20,39 @@
 
 #include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(txpackage_tests)
 // A fee amount that is above 1sat/B but below 5sat/B for most transactions
 // created within these unit tests.
 static const Amount low_fee_amt{200 * SATOSHI};
 
-// Create placeholder transactions that have no meaning.
-inline CTransactionRef create_placeholder_tx(size_t num_inputs,
-                                             size_t num_outputs) {
-    CMutableTransaction mtx = CMutableTransaction();
-    mtx.vin.resize(num_inputs);
-    mtx.vout.resize(num_outputs);
-    auto random_script = CScript() << ToByteVector(InsecureRand256())
-                                   << ToByteVector(InsecureRand256());
-    for (size_t i{0}; i < num_inputs; ++i) {
-        mtx.vin[i].prevout = COutPoint(TxId{InsecureRand256()}, 0);
-        mtx.vin[i].scriptSig = random_script;
+struct TxPackageTest : TestChain100Setup {
+    // Create placeholder transactions that have no meaning.
+    inline CTransactionRef create_placeholder_tx(size_t num_inputs,
+                                                 size_t num_outputs) {
+        CMutableTransaction mtx = CMutableTransaction();
+        mtx.vin.resize(num_inputs);
+        mtx.vout.resize(num_outputs);
+        auto random_script = CScript() << ToByteVector(InsecureRand256())
+                                       << ToByteVector(InsecureRand256());
+        for (size_t i{0}; i < num_inputs; ++i) {
+            mtx.vin[i].prevout = COutPoint(TxId{InsecureRand256()}, 0);
+            mtx.vin[i].scriptSig = random_script;
+        }
+        for (size_t o{0}; o < num_outputs; ++o) {
+            mtx.vout[o].nValue = 1 * CENT;
+            mtx.vout[o].scriptPubKey = random_script;
+        }
+        return MakeTransactionRef(mtx);
     }
-    for (size_t o{0}; o < num_outputs; ++o) {
-        mtx.vout[o].nValue = 1 * CENT;
-        mtx.vout[o].scriptPubKey = random_script;
-    }
-    return MakeTransactionRef(mtx);
-}
+}; // struct TxPackageTest
 
 // Create a TxId from a hex string
 inline TxId TxIdFromString(std::string_view str) {
     return TxId(uint256S(str.data()));
 }
 
-BOOST_FIXTURE_TEST_CASE(package_hash_tests, TestChain100Setup) {
+BOOST_FIXTURE_TEST_SUITE(txpackage_tests, TxPackageTest)
+
+BOOST_AUTO_TEST_CASE(package_hash_tests) {
     // Random real transaction
     DataStream stream_1{ParseHex(
         "0100000001750606002715da1314335c5150ee310a60b270e8e7e96878f3646ea6"
@@ -130,7 +133,7 @@ BOOST_FIXTURE_TEST_CASE(package_hash_tests, TestChain100Setup) {
     BOOST_CHECK_EQUAL(calculated_hash_123, GetPackageHash(package_321));
 }
 
-BOOST_FIXTURE_TEST_CASE(package_sanitization_tests, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(package_sanitization_tests) {
     // Packages can't have more than 50 transactions.
     Package package_too_many;
     package_too_many.reserve(MAX_PACKAGE_COUNT + 1);
@@ -176,7 +179,7 @@ BOOST_FIXTURE_TEST_CASE(package_sanitization_tests, TestChain100Setup) {
                       "package-contains-duplicates");
 }
 
-BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(package_validation_tests) {
     LOCK(cs_main);
     unsigned int initialPoolSize = m_node.mempool->size();
 
@@ -261,7 +264,7 @@ BOOST_FIXTURE_TEST_CASE(package_validation_tests, TestChain100Setup) {
     BOOST_CHECK_EQUAL(m_node.mempool->size(), initialPoolSize);
 }
 
-BOOST_FIXTURE_TEST_CASE(noncontextual_package_tests, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(noncontextual_package_tests) {
     // The signatures won't be verified so we can just use a placeholder
     CKey placeholder_key;
     placeholder_key.MakeNewKey(true);
@@ -370,7 +373,7 @@ BOOST_FIXTURE_TEST_CASE(noncontextual_package_tests, TestChain100Setup) {
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(package_submission_tests) {
     unsigned int expected_pool_size = m_node.mempool->size();
     CKey parent_key;
     parent_key.MakeNewKey(true);
@@ -582,7 +585,7 @@ BOOST_FIXTURE_TEST_CASE(package_submission_tests, TestChain100Setup) {
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(package_mix, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(package_mix) {
     // Mine blocks to mature coinbases.
     mineBlocks(5);
     MockMempoolMinFee(CFeeRate(5000 * SATOSHI));
@@ -683,7 +686,7 @@ BOOST_FIXTURE_TEST_CASE(package_mix, TestChain100Setup) {
     }
 }
 
-BOOST_FIXTURE_TEST_CASE(package_cpfp_tests, TestChain100Setup) {
+BOOST_AUTO_TEST_CASE(package_cpfp_tests) {
     mineBlocks(5);
     MockMempoolMinFee(CFeeRate(5000 * SATOSHI));
     LOCK(::cs_main);

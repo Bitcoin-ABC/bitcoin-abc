@@ -25,7 +25,13 @@
 #include <algorithm>
 #include <vector>
 
-BOOST_FIXTURE_TEST_SUITE(bloom_tests, BasicTestingSetup)
+namespace bloom_tests {
+struct BloomTest : public BasicTestingSetup {
+    std::vector<uint8_t> RandomData();
+};
+} // namespace bloom_tests
+
+BOOST_FIXTURE_TEST_SUITE(bloom_tests, BloomTest)
 
 BOOST_AUTO_TEST_CASE(bloom_create_insert_serialize) {
     CBloomFilter filter(3, 0.01, 0, BLOOM_UPDATE_ALL);
@@ -1060,7 +1066,7 @@ BOOST_AUTO_TEST_CASE(merkle_block_4_test_update_none) {
     BOOST_CHECK(!filter.contains(COutPoint(txid2, 0)));
 }
 
-static std::vector<uint8_t> RandomData() {
+std::vector<uint8_t> BloomTest::RandomData() {
     uint256 r = InsecureRand256();
     return std::vector<uint8_t>(r.begin(), r.end());
 }
