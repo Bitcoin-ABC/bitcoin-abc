@@ -13,12 +13,12 @@
 #include <cstdint>
 #include <utility>
 
-COutPoint AddTestCoin(CCoinsViewCache &coins_view) {
-    const TxId txid{InsecureRand256()};
+COutPoint AddTestCoin(FastRandomContext &rng, CCoinsViewCache &coins_view) {
+    const TxId txid{rng.rand256()};
     COutPoint outpoint{txid, /*nIn=*/0};
     CScript scriptPubKey;
     scriptPubKey.assign(uint32_t{56}, 1);
-    Coin new_coin{CTxOut{InsecureRandMoneyAmount(), std::move(scriptPubKey)}, 1,
+    Coin new_coin{CTxOut{RandMoney(rng), std::move(scriptPubKey)}, 1,
                   /*IsCoinbase=*/false};
     coins_view.AddCoin(outpoint, std::move(new_coin),
                        /*possible_overwrite=*/false);

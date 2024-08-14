@@ -41,10 +41,6 @@ static void RunCheckOnBlock(const GlobalConfig &config, const CBlock &block,
     BOOST_CHECK_EQUAL(state.GetRejectReason(), reason);
 }
 
-static COutPoint InsecureRandOutPoint() {
-    return COutPoint(TxId(InsecureRand256()), 0);
-}
-
 BOOST_AUTO_TEST_CASE(blockfail) {
     SelectParams(ChainType::MAIN);
 
@@ -67,6 +63,10 @@ BOOST_AUTO_TEST_CASE(blockfail) {
     block.vtx.resize(1);
     block.vtx[0] = MakeTransactionRef(tx);
     RunCheckOnBlock(config, block);
+
+    auto InsecureRandOutPoint = [this]() -> COutPoint {
+        return COutPoint(TxId(m_rng.rand256()), 0);
+    };
 
     // No coinbase
     tx.vin[0].prevout = InsecureRandOutPoint();

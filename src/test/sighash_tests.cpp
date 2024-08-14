@@ -116,7 +116,7 @@ struct SigHashTest : BasicTestingSetup {
         for (int out = 0; out < outs; out++) {
             tx.vout.push_back(CTxOut());
             CTxOut &txout = tx.vout.back();
-            txout.nValue = InsecureRandMoneyAmount();
+            txout.nValue = RandMoney(m_rng);
             RandomScript(txout.scriptPubKey);
         }
     }
@@ -286,7 +286,7 @@ BOOST_AUTO_TEST_CASE(sighash_caching) {
     RandomTransaction(tx, /*fSingle=*/false);
     const auto in_index{
         static_cast<uint32_t>(InsecureRandRange(tx.vin.size()))};
-    const auto amount{InsecureRandMoneyAmount()};
+    const auto amount{RandMoney(m_rng)};
 
     // Exercise the sighash function under all flag combinations that matter.
     std::vector<uint32_t> relevant_flags{

@@ -37,10 +37,13 @@ bool operator==(const Coin &a, const Coin &b) {
 }
 
 class CCoinsViewTest : public CCoinsView {
+    FastRandomContext &m_rng;
     BlockHash hashBestBlock_;
     std::map<COutPoint, Coin> map_;
 
 public:
+    CCoinsViewTest(FastRandomContext &rng) : m_rng{rng} {}
+
     [[nodiscard]] bool GetCoin(const COutPoint &outpoint,
                                Coin &coin) const override {
         std::map<COutPoint, Coin>::const_iterator it = map_.find(outpoint);
@@ -192,7 +195,7 @@ struct CacheTest : BasicTestingSetup {
 
                 if (InsecureRandRange(5) == 0 || coin.IsSpent()) {
                     CTxOut txout;
-                    txout.nValue = InsecureRandMoneyAmount();
+                    txout.nValue = RandMoney(m_rng);
 
                     // Infrequently test adding unspendable coins.
                     if (InsecureRandRange(16) == 0 && coin.IsSpent()) {
@@ -311,7 +314,7 @@ struct CacheTest : BasicTestingSetup {
 
 // Run the above simulation for multiple base types.
 BOOST_FIXTURE_TEST_CASE(coins_cache_simulation_test, CacheTest) {
-    CCoinsViewTest base;
+    CCoinsViewTest base{m_rng};
     SimulationTest(&base, false);
 
     CCoinsViewDB db_base{
@@ -352,7 +355,7 @@ BOOST_FIXTURE_TEST_CASE(updatecoins_simulation_test, UpdateTest) {
 
     // The cache stack.
     // A CCoinsViewTest at the bottom.
-    CCoinsViewTest base;
+    CCoinsViewTest base{m_rng};
     // A stack of CCoinsViewCaches on top.
     std::vector<std::unique_ptr<CCoinsViewCacheTest>> stack;
     // Start with one cache.
@@ -962,7 +965,7 @@ struct FlushTest : BasicTestingSetup {
     Coin MakeCoin() {
         CScript scriptPubKey;
         scriptPubKey.assign(uint32_t{56}, 1);
-        Coin coin{CTxOut{InsecureRandMoneyAmount(), std::move(scriptPubKey)},
+        Coin coin{CTxOut{RandMoney(m_rng), std::move(scriptPubKey)},
                   /*nHeightIn=*/static_cast<uint32_t>(InsecureRandRange(4096)),
                   /*IsCoinbase=*/false};
         return coin;

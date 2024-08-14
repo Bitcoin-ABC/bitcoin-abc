@@ -417,12 +417,13 @@ struct GenerationsTest : BasicTestingSetup {
         // transactions immediately and never uses the other half.
         struct block_activity {
             std::vector<uint256> reads;
-            block_activity(uint32_t n_insert, Cache &c) : reads() {
+            block_activity(uint32_t n_insert, FastRandomContext &rng,
+                           Cache &c) {
                 std::vector<uint256> inserts;
                 inserts.resize(n_insert);
                 reads.reserve(n_insert / 2);
                 for (uint32_t i = 0; i < n_insert; ++i) {
-                    inserts[i] = InsecureRand256();
+                    inserts[i] = rng.rand256();
                 }
                 for (uint32_t i = 0; i < n_insert / 4; ++i) {
                     reads.push_back(inserts[i]);
@@ -463,7 +464,7 @@ struct GenerationsTest : BasicTestingSetup {
             if (last_few.size() == WINDOW_SIZE) {
                 last_few.pop_front();
             }
-            last_few.emplace_back(BLOCK_SIZE, set);
+            last_few.emplace_back(BLOCK_SIZE, m_rng, set);
             uint32_t count = 0;
             for (auto &act : last_few) {
                 for (uint32_t k = 0; k < POP_AMOUNT; ++k) {
