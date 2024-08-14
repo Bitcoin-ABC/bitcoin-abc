@@ -53,9 +53,7 @@ struct BasicTestingSetup {
     // keep as first member to be destructed last
     node::NodeContext m_node;
 
-    // Alias (reference) for the global, to allow easy removal of the global in
-    // the future.
-    FastRandomContext &m_rng{g_insecure_rand_ctx};
+    FastRandomContext m_rng;
     /**
      * Seed the global RNG state and m_rng for testing and log the seed value.
      * This affects all randomness, except GetStrongRandBytes().
