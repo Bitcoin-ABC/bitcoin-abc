@@ -4,4 +4,7 @@ Bitcoin ABC version 0.29.11 is now available from:
 
   <https://download.bitcoinabc.org/0.29.11/>
 
-This is a maintenance release with no user-visible change.
+This release includes the following features and fixes:
+ - A new `gettransactionstatus` RPC has been added to retrieve the status of a non
+   mined transaction, whether it's accepted in the mempool, is an orphan, or is
+   a conflicting transaction.

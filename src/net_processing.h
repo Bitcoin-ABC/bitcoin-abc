@@ -27,6 +27,10 @@ class Config;
  */
 static const uint32_t DEFAULT_MAX_ORPHAN_TRANSACTIONS{100};
 /**
+ * Maximum number of conflicting transactions kept in memory.
+ */
+static const uint32_t DEFAULT_MAX_CONFLICTING_TRANSACTIONS{100};
+/**
  * Default number of non-mempool transactions to keep around for block
  * reconstruction. Includes orphan and rejected transactions.
  */
@@ -67,6 +71,8 @@ public:
         bool ignore_incoming_txs{DEFAULT_BLOCKSONLY};
         //! Maximum number of orphan transactions kept in memory
         uint32_t max_orphan_txs{DEFAULT_MAX_ORPHAN_TRANSACTIONS};
+        //! Maximum number of conflicting transactions kept in memory
+        uint32_t max_conflicting_txs{DEFAULT_MAX_CONFLICTING_TRANSACTIONS};
         //! Number of non-mempool transactions to keep around for block
         //! reconstruction. Includes orphan and rejected transactions.
         uint32_t max_extra_txs{DEFAULT_BLOCK_RECONSTRUCTION_EXTRA_TXN};

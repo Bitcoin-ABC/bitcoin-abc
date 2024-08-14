@@ -2762,6 +2762,9 @@ void PeerManagerImpl::BlockConnected(
     m_mempool.withOrphanage([&pblock](TxOrphanage &orphanage) {
         orphanage.EraseForBlock(*pblock);
     });
+    m_mempool.withConflicting([&pblock](TxConflicting &conflicting) {
+        conflicting.EraseForBlock(*pblock);
+    });
     m_last_tip_update = GetTime<std::chrono::seconds>();
 
     {
@@ -2968,6 +2971,12 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
 
     if (m_mempool.withOrphanage([&txid](const TxOrphanage &orphanage) {
             return orphanage.HaveTx(txid);
+        })) {
+        return true;
+    }
+
+    if (m_mempool.withConflicting([&txid](const TxConflicting &conflicting) {
+            return conflicting.HaveTx(txid);
         })) {
         return true;
     }
@@ -5779,6 +5788,24 @@ void PeerManagerImpl::ProcessMessage(
                          package_result.m_state.ToString());
                 ProcessPackageResult(package_to_validate.value(),
                                      package_result);
+            }
+        }
+
+        if (state.GetResult() == TxValidationResult::TX_CONFLICT) {
+            unsigned int nEvicted{0};
+            // NO_THREAD_SAFETY_ANALYSIS because of g_msgproc_mutex required in
+            // the lambda for m_rng
+            m_mempool.withConflicting(
+                [&](TxConflicting &conflicting) NO_THREAD_SAFETY_ANALYSIS {
+                    conflicting.AddTx(ptx, pfrom.GetId());
+                    nEvicted =
+                        conflicting.LimitTxs(m_opts.max_conflicting_txs, m_rng);
+                });
+
+            if (nEvicted > 0) {
+                LogPrint(BCLog::TXPACKAGES,
+                         "conflicting pool overflow, removed %u tx\n",
+                         nEvicted);
             }
         }
 

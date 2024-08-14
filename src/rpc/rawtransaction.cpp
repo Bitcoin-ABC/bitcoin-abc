@@ -1767,6 +1767,51 @@ RPCHelpMan analyzepsbt() {
     };
 }
 
+RPCHelpMan gettransactionstatus() {
+    return RPCHelpMan{
+        "gettransactionstatus",
+        "Return the current pool a transaction belongs to\n",
+        {
+            {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
+             "The transaction id"},
+        },
+        RPCResult{RPCResult::Type::OBJ,
+                  "",
+                  "",
+                  {{RPCResult::Type::STR, "pool",
+                    "In which pool the transaction is currently located, "
+                    "either none, mempool, orphanage or conflicting"}}},
+        RPCExamples{HelpExampleCli("gettransactionstatus", "\"txid\"")},
+        [&](const RPCHelpMan &self, const Config &config,
+            const JSONRPCRequest &request) -> UniValue {
+            const NodeContext &node = EnsureAnyNodeContext(request.context);
+            CTxMemPool &mempool = EnsureMemPool(node);
+
+            TxId txid = TxId(ParseHashV(request.params[0], "parameter 1"));
+
+            UniValue ret(UniValue::VOBJ);
+
+            if (mempool.exists(txid)) {
+                ret.pushKV("pool", "mempool");
+            } else if (mempool.withOrphanage(
+                           [&txid](const TxOrphanage &orphanage) {
+                               return orphanage.HaveTx(txid);
+                           })) {
+                ret.pushKV("pool", "orphanage");
+            } else if (mempool.withConflicting(
+                           [&txid](const TxConflicting &conflicting) {
+                               return conflicting.HaveTx(txid);
+                           })) {
+                ret.pushKV("pool", "conflicting");
+            } else {
+                ret.pushKV("pool", "none");
+            }
+
+            return ret;
+        },
+    };
+}
+
 void RegisterRawTransactionRPCCommands(CRPCTable &t) {
     // clang-format off
     static const CRPCCommand commands[] = {
@@ -1786,6 +1831,7 @@ void RegisterRawTransactionRPCCommands(CRPCTable &t) {
         { "rawtransactions",    utxoupdatepsbt,             },
         { "rawtransactions",    joinpsbts,                  },
         { "rawtransactions",    analyzepsbt,                },
+        { "rawtransactions",    gettransactionstatus,         },
     };
     // clang-format on
     for (const auto &c : commands) {

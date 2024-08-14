@@ -17,6 +17,7 @@
 #include <primitives/transaction.h>
 #include <radix.h>
 #include <sync.h>
+#include <txconflicting.h>
 #include <txorphanage.h>
 #include <uint256radixkey.h>
 #include <util/hasher.h>
@@ -244,6 +245,10 @@ private:
     mutable Mutex cs_orphanage;
     /** Storage for orphan information */
     std::unique_ptr<TxOrphanage> m_orphanage GUARDED_BY(cs_orphanage);
+
+    mutable Mutex cs_conflicting;
+    /** Storage for conflicting txs information */
+    std::unique_ptr<TxConflicting> m_conflicting GUARDED_BY(cs_conflicting);
 
 public:
     // public only for testing
@@ -558,6 +563,14 @@ public:
         LOCK(cs_orphanage);
         assert(m_orphanage);
         return func(*m_orphanage);
+    }
+
+    template <typename Callable>
+    auto withConflicting(Callable &&func) const
+        EXCLUSIVE_LOCKS_REQUIRED(!cs_conflicting) {
+        LOCK(cs_conflicting);
+        assert(m_conflicting);
+        return func(*m_conflicting);
     }
 
 private:
