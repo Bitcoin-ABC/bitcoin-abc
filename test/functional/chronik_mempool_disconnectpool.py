@@ -29,7 +29,7 @@ class ChronikMempoolDisconnectPool(BitcoinTestFramework):
         self.skip_if_no_chronik()
 
     def run_test(self):
-        from test_framework.chronik.client import ChronikClient
+        from test_framework.chronik.client import ChronikClient, pb
 
         node = self.nodes[0]
         chronik = ChronikClient("127.0.0.1", node.chronik_port)
@@ -96,7 +96,7 @@ class ChronikMempoolDisconnectPool(BitcoinTestFramework):
         assert_equal(
             chronik.tx(tx1.hash).ok().block.hash[::-1].hex(), reorg_block1.hash
         )
-        assert_equal(chronik.tx(tx2.hash).ok().block, None)
+        assert_equal(chronik.tx(tx2.hash).ok().block, pb.BlockMetadata())
 
 
 if __name__ == "__main__":
