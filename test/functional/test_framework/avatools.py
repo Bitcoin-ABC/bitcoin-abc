@@ -451,7 +451,12 @@ def build_msg_avaproofs(
     return msg
 
 
-def can_find_inv_in_poll(quorum, inv_hash, response=AvalancheVoteError.ACCEPTED):
+def can_find_inv_in_poll(
+    quorum,
+    inv_hash,
+    response=AvalancheVoteError.ACCEPTED,
+    other_response=AvalancheVoteError.ACCEPTED,
+):
     found_hash = False
     for n in quorum:
         poll = n.get_avapoll_if_available()
@@ -463,8 +468,8 @@ def can_find_inv_in_poll(quorum, inv_hash, response=AvalancheVoteError.ACCEPTED)
         # We got a poll, check for the hash and repond
         votes = []
         for inv in poll.invs:
-            # Vote yes to everything
-            r = AvalancheVoteError.ACCEPTED
+            # Vote to everything but our searched inv
+            r = other_response
 
             # Look for what we expect
             if inv.hash == inv_hash:

@@ -1189,7 +1189,16 @@ AnyVoteItem Processor::getVoteItemFromInv(const CInv &inv) const {
     }
 
     if (mempool && inv.IsMsgTx()) {
-        return WITH_LOCK(mempool->cs, return mempool->get(TxId(inv.hash)));
+        LOCK(mempool->cs);
+        if (CTransactionRef tx = mempool->get(TxId(inv.hash))) {
+            return tx;
+        }
+        if (CTransactionRef tx = mempool->withConflicting(
+                [&inv](const TxConflicting &conflicting) {
+                    return conflicting.GetTx(TxId(inv.hash));
+                })) {
+            return tx;
+        }
     }
 
     return {nullptr};
@@ -1243,11 +1252,14 @@ bool Processor::IsWorthPolling::operator()(const CTransactionRef &tx) const {
         return false;
     }
 
-    // TODO For now the transactions with conflicts or rejected by policies are
-    // not stored anywhere, so only the mempool transactions are worth polling.
     AssertLockNotHeld(processor.mempool->cs);
-    return WITH_LOCK(processor.mempool->cs,
-                     return processor.mempool->exists(tx->GetId()));
+    LOCK(processor.mempool->cs);
+
+    return processor.mempool->exists(tx->GetId()) ||
+           processor.mempool->withConflicting(
+               [&tx](const TxConflicting &conflicting) {
+                   return conflicting.HaveTx(tx->GetId());
+               });
 }
 
 bool Processor::isWorthPolling(const AnyVoteItem &item) const {

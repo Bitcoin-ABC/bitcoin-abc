@@ -3,6 +3,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 """Test avalanche transaction voting."""
 import random
+from decimal import Decimal
 
 from test_framework.avatools import can_find_inv_in_poll, get_ava_p2p_interface
 from test_framework.blocktools import (
@@ -158,6 +159,22 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         poll_node.send_poll([orphan_txid], MSG_TX)
         assert_response([AvalancheVote(AvalancheTxVoteError.ORPHAN, orphan_txid)])
 
+        # Let's clean up the non transaction inventories from our avalanche polls
+        def has_finalized_proof(proofid):
+            can_find_inv_in_poll(quorum, proofid)
+            return node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
+
+        for q in quorum:
+            self.wait_until(lambda: has_finalized_proof(q.proof.proofid))
+
+        def has_finalized_block(block_hash):
+            can_find_inv_in_poll(quorum, int(block_hash, 16))
+            return node.isfinalblock(block_hash)
+
+        tip = node.getbestblockhash()
+        self.wait_until(lambda: has_finalized_block(tip))
+
+        # Now we can focus on transactions
         self.log.info("Check the votes on conflicting transactions")
 
         utxo = wallet.get_utxo()
@@ -180,31 +197,32 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
 
         self.log.info("Check the node polls for transactions added to the mempool")
 
-        # Let's clean up the non transaction inventories from our avalanche polls
-        def has_finalized_proof(proofid):
-            can_find_inv_in_poll(quorum, proofid)
-            return node.getrawavalancheproof(uint256_hex(proofid))["finalized"]
-
-        for q in quorum:
-            self.wait_until(lambda: has_finalized_proof(q.proof.proofid))
-
-        def has_finalized_block(block_hash):
-            can_find_inv_in_poll(quorum, int(block_hash, 16))
-            return node.isfinalblock(block_hash)
-
-        tip = node.getbestblockhash()
-        self.wait_until(lambda: has_finalized_block(tip))
-
-        # Now we can focus on transactions
-        def has_finalized_tx(txid):
-            can_find_inv_in_poll(quorum, int(txid, 16))
-            return node.isfinaltransaction(txid)
-
-        def has_invalidated_tx(txid):
+        def has_accepted_tx(txid):
             can_find_inv_in_poll(
-                quorum, int(txid, 16), response=AvalancheTxVoteError.INVALID
+                quorum,
+                int(txid, 16),
+                response=AvalancheTxVoteError.ACCEPTED,
+                other_response=AvalancheTxVoteError.UNKNOWN,
+            )
+            return txid in node.getrawmempool()
+
+        def has_finalized_tx(txid):
+            return has_accepted_tx(txid) and node.isfinaltransaction(txid)
+
+        def has_rejected_tx(txid):
+            can_find_inv_in_poll(
+                quorum,
+                int(txid, 16),
+                response=AvalancheTxVoteError.CONFLICTING,
+                other_response=AvalancheTxVoteError.UNKNOWN,
             )
             return txid not in node.getrawmempool()
+
+        def has_invalidated_tx(txid):
+            return (
+                has_rejected_tx(txid)
+                and node.gettransactionstatus(txid)["pool"] == "none"
+            )
 
         self.wait_until(lambda: has_finalized_tx(mempool_tx["txid"]))
 
@@ -329,6 +347,220 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             [conflicting_block],
             node,
         )
+
+        self.log.info("Check the node polls for conflicting txs")
+
+        tip = self.generate(node, 1)[0]
+        assert_equal(node.getrawmempool(), [])
+
+        self.wait_until(lambda: has_finalized_block(tip))
+
+        utxo = wallet.get_utxo()
+        mempool_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("2000")
+        )
+        conflicting_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("3000")
+        )
+
+        mempool_tx_obj = from_wallet_tx(mempool_tx)
+        peer.send_txs_and_test(
+            [mempool_tx_obj],
+            node,
+            success=True,
+        )
+        assert mempool_tx["txid"] in node.getrawmempool()
+
+        conflicting_tx_obj = from_wallet_tx(conflicting_tx)
+        with node.assert_debug_log([f"stored conflicting tx {conflicting_tx['txid']}"]):
+            peer.send_txs_and_test(
+                [conflicting_tx_obj],
+                node,
+                success=False,
+                reject_reason="txn-mempool-conflict",
+            )
+
+        self.wait_until(
+            lambda: can_find_inv_in_poll(
+                quorum,
+                int(conflicting_tx["txid"], 16),
+                response=AvalancheTxVoteError.CONFLICTING,
+                other_response=AvalancheTxVoteError.UNKNOWN,
+            )
+        )
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] not in node.getrawmempool()
+
+        self.log.info("Check the node can pull back conflicting txs via avalanche")
+
+        self.wait_until(lambda: has_accepted_tx(conflicting_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert conflicting_tx["txid"] in node.getrawmempool()
+
+        self.log.info("Check the node can accept/reject conflicting txs via avalanche")
+
+        self.wait_until(lambda: has_rejected_tx(conflicting_tx["txid"]))
+        # The previously rejected transaction is pulled back to the mempool
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] not in node.getrawmempool()
+
+        # Rinse and repeat
+        self.wait_until(lambda: has_accepted_tx(conflicting_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert conflicting_tx["txid"] in node.getrawmempool()
+        self.wait_until(lambda: has_rejected_tx(conflicting_tx["txid"]))
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] not in node.getrawmempool()
+
+        # Accept again and finalize
+        self.wait_until(lambda: has_finalized_tx(conflicting_tx["txid"]))
+        assert mempool_tx["txid"] not in node.getrawmempool()
+        assert conflicting_tx["txid"] in node.getrawmempool()
+
+        self.log.info("Check the node can invalidate conflicting txs via avalanche")
+
+        # This is very similar to the previous tests but will end with
+        # conflicting_tx being invalidated instead of finalized
+        utxo = wallet.get_utxo()
+        mempool_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("2000")
+        )
+        conflicting_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("3000")
+        )
+
+        mempool_tx_obj = from_wallet_tx(mempool_tx)
+        peer.send_txs_and_test(
+            [mempool_tx_obj],
+            node,
+            success=True,
+        )
+        assert mempool_tx["txid"] in node.getrawmempool()
+
+        conflicting_tx_obj = from_wallet_tx(conflicting_tx)
+        with node.assert_debug_log([f"stored conflicting tx {conflicting_tx['txid']}"]):
+            peer.send_txs_and_test(
+                [conflicting_tx_obj],
+                node,
+                success=False,
+                reject_reason="txn-mempool-conflict",
+            )
+
+        self.wait_until(
+            lambda: can_find_inv_in_poll(
+                quorum,
+                int(conflicting_tx["txid"], 16),
+                response=AvalancheTxVoteError.CONFLICTING,
+                other_response=AvalancheTxVoteError.UNKNOWN,
+            )
+        )
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] not in node.getrawmempool()
+
+        self.wait_until(lambda: has_rejected_tx(conflicting_tx["txid"]))
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] not in node.getrawmempool()
+
+        self.wait_until(lambda: has_invalidated_tx(conflicting_tx["txid"]))
+        assert mempool_tx["txid"] in node.getrawmempool()
+        assert conflicting_tx["txid"] not in node.getrawmempool()
+
+        # Now that the conflicting_tx has been invalidated, it will be ignored
+        # if submitted again because it's in the recent rejects
+        peer.send_txs_and_test(
+            [conflicting_tx_obj], node, success=False, expect_disconnect=False
+        )
+
+        # mempool_tx is not finalized so we accept another conflicting tx
+        another_conflicting_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("4000")
+        )
+        another_conflicting_tx_obj = from_wallet_tx(another_conflicting_tx)
+        with node.assert_debug_log(
+            [f"stored conflicting tx {another_conflicting_tx['txid']}"]
+        ):
+            peer.send_txs_and_test(
+                [another_conflicting_tx_obj],
+                node,
+                success=False,
+                expect_disconnect=False,
+                reject_reason="txn-mempool-conflict",
+            )
+
+        self.log.info("Check all conflicting txs are erased upon finalization")
+
+        utxo = wallet.get_utxo()
+        mempool_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("2000")
+        )
+        conflicting_txs = [
+            wallet.create_self_transfer(utxo_to_spend=utxo, fee_rate=Decimal("3000"))
+            for _ in range(5)
+        ]
+
+        mempool_tx_obj = from_wallet_tx(mempool_tx)
+        peer.send_txs_and_test(
+            [mempool_tx_obj],
+            node,
+            success=True,
+        )
+        assert mempool_tx["txid"] in node.getrawmempool()
+
+        for conflicting_tx in conflicting_txs:
+            conflicting_tx_obj = from_wallet_tx(conflicting_tx)
+            with node.assert_debug_log(
+                [f"stored conflicting tx {conflicting_tx['txid']}"]
+            ):
+                peer.send_txs_and_test(
+                    [conflicting_tx_obj],
+                    node,
+                    success=False,
+                    reject_reason="txn-mempool-conflict",
+                )
+            assert conflicting_tx["txid"] not in node.getrawmempool()
+            assert_equal(
+                node.gettransactionstatus(conflicting_tx["txid"])["pool"], "conflicting"
+            )
+
+        self.wait_until(lambda: has_accepted_tx(mempool_tx["txid"]))
+        assert mempool_tx["txid"] in node.getrawmempool()
+        for conflicting_tx in conflicting_txs:
+            assert conflicting_tx["txid"] not in node.getrawmempool()
+            assert_equal(
+                node.gettransactionstatus(conflicting_tx["txid"])["pool"], "conflicting"
+            )
+
+        self.wait_until(lambda: has_finalized_tx(mempool_tx["txid"]))
+        assert mempool_tx["txid"] in node.getrawmempool()
+        for conflicting_tx in conflicting_txs:
+            assert conflicting_tx["txid"] not in node.getrawmempool()
+            assert_equal(
+                node.gettransactionstatus(conflicting_tx["txid"])["pool"], "none"
+            )
+
+            # Sending them again will not add them back because they're all in
+            # the recent_reject
+            conflicting_tx_obj = from_wallet_tx(conflicting_tx)
+            peer.send_txs_and_test(
+                [conflicting_tx_obj], node, success=False, expect_disconnect=False
+            )
+
+        # A new conflict is rejected because it conflicts with the finalized tx
+        another_conflicting_tx = wallet.create_self_transfer(
+            utxo_to_spend=utxo, fee_rate=Decimal("4000")
+        )
+        another_conflicting_tx_obj = from_wallet_tx(another_conflicting_tx)
+        with node.assert_debug_log(
+            ["finalized-tx-conflict"],
+            [f"stored conflicting tx {another_conflicting_tx['txid']}"],
+        ):
+            peer.send_txs_and_test(
+                [another_conflicting_tx_obj],
+                node,
+                success=False,
+                expect_disconnect=False,
+                reject_reason="finalized-tx-conflict",
+            )
 
 
 if __name__ == "__main__":

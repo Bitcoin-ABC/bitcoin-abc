@@ -244,8 +244,6 @@ class Processor final : public NetEventsInterface {
     std::unordered_map<BlockHash, StakingReward, SaltedUint256Hasher>
         stakingRewards GUARDED_BY(cs_stakingRewards);
 
-    const bool m_preConsensus{false};
-
     Processor(Config avaconfig, interfaces::Chain &chain, CConnman *connmanIn,
               ChainstateManager &chainman, CTxMemPool *mempoolIn,
               CScheduler &scheduler, std::unique_ptr<PeerData> peerDataIn,
@@ -256,6 +254,8 @@ class Processor final : public NetEventsInterface {
               bool preConsensus);
 
 public:
+    const bool m_preConsensus{false};
+
     ~Processor();
 
     static std::unique_ptr<Processor>

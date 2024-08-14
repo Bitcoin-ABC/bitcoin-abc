@@ -925,6 +925,7 @@ if(BUILD_BITCOIN_CHAINSTATE)
 		threadinterrupt.cpp
 		txdb.cpp
 		txmempool.cpp
+		txpool.cpp
 		uint256.cpp
 		util/batchpriority.cpp
 		util/bytevectorhash.cpp

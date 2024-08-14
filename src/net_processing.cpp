@@ -4126,6 +4126,11 @@ void PeerManagerImpl::ProcessInvalidTx(NodeId nodeid,
         return;
     }
 
+    if (m_avalanche && m_avalanche->m_preConsensus &&
+        state.GetResult() == TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
+        return;
+    }
+
     if (state.GetResult() == TxValidationResult::TX_PACKAGE_RECONSIDERABLE) {
         // If the result is TX_PACKAGE_RECONSIDERABLE, add it to
         // m_recent_rejects_package_reconsiderable because we should not
@@ -5814,7 +5819,12 @@ void PeerManagerImpl::ProcessMessage(
 
         if (state.GetResult() ==
             TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
+            // Once added to the conflicting pool, a tx is considered
+            // AlreadyHave, and we shouldn't request it anymore.
+            m_txrequest.ForgetInvId(tx.GetId());
+
             unsigned int nEvicted{0};
+            bool haveConflictingTx{false};
             // NO_THREAD_SAFETY_ANALYSIS because of g_msgproc_mutex required in
             // the lambda for m_rng
             m_mempool.withConflicting(
@@ -5822,12 +5832,17 @@ void PeerManagerImpl::ProcessMessage(
                     conflicting.AddTx(ptx, pfrom.GetId());
                     nEvicted =
                         conflicting.LimitTxs(m_opts.max_conflicting_txs, m_rng);
+                    haveConflictingTx = conflicting.HaveTx(ptx->GetId());
                 });
 
             if (nEvicted > 0) {
                 LogPrint(BCLog::TXPACKAGES,
                          "conflicting pool overflow, removed %u tx\n",
                          nEvicted);
+            }
+            if (m_avalanche && m_avalanche->m_preConsensus &&
+                haveConflictingTx) {
+                m_avalanche->addToReconcile(ptx);
             }
         }
 
@@ -6712,36 +6727,130 @@ void PeerManagerImpl::ProcessMessage(
                 logVoteUpdate(u, "tx", txid);
 
                 switch (u.getStatus()) {
-                    case avalanche::VoteStatus::Rejected:
-                        break;
-                    case avalanche::VoteStatus::Invalid: {
+                    case avalanche::VoteStatus::Rejected: {
                         // Remove from the mempool and the finalized tree, as
-                        // well as all the children txs.
-                        // FIXME Remember the tx has been invalidated so we
-                        // don't poll for it again and again.
-                        LOCK(m_mempool.cs);
-                        auto it = m_mempool.GetIter(txid);
-                        if (it.has_value()) {
+                        // well as all the children txs. Note that removal from
+                        // the finalized tree is only a safety net and should
+                        // never happen.
+                        LOCK2(cs_main, m_mempool.cs);
+                        if (m_mempool.exists(txid)) {
                             m_mempool.removeRecursive(
                                 *tx, MemPoolRemovalReason::AVALANCHE);
+
+                            std::vector<CTransactionRef> conflictingTxs =
+                                m_mempool.withConflicting(
+                                    [&tx](const TxConflicting &conflicting) {
+                                        return conflicting.GetConflictTxs(tx);
+                                    });
+
+                            if (conflictingTxs.size() > 0) {
+                                // Pull the first tx only, erase the others so
+                                // they can be re-downloaded if needed.
+                                auto result = m_chainman.ProcessTransaction(
+                                    conflictingTxs[0]);
+                                assert(result.m_state.IsValid());
+                            }
+
+                            m_mempool.withConflicting(
+                                [&conflictingTxs,
+                                 &tx](TxConflicting &conflicting) {
+                                    for (const auto &conflictingTx :
+                                         conflictingTxs) {
+                                        conflicting.EraseTx(
+                                            conflictingTx->GetId());
+                                    }
+
+                                    // Note that we don't store the descendants,
+                                    // which should be re-downloaded. This could
+                                    // be optimized but we will have to manage
+                                    // the topological ordering.
+                                    conflicting.AddTx(tx, NO_NODE);
+                                });
                         }
 
                         break;
                     }
-                    case avalanche::VoteStatus::Accepted:
+                    case avalanche::VoteStatus::Invalid: {
+                        m_mempool.withConflicting(
+                            [&txid](TxConflicting &conflicting) {
+                                conflicting.EraseTx(txid);
+                            });
+                        WITH_LOCK(cs_main, m_recent_rejects.insert(txid));
                         break;
-                    case avalanche::VoteStatus::Finalized: {
-                        LOCK(m_mempool.cs);
-                        auto it = m_mempool.GetIter(txid);
-                        if (!it.has_value()) {
-                            LogPrint(BCLog::AVALANCHE,
-                                     "Error: finalized tx (%s) is not in the "
-                                     "mempool\n",
-                                     txid.ToString());
-                            break;
+                    }
+                    case avalanche::VoteStatus::Finalized:
+                        // fallthrough
+                    case avalanche::VoteStatus::Accepted: {
+                        {
+                            LOCK2(cs_main, m_mempool.cs);
+                            if (m_mempool.withConflicting(
+                                    [&txid](const TxConflicting &conflicting) {
+                                        return conflicting.HaveTx(txid);
+                                    })) {
+                                // Swap conflicting txs from/to the mempool
+                                std::vector<CTransactionRef>
+                                    mempool_conflicting_txs;
+                                for (const auto &txin : tx->vin) {
+                                    // Find the conflicting txs
+                                    if (CTransactionRef conflict =
+                                            m_mempool.GetConflictTx(
+                                                txin.prevout)) {
+                                        mempool_conflicting_txs.push_back(
+                                            std::move(conflict));
+                                    }
+                                }
+                                m_mempool.removeConflicts(*tx);
+
+                                auto result = m_chainman.ProcessTransaction(tx);
+                                assert(result.m_state.IsValid());
+
+                                m_mempool.withConflicting(
+                                    [&txid, &mempool_conflicting_txs](
+                                        TxConflicting &conflicting) {
+                                        conflicting.EraseTx(txid);
+                                        // Store the first tx only, the others
+                                        // can be re-downloaded if needed.
+                                        if (mempool_conflicting_txs.size() >
+                                            0) {
+                                            conflicting.AddTx(
+                                                mempool_conflicting_txs[0],
+                                                NO_NODE);
+                                        }
+                                    });
+                            }
                         }
 
-                        m_mempool.setAvalancheFinalized(**it);
+                        if (u.getStatus() == avalanche::VoteStatus::Finalized) {
+                            LOCK2(cs_main, m_mempool.cs);
+                            auto it = m_mempool.GetIter(txid);
+                            if (!it.has_value()) {
+                                LogPrint(
+                                    BCLog::AVALANCHE,
+                                    "Error: finalized tx (%s) is not in the "
+                                    "mempool\n",
+                                    txid.ToString());
+                                break;
+                            }
+
+                            m_mempool.setAvalancheFinalized(**it);
+
+                            // NO_THREAD_SAFETY_ANALYSIS because
+                            // m_recent_rejects requires cs_main in the lambda
+                            m_mempool.withConflicting(
+                                [&](TxConflicting &conflicting)
+                                    NO_THREAD_SAFETY_ANALYSIS {
+                                        std::vector<CTransactionRef>
+                                            conflictingTxs =
+                                                conflicting.GetConflictTxs(tx);
+                                        for (const auto &conflictingTx :
+                                             conflictingTxs) {
+                                            m_recent_rejects.insert(
+                                                conflictingTx->GetId());
+                                            conflicting.EraseTx(
+                                                conflictingTx->GetId());
+                                        }
+                                    });
+                        }
 
                         break;
                     }
