@@ -1675,7 +1675,7 @@ void Chainstate::InvalidChainFound(CBlockIndex *pindexNew) {
     if (m_chainman.m_best_header != nullptr &&
         m_chainman.m_best_header->GetAncestor(pindexNew->nHeight) ==
             pindexNew) {
-        m_chainman.m_best_header = m_chain.Tip();
+        m_chainman.RecalculateBestHeader();
     }
 
     // If the invalid chain found is supposed to be finalized, we need to move
