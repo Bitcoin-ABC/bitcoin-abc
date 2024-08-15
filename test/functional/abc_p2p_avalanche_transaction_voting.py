@@ -16,15 +16,11 @@ from test_framework.messages import (
     MSG_TX,
     AvalancheTxVoteError,
     AvalancheVote,
-    COutPoint,
     CTransaction,
-    CTxIn,
-    CTxOut,
-    msg_tx,
+    FromHex,
 )
 from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.txtools import pad_tx
 from test_framework.util import assert_equal, assert_raises_rpc_error, uint256_hex
 from test_framework.wallet import MiniWallet
 
@@ -50,6 +46,7 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
     def run_test(self):
         node = self.nodes[0]
         poll_node = get_ava_p2p_interface(self, node)
+        peer = node.add_p2p_connection(P2PDataStore())
 
         # Create helper to check expected poll responses
         avakey = ECPubKey()
@@ -134,28 +131,30 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         self.log.info("Check the votes on invalid transactions")
 
         invalid_tx = CTransaction()
-        invalid_txid = int(invalid_tx.get_id(), 16)
+        invalid_txid = int(invalid_tx.rehash(), 16)
 
-        with node.assert_debug_log(["bad-txns-vin-empty", "Misbehaving"], []):
-            # The node has the NOBAN whitelist flag, so it remains connected
-            poll_node.send_message(msg_tx(invalid_tx))
-
+        # The node has the NOBAN whitelist flag, so it remains connected
+        peer.send_txs_and_test(
+            [invalid_tx], node, success=False, reject_reason="bad-txns-vin-empty"
+        )
         poll_node.send_poll([invalid_txid], MSG_TX)
         assert_response([AvalancheVote(AvalancheTxVoteError.INVALID, invalid_txid)])
 
         self.log.info("Check the votes on orphan transactions")
 
-        orphan_tx = CTransaction()
-        orphan_tx.vin.append(CTxIn(outpoint=COutPoint(random.randint(0, 2**256), 0)))
-        orphan_tx.vout = [
-            CTxOut(nValue=1_000_000, scriptPubKey=wallet.get_scriptPubKey())
-        ]
-        pad_tx(orphan_tx)
-        orphan_txid = int(orphan_tx.get_id(), 16)
+        def from_wallet_tx(tx):
+            tx_obj = FromHex(CTransaction(), tx["hex"])
+            tx_obj.rehash()
+            return tx_obj
 
-        with node.assert_debug_log(["bad-txns-inputs-missingorspent"], []):
-            poll_node.send_message(msg_tx(orphan_tx))
-
+        orphan_tx = wallet.create_self_transfer_chain(chain_length=2)[-1]
+        orphan_txid = int(orphan_tx["txid"], 16)
+        peer.send_txs_and_test(
+            [from_wallet_tx(orphan_tx)],
+            node,
+            success=False,
+            reject_reason="bad-txns-inputs-missingorspent",
+        )
         poll_node.send_poll([orphan_txid], MSG_TX)
         assert_response([AvalancheVote(AvalancheTxVoteError.ORPHAN, orphan_txid)])
 
@@ -268,7 +267,6 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         conflicting_block.hashMerkleRoot = conflicting_block.calc_merkle_root()
         conflicting_block.solve()
 
-        peer = node.add_p2p_connection(P2PDataStore())
         peer.send_blocks_and_test(
             [conflicting_block],
             node,
