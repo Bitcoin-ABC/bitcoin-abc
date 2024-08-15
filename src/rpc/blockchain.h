@@ -47,7 +47,8 @@ UniValue blockheaderToJSON(const CBlockIndex *tip,
     LOCKS_EXCLUDED(cs_main);
 
 /**
- * Helper to create UTXO snapshots given a chainstate and a file handle.
+ * Test-only helper to create UTXO snapshots given a chainstate and a file
+ * handle.
  * @return a UniValue map containing metadata about the snapshot.
  */
 UniValue CreateUTXOSnapshot(node::NodeContext &node, Chainstate &chainstate,
