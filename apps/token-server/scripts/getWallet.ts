@@ -14,12 +14,12 @@
  */
 
 import config from '../config';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import * as bip39 from 'bip39';
 import { ServerWallet, getWalletFromSeed, syncWallet } from '../src/wallet';
 
 // Initialize new in-node chronik connection
-const chronik = new ChronikClientNode(config.chronikUrls);
+const chronik = new ChronikClient(config.chronikUrls);
 
 // Get input from bash or use defaults
 const mnemonic =
@@ -37,7 +37,7 @@ interface WalletReturn {
  * @param mnemonic
  */
 async function getWallet(
-    chronik: ChronikClientNode,
+    chronik: ChronikClient,
     mnemonic?: string,
 ): Promise<WalletReturn> {
     const makingNewWallet = typeof mnemonic === 'undefined';

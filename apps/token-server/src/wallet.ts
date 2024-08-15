@@ -7,7 +7,7 @@
  * methods for working with a server-based hotwallet
  */
 
-import { ChronikClientNode, ScriptUtxo } from 'chronik-client';
+import { ChronikClient, ScriptUtxo } from 'chronik-client';
 import BIP32Factory from 'bip32';
 import * as ecc from 'tiny-secp256k1';
 import * as bip39 from 'bip39';
@@ -59,7 +59,7 @@ export function getWalletFromSeed(mnemonic: string): ServerWallet {
  * @throws if error in chronik call
  */
 export async function syncWallet(
-    chronik: ChronikClientNode,
+    chronik: ChronikClient,
     wallet: ServerWallet,
 ): Promise<ServerWallet> {
     const { address } = wallet;

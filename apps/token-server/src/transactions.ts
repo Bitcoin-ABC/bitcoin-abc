@@ -7,7 +7,7 @@
  * methods for building token reward transtaction
  */
 
-import { ChronikClientNode, ScriptUtxo } from 'chronik-client';
+import { ChronikClient, ScriptUtxo } from 'chronik-client';
 import { syncWallet, ServerWallet } from './wallet';
 import {
     Script,
@@ -122,7 +122,7 @@ export interface RewardBroadcastSuccess {
  * @returns
  */
 export const sendReward = async (
-    chronik: ChronikClientNode,
+    chronik: ChronikClient,
     ecc: Ecc,
     wallet: ServerWallet,
     tokenId: string,
@@ -270,7 +270,7 @@ export const sendReward = async (
  * @returns
  */
 export const sendXecAirdrop = async (
-    chronik: ChronikClientNode,
+    chronik: ChronikClient,
     ecc: Ecc,
     wallet: ServerWallet,
     xecAirdropAmountSats: number,

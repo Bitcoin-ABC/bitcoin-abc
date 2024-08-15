@@ -7,7 +7,7 @@ import cashaddr from 'ecashaddrjs';
 
 /**
  * parse.ts
- * Parse data returned by ChronikClientNode for token-server purposes
+ * Parse data returned by ChronikClient for token-server purposes
  */
 
 /**

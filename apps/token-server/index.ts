@@ -6,13 +6,13 @@ import config from './config';
 import secrets from './secrets';
 import 'dotenv/config';
 import { startExpressServer } from './src/routes';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import { initializeTelegramBot } from './src/telegram';
 import fs from 'fs';
 import { Ecc, initWasm } from 'ecash-lib';
 
 // Connect to available in-node chronik servers
-const chronik = new ChronikClientNode(config.chronikUrls);
+const chronik = new ChronikClient(config.chronikUrls);
 
 // Initialize websocket connection and log incoming blocks
 initWasm().then(

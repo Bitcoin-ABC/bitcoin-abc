@@ -16,12 +16,12 @@
  */
 
 import config from '../config';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import { getHistoryAfterTimestamp } from '../src/chronik/clientHandler';
 import { getTxTimestamp } from '../src/chronik/parse';
 
 // Initialize new in-node chronik connection
-const chronik = new ChronikClientNode(config.chronikUrls);
+const chronik = new ChronikClient(config.chronikUrls);
 
 // Get input from bash or use defaults
 const address =

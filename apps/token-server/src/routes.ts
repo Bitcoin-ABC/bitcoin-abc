@@ -13,7 +13,7 @@ import secrets from '../secrets';
 import { getHistoryAfterTimestamp } from './chronik/clientHandler';
 import { isAddressEligibleForTokenReward } from './rewards';
 import { sendReward, sendXecAirdrop } from './transactions';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import { isTokenImageRequest } from './validation';
 import makeBlockie from 'ethereum-blockies-base64';
 import TelegramBot from 'node-telegram-bot-api';
@@ -60,7 +60,7 @@ function logIpInfo(req: Request) {
 
 export const startExpressServer = (
     port: Number,
-    chronik: ChronikClientNode,
+    chronik: ChronikClient,
     telegramBot: TelegramBot,
     fs: any,
     ecc: Ecc,
