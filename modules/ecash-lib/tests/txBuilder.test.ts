@@ -4,7 +4,7 @@
 
 import { expect } from 'chai';
 
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 
 import { Ecc } from '../src/ecc.js';
 import { sha256d, shaRmd160 } from '../src/hash.js';
@@ -50,7 +50,7 @@ const SIG_HASH_TYPES = [
 
 describe('TxBuilder', () => {
     let runner: TestRunner;
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let ecc: Ecc;
 
     before(async () => {

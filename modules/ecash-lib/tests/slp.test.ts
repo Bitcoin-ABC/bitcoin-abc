@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import { expect } from 'chai';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import { EventEmitter, once } from 'node:events';
 
 import { Ecc } from '../src/ecc.js';
@@ -57,7 +57,7 @@ const SLP_TOKEN_TYPE_NFT1_CHILD = {
 
 describe('SLP Integration Test', () => {
     let runner: TestRunner;
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let ecc: Ecc;
 
     before(async () => {

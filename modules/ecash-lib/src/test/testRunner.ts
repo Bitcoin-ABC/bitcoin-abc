@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-import type { ChronikClientNode } from 'chronik-client';
+import type { ChronikClient } from 'chronik-client';
 import type { ChildProcess } from 'node:child_process';
 
 import { Ecc } from '../ecc.js';
@@ -24,14 +24,14 @@ const ANYONE_SCRIPT_SIG = Script.fromOps([pushBytesOp(ANYONE_SCRIPT.bytecode)]);
 export class TestRunner {
     public ecc: Ecc;
     public runner: ChildProcess;
-    public chronik: ChronikClientNode;
+    public chronik: ChronikClient;
     private coinsTxid: string | undefined;
     private lastUsedOutIdx: number;
 
     private constructor(
         ecc: Ecc,
         runner: ChildProcess,
-        chronik: ChronikClientNode,
+        chronik: ChronikClient,
     ) {
         this.ecc = ecc;
         this.runner = runner;
@@ -41,7 +41,7 @@ export class TestRunner {
     }
 
     public static async setup(): Promise<TestRunner> {
-        const { ChronikClientNode } = await import('chronik-client');
+        const { ChronikClient } = await import('chronik-client');
         const { spawn } = await import('node:child_process');
         const events = await import('node:events');
         const statusEvent = new events.EventEmitter();
@@ -93,14 +93,14 @@ export class TestRunner {
             console.log('Test runner started');
         });
 
-        let chronik: ChronikClientNode | undefined = undefined;
+        let chronik: ChronikClient | undefined = undefined;
         runner.on('message', async function (message: any) {
             if (message && message.test_info && message.test_info.chronik) {
                 console.log(
                     'Setting chronik url to ',
                     message.test_info.chronik,
                 );
-                chronik = new ChronikClientNode(message.test_info.chronik);
+                chronik = new ChronikClient(message.test_info.chronik);
             }
 
             if (message && message.status) {

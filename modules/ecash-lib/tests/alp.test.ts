@@ -4,7 +4,7 @@
 
 import { expect } from 'chai';
 
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 
 import { Ecc } from '../src/ecc.js';
 import { shaRmd160 } from '../src/hash.js';
@@ -33,7 +33,7 @@ const ALP_TOKEN_TYPE_STANDARD = {
 
 describe('ALP', () => {
     let runner: TestRunner;
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let ecc: Ecc;
 
     before(async () => {
