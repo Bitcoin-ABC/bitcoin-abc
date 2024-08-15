@@ -2636,6 +2636,7 @@ bool PeerManagerImpl::MaybePunishNodeForTx(NodeId nodeid,
         case TxValidationResult::TX_MEMPOOL_POLICY:
         case TxValidationResult::TX_NO_MEMPOOL:
         case TxValidationResult::TX_PACKAGE_RECONSIDERABLE:
+        case TxValidationResult::TX_AVALANCHE_RECONSIDERABLE:
         case TxValidationResult::TX_UNKNOWN:
             break;
     }
@@ -5811,7 +5812,8 @@ void PeerManagerImpl::ProcessMessage(
             }
         }
 
-        if (state.GetResult() == TxValidationResult::TX_CONFLICT) {
+        if (state.GetResult() ==
+            TxValidationResult::TX_AVALANCHE_RECONSIDERABLE) {
             unsigned int nEvicted{0};
             // NO_THREAD_SAFETY_ANALYSIS because of g_msgproc_mutex required in
             // the lambda for m_rng

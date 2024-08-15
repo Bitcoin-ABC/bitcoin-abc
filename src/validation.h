@@ -200,7 +200,7 @@ void PruneBlockFilesManual(Chainstate &active_chainstate,
  *+--------------------------+-----------+---------------------------+---------------+---------------+
  * (*) Individual transaction acceptance doesn't return MEMPOOL_ENTRY. It
  * returns INVALID, with the error txn-already-in-mempool. In this case, the
- * txid may be in the mempool for a TX_CONFLICT.
+ * txid may be in the mempool for a tx conflict (TX_AVALANCHE_RECONSIDERABLE).
  */
 // clang-format on
 struct MempoolAcceptResult {

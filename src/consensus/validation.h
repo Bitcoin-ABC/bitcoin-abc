@@ -30,7 +30,7 @@ enum class TxValidationResult {
     /** Tx already in mempool or in the chain. */
     TX_DUPLICATE,
     /**
-     * Tx conflicts with another mempool tx, i.e. spends the same coin.
+     * Tx conflicts with a finalized tx, i.e. spends the same coin.
      */
     TX_CONFLICT,
     /**
@@ -45,6 +45,8 @@ enum class TxValidationResult {
     //! fails some policy, but might be acceptable if submitted in a (different)
     //! package
     TX_PACKAGE_RECONSIDERABLE,
+    //! fails some policy, but might be reconsidered by avalanche voting
+    TX_AVALANCHE_RECONSIDERABLE,
     //! transaction was not validated because package failed
     TX_UNKNOWN,
 };

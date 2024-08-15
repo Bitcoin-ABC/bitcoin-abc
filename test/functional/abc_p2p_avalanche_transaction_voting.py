@@ -206,6 +206,28 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
             )
             return txid not in node.getrawmempool()
 
+        self.wait_until(lambda: has_finalized_tx(mempool_tx["txid"]))
+
+        self.log.info("Check the node rejects txs that conflict with a finalized tx")
+
+        another_conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
+        another_conflicting_txid = int(another_conflicting_tx["txid"], 16)
+        peer.send_txs_and_test(
+            [from_wallet_tx(another_conflicting_tx)],
+            node,
+            success=False,
+            reject_reason="finalized-tx-conflict",
+        )
+        # This transaction is plain invalid, so it is NOT stored in the
+        # conflicting pool
+        assert_equal(
+            node.gettransactionstatus(another_conflicting_tx["txid"])["pool"], "none"
+        )
+        poll_node.send_poll([another_conflicting_txid], MSG_TX)
+        assert_response(
+            [AvalancheVote(AvalancheTxVoteError.INVALID, another_conflicting_txid)]
+        )
+
         self.log.info("Check the node can mine a finalized tx")
 
         txid = wallet.send_self_transfer(from_node=node)["txid"]
