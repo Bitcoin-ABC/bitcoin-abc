@@ -4,7 +4,7 @@
 
 import { assert, expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import {
     ALL_BIP143,
     Ecc,
@@ -50,7 +50,7 @@ const SLP_TOKEN_TYPE_NFT1_CHILD = {
 
 describe('SLP', () => {
     let runner: TestRunner;
-    let chronik: ChronikClientNode;
+    let chronik: ChronikClient;
     let ecc: Ecc;
 
     before(async () => {
