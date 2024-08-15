@@ -69,7 +69,7 @@ describe('slpv1 methods', () => {
             });
         });
     });
-    describe('Get all slpv1 SEND utxos from a mixed utxo set from ChronikClientNode', () => {
+    describe('Get all slpv1 SEND utxos from a mixed utxo set from ChronikClient', () => {
         const { expectedReturns } = vectors.getAllSendUtxos;
         expectedReturns.forEach(expectedReturn => {
             const { description, utxos, tokenId, tokenUtxos } = expectedReturn;

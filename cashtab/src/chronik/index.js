@@ -68,7 +68,7 @@ export const isAliasRegistered = (registeredAliases, alias) => {
  * Return a promise to fetch all utxos at an address (and add a 'path' key to them)
  * We need the path key so that we know which wif to sign this utxo with
  * If we add HD wallet support, we will need to add an address key, and change the structure of wallet.paths
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {string} address
  * @param {number} path
  * @returns {Promise}
@@ -94,7 +94,7 @@ export const returnGetPathedUtxosPromise = (chronik, address, path) => {
 
 /**
  * Get all utxos for a given wallet
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {object} wallet a cashtab wallet
  * @returns
  */
@@ -325,7 +325,7 @@ export const parseTx = (tx, hashes) => {
  * - Trim to number of txs Cashtab renders
  * - Parse txs for rendering in Cashtab
  * - Update cachedTokens with any new tokenIds
- * @param {ChronikClientNode} chronik chronik-client instance
+ * @param {ChronikClient} chronik chronik-client instance
  * @param {object} wallet cashtab wallet
  * @param {Map} cachedTokens the map stored at cashtabCache.tokens
  * @returns {array} Tx[], each tx also has a 'parsed' key with other rendering info
@@ -390,7 +390,7 @@ export const getHistory = async (chronik, wallet, cachedTokens) => {
 
 /**
  * Get all info about a token used in Cashtab's token cache
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {string} tokenId
  * @returns {object}
  */
@@ -493,7 +493,7 @@ export const getTokenGenesisInfo = async (chronik, tokenId) => {
 /**
  * Get decimalized balance of every token held by a wallet
  * Update Cashtab's tokenCache if any tokens are uncached
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {array} slpUtxos array of token utxos from chronik
  * @param {Map} tokenCache Cashtab's token cache
  * @returns {Map} Map of tokenId => token balance as decimalized string
@@ -541,7 +541,7 @@ export const getTokenBalances = async (chronik, slpUtxos, tokenCache) => {
 
 /**
  *
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {string} tokenId
  * @param {number} pageSize usually 200, the chronik max, but accept a parameter to simplify unit testing
  * @returns
@@ -619,7 +619,7 @@ export const getChildNftsFromParent = (
  * Get all tx history of a lokad id
  * In Cashtab, this is used to get NFT listings
  * Tx history is paginated by chronik, so we need to get all the pages
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {string} lokadId
  * @param {number} pageSize usually 200, the chronik max, but accept a parameter to simplify unit testing
  * @returns

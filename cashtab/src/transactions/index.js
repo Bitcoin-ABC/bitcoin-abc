@@ -29,7 +29,7 @@ const DUMMY_P2PKH = Script.p2pkh(
 
 /**
  * Build and broadcast an eCash tx
- * @param {ChronikClientNode} chronik
+ * @param {ChronikClient} chronik
  * @param {Ecc} ecc
  * @param {object} wallet
  * @param {array} targetOutputs

@@ -624,7 +624,7 @@ const Tx = ({
             }
         }
 
-        // Ref TokenTxType in ChronikClientNode
+        // Ref TokenTxType in ChronikClient
         if (txType === 'NONE' || txType === 'UNKNOWN') {
             // Handle special case of burning qty 1 NFT Parent token utxo for an NFT mint
             // Assume when you see txType === 'NONE' for an SLP 1 NFT Parent, that this is burning an NFT mint
@@ -721,7 +721,7 @@ const Tx = ({
                         output.token.entryIdx === i
                     ) {
                         // Get the amount associated with this token entry
-                        // Per ChronikClientNode, we will always have amount as a string in
+                        // Per ChronikClient, we will always have amount as a string in
                         // the token key of an output, see type Token_InNode
                         amountTotal += BigInt(output.token.amount);
                         for (const hash of hashes) {

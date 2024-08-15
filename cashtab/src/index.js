@@ -8,7 +8,7 @@ import App from 'components/App/App';
 import { WalletProvider } from 'wallet/context';
 import { HashRouter as Router } from 'react-router-dom';
 import GA from 'components/Common/GoogleAnalytics';
-import { ChronikClientNode } from 'chronik-client';
+import { ChronikClient } from 'chronik-client';
 import { chronik as chronikConfig } from 'config/chronik';
 import { Ecc, initWasm } from 'ecash-lib';
 
@@ -18,7 +18,7 @@ initWasm()
         // Initialize Ecc (used for signing txs) at app startup
         const ecc = new Ecc();
         // Initialize chronik-client at app startup
-        const chronik = new ChronikClientNode(chronikConfig.urls);
+        const chronik = new ChronikClient(chronikConfig.urls);
 
         const container = document.getElementById('root');
         const root = createRoot(container);
