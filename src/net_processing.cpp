@@ -2966,7 +2966,7 @@ bool PeerManagerImpl::AlreadyHaveTx(const TxId &txid,
         m_recent_rejects_package_reconsiderable.reset();
     }
 
-    if (m_mempool.withOrphanage([&txid](TxOrphanage &orphanage) {
+    if (m_mempool.withOrphanage([&txid](const TxOrphanage &orphanage) {
             return orphanage.HaveTx(txid);
         })) {
         return true;
