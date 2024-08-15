@@ -124,7 +124,7 @@ module.exports = {
     /**
      * Get all txs in a block
      * Txs are paginated so this may require more than one API call
-     * @param {ChronikClientNode} chronik
+     * @param {ChronikClient} chronik
      * @param {number} blockHeight
      * @throws {err} on chronik error
      * @returns {Tx_InNode[]}

@@ -48,8 +48,8 @@ if (process.argv && typeof process.argv[2] !== 'undefined') {
 
 // Initialize chronik
 const config = require('../config');
-const { ChronikClientNode } = require('chronik-client');
-const chronik = new ChronikClientNode(config.chronik);
+const { ChronikClient } = require('chronik-client');
+const chronik = new ChronikClient(config.chronik);
 
 // Initialize telegram bot to send msgs to dev channel
 const secrets = require('../secrets');

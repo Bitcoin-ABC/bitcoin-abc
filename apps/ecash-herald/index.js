@@ -4,9 +4,9 @@
 
 'use strict';
 const config = require('./config');
-const { ChronikClientNode } = require('chronik-client');
+const { ChronikClient } = require('chronik-client');
 // Initialize chronik on app startup
-const chronik = new ChronikClientNode(config.chronik);
+const chronik = new ChronikClient(config.chronik);
 // Initialize telegram bot on app startup
 const secrets = require('./secrets');
 const TelegramBot = require('node-telegram-bot-api');

@@ -16,7 +16,7 @@ module.exports = {
     /**
      * Callback function for a new finalized block on the eCash blockchain
      * Summarize on-chain activity in this block
-     * @param {ChronikClientNode} chronik
+     * @param {ChronikClient} chronik
      * @param {object} telegramBot A connected telegramBot instance
      * @param {number} channelId The channel ID where the telegram msg(s) will be sent
      * @param {number} height blockheight

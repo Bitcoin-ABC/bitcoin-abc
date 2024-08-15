@@ -5,8 +5,8 @@
 const config = require('../config');
 const fs = require('fs');
 const path = require('path');
-const { ChronikClientNode } = require('chronik-client');
-const chronik = new ChronikClientNode(config.chronik);
+const { ChronikClient } = require('chronik-client');
+const chronik = new ChronikClient(config.chronik);
 const { MockChronikClient } = require('../../../modules/mock-chronik-client');
 const mockedChronik = new MockChronikClient();
 const { jsonReplacer, getCoingeckoApiUrl } = require('../src/utils');
