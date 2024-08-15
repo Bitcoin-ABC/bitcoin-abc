@@ -4589,6 +4589,13 @@ uint32_t PeerManagerImpl::GetAvalancheVoteForTx(const TxId &id) const {
         return 0;
     }
 
+    // Conflicting tx
+    if (m_mempool.withConflicting([&id](const TxConflicting &conflicting) {
+            return conflicting.HaveTx(id);
+        })) {
+        return 2;
+    }
+
     // Invalid tx
     if (m_recent_rejects.contains(id)) {
         return 1;

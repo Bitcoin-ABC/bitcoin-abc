@@ -158,6 +158,26 @@ class AvalancheTransactionVotingTest(BitcoinTestFramework):
         poll_node.send_poll([orphan_txid], MSG_TX)
         assert_response([AvalancheVote(AvalancheTxVoteError.ORPHAN, orphan_txid)])
 
+        self.log.info("Check the votes on conflicting transactions")
+
+        utxo = wallet.get_utxo()
+        mempool_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
+        peer.send_txs_and_test([from_wallet_tx(mempool_tx)], node, success=True)
+        assert mempool_tx["txid"] in node.getrawmempool()
+
+        conflicting_tx = wallet.create_self_transfer(utxo_to_spend=utxo)
+        conflicting_txid = int(conflicting_tx["txid"], 16)
+        peer.send_txs_and_test(
+            [from_wallet_tx(conflicting_tx)],
+            node,
+            success=False,
+            reject_reason="txn-mempool-conflict",
+        )
+        poll_node.send_poll([conflicting_txid], MSG_TX)
+        assert_response(
+            [AvalancheVote(AvalancheTxVoteError.CONFLICTING, conflicting_txid)]
+        )
+
         self.log.info("Check the node polls for transactions added to the mempool")
 
         # Let's clean up the non transaction inventories from our avalanche polls
