@@ -61,14 +61,27 @@ class GetTransactionStatusTest(BitcoinTestFramework):
         assert_equal(node.gettransactionstatus(orphan_tx["txid"])["pool"], "orphanage")
 
         self.log.info("Tx is in a block")
-        self.generate(wallet, 1)
+        tip = self.generate(wallet, 1)[0]
         assert_equal(node.getrawmempool(), [])
         assert_equal(node.gettransactionstatus(mempool_tx["txid"])["pool"], "none")
+
+        self.log.info("The block field is not present if txindex is not enabled")
+        assert "block" not in node.gettransactionstatus(mempool_tx["txid"])
 
         # The conflicting tx is removed because we mined the conflicted tx, the
         # orphan remains
         assert_equal(node.gettransactionstatus(conflicting_tx["txid"])["pool"], "none")
         assert_equal(node.gettransactionstatus(orphan_tx["txid"])["pool"], "orphanage")
+
+        self.log.info("Check the block field when the txindex is enabled")
+
+        self.restart_node(0, extra_args=["-txindex=1"])
+        self.wait_until(lambda: node.getindexinfo("txindex")["txindex"]["synced"])
+        assert_equal(node.gettransactionstatus(mempool_tx["txid"])["block"], tip)
+
+        # A non-mined tx will return none
+        mempool_tx = wallet.send_self_transfer(from_node=node)
+        assert_equal(node.gettransactionstatus(mempool_tx["txid"])["block"], "none")
 
 
 if __name__ == "__main__":

@@ -1775,12 +1775,19 @@ RPCHelpMan gettransactionstatus() {
             {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO,
              "The transaction id"},
         },
-        RPCResult{RPCResult::Type::OBJ,
-                  "",
-                  "",
-                  {{RPCResult::Type::STR, "pool",
-                    "In which pool the transaction is currently located, "
-                    "either none, mempool, orphanage or conflicting"}}},
+        RPCResult{
+            RPCResult::Type::OBJ,
+            "",
+            "",
+            {
+                {RPCResult::Type::STR, "pool",
+                 "In which pool the transaction is currently located, "
+                 "either none, mempool, orphanage or conflicting"},
+                {RPCResult::Type::STR, "block",
+                 "If the transaction is mined, this is the blockhash of the "
+                 "mining block, otherwise \"none\". This field is only "
+                 "present if -txindex is enabled."},
+            }},
         RPCExamples{HelpExampleCli("gettransactionstatus", "\"txid\"")},
         [&](const RPCHelpMan &self, const Config &config,
             const JSONRPCRequest &request) -> UniValue {
@@ -1805,6 +1812,23 @@ RPCHelpMan gettransactionstatus() {
                 ret.pushKV("pool", "conflicting");
             } else {
                 ret.pushKV("pool", "none");
+            }
+
+            if (g_txindex) {
+                if (!g_txindex->BlockUntilSyncedToCurrentChain()) {
+                    throw JSONRPCError(
+                        RPC_MISC_ERROR,
+                        "Blockchain transactions are still in the process of "
+                        "being indexed");
+                }
+
+                CTransactionRef tx;
+                BlockHash blockhash;
+                if (g_txindex->FindTx(txid, blockhash, tx)) {
+                    ret.pushKV("block", blockhash.GetHex());
+                } else {
+                    ret.pushKV("block", "none");
+                }
             }
 
             return ret;
