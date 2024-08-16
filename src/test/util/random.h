@@ -27,10 +27,10 @@ enum class SeedRand {
 };
 
 /**
- * Seed the RNG for testing. This affects all randomness, except
- * GetStrongRandBytes().
+ * Seed the global RNG state for testing and log the seed value. This affects
+ * all randomness, except GetStrongRandBytes().
  */
-void SeedRandomForTest(SeedRand seed = SeedRand::SEED);
+void SeedRandomStateForTest(SeedRand seed);
 
 static inline uint32_t InsecureRand32() {
     return g_insecure_rand_ctx.rand32();

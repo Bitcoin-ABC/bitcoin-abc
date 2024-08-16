@@ -15,7 +15,7 @@ FastRandomContext g_insecure_rand_ctx;
 
 extern void MakeRandDeterministicDANGEROUS(const uint256 &seed) noexcept;
 
-void SeedRandomForTest(SeedRand seedtype) {
+void SeedRandomStateForTest(SeedRand seedtype) {
     static const std::string RANDOM_CTX_SEED{"RANDOM_CTX_SEED"};
 
     // Do this once, on the first call, regardless of seedtype, because once
@@ -36,5 +36,4 @@ void SeedRandomForTest(SeedRand seedtype) {
     LogPrintf("%s: Setting random seed for current tests to %s=%s\n", __func__,
               RANDOM_CTX_SEED, seed.GetHex());
     MakeRandDeterministicDANGEROUS(seed);
-    g_insecure_rand_ctx.Reseed(GetRandHash());
 }

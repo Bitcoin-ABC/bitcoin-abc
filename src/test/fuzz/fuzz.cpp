@@ -36,7 +36,8 @@ void initialize() {
     // material.
     // - Creating a BasicTestingSetup or derived class will switch to a random
     // seed.
-    SeedRandomForTest(SeedRand::ZEROS);
+    SeedRandomStateForTest(SeedRand::ZEROS);
+    g_insecure_rand_ctx.Reseed(GetRandHash());
 
     if (std::getenv("PRINT_ALL_FUZZ_TARGETS_AND_ABORT")) {
         for (const auto &t : FuzzTargets()) {

@@ -52,9 +52,18 @@ extern std::vector<const char *> fixture_extra_args;
 struct BasicTestingSetup {
     // keep as first member to be destructed last
     node::NodeContext m_node;
+
     // Alias (reference) for the global, to allow easy removal of the global in
     // the future.
     FastRandomContext &m_rng{g_insecure_rand_ctx};
+    /**
+     * Seed the global RNG state and m_rng for testing and log the seed value.
+     * This affects all randomness, except GetStrongRandBytes().
+     */
+    void SeedRandomForTest(SeedRand seed = SeedRand::SEED) {
+        SeedRandomStateForTest(seed);
+        m_rng.Reseed(GetRandHash());
+    }
 
     explicit BasicTestingSetup(
         const ChainType chainType = ChainType::MAIN,
