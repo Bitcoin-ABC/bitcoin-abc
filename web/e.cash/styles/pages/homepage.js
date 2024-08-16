@@ -123,8 +123,33 @@ export const ButtonCtn = styled.div`
 
 export const MarginButtonWrapper = styled.div`
     margin: 0 10px;
+    position: relative;
     ${props => props.theme.breakpoint.small} {
         margin: 10px 0;
+    }
+`;
+
+export const ButtonFlagCtn = styled.div`
+    position: absolute;
+    z-index: 99;
+    top: -40px;
+    left: -30px;
+    display: flex;
+    flex-direction: column;
+    color: #f4e600;
+    font-weight: 600;
+    font-size: 14px;
+
+    div {
+        width: 40px;
+        height: 40px;
+        position: relative;
+        margin-left: 25px;
+        transform: rotate(16deg);
+
+        img {
+            object-fit: contain;
+        }
     }
 `;
 

@@ -26,6 +26,7 @@ import {
     BuildSection,
     BuildSectionCtn,
     LearnMoreBtnCtn,
+    ButtonFlagCtn,
 } from '/styles/pages/homepage';
 import Button from '/components/button';
 import H2 from '/components/h2';
@@ -86,6 +87,16 @@ function Home(props) {
 
                             <ButtonCtn>
                                 <MarginButtonWrapper>
+                                    <ButtonFlagCtn>
+                                        <span>Free XEC</span>
+                                        <div>
+                                            <Image
+                                                src="/images/arrow.png"
+                                                alt="arrow"
+                                                fill
+                                            />
+                                        </div>
+                                    </ButtonFlagCtn>
                                     <Button
                                         id="create_wallet_hero"
                                         text="Create Wallet"
