@@ -10,10 +10,14 @@ import TxHistory from './TxHistory';
 import ApiError from 'components/Common/ApiError';
 import { getWalletState } from 'utils/cashMethods';
 import Receive from 'components/Receive/Receive';
-import { Alert } from 'components/Common/Atoms';
+import { Alert, Info } from 'components/Common/Atoms';
 import { getUserLocale } from 'helpers';
 import { getHashes } from 'wallet';
-import PrimaryButton, { SecondaryButton } from 'components/Common/Buttons';
+import PrimaryButton, {
+    SecondaryButton,
+    PrimaryLink,
+    SecondaryLink,
+} from 'components/Common/Buttons';
 import { toast } from 'react-toastify';
 import { token as tokenConfig } from 'config/token';
 import { InlineLoader } from 'components/Common/Spinner';
@@ -133,6 +137,14 @@ const Home = () => {
     const { parsedTxHistory } = walletState;
     const hasHistory = parsedTxHistory && parsedTxHistory.length > 0;
 
+    // Want to show a msg to users who have just claimed a free XEC reward, or users who have just received
+    // a few txs
+    const isNewishWallet =
+        hasHistory &&
+        parsedTxHistory &&
+        parsedTxHistory.length < 3 &&
+        wallet.state.balanceSats > 0;
+
     const userLocale = getUserLocale(navigator);
 
     const [airdropPending, setAirdropPending] = useState(false);
@@ -220,6 +232,30 @@ const Home = () => {
                     userLocale={userLocale}
                     chaintipBlockheight={chaintipBlockheight}
                 />
+                {isNewishWallet && (
+                    <>
+                        <Info style={{ marginBottom: '20px' }}>
+                            ℹ️ Nice, you have some eCash. What can you do?
+                        </Info>
+                        <PrimaryLink to="/create-token">
+                            Create a token
+                        </PrimaryLink>
+                        <SecondaryLink to="/create-nft-collection">
+                            Mint an NFT
+                        </SecondaryLink>
+                        <Info>
+                            💰 You could also earn more by monetizing your
+                            content at{' '}
+                            <a
+                                href="https://ecashchat.com/"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                eCashChat.
+                            </a>
+                        </Info>
+                    </>
+                )}
                 {!hasHistory && (
                     <>
                         <Alert>

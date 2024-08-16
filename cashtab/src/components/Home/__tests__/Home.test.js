@@ -243,6 +243,11 @@ describe('<Home />', () => {
         );
         await screen.findByText('Do not share your backup with anyone.');
 
+        // isNewishWallet info is NOT displayed (no tx history)
+        expect(
+            screen.queryByText(/Nice, you have some eCash. What can you do?/),
+        ).not.toBeInTheDocument();
+
         // Airdrop button is present
         const airdropButton = screen.getByRole('button', {
             name: /Claim Free XEC/,
@@ -277,5 +282,99 @@ describe('<Home />', () => {
         // Note we cannot test that these options go away after the tx is received without
         // regtest-integrated integration testing
         // This test cannot see an incoming tx
+    });
+    it('Home screen suggests some ideas for using eCash if user has a non-zero balance and 3 or less txs in history', async () => {
+        // localforage defaults
+        const mockedChronik = await initializeCashtabStateForTests(
+            {
+                ...walletWithZeroBalanceZeroHistory,
+                state: {
+                    ...walletWithZeroBalanceZeroHistory.state,
+                    balanceSats: 3000,
+                    nonSlpUtxos: [
+                        {
+                            outpoint: {
+                                txid: 'fd7b1118a6eed473b188d328be2bb807072d1834a6575ea983b330236ac2763b',
+                                outIdx: 0,
+                            },
+                            blockHeight: 858113,
+                            isCoinbase: false,
+                            value: 3000,
+                            isFinal: true,
+                            path: 1899,
+                        },
+                    ],
+                    parsedTxHistory: [
+                        {
+                            txid: 'fd7b1118a6eed473b188d328be2bb807072d1834a6575ea983b330236ac2763b',
+                            version: 2,
+                            inputs: [
+                                {
+                                    prevOut: {
+                                        txid: 'eb4421abfe0e97d5ac635d77a6fd323e2d269374d80617c6257bff8af91bf47d',
+                                        outIdx: 1,
+                                    },
+                                    inputScript:
+                                        '4175a1b7b9be9cf11bf2cb1b0e8f88f3e7f73067d4914d115b9eaf7af0b9d0faa42e7c2f8d75395fe4b754119690f84758f61780c5c68dd570558839beea77a1c641210353f81d61d41d6e22c73ab449476113dea124afe3972991cd237e654f15950b7c',
+                                    value: 68671048,
+                                    sequenceNo: 4294967295,
+                                    outputScript:
+                                        '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                                },
+                            ],
+                            outputs: [
+                                {
+                                    value: 3000,
+                                    outputScript:
+                                        '76a914022c7284d51db6074fb2430f6c25cd16a58e082888ac',
+                                },
+                                {
+                                    value: 68667829,
+                                    outputScript:
+                                        '76a914821407ac2993f8684227004f4086082f3f801da788ac',
+                                },
+                            ],
+                            lockTime: 0,
+                            timeFirstSeen: 1723843030,
+                            size: 219,
+                            isCoinbase: false,
+                            tokenEntries: [],
+                            tokenFailedParsings: [],
+                            tokenStatus: 'TOKEN_STATUS_NON_TOKEN',
+                            block: {
+                                height: 858113,
+                                hash: '00000000000000001a8b91517a249923c2fb097e0d2fce5407342d4ef40dd4e3',
+                                timestamp: 1723843380,
+                            },
+                            parsed: {
+                                xecTxType: 'Received',
+                                satoshisSent: 3000,
+                                stackArray: [],
+                                recipients: [
+                                    'ecash:qzppgpav9xfls6zzyuqy7syxpqhnlqqa5u68m4qw6l',
+                                ],
+                            },
+                        },
+                    ],
+                },
+            },
+            localforage,
+        );
+
+        render(<CashtabTestWrapper chronik={mockedChronik} />);
+
+        // Wait for the component to finish loading
+        await waitFor(() =>
+            expect(
+                screen.queryByTitle('Cashtab Loading'),
+            ).not.toBeInTheDocument(),
+        );
+
+        // isNewishWallet info is displayed
+        expect(
+            await screen.findByText(
+                /Nice, you have some eCash. What can you do?/,
+            ),
+        ).toBeInTheDocument();
     });
 });
