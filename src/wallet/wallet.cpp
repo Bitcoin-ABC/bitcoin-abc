@@ -3149,6 +3149,15 @@ void CWallet::postInitProcess() {
 }
 
 bool CWallet::BackupWallet(const std::string &strDest) const {
+    if (m_chain) {
+        CBlockLocator loc;
+        WITH_LOCK(cs_wallet, chain().findBlock(m_last_block_processed,
+                                               FoundBlock().locator(loc)));
+        if (!loc.IsNull()) {
+            WalletBatch batch(*database);
+            batch.WriteBestBlock(loc);
+        }
+    }
     return database->Backup(strDest);
 }
 
