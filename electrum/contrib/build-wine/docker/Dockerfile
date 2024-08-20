@@ -19,7 +19,7 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTUDIST} main restricted universe multiverse 
         gnupg2=2.2.27-3ubuntu2.1 \
         ca-certificates=20211016 \
         wget=1.21.2-2ubuntu1 \
-        git=1:2.34.1-1ubuntu1.9 \
+        git=1:2.34.1-1ubuntu1.11 \
         p7zip-full=16.02+dfsg-8 \
         make=4.3-4.1build1 \
         autotools-dev=20220109.1 \
@@ -51,7 +51,7 @@ RUN echo "78b185fabdb323971d13bd329fefc8038e08559aa51c4996de18db0639a51df6 /tmp/
         # cabextract is needed for winetricks to install the .NET framework
         cabextract=1.9-3 \
         # xvfb is needed to launch the Visual Studio installer
-        xvfb=2:21.1.4-2ubuntu1.7~22.04.8 \
+        xvfb=2:21.1.4-2ubuntu1.7~22.04.11 \
         # winbind is needed for the Visual Studio installer and cl.exe PDB generation
         winbind=2:4.15.13+dfsg-0ubuntu1.6
 

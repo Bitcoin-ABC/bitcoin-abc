@@ -14,8 +14,8 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTU_DIST} main restricted universe multiverse
     echo deb ${UBUNTU_MIRROR} ${UBUNTU_DIST}-security main restricted universe multiverse >> /etc/apt/sources.list && \
     apt-get update -q && \
     apt-get install -qy \
-        git=1:2.25.1-1ubuntu3.11 \
-        wget=1.20.3-1ubuntu2 \
+        git=1:2.25.1-1ubuntu3.13 \
+        wget=1.20.3-1ubuntu2.1 \
         make=4.2.1-1.2 \
         autotools-dev=20180224.1 \
         autoconf=2.69-11.1 \
@@ -51,11 +51,11 @@ RUN echo deb ${UBUNTU_MIRROR} ${UBUNTU_DIST} main restricted universe multiverse
         zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.5 \
         libfreetype6=2.10.1-2ubuntu0.3 \
         libfontconfig1=2.13.1-2ubuntu3 \
-        libssl-dev=1.1.1f-1ubuntu2.21 \
+        libssl-dev=1.1.1f-1ubuntu2.23 \
         gcc-9=9.4.0-1ubuntu1~20.04.2 \
         g++=4:9.3.0-1ubuntu2 \
-        rustc=1.72.1+dfsg0ubuntu1~bpo0-0ubuntu0.20.04 \
-        cargo=1.72.1+dfsg0ubuntu1~bpo0-0ubuntu0.20.04 \
+        rustc=1.75.0+dfsg0ubuntu1~bpo0-0ubuntu0.20.04 \
+        cargo=1.75.0+dfsg0ubuntu1~bpo0-0ubuntu0.20.04 \
         && \
     ln -sf /usr/bin/x86_64-linux-gnu-gcc-9 /usr/bin/gcc && \
     ln -sf /usr/bin/x86_64-linux-gnu-gcc-9 /usr/bin/cc && \
