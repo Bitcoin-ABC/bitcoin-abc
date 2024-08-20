@@ -9,7 +9,7 @@ qdarkstyle>=2.8
 python-dateutil<2.9
 stem>=1.8.0
 certifi
-mnemonic>=0.19
+mnemonic>=0.21
 pathvalidate
 dnspython[DNSSEC]>=2.0
 pycryptodomex
