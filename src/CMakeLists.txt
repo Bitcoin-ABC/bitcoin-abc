@@ -622,6 +622,7 @@ add_library(server
 	avalanche/proofid.cpp
 	avalanche/proofbuilder.cpp
 	avalanche/proofpool.cpp
+	avalanche/stakecontendercache.cpp
 	avalanche/voterecord.cpp
 	banman.cpp
 	blockencodings.cpp

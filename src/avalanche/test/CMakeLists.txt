@@ -21,6 +21,7 @@ add_boost_unit_tests_to_suite(avalanche test-avalanche
 		proof_tests.cpp
 		proofcomparator_tests.cpp
 		proofpool_tests.cpp
+		stakecontendercache_tests.cpp
 		stakingrewards_tests.cpp
 		voterecord_tests.cpp
 )
