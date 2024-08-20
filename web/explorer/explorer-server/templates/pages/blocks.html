@@ -1,39 +1,38 @@
-{% extends "base.html" %} {% import "components/loader_fullpage.html" as loader
-%} {% block body_classes %}overflow-y-scroll{% endblock %} {% block
-footer_classes %}hidden{% endblock %} {% block content %}
-<div class="page_ctn">
-    <div class="ui container">
-        {% call loader::render() %}
-        <table
-            id="blocks-table"
-            class="block-listing__datatable dataTable compact responsive nowrap no-footer"
-            style="width: 100%"
-        >
-            <thead>
-                <tr>
-                    <th>Height</th>
-                    <th>Final</th>
-                    <th>Block Hash</th>
-                    <th>Txs</th>
-                    <th>Age</th>
-                    <th>Est. Hashrate</th>
-                    <th>Size</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody class="blur"></tbody>
-        </table>
-    </div>
-
-    <div class="ui container">
-        <div id="pagination" data-total-entries="{{ last_block_height }}"></div>
-        <div class="block-listing__fixed-nav-icon">
-            <button class="circular ui icon button" onclick="scrollToBottom()">
-                <i class="angle up icon"></i>
-            </button>
+{% extends "base.html" %}
+{% import "components/loader_fullpage.html" as loader %}
+{% block body_classes %}overflow-y-scroll{% endblock %}
+{% block footer_classes %}hidden{% endblock %}
+{% block content %}
+    <div class="page_ctn">
+        <div class="ui container">
+            {% call loader::render() %}
+            <table id="blocks-table"
+                   class="block-listing__datatable dataTable compact responsive nowrap no-footer"
+                   style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>Height</th>
+                        <th>Final</th>
+                        <th>Block Hash</th>
+                        <th>Txs</th>
+                        <th>Age</th>
+                        <th>Est. Hashrate</th>
+                        <th>Size</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="blur">
+                </tbody>
+            </table>
+        </div>
+        <div class="ui container">
+            <div id="pagination" data-total-entries="{{ last_block_height }}"></div>
+            <div class="block-listing__fixed-nav-icon">
+                <button class="circular ui icon button" onclick="scrollToBottom()">
+                    <i class="angle up icon"></i>
+                </button>
+            </div>
         </div>
     </div>
-</div>
-
-<script type="text/javascript" src="/code/blocks.js?hash=80d7735"></script>
+    <script type="text/javascript" src="/code/blocks.js?hash=80d7735"></script>
 {% endblock %}

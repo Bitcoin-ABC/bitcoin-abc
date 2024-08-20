@@ -1,23 +1,27 @@
-{% extends "base.html" %} {% block body_classes %}overflow-y-scroll{% endblock
-%} {% block content %}
-<div class="homepage__welcome">
-    <img class="homepage__network" src="/assets/network-background.png" />
-    <div class="homepage__text-ctn">
-        <h1>Page Not <span>Found :(</span></h1>
-        <p>
-            Sorry, cannot find this page or it does not exist. There can
-            sometimes be a slight delay between a new transaction and the
-            explorer. If this is the case you can try the page again after a few
-            seconds.
-        </p>
-        <p>
-            Error Message:<br />
-            {{ message }}
-        </p>
-        <div class="notfound-btn-ctn">
-            <a onclick="location.reload()" class="btn">Refresh</a>
-            <a href="/blocks" class="btn">Back to Blocks</a>
+{% extends "base.html" %}
+{% block body_classes %}overflow-y-scroll{% endblock %}
+{% block content %}
+    <div class="homepage__welcome">
+        <img class="homepage__network" src="/assets/network-background.png" />
+        <div class="homepage__text-ctn">
+            <h1>
+                Page Not <span>Found :(</span>
+            </h1>
+            <p>
+                Sorry, cannot find this page or it does not exist. There can
+                sometimes be a slight delay between a new transaction and the
+                explorer. If this is the case you can try the page again after a few
+                seconds.
+            </p>
+            <p>
+                Error Message:
+                <br />
+                {{ message }}
+            </p>
+            <div class="notfound-btn-ctn">
+                <a onclick="location.reload()" class="btn">Refresh</a>
+                <a href="/blocks" class="btn">Back to Blocks</a>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

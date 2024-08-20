@@ -1,17 +1,20 @@
-{% extends "base.html" %} {% block content %}
-<div class="homepage__welcome">
-    <img class="homepage__network" src="/assets/network-background.png" />
-    <div class="homepage__text-ctn">
-        <h1>Page Not <span>Found :(</span></h1>
-        <p>
-            Sorry, cannot find this page or it does not exist. There can
-            sometimes be a slight delay between new transactions and the
-            explorer. If this is the case you can try the page again after a few
-            seconds.
-        </p>
-        <div class="notfound-btn-ctn">
-            <a href="/blocks" class="btn">Back to Blocks</a>
+{% extends "base.html" %}
+{% block content %}
+    <div class="homepage__welcome">
+        <img class="homepage__network" src="/assets/network-background.png" />
+        <div class="homepage__text-ctn">
+            <h1>
+                Page Not <span>Found :(</span>
+            </h1>
+            <p>
+                Sorry, cannot find this page or it does not exist. There can
+                sometimes be a slight delay between new transactions and the
+                explorer. If this is the case you can try the page again after a few
+                seconds.
+            </p>
+            <div class="notfound-btn-ctn">
+                <a href="/blocks" class="btn">Back to Blocks</a>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

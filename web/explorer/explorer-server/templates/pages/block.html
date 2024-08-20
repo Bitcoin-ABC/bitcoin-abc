@@ -1,224 +1,183 @@
-{% extends "base.html" %} {% import "components/loader_fullpage.html" as loader
-%} {% block body_classes %}overflow-y-scroll{% endblock %} {% block
-footer_classes %}hidden{% endblock %} {% block content %}
-<div class="page_ctn">
-    <div class="ui container">
-        <div class="block-header">
-            <h1>Block #{{ block_info.height }}</h1>
-            <div class="next-block-ctn">
-                {% if block_info.height != 0 %}
-                <a
-                    class="nextblock-btn"
-                    href="/block-height/{{ block_info.height - 1 }}"
-                    >Previous Block</a
-                >
-                {% endif %} {% if block_info.height == 0 %}
-                <div class="nextblock-btn-disabled">Previous Block</div>
-                {% endif %} {% if block_info.height == best_height %}
-                <span>|</span>
-                <div class="nextblock-btn-disabled">Next Block</div>
-                {% endif %} {% if block_info.height != best_height %}
-                <span>|</span>
-                <a
-                    class="nextblock-btn"
-                    href="/block-height/{{ block_info.height + 1 }}"
-                    >Next Block</a
-                >
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="ui segment">
-            <table class="top-section__hash-table ui very basic table">
-                <tbody>
-                    <tr>
-                        <td class="no-padding"><strong>Hash</strong></td>
-                        <td class="no-padding align-copy">
-                            <span id="block-hash" class="hex"
-                                >{{ block_hex }}</span
-                            >
-                            <div
-                                class="copy-btn"
-                                onclick="copyText('block-hash')"
-                            >
-                                <span class="tooltiptext"
-                                    >Copy to clipboard</span
-                                >
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="ui three column grid">
-            <div class="column">
-                <div class="ui segment">
-                    <table
-                        class="ui very basic collapsing celled table block__detail-table"
-                    >
-                        <tbody>
-                            <tr>
-                                <td>Age</td>
-                                <td>{{ timestamp|human_time }}</td>
-                            </tr>
-
-                            <tr>
-                                <td>Unix Timestamp</td>
-                                <td>
-                                    {{
-                                    block_info.timestamp|to_i128|render_integer|safe
-                                    }}
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>Confirmations</td>
-                                <td>
-                                    {{ confirmations }} {% if
-                                    block_info.is_final %}(Final){% else %}(Not
-                                    final){% endif %}
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>Final</td>
-                                <td>
-                                    {% if block_info.is_final %}Yes{% else
-                                    %}No{% endif %}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+{% extends "base.html" %}
+{% import "components/loader_fullpage.html" as loader %}
+{% block body_classes %}overflow-y-scroll{% endblock %}
+{% block footer_classes %}hidden{% endblock %}
+{% block content %}
+    <div class="page_ctn">
+        <div class="ui container">
+            <div class="block-header">
+                <h1>Block #{{ block_info.height }}</h1>
+                <div class="next-block-ctn">
+                    {% if block_info.height != 0 %}
+                        <a class="nextblock-btn"
+                           href="/block-height/{{ block_info.height - 1 }}">Previous Block</a>
+                    {% endif %}
+                    {% if block_info.height == 0 %}
+                        <div class="nextblock-btn-disabled">Previous Block</div>
+                    {% endif %}
+                    {% if block_info.height == best_height %}
+                        <span>|</span>
+                        <div class="nextblock-btn-disabled">Next Block</div>
+                    {% endif %}
+                    {% if block_info.height != best_height %}
+                        <span>|</span>
+                        <a class="nextblock-btn"
+                           href="/block-height/{{ block_info.height + 1 }}">Next Block</a>
+                    {% endif %}
                 </div>
             </div>
-
-            <div class="column">
-                <div class="ui segment">
-                    <table
-                        class="ui very basic collapsing celled table block__detail-table"
-                    >
-                        <tbody>
-                            <tr>
-                                <td>Mined on</td>
-                                <td
-                                    class="moment__timestamp"
-                                    data-timestamp="{{ block_info.timestamp }}"
-                                ></td>
-                            </tr>
-
-                            <tr>
-                                <td>Mined by</td>
-                                <td>{{ coinbase_data|render_miner }}</td>
-                            </tr>
-
-                            <tr>
-                                <td>Difficulty</td>
-                                <td>{{ difficulty|render_difficulty|safe }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="column">
-                <div class="ui segment">
-                    <table
-                        class="ui very basic collapsing celled table block__detail-table"
-                    >
-                        <tbody>
-                            <tr>
-                                <td>Size</td>
-                                <td>
-                                    {{ block_info.block_size|render_human_size
-                                    }} ({{
-                                    block_info.block_size|to_i128|render_integer_smallify|safe
-                                    }} B)
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>Transactions</td>
-                                <td>{{ block_info.num_txs }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div
-            id="advanced-block-data"
-            class="ui styled fluid accordion block__advanced-data"
-        >
-            <div class="title">
-                <i class="dropdown icon"></i>
-                <span class="non-selectable">Advanced block data</span>
-            </div>
-            <div class="content">
-                <table class="ui very basic collapsing celled table">
+            <div class="ui segment">
+                <table class="top-section__hash-table ui very basic table">
                     <tbody>
                         <tr>
-                            <td>Coinbase data</td>
-                            <td>{{ coinbase_data|string_from_lossy_utf8 }}</td>
-                        </tr>
-
-                        <tr>
-                            <td>Coinbase hex</td>
-                            <td>
-                                <div class="hex">
-                                    {{ coinbase_data|hexify_u8_vector }}
+                            <td class="no-padding">
+                                <strong>Hash</strong>
+                            </td>
+                            <td class="no-padding align-copy">
+                                <span id="block-hash" class="hex">{{ block_hex }}</span>
+                                <div class="copy-btn" onclick="copyText('block-hash')">
+                                    <span class="tooltiptext">Copy to clipboard</span>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <h2 class="ui header block__tx-header">Transactions</h2>
-        {% call loader::render() %}
-        <table
-            id="txs-table"
-            class="block-listing__datatable dataTable compact responsive nowrap no-footer"
-            style="width: 100%"
-        >
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Size</th>
-                    <th>Fee</th>
-                    <th>Inputs</th>
-                    <th>Outputs</th>
-                    <th>Output Amount</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody class="blur"></tbody>
-        </table>
-
-        <div class="ui container">
-            <div
-                id="pagination"
-                class="bottom-pagination"
-                data-total-entries="{{ block_info.num_txs }}"
-            ></div>
-            <div class="block-listing__fixed-nav-icon">
-                <button
-                    class="circular ui icon button"
-                    onclick="scrollToBottom()"
-                >
-                    <i class="angle up icon"></i>
-                </button>
+            <div class="ui three column grid">
+                <div class="column">
+                    <div class="ui segment">
+                        <table class="ui very basic collapsing celled table block__detail-table">
+                            <tbody>
+                                <tr>
+                                    <td>Age</td>
+                                    <td>{{ timestamp|human_time }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Unix Timestamp</td>
+                                    <td>{{ block_info.timestamp|to_i128|render_integer|safe }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Confirmations</td>
+                                    <td>
+                                        {{ confirmations }}
+                                        {% if block_info.is_final %}
+                                            (Final)
+                                        {% else %}
+                                            (Not final)
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Final</td>
+                                    <td>
+                                        {% if block_info.is_final %}
+                                            Yes
+                                        {% else %}
+                                            No
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui segment">
+                        <table class="ui very basic collapsing celled table block__detail-table">
+                            <tbody>
+                                <tr>
+                                    <td>Mined on</td>
+                                    <td class="moment__timestamp" data-timestamp="{{ block_info.timestamp }}"></td>
+                                </tr>
+                                <tr>
+                                    <td>Mined by</td>
+                                    <td>{{ coinbase_data|render_miner }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Difficulty</td>
+                                    <td>{{ difficulty|render_difficulty|safe }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui segment">
+                        <table class="ui very basic collapsing celled table block__detail-table">
+                            <tbody>
+                                <tr>
+                                    <td>Size</td>
+                                    <td>
+                                        {{ block_info.block_size|render_human_size }}
+                                        ({{ block_info.block_size|to_i128|render_integer_smallify|safe }} B)
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Transactions</td>
+                                    <td>{{ block_info.num_txs }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="advanced-block-data"
+                 class="ui styled fluid accordion block__advanced-data">
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    <span class="non-selectable">Advanced block data</span>
+                </div>
+                <div class="content">
+                    <table class="ui very basic collapsing celled table">
+                        <tbody>
+                            <tr>
+                                <td>Coinbase data</td>
+                                <td>{{ coinbase_data|string_from_lossy_utf8 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Coinbase hex</td>
+                                <td>
+                                    <div class="hex">{{ coinbase_data|hexify_u8_vector }}</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <h2 class="ui header block__tx-header">Transactions</h2>
+            {% call loader::render() %}
+            <table id="txs-table"
+                   class="block-listing__datatable dataTable compact responsive nowrap no-footer"
+                   style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Size</th>
+                        <th>Fee</th>
+                        <th>Inputs</th>
+                        <th>Outputs</th>
+                        <th>Output Amount</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="blur">
+                </tbody>
+            </table>
+            <div class="ui container">
+                <div id="pagination"
+                     class="bottom-pagination"
+                     data-total-entries="{{ block_info.num_txs }}"></div>
+                <div class="block-listing__fixed-nav-icon">
+                    <button class="circular ui icon button" onclick="scrollToBottom()">
+                        <i class="angle up icon"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<script type="text/javascript" src="/code/txs.js?hash=2de9c0b"></script>
-<script type="text/javascript" src="/code/timestamps.js?hash=80d7735"></script>
-
-<script type="text/javascript">
-    $('.ui.accordion').accordion();
-</script>
+    <script type="text/javascript" src="/code/txs.js?hash=2de9c0b"></script>
+    <script type="text/javascript" src="/code/timestamps.js?hash=80d7735"></script>
+    <script type="text/javascript">
+        $('.ui.accordion').accordion();
+    </script>
 {% endblock %}

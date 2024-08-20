@@ -276,7 +276,8 @@
             ],
             "exclude": [
                 "(^web/.*/translations/.*\\.json$)",
-                "(^web/e.cash/public/animations/)"
+                "(^web/e.cash/public/animations/)",
+                "(^web/explorer/explorer-server/templates/)"
             ]
         },
         "lint-python-isort": {
@@ -296,6 +297,11 @@
             "type": "rustfmt",
             "version": ">=1.5.1",
             "include": "(\\.rs$)"
+        },
+        "djlint": {
+            "type": "djlint",
+            "version": ">=1.34.1",
+            "include": "(^web/explorer/explorer-server/templates/)"
         },
         "eslint": {
             "type": "eslint",

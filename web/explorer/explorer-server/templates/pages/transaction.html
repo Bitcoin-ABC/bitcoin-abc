@@ -1,359 +1,367 @@
-{% extends "base.html" %} {% import "components/input.html" as input %} {%
-import "components/output.html" as output %} {% import
-"components/token_info_table.html" as token_info_table %} {% block body_classes
-%}overflow-y-scroll{% endblock %} {% block content %}
-<div class="page_ctn">
-    <div class="ui container">
-        <div class="ui grid">
-            <div class="tx-header__container ten wide column">
-                <h1 class="tx-header__title">{{ title }}</h1>
-                {% if tx.is_coinbase %}
-                <div class="tx-header__label ui green label">Coinbase</div>
-                {% endif %}
-            </div>
-
-            <div class="six wide column">
-                <div class="toggle-wrapper">
-                    <button
-                        type="button"
-                        class="toggle_btn"
-                        id="toggle-advanced"
-                    >
-                        <span id="showhash"></span>
-                    </button>
-                    Advanced
+{% extends "base.html" %}
+{% import "components/input.html" as input %}
+{% import "components/output.html" as output %}
+{% import "components/token_info_table.html" as token_info_table %}
+{% block body_classes %}overflow-y-scroll{% endblock %}
+{% block content %}
+    <div class="page_ctn">
+        <div class="ui container">
+            <div class="ui grid">
+                <div class="tx-header__container ten wide column">
+                    <h1 class="tx-header__title">{{ title }}</h1>
+                    {% if tx.is_coinbase %}
+                        <div class="tx-header__label ui green label">Coinbase</div>
+                    {% endif %}
+                </div>
+                <div class="six wide column">
+                    <div class="toggle-wrapper">
+                        <button type="button" class="toggle_btn" id="toggle-advanced">
+                            <span id="showhash"></span>
+                        </button>
+                        Advanced
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div id="tx-hash" class="ui segment">
-            <table class="top-section__hash-table ui very basic table">
-                <tbody>
-                    {% if is_token %}
-                    <tr>
-                        <td><strong>Transaction ID</strong></td>
-                        <td>
-                            <span class="hex" id="tx-hex2">{{ tx_hex }}</span>
-                            <div class="copy-btn" onclick="copyText('tx-hex2')">
-                                <span class="tooltiptext"
-                                    >Copy to clipboard</span
-                                >
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>Token ID</strong></td>
-                        <td>
-                            {% match token_hex %} {% when Some with (token_hex)
-                            %}
-                            <span class="hex" id="token-hex"
-                                >{{ token_hex }}</span
-                            >
-                            <div
-                                class="copy-btn"
-                                onclick="copyText('token-hex')"
-                            >
-                                <span class="tooltiptext"
-                                    >Copy to clipboard</span
-                                >
-                            </div>
-                            {% when None %} {% endmatch %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td class="no-padding">
-                            <strong>Transaction ID</strong>
-                        </td>
-                        <td class="no-padding align-copy">
-                            <span class="hex" id="tx-hex">{{ tx_hex }}</span>
-                            <div class="copy-btn" onclick="copyText('tx-hex')">
-                                <span class="tooltiptext"
-                                    >Copy to clipboard</span
-                                >
-                            </div>
-                        </td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
-
-        <div
-            id="advanced"
-            class="ui segment advanced-toggle"
-            style="display: none"
-        >
-            <h4>Advanced</h4>
-            <div class="content">
-                <table class="ui very basic collapsing celled table">
+            <div id="tx-hash" class="ui segment">
+                <table class="top-section__hash-table ui very basic table">
                     <tbody>
-                        <tr>
-                            <td>Raw Transaction Hex</td>
-                            <td>
-                                <div class="hex">{{ raw_tx }}</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Locktime</td>
-                            <td>
-                                {{ tx.lock_time|to_i128|render_integer|safe }}
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Version</td>
-                            <td>
-                                <div class="hex">{{ tx.version }}</div>
-                            </td>
-                        </tr>
+                        {% if is_token %}
+                            <tr>
+                                <td>
+                                    <strong>Transaction ID</strong>
+                                </td>
+                                <td>
+                                    <span class="hex" id="tx-hex2">{{ tx_hex }}</span>
+                                    <div class="copy-btn" onclick="copyText('tx-hex2')">
+                                        <span class="tooltiptext">Copy to clipboard</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Token ID</strong>
+                                </td>
+                                <td>
+                                    {% match token_hex %}
+                                        {% when Some with (token_hex) %}
+                                        <span class="hex" id="token-hex">{{ token_hex }}</span>
+                                        <div class="copy-btn" onclick="copyText('token-hex')">
+                                            <span class="tooltiptext">Copy to clipboard</span>
+                                        </div>
+                                        {% when None %}
+                                    {% endmatch %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td class="no-padding">
+                                    <strong>Transaction ID</strong>
+                                </td>
+                                <td class="no-padding align-copy">
+                                    <span class="hex" id="tx-hex">{{ tx_hex }}</span>
+                                    <div class="copy-btn" onclick="copyText('tx-hex')">
+                                        <span class="tooltiptext">Copy to clipboard</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <h2>General Details</h2>
-        <div class="tx-details-ctn">
-            <div class="tx-details-half">
-                <div class="tx-details-row">
-                    <div>Age</div>
-                    <div>{{ timestamp|human_time }}</div>
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Final</div>
-                    <div>
-                        {% match tx.block %}{% when Some with (block) %}{% if
-                        block.is_final %}Yes{% else %}No{% endif %}{% when None
-                        %}No{% endmatch %}
-                    </div>
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Block</div>
-                    <div>
-                        {% match tx.block %} {% when Some with (block_meta) %}
-                        <a href="/block/{{ block_meta.hash|to_le_hex }}">
-                            {{ block_meta.height|to_i128|render_integer|safe }}
-                        </a>
-                        ({{ confirmations|to_i128|render_integer|safe }}
-                        confirmation{% if confirmations|to_i128 > 1
-                        %}<span>s</span>{% endif %}) {% when None %} Not mined
-                        yet {% endmatch %}
-                    </div>
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Unix Timestamp</div>
-                    <div>
-                        {% match tx.block %} {% when Some with (block_meta) %}
-                        {{ block_meta.timestamp|to_i128|render_integer|safe }}
-                        {% when None %} Not mined yet {% endmatch %}
-                    </div>
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Size</div>
-                    <div>
-                        {{ tx.size|u32_to_u64|render_human_size }} ({{
-                        tx.size|to_i128|render_integer_smallify|safe }} B)
-                    </div>
+            <div id="advanced"
+                 class="ui segment advanced-toggle"
+                 style="display: none">
+                <h4>Advanced</h4>
+                <div class="content">
+                    <table class="ui very basic collapsing celled table">
+                        <tbody>
+                            <tr>
+                                <td>Raw Transaction Hex</td>
+                                <td>
+                                    <div class="hex">{{ raw_tx }}</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Locktime</td>
+                                <td>{{ tx.lock_time|to_i128|render_integer|safe }}</td>
+                            </tr>
+                            <tr>
+                                <td>Version</td>
+                                <td>
+                                    <div class="hex">{{ tx.version }}</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
-            <div class="tx-details-half">
-                <div class="tx-details-row">
-                    <div>Mined On</div>
-                    {% match tx.block %} {% when Some with (block_meta) %}
-                    <div
-                        class="moment__timestamp"
-                        data-timestamp="{{ block_meta.timestamp }}"
-                    ></div>
-                    {% when None %}
-                    <div>Not mined yet</div>
-                    {% endmatch %}
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Total Input</div>
-                    <div>{{ sats_input|render_sats|safe }} XEC</div>
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Total Output</div>
-                    <div>{{ sats_output|render_sats|safe }} XEC</div>
-                </div>
-
-                <div class="tx-details-row">
-                    <div>Fee</div>
-                    <div>
-                        {{ (sats_input - sats_output)|max(0)|render_sats|safe }}
-                        XEC
+            <h2>General Details</h2>
+            <div class="tx-details-ctn">
+                <div class="tx-details-half">
+                    <div class="tx-details-row">
+                        <div>Age</div>
+                        <div>{{ timestamp|human_time }}</div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {% if is_token %}
-        <h2>{{ token_section_title }}</h2>
-        <div class="tx-details-ctn">
-            {% call token_info_table::render(tx, slp_genesis_info, slp_meta,
-            token_input, token_output, action_str, specification,
-            token_icon_url) %}
-        </div>
-
-        {% match slp_meta %}{% when Some with(entry) %}{% match slp_genesis_info
-        %}{% when Some with(genesis_info) %} {% if entry.is_invalid %}
-        <h2>Error details</h2>
-        <div class="tx-details-ctn">
-            <table class="ui very basic celled table">
-                <tbody>
-                    <tr>
-                        <td>Total burnt</td>
-                        <td>
-                            {{
-                            entry.actual_burn_amount|string_to_i128|render_token_amount(genesis_info.decimals)|safe
-                            }} {{
-                            genesis_info.token_ticker|string_from_lossy_utf8 }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Burns mint batons</td>
-                        <td>
-                            {% if entry.burns_mint_batons %}Yes{% else %}No{%
-                            endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Error message</td>
-                        <td>{{ entry.burn_summary }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        {% endif %} {% when None %}{% endmatch %}{% when None %}{% endmatch %}
-        {% endif %}
-
-        <div class="ui grid">
-            <div class="ten wide column">
-                <h2>Transaction</h2>
-            </div>
-        </div>
-
-        <div class="input-output-ctn">
-            <div class="input-output-row">
-                <div class="input-ctn">
-                    <div class="input-ctn-inner">
-                        <h4>Inputs ({{ tx.inputs.len() }})</h4>
-                        <div class="time-icons-ctn">
-                            <div id="tx_date">{{ timestamp }}</div>
-                            <div class="time-icon hide-time-icon" id="pre_xec">
-                                <img src="/assets/pre-ecash-icon.png" />
-                                <span>Pre-XEC<br />(Nov 15, 2020)</span>
-                            </div>
-
-                            <div
-                                class="time-icon hide-time-icon"
-                                id="five_years"
-                            >
-                                <img src="/assets/five-years-icon.png" />
-                                <span>Over Five<br />Years Old</span>
-                            </div>
-
-                            <div class="time-icon hide-time-icon" id="pre_bch">
-                                <img src="/assets/pre-bch-icon.png" />
-                                <span>Pre-BCH<br />(Aug 8, 2017)</span>
-                            </div>
+                    <div class="tx-details-row">
+                        <div>Final</div>
+                        <div>
+                            {% match tx.block %}
+                                {% when Some with (block) %}
+                                {% if block.is_final %}
+                                    Yes
+                                {% else %}
+                                    No
+                                {% endif %}
+                                {% when None %}
+                                No
+                            {% endmatch %}
                         </div>
                     </div>
-                    <div id="inputs">
-                        {% for input in tx.inputs %} {% call
-                        input::render(loop.index0, input, tx, slp_genesis_info,
-                        sats_addr_prefix, tokens_addr_prefix, token_icon_url) %}
-                        {% endfor %}
+                    <div class="tx-details-row">
+                        <div>Block</div>
+                        <div>
+                            {% match tx.block %}
+                                {% when Some with (block_meta) %}
+                                <a href="/block/{{ block_meta.hash|to_le_hex }}">{{ block_meta.height|to_i128|render_integer|safe }}</a>
+                                ({{ confirmations|to_i128|render_integer|safe }}
+                                confirmation
+                                {% if confirmations|to_i128 > 1 %}<span>s</span>{% endif %}
+                                )
+                                {% when None %}
+                                Not mined yet
+                            {% endmatch %}
+                        </div>
+                    </div>
+                    <div class="tx-details-row">
+                        <div>Unix Timestamp</div>
+                        <div>
+                            {% match tx.block %}
+                                {% when Some with (block_meta) %}
+                                {{ block_meta.timestamp|to_i128|render_integer|safe }}
+                                {% when None %}
+                                Not mined yet
+                            {% endmatch %}
+                        </div>
+                    </div>
+                    <div class="tx-details-row">
+                        <div>Size</div>
+                        <div>
+                            {{ tx.size|u32_to_u64|render_human_size }}
+                            ({{ tx.size|to_i128|render_integer_smallify|safe }} B)
+                        </div>
                     </div>
                 </div>
-
-                <div class="input-output-arrow">
-                    <img src="/assets/arrow.png" />
+                <div class="tx-details-half">
+                    <div class="tx-details-row">
+                        <div>Mined On</div>
+                        {% match tx.block %}
+                            {% when Some with (block_meta) %}
+                            <div class="moment__timestamp" data-timestamp="{{ block_meta.timestamp }}">
+                            </div>
+                            {% when None %}
+                            <div>Not mined yet</div>
+                        {% endmatch %}
+                    </div>
+                    <div class="tx-details-row">
+                        <div>Total Input</div>
+                        <div>{{ sats_input|render_sats|safe }} XEC</div>
+                    </div>
+                    <div class="tx-details-row">
+                        <div>Total Output</div>
+                        <div>{{ sats_output|render_sats|safe }} XEC</div>
+                    </div>
+                    <div class="tx-details-row">
+                        <div>Fee</div>
+                        <div>
+                            {{ (sats_input - sats_output)|max(0) |render_sats|safe }}
+                            XEC
+                        </div>
+                    </div>
                 </div>
-
-                <div class="output-ctn">
-                    <h4>Outputs ({{ tx.outputs.len() }})</h4>
-                    <div id="outputs">
-                        {% for output in tx.outputs %} {% call
-                        output::render(loop.index0, output, tx,
-                        slp_genesis_info, sats_addr_prefix, tokens_addr_prefix,
-                        token_icon_url) %} {% endfor %}
+            </div>
+            {% if is_token %}
+                <h2>{{ token_section_title }}</h2>
+                <div class="tx-details-ctn">
+                    {% call token_info_table::render(
+                    tx,
+                    slp_genesis_info,
+                    slp_meta,
+                    token_input,
+                    token_output,
+                    action_str,
+                    specification,
+                    token_icon_url) %}
+                </div>
+                {% match slp_meta %}
+                    {% when Some with(entry) %}
+                    {% match slp_genesis_info %}
+                        {% when Some with(genesis_info) %}
+                        {% if entry.is_invalid %}
+                            <h2>Error details</h2>
+                            <div class="tx-details-ctn">
+                                <table class="ui very basic celled table">
+                                    <tbody>
+                                        <tr>
+                                            <td>Total burnt</td>
+                                            <td>
+                                                {{ entry.actual_burn_amount |
+                                                string_to_i128 |
+                                                render_token_amount(genesis_info.decimals) |
+                                                safe }}
+                                                {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Burns mint batons</td>
+                                            <td>
+                                                {% if entry.burns_mint_batons %}
+                                                    Yes
+                                                {% else %}
+                                                    No
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Error message</td>
+                                            <td>{{ entry.burn_summary }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                        {% when None %}
+                    {% endmatch %}
+                    {% when None %}
+                {% endmatch %}
+            {% endif %}
+            <div class="ui grid">
+                <div class="ten wide column">
+                    <h2>Transaction</h2>
+                </div>
+            </div>
+            <div class="input-output-ctn">
+                <div class="input-output-row">
+                    <div class="input-ctn">
+                        <div class="input-ctn-inner">
+                            <h4>Inputs ({{ tx.inputs.len() }})</h4>
+                            <div class="time-icons-ctn">
+                                <div id="tx_date">{{ timestamp }}</div>
+                                <div class="time-icon hide-time-icon" id="pre_xec">
+                                    <img src="/assets/pre-ecash-icon.png" />
+                                    <span>Pre-XEC
+                                        <br />
+                                    (Nov 15, 2020)</span>
+                                </div>
+                                <div class="time-icon hide-time-icon" id="five_years">
+                                    <img src="/assets/five-years-icon.png" />
+                                    <span>Over Five
+                                        <br />
+                                    Years Old</span>
+                                </div>
+                                <div class="time-icon hide-time-icon" id="pre_bch">
+                                    <img src="/assets/pre-bch-icon.png" />
+                                    <span>Pre-BCH
+                                        <br />
+                                    (Aug 8, 2017)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="inputs">
+                            {% for input in tx.inputs %}
+                                {% call input::render(
+                                loop.index0,
+                                input,
+                                tx,
+                                slp_genesis_info,
+                                sats_addr_prefix,
+                                tokens_addr_prefix,
+                                token_icon_url) %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="input-output-arrow">
+                        <img src="/assets/arrow.png" />
+                    </div>
+                    <div class="output-ctn">
+                        <h4>Outputs ({{ tx.outputs.len() }})</h4>
+                        <div id="outputs">
+                            {% for output in tx.outputs %}
+                                {% call output::render(
+                                loop.index0,
+                                output,
+                                tx,
+                                slp_genesis_info,
+                                sats_addr_prefix,
+                                tokens_addr_prefix,
+                                token_icon_url) %}
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <script type="text/javascript" src="/code/timestamps.js?hash=80d7735"></script>
+    <script type="text/javascript">
+        const toggleBtn = document.getElementById('toggle-advanced');
+        let advancedMode = localStorage.getItem('advanced');
 
-<script type="text/javascript" src="/code/timestamps.js?hash=80d7735"></script>
-<script type="text/javascript">
-    const toggleBtn = document.getElementById('toggle-advanced');
-    let advancedMode = localStorage.getItem('advanced');
+        const enableAdvanced = () => {
+            $('.advanced-toggle').toggle();
+            $('#showhash').toggleClass('switch');
+            $('#toggle-advanced').toggleClass('toggle_btn-switch');
+            toggleTransactionScriptData();
+            localStorage.setItem('advanced', 'enabled');
+        };
 
-    const enableAdvanced = () => {
-        $('.advanced-toggle').toggle();
-        $('#showhash').toggleClass('switch');
-        $('#toggle-advanced').toggleClass('toggle_btn-switch');
-        toggleTransactionScriptData();
-        localStorage.setItem('advanced', 'enabled');
-    };
+        const disableAdvanced = () => {
+            $('.advanced-toggle').toggle();
+            $('#showhash').toggleClass('switch');
+            $('#toggle-advanced').toggleClass('toggle_btn-switch');
+            toggleTransactionScriptData();
+            localStorage.setItem('advanced', 'disabled');
+        };
 
-    const disableAdvanced = () => {
-        $('.advanced-toggle').toggle();
-        $('#showhash').toggleClass('switch');
-        $('#toggle-advanced').toggleClass('toggle_btn-switch');
-        toggleTransactionScriptData();
-        localStorage.setItem('advanced', 'disabled');
-    };
-
-    if (advancedMode === 'enabled') {
-        enableAdvanced();
-    }
-
-    toggleBtn.addEventListener('click', e => {
-        advancedMode = localStorage.getItem('advanced');
-        if (advancedMode === 'disabled') {
+        if (advancedMode === 'enabled') {
             enableAdvanced();
-        } else {
-            disableAdvanced();
         }
-    });
-</script>
 
-<script type="text/javascript">
-    var xec = document.getElementById('pre_xec');
-    var bch = document.getElementById('pre_bch');
-    var five = document.getElementById('five_years');
-    var txDateObject = document.getElementById('tx_date').textContent;
-    var txDate = new Date(txDateObject).getTime() / 1000;
-    var today = Date.now() / 1000;
-    var xecDate = 1605441600;
-    var bchDate = 1502193600;
-    var fiveYearsAgo = today - 157800000;
-    const checkXecDate = () => {
-        if (txDate < xecDate) {
-            xec.classList.remove('hide-time-icon');
-        } else return;
-    };
-    const checkBchDate = () => {
-        if (txDate < bchDate) {
-            bch.classList.remove('hide-time-icon');
-        } else return;
-    };
-    const checkFiveYearDate = () => {
-        if (txDate < fiveYearsAgo) {
-            five.classList.remove('hide-time-icon');
-        } else return;
-    };
-    checkXecDate();
-    checkBchDate();
-    checkFiveYearDate();
-</script>
+        toggleBtn.addEventListener('click', e => {
+            advancedMode = localStorage.getItem('advanced');
+            if (advancedMode === 'disabled') {
+                enableAdvanced();
+            } else {
+                disableAdvanced();
+            }
+        });
+    </script>
+    <script type="text/javascript">
+        var xec = document.getElementById('pre_xec');
+        var bch = document.getElementById('pre_bch');
+        var five = document.getElementById('five_years');
+        var txDateObject = document.getElementById('tx_date').textContent;
+        var txDate = new Date(txDateObject).getTime() / 1000;
+        var today = Date.now() / 1000;
+        var xecDate = 1605441600;
+        var bchDate = 1502193600;
+        var fiveYearsAgo = today - 157800000;
+        const checkXecDate = () => {
+            if (txDate < xecDate) {
+                xec.classList.remove('hide-time-icon');
+            } else return;
+        };
+        const checkBchDate = () => {
+            if (txDate < bchDate) {
+                bch.classList.remove('hide-time-icon');
+            } else return;
+        };
+        const checkFiveYearDate = () => {
+            if (txDate < fiveYearsAgo) {
+                five.classList.remove('hide-time-icon');
+            } else return;
+        };
+        checkXecDate();
+        checkBchDate();
+        checkFiveYearDate();
+    </script>
 {% endblock %}
