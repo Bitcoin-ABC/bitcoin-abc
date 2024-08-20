@@ -110,9 +110,9 @@ class ExchangeBase(PrintError):
         t = Thread(target=self.update_safe, args=(ccy,), daemon=True)
         t.start()
 
-    def read_historical_rates(self, ccy, cache_dir):
+    def read_historical_rates(self, ccy, cache_dir) -> tuple[dict, float]:
         filename = self._get_cache_filename(ccy, cache_dir)
-        h, timestamp = None, 0.0
+        h, timestamp = {}, 0.0
         if os.path.exists(filename):
             timestamp = os.stat(filename).st_mtime
             try:
@@ -124,7 +124,6 @@ class ExchangeBase(PrintError):
                     )
             except Exception as e:
                 self.print_error("read_historical_rates: error", repr(e))
-        h = h or None
         return h, timestamp
 
     def _get_cache_filename(self, ccy, cache_dir):
