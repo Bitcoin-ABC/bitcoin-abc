@@ -7,7 +7,8 @@ use std::{
 use askama::Template;
 use axum::{response::Redirect, routing::get, Router};
 use bitcoinsuite_chronik_client::proto::{
-    token_type, ScriptUtxo, SlpTokenType, TokenInfo, TokenTxType, TokenType,
+    token_type, ScriptUtxo, SlpTokenType, TokenEntry, TokenInfo, TokenTxType,
+    TokenType, Tx,
 };
 use bitcoinsuite_chronik_client::{proto::OutPoint, ChronikClient};
 use bitcoinsuite_core::{CashAddress, Hashed, Sha256d};
@@ -33,7 +34,8 @@ use crate::{
         JsonBalance, JsonBlock, JsonBlocksResponse, JsonTxsResponse, JsonUtxo,
     },
     templating::{
-        AddressTemplate, BlockTemplate, BlocksTemplate, TransactionTemplate,
+        AddressTemplate, BlockTemplate, BlocksTemplate, TokenEntryTemplate,
+        TransactionTemplate,
     },
 };
 
@@ -267,148 +269,6 @@ impl Server {
     pub async fn tx(&self, tx_hex: &str) -> Result<String> {
         let tx_hash = Sha256d::from_hex_be(tx_hex)?;
         let tx = self.chronik.tx(&tx_hash).await?;
-        let token_entry = tx
-            .token_entries
-            .get(0)
-            .and_then(|entry| Some(entry.clone()));
-
-        let (token_id, token) = match &token_entry {
-            Some(token_entry) => {
-                let token_id = Sha256d::from_hex_be(&token_entry.token_id)?;
-                let mut token = None;
-                let tx_type = TokenTxType::from_i32(token_entry.tx_type)
-                    .ok_or_else(|| eyre!("Malformed token_entry.tx_type"))?;
-                if tx_type != TokenTxType::Unknown {
-                    token = Some(self.chronik.token(&token_id).await?);
-                }
-                (Some(token_id), token)
-            }
-            None => (None, None),
-        };
-        let token_ticker = token.as_ref().and_then(|token| {
-            Some(String::from_utf8_lossy(
-                &token.genesis_info.as_ref()?.token_ticker,
-            ))
-        });
-
-        let (title, is_token): (Cow<str>, bool) = match &token_ticker {
-            Some(token_ticker) => {
-                (format!("{} Transaction", token_ticker).into(), true)
-            }
-            None => match &tx.token_failed_parsings.get(0) {
-                None => ("eCash Transaction".into(), false),
-                Some(_) => ("Invalid eToken Transaction".into(), true),
-            },
-        };
-
-        let token_hex = token_id.as_ref().map(|token| token.to_hex_be());
-
-        let (token_section_title, action_str, token_type_str, specification): (
-            Cow<str>,
-            Cow<str>,
-            Cow<str>,
-            Cow<str>,
-        ) = match &token_entry {
-            Some(token_entry) => {
-                let token_type = token_entry
-                    .token_type
-                    .clone()
-                    .ok_or_else(|| eyre!("Malformed token_entry.token_type"))?
-                    .token_type
-                    .ok_or_else(|| eyre!("Malformed token_entry.token_type"))?;
-                let tx_type = TokenTxType::from_i32(token_entry.tx_type)
-                    .ok_or_else(|| eyre!("Malformed token_entry.tx_type"))?;
-
-                let action_str = match tx_type {
-                    TokenTxType::Genesis => "GENESIS",
-                    TokenTxType::Mint => "MINT",
-                    TokenTxType::Send => "SEND",
-                    TokenTxType::Burn => "BURN",
-                    _ => "Unknown",
-                };
-
-                let (token_type_str, specification) = match token_type {
-                    token_type::TokenType::Slp(slp) => {
-                        let slp_token_type = SlpTokenType::from_i32(slp)
-                            .ok_or_else(|| eyre!("Malformed SlpTokenType"))?;
-                        match slp_token_type {
-                            SlpTokenType::Fungible => {
-                                (
-                                    "SLP Type 1",
-                                    "https://github.com/simpleledger/\
-                                    slp-specifications/blob/master/\
-                                    slp-token-type-1.md"
-                                )
-                            }
-                            SlpTokenType::MintVault => {
-                                (
-                                    "SLP Type 2",
-                                    "https://github.com/badger-cash/\
-                                    slp-specifications/blob/master/\
-                                    slp-token-type-2.md"
-                                )
-                            }
-                            SlpTokenType::Nft1Group => {
-                                (
-                                    "SLP NFT-1 Group",
-                                    "https://github.com/simpleledger/\
-                                    slp-specifications/blob/master/slp-nft-1.md"
-                                )
-                            }
-                            SlpTokenType::Nft1Child => {
-                                (
-                                    "SLP NFT-1 Child",
-                                    "https://github.com/simpleledger/\
-                                    slp-specifications/blob/master/slp-nft-1.md"
-                                )
-                            }
-                            _ => ("Unknown", "Unknown")
-                        }
-                    }
-                    token_type::TokenType::Alp(_) => {
-                        (
-                            "ALP",
-                            "https://ecashbuilders.notion.site/\
-                            ALP-a862a4130877448387373b9e6a93dd97"
-                        )
-                    }
-                };
-
-                (
-                    format!(
-                        "Token Details ({}{} {} Transaction)",
-                        if token_entry.is_invalid {
-                            "Invalid "
-                        } else {
-                            ""
-                        },
-                        &token_type_str,
-                        &action_str,
-                    )
-                    .into(),
-                    action_str.into(),
-                    token_type_str.into(),
-                    specification.into(),
-                )
-            }
-            None => {
-                if tx.token_failed_parsings.get(0).is_some() {
-                    (
-                        "Token Details (Invalid Transaction)".into(),
-                        "Unknown".into(),
-                        "Unknown".into(),
-                        "Unknown".into(),
-                    )
-                } else {
-                    (
-                        "".into(),
-                        "Unknown".into(),
-                        "Unknown".into(),
-                        "Unknown".into(),
-                    )
-                }
-            }
-        };
 
         let blockchain_info = self.chronik.blockchain_info().await?;
         let confirmations = match &tx.block {
@@ -428,31 +288,158 @@ impl Server {
 
         let tx_stats = calc_tx_stats(&tx, None);
 
+        let token_entries = futures::future::join_all(
+            tx.token_entries
+                .iter()
+                .map(|entry| self.token_entry(&tx, entry)),
+        )
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>>>()?;
+
+        let (title, is_token) = match token_entries.as_slice() {
+            [] => match tx.token_failed_parsings.as_slice() {
+                [] => (Cow::Borrowed("eCash Transaction"), false),
+                [..] => (Cow::Borrowed("Invalid eToken Transaction"), false),
+            },
+            [entry] => match &entry.genesis_info {
+                Some(genesis_info) => (
+                    format!(
+                        "{} Transaction",
+                        String::from_utf8_lossy(&genesis_info.token_ticker)
+                    )
+                    .into(),
+                    true,
+                ),
+                None => ("Unknown eToken Transaction".into(), false),
+            },
+            [..] => ("Multi eToken Transaction".into(), true),
+        };
+
         let transaction_template = TransactionTemplate {
             title: &title,
-            sats_addr_prefix: &self.satoshi_addr_prefix,
-            tokens_addr_prefix: &self.tokens_addr_prefix,
-            token_section_title: &token_section_title,
+            sats_addr_prefix: self.satoshi_addr_prefix,
+            tokens_addr_prefix: self.tokens_addr_prefix,
             is_token,
             tx_hex,
-            token_hex,
-            tx,
-            slp_genesis_info: token.and_then(|token| token.genesis_info),
-            slp_meta: token_entry,
+            tx: &tx,
+            token_entries,
             sats_input: tx_stats.sats_input,
             sats_output: tx_stats.sats_output,
-            token_input: tx_stats.token_input,
-            token_output: tx_stats.token_output,
             raw_tx,
             confirmations,
             timestamp,
-            action_str: &action_str,
-            specification: &specification,
-            token_type: &token_type_str,
-            token_icon_url: &self.token_icon_url,
+            token_icon_url: self.token_icon_url,
         };
 
         Ok(transaction_template.render().unwrap())
+    }
+
+    async fn token_entry<'a>(
+        &self,
+        tx: &Tx,
+        token_entry: &'a TokenEntry,
+    ) -> Result<TokenEntryTemplate<'a>> {
+        let token_id = Sha256d::from_hex_be(&token_entry.token_id)?;
+        let mut token_data = None;
+        let tx_type = TokenTxType::from_i32(token_entry.tx_type)
+            .ok_or_else(|| eyre!("Malformed token_entry.tx_type"))?;
+        if tx_type != TokenTxType::Unknown {
+            token_data = Some(self.chronik.token(&token_id).await?);
+        }
+        let token_type = token_entry
+            .token_type
+            .clone()
+            .ok_or_else(|| eyre!("Malformed token_entry.token_type"))?
+            .token_type
+            .ok_or_else(|| eyre!("Malformed token_entry.token_type"))?;
+        let tx_type = TokenTxType::from_i32(token_entry.tx_type)
+            .ok_or_else(|| eyre!("Malformed token_entry.tx_type"))?;
+
+        let action_str = match tx_type {
+            TokenTxType::Genesis => "GENESIS",
+            TokenTxType::Mint => "MINT",
+            TokenTxType::Send => "SEND",
+            TokenTxType::Burn => "BURN",
+            _ => "Unknown",
+        };
+
+        let (token_type_str, specification) = match token_type {
+            token_type::TokenType::Slp(slp) => {
+                let slp_token_type = SlpTokenType::from_i32(slp)
+                    .ok_or_else(|| eyre!("Malformed SlpTokenType"))?;
+                match slp_token_type {
+                    SlpTokenType::Fungible => (
+                        "SLP Type 1",
+                        "https://github.com/simpleledger/\
+                            slp-specifications/blob/master/\
+                            slp-token-type-1.md",
+                    ),
+                    SlpTokenType::MintVault => (
+                        "SLP Type 2",
+                        "https://github.com/badger-cash/\
+                            slp-specifications/blob/master/\
+                            slp-token-type-2.md",
+                    ),
+                    SlpTokenType::Nft1Group => (
+                        "SLP NFT-1 Group",
+                        "https://github.com/simpleledger/\
+                            slp-specifications/blob/master/slp-nft-1.md",
+                    ),
+                    SlpTokenType::Nft1Child => (
+                        "SLP NFT-1 Child",
+                        "https://github.com/simpleledger/\
+                            slp-specifications/blob/master/slp-nft-1.md",
+                    ),
+                    _ => ("Unknown", "Unknown"),
+                }
+            }
+            token_type::TokenType::Alp(_) => (
+                "ALP",
+                "https://ecashbuilders.notion.site/\
+                    ALP-a862a4130877448387373b9e6a93dd97",
+            ),
+        };
+
+        let token_section_title = format!(
+            "Token Details ({}{} {} Transaction)",
+            if token_entry.is_invalid {
+                "Invalid "
+            } else {
+                ""
+            },
+            &token_type_str,
+            &action_str,
+        );
+
+        let token_input: i128 = tx
+            .inputs
+            .iter()
+            .filter_map(|input| input.token.as_ref())
+            .filter(|token| token.token_id == token_entry.token_id)
+            .map(|token| token.amount as i128)
+            .sum();
+        let token_output: i128 = tx
+            .outputs
+            .iter()
+            .filter_map(|output| output.token.as_ref())
+            .filter(|token| token.token_id == token_entry.token_id)
+            .map(|token| token.amount as i128)
+            .sum();
+
+        Ok(TokenEntryTemplate {
+            token_section_title,
+            token_hex: token_id.to_string(),
+            entry: token_entry,
+            genesis_info: token_data
+                .as_ref()
+                .and_then(|token_data| token_data.genesis_info.clone()),
+            token_input,
+            token_output,
+            action_str,
+            specification,
+            token_type: token_type_str,
+        })
     }
 }
 
@@ -546,7 +533,6 @@ impl Server {
 
         let address_template = AddressTemplate {
             tokens,
-            token_utxos,
             token_dust,
             total_xec,
             address_num_txs,

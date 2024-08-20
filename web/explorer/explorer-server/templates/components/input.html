@@ -2,83 +2,81 @@
     index,
     input,
     tx,
-    slp_genesis_info,
     sats_addr_prefix,
     tokens_addr_prefix,
     token_icon_url) %}
+    {% let token_entry = input.token|find_token_entry(token_entries) %}
+    {% let genesis_info = token_entry|token_entry_genesis_info %}
     {% let is_token = input.token|check_is_token %}
     {% let destination = input.output_script |
     destination_from_script(is_token, sats_addr_prefix, tokens_addr_prefix) %}
     {% let decoded_input_script = input.input_script|get_script %}
+    {% let prev_out = input.prev_out|unwrap %}
     <div>
-        {% match input.prev_out %}
-            {% when Some with (prev_out) %}
-            {% if prev_out|check_is_coinbase %}
-                <div class="input-row coinbase-row">
-                    <div class="ui green horizontal label">Coinbase</div>
+        {% if prev_out|check_is_coinbase %}
+            <div class="input-row coinbase-row">
+                <div class="ui green horizontal label">Coinbase</div>
+            </div>
+        {% else %}
+            <div class="input-row">
+                <div class="input-row-section1">
+                    <div>{{ index }}</div>
+                    <a href="/tx/{{ prev_out.txid|to_le_hex }}">
+                        <i class="horizontally flipped icon sign out"></i>
+                    </a>
                 </div>
-            {% else %}
-                <div class="input-row">
-                    <div class="input-row-section1">
-                        <div>{{ index }}</div>
-                        <a href="/tx/{{ prev_out.txid|to_le_hex }}">
-                            <i class="horizontally flipped icon sign out"></i>
-                        </a>
-                    </div>
-                    <div class="input-row-section2">
-                        {% match destination %}
-                            {% when Destination::Address with (address) %}
-                            <div class="address-and-copy">
-                                <div class="copy-btn" onclick="copyString('{{ address.as_str() }}')">
-                                    <span class="tooltiptext">Copy to clipboard</span>
-                                </div>
-                                <div class="input-hex input-hex-address">
-                                    <a href="/address/{{ address.as_str() }}">{{ address.as_str() }}</a>
-                                    {% when Destination::P2PK with (pubkey) %}
-                                    Pubkey: {{ pubkey|hexify_u8_vector }}
-                                    {% when Destination::Unknown with (_bytes) %}
-                                    Unknown
-                                    {% when Destination::Nulldata with (_ops) %}
-                                    Unreachable
-                                {% endmatch %}
+                <div class="input-row-section2">
+                    {% match destination %}
+                        {% when Destination::Address with (address) %}
+                        <div class="address-and-copy">
+                            <div class="copy-btn" onclick="copyString('{{ address.as_str() }}')">
+                                <span class="tooltiptext">Copy to clipboard</span>
                             </div>
-                        </div>
-                        <div class="input-hex">
-                            {% match input.token %}
-                                {% when Some with (slp_token) %}
-                                {% match slp_genesis_info %}
-                                    {% when Some with (genesis_info) %}
-                                    {% if slp_token.amount > 0 || slp_token.is_mint_baton %}
-                                        {% if slp_token.is_mint_baton %}
-                                            <div class="ui green horizontal label">Mint baton</div>
-                                        {% else %}
-                                            {{ slp_token.amount |
-                                            to_i128 |
-                                            render_token_amount(genesis_info.decimals) |
-                                            safe }}
-                                            {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
-                                        {% endif %}
-                                    {% endif %}
-                                    {% match token_hex %}
-                                        {% when Some with (token_hex) %}
-                                        <img src="{{ token_icon_url }}/32/{{ token_hex }}.png" />
-                                        {% when None %}
-                                    {% endmatch %}
-                                    <div>
-                                        <small>{{ input.value|render_sats|safe }} XEC</small>
-                                    </div>
-                                    {% when None %}
-                                    {{ input.value|render_sats|safe }} XEC
-                                    {% when None %}
-                                {% endmatch %}
-                                {% when None %} {{ input.value|render_sats|safe }} XEC
+                            <div class="input-hex input-hex-address">
+                                <a href="/address/{{ address.as_str() }}">{{ address.as_str() }}</a>
+                                {% when Destination::P2PK with (pubkey) %}
+                                Pubkey: {{ pubkey|hexify_u8_vector }}
+                                {% when Destination::Unknown with (_bytes) %}
+                                Unknown
+                                {% when Destination::Nulldata with (_ops) %}
+                                Unreachable
                             {% endmatch %}
                         </div>
                     </div>
+                    <div class="input-hex">
+                        {% match input.token %}
+                            {% when Some with (slp_token) %}
+                            {% match genesis_info %}
+                                {% when Some with (genesis_info) %}
+                                {% if slp_token.amount > 0 || slp_token.is_mint_baton %}
+                                    {% if slp_token.is_mint_baton %}
+                                        <div class="ui green horizontal label">Mint baton</div>
+                                    {% else %}
+                                        {{ slp_token.amount |
+                                        to_i128 |
+                                        render_token_amount(genesis_info.decimals) |
+                                        safe }}
+                                        {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
+                                    {% endif %}
+                                {% endif %}
+                                {% match token_entry %}
+                                    {% when Some with (token_entry) %}
+                                    <img src="{{ token_icon_url }}/32/{{ token_entry.token_hex }}.png" />
+                                    {% when None %}
+                                {% endmatch %}
+                                <div>
+                                    <small>{{ input.value|render_sats|safe }} XEC</small>
+                                </div>
+                                {% when None %}
+                                {{ input.value|render_sats|safe }} XEC
+                                {% when None %}
+                            {% endmatch %}
+                            {% when None %} {{ input.value|render_sats|safe }} XEC
+                        {% endmatch %}
+                    </div>
                 </div>
-            {% endif %}
-            {% when None %}
-        {% endmatch %}
+            </div>
+        {% endif %}
         <div class="tx-transaction__script-data display-none">
             <h4>Script Hex</h4>
             <div class="hex">{{ input.input_script|hexify_u8_vector }}</div>

@@ -37,21 +37,27 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td>
-                                    <strong>Token ID</strong>
-                                </td>
-                                <td>
-                                    {% match token_hex %}
-                                        {% when Some with (token_hex) %}
-                                        <span class="hex" id="token-hex">{{ token_hex }}</span>
+                            {% for entry in token_entries %}
+                                <tr>
+                                    <td>
+                                        <strong>
+                                            {% match entry.genesis_info %}
+                                                {% when Some with (genesis_info) %}
+                                                {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
+                                                {% when None %}
+                                                Unknown
+                                            {% endmatch %}
+                                            Token ID
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <span class="hex" id="token-hex">{{ entry.token_hex }}</span>
                                         <div class="copy-btn" onclick="copyText('token-hex')">
                                             <span class="tooltiptext">Copy to clipboard</span>
                                         </div>
-                                        {% when None %}
-                                    {% endmatch %}
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         {% else %}
                             <tr>
                                 <td class="no-padding">
@@ -179,61 +185,19 @@
                     </div>
                 </div>
             </div>
-            {% if is_token %}
-                <h2>{{ token_section_title }}</h2>
-                <div class="tx-details-ctn">
-                    {% call token_info_table::render(
-                    tx,
-                    slp_genesis_info,
-                    slp_meta,
-                    token_input,
-                    token_output,
-                    action_str,
-                    specification,
-                    token_icon_url) %}
-                </div>
-                {% match slp_meta %}
-                    {% when Some with(entry) %}
-                    {% match slp_genesis_info %}
-                        {% when Some with(genesis_info) %}
-                        {% if entry.is_invalid %}
-                            <h2>Error details</h2>
-                            <div class="tx-details-ctn">
-                                <table class="ui very basic celled table">
-                                    <tbody>
-                                        <tr>
-                                            <td>Total burnt</td>
-                                            <td>
-                                                {{ entry.actual_burn_amount |
-                                                string_to_i128 |
-                                                render_token_amount(genesis_info.decimals) |
-                                                safe }}
-                                                {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Burns mint batons</td>
-                                            <td>
-                                                {% if entry.burns_mint_batons %}
-                                                    Yes
-                                                {% else %}
-                                                    No
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Error message</td>
-                                            <td>{{ entry.burn_summary }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% endif %}
-                        {% when None %}
-                    {% endmatch %}
-                    {% when None %}
-                {% endmatch %}
-            {% endif %}
+            {% for entry in token_entries %}
+                {% call token_info_table::render(
+                tx,
+                entry.token_hex,
+                entry.genesis_info,
+                entry.entry,
+                entry.token_input,
+                entry.token_output,
+                entry.token_type,
+                entry.action_str,
+                entry.specification,
+                token_icon_url) %}
+            {% endfor %}
             <div class="ui grid">
                 <div class="ten wide column">
                     <h2>Transaction</h2>
@@ -272,7 +236,6 @@
                                 loop.index0,
                                 input,
                                 tx,
-                                slp_genesis_info,
                                 sats_addr_prefix,
                                 tokens_addr_prefix,
                                 token_icon_url) %}
@@ -290,7 +253,6 @@
                                 loop.index0,
                                 output,
                                 tx,
-                                slp_genesis_info,
                                 sats_addr_prefix,
                                 tokens_addr_prefix,
                                 token_icon_url) %}

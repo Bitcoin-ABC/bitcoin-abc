@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use bitcoinsuite_chronik_client::proto::{OutPoint, Token, TokenInfo};
+use bitcoinsuite_chronik_client::proto::{
+    GenesisInfo, OutPoint, Token, TokenInfo,
+};
 use bitcoinsuite_core::Script;
 use chrono::DateTime;
 use chrono_humanize::HumanTime;
@@ -9,7 +11,7 @@ use maud::{html, PreEscaped};
 use num_format::{Locale, ToFormattedString};
 use regex::bytes::Regex;
 
-use crate::blockchain;
+use crate::{blockchain, templating::TokenEntryTemplate};
 
 fn render_integer_with_small_flag(
     int: i128,
@@ -34,6 +36,10 @@ pub fn max(value: &i64, maximum: &i64) -> askama::Result<i64> {
     Ok(*value.max(maximum))
 }
 
+pub fn unwrap<T>(value: &Option<T>) -> askama::Result<&T> {
+    Ok(value.as_ref().unwrap())
+}
+
 pub fn check_is_coinbase(outpoint: &OutPoint) -> askama::Result<bool> {
     Ok(outpoint.txid == [0; 32] && outpoint.out_idx == 0xffff_ffff)
 }
@@ -55,6 +61,22 @@ pub fn destination_from_script<'a>(
 pub fn get_script(signature_script: &[u8]) -> askama::Result<String> {
     let script = Script::from_slice(signature_script);
     Ok(script.to_string())
+}
+
+pub fn find_token_entry<'a>(
+    token: &Option<Token>,
+    entries: &'a [TokenEntryTemplate<'a>],
+) -> askama::Result<Option<&'a TokenEntryTemplate<'a>>> {
+    let Some(token) = token else { return Ok(None) };
+    Ok(entries
+        .iter()
+        .find(|entry| entry.entry.token_id == token.token_id))
+}
+
+pub fn token_entry_genesis_info<'a>(
+    entry: &Option<&'a TokenEntryTemplate<'a>>,
+) -> askama::Result<Option<&'a GenesisInfo>> {
+    Ok(entry.and_then(|entry| entry.genesis_info.as_ref()))
 }
 
 pub fn check_is_token(token: &Option<Token>) -> askama::Result<bool> {

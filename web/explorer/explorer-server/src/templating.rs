@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use askama::Template;
 use bitcoinsuite_chronik_client::proto::{
-    BlockInfo, GenesisInfo, ScriptUtxo, TokenEntry, TokenInfo, Tx,
+    BlockInfo, GenesisInfo, TokenEntry, TokenInfo, Tx,
 };
 use chrono::{DateTime, Utc};
 
@@ -34,24 +34,28 @@ pub struct TransactionTemplate<'a> {
     pub title: &'a str,
     pub sats_addr_prefix: &'a str,
     pub tokens_addr_prefix: &'a str,
-    pub token_section_title: &'a str,
     pub is_token: bool,
     pub tx_hex: &'a str,
-    pub token_hex: Option<String>,
-    pub tx: Tx,
-    pub slp_genesis_info: Option<GenesisInfo>,
-    pub slp_meta: Option<TokenEntry>,
     pub raw_tx: String,
+    pub tx: &'a Tx,
+    pub token_entries: Vec<TokenEntryTemplate<'a>>,
     pub confirmations: i32,
     pub timestamp: DateTime<Utc>,
     pub sats_input: i64,
     pub sats_output: i64,
+    pub token_icon_url: &'a str,
+}
+
+pub struct TokenEntryTemplate<'a> {
+    pub token_hex: String,
+    pub token_section_title: String,
+    pub entry: &'a TokenEntry,
+    pub genesis_info: Option<GenesisInfo>,
     pub token_input: i128,
     pub token_output: i128,
     pub action_str: &'a str,
     pub specification: &'a str,
     pub token_type: &'a str,
-    pub token_icon_url: &'a str,
 }
 
 #[derive(Template)]
@@ -60,7 +64,6 @@ pub struct AddressTemplate<'a> {
     pub tokens: HashMap<String, TokenInfo>,
     pub token_dust: i64,
     pub total_xec: i64,
-    pub token_utxos: Vec<ScriptUtxo>,
     pub address_num_txs: u32,
     pub address: &'a str,
     pub sats_address: &'a str,

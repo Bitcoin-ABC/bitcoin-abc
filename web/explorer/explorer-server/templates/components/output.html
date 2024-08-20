@@ -2,10 +2,11 @@
     index,
     output,
     tx,
-    slp_genesis_info,
     sats_addr_prefix,
     tokens_addr_prefix,
     token_icon_url) %}
+    {% let token_entry = output.token|find_token_entry(token_entries) %}
+    {% let genesis_info = token_entry|token_entry_genesis_info %}
     {% let is_token = output.token|check_is_token %}
     {% let destination = output.output_script |
     destination_from_script(is_token, sats_addr_prefix, tokens_addr_prefix) %}
@@ -33,7 +34,7 @@
                 <div class="input-hex">
                     {% match output.token %}
                         {% when Some with (slp_token) %}
-                        {% match slp_genesis_info %}
+                        {% match genesis_info %}
                             {% when Some with (genesis_info) %}
                             {% if slp_token.amount > 0 || slp_token.is_mint_baton %}
                                 {% if slp_token.is_mint_baton %}
@@ -43,9 +44,9 @@
                                     {{ genesis_info.token_ticker|string_from_lossy_utf8 }}
                                 {% endif %}
                             {% endif %}
-                            {% match token_hex %}
-                                {% when Some with (token_hex) %}
-                                <img src="{{ token_icon_url }}/32/{{ token_hex }}.png" />
+                            {% match token_entry %}
+                                {% when Some with (token_entry) %}
+                                <img src="{{ token_icon_url }}/32/{{ token_entry.token_hex }}.png" />
                                 {% when None %}
                             {% endmatch %}
                             <div>
