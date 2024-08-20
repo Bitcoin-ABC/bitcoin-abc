@@ -536,8 +536,9 @@ BOOST_AUTO_TEST_CASE(find_1p1c_child_in_recent_rejects) {
     state_parent.Invalid(TxValidationResult::TX_PACKAGE_RECONSIDERABLE, "");
 
     // When the parent fails as reconsiderable, a 1p1c package is looked for
-    // in the orphanage. Children that are in RecentRejectsFilter are skipped,
-    // whether they were received from the same peer as the parent or not.
+    // in the orphanage. Only children received from the same peer as the
+    // parent are considered, and children that are in RecentRejectsFilter are
+    // skipped.
     for (const bool same_peer : {true, false}) {
         for (const bool child_in_rejects : {false, true}) {
             TestTxDownloadManagerImpl txdownload_impl{DEFAULT_OPTS, nodeid,
@@ -558,7 +559,7 @@ BOOST_AUTO_TEST_CASE(find_1p1c_child_in_recent_rejects) {
 
             const auto ret = txdownload_impl.MempoolRejectedTx(
                 ptx_parent, state_parent, nodeid, /*first_time_failure=*/true);
-            if (child_in_rejects) {
+            if (child_in_rejects || !same_peer) {
                 BOOST_CHECK(!ret.m_package_to_validate.has_value());
             } else {
                 BOOST_REQUIRE(ret.m_package_to_validate.has_value());

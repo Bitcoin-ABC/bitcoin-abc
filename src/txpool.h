@@ -87,13 +87,6 @@ public:
     std::vector<CTransactionRef>
     GetChildrenFromSamePeer(const CTransactionRef &parent, NodeId nodeid) const;
 
-    /**
-     * Get all children that spend from this tx but were not received from
-     * nodeid. Also return which peer provided each tx.
-     */
-    std::vector<std::pair<CTransactionRef, NodeId>>
-    GetChildrenFromDifferentPeer(const CTransactionRef &parent,
-                                 NodeId nodeid) const;
 
     /** Return how many entries exist in the pool */
     size_t Size() const { return m_pool_txs.size(); }

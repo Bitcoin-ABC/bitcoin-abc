@@ -90,21 +90,6 @@ static bool EqualTxns(const std::set<CTransactionRef> &set_txns,
 
     return true;
 }
-static bool
-EqualTxns(const std::set<CTransactionRef> &set_txns,
-          const std::vector<std::pair<CTransactionRef, NodeId>> &vec_txns) {
-    if (vec_txns.size() != set_txns.size()) {
-        return false;
-    }
-
-    for (const auto &[tx, nodeid] : vec_txns) {
-        if (set_txns.count(tx) <= 0) {
-            return false;
-        }
-    }
-
-    return true;
-}
 
 BOOST_AUTO_TEST_CASE(DoS_mapOrphans) {
     // This test had non-deterministic coverage due to
@@ -276,13 +261,6 @@ BOOST_AUTO_TEST_CASE(get_children) {
             EqualTxns(expected_parent2_children,
                       orphanage.GetChildrenFromSamePeer(parent2, node1)));
 
-        BOOST_CHECK(
-            EqualTxns(expected_parent1_children,
-                      orphanage.GetChildrenFromDifferentPeer(parent1, node2)));
-        BOOST_CHECK(
-            EqualTxns(expected_parent2_children,
-                      orphanage.GetChildrenFromDifferentPeer(parent2, node2)));
-
         // The peer must match
         BOOST_CHECK(orphanage.GetChildrenFromSamePeer(parent1, node2).empty());
         BOOST_CHECK(orphanage.GetChildrenFromSamePeer(parent2, node2).empty());
@@ -292,12 +270,6 @@ BOOST_AUTO_TEST_CASE(get_children) {
             orphanage.GetChildrenFromSamePeer(child_p1n0_p2n0, node1).empty());
         BOOST_CHECK(
             orphanage.GetChildrenFromSamePeer(child_p1n0_p2n0, node2).empty());
-        BOOST_CHECK(
-            orphanage.GetChildrenFromDifferentPeer(child_p1n0_p2n0, node1)
-                .empty());
-        BOOST_CHECK(
-            orphanage.GetChildrenFromDifferentPeer(child_p1n0_p2n0, node2)
-                .empty());
     }
 
     // Orphans provided by node1 and node2
@@ -322,9 +294,6 @@ BOOST_AUTO_TEST_CASE(get_children) {
             BOOST_CHECK(
                 EqualTxns(expected_parent1_node1,
                           orphanage.GetChildrenFromSamePeer(parent1, node1)));
-            BOOST_CHECK(EqualTxns(
-                expected_parent1_node1,
-                orphanage.GetChildrenFromDifferentPeer(parent1, node2)));
         }
 
         // Children of parent2 from node1:
@@ -334,9 +303,6 @@ BOOST_AUTO_TEST_CASE(get_children) {
             BOOST_CHECK(
                 EqualTxns(expected_parent2_node1,
                           orphanage.GetChildrenFromSamePeer(parent2, node1)));
-            BOOST_CHECK(EqualTxns(
-                expected_parent2_node1,
-                orphanage.GetChildrenFromDifferentPeer(parent2, node2)));
         }
 
         // Children of parent1 from node2:
@@ -347,9 +313,6 @@ BOOST_AUTO_TEST_CASE(get_children) {
             BOOST_CHECK(
                 EqualTxns(expected_parent1_node2,
                           orphanage.GetChildrenFromSamePeer(parent1, node2)));
-            BOOST_CHECK(EqualTxns(
-                expected_parent1_node2,
-                orphanage.GetChildrenFromDifferentPeer(parent1, node1)));
         }
 
         // Children of parent2 from node2:
@@ -359,9 +322,6 @@ BOOST_AUTO_TEST_CASE(get_children) {
             BOOST_CHECK(
                 EqualTxns(expected_parent2_node2,
                           orphanage.GetChildrenFromSamePeer(parent2, node2)));
-            BOOST_CHECK(EqualTxns(
-                expected_parent2_node2,
-                orphanage.GetChildrenFromDifferentPeer(parent2, node1)));
         }
     }
 }
