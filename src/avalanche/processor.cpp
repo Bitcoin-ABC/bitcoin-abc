@@ -922,7 +922,12 @@ bool Processor::computeStakingReward(const CBlockIndex *pindex) {
     if (m_stakingPreConsensus) {
         // If pindex has not been promoted in the contender cache yet, this will
         // be a no-op.
-        setContenderStatusForLocalWinners(pindex);
+        std::vector<StakeContenderId> pollableContenders;
+        if (setContenderStatusForLocalWinners(pindex, pollableContenders)) {
+            for (const StakeContenderId &contender : pollableContenders) {
+                addToReconcile(contender);
+            }
+        }
     }
 
     return rewardsInserted;
@@ -1069,9 +1074,12 @@ void Processor::promoteStakeContendersToTip() {
 
     // If staking rewards have not been computed yet, we will try again when
     // they have been.
-    setContenderStatusForLocalWinners(activeTip);
-
-    // TODO reconcile remoteProofs contenders
+    std::vector<StakeContenderId> pollableContenders;
+    if (setContenderStatusForLocalWinners(activeTip, pollableContenders)) {
+        for (const StakeContenderId &contender : pollableContenders) {
+            addToReconcile(contender);
+        }
+    }
 }
 
 bool Processor::setContenderStatusForLocalWinners(
@@ -1105,11 +1113,6 @@ bool Processor::setContenderStatusForLocalWinners(
     }
 
     return false;
-}
-
-bool Processor::setContenderStatusForLocalWinners(const CBlockIndex *pindex) {
-    std::vector<StakeContenderId> dummy;
-    return setContenderStatusForLocalWinners(pindex, dummy);
 }
 
 void Processor::updatedBlockTip() {

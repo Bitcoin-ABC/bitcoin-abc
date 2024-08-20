@@ -346,12 +346,12 @@ public:
     }
     bool isQuorumEstablished() LOCKS_EXCLUDED(cs_main)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
-                                 !cs_stakeContenderCache);
+                                 !cs_stakeContenderCache, !cs_finalizedItems);
     bool canShareLocalProof();
 
     bool computeStakingReward(const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_peerManager, !cs_stakingRewards,
-                                 !cs_stakeContenderCache);
+                                 !cs_stakeContenderCache, !cs_finalizedItems);
     bool eraseStakingRewardWinner(const BlockHash &prevBlockHash)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakingRewards);
     void cleanupStakingRewards(const int minHeight)
@@ -396,7 +396,8 @@ public:
     /** Promote stake contender cache entries to the latest chain tip */
     void promoteStakeContendersToTip()
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards,
-                                 !cs_peerManager, !cs_finalizationTip);
+                                 !cs_peerManager, !cs_finalizationTip,
+                                 !cs_finalizedItems);
 
 private:
     void updatedBlockTip()
@@ -424,8 +425,6 @@ private:
     bool setContenderStatusForLocalWinners(
         const CBlockIndex *pindex,
         std::vector<StakeContenderId> &pollableContenders)
-        EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
-    bool setContenderStatusForLocalWinners(const CBlockIndex *pindex)
         EXCLUSIVE_LOCKS_REQUIRED(!cs_stakeContenderCache, !cs_stakingRewards);
 
     /**

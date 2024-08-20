@@ -13,6 +13,7 @@ from test_framework.messages import (
     hash256,
     ser_uint256,
 )
+from test_framework.p2p import p2p_lock
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.util import assert_equal, uint256_hex
 
@@ -166,12 +167,45 @@ class AvalancheContenderVotingTest(BitcoinTestFramework):
         contender_id = make_contender_id(tip, manual_winner.proofid)
         poll_node.send_poll([contender_id], inv_type=MSG_AVA_STAKE_CONTENDER)
         expectedVote = AvalancheContenderVoteError.INVALID
-        if node.getstakingreward(tip)[0]["proofid"] == uint256_hex(
-            manual_winner.proofid
-        ):
+        local_winner_proofid = int(node.getstakingreward(tip)[0]["proofid"], 16)
+        if local_winner_proofid == manual_winner.proofid:
             # If manual_winner happens to be selected as the winner, it will be accepted
             expectedVote = AvalancheContenderVoteError.ACCEPTED
         assert_response([AvalancheVote(expectedVote, contender_id)])
+
+        # Answer polls until the chain tip (and contenders) start polling
+        can_find_inv_in_poll(quorum, int(tip, 16))
+
+        # Pop a poll from any peer
+        def wait_for_poll():
+            self.wait_until(lambda: any(len(peer.avapolls) > 0 for peer in quorum))
+            with p2p_lock:
+                for peer in quorum:
+                    if len(peer.avapolls) > 0:
+                        return peer.avapolls.pop(0)
+            return None
+
+        poll = wait_for_poll()
+        assert poll is not None
+
+        # Count contenders being polled for
+        count = 0
+        found_local_winner = False
+        local_winner_contender_id = make_contender_id(tip, local_winner_proofid)
+        quorum_contenders = [
+            make_contender_id(tip, peer.proof.proofid) for peer in quorum
+        ]
+        for inv in poll.invs:
+            if inv.hash in quorum_contenders:
+                count += 1
+                if local_winner_contender_id == inv.hash:
+                    found_local_winner = True
+
+        # Check that the local winner was polled
+        assert found_local_winner
+
+        # Check that the max number of contenders were polled
+        assert_equal(count, 12)
 
         # Manually set this contender as a winner
         node.setstakingreward(tip, manual_winner.payout_script.hex())
