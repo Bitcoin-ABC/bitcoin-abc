@@ -294,7 +294,7 @@ const datatable = () => {
     const address = getAddress();
 
     $('#address-txs-table').DataTable({
-        dom: 'Bfrtip',
+        paging: false,
         buttons: [
             {
                 extend: 'csv',

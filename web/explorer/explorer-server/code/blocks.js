@@ -119,6 +119,7 @@ const dataTable = () => {
     $('#date').text(`Date (${tzString})`);
 
     $('#blocks-table').DataTable({
+        paging: false,
         searching: false,
         retrieve: true,
         lengthMenu: [50, 100, 250],

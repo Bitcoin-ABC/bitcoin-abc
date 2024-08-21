@@ -97,6 +97,7 @@ const datatable = () => {
     const blockHash = $('#block-hash').text();
 
     $('#txs-table').DataTable({
+        paging: false,
         searching: false,
         lengthMenu: [25, 50, 100, 200],
         pageLength: DEFAULT_ROWS_PER_PAGE,
