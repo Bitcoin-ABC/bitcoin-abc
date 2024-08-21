@@ -28,7 +28,6 @@ template <unsigned int N, typename T> class prevector_tester {
 
     typedef typename pretype::size_type Size;
     bool passed = true;
-    FastRandomContext rand_cache;
     uint256 rand_seed;
 
     template <typename A, typename B> void local_check_equal(A a, B b) {
@@ -202,9 +201,8 @@ public:
     }
 
     prevector_tester() {
-        SeedRandomForTest();
         rand_seed = InsecureRand256();
-        rand_cache.Reseed(rand_seed);
+        g_insecure_rand_ctx.Reseed(rand_seed);
     }
 };
 
