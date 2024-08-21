@@ -83,7 +83,7 @@ final class DjlintLinter extends ArcanistExternalLinter {
     $cmd = sprintf(
       '%s %s -',
       $this->getDefaultBinary(),
-      implode(" ", $this->getCommonMandatoryFlags()),
+      implode(" ", $this->getCommonMandatoryFlags())
     );
     $descriptorspec = array(
       0 => array("pipe", "r"), // stdin
