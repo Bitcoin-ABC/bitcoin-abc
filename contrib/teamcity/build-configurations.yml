@@ -915,6 +915,7 @@ builds:
   ecash-agora-integration-tests:
     cmake_flags:
       - '-DBUILD_BITCOIN_CHRONIK=ON'
+      - '-DBUILD_BITCOIN_CHRONIK_PLUGINS=ON'
     targets:
       - - all
     runOnDiffRegex:

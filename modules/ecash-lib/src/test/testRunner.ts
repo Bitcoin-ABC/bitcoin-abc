@@ -40,7 +40,9 @@ export class TestRunner {
         this.lastUsedOutIdx = 0;
     }
 
-    public static async setup(): Promise<TestRunner> {
+    public static async setup(
+        setupScript: string = 'setup_scripts/ecash-lib_base',
+    ): Promise<TestRunner> {
         const { ChronikClient } = await import('chronik-client');
         const { spawn } = await import('node:child_process');
         const events = await import('node:events');
@@ -51,7 +53,7 @@ export class TestRunner {
             [
                 'test/functional/test_runner.py',
                 // Place the setup in the python file
-                'setup_scripts/ecash-lib_base',
+                setupScript,
             ],
             {
                 stdio: ['ipc'],

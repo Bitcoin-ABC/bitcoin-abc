@@ -8,11 +8,13 @@ import { ChronikClient } from 'chronik-client';
 import {
     ALL_BIP143,
     Ecc,
+    OutPoint,
     P2PKHSignatory,
     SLP_NFT1_CHILD,
     SLP_NFT1_GROUP,
     Script,
     TxBuilder,
+    TxInput,
     TxOutput,
     fromHex,
     initWasm,
@@ -27,9 +29,9 @@ import { AGORA_LOKAD_ID } from '../src/consts.js';
 import {
     AgoraOneshot,
     AgoraOneshotAdSignatory,
-    AgoraOneshotCancelSignatory,
     AgoraOneshotSignatory,
 } from '../src/oneshot.js';
+import { Agora, AgoraOffer } from '../src/agora.js';
 
 use(chaiAsPromised);
 
@@ -38,14 +40,14 @@ const COIN_VALUE = 100000;
 
 const SLP_TOKEN_TYPE_NFT1_GROUP = {
     number: 0x81,
-    protocol: 'SLP',
-    type: 'SLP_TOKEN_TYPE_NFT1_GROUP',
+    protocol: 'SLP' as const,
+    type: 'SLP_TOKEN_TYPE_NFT1_GROUP' as const,
 };
 
 const SLP_TOKEN_TYPE_NFT1_CHILD = {
     number: 0x41,
-    protocol: 'SLP',
-    type: 'SLP_TOKEN_TYPE_NFT1_CHILD',
+    protocol: 'SLP' as const,
+    type: 'SLP_TOKEN_TYPE_NFT1_CHILD' as const,
 };
 
 describe('SLP', () => {
@@ -55,7 +57,7 @@ describe('SLP', () => {
 
     before(async () => {
         await initWasm();
-        runner = await TestRunner.setup();
+        runner = await TestRunner.setup('setup_scripts/ecash-agora_base');
         chronik = runner.chronik;
         ecc = runner.ecc;
         await runner.setupCoins(NUM_COINS, COIN_VALUE);
@@ -78,6 +80,9 @@ describe('SLP', () => {
         //    with a new advertisement
         // 8. Buyer searches for NFT trades again, finding both, one spent
         // 9. Buyer successfully accepts advertized NFT offer for 70000 sats
+
+        // Create Agora object to access trades
+        const agora = new Agora(chronik);
 
         const sellerSk = fromHex('11'.repeat(32));
         const sellerPk = ecc.derivePubkey(sellerSk);
@@ -126,10 +131,10 @@ describe('SLP', () => {
         });
         const genesisTx = txBuildGenesisGroup.sign(ecc);
         const genesisTxid = (await chronik.broadcastTx(genesisTx.ser())).txid;
-        const tokenId = genesisTxid;
+        const groupTokenId = genesisTxid;
 
         expect(await chronik.token(genesisTxid)).to.deep.equal({
-            tokenId,
+            tokenId: groupTokenId,
             tokenType: SLP_TOKEN_TYPE_NFT1_GROUP,
             genesisInfo: {
                 tokenTicker: 'SLP NFT1 GROUP TOKEN',
@@ -263,8 +268,65 @@ describe('SLP', () => {
         });
         const offerTx = txBuildOffer.sign(ecc);
         const offerTxid = (await chronik.broadcastTx(offerTx.ser())).txid;
+        const offerOutpoint: OutPoint = {
+            txid: offerTxid,
+            outIdx: 1,
+        };
+        const offerTxBuilderInput: TxInput = {
+            prevOut: offerOutpoint,
+            signData: {
+                redeemScript: agoraScript,
+                value: 546,
+            },
+        };
+
+        // Expected created offer
+        const expectedOffer = new AgoraOffer({
+            variant: {
+                type: 'ONESHOT',
+                params: agoraOneshot,
+            },
+            outpoint: offerOutpoint,
+            txBuilderInput: offerTxBuilderInput,
+            token: {
+                tokenId: childTokenId,
+                tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                amount: '1',
+                isMintBaton: false,
+            },
+        });
 
         // 5. Buyer searches for NFT trades, finds the advertised one
+        expect(await agora.allOfferedTokenIds()).to.deep.equal([childTokenId]);
+        expect(await agora.offeredGroupTokenIds()).to.deep.equal([
+            groupTokenId,
+        ]);
+        expect(await agora.offeredFungibleTokenIds()).to.deep.equal([]);
+
+        // Query by group token ID
+        expect(
+            await agora.activeOffersByGroupTokenId(groupTokenId),
+        ).to.deep.equal([expectedOffer]);
+        // activeOffersByGroupTokenId with child token ID -> empty result
+        expect(
+            await agora.activeOffersByGroupTokenId(childTokenId),
+        ).to.deep.equal([]);
+
+        // Query by child token ID
+        expect(await agora.activeOffersByTokenId(childTokenId)).to.deep.equal([
+            expectedOffer,
+        ]);
+        // activeOffersByTokenId with by group token ID -> empty result
+        expect(await agora.activeOffersByTokenId(groupTokenId)).to.deep.equal(
+            [],
+        );
+
+        // Query by cancelPk
+        expect(await agora.activeOffersByPubKey(toHex(sellerPk))).to.deep.equal(
+            [expectedOffer],
+        );
+
+        // Use LOKAD ID enpoint + parseAgoraTx to find offers
         const agoraTxs = (
             await chronik.lokadId(toHex(AGORA_LOKAD_ID)).history()
         ).txs;
@@ -281,21 +343,9 @@ describe('SLP', () => {
         expect(parsedAd).to.be.deep.equal({
             type: 'ONESHOT',
             params: agoraOneshot,
-            outpoint: {
-                txid: offerTxid,
-                outIdx: 1,
-            },
+            outpoint: offerOutpoint,
             spentBy: undefined,
-            txBuilderInput: {
-                prevOut: {
-                    txid: offerTxid,
-                    outIdx: 1,
-                },
-                signData: {
-                    redeemScript: agoraScript,
-                    value: 546,
-                },
-            },
+            txBuilderInput: offerTxBuilderInput,
         });
 
         // 6. Buyer attempts to buy the NFT using 79999 sats, which is rejected
@@ -357,76 +407,99 @@ describe('SLP', () => {
         const newAgoraScript = newAgoraOneshot.script();
         const newAgoraP2sh = Script.p2sh(shaRmd160(newAgoraScript.bytecode));
         const newAgoraAdScript = newAgoraOneshot.adScript();
+        const cancelFeeSats = 600;
         const newAdSetupTxid = await runner.sendToScript(
-            2000,
+            cancelFeeSats,
             Script.p2sh(shaRmd160(newAgoraAdScript.bytecode)),
         );
-        const txBuildCancel = new TxBuilder({
-            inputs: [
-                {
-                    input: {
-                        prevOut: {
-                            txid: newAdSetupTxid,
-                            outIdx: 0,
-                        },
-                        signData: {
-                            value: 2000,
-                            redeemScript: newAgoraAdScript,
-                        },
-                    },
-                    signatory: AgoraOneshotAdSignatory(sellerSk),
+        const offer1 = (await agora.activeOffersByTokenId(childTokenId))[0];
+        const offer1AdInput = {
+            input: {
+                prevOut: {
+                    txid: newAdSetupTxid,
+                    outIdx: 0,
                 },
-                {
-                    input: {
-                        prevOut: {
-                            txid: offerTxid,
-                            outIdx: 1,
-                        },
-                        signData: {
-                            value: 546,
-                            redeemScript: agoraScript,
-                        },
-                    },
-                    signatory: AgoraOneshotCancelSignatory(sellerSk),
+                signData: {
+                    value: cancelFeeSats,
+                    redeemScript: newAgoraAdScript,
                 },
-            ],
-            outputs: [
-                {
-                    value: 0,
-                    script: slpSend(childTokenId, SLP_NFT1_CHILD, [1]),
-                },
-                // Send back with different terms, asking for 70000 now
-                { value: 546, script: newAgoraP2sh },
-            ],
+            },
+            signatory: AgoraOneshotAdSignatory(sellerSk),
+        };
+        expect(offer1.askedSats()).to.equal(80000n);
+        expect(
+            offer1.cancelFeeSats({
+                recipientScript: newAgoraP2sh,
+                extraInputs: [offer1AdInput],
+            }),
+        ).to.equal(BigInt(cancelFeeSats));
+        const cancelTx = offer1.cancelTx({
+            ecc,
+            cancelSk: sellerSk,
+            fuelInputs: [offer1AdInput],
+            recipientScript: newAgoraP2sh,
         });
-        const cancelTx = txBuildCancel.sign(ecc);
+        expect(cancelTx.serSize()).to.equal(cancelFeeSats);
         const newOfferTxid = (await chronik.broadcastTx(cancelTx.ser())).txid;
+        const newOfferOutpoint: OutPoint = {
+            txid: newOfferTxid,
+            outIdx: 1,
+        };
+        const newOfferTxBuilderInput: TxInput = {
+            prevOut: newOfferOutpoint,
+            signData: {
+                redeemScript: newAgoraScript,
+                value: 546,
+            },
+        };
 
         // 8. Buyer searches for NFT trades again, finding both, one spent
+        expect(await agora.allOfferedTokenIds()).to.deep.equal([childTokenId]);
+        expect(await agora.offeredGroupTokenIds()).to.deep.equal([
+            groupTokenId,
+        ]);
+        expect(await agora.offeredFungibleTokenIds()).to.deep.equal([]);
+
+        const newExpectedOffer = new AgoraOffer({
+            variant: {
+                type: 'ONESHOT',
+                params: newAgoraOneshot,
+            },
+            outpoint: newOfferOutpoint,
+            txBuilderInput: newOfferTxBuilderInput,
+            token: {
+                tokenId: childTokenId,
+                tokenType: SLP_TOKEN_TYPE_NFT1_CHILD,
+                amount: '1',
+                isMintBaton: false,
+            },
+        });
+
+        expect(
+            await agora.activeOffersByGroupTokenId(groupTokenId),
+        ).to.deep.equal([newExpectedOffer]);
+        expect(await agora.activeOffersByTokenId(childTokenId)).to.deep.equal([
+            newExpectedOffer,
+        ]);
+        expect(await agora.activeOffersByPubKey(toHex(sellerPk))).to.deep.equal(
+            [newExpectedOffer],
+        );
+
+        // Use LOKAD ID index + parseAgoraTx to find the offers
         const newAgoraTxs = (
             await chronik.lokadId(toHex(AGORA_LOKAD_ID)).history()
         ).txs;
         expect(newAgoraTxs.length).to.equal(2);
+        newAgoraTxs.sort(
+            (a, b) => +!a.outputs[1].spentBy - +!b.outputs[1].spentBy,
+        );
         const parsedAds = newAgoraTxs.map(parseAgoraTx);
-        parsedAds.sort((a, b) => +!a?.spentBy - +!b?.spentBy);
         expect(parsedAds).to.deep.equal([
             {
                 type: 'ONESHOT',
                 params: agoraOneshot,
-                outpoint: {
-                    txid: offerTxid,
-                    outIdx: 1,
-                },
-                txBuilderInput: {
-                    prevOut: {
-                        txid: offerTxid,
-                        outIdx: 1,
-                    },
-                    signData: {
-                        redeemScript: agoraScript,
-                        value: 546,
-                    },
-                },
+                outpoint: offerOutpoint,
+                txBuilderInput: offerTxBuilderInput,
                 spentBy: {
                     txid: newOfferTxid,
                     outIdx: 1,
@@ -435,57 +508,62 @@ describe('SLP', () => {
             {
                 type: 'ONESHOT',
                 params: newAgoraOneshot,
-                outpoint: {
-                    txid: newOfferTxid,
-                    outIdx: 1,
-                },
-                txBuilderInput: {
-                    prevOut: {
-                        txid: newOfferTxid,
-                        outIdx: 1,
-                    },
-                    signData: {
-                        redeemScript: newAgoraScript,
-                        value: 546,
-                    },
-                },
+                outpoint: newOfferOutpoint,
+                txBuilderInput: newOfferTxBuilderInput,
                 spentBy: undefined,
             },
         ]);
-        const newParsedAd = parsedAds[1]!;
 
         // 9. Buyer successfully accepts advertized NFT offer for 70000 sats
-        const txBuildAcceptSuccess = new TxBuilder({
-            version: 2,
-            inputs: [
-                {
-                    input: newParsedAd.txBuilderInput,
-                    signatory: AgoraOneshotSignatory(
-                        buyerSk,
-                        buyerPk,
-                        newParsedAd.params.enforcedOutputs.length,
-                    ),
+        const offer2 = (await agora.activeOffersByTokenId(childTokenId))[0];
+        expect(offer2.askedSats()).to.equal(70000n);
+        const acceptFeeSats = 740;
+        const acceptSats = acceptFeeSats + Number(offer2.askedSats());
+        const acceptSatsTxid = await runner.sendToScript(
+            acceptSats,
+            buyerP2pkh,
+        );
+        const offer2AcceptInput = {
+            input: {
+                prevOut: {
+                    txid: acceptSatsTxid,
+                    outIdx: 0,
                 },
-                {
-                    input: {
-                        prevOut: {
-                            txid: buyerSatsTxid,
-                            outIdx: 0,
-                        },
-                        signData: {
-                            value: 90000,
-                            outputScript: buyerP2pkh,
-                        },
-                    },
-                    signatory: P2PKHSignatory(buyerSk, buyerPk, ALL_BIP143),
+                signData: {
+                    value: acceptSats,
+                    outputScript: buyerP2pkh,
                 },
-            ],
-            outputs: [
-                ...newParsedAd.params.enforcedOutputs,
-                { value: 546, script: buyerP2pkh },
-            ],
+            },
+            signatory: P2PKHSignatory(buyerSk, buyerPk, ALL_BIP143),
+        };
+        expect(
+            offer2.acceptFeeSats({
+                recipientScript: buyerP2pkh,
+                extraInputs: [offer2AcceptInput],
+            }),
+        ).to.equal(BigInt(acceptFeeSats));
+        const acceptSuccessTx = offer2.acceptTx({
+            ecc,
+            covenantSk: buyerSk,
+            covenantPk: buyerPk,
+            fuelInputs: [offer2AcceptInput],
+            recipientScript: buyerP2pkh,
         });
-        const acceptSuccessTx = txBuildAcceptSuccess.sign(ecc);
+        expect(acceptSuccessTx.serSize()).to.equal(acceptFeeSats);
         await chronik.broadcastTx(acceptSuccessTx.ser());
+
+        // No trades left anymore
+        expect(await agora.allOfferedTokenIds()).to.deep.equal([]);
+        expect(await agora.offeredGroupTokenIds()).to.deep.equal([]);
+        expect(await agora.offeredFungibleTokenIds()).to.deep.equal([]);
+        expect(
+            await agora.activeOffersByGroupTokenId(groupTokenId),
+        ).to.deep.equal([]);
+        expect(await agora.activeOffersByTokenId(childTokenId)).to.deep.equal(
+            [],
+        );
+        expect(await agora.activeOffersByPubKey(toHex(sellerPk))).to.deep.equal(
+            [],
+        );
     });
 });

@@ -172,11 +172,11 @@ export class AgoraOneshot {
             throw new Error('Op 4 expected to be pushop for covenantVariant');
         }
         if (ops.next() !== OP_EQUALVERIFY) {
-            throw new Error('Op 5 expected to be OP_CHECKSIGVERIFY');
+            throw new Error('Op 5 expected to be OP_EQUALVERIFY');
         }
         const lokadIdOp = ops.next();
         if (!isPushOp(lokadIdOp)) {
-            throw new Error('Op 6 expected to be pushop for covenantVariant');
+            throw new Error('Op 6 expected to be pushop for LOKAD ID');
         }
         const outputsSerBytes = new Bytes(outputsSerOp.data);
         const enforcedOutputs: TxOutput[] = [
@@ -216,6 +216,13 @@ export class AgoraOneshot {
             pushBytesOp(AGORA_LOKAD_ID),
             OP_EQUAL,
         ]);
+    }
+
+    public askedSats(): bigint {
+        return this.enforcedOutputs.reduce(
+            (prev, output) => prev + BigInt(output.value),
+            0n,
+        );
     }
 }
 
