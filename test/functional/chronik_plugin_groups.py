@@ -73,7 +73,7 @@ class MyPluginPlugin(Plugin):
         outputs = []
         for idx, (op, _) in enumerate(zip(ops[2:], tx.outputs[1:])):
             outputs.append(
-                PluginOutput(idx=idx + 1, group=op)
+                PluginOutput(idx=idx + 1, groups=op)
             )
         return outputs
 """,

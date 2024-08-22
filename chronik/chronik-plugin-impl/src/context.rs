@@ -140,19 +140,19 @@ pub enum PluginRunError {
         obj_str: String,
     },
 
-    /// PluginOutput is missing `group` (should never happen by NamedTuple)
-    #[error("`group` of `PluginOutput` missing at list index {0}")]
-    MissingGroup(usize),
+    /// PluginOutput is missing `groups` (should never happen by NamedTuple)
+    #[error("`groups` of `PluginOutput` missing at list index {0}")]
+    MissingGroups(usize),
 
     /// `idx` of `PluginOutput` must be bytes or list of bytes
     #[error(
-        "`group` of `PluginOutput` must be bytes or list[bytes]: at list \
+        "`groups` of `PluginOutput` must be bytes or list[bytes]: at list \
          index {idx}, got {obj_str}"
     )]
     GroupNotListOfBytes {
         /// Index of the `PluginOutput` in the list returned by the plugin
         idx: usize,
-        /// repr of the `group` field
+        /// repr of the `groups` field
         obj_str: String,
     },
 
@@ -394,12 +394,12 @@ impl PluginContext {
                 idx,
                 obj_str: repr(&out_idx),
             })?;
-            let group =
-                output.getattr("group").map_err(|_| MissingGroup(idx))?;
-            let groups = extract_bytes_or_list(&group).map_err(|_| {
+            let groups =
+                output.getattr("groups").map_err(|_| MissingGroups(idx))?;
+            let groups = extract_bytes_or_list(&groups).map_err(|_| {
                 GroupNotListOfBytes {
                     idx,
-                    obj_str: repr(&group),
+                    obj_str: repr(&groups),
                 }
             })?;
             let data = output.getattr("data").map_err(|_| MissingData(idx))?;
@@ -529,26 +529,26 @@ class Plg1Plugin(Plugin):
         elif tx.version == 3:
             return ['string']
         elif tx.version == 4:
-            return [PluginOutput(idx='string', group=[])]
+            return [PluginOutput(idx='string', groups=[])]
         elif tx.version == 5:
-            return [PluginOutput(idx=0, group='string')]
+            return [PluginOutput(idx=0, groups='string')]
         elif tx.version == 6:
-            return [PluginOutput(idx=0, group=[], data='string')]
+            return [PluginOutput(idx=0, groups=[], data='string')]
         elif tx.version == 7:
-            return [PluginOutput(idx=77, group=[])]
+            return [PluginOutput(idx=77, groups=[])]
         elif tx.version == 8:
             return [
-                PluginOutput(idx=0, group=[]),
-                PluginOutput(idx=0, group=[]),
+                PluginOutput(idx=0, groups=[]),
+                PluginOutput(idx=0, groups=[]),
             ]
         elif tx.version == 9:
-            return [PluginOutput(idx=0, group=[b'grp1', b'grp2'], data=b'dat')]
+            return [PluginOutput(idx=0, groups=[b'grp1', b'grp2'], data=b'dat')]
         elif tx.version == 10:
             return [
                 # interpreted as [b'']
-                PluginOutput(idx=1, group=b'', data=b''),
+                PluginOutput(idx=1, groups=b'', data=b''),
                 # interpreted as []
-                PluginOutput(idx=2, group=[], data=[]),
+                PluginOutput(idx=2, groups=[], data=[]),
             ]
 ",
         )?;
@@ -563,8 +563,8 @@ class Plg2Plugin(Plugin):
         return '0.0.0'
     def run(self, tx):
         return [
-            PluginOutput(idx=0, group=[], data=b'batman'),
-            PluginOutput(idx=1, group=b'2grp', data=[b'2dat', b'3dat']),
+            PluginOutput(idx=0, groups=[], data=b'batman'),
+            PluginOutput(idx=1, groups=b'2grp', data=[b'2dat', b'3dat']),
         ]",
         )?;
 

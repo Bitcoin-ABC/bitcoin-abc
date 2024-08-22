@@ -12,7 +12,7 @@ class PluginOutput(NamedTuple):
     idx: int
 
     # Which group(s) this output belongs to.
-    group: Union[bytes, list[bytes]]
+    groups: Union[bytes, list[bytes]]
 
     # Data attached to this output.
     data: Union[None, bytes, list[bytes]] = None

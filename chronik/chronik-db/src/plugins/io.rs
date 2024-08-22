@@ -564,7 +564,7 @@ class CounterPlugin(Plugin):
         if tx.inputs:
             value = tx.inputs[0].plugin['counter'].data[0][0]
         value += 1
-        return [PluginOutput(idx=1, data=bytes([value]), group=[])]
+        return [PluginOutput(idx=1, data=bytes([value]), groups=[])]
         ",
         )?;
 
@@ -583,7 +583,7 @@ class SummerPlugin(Plugin):
         return [PluginOutput(
             idx=1,
             data=[bytes([input_sum]), bytes([output_sum])],
-            group=[],
+            groups=[],
         )]",
         )?;
 

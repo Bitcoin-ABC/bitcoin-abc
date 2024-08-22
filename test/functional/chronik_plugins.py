@@ -71,15 +71,15 @@ class MyPluginPlugin(Plugin):
         outputs = []
         for idx, (op, _) in enumerate(zip(ops[2:], tx.outputs[1:])):
             data = [op]
-            group = []
+            groups = []
             if op:
-                group = [op[:1]]
+                groups = [op[:1]]
             if idx < len(tx.inputs):
                 tx_input = tx.inputs[idx]
                 if 'my_plugin' in tx_input.plugin:
                     data += tx_input.plugin['my_plugin'].data
             outputs.append(
-                PluginOutput(idx=idx + 1, data=data, group=group)
+                PluginOutput(idx=idx + 1, data=data, groups=groups)
             )
         return outputs
 """,
