@@ -6,7 +6,7 @@ import { expect } from 'chai';
 
 import { ChronikClient } from 'chronik-client';
 
-import { Ecc } from '../src/ecc.js';
+import { Ecc, EccDummy } from '../src/ecc.js';
 import { sha256d, shaRmd160 } from '../src/hash.js';
 import { initWasm } from '../src/initNodeJs.js';
 import { fromHex, toHex } from '../src/io/hex.js';
@@ -636,6 +636,45 @@ describe('TxBuilder', () => {
             `Insufficient input value (180000): Can only pay for ` +
                 `${smallerSize - 1} fees, but ${smallerSize} required`,
         );
+    });
+
+    it('TxBuilder signatory dependent on outputs', async () => {
+        // Size of a tx with 1 input with empty scriptSig
+        const expectedSize =
+            4 + // nVersion
+            1 + // num inputs
+            36 + // prevOut
+            1 + // script len
+            4 + // nSequence
+            1 + // num outputs
+            4; // locktime
+        const txBuild = new TxBuilder({
+            inputs: [
+                {
+                    input: {
+                        prevOut: {
+                            txid: toHex(new Uint8Array(32)),
+                            outIdx: 0,
+                        },
+                        signData: {
+                            value: expectedSize,
+                        },
+                    },
+                    signatory: (_, input) => {
+                        // returns OP_0 * number outputs
+                        // -> estimation will start this with 1 leftover output
+                        // and then with no outputs.
+                        return new Script(
+                            new Uint8Array(input.unsignedTx.tx.outputs.length),
+                        );
+                    },
+                },
+            ],
+            // Leftover script, but will be spliced out again
+            outputs: [new Script()],
+        });
+        const tx = txBuild.sign(new EccDummy(), 1000, 9999);
+        expect(tx.serSize()).to.equal(expectedSize);
     });
 
     it('TxBuilder leftover failure', async () => {

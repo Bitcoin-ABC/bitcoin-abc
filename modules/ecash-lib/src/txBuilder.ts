@@ -120,6 +120,21 @@ export class TxBuilder {
     public sign(ecc: Ecc, feePerKb?: number, dustLimit?: number): Tx {
         const { fixedOutputSum, leftoverIdx, outputs } = this.prepareOutputs();
         const inputs = this.inputs.map(input => copyTxInput(input.input));
+        const updateSignatories = (ecc: Ecc, unsignedTx: UnsignedTx) => {
+            for (let idx = 0; idx < this.inputs.length; ++idx) {
+                const signatory = this.inputs[idx].signatory;
+                const input = inputs[idx];
+                if (signatory !== undefined) {
+                    input.script = signatory(
+                        ecc,
+                        new UnsignedTxInput({
+                            inputIdx: idx,
+                            unsignedTx,
+                        }),
+                    );
+                }
+            }
+        };
         if (leftoverIdx !== undefined) {
             const inputSum = this.inputSum();
             if (inputSum === undefined) {
@@ -148,21 +163,8 @@ export class TxBuilder {
                     locktime: this.locktime,
                 }),
             );
-            for (let inputIdx = 0; inputIdx < this.inputs.length; ++inputIdx) {
-                const signatory = this.inputs[inputIdx].signatory;
-                const input = inputs[inputIdx];
-                if (signatory !== undefined) {
-                    // Must use dummy here because ECDSA sigs could be too small
-                    // for fee calc
-                    input.script = signatory(
-                        new EccDummy(),
-                        new UnsignedTxInput({
-                            inputIdx,
-                            unsignedTx: dummyUnsignedTx,
-                        }),
-                    );
-                }
-            }
+            // Must use dummy here because ECDSA sigs could be too small for fee calc
+            updateSignatories(new EccDummy(), dummyUnsignedTx);
             let txSize = dummyUnsignedTx.tx.serSize();
             let txFee = calcTxFee(txSize, feePerKb);
             const leftoverValue = inputSum - (fixedOutputSum + txFee);
@@ -170,6 +172,8 @@ export class TxBuilder {
                 // inputs cannot pay for a dust leftover -> remove & recalc
                 outputs.splice(leftoverIdx, 1);
                 dummyUnsignedTx.tx.outputs = outputs;
+                // Must update signatories again as they might depend on outputs
+                updateSignatories(new EccDummy(), dummyUnsignedTx);
                 txSize = dummyUnsignedTx.tx.serSize();
                 txFee = calcTxFee(txSize, feePerKb);
             } else {
@@ -191,19 +195,7 @@ export class TxBuilder {
                 locktime: this.locktime,
             }),
         );
-        for (let inputIdx = 0; inputIdx < this.inputs.length; ++inputIdx) {
-            const signatory = this.inputs[inputIdx].signatory;
-            const input = inputs[inputIdx];
-            if (signatory !== undefined) {
-                input.script = signatory(
-                    ecc,
-                    new UnsignedTxInput({
-                        inputIdx,
-                        unsignedTx,
-                    }),
-                );
-            }
-        }
+        updateSignatories(ecc, unsignedTx);
         return unsignedTx.tx;
     }
 }
