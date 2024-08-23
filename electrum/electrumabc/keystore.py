@@ -48,7 +48,12 @@ from .bip32 import (
     xpub_from_xprv,
 )
 from .crypto import Hash, pw_decode, pw_encode
-from .ecc import SignatureType, regenerate_key
+from .ecc import (
+    PRIVATE_KEY_BYTECOUNT,
+    SignatureType,
+    be_bytes_to_number,
+    regenerate_key,
+)
 from .plugins import run_hook
 from .printerror import PrintError, print_error
 from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
@@ -506,13 +511,11 @@ class OldKeyStore(DeterministicKeyStore):
         x = seed
         for i in range(100000):
             x = hashlib.sha256(x + seed).digest()
-        return ecdsa.util.string_to_number(x)
+        return be_bytes_to_number(x)
 
     @classmethod
     def get_sequence(self, mpk: bytes, for_change: Union[int, bool], n: int):
-        return ecdsa.util.string_to_number(
-            Hash(f"{n:d}:{for_change:d}:".encode("ascii") + mpk)
-        )
+        return be_bytes_to_number(Hash(f"{n:d}:{for_change:d}:".encode("ascii") + mpk))
 
     @classmethod
     def get_pubkey_from_mpk(self, mpk: bytes, for_change, n) -> bytes:
@@ -531,8 +534,8 @@ class OldKeyStore(DeterministicKeyStore):
     def get_private_key_from_stretched_exponent(self, for_change, n, secexp):
         order = ecdsa.ecdsa.generator_secp256k1.order()
         secexp = (secexp + self.get_sequence(self.mpk, for_change, n)) % order
-        pk = ecdsa.util.number_to_string(
-            secexp, ecdsa.ecdsa.generator_secp256k1.order()
+        pk = int.to_bytes(
+            secexp, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
         )
         return pk
 

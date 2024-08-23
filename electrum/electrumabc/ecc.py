@@ -35,7 +35,6 @@ import ecdsa
 from ecdsa.curves import SECP256k1
 from ecdsa.ecdsa import curve_secp256k1, generator_secp256k1
 from ecdsa.ellipticcurve import Point
-from ecdsa.util import number_to_string, string_to_number
 
 from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
@@ -50,6 +49,12 @@ if TYPE_CHECKING:
 do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1()
 
 CURVE_ORDER = SECP256k1.order
+
+PRIVATE_KEY_BYTECOUNT = 32
+
+
+def be_bytes_to_number(b: bytes) -> int:
+    return int.from_bytes(b, byteorder="big", signed=False)
 
 
 def i2o_ECPublicKey(pubkey, compressed=False):
@@ -155,9 +160,11 @@ def ser_to_coordinates(ser: bytes) -> EcCoordinates:
     if ser[0] not in (0x02, 0x03, 0x04):
         raise ValueError(f"Unexpected first byte: {ser[0]}")
     if ser[0] == 0x04:
-        return EcCoordinates(string_to_number(ser[1:33]), string_to_number(ser[33:]))
+        return EcCoordinates(
+            be_bytes_to_number(ser[1:33]), be_bytes_to_number(ser[33:])
+        )
 
-    x = string_to_number(ser[1:])
+    x = be_bytes_to_number(ser[1:])
     return EcCoordinates(x, get_y_coord_from_x(x, ser[0] == 0x03))
 
 
@@ -188,7 +195,7 @@ class MyVerifyingKey(ecdsa.VerifyingKey):
         # 1.4 the constructor checks that nR is at infinity
         R = Point(curveFp, x, y, order)
         # 1.5 compute e from message:
-        e = string_to_number(h)
+        e = be_bytes_to_number(h)
         minus_e = -e % order
         # 1.6 compute Q = r^-1 (sR - eG)
         inv_r = numbertheory.inverse_mod(r, order)
@@ -351,7 +358,7 @@ def verify_message_with_address(
 
 class ECKey(object):
     def __init__(self, k):
-        secret = string_to_number(k)
+        secret = be_bytes_to_number(k)
         self.pubkey = ecdsa.ecdsa.Public_key(
             generator_secp256k1, generator_secp256k1 * secret
         )
@@ -397,8 +404,11 @@ class ECKey(object):
         if not ecdsa.ecdsa.point_is_valid(generator_secp256k1, pk.x(), pk.y()):
             raise Exception("invalid pubkey")
 
-        ephemeral_exponent = number_to_string(
-            randrange(pow(2, 256)), generator_secp256k1.order()
+        ephemeral_exponent = int.to_bytes(
+            randrange(pow(2, 256)),
+            length=PRIVATE_KEY_BYTECOUNT,
+            byteorder="big",
+            signed=False,
         )
         ephemeral = ECKey(ephemeral_exponent)
         ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)

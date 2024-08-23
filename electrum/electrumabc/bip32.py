@@ -32,11 +32,11 @@ import hmac
 import ecdsa
 from ecdsa.curves import SECP256k1
 from ecdsa.ecdsa import generator_secp256k1
-from ecdsa.util import number_to_string, string_to_number
 
 from . import ecc, networks
 from .bitcoin import DecodeBase58Check, EncodeBase58Check
 from .crypto import hash_160
+from .ecc import PRIVATE_KEY_BYTECOUNT, be_bytes_to_number
 
 # BIP32
 BIP32_PRIME = 0x80000000
@@ -61,8 +61,11 @@ def _CKD_priv(k, c, s, is_prime):
     cK = ecc.GetPubKey(keypair.pubkey, True)
     data = bytes([0]) + k + s if is_prime else cK + s
     I_ = hmac.new(c, data, hashlib.sha512).digest()
-    k_n = number_to_string(
-        (string_to_number(I_[0:32]) + string_to_number(k)) % order, order
+    k_n = int.to_bytes(
+        (be_bytes_to_number(I_[0:32]) + be_bytes_to_number(k)) % order,
+        length=PRIVATE_KEY_BYTECOUNT,
+        byteorder="big",
+        signed=False,
     )
     c_n = I_[32:]
     return k_n, c_n
@@ -84,7 +87,7 @@ def CKD_pub(cK, c, n):
 def _CKD_pub(cK, c, s):
     I_ = hmac.new(c, cK + s, hashlib.sha512).digest()
     curve = SECP256k1
-    pubkey_point = string_to_number(I_[0:32]) * curve.generator + ecc.ser_to_point(cK)
+    pubkey_point = be_bytes_to_number(I_[0:32]) * curve.generator + ecc.ser_to_point(cK)
     public_key = ecdsa.VerifyingKey.from_public_point(pubkey_point, curve=SECP256k1)
     c_n = I_[32:]
     cK_n = ecc.GetPubKey(public_key.pubkey, True)

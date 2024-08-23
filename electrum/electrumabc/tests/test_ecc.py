@@ -2,10 +2,10 @@ import base64
 import unittest
 
 from ecdsa.ecdsa import generator_secp256k1
-from ecdsa.util import number_to_string
 
 from ..bitcoin import deserialize_privkey
 from ..ecc import (
+    PRIVATE_KEY_BYTECOUNT,
     ECKey,
     ECPubkey,
     SignatureType,
@@ -32,7 +32,11 @@ class TestECC(unittest.TestCase):
         Pub = pvk * G
         pubkey_c = point_to_ser(Pub, True)
 
-        eck = ECKey(number_to_string(pvk, _r))
+        eck = ECKey(
+            int.to_bytes(
+                pvk, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
+            )
+        )
 
         enc = ECKey.encrypt_message(message, pubkey_c)
         dec = eck.decrypt_message(enc)
