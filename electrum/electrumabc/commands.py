@@ -41,7 +41,7 @@ from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
-from .ecc import ECPubkey, public_key_from_private_key, verify_message_with_address
+from .ecc import ECPrivkey, ECPubkey, verify_message_with_address
 from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
@@ -429,7 +429,7 @@ class Commands:
             sec = txin.get("privkey")
             if sec:
                 txin_type, privkey, compressed = bitcoin.deserialize_privkey(sec)
-                pubkey = public_key_from_private_key(privkey, compressed)
+                pubkey = ECPrivkey(privkey).get_public_key_bytes(compressed)
                 keypairs[pubkey] = privkey, compressed
                 txin["type"] = txin_type.name
                 txin["x_pubkeys"] = [pubkey.hex()]
@@ -460,7 +460,7 @@ class Commands:
         )
         if privkey:
             txin_type, privkey2, compressed = bitcoin.deserialize_privkey(privkey)
-            pubkey = public_key_from_private_key(privkey2, compressed)
+            pubkey = ECPrivkey(privkey2).get_public_key_bytes(compressed)
             tx.sign({pubkey: (privkey2, compressed)})
         else:
             self.wallet.sign_transaction(tx, password)

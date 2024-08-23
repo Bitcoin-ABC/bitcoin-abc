@@ -58,42 +58,6 @@ def be_bytes_to_number(b: bytes) -> int:
     return int.from_bytes(b, byteorder="big", signed=False)
 
 
-def i2o_ECPublicKey(pubkey, compressed=False):
-    # public keys are 65 bytes long (520 bits)
-    # 0x04 + 32-byte X-coordinate + 32-byte Y-coordinate
-    # 0x00 = point at infinity, 0x02 and 0x03 = compressed, 0x04 = uncompressed
-    # compressed keys: <sign> <x> where <sign> is 0x02 if y is even and 0x03 if y is odd
-    if compressed:
-        if pubkey.point.y() & 1:
-            # explicitly convert point coordinates to int, because ecdsa
-            # returns mpz instead of int if gmpY is installed
-            key = b"\x03" + int(pubkey.point.x()).to_bytes(32, "big")
-        else:
-            key = b"\x02" + int(pubkey.point.x()).to_bytes(32, "big")
-    else:
-        key = (
-            b"\x04"
-            + int(pubkey.point.x()).to_bytes(32, "big")
-            + int(pubkey.point.y()).to_bytes(32, "big")
-        )
-
-    return key
-
-
-def regenerate_key(pk):
-    assert len(pk) == 32
-    return ECKey(pk)
-
-
-def GetPubKey(pubkey, compressed=False) -> bytes:
-    return i2o_ECPublicKey(pubkey, compressed)
-
-
-def public_key_from_private_key(pk: bytes, compressed) -> bytes:
-    pkey = regenerate_key(pk)
-    return GetPubKey(pkey.pubkey, compressed)
-
-
 class SignatureType(Enum):
     ECASH = 1
     BITCOIN = 2
@@ -323,20 +287,21 @@ class ECPubkey(object):
         """
         assert_bytes(message)
 
-        pk = self._pubkey.point
-
         ephemeral_exponent = int.to_bytes(
             randrange(CURVE_ORDER),
             length=PRIVATE_KEY_BYTECOUNT,
             byteorder="big",
             signed=False,
         )
-        ephemeral = ECKey(ephemeral_exponent)
-        ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)
+        ephemeral = ECPrivkey(ephemeral_exponent)
+        ecdh_key = (self * ephemeral.secret_scalar).get_public_key_bytes(
+            compressed=True
+        )
+
         key = hashlib.sha512(ecdh_key).digest()
         iv, key_e, key_m = key[0:16], key[16:32], key[32:]
         ciphertext = aes_encrypt_with_iv(key_e, iv, message)
-        ephemeral_pubkey = ephemeral.get_public_key(compressed=True)
+        ephemeral_pubkey = ephemeral.get_public_key_bytes(compressed=True)
         encrypted = magic + ephemeral_pubkey + ciphertext
         mac = hmac.new(key_m, encrypted, hashlib.sha256).digest()
 
@@ -379,63 +344,131 @@ def verify_message_with_address(
     return public_key.verify_message_hash(sig65[1:], h)
 
 
-class ECKey(object):
-    def __init__(self, k):
-        secret = be_bytes_to_number(k)
-        self.pubkey = ecdsa.ecdsa.Public_key(
-            generator_secp256k1, generator_secp256k1 * secret
-        )
-        self.privkey = ecdsa.ecdsa.Private_key(self.pubkey, secret)
+def is_secret_within_curve_range(secret: Union[int, bytes]) -> bool:
+    if isinstance(secret, bytes):
+        secret = be_bytes_to_number(secret)
+    return 0 < secret < CURVE_ORDER
+
+
+class ECPrivkey(ECPubkey):
+    def __init__(self, privkey_bytes: bytes):
+        assert_bytes(privkey_bytes)
+        if len(privkey_bytes) != PRIVATE_KEY_BYTECOUNT:
+            raise Exception(
+                f"unexpected size for secret. should be {PRIVATE_KEY_BYTECOUNT} bytes, "
+                f"not {len(privkey_bytes)}"
+            )
+
+        secret = be_bytes_to_number(privkey_bytes)
+        if not is_secret_within_curve_range(secret):
+            raise Exception("Invalid secret scalar (not within curve order)")
+        self.secret_scalar = secret
+
+        point = generator_secp256k1 * secret
+        super().__init__(point_to_ser(point))
+        self._privkey = ecdsa.ecdsa.Private_key(self._pubkey, secret)
         self.secret = secret
 
-    def GetPubKey(self, compressed):
-        return GetPubKey(self.pubkey, compressed)
+    @classmethod
+    def from_secret_scalar(cls, secret_scalar: int):
+        secret_bytes = int.to_bytes(
+            secret_scalar, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
+        )
+        return ECPrivkey(secret_bytes)
 
-    def get_public_key(self, compressed=True) -> bytes:
-        return point_to_ser(self.pubkey.point, compressed)
+    @classmethod
+    def from_arbitrary_size_secret(cls, privkey_bytes: bytes):
+        """This method is only for wallet file encryption using arbitrary password data.
+        Do not introduce new code that uses it.
+        Unlike the default constructor, this method does not verify the privkey's length
+        and the secret does not need to be within the curve order either.
+        """
+        return ECPrivkey(cls.normalize_secret_bytes(privkey_bytes))
 
-    def sign(self, msg_hash):
-        private_key = MySigningKey.from_secret_exponent(self.secret, curve=SECP256k1)
+    @classmethod
+    def normalize_secret_bytes(cls, privkey_bytes: bytes) -> bytes:
+        scalar = be_bytes_to_number(privkey_bytes) % CURVE_ORDER
+        if scalar == 0:
+            raise Exception("invalid EC private key scalar: zero")
+        privkey_32bytes = int.to_bytes(
+            scalar, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
+        )
+        return privkey_32bytes
+
+    def sign_transaction(self, hashed_preimage):
+        private_key = MySigningKey.from_secret_exponent(
+            self.secret_scalar, curve=SECP256k1
+        )
+        sig = private_key.sign_digest_deterministic(
+            hashed_preimage, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_der
+        )
         public_key = private_key.get_verifying_key()
-        signature = private_key.sign_digest_deterministic(
-            msg_hash, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_string
-        )
-        assert public_key.verify_digest(
-            signature, msg_hash, sigdecode=ecdsa.util.sigdecode_string
-        )
-        return signature
+        if not public_key.verify_digest(
+            sig, hashed_preimage, sigdecode=ecdsa.util.sigdecode_der
+        ):
+            raise Exception("Sanity check verifying our own signature failed.")
+        return sig
 
-    def sign_message(self, message, is_compressed, sigtype=SignatureType.ECASH):
+    def sign_message(
+        self, message, is_compressed, *, sigtype: SignatureType = SignatureType.ECASH
+    ) -> bytes:
+        def sign_with_python_ecdsa(msg_hash):
+            private_key = MySigningKey.from_secret_exponent(
+                self.secret_scalar, curve=SECP256k1
+            )
+            public_key = private_key.get_verifying_key()
+            signature = private_key.sign_digest_deterministic(
+                msg_hash, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_string
+            )
+            if not public_key.verify_digest(
+                signature, msg_hash, sigdecode=ecdsa.util.sigdecode_string
+            ):
+                raise Exception("Sanity check verifying our own signature failed.")
+            return signature
+
+        def bruteforce_recid(sig_string):
+            for recid in range(4):
+                sig65 = construct_sig65(sig_string, recid, is_compressed)
+                if not self.verify_message(sig65, message, sigtype=sigtype):
+                    continue
+                return sig65, recid
+            else:
+                raise Exception("error: cannot sign message. no recid fits..")
+
         message = to_bytes(message, "utf8")
-        signature = self.sign(Hash(msg_magic(message, sigtype)))
-        for i in range(4):
-            sig = bytes([27 + i + (4 if is_compressed else 0)]) + signature
-            pubkey = ECPubkey.from_point(self.pubkey.point)
-            if pubkey.verify_message(sig, message, sigtype=sigtype):
-                return sig
-            continue
-        else:
-            raise Exception("error: cannot sign message")
+        msg_hash = Hash(msg_magic(message, sigtype))
+        sig_string = sign_with_python_ecdsa(msg_hash)
+        sig65, recid = bruteforce_recid(sig_string)
+        try:
+            self.verify_message(sig65, message, sigtype=sigtype)
+            return sig65
+        except Exception:
+            raise Exception(
+                "error: cannot sign message. self-verify sanity check failed"
+            )
 
     def decrypt_message(self, encrypted, magic=b"BIE1"):
         encrypted = base64.b64decode(encrypted)
         if len(encrypted) < 85:
             raise Exception("invalid ciphertext: length")
         magic_found = encrypted[:4]
-        ephemeral_pubkey = encrypted[4:37]
+        ephemeral_pubkey_bytes = encrypted[4:37]
         ciphertext = encrypted[37:-32]
         mac = encrypted[-32:]
         if magic_found != magic:
             raise Exception("invalid ciphertext: invalid magic bytes")
         try:
-            ephemeral_pubkey = ser_to_point(ephemeral_pubkey)
+            ecdsa_point = ser_to_point(ephemeral_pubkey_bytes)
         except AssertionError:
             raise Exception("invalid ciphertext: invalid ephemeral pubkey")
         if not ecdsa.ecdsa.point_is_valid(
-            generator_secp256k1, ephemeral_pubkey.x(), ephemeral_pubkey.y()
+            generator_secp256k1, ecdsa_point.x(), ecdsa_point.y()
         ):
             raise Exception("invalid ciphertext: invalid ephemeral pubkey")
-        ecdh_key = point_to_ser(ephemeral_pubkey * self.privkey.secret_multiplier)
+        ephemeral_pubkey = ECPubkey(point_to_ser(ecdsa_point))
+        ecdh_key = (ephemeral_pubkey * self.secret_scalar).get_public_key_bytes(
+            compressed=True
+        )
         key = hashlib.sha512(ecdh_key).digest()
         iv, key_e, key_m = key[0:16], key[16:32], key[32:]
         if mac != hmac.new(key_m, encrypted[:-32], hashlib.sha256).digest():
@@ -443,10 +476,6 @@ class ECKey(object):
         return aes_decrypt_with_iv(key_e, iv, ciphertext)
 
 
-def get_pubkeys_from_secret(secret):
-    # public key
-    private_key = ecdsa.SigningKey.from_string(secret, curve=SECP256k1)
-    public_key = private_key.get_verifying_key()
-    K = public_key.to_string()
-    K_compressed = GetPubKey(public_key.pubkey, True)
-    return K, K_compressed
+def construct_sig65(sig_string, recid, is_compressed):
+    comp = 4 if is_compressed else 0
+    return bytes([27 + recid + comp]) + sig_string

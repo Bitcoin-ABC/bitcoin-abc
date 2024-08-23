@@ -47,7 +47,7 @@ from google.protobuf.message import DecodeError
 
 from electrumabc import schnorr
 from electrumabc.constants import XEC
-from electrumabc.ecc import public_key_from_private_key
+from electrumabc.ecc import ECPrivkey
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
 from electrumabc.util import (
@@ -380,9 +380,11 @@ class Fusion(threading.Thread, PrintError):
         pubkeys = {}
         for xpubkey in xpubkeys_set:
             derivation = wallet.keystore.get_pubkey_derivation(bytes.fromhex(xpubkey))
-            privkey = wallet.keystore.get_private_key(derivation, password)
-            pubkey = public_key_from_private_key(*privkey)
-            keypairs[pubkey.hex()] = privkey
+            privkey, is_compressed = wallet.keystore.get_private_key(
+                derivation, password
+            )
+            pubkey = ECPrivkey(privkey).get_public_key_bytes(is_compressed)
+            keypairs[pubkey.hex()] = (privkey, is_compressed)
             pubkeys[xpubkey] = pubkey
 
         coindict = {

@@ -29,10 +29,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 
-import ecdsa
-from ecdsa.curves import SECP256k1
-from ecdsa.ecdsa import generator_secp256k1
-
 from . import ecc, networks
 from .bitcoin import DecodeBase58Check, EncodeBase58Check
 from .crypto import hash_160
@@ -56,13 +52,12 @@ def CKD_priv(k, c, n):
 
 
 def _CKD_priv(k, c, s, is_prime):
-    order = generator_secp256k1.order()
-    keypair = ecc.ECKey(k)
-    cK = ecc.GetPubKey(keypair.pubkey, True)
+    keypair = ecc.ECPrivkey(k)
+    cK = keypair.get_public_key_bytes(compressed=True)
     data = bytes([0]) + k + s if is_prime else cK + s
     I_ = hmac.new(c, data, hashlib.sha512).digest()
     k_n = int.to_bytes(
-        (be_bytes_to_number(I_[0:32]) + be_bytes_to_number(k)) % order,
+        (be_bytes_to_number(I_[0:32]) + be_bytes_to_number(k)) % ecc.CURVE_ORDER,
         length=PRIVATE_KEY_BYTECOUNT,
         byteorder="big",
         signed=False,
@@ -86,11 +81,9 @@ def CKD_pub(cK, c, n):
 # helper function, callable with arbitrary string
 def _CKD_pub(cK, c, s):
     I_ = hmac.new(c, cK + s, hashlib.sha512).digest()
-    curve = SECP256k1
-    pubkey_point = be_bytes_to_number(I_[0:32]) * curve.generator + ecc.ser_to_point(cK)
-    public_key = ecdsa.VerifyingKey.from_public_point(pubkey_point, curve=SECP256k1)
+    pubkey = ecc.ECPrivkey(I_[0:32]) + ecc.ECPubkey(cK)
+    cK_n = pubkey.get_public_key_bytes(compressed=True)
     c_n = I_[32:]
-    cK_n = ecc.GetPubKey(public_key.pubkey, True)
     return cK_n, c_n
 
 
@@ -235,7 +228,7 @@ def xpub_from_xprv(xprv, *, net=None):
     if net is None:
         net = networks.net
     xtype, depth, fingerprint, child_number, c, k = deserialize_xprv(xprv, net=net)
-    K, cK = ecc.get_pubkeys_from_secret(k)
+    cK = ecc.ECPrivkey(k).get_public_key_bytes(compressed=True)
     return serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
 
 
@@ -245,8 +238,9 @@ def bip32_root(seed, xtype, *, net=None):
     I_ = hmac.new(b"Bitcoin seed", seed, hashlib.sha512).digest()
     master_k = I_[0:32]
     master_c = I_[32:]
-    K, cK = ecc.get_pubkeys_from_secret(master_k)
+    # create xprv first, as that will check if master_k is within curve order
     xprv = serialize_xprv(xtype, master_c, master_k, net=net)
+    cK = ecc.ECPrivkey(master_k).get_public_key_bytes(compressed=True)
     xpub = serialize_xpub(xtype, master_c, cK, net=net)
     return xprv, xpub
 
@@ -288,10 +282,10 @@ def bip32_private_derivation(xprv, branch, sequence, *, net=None):
         parent_k = k
         k, c = CKD_priv(k, c, i)
         depth += 1
-    _, parent_cK = ecc.get_pubkeys_from_secret(parent_k)
+    parent_cK = ecc.ECPrivkey(parent_k).get_public_key_bytes(compressed=True)
     fingerprint = hash_160(parent_cK)[0:4]
     child_number = i.to_bytes(4, "big")
-    K, cK = ecc.get_pubkeys_from_secret(k)
+    cK = ecc.ECPrivkey(k).get_public_key_bytes(compressed=True)
     xpub = serialize_xpub(xtype, c, cK, depth, fingerprint, child_number, net=net)
     xprv = serialize_xprv(xtype, c, k, depth, fingerprint, child_number, net=net)
     return xprv, xpub

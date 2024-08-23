@@ -508,7 +508,7 @@ def address_from_private_key(sec, *, net=None):
     if net is None:
         net = networks.net
     txin_type, privkey, compressed = deserialize_privkey(sec, net=net)
-    public_key = ecc.public_key_from_private_key(privkey, compressed)
+    public_key = ecc.ECPrivkey(privkey).get_public_key_bytes(compressed)
     return pubkey_to_address(txin_type, public_key, net=net)
 
 
@@ -846,9 +846,7 @@ class Bip38Key:
             keyBytes[i + 16] = k2[i] ^ derivedHalf1[i + 16]
         keyBytes = bytes(keyBytes)
 
-        eckey = ecc.regenerate_key(keyBytes)
-
-        pubKey = eckey.GetPubKey(self.compressed)
+        pubKey = ecc.ECPrivkey(keyBytes).get_public_key_bytes(self.compressed)
 
         from .address import Address  # fixme
 
@@ -899,7 +897,7 @@ class Bip38Key:
         else:
             passFactor = prefactorA
 
-        ignored, passpoint = ecc.get_pubkeys_from_secret(passFactor)
+        passpoint = ecc.ECPrivkey(passFactor).get_public_key_bytes(compressed=True)
 
         encryptedpart1 = self.dec[15:23]
         encryptedpart2 = self.dec[23:39]
@@ -943,9 +941,9 @@ class Bip38Key:
 
         privKey = int_to_bytes(privKey, 32)
 
-        eckey = ecc.regenerate_key(privKey)
+        eckey = ecc.ECPrivkey(privKey)
 
-        pubKey = eckey.GetPubKey(self.compressed)
+        pubKey = eckey.get_public_key_bytes(self.compressed)
 
         from .address import Address  # fixme
 
@@ -977,7 +975,7 @@ class Bip38Key:
             raise ValueError(
                 "Only p2pkh WIF keys may be encrypted using BIP38 at this time."
             )
-        public_key = ecc.public_key_from_private_key(key_bytes, compressed)
+        public_key = ecc.ECPrivkey(key_bytes).get_public_key_bytes(compressed)
         addr_str = pubkey_to_address(_type, public_key, net=net)
         addr_hash = Hash(addr_str)[0:4]
         # ensure unicode bytes are normalized to NFC standard as specified by bip38
@@ -1065,7 +1063,7 @@ class Bip38Key:
         else:
             passfactor = prefactor
 
-        ignored, passpoint = ecc.get_pubkeys_from_secret(passfactor)
+        passpoint = ecc.ECPrivkey(passfactor).get_public_key_bytes(compressed=True)
 
         # 49 bytes (not a str, despite name. We use the name from bip38 spec here)
         intermediate_passphrase_string = magic + ownerentropy + passpoint

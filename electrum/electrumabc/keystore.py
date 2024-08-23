@@ -48,12 +48,7 @@ from .bip32 import (
     xpub_from_xprv,
 )
 from .crypto import Hash, pw_decode, pw_encode
-from .ecc import (
-    PRIVATE_KEY_BYTECOUNT,
-    SignatureType,
-    be_bytes_to_number,
-    regenerate_key,
-)
+from .ecc import PRIVATE_KEY_BYTECOUNT, ECPrivkey, SignatureType, be_bytes_to_number
 from .plugins import run_hook
 from .printerror import PrintError, print_error
 from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
@@ -131,12 +126,12 @@ class SoftwareKeyStore(KeyStore):
 
     def sign_message(self, sequence, message, password, sigtype=SignatureType.ECASH):
         privkey, compressed = self.get_private_key(sequence, password)
-        key = regenerate_key(privkey)
-        return key.sign_message(message, compressed, sigtype)
+        key = ECPrivkey(privkey)
+        return key.sign_message(message, compressed, sigtype=sigtype)
 
     def decrypt_message(self, sequence, message, password):
         privkey, compressed = self.get_private_key(sequence, password)
-        ec = regenerate_key(privkey)
+        ec = ECPrivkey(privkey)
         decrypted = ec.decrypt_message(message)
         return decrypted
 

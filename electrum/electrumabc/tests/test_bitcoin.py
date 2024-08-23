@@ -17,7 +17,7 @@ from ..bitcoin import (
     push_script,
     serialize_privkey,
 )
-from ..ecc import public_key_from_private_key
+from ..ecc import ECPrivkey
 from ..networks import MainNet, TestNet, set_mainnet, set_testnet
 from ..util import bfh, bh2u
 
@@ -150,7 +150,7 @@ class TestKeyImport(unittest.TestCase):
     def test_public_key_from_private_key(self):
         for priv_details in self.priv_pub_addr:
             txin_type, privkey, compressed = deserialize_privkey(priv_details["priv"])
-            result = public_key_from_private_key(privkey, compressed)
+            result = ECPrivkey(privkey).get_public_key_bytes(compressed)
             self.assertEqual(priv_details["pub"], result.hex())
             self.assertEqual(priv_details["txin_type"], txin_type.name)
             self.assertEqual(priv_details["compressed"], compressed)

@@ -24,7 +24,6 @@
 # SOFTWARE.
 from __future__ import annotations
 
-import hashlib
 import json
 import queue
 import random
@@ -36,8 +35,6 @@ from collections import defaultdict
 from contextlib import suppress
 from io import BytesIO
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
-
-import ecdsa
 
 from . import bitcoin, schnorr
 from .address import (
@@ -56,14 +53,7 @@ from .bitcoin import TYPE_SCRIPT, OpCodes, ScriptType
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 from .crypto import Hash, hash_160
-from .ecc import (
-    ECPubkey,
-    MySigningKey,
-    public_key_from_private_key,
-    regenerate_key,
-    ser_to_coordinates,
-    sig_string_from_der_sig,
-)
+from .ecc import ECPrivkey, ECPubkey, ser_to_coordinates, sig_string_from_der_sig
 
 #
 # Workalike python implementation of Bitcoin's CDataStream class.
@@ -1521,19 +1511,8 @@ class Transaction:
 
     @staticmethod
     def _ecdsa_sign(sec, pre_hash):
-        pkey = regenerate_key(sec)
-        secexp = pkey.secret
-        private_key = MySigningKey.from_secret_exponent(
-            secexp, curve=ecdsa.curves.SECP256k1
-        )
-        public_key = private_key.get_verifying_key()
-        sig = private_key.sign_digest_deterministic(
-            pre_hash, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_der
-        )
-        assert public_key.verify_digest(
-            sig, pre_hash, sigdecode=ecdsa.util.sigdecode_der
-        )
-        return sig
+        privkey = ECPrivkey(sec)
+        return privkey.sign_transaction(pre_hash)
 
     @staticmethod
     def _schnorr_sign(pubkey: bytes, sec: bytes, pre_hash: bytes) -> bytes:
@@ -1565,7 +1544,7 @@ class Transaction:
 
     def _sign_txin(self, i, j, sec, compressed, *, use_cache=False):
         """Note: precondition is self._inputs is valid (ie: tx is already deserialized)"""
-        pubkey = public_key_from_private_key(sec, compressed)
+        pubkey = ECPrivkey(sec).get_public_key_bytes(compressed)
         # add signature
         nHashType = (
             0x00000041  # hardcoded, perhaps should be taken from unsigned input dict

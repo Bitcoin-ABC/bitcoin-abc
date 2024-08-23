@@ -6,11 +6,10 @@ from ecdsa.ecdsa import generator_secp256k1
 from ..bitcoin import deserialize_privkey
 from ..ecc import (
     PRIVATE_KEY_BYTECOUNT,
-    ECKey,
+    ECPrivkey,
     ECPubkey,
     SignatureType,
     point_to_ser,
-    regenerate_key,
     verify_message_with_address,
 )
 from ..util import randrange
@@ -32,7 +31,7 @@ class TestECC(unittest.TestCase):
         Pub = pvk * G
         pubkey_c = point_to_ser(Pub, True)
 
-        eck = ECKey(
+        eck = ECPrivkey(
             int.to_bytes(
                 pvk, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
             )
@@ -55,7 +54,7 @@ class TestECC(unittest.TestCase):
 
         def sign_message_with_wif_privkey(wif_privkey, msg):
             txin_type, privkey, compressed = deserialize_privkey(wif_privkey)
-            key = regenerate_key(privkey)
+            key = ECPrivkey(privkey)
             return key.sign_message(msg, compressed)
 
         sig1 = sign_message_with_wif_privkey(
@@ -130,7 +129,7 @@ class TestECC(unittest.TestCase):
         txin_type, privkey, compressed = deserialize_privkey(
             "L1TnU2zbNaAqMoVh65Cyvmcjzbrj41Gs9iTLcWbpJCMynXuap6UN"
         )
-        key = regenerate_key(privkey)
+        key = ECPrivkey(privkey)
         sig = key.sign_message(msg, compressed, sigtype=SignatureType.BITCOIN)
 
         accepted_signatures = {

@@ -8,7 +8,7 @@ import secrets
 import unittest
 
 from .. import schnorr
-from ..ecc import regenerate_key
+from ..ecc import ECPrivkey
 
 
 class TestSchnorr(unittest.TestCase):
@@ -63,7 +63,7 @@ class TestBlind(unittest.TestCase):
     def do_it(self):
         # signer
         privkey = secrets.token_bytes(32)
-        pubkey = regenerate_key(privkey).GetPubKey(True)
+        pubkey = ECPrivkey(privkey).get_public_key_bytes(compressed=True)
         signer = schnorr.BlindSigner()
         R = signer.get_R()
 

@@ -73,7 +73,7 @@ from .bitcoin import ScriptType
 from .constants import XEC
 from .contacts import Contacts
 from .crypto import Hash
-from .ecc import SignatureType, public_key_from_private_key
+from .ecc import ECPrivkey, SignatureType
 from .i18n import _, ngettext
 from .keystore import (
     BIP32KeyStore,
@@ -185,7 +185,7 @@ def sweep_preparations(
             inputs.append(TxInput.from_coin_dict(item))
 
     def find_utxos_for_privkey(txin_type: bitcoin.ScriptType, privkey, compressed):
-        pubkey = public_key_from_private_key(privkey, compressed)
+        pubkey = ECPrivkey(privkey).get_public_key_bytes(compressed)
         append_utxos_to_inputs(inputs, pubkey.hex(), txin_type)
         keypairs[pubkey] = privkey, compressed
 

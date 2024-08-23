@@ -45,7 +45,7 @@ from . import bitcoin, rsakey, transaction, util, x509
 from .bitcoin import TYPE_ADDRESS
 from .constants import PROJECT_NAME, PROJECT_NAME_NO_SPACES
 from .crypto import sha256
-from .ecc import regenerate_key, verify_message_with_address
+from .ecc import ECPrivkey, verify_message_with_address
 from .printerror import print_error
 from .transaction import TxOutput
 from .util import FileImportFailed, FileImportFailedEncrypted, bfh, bh2u
@@ -420,7 +420,7 @@ def sign_request_with_alias(pr, alias, alias_privkey):
     pr.pki_data = util.to_bytes(alias)
     message = pr.SerializeToString()
     _typ, raw_key, compressed = bitcoin.deserialize_privkey(alias_privkey)
-    ec_key = regenerate_key(raw_key)
+    ec_key = ECPrivkey(raw_key)
     pr.signature = ec_key.sign_message(message, compressed)
 
 

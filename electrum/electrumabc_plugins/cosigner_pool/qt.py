@@ -38,7 +38,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from electrumabc import keystore, transaction, util
 from electrumabc.bip32 import deserialize_xprv, deserialize_xpub
 from electrumabc.crypto import Hash
-from electrumabc.ecc import ECKey, ECPubkey
+from electrumabc.ecc import ECPrivkey, ECPubkey
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import print_error
@@ -446,7 +446,7 @@ class Plugin(BasePlugin):
             return
         try:
             k = bh2u(deserialize_xprv(xprv)[-1])
-            EC = ECKey(bfh(k))
+            EC = ECPrivkey(bfh(k))
             raw_tx = EC.decrypt_message(message)
         except Exception as e:
             traceback.print_exc(file=sys.stdout)
