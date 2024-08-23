@@ -213,7 +213,8 @@ class WalletStorage(PrintError):
             s = bytes(s, "utf8")
             c = zlib.compress(s, level=zlib.Z_BEST_SPEED)
             enc_magic = self._get_encryption_magic()
-            s = ecc.encrypt_message(c, bytes.fromhex(self.pubkey), enc_magic)
+            public_key = ecc.ECPubkey(bytes.fromhex(self.pubkey))
+            s = public_key.encrypt_message(c, enc_magic)
             s = s.decode("utf8")
         return s
 

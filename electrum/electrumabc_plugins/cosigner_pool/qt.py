@@ -38,7 +38,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 from electrumabc import keystore, transaction, util
 from electrumabc.bip32 import deserialize_xprv, deserialize_xpub
 from electrumabc.crypto import Hash
-from electrumabc.ecc import ECKey, encrypt_message
+from electrumabc.ecc import ECKey, ECPubkey
 from electrumabc.i18n import _
 from electrumabc.plugins import BasePlugin, hook
 from electrumabc.printerror import print_error
@@ -359,7 +359,7 @@ class Plugin(BasePlugin):
         for xpub, K, _hash in state.cosigner_list:
             if not self.cosigner_can_sign(tx, xpub):
                 continue
-            message = encrypt_message(tx.raw, K).decode("ascii")
+            message = ECPubkey(K).encrypt_message(tx.raw).decode("ascii")
             try:
                 state.server.put(_hash, message)
             except Exception:

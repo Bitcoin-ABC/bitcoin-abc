@@ -38,11 +38,10 @@ class TestECC(unittest.TestCase):
             )
         )
 
-        enc = ECKey.encrypt_message(message, pubkey_c)
+        enc = ECPubkey(pubkey_c).encrypt_message(message)
         dec = eck.decrypt_message(enc)
         self.assertEqual(message, dec)
 
-        # enc2 = EC_KEY.encrypt_message(message, pubkey_u)
         dec2 = eck.decrypt_message(enc)
         self.assertEqual(message, dec2)
 

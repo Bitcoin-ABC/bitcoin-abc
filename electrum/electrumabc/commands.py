@@ -41,7 +41,7 @@ from .address import Address, AddressError
 from .bitcoin import CASH, TYPE_ADDRESS
 from .constants import PROJECT_NAME, SCRIPT_NAME, XEC
 from .crypto import hash_160
-from .ecc import public_key_from_private_key, verify_message_with_address
+from .ecc import ECPubkey, public_key_from_private_key, verify_message_with_address
 from .json_util import json_decode
 from .mnemo import MnemonicElectrum, make_bip39_words
 from .paymentrequest import PR_EXPIRED, PR_PAID, PR_UNCONFIRMED, PR_UNKNOWN, PR_UNPAID
@@ -972,12 +972,9 @@ class Commands:
         ):
             raise ValueError("pubkey and message text must both be strings")
         message = to_bytes(message)
-        res = bitcoin.encrypt_message(message, bytes.fromhex(pubkey))
-        if isinstance(res, (bytes, bytearray)):
-            # prevent "JSON serializable" errors in case this came from
-            # cmdline. See #1270
-            res = res.decode("utf-8")
-        return res
+        public_key = ECPubkey(bytes.fromhex(pubkey))
+        res = public_key.encrypt_message(message)
+        return res.decode("utf-8")
 
     @command("wp")
     def decrypt(self, pubkey, encrypted, password=None):

@@ -109,10 +109,6 @@ def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> b
     return serialize_blob(magic) + serialize_blob(message)
 
 
-def encrypt_message(message, pubkey: bytes, magic=b"BIE1"):
-    return ECKey.encrypt_message(message, pubkey, magic)
-
-
 def get_y_coord_from_x(x: int, odd=True) -> int:
     curve = curve_secp256k1
     _p = curve.p()
@@ -319,6 +315,34 @@ class ECPubkey(object):
             sig_string, msg_hash, sigdecode=ecdsa.util.sigdecode_string
         )
 
+    def encrypt_message(self, message: bytes, magic=b"BIE1"):
+        """
+        ECIES encryption/decryption methods; AES-128-CBC with PKCS7 is used as the
+         cipher; hmac-sha256 is used as the mac
+        """
+        assert_bytes(message)
+
+        pk = self._pubkey.point
+        if not ecdsa.ecdsa.point_is_valid(generator_secp256k1, pk.x(), pk.y()):
+            raise Exception("invalid pubkey")
+
+        ephemeral_exponent = int.to_bytes(
+            randrange(pow(2, 256)),
+            length=PRIVATE_KEY_BYTECOUNT,
+            byteorder="big",
+            signed=False,
+        )
+        ephemeral = ECKey(ephemeral_exponent)
+        ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)
+        key = hashlib.sha512(ecdh_key).digest()
+        iv, key_e, key_m = key[0:16], key[16:32], key[32:]
+        ciphertext = aes_encrypt_with_iv(key_e, iv, message)
+        ephemeral_pubkey = ephemeral.get_public_key(compressed=True)
+        encrypted = magic + ephemeral_pubkey + ciphertext
+        mac = hmac.new(key_m, encrypted, hashlib.sha256).digest()
+
+        return base64.b64encode(encrypted + mac)
+
     @classmethod
     def order(cls):
         return CURVE_ORDER
@@ -393,33 +417,6 @@ class ECKey(object):
             continue
         else:
             raise Exception("error: cannot sign message")
-
-    # ECIES encryption/decryption methods; AES-128-CBC with PKCS7 is used as the cipher; hmac-sha256 is used as the mac
-
-    @classmethod
-    def encrypt_message(self, message, pubkey, magic=b"BIE1"):
-        assert_bytes(message)
-
-        pk = ser_to_point(pubkey)
-        if not ecdsa.ecdsa.point_is_valid(generator_secp256k1, pk.x(), pk.y()):
-            raise Exception("invalid pubkey")
-
-        ephemeral_exponent = int.to_bytes(
-            randrange(pow(2, 256)),
-            length=PRIVATE_KEY_BYTECOUNT,
-            byteorder="big",
-            signed=False,
-        )
-        ephemeral = ECKey(ephemeral_exponent)
-        ecdh_key = point_to_ser(pk * ephemeral.privkey.secret_multiplier)
-        key = hashlib.sha512(ecdh_key).digest()
-        iv, key_e, key_m = key[0:16], key[16:32], key[32:]
-        ciphertext = aes_encrypt_with_iv(key_e, iv, message)
-        ephemeral_pubkey = ephemeral.get_public_key(compressed=True)
-        encrypted = magic + ephemeral_pubkey + ciphertext
-        mac = hmac.new(key_m, encrypted, hashlib.sha256).digest()
-
-        return base64.b64encode(encrypted + mac)
 
     def decrypt_message(self, encrypted, magic=b"BIE1"):
         encrypted = base64.b64decode(encrypted)

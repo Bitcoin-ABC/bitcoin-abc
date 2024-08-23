@@ -59,7 +59,7 @@ from electrumabc.bip32 import InvalidXKeyFormat, InvalidXKeyNotBase58, deseriali
 from electrumabc.bitcoin import TYPE_ADDRESS
 from electrumabc.constants import CURRENCY, PROJECT_NAME, REPOSITORY_URL, SCRIPT_NAME
 from electrumabc.contacts import Contact
-from electrumabc.ecc import encrypt_message
+from electrumabc.ecc import ECPubkey
 from electrumabc.i18n import _, ngettext
 from electrumabc.paymentrequest import PR_PAID
 from electrumabc.plugins import run_hook
@@ -3666,7 +3666,8 @@ class ElectrumWindow(QtWidgets.QMainWindow, MessageBoxMixin, PrintError):
         message = message_e.toPlainText()
         message = message.encode("utf-8")
         try:
-            encrypted = encrypt_message(message, bytes.fromhex(pubkey_e.text()))
+            public_key = ECPubkey(bytes.fromhex(pubkey_e.text()))
+            encrypted = public_key.encrypt_message(message)
             encrypted_e.setText(encrypted.decode("ascii"))
         except Exception as e:
             if is_verbose:
