@@ -8,6 +8,8 @@ import { Container, GradientSpacer } from '/components/atoms';
 import walletAnimation from '/public/animations/wallet.json';
 import { wallets } from '/data/wallets.js';
 import ExternalLink from '/components/external-link';
+import Button from '/components/button';
+import { ButtonCtn, MarginButtonWrapper } from '/styles/pages/homepage';
 import {
     WalletListCtn,
     WalletCardCtn,
@@ -72,10 +74,18 @@ export default function Wallets() {
                 imagereverse
             >
                 <p>
-                    eCash supports a number of major wallets. Here is a list of
-                    official eCash (XEC) wallets to store & manage your XEC
-                    coins:
+                    Here are the best eCash (XEC) wallets to store & manage your
+                    coins. You can also check out our detailed guide to find the
+                    best wallet for your needs:
                 </p>
+                <p></p>
+                <Button
+                    text="Wallet Guide"
+                    link="/blog/choose-the-best-ecash-xec-wallet-a-comprehensive-guide"
+                    color="primary"
+                    corner="bottomRight"
+                    glow
+                />
             </SubPageHero>
             <GradientSpacer />
 

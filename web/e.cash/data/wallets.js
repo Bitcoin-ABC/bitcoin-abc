@@ -24,7 +24,7 @@ export const wallets = [
         image: '/images/electrum-abc.png',
         link: 'https://www.bitcoinabc.org/electrum/',
         availableOn: ['Desktop'],
-        features: ['Message Signing', 'Multi-sig wallets'],
+        features: ['Message Signing', 'Multi-sig wallets', 'Bip-70'],
     },
     {
         name: 'RaiPay',
@@ -32,7 +32,7 @@ export const wallets = [
         image: '/images/raipay.png',
         link: 'https://www.raipay.co',
         availableOn: ['iOS', 'Android'],
-        features: ['eTokens', 'Message Signing'],
+        features: ['eTokens', 'Message Signing', 'Bip-70'],
     },
     {
         name: 'CoinEx Wallet',
