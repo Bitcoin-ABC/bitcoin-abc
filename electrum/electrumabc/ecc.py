@@ -48,6 +48,7 @@ if TYPE_CHECKING:
 
 do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1()
 
+# 0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_BAAEDCE6_AF48A03B_BFD25E8C_D0364141
 CURVE_ORDER = SECP256k1.order
 
 PRIVATE_KEY_BYTECOUNT = 32
@@ -323,11 +324,9 @@ class ECPubkey(object):
         assert_bytes(message)
 
         pk = self._pubkey.point
-        if not ecdsa.ecdsa.point_is_valid(generator_secp256k1, pk.x(), pk.y()):
-            raise Exception("invalid pubkey")
 
         ephemeral_exponent = int.to_bytes(
-            randrange(pow(2, 256)),
+            randrange(CURVE_ORDER),
             length=PRIVATE_KEY_BYTECOUNT,
             byteorder="big",
             signed=False,
