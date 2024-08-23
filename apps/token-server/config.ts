@@ -28,7 +28,7 @@ const config: TokenServerConfig = {
     rewardsTokenId:
         'aed861a31b96934b88c0252ede135cb9700d7649f69191235087a3030e553cb1',
     rewardAmountTokenSats: 10000n, // Cachet is a 2-decimal token, so this is 100.00 Cachet
-    xecAirdropAmountSats: 3000, // satoshis to send in new wallet XEC airdrops, 1000 = 10 XEC
+    xecAirdropAmountSats: 1000, // satoshis to send in new wallet XEC airdrops, 1000 = 10 XEC
     // Note: this must be the target= parameter for the --mount instruction of docker run
     // See Production Step 3 in README.md
     imageDir: '/token-server/token-icons',
