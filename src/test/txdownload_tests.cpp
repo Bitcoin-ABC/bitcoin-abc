@@ -479,4 +479,40 @@ BOOST_AUTO_TEST_CASE(reconsiderable_parent_already_have) {
     }
 }
 
+BOOST_AUTO_TEST_CASE(orphan_in_recent_rejects) {
+    CTxMemPool &pool = *Assert(m_node.mempool);
+    FastRandomContext det_rand{true};
+    node::TxDownloadOptions DEFAULT_OPTS{pool, det_rand,
+                                         DEFAULT_MAX_ORPHAN_TRANSACTIONS, true};
+    NodeId nodeid{0};
+    node::TxDownloadConnectionInfo DEFAULT_CONN{/*m_preferred=*/false,
+                                                /*m_relay_permissions=*/false};
+
+    // The parent is never received, only used to create the orphan.
+    CreatePlaceholderTx();
+    const auto ptx_orphan = CreatePlaceholderTx();
+
+    TxValidationState state_orphan;
+    state_orphan.Invalid(TxValidationResult::TX_MISSING_INPUTS, "");
+
+    // An orphan that is already in RecentRejectsFilter is not processed: it
+    // is not added to the orphanage and its parents are not requested.
+    for (const bool orphan_in_rejects : {false, true}) {
+        TestTxDownloadManagerImpl txdownload_impl{DEFAULT_OPTS, nodeid,
+                                                  DEFAULT_CONN};
+        if (orphan_in_rejects) {
+            txdownload_impl.RecentRejectsFilter().insert(ptx_orphan->GetId());
+        }
+
+        const auto ret = txdownload_impl.MempoolRejectedTx(
+            ptx_orphan, state_orphan, nodeid, /*first_time_failure=*/true);
+        std::string err_msg;
+        const bool ok = CheckOrphanBehavior(
+            txdownload_impl, ptx_orphan, ret, err_msg,
+            /*expect_orphan=*/!orphan_in_rejects, /*expect_keep=*/true,
+            /*expected_parents=*/orphan_in_rejects ? 0 : 1);
+        BOOST_CHECK_MESSAGE(ok, err_msg);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
