@@ -5,9 +5,13 @@ from ecdsa.ecdsa import generator_secp256k1
 
 from ..bitcoin import deserialize_privkey
 from ..ecc import (
+    CURVE_ORDER,
+    GENERATOR,
+    POINT_AT_INFINITY,
     PRIVATE_KEY_BYTECOUNT,
     ECPrivkey,
     ECPubkey,
+    InvalidECPointException,
     SignatureType,
     point_to_ser,
     verify_message_with_address,
@@ -149,6 +153,59 @@ class TestECC(unittest.TestCase):
                     sigtype=SignatureType.BITCOIN,
                 )
             )
+
+    def test_point_infinity(self):
+        G = ECPubkey(
+            bytes.fromhex(
+                "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            )
+        )
+        self.assertEqual(G, GENERATOR)
+        minusG = ECPubkey(
+            bytes.fromhex(
+                "0379be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798"
+            )
+        )
+        uncompressed_minusG = ECPubkey(
+            bytes.fromhex(
+                "0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798b7c52588d95c3b9aa25b0403f1eef75702e84bb7597aabe663b82f6f04ef2777"
+            )
+        )
+
+        for inf in (
+            G + minusG,
+            G + uncompressed_minusG,
+            CURVE_ORDER * G,
+            CURVE_ORDER * (5 * G),
+            (CURVE_ORDER * G) * 5,
+        ):
+            self.assertTrue(inf.is_at_infinity())
+            self.assertEqual(inf, POINT_AT_INFINITY)
+
+        for not_inf in (
+            G,
+            (CURVE_ORDER - 2) * G,
+            (CURVE_ORDER - 1) * G,
+            (CURVE_ORDER + 1) * G,
+        ):
+            self.assertFalse(not_inf.is_at_infinity())
+            self.assertNotEqual(not_inf, POINT_AT_INFINITY)
+
+    def test_point_not_on_curve(self):
+        with self.assertRaises(InvalidECPointException):
+            ECPubkey(
+                bytes.fromhex(
+                    "030000000000000000000000000000000000000000000000000000000000000007"
+                )
+            )
+
+    def test_ecc_sanity(self):
+        G = GENERATOR
+        self.assertEqual(G.order(), CURVE_ORDER)
+        self.assertEqual(11 * G, 7 * G + 4 * G)
+        self.assertEqual((CURVE_ORDER + 2) * G, 2 * G)
+        self.assertEqual((CURVE_ORDER - 2) * G, -2 * G)
+        self.assertNotEqual((CURVE_ORDER - 2) * G, (CURVE_ORDER - 1) * G)
 
 
 if __name__ == "__main__":

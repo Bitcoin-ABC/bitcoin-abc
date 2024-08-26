@@ -104,14 +104,22 @@ class EcCoordinates(NamedTuple):
     y: int
 
 
+class InvalidECPointException(Exception):
+    """e.g. not on curve, or infinity"""
+
+
 def point_to_ser(
     P: Union[EcCoordinates, ecdsa.ellipticcurve.Point], compressed=True
-) -> bytes:
+) -> Optional[bytes]:
+    """Convert an elliptic curve point to a serialized pubkey. Return None
+    for point at infinity."""
     if isinstance(P, tuple):
         assert len(P) == 2, f"unexpected point: {P}"
         x, y = P
     else:
         x, y = P.x(), P.y()
+        if x is None or y is None:
+            return None
     if compressed:
         return int(2 + (y & 1)).to_bytes(1, "big") + int(x).to_bytes(32, "big")
     return b"\x04" + int(x).to_bytes(32, "big") + int(y).to_bytes(32, "big")
@@ -131,7 +139,10 @@ def ser_to_coordinates(ser: bytes) -> EcCoordinates:
 
 def ser_to_point(ser: bytes) -> ecdsa.ellipticcurve.Point:
     x, y = ser_to_coordinates(ser)
-    return Point(curve_secp256k1, x, y, generator_secp256k1.order())
+    try:
+        return Point(curve_secp256k1, x, y, generator_secp256k1.order())
+    except Exception:
+        raise InvalidECPointException()
 
 
 class MyVerifyingKey(ecdsa.VerifyingKey):
@@ -177,12 +188,19 @@ class MySigningKey(ecdsa.SigningKey):
         return r, s
 
 
+class _PubkeyForPointAtInfinity:
+    point = ecdsa.ellipticcurve.INFINITY
+
+
 class ECPubkey(object):
 
-    def __init__(self, b: bytes):
-        assert_bytes(b)
-        point = ser_to_point(b)
-        self._pubkey = ecdsa.ecdsa.Public_key(generator_secp256k1, point)
+    def __init__(self, b: Optional[bytes]):
+        if b is not None:
+            assert_bytes(b)
+            point = ser_to_point(b)
+            self._pubkey = ecdsa.ecdsa.Public_key(generator_secp256k1, point)
+        else:
+            self._pubkey = _PubkeyForPointAtInfinity()
 
     @classmethod
     def from_sig_string(cls, sig_string: bytes, recid: int, msg_hash: bytes):
@@ -220,6 +238,8 @@ class ECPubkey(object):
         return ECPubkey(_bytes)
 
     def get_public_key_bytes(self, compressed=True):
+        if self.is_at_infinity():
+            raise InvalidECPointException("point is at infinity")
         return point_to_ser(self.point(), compressed)
 
     def get_public_key_hex(self, compressed=True):
@@ -246,7 +266,10 @@ class ECPubkey(object):
         return self.from_point(ecdsa_point)
 
     def __eq__(self, other):
-        return self.get_public_key_bytes() == other.get_public_key_bytes()
+        return (
+            self._pubkey.point.x() == other._pubkey.point.x()
+            and self._pubkey.point.y() == other._pubkey.point.y()
+        )
 
     def __ne__(self, other):
         return not (self == other)
@@ -311,6 +334,14 @@ class ECPubkey(object):
     def order(cls):
         return CURVE_ORDER
 
+    def is_at_infinity(self):
+        return self == POINT_AT_INFINITY
+
+
+GENERATOR = ECPubkey.from_point(generator_secp256k1)
+
+POINT_AT_INFINITY = ECPubkey(None)
+
 
 def verify_message_with_address(
     address: Union[str, "Address"],
@@ -361,7 +392,9 @@ class ECPrivkey(ECPubkey):
 
         secret = be_bytes_to_number(privkey_bytes)
         if not is_secret_within_curve_range(secret):
-            raise Exception("Invalid secret scalar (not within curve order)")
+            raise InvalidECPointException(
+                "Invalid secret scalar (not within curve order)"
+            )
         self.secret_scalar = secret
 
         point = generator_secp256k1 * secret
