@@ -47,7 +47,7 @@ from google.protobuf.message import DecodeError
 
 from electrumabc import schnorr
 from electrumabc.constants import XEC
-from electrumabc.ecc import ECPrivkey
+from electrumabc.ecc import CURVE_ORDER, ECPrivkey
 from electrumabc.i18n import _
 from electrumabc.printerror import PrintError
 from electrumabc.util import (
@@ -61,7 +61,6 @@ from electrumabc.wallet import MultisigWallet, StandardWallet
 
 from . import compatibility, encrypt
 from . import fusion_pb2 as pb
-from . import pedersen
 from .comms import get_current_genesis_hash, recv_pb, send_pb
 from .conf import Conf
 from .connection import open_connection
@@ -264,7 +263,7 @@ def gen_components(num_blanks, inputs, outputs, feerate):
     # Sort by the commitment bytestring, in order to forget the original order.
     resultlist.sort(key=lambda x: x[0])
 
-    sum_nonce = sum_nonce % pedersen.order
+    sum_nonce = sum_nonce % CURVE_ORDER
     pedersen_total_nonce = int(sum_nonce).to_bytes(32, "big")
 
     return zip(*resultlist), sum_amounts, pedersen_total_nonce

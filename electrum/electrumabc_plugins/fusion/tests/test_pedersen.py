@@ -5,10 +5,11 @@
 # License: MIT
 import unittest
 
+from electrumabc.ecc import CURVE_ORDER
+
 from .. import pedersen
 
-order = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-assert order == pedersen.order
+assert CURVE_ORDER == 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
 
 def fastslowcase(testmethod):
@@ -65,7 +66,7 @@ def TestNormal(self):
     commit5 = pedersen.Commitment(setup, 5)
     commit10m = setup.commit(-10)
 
-    sumnonce = (commit0.nonce + commit5.nonce + commit10m.nonce) % order
+    sumnonce = (commit0.nonce + commit5.nonce + commit10m.nonce) % CURVE_ORDER
 
     sumA = pedersen.add_commitments([commit0, commit5, commit10m])
     sumB = pedersen.Commitment(setup, -5, nonce=sumnonce)  # manual

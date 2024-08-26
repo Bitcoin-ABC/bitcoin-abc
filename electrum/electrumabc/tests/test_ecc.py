@@ -1,8 +1,6 @@
 import base64
 import unittest
 
-from ecdsa.ecdsa import generator_secp256k1
-
 from ..bitcoin import deserialize_privkey
 from ..ecc import (
     CURVE_ORDER,
@@ -13,7 +11,6 @@ from ..ecc import (
     ECPubkey,
     InvalidECPointException,
     SignatureType,
-    point_to_ser,
     verify_message_with_address,
 )
 from ..util import randrange
@@ -28,12 +25,10 @@ class TestECC(unittest.TestCase):
             self._do_test_crypto(message)
 
     def _do_test_crypto(self, message):
-        G = generator_secp256k1
-        _r = G.order()
-        pvk = randrange(pow(2, 256)) % _r
+        pvk = randrange(GENERATOR.order())
 
-        Pub = pvk * G
-        pubkey_c = point_to_ser(Pub, True)
+        Pub = pvk * GENERATOR
+        pubkey_c = Pub.get_public_key_bytes(compressed=True)
 
         eck = ECPrivkey(
             int.to_bytes(

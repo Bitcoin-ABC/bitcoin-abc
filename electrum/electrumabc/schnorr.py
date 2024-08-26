@@ -18,7 +18,7 @@ from ctypes import byref, c_int, c_size_t, c_void_p, cast, create_string_buffer
 import ecdsa
 
 from . import secp256k1
-from .ecc import point_to_ser, ser_to_point
+from .ecc import CURVE_ORDER, GENERATOR, ECPubkey, point_to_ser, ser_to_point
 from .util import randrange
 
 
@@ -169,27 +169,26 @@ def sign(privkey, message_hash):
     else:
         # pure python fallback:
         G = ecdsa.SECP256k1.generator
-        order = G.order()
         fieldsize = G.curve().p()
 
         secexp = int.from_bytes(privkey, "big")
-        if not 0 < secexp < order:
+        if not 0 < secexp < CURVE_ORDER:
             raise ValueError("could not sign")
         pubpoint = secexp * G
         pubbytes = point_to_ser(pubpoint, compressed=True)
 
         k = nonce_function_rfc6979(
-            order, privkey, message_hash, algo16=b"Schnorr+SHA256\x20\x20"
+            CURVE_ORDER, privkey, message_hash, algo16=b"Schnorr+SHA256\x20\x20"
         )
         R = k * G
         if jacobi(R.y(), fieldsize) == -1:
-            k = order - k
+            k = CURVE_ORDER - k
         rbytes = int(R.x()).to_bytes(32, "big")
 
         ebytes = hashlib.sha256(rbytes + pubbytes + message_hash).digest()
         e = int.from_bytes(ebytes, "big")
 
-        s = (k + e * secexp) % order
+        s = (k + e * secexp) % CURVE_ORDER
 
         return rbytes + int(s).to_bytes(32, "big")
 
@@ -227,7 +226,6 @@ def verify(pubkey, signature, message_hash):
         return bool(res)
     else:
         G = ecdsa.SECP256k1.generator
-        order = G.order()
         fieldsize = G.curve().p()
 
         try:
@@ -247,7 +245,7 @@ def verify(pubkey, signature, message_hash):
 
         sbytes = signature[32:]
         s = int.from_bytes(sbytes, "big")
-        if s >= order:
+        if s >= CURVE_ORDER:
             return False
 
         # compressed format, regardless of whether pubkey was compressed or not:
@@ -307,14 +305,12 @@ class BlindSigner:
       to get an additional signature: https://eprint.iacr.org/2019/877
     """
 
-    order = ecdsa.SECP256k1.generator.order()
-
     def __init__(self):
-        k = randrange(self.order)
+        k = randrange(CURVE_ORDER)
         # we store k in a list since .pop() is atomic.
         self._kcontainer = [k]
-        Rpoint = k * ecdsa.SECP256k1.generator
-        self.R = point_to_ser(Rpoint, compressed=True)
+        Rpoint = k * GENERATOR
+        self.R = Rpoint.get_public_key_bytes(compressed=True)
 
     def get_R(self):
         return self.R
@@ -330,7 +326,7 @@ class BlindSigner:
         x = int.from_bytes(privkey, "big")
         e = int.from_bytes(ebytes, "big")
 
-        s = (k + e * x) % self.order
+        s = (k + e * x) % CURVE_ORDER
         return int(s).to_bytes(32, "big")
 
 
@@ -368,7 +364,6 @@ class BlindSignatureRequest:
     Ref: https://blog.cryptographyengineering.com/a-note-on-blind-signature-schemes/
     """
 
-    order = ecdsa.SECP256k1.generator.order()
     fieldsize = ecdsa.SECP256k1.curve.p()
 
     def __init__(self, pubkey, R, message_hash):
@@ -381,8 +376,8 @@ class BlindSignatureRequest:
         self.R = R
         self.message_hash = message_hash
 
-        self.a = randrange(self.order)
-        self.b = randrange(self.order)
+        self.a = randrange(CURVE_ORDER)
+        self.b = randrange(CURVE_ORDER)
         if seclib:
             self._calc_initial_fast()
         else:
@@ -391,31 +386,31 @@ class BlindSignatureRequest:
         ehash = hashlib.sha256(
             self.Rxnew + self.pubkey_compressed + message_hash
         ).digest()
-        self.e = (self.c * int.from_bytes(ehash, "big") + self.b) % self.order
+        self.e = (self.c * int.from_bytes(ehash, "big") + self.b) % CURVE_ORDER
 
-        self.enew = int.from_bytes(ehash, "big") % self.order  # debug
+        self.enew = int.from_bytes(ehash, "big") % CURVE_ORDER  # debug
 
     def _calc_initial(self):
         # Internal function, calculates Rxnew, c, and compressed pubkey.
         try:
-            Rpoint = ser_to_point(self.R)
+            Rpoint = ECPubkey(self.R)
         except Exception:
             # off-curve points, failed decompression, bad format,
             # point at infinity:
             raise ValueError("R could not be parsed")
         try:
-            pubpoint = ser_to_point(self.pubkey)
+            pubpoint = ECPubkey(self.pubkey)
         except Exception:
             # off-curve points, failed decompression, bad format,
             # point at infinity:
             raise ValueError("pubkey could not be parsed")
 
-        self.pubkey_compressed = point_to_ser(pubpoint, compressed=True)
+        self.pubkey_compressed = pubpoint.get_public_key_bytes(compressed=True)
 
         # multiply & add the points -- takes ~190 microsec
-        Rnew = Rpoint + self.a * ecdsa.SECP256k1.generator + self.b * pubpoint
-        self.Rxnew = int(Rnew.x()).to_bytes(32, "big")
-        y = Rnew.y()
+        Rnew = Rpoint + self.a * GENERATOR + self.b * pubpoint
+        self.Rxnew = int(Rnew.point().x).to_bytes(32, "big")
+        y = Rnew.point().y
 
         # calculate the jacobi symbol (+1 or -1). ~30 microsec
         self.c = jacobi(y, self.fieldsize)
@@ -508,7 +503,7 @@ class BlindSignatureRequest:
 
         s = int.from_bytes(sbytes, "big")
 
-        snew = (self.c * (s + self.a)) % self.order
+        snew = (self.c * (s + self.a)) % CURVE_ORDER
 
         sig = self.Rxnew + int(snew).to_bytes(32, "big")
         if check and not verify(self.pubkey, sig, self.message_hash):

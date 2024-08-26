@@ -44,13 +44,10 @@ amount is sensible.
 
 from ctypes import byref, c_size_t, c_void_p, cast, create_string_buffer
 
-import ecdsa
-
 from electrumabc import secp256k1
-from electrumabc.ecc import point_to_ser, ser_to_point
+from electrumabc.ecc import CURVE_ORDER, GENERATOR, ECPubkey
 from electrumabc.util import randrange
 
-order = ecdsa.SECP256k1.generator.order()
 seclib = secp256k1.secp256k1
 
 
@@ -87,18 +84,18 @@ class PedersenSetup:
 
         if not seclib:
             try:
-                Hpoint = ser_to_point(H)
+                Hpoint = ECPubkey(H)
             except Exception:
                 raise ValueError("H could not be parsed")
-            HGpoint = Hpoint + ecdsa.SECP256k1.generator
-            if HGpoint == ecdsa.ellipticcurve.INFINITY:
+            HGpoint = Hpoint + GENERATOR
+            if HGpoint.is_at_infinity():
                 # this happens if H = -G
                 raise InsecureHPoint(-1)
             self._ecdsa_H = Hpoint
             self._ecdsa_HG = HGpoint
 
-            self.H = point_to_ser(Hpoint, compressed=False)
-            self.HG = point_to_ser(HGpoint, compressed=False)
+            self.H = Hpoint.get_public_key_bytes(compressed=False)
+            self.HG = HGpoint.get_public_key_bytes(compressed=False)
         else:
             ctx = seclib.ctx
             H_buf = create_string_buffer(64)
@@ -108,7 +105,7 @@ class PedersenSetup:
 
             self._seclib_H = H_buf.raw
 
-            G = point_to_ser(ecdsa.SECP256k1.generator, compressed=False)
+            G = GENERATOR.get_public_key_bytes(compressed=False)
             G_buf = create_string_buffer(64)
             res = seclib.secp256k1_ec_pubkey_parse(ctx, G_buf, G, c_size_t(len(G)))
             assert res, "G point should always deserialize without issue"
@@ -162,11 +159,11 @@ class Commitment:
         """setup should be a PedersenSetup object.
 
         amount should be an integer, may be negative or positive. The provided
-        value is stored as .amount and its normal form (mod order) is stored in
+        value is stored as .amount and its normal form (mod CURVE_ORDER) is stored in
         amount_mod. There is no restriction on the size nor sign of amount.
 
         You can also use this class to test a revealed commitment, by providing
-        the nonce value. Provided nonces must be in the range 0 < nonce < order,
+        the nonce value. Provided nonces must be in the range 0 < nonce < CURVE_ORDER,
         or else a NonceRangeError will result.
 
         _P_uncompressed is an internal API variable, do not use.
@@ -175,14 +172,14 @@ class Commitment:
         self.setup = setup
 
         self.amount = int(amount)
-        self.amount_mod = amount % order
+        self.amount_mod = amount % CURVE_ORDER
 
         if nonce is None:
-            self.nonce = randrange(order)
+            self.nonce = randrange(CURVE_ORDER)
         else:
             nonce = int(nonce)
             self.nonce = nonce
-        if self.nonce <= 0 or self.nonce >= order:
+        if self.nonce <= 0 or self.nonce >= CURVE_ORDER:
             raise NonceRangeError
 
         if _P_uncompressed:
@@ -216,11 +213,13 @@ class Commitment:
             # Thus not only do we know the discrete log, but the big conclusion
             # to draw here is that someone else does, too!
             #
-            # (Because 0 < nonce < order, this is basically impossible to cause
+            # (Because 0 < nonce < CURVE_ORDER, this is basically impossible to cause
             # in a normal setup (only ~2^256 chance).)
 
             # As it's easy to calculate the discrete log, let's do it.
-            dlog = (pow(self.amount_mod, order - 2, order) * self.nonce) % order
+            dlog = (
+                pow(self.amount_mod, CURVE_ORDER - 2, CURVE_ORDER) * self.nonce
+            ) % CURVE_ORDER
             raise InsecureHPoint(dlog)
 
     def _calc_initial(self):
@@ -233,13 +232,12 @@ class Commitment:
         # We don't want to calculate (a * Hpoint) since the time to execute
         # would reveal information about size / bitcount of a. So, we use
         # the nonce as a blinding offset factor.
-        Ppoint = ((a - k) % order) * Hpoint + k * HGpoint
-
-        if Ppoint == ecdsa.ellipticcurve.INFINITY:
+        Ppoint = ((a - k) % CURVE_ORDER) * Hpoint + k * HGpoint
+        if Ppoint.is_at_infinity():
             raise ResultAtInfinity
 
-        self.P_uncompressed = point_to_ser(Ppoint, compressed=False)
-        self.P_compressed = point_to_ser(Ppoint, compressed=True)
+        self.P_uncompressed = Ppoint.get_public_key_bytes(compressed=False)
+        self.P_compressed = Ppoint.get_public_key_bytes(compressed=True)
 
     def _calc_initial_fast(self):
         # Fast version of _calc_initial, using libsecp256k1.
@@ -259,9 +257,9 @@ class Commitment:
         kHG_buf = create_string_buffer(64)
         kHG_buf.raw = self.setup._seclib_HG  # copy
         res = seclib.secp256k1_ec_pubkey_tweak_mul(ctx, kHG_buf, k_bytes)
-        assert res == 1, "must never fail since 0 < k < order"
+        assert res == 1, "must never fail since 0 < k < CURVE_ORDER"
 
-        a_k = (a - k) % order
+        a_k = (a - k) % CURVE_ORDER
         if a_k != 0:
             result_buf = create_string_buffer(64)
 
@@ -348,13 +346,14 @@ def add_points(points_iterable):
         return serpoint.raw
     else:
         for pser in points_iterable:
-            plist.append(ser_to_point(pser))
+            plist.append(ECPubkey(pser))
         if not plist:
             raise ValueError("empty list")
+
         Psum = sum(plist[1:], plist[0])
-        if Psum == ecdsa.ellipticcurve.INFINITY:
+        if Psum.is_at_infinity():
             raise ResultAtInfinity
-        return point_to_ser(Psum, compressed=False)
+        return Psum.get_public_key_bytes(compressed=False)
 
 
 def add_commitments(commitment_iterable):
@@ -382,7 +381,7 @@ def add_commitments(commitment_iterable):
 
     # atotal is not computed from modulo quantities.
 
-    ktotal = ktotal % order
+    ktotal = ktotal % CURVE_ORDER
 
     if ktotal == 0:
         # this improbable to happen by accident, but very easily occurs with

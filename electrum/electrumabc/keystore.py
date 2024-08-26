@@ -29,8 +29,6 @@ import hashlib
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
-import ecdsa
-from ecdsa.curves import SECP256k1
 from mnemonic import Mnemonic
 
 from . import bitcoin, mnemo, networks
@@ -48,7 +46,15 @@ from .bip32 import (
     xpub_from_xprv,
 )
 from .crypto import Hash, pw_decode, pw_encode
-from .ecc import PRIVATE_KEY_BYTECOUNT, ECPrivkey, SignatureType, be_bytes_to_number
+from .ecc import (
+    CURVE_ORDER,
+    GENERATOR,
+    PRIVATE_KEY_BYTECOUNT,
+    ECPrivkey,
+    ECPubkey,
+    SignatureType,
+    be_bytes_to_number,
+)
 from .plugins import run_hook
 from .printerror import PrintError, print_error
 from .util import BitcoinException, InvalidPassword, WalletFileException, bh2u
@@ -495,11 +501,8 @@ class OldKeyStore(DeterministicKeyStore):
     @classmethod
     def mpk_from_seed(klass, seed) -> bytes:
         secexp = klass.stretch_key(seed)
-        master_private_key = ecdsa.SigningKey.from_secret_exponent(
-            secexp, curve=SECP256k1
-        )
-        master_public_key = master_private_key.get_verifying_key().to_string()
-        return master_public_key
+        privkey = ECPrivkey.from_secret_scalar(secexp)
+        return privkey.get_public_key_bytes(compressed=False)[1:]
 
     @classmethod
     def stretch_key(self, seed):
@@ -515,20 +518,15 @@ class OldKeyStore(DeterministicKeyStore):
     @classmethod
     def get_pubkey_from_mpk(self, mpk: bytes, for_change, n) -> bytes:
         z = self.get_sequence(mpk, for_change, n)
-        master_public_key = ecdsa.VerifyingKey.from_string(mpk, curve=SECP256k1)
-        pubkey_point = master_public_key.pubkey.point + z * SECP256k1.generator
-        public_key2 = ecdsa.VerifyingKey.from_public_point(
-            pubkey_point, curve=SECP256k1
-        )
-        # here to_string() is a misnomer dating back to Python 2. It returns bytes.
-        return b"\x04" + public_key2.to_string()
+        master_public_key = ECPubkey(b"\x04" + mpk)
+        public_key = master_public_key + z * GENERATOR
+        return public_key.get_public_key_bytes(compressed=False)
 
     def derive_pubkey(self, for_change, n) -> bytes:
         return self.get_pubkey_from_mpk(self.mpk, for_change, n)
 
     def get_private_key_from_stretched_exponent(self, for_change, n, secexp):
-        order = ecdsa.ecdsa.generator_secp256k1.order()
-        secexp = (secexp + self.get_sequence(self.mpk, for_change, n)) % order
+        secexp = (secexp + self.get_sequence(self.mpk, for_change, n)) % CURVE_ORDER
         pk = int.to_bytes(
             secexp, length=PRIVATE_KEY_BYTECOUNT, byteorder="big", signed=False
         )
@@ -545,10 +543,10 @@ class OldKeyStore(DeterministicKeyStore):
         """As a performance optimization we also return the stretched key
         in case the caller needs it. Otherwise we raise InvalidPassword."""
         secexp = self.stretch_key(seed)
-        master_private_key = ecdsa.SigningKey.from_secret_exponent(
-            secexp, curve=SECP256k1
-        )
-        master_public_key = master_private_key.get_verifying_key().to_string()
+        master_private_key = ECPrivkey.from_secret_scalar(secexp)
+        master_public_key = master_private_key.get_public_key_bytes(compressed=False)[
+            1:
+        ]
         if master_public_key != self.mpk:
             print_error(
                 "invalid password (mpk)", self.mpk.hex(), bh2u(master_public_key)
