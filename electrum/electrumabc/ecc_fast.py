@@ -4,7 +4,7 @@
 # taken (with minor modifications) from pycoin
 # https://github.com/richardkiss/pycoin/blob/01b1787ed902df23f99a55deb00d8cd076a906fe/pycoin/ecdsa/native/secp256k1.py
 
-from ctypes import byref, c_size_t, create_string_buffer
+from ctypes import byref, c_char_p, c_size_t, cast, create_string_buffer
 
 import ecdsa
 
@@ -25,35 +25,32 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
     _patched_functions.orig_sign = staticmethod(ecdsa.ecdsa.Private_key.sign)
     _patched_functions.orig_verify = staticmethod(ecdsa.ecdsa.Public_key.verifies)
     _patched_functions.orig_mul = staticmethod(ecdsa.ellipticcurve.Point.__mul__)
+    _patched_functions.orig_add = staticmethod(ecdsa.ellipticcurve.Point.__add__)
 
     curve_secp256k1 = ecdsa.ecdsa.curve_secp256k1
     curve_order = ecdsa.curves.SECP256k1.order
     point_at_infinity = ecdsa.ellipticcurve.INFINITY
 
-    def mul(self: ecdsa.ellipticcurve.Point, other: int):
-        if self.curve() != curve_secp256k1:
-            # this operation is not on the secp256k1 curve; use original implementation
-            return _patched_functions.orig_mul(self, other)
-        other %= curve_order
-        if self == point_at_infinity or other == 0:
-            return point_at_infinity
+    def _get_ptr_to_well_formed_pubkey_string_buffer_from_ecdsa_point(
+        point: ecdsa.ellipticcurve.Point,
+    ):
+        assert point.curve() == curve_secp256k1
         pubkey = create_string_buffer(64)
         public_pair_bytes = (
             b"\4"
-            + int(self.x()).to_bytes(32, byteorder="big")
-            + int(self.y()).to_bytes(32, byteorder="big")
+            + int(point.x()).to_bytes(32, byteorder="big")
+            + int(point.y()).to_bytes(32, byteorder="big")
         )
         r = secp256k1.secp256k1.secp256k1_ec_pubkey_parse(
             secp256k1.secp256k1.ctx, pubkey, public_pair_bytes, len(public_pair_bytes)
         )
         if not r:
-            return False
-        r = secp256k1.secp256k1.secp256k1_ec_pubkey_tweak_mul(
-            secp256k1.secp256k1.ctx, pubkey, int(other).to_bytes(32, byteorder="big")
-        )
-        if not r:
-            return point_at_infinity
+            raise Exception("public key could not be parsed or is invalid")
+        return pubkey
 
+    def _get_ecdsa_point_from_libsecp256k1_pubkey_object(
+        pubkey,
+    ) -> ecdsa.ellipticcurve.Point:
         pubkey_serialized = create_string_buffer(65)
         pubkey_size = c_size_t(65)
         secp256k1.secp256k1.secp256k1_ec_pubkey_serialize(
@@ -67,7 +64,49 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
         y = int.from_bytes(pubkey_serialized[33:], byteorder="big")
         return ecdsa.ellipticcurve.Point(curve_secp256k1, x, y, curve_order)
 
-    def sign(self: ecdsa.ecdsa.Private_key, hash_: int, random_k: int):
+    def add(
+        self: ecdsa.ellipticcurve.Point, other: ecdsa.ellipticcurve.Point
+    ) -> ecdsa.ellipticcurve.Point:
+        if self.curve() != curve_secp256k1:
+            # this operation is not on the secp256k1 curve; use original implementation
+            return _patched_functions.orig_add(self, other)
+        if self == point_at_infinity:
+            return other
+        if other == point_at_infinity:
+            return self
+
+        pubkey1 = _get_ptr_to_well_formed_pubkey_string_buffer_from_ecdsa_point(self)
+        pubkey2 = _get_ptr_to_well_formed_pubkey_string_buffer_from_ecdsa_point(other)
+        pubkey_sum = create_string_buffer(64)
+
+        pubkey1 = cast(pubkey1, c_char_p)
+        pubkey2 = cast(pubkey2, c_char_p)
+        array_of_pubkey_ptrs = (c_char_p * 2)(pubkey1, pubkey2)
+        r = secp256k1.secp256k1.secp256k1_ec_pubkey_combine(
+            secp256k1.secp256k1.ctx, pubkey_sum, array_of_pubkey_ptrs, 2
+        )
+        if not r:
+            return point_at_infinity
+        return _get_ecdsa_point_from_libsecp256k1_pubkey_object(pubkey_sum)
+
+    def mul(self: ecdsa.ellipticcurve.Point, other: int):
+        if self.curve() != curve_secp256k1:
+            # this operation is not on the secp256k1 curve; use original implementation
+            return _patched_functions.orig_mul(self, other)
+        other %= curve_order
+        if self == point_at_infinity or other == 0:
+            return point_at_infinity
+        pubkey = _get_ptr_to_well_formed_pubkey_string_buffer_from_ecdsa_point(self)
+        r = secp256k1.secp256k1.secp256k1_ec_pubkey_tweak_mul(
+            secp256k1.secp256k1.ctx, pubkey, int(other).to_bytes(32, byteorder="big")
+        )
+        if not r:
+            return point_at_infinity
+        return _get_ecdsa_point_from_libsecp256k1_pubkey_object(pubkey)
+
+    def sign(
+        self: ecdsa.ecdsa.Private_key, hash_: int, random_k: int
+    ) -> ecdsa.ecdsa.Signature:
         # note: random_k is ignored
         if self.public_key.curve != curve_secp256k1:
             # this operation is not on the secp256k1 curve; use original implementation
@@ -78,7 +117,7 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
         nonce_function = None
         sig = create_string_buffer(64)
         sig_hash_bytes = int(hash_).to_bytes(32, byteorder="big")
-        secp256k1.secp256k1.secp256k1_ecdsa_sign(
+        r = secp256k1.secp256k1.secp256k1_ecdsa_sign(
             secp256k1.secp256k1.ctx,
             sig,
             sig_hash_bytes,
@@ -86,6 +125,10 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
             nonce_function,
             None,
         )
+        if not r:
+            raise Exception(
+                "the nonce generation function failed, or the private key was invalid"
+            )
         compact_signature = create_string_buffer(64)
         secp256k1.secp256k1.secp256k1_ecdsa_signature_serialize_compact(
             secp256k1.secp256k1.ctx, compact_signature, sig
@@ -96,7 +139,7 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
 
     def verify(
         self: ecdsa.ecdsa.Public_key, hash_: int, signature: ecdsa.ecdsa.Signature
-    ):
+    ) -> bool:
         if self.curve != curve_secp256k1:
             # this operation is not on the secp256k1 curve; use original implementation
             return _patched_functions.orig_verify(self, hash_, signature)
@@ -136,6 +179,7 @@ def _prepare_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
     _patched_functions.fast_sign = sign
     _patched_functions.fast_verify = verify
     _patched_functions.fast_mul = mul
+    _patched_functions.fast_add = add
 
     _patched_functions.prepared_to_patch = True
 
@@ -154,7 +198,7 @@ def do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
     ecdsa.ecdsa.Private_key.sign = _patched_functions.fast_sign
     ecdsa.ecdsa.Public_key.verifies = _patched_functions.fast_verify
     ecdsa.ellipticcurve.Point.__mul__ = _patched_functions.fast_mul
-    # ecdsa.ellipticcurve.Point.__add__ = ...  # TODO??
+    ecdsa.ellipticcurve.Point.__add__ = _patched_functions.fast_add
 
     _patched_functions.monkey_patching_active = True
     # print_error('[ecc] info: libsecp256k1 library found and will be used for ecdsa signing operations.')
@@ -168,6 +212,7 @@ def undo_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1():
     ecdsa.ecdsa.Private_key.sign = _patched_functions.orig_sign
     ecdsa.ecdsa.Public_key.verifies = _patched_functions.orig_verify
     ecdsa.ellipticcurve.Point.__mul__ = _patched_functions.orig_mul
+    ecdsa.ellipticcurve.Point.__add__ = _patched_functions.orig_add
 
     _patched_functions.monkey_patching_active = False
 

@@ -8,7 +8,7 @@ respectively.
 import ctypes
 import os
 import sys
-from ctypes import POINTER, c_char_p, c_int, c_size_t, c_uint, c_void_p
+from ctypes import c_char_p, c_int, c_size_t, c_uint, c_void_p
 
 from .printerror import print_stderr
 
@@ -150,7 +150,7 @@ def _load_library():
         secp256k1.secp256k1_ec_pubkey_combine.argtypes = [
             c_void_p,
             c_void_p,
-            POINTER(c_void_p),
+            c_void_p,
             c_size_t,
         ]
         secp256k1.secp256k1_ec_pubkey_combine.restype = c_int

@@ -201,6 +201,8 @@ class TestECC(unittest.TestCase):
         self.assertEqual((CURVE_ORDER + 2) * G, 2 * G)
         self.assertEqual((CURVE_ORDER - 2) * G, -2 * G)
         self.assertNotEqual((CURVE_ORDER - 2) * G, (CURVE_ORDER - 1) * G)
+        self.assertEqual(2 * G, POINT_AT_INFINITY + 2 * G)
+        self.assertEqual(POINT_AT_INFINITY, 3 * G + (-3 * G))
 
 
 if __name__ == "__main__":
