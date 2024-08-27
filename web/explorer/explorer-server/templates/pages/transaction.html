@@ -130,9 +130,11 @@
                                 {% when Some with (block_meta) %}
                                 <a href="/block/{{ block_meta.hash|to_le_hex }}">{{ block_meta.height|to_i128|render_integer|safe }}</a>
                                 ({{ confirmations|to_i128|render_integer|safe }}
-                                confirmation
-                                {% if confirmations|to_i128 > 1 %}<span>s</span>{% endif %}
-                                )
+                                {% if confirmations|to_i128 > 1 %}
+                                    confirmations)
+                                {% else %}
+                                    confirmation)
+                                {% endif %}
                                 {% when None %}
                                 Not mined yet
                             {% endmatch %}
