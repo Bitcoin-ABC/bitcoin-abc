@@ -1096,8 +1096,9 @@ class Bip38Key:
         seedb = os.urandom(24)
         factorb = Hash(seedb)
 
-        point = ecc.ser_to_point(passpoint) * cls._bytes_to_int(factorb)
-        pubkey = ecc.point_to_ser(point, compressed)
+        pubkey = (
+            ecc.ECPubkey(passpoint) * cls._bytes_to_int(factorb)
+        ).get_public_key_bytes(compressed)
         generatedaddress = pubkey_to_address(ScriptType.p2pkh, pubkey)
         addresshash = Hash(generatedaddress)[:4]
 

@@ -28,6 +28,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+from ctypes import byref, c_char_p, c_size_t, cast, create_string_buffer
 from enum import Enum
 from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple, Union
 
@@ -38,15 +39,13 @@ from ecdsa.ellipticcurve import Point
 
 from . import networks
 from .crypto import Hash, aes_decrypt_with_iv, aes_encrypt_with_iv
-from .ecc_fast import do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1
+from .secp256k1 import SECP256K1_EC_UNCOMPRESSED, secp256k1
 from .serialize import serialize_blob
 from .util import InvalidPassword, assert_bytes, randrange, to_bytes
 
 if TYPE_CHECKING:
     from .address import Address
 
-
-do_monkey_patching_of_python_ecdsa_internals_with_libsecp256k1()
 
 # 0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_BAAEDCE6_AF48A03B_BFD25E8C_D0364141
 CURVE_ORDER = SECP256k1.order
@@ -74,20 +73,28 @@ def msg_magic(message: bytes, sigtype: SignatureType = SignatureType.ECASH) -> b
     return serialize_blob(magic) + serialize_blob(message)
 
 
-def get_y_coord_from_x(x: int, odd=True) -> int:
-    curve = curve_secp256k1
-    _p = curve.p()
-    _a = curve.a()
-    _b = curve.b()
-    for offset in range(128):
-        Mx = x + offset
-        My2 = pow(Mx, 3, _p) + _a * pow(Mx, 2, _p) + _b % _p
-        My = pow(My2, (_p + 1) // 4, _p)
-        if curve.contains_point(Mx, My):
-            if odd == bool(My & 1):
-                return My
-            return _p - My
-    raise Exception("ECC_YfromX: No Y found")
+def _x_and_y_from_pubkey_bytes(pubkey: bytes) -> Tuple[int, int]:
+    pubkey_ptr = create_string_buffer(64)
+    ret = secp256k1.secp256k1_ec_pubkey_parse(
+        secp256k1.ctx, pubkey_ptr, pubkey, len(pubkey)
+    )
+    if not ret:
+        raise InvalidECPointException("public key could not be parsed or is invalid")
+
+    pubkey_serialized = create_string_buffer(65)
+    pubkey_size = c_size_t(65)
+    secp256k1.secp256k1_ec_pubkey_serialize(
+        secp256k1.ctx,
+        pubkey_serialized,
+        byref(pubkey_size),
+        pubkey_ptr,
+        SECP256K1_EC_UNCOMPRESSED,
+    )
+    pubkey_serialized = bytes(pubkey_serialized)
+    assert pubkey_serialized[0] == 0x04, pubkey_serialized
+    x = int.from_bytes(pubkey_serialized[1:33], byteorder="big", signed=False)
+    y = int.from_bytes(pubkey_serialized[33:65], byteorder="big", signed=False)
+    return x, y
 
 
 def negative_point(P):
@@ -125,6 +132,22 @@ def point_to_ser(
     return b"\x04" + int(x).to_bytes(32, "big") + int(y).to_bytes(32, "big")
 
 
+def get_y_coord_from_x(x: int, odd=True) -> int:
+    curve = curve_secp256k1
+    _p = curve.p()
+    _a = curve.a()
+    _b = curve.b()
+    for offset in range(128):
+        Mx = x + offset
+        My2 = pow(Mx, 3, _p) + _a * pow(Mx, 2, _p) + _b % _p
+        My = pow(My2, (_p + 1) // 4, _p)
+        if curve.contains_point(Mx, My):
+            if odd == bool(My & 1):
+                return My
+            return _p - My
+    raise Exception("ECC_YfromX: No Y found")
+
+
 def ser_to_coordinates(ser: bytes) -> EcCoordinates:
     if ser[0] not in (0x02, 0x03, 0x04):
         raise ValueError(f"Unexpected first byte: {ser[0]}")
@@ -135,14 +158,6 @@ def ser_to_coordinates(ser: bytes) -> EcCoordinates:
 
     x = be_bytes_to_number(ser[1:])
     return EcCoordinates(x, get_y_coord_from_x(x, ser[0] == 0x03))
-
-
-def ser_to_point(ser: bytes) -> ecdsa.ellipticcurve.Point:
-    x, y = ser_to_coordinates(ser)
-    try:
-        return Point(curve_secp256k1, x, y, generator_secp256k1.order())
-    except Exception:
-        raise InvalidECPointException()
 
 
 class MyVerifyingKey(ecdsa.VerifyingKey):
@@ -188,19 +203,13 @@ class MySigningKey(ecdsa.SigningKey):
         return r, s
 
 
-class _PubkeyForPointAtInfinity:
-    point = ecdsa.ellipticcurve.INFINITY
-
-
 class ECPubkey(object):
 
     def __init__(self, b: Optional[bytes]):
+        self._x, self._y = None, None
         if b is not None:
             assert_bytes(b)
-            point = ser_to_point(b)
-            self._pubkey = ecdsa.ecdsa.Public_key(generator_secp256k1, point)
-        else:
-            self._pubkey = _PubkeyForPointAtInfinity()
+            self._x, self._y = _x_and_y_from_pubkey_bytes(b)
 
     @classmethod
     def from_sig_string(cls, sig_string: bytes, recid: int, msg_hash: bytes):
@@ -237,6 +246,15 @@ class ECPubkey(object):
         _bytes = point_to_ser(point, compressed=False)  # faster than compressed
         return ECPubkey(_bytes)
 
+    @classmethod
+    def from_x_and_y(cls, x: int, y: int) -> ECPubkey:
+        _bytes = (
+            b"\x04"
+            + int.to_bytes(x, length=32, byteorder="big", signed=False)
+            + int.to_bytes(y, length=32, byteorder="big", signed=False)
+        )
+        return ECPubkey(_bytes)
+
     def get_public_key_bytes(self, compressed=True):
         if self.is_at_infinity():
             raise InvalidECPointException("point is at infinity")
@@ -246,15 +264,53 @@ class ECPubkey(object):
         return self.get_public_key_bytes(compressed).hex()
 
     def point(self) -> EcCoordinates:
-        return EcCoordinates(self._pubkey.point.x(), self._pubkey.point.y())
+        return EcCoordinates(self.x(), self.y())
+
+    def x(self) -> int:
+        return self._x
+
+    def y(self) -> int:
+        return self._y
+
+    def _to_libsecp256k1_pubkey_ptr(self):
+        pubkey = create_string_buffer(64)
+        public_pair_bytes = self.get_public_key_bytes(compressed=False)
+        ret = secp256k1.secp256k1_ec_pubkey_parse(
+            secp256k1.ctx, pubkey, public_pair_bytes, len(public_pair_bytes)
+        )
+        if not ret:
+            raise Exception("public key could not be parsed or is invalid")
+        return pubkey
+
+    @classmethod
+    def _from_libsecp256k1_pubkey_ptr(cls, pubkey) -> ECPubkey:
+        pubkey_serialized = create_string_buffer(65)
+        pubkey_size = c_size_t(65)
+        secp256k1.secp256k1_ec_pubkey_serialize(
+            secp256k1.ctx,
+            pubkey_serialized,
+            byref(pubkey_size),
+            pubkey,
+            SECP256K1_EC_UNCOMPRESSED,
+        )
+        return ECPubkey(bytes(pubkey_serialized))
 
     def __mul__(self, other: int):
         if not isinstance(other, int):
             raise TypeError(
                 f"multiplication not defined for ECPubkey and {type(other)}"
             )
-        ecdsa_point = self._pubkey.point * other
-        return self.from_point(ecdsa_point)
+        other %= CURVE_ORDER
+        if self.is_at_infinity() or other == 0:
+            return POINT_AT_INFINITY
+        pubkey = self._to_libsecp256k1_pubkey_ptr()
+
+        ret = secp256k1.secp256k1_ec_pubkey_tweak_mul(
+            secp256k1.ctx, pubkey, other.to_bytes(32, byteorder="big")
+        )
+        if not ret:
+            return POINT_AT_INFINITY
+        return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey)
 
     def __rmul__(self, other: int):
         return self * other
@@ -262,14 +318,29 @@ class ECPubkey(object):
     def __add__(self, other):
         if not isinstance(other, ECPubkey):
             raise TypeError(f"addition not defined for ECPubkey and {type(other)}")
-        ecdsa_point = self._pubkey.point + other._pubkey.point
-        return self.from_point(ecdsa_point)
+        if self.is_at_infinity():
+            return other
+        if other.is_at_infinity():
+            return self
 
-    def __eq__(self, other):
-        return (
-            self._pubkey.point.x() == other._pubkey.point.x()
-            and self._pubkey.point.y() == other._pubkey.point.y()
+        pubkey1 = self._to_libsecp256k1_pubkey_ptr()
+        pubkey2 = other._to_libsecp256k1_pubkey_ptr()
+        pubkey_sum = create_string_buffer(64)
+
+        pubkey1 = cast(pubkey1, c_char_p)
+        pubkey2 = cast(pubkey2, c_char_p)
+        array_of_pubkey_ptrs = (c_char_p * 2)(pubkey1, pubkey2)
+        ret = secp256k1.secp256k1_ec_pubkey_combine(
+            secp256k1.ctx, pubkey_sum, array_of_pubkey_ptrs, 2
         )
+        if not ret:
+            return POINT_AT_INFINITY
+        return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey_sum)
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, ECPubkey):
+            return False
+        return self.point() == other.point()
 
     def __ne__(self, other):
         return not (self == other)
@@ -297,10 +368,20 @@ class ECPubkey(object):
         assert_bytes(sig_string)
         if len(sig_string) != 64:
             return False
-        ecdsa_point = self._pubkey.point
-        verifying_key = MyVerifyingKey.from_public_point(ecdsa_point, curve=SECP256k1)
-        return verifying_key.verify_digest(
-            sig_string, msg_hash, sigdecode=ecdsa.util.sigdecode_string
+        if not (isinstance(msg_hash, bytes) and len(msg_hash) == 32):
+            return False
+
+        sig = create_string_buffer(64)
+        ret = secp256k1.secp256k1_ecdsa_signature_parse_compact(
+            secp256k1.ctx, sig, sig_string
+        )
+        if not ret:
+            raise Exception("Bad signature")
+        ret = secp256k1.secp256k1_ecdsa_signature_normalize(secp256k1.ctx, sig, sig)
+
+        pubkey = self._to_libsecp256k1_pubkey_ptr()
+        return 1 == secp256k1.secp256k1_ecdsa_verify(
+            secp256k1.ctx, sig, msg_hash, pubkey
         )
 
     def encrypt_message(self, message: bytes, magic=b"BIE1"):
@@ -399,7 +480,6 @@ class ECPrivkey(ECPubkey):
 
         point = generator_secp256k1 * secret
         super().__init__(point_to_ser(point))
-        self._privkey = ecdsa.ecdsa.Private_key(self._pubkey, secret)
         self.secret = secret
 
     @classmethod
@@ -430,26 +510,50 @@ class ECPrivkey(ECPubkey):
 
     def sign(
         self,
-        data: bytes,
+        msg_hash: bytes,
         sigencode: Callable[[int, int, int], bytes],
-        sigdecode: Callable[[bytes, int], Tuple[int, int]],
     ) -> bytes:
-        private_key = MySigningKey.from_secret_exponent(
-            self.secret_scalar, curve=SECP256k1
-        )
-        sig = private_key.sign_digest_deterministic(
-            data, hashfunc=hashlib.sha256, sigencode=sigencode
-        )
-        public_key = private_key.get_verifying_key()
-        if not public_key.verify_digest(sig, data, sigdecode=sigdecode):
-            raise Exception("Sanity check verifying our own signature failed.")
+        privkey_bytes = self.secret_scalar.to_bytes(32, byteorder="big")
+        nonce_function = None
+        sig = create_string_buffer(64)
+
+        def sign_with_extra_entropy(extra_entropy):
+            ret = secp256k1.secp256k1_ecdsa_sign(
+                secp256k1.ctx,
+                sig,
+                msg_hash,
+                privkey_bytes,
+                nonce_function,
+                extra_entropy,
+            )
+            if not ret:
+                raise Exception(
+                    "the nonce generation function failed, or the private key was invalid"
+                )
+            compact_signature = create_string_buffer(64)
+            secp256k1.secp256k1_ecdsa_signature_serialize_compact(
+                secp256k1.ctx, compact_signature, sig
+            )
+            r = int.from_bytes(compact_signature[:32], byteorder="big")
+            s = int.from_bytes(compact_signature[32:], byteorder="big")
+            return r, s
+
+        r, s = sign_with_extra_entropy(extra_entropy=None)
+        # grind for low R value https://github.com/bitcoin/bitcoin/pull/13666
+        counter = 0
+        while r >= 2**255:
+            counter += 1
+            extra_entropy = counter.to_bytes(32, byteorder="little")
+            r, s = sign_with_extra_entropy(extra_entropy=extra_entropy)
+
+        sig = sigencode(r, s, CURVE_ORDER)
+        # TODO: verify produced signature (self-consistency check)
         return sig
 
     def sign_transaction(self, hashed_preimage):
         return self.sign(
             hashed_preimage,
             sigencode=ecdsa.util.sigencode_der,
-            sigdecode=ecdsa.util.sigdecode_der,
         )
 
     def sign_message(
@@ -474,7 +578,6 @@ class ECPrivkey(ECPubkey):
         sig_string = self.sign(
             msg_hash,
             sigencode=ecdsa.util.sigencode_string,
-            sigdecode=ecdsa.util.sigdecode_string,
         )
         sig65, recid = bruteforce_recid(sig_string)
         return sig65
@@ -490,14 +593,9 @@ class ECPrivkey(ECPubkey):
         if magic_found != magic:
             raise Exception("invalid ciphertext: invalid magic bytes")
         try:
-            ecdsa_point = ser_to_point(ephemeral_pubkey_bytes)
+            ephemeral_pubkey = ECPubkey(ephemeral_pubkey_bytes)
         except AssertionError:
             raise Exception("invalid ciphertext: invalid ephemeral pubkey")
-        if not ecdsa.ecdsa.point_is_valid(
-            generator_secp256k1, ecdsa_point.x(), ecdsa_point.y()
-        ):
-            raise Exception("invalid ciphertext: invalid ephemeral pubkey")
-        ephemeral_pubkey = ECPubkey(point_to_ser(ecdsa_point))
         ecdh_key = (ephemeral_pubkey * self.secret_scalar).get_public_key_bytes(
             compressed=True
         )

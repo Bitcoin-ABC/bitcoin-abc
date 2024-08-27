@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # -*- mode: python3 -*-
 """
-secp256k1 - Maintain a single global secp256k1 context. ecc_fast.py and
+secp256k1 - Maintain a single global secp256k1 context. ecc.py and
 schnorr.py make use of this context to do fast ECDSA signing or Schnorr signing,
 respectively.
 """
@@ -72,107 +72,125 @@ def _load_library():
             print_stderr(
                 f"[secp256k1] warning: loading from {path} failed with: {exception}"
             )
-        return None
+        raise ImportError(
+            "Unable to find or to load required library libsecp256k1. "
+            "See contrib/secp_HOWTO.md for instructions on how to install it."
+        )
+
+    secp256k1.secp256k1_context_create.argtypes = [c_uint]
+    secp256k1.secp256k1_context_create.restype = c_void_p
+
+    secp256k1.secp256k1_context_randomize.argtypes = [c_void_p, c_char_p]
+    secp256k1.secp256k1_context_randomize.restype = c_int
+
+    secp256k1.secp256k1_ec_pubkey_create.argtypes = [c_void_p, c_void_p, c_char_p]
+    secp256k1.secp256k1_ec_pubkey_create.restype = c_int
+
+    secp256k1.secp256k1_ecdsa_sign.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+        c_char_p,
+        c_void_p,
+        c_void_p,
+    ]
+    secp256k1.secp256k1_ecdsa_sign.restype = c_int
+
+    secp256k1.secp256k1_ecdsa_verify.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+        c_char_p,
+    ]
+    secp256k1.secp256k1_ecdsa_verify.restype = c_int
+
+    secp256k1.secp256k1_ec_pubkey_parse.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+        c_size_t,
+    ]
+    secp256k1.secp256k1_ec_pubkey_parse.restype = c_int
+
+    secp256k1.secp256k1_ec_pubkey_serialize.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_void_p,
+        c_char_p,
+        c_uint,
+    ]
+    secp256k1.secp256k1_ec_pubkey_serialize.restype = c_int
+
+    secp256k1.secp256k1_ecdsa_signature_parse_compact.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+    ]
+    secp256k1.secp256k1_ecdsa_signature_parse_compact.restype = c_int
+
+    secp256k1.secp256k1_ecdsa_signature_normalize.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+    ]
+    secp256k1.secp256k1_ecdsa_signature_normalize.restype = c_int
+
+    secp256k1.secp256k1_ecdsa_signature_serialize_compact.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+    ]
+    secp256k1.secp256k1_ecdsa_signature_serialize_compact.restype = c_int
+
+    secp256k1.secp256k1_ec_pubkey_tweak_mul.argtypes = [
+        c_void_p,
+        c_char_p,
+        c_char_p,
+    ]
+    secp256k1.secp256k1_ec_pubkey_tweak_mul.restype = c_int
+
+    secp256k1.secp256k1_ec_pubkey_combine.argtypes = [
+        c_void_p,
+        c_void_p,
+        c_void_p,
+        c_size_t,
+    ]
+    secp256k1.secp256k1_ec_pubkey_combine.restype = c_int
 
     try:
-        secp256k1.secp256k1_context_create.argtypes = [c_uint]
-        secp256k1.secp256k1_context_create.restype = c_void_p
-
-        secp256k1.secp256k1_context_randomize.argtypes = [c_void_p, c_char_p]
-        secp256k1.secp256k1_context_randomize.restype = c_int
-
-        secp256k1.secp256k1_ec_pubkey_create.argtypes = [c_void_p, c_void_p, c_char_p]
-        secp256k1.secp256k1_ec_pubkey_create.restype = c_int
-
-        secp256k1.secp256k1_ecdsa_sign.argtypes = [
+        secp256k1.secp256k1_schnorr_sign.argtypes = [
             c_void_p,
-            c_char_p,
-            c_char_p,
-            c_char_p,
+            c_void_p,
+            c_void_p,
+            c_void_p,
             c_void_p,
             c_void_p,
         ]
-        secp256k1.secp256k1_ecdsa_sign.restype = c_int
+        secp256k1.secp256k1_schnorr_sign.restype = c_int
 
-        secp256k1.secp256k1_ecdsa_verify.argtypes = [
+        secp256k1.secp256k1_schnorr_verify.argtypes = [
             c_void_p,
-            c_char_p,
-            c_char_p,
-            c_char_p,
+            c_void_p,
+            c_void_p,
+            c_void_p,
         ]
-        secp256k1.secp256k1_ecdsa_verify.restype = c_int
-
-        secp256k1.secp256k1_ec_pubkey_parse.argtypes = [
-            c_void_p,
-            c_char_p,
-            c_char_p,
-            c_size_t,
-        ]
-        secp256k1.secp256k1_ec_pubkey_parse.restype = c_int
-
-        secp256k1.secp256k1_ec_pubkey_serialize.argtypes = [
-            c_void_p,
-            c_char_p,
-            c_void_p,
-            c_char_p,
-            c_uint,
-        ]
-        secp256k1.secp256k1_ec_pubkey_serialize.restype = c_int
-
-        secp256k1.secp256k1_ecdsa_signature_parse_compact.argtypes = [
-            c_void_p,
-            c_char_p,
-            c_char_p,
-        ]
-        secp256k1.secp256k1_ecdsa_signature_parse_compact.restype = c_int
-
-        secp256k1.secp256k1_ecdsa_signature_normalize.argtypes = [
-            c_void_p,
-            c_char_p,
-            c_char_p,
-        ]
-        secp256k1.secp256k1_ecdsa_signature_normalize.restype = c_int
-
-        secp256k1.secp256k1_ecdsa_signature_serialize_compact.argtypes = [
-            c_void_p,
-            c_char_p,
-            c_char_p,
-        ]
-        secp256k1.secp256k1_ecdsa_signature_serialize_compact.restype = c_int
-
-        secp256k1.secp256k1_ec_pubkey_tweak_mul.argtypes = [
-            c_void_p,
-            c_char_p,
-            c_char_p,
-        ]
-        secp256k1.secp256k1_ec_pubkey_tweak_mul.restype = c_int
-
-        secp256k1.secp256k1_ec_pubkey_combine.argtypes = [
-            c_void_p,
-            c_void_p,
-            c_void_p,
-            c_size_t,
-        ]
-        secp256k1.secp256k1_ec_pubkey_combine.restype = c_int
-
-        secp256k1.ctx = secp256k1.secp256k1_context_create(
-            SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY
-        )
-        r = secp256k1.secp256k1_context_randomize(secp256k1.ctx, os.urandom(32))
-        if r:
-            return secp256k1
-        else:
-            print_stderr("[secp256k1] warning: secp256k1_context_randomize failed")
-            return None
+        secp256k1.secp256k1_schnorr_verify.restype = c_int
     except (OSError, AttributeError):
-        print_stderr(
-            "[secp256k1] warning: libsecp256k1 library was found and loaded but there"
-            " was an error when using it"
+        raise ImportError(
+            "libsecp256k1 library found but it was built "
+            "without required module (--enable-module-schnorr)"
         )
-        return None
+
+    secp256k1.ctx = secp256k1.secp256k1_context_create(
+        SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY
+    )
+    r = secp256k1.secp256k1_context_randomize(secp256k1.ctx, os.urandom(32))
+    if not r:
+        raise ImportError(
+            "Failed to initialize libsecp256k1 context: "
+            "secp256k1_context_randomize failed"
+        )
+    return secp256k1
 
 
-try:
-    secp256k1 = _load_library()
-except Exception:
-    secp256k1 = None
+secp256k1 = _load_library()

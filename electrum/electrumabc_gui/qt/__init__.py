@@ -721,9 +721,6 @@ class ElectrumGui(QtCore.QObject, PrintError):
             return
         # create or raise window
         try:
-            if not self.windows:
-                self.warn_if_no_secp()
-
             for window in self.windows:
                 if window.wallet.storage.path == wallet.storage.path:
                     window.bring_to_top()
@@ -902,50 +899,6 @@ class ElectrumGui(QtCore.QObject, PrintError):
             )
             return True
         return False
-
-    def warn_if_no_secp(
-        self, parent=None, message=None, icon=QtWidgets.QMessageBox.Warning
-    ):
-        """Returns True if it DID warn: ie if there's no secp and ecc operations
-        are slow, otherwise returns False if we have secp.
-
-        Pass message (rich text) to provide a custom message.
-
-        Note that the URL link to the HOWTO will always be appended to the custom message.
-        """
-        from electrumabc import ecc_fast
-
-        has_secp = ecc_fast.is_using_fast_ecc()
-        if has_secp:
-            return False
-
-        # else..
-        howto_url = "https://github.com/Bitcoin-ABC/ElectrumABC/blob/master/contrib/secp_HOWTO.md"
-        message = (
-            message
-            or _(
-                f"{PROJECT_NAME} was unable to find the secp256k1 library on this "
-                "system. Elliptic curve cryptography operations will be performed"
-                " in slow Python-only mode."
-            ),
-        )
-        url_blurb = _(
-            "Please visit this page for instructions on how to correct the situation:"
-        )
-        msg = f"""
-        <html><body>
-            <p>
-            {message}
-            <p>
-            {url_blurb}
-            </p>
-            <p><a href="{howto_url}">{PROJECT_NAME} Secp Mini-HOWTO</a></p>
-        </body></html>
-        """
-        self.warning(
-            parent=parent, title=_("Missing libsecp256k1"), message=msg, rich_text=True
-        )
-        return True
 
     def warning(
         self,

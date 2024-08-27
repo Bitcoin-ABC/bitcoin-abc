@@ -12,67 +12,13 @@ vulnerabilities, and must not be used in an automated-signing environment.
 """
 import hashlib
 import hmac
-from ctypes import byref, c_int, c_size_t, c_void_p, cast, create_string_buffer
-
-# for pure-python -- TODO refactor these out of bitcoin.py
-import ecdsa
+from ctypes import byref, c_size_t, c_void_p, cast, create_string_buffer
 
 from . import secp256k1
-from .ecc import CURVE_ORDER, GENERATOR, ECPubkey, point_to_ser, ser_to_point
+from .ecc import CURVE_ORDER, GENERATOR
 from .util import randrange
 
-
-def _setup_sign_function():
-    if not secp256k1.secp256k1:
-        return None
-    try:
-        # Try and find the symbol in the lib. If it's not there, it means we
-        # were likely using Core's lib which lacks schnorr.
-        secp256k1.secp256k1.secp256k1_schnorr_sign.argtypes = [
-            c_void_p,
-            c_void_p,
-            c_void_p,
-            c_void_p,
-            c_void_p,
-            c_void_p,
-        ]
-        secp256k1.secp256k1.secp256k1_schnorr_sign.restype = c_int
-    except AttributeError:
-        return None
-    return secp256k1.secp256k1.secp256k1_schnorr_sign
-
-
-def _setup_verify_function():
-    if not secp256k1.secp256k1:
-        return None
-    try:
-        # Try and find the symbol in the lib. If it's not there, it means we
-        # were likely using Core's lib which lacks schnorr.
-        secp256k1.secp256k1.secp256k1_schnorr_verify.argtypes = [
-            c_void_p,
-            c_void_p,
-            c_void_p,
-            c_void_p,
-        ]
-        secp256k1.secp256k1.secp256k1_schnorr_verify.restype = c_int
-    except AttributeError:
-        return None
-    return secp256k1.secp256k1.secp256k1_schnorr_verify
-
-
-_secp256k1_schnorr_sign = _setup_sign_function()
-_secp256k1_schnorr_verify = _setup_verify_function()
 seclib = secp256k1.secp256k1
-
-
-def has_fast_sign():
-    """Does sign() do fast (& side-channel secure) schnorr signatures?"""
-    return bool(_secp256k1_schnorr_sign)
-
-
-def has_fast_verify():
-    """Does verify() do fast schnorr verification?"""
-    return bool(_secp256k1_schnorr_verify)
 
 
 def jacobi(a, n):
@@ -154,43 +100,17 @@ def sign(privkey, message_hash):
     if not isinstance(message_hash, bytes) or len(message_hash) != 32:
         raise ValueError("message_hash must be a bytes object of length 32")
 
-    if _secp256k1_schnorr_sign:
-        sig = create_string_buffer(64)
-        res = _secp256k1_schnorr_sign(
-            secp256k1.secp256k1.ctx, sig, message_hash, privkey, None, None
-        )
-        if not res:
-            # Looking at the libsecp256k1 code, we can see that this will
-            # only occur if privkey is == 0 or >= order, i.e., if it has
-            # no associated pubkey. But as it's not specified in API we'll
-            # just leave it as a vague exception.
-            raise ValueError("could not sign")
-        return bytes(sig)
-    else:
-        # pure python fallback:
-        G = ecdsa.SECP256k1.generator
-        fieldsize = G.curve().p()
-
-        secexp = int.from_bytes(privkey, "big")
-        if not 0 < secexp < CURVE_ORDER:
-            raise ValueError("could not sign")
-        pubpoint = secexp * G
-        pubbytes = point_to_ser(pubpoint, compressed=True)
-
-        k = nonce_function_rfc6979(
-            CURVE_ORDER, privkey, message_hash, algo16=b"Schnorr+SHA256\x20\x20"
-        )
-        R = k * G
-        if jacobi(R.y(), fieldsize) == -1:
-            k = CURVE_ORDER - k
-        rbytes = int(R.x()).to_bytes(32, "big")
-
-        ebytes = hashlib.sha256(rbytes + pubbytes + message_hash).digest()
-        e = int.from_bytes(ebytes, "big")
-
-        s = (k + e * secexp) % CURVE_ORDER
-
-        return rbytes + int(s).to_bytes(32, "big")
+    sig = create_string_buffer(64)
+    res = seclib.secp256k1_schnorr_sign(
+        secp256k1.secp256k1.ctx, sig, message_hash, privkey, None, None
+    )
+    if not res:
+        # Looking at the libsecp256k1 code, we can see that this will
+        # only occur if privkey is == 0 or >= order, i.e., if it has
+        # no associated pubkey. But as it's not specified in API we'll
+        # just leave it as a vague exception.
+        raise ValueError("could not sign")
+    return bytes(sig)
 
 
 def verify(pubkey, signature, message_hash):
@@ -213,56 +133,16 @@ def verify(pubkey, signature, message_hash):
         raise ValueError("signature must be a bytes object of length 64")
     if not isinstance(message_hash, bytes) or len(message_hash) != 32:
         raise ValueError("message_hash must be a bytes object of length 32")
-    if _secp256k1_schnorr_verify:
-        pubkey_parsed = create_string_buffer(64)
-        res = secp256k1.secp256k1.secp256k1_ec_pubkey_parse(
-            secp256k1.secp256k1.ctx, pubkey_parsed, pubkey, c_size_t(len(pubkey))
-        )
-        if not res:
-            raise ValueError("pubkey could not be parsed by the secp256k1 library")
-        res = _secp256k1_schnorr_verify(
-            secp256k1.secp256k1.ctx, signature, message_hash, pubkey_parsed
-        )
-        return bool(res)
-    else:
-        G = ecdsa.SECP256k1.generator
-        fieldsize = G.curve().p()
-
-        try:
-            pubpoint = ser_to_point(pubkey)
-        except Exception:
-            # off-curve points, failed decompression, bad format,
-            # point at infinity:
-            raise ValueError("pubkey could not be parsed")
-
-        rbytes = signature[:32]
-        # these unnecessary since below we do bytes comparison and
-        # R.x() is always < fieldsize.
-        #
-        # r = int.from_bytes(rbytes, 'big')
-        # if r >= fieldsize:
-        #    return False
-
-        sbytes = signature[32:]
-        s = int.from_bytes(sbytes, "big")
-        if s >= CURVE_ORDER:
-            return False
-
-        # compressed format, regardless of whether pubkey was compressed or not:
-        pubbytes = point_to_ser(pubpoint, compressed=True)
-
-        ebytes = hashlib.sha256(rbytes + pubbytes + message_hash).digest()
-        e = int.from_bytes(ebytes, "big")
-
-        R = s * G + (-e) * pubpoint
-
-        if R == ecdsa.ellipticcurve.INFINITY:
-            return False
-
-        if jacobi(R.y(), fieldsize) != 1:
-            return False
-
-        return int(R.x()).to_bytes(32, "big") == rbytes
+    pubkey_parsed = create_string_buffer(64)
+    res = secp256k1.secp256k1.secp256k1_ec_pubkey_parse(
+        secp256k1.secp256k1.ctx, pubkey_parsed, pubkey, c_size_t(len(pubkey))
+    )
+    if not res:
+        raise ValueError("pubkey could not be parsed by the secp256k1 library")
+    res = seclib.secp256k1_schnorr_verify(
+        secp256k1.secp256k1.ctx, signature, message_hash, pubkey_parsed
+    )
+    return bool(res)
 
 
 class BlindSigner:
@@ -364,7 +244,8 @@ class BlindSignatureRequest:
     Ref: https://blog.cryptographyengineering.com/a-note-on-blind-signature-schemes/
     """
 
-    fieldsize = ecdsa.SECP256k1.curve.p()
+    # See https://neuromancer.sk/std/secg/secp256k1
+    fieldsize = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
     def __init__(self, pubkey, R, message_hash):
         """Expects three bytes objects"""
@@ -378,10 +259,7 @@ class BlindSignatureRequest:
 
         self.a = randrange(CURVE_ORDER)
         self.b = randrange(CURVE_ORDER)
-        if seclib:
-            self._calc_initial_fast()
-        else:
-            self._calc_initial()
+        self._calc_initial()
         assert self.c in (-1, +1)
         ehash = hashlib.sha256(
             self.Rxnew + self.pubkey_compressed + message_hash
@@ -391,32 +269,6 @@ class BlindSignatureRequest:
         self.enew = int.from_bytes(ehash, "big") % CURVE_ORDER  # debug
 
     def _calc_initial(self):
-        # Internal function, calculates Rxnew, c, and compressed pubkey.
-        try:
-            Rpoint = ECPubkey(self.R)
-        except Exception:
-            # off-curve points, failed decompression, bad format,
-            # point at infinity:
-            raise ValueError("R could not be parsed")
-        try:
-            pubpoint = ECPubkey(self.pubkey)
-        except Exception:
-            # off-curve points, failed decompression, bad format,
-            # point at infinity:
-            raise ValueError("pubkey could not be parsed")
-
-        self.pubkey_compressed = pubpoint.get_public_key_bytes(compressed=True)
-
-        # multiply & add the points -- takes ~190 microsec
-        Rnew = Rpoint + self.a * GENERATOR + self.b * pubpoint
-        self.Rxnew = int(Rnew.point().x).to_bytes(32, "big")
-        y = Rnew.point().y
-
-        # calculate the jacobi symbol (+1 or -1). ~30 microsec
-        self.c = jacobi(y, self.fieldsize)
-
-    def _calc_initial_fast(self):
-        # Fast version of _calc_initial, using libsecp256k1. About 2.4x faster.
         ctx = seclib.ctx
 
         abytes = int(self.a).to_bytes(32, "big")

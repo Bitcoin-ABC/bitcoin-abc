@@ -29,20 +29,8 @@ Compatibility checking.
 
 from google.protobuf.message import Message
 
-# Please avoid introducing local imports here, as in future it would be
-# nice if plugins could check compatibility in the plugins enable/disable menu
-# (i.e. in the __init__.py)
-from electrumabc import schnorr
-
 
 def check():
-    # Pure-python schnorr should't be used since fusion requires so many
-    # curve ops, so that CPU usage can be quite high and can cause rounds to
-    # fail due to slowed responses. This applies on both on server and client
-    # side.
-    if not schnorr.has_fast_sign() or not schnorr.has_fast_verify():
-        raise RuntimeError("Fusion requires libsecp256k1")
-
     # Old versions of protobuf < 3.7.0 have missing API that we need in
     # validation.proto_strict_parse.
     # - .ParseFromString() may fail to return the length parsed. (It will
