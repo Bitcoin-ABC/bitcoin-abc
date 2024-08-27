@@ -2732,8 +2732,8 @@ PeerManagerImpl::PeerManagerImpl(CConnman &connman, AddrMan &addrman,
       m_chainparams(chainman.GetParams()), m_connman(connman),
       m_addrman(addrman), m_banman(banman), m_chainman(chainman),
       m_mempool(pool), m_avalanche(avalanche),
-      m_txdownloadman(
-          node::TxDownloadOptions{pool, m_rng, opts.max_orphan_txs}),
+      m_txdownloadman(node::TxDownloadOptions{pool, m_rng, opts.max_orphan_txs,
+                                              opts.deterministic_rng}),
       m_opts{opts} {}
 
 void PeerManagerImpl::StartScheduledTasks(CScheduler &scheduler) {
