@@ -29,7 +29,7 @@ import base64
 import hashlib
 import hmac
 from enum import Enum
-from typing import TYPE_CHECKING, NamedTuple, Optional, Union
+from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
@@ -94,9 +94,9 @@ def negative_point(P):
     return Point(P.curve(), P.x(), -P.y(), P.order())
 
 
-def sig_string_from_der_sig(der_sig):
-    r, s = ecdsa.util.sigdecode_der(der_sig, CURVE_ORDER)
-    return ecdsa.util.sigencode_string(r, s, CURVE_ORDER)
+def sig_string_from_der_sig(der_sig, order=CURVE_ORDER):
+    r, s = ecdsa.util.sigdecode_der(der_sig, order)
+    return ecdsa.util.sigencode_string(r, s, order)
 
 
 class EcCoordinates(NamedTuple):
@@ -428,36 +428,37 @@ class ECPrivkey(ECPubkey):
         )
         return privkey_32bytes
 
-    def sign_transaction(self, hashed_preimage):
+    def sign(
+        self,
+        data: bytes,
+        sigencode: Callable[[int, int, int], bytes],
+        sigdecode: Callable[[bytes, int], Tuple[int, int]],
+    ) -> bytes:
         private_key = MySigningKey.from_secret_exponent(
             self.secret_scalar, curve=SECP256k1
         )
         sig = private_key.sign_digest_deterministic(
-            hashed_preimage, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_der
+            data, hashfunc=hashlib.sha256, sigencode=sigencode
         )
         public_key = private_key.get_verifying_key()
-        if not public_key.verify_digest(
-            sig, hashed_preimage, sigdecode=ecdsa.util.sigdecode_der
-        ):
+        if not public_key.verify_digest(sig, data, sigdecode=sigdecode):
             raise Exception("Sanity check verifying our own signature failed.")
         return sig
 
+    def sign_transaction(self, hashed_preimage):
+        return self.sign(
+            hashed_preimage,
+            sigencode=ecdsa.util.sigencode_der,
+            sigdecode=ecdsa.util.sigdecode_der,
+        )
+
     def sign_message(
-        self, message, is_compressed, *, sigtype: SignatureType = SignatureType.ECASH
+        self,
+        message: bytes,
+        is_compressed,
+        *,
+        sigtype: SignatureType = SignatureType.ECASH,
     ) -> bytes:
-        def sign_with_python_ecdsa(msg_hash):
-            private_key = MySigningKey.from_secret_exponent(
-                self.secret_scalar, curve=SECP256k1
-            )
-            public_key = private_key.get_verifying_key()
-            signature = private_key.sign_digest_deterministic(
-                msg_hash, hashfunc=hashlib.sha256, sigencode=ecdsa.util.sigencode_string
-            )
-            if not public_key.verify_digest(
-                signature, msg_hash, sigdecode=ecdsa.util.sigdecode_string
-            ):
-                raise Exception("Sanity check verifying our own signature failed.")
-            return signature
 
         def bruteforce_recid(sig_string):
             for recid in range(4):
@@ -470,15 +471,13 @@ class ECPrivkey(ECPubkey):
 
         message = to_bytes(message, "utf8")
         msg_hash = Hash(msg_magic(message, sigtype))
-        sig_string = sign_with_python_ecdsa(msg_hash)
+        sig_string = self.sign(
+            msg_hash,
+            sigencode=ecdsa.util.sigencode_string,
+            sigdecode=ecdsa.util.sigdecode_string,
+        )
         sig65, recid = bruteforce_recid(sig_string)
-        try:
-            self.verify_message(sig65, message, sigtype=sigtype)
-            return sig65
-        except Exception:
-            raise Exception(
-                "error: cannot sign message. self-verify sanity check failed"
-            )
+        return sig65
 
     def decrypt_message(self, encrypted, magic=b"BIE1"):
         encrypted = base64.b64decode(encrypted)
