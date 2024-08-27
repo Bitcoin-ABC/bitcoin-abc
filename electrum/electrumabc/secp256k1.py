@@ -197,6 +197,28 @@ def _load_library():
             "without required module (--enable-module-schnorr)"
         )
 
+    try:
+        secp256k1.secp256k1_ecdsa_recover.argtypes = [
+            c_void_p,
+            c_char_p,
+            c_char_p,
+            c_char_p,
+        ]
+        secp256k1.secp256k1_ecdsa_recover.restype = c_int
+
+        secp256k1.secp256k1_ecdsa_recoverable_signature_parse_compact.argtypes = [
+            c_void_p,
+            c_char_p,
+            c_char_p,
+            c_int,
+        ]
+        secp256k1.secp256k1_ecdsa_recoverable_signature_parse_compact.restype = c_int
+    except (OSError, AttributeError):
+        raise ImportError(
+            "libsecp256k1 library found but it was built "
+            "without required module (--enable-module-recovery)"
+        )
+
     secp256k1.ctx = secp256k1.secp256k1_context_create(
         SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY
     )
