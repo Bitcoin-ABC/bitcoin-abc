@@ -16,8 +16,6 @@ import sys
 import time
 
 import requests
-from ecdsa.ecdsa import generator_secp256k1
-from ecdsa.util import sigencode_der
 
 from electrumabc.base_wizard import HWD_SETUP_NEW_WALLET
 from electrumabc.bitcoin import (
@@ -30,6 +28,7 @@ from electrumabc.crypto import DecodeAES_bytes, EncodeAES_base64, EncodeAES_byte
 from electrumabc.ecc import (
     ECPubkey,
     SignatureType,
+    der_sig_from_r_and_s,
     msg_magic,
     verify_message_with_address,
 )
@@ -794,7 +793,7 @@ class DigitalBitboxKeyStore(HardwareKeyStore):
                         continue
                     sig_r = int(signed["sig"][:64], 16)
                     sig_s = int(signed["sig"][64:], 16)
-                    sig = sigencode_der(sig_r, sig_s, generator_secp256k1.order())
+                    sig = der_sig_from_r_and_s(sig_r, sig_s)
                     txin.update_signature(sig + b"\x41", ii)
                     tx.update_input(i, txin)
         except UserCancelled:

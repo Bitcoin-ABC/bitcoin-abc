@@ -34,7 +34,7 @@ from typing import TYPE_CHECKING, Callable, NamedTuple, Optional, Tuple, Union
 
 import ecdsa
 from ecdsa.curves import SECP256k1
-from ecdsa.ecdsa import curve_secp256k1, generator_secp256k1
+from ecdsa.ecdsa import generator_secp256k1
 from ecdsa.ellipticcurve import Point
 
 from . import networks
@@ -44,8 +44,9 @@ from .serialize import serialize_blob
 from .util import InvalidPassword, assert_bytes, randrange, to_bytes
 
 if TYPE_CHECKING:
-    from .address import Address
+    from ctypes import Array, c_char
 
+    from .address import Address
 
 # 0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_BAAEDCE6_AF48A03B_BFD25E8C_D0364141
 CURVE_ORDER = SECP256k1.order
@@ -101,9 +102,88 @@ def negative_point(P):
     return Point(P.curve(), P.x(), -P.y(), P.order())
 
 
-def sig_string_from_der_sig(der_sig, order=CURVE_ORDER):
-    r, s = ecdsa.util.sigdecode_der(der_sig, order)
-    return ecdsa.util.sigencode_string(r, s, order)
+def sig_string_from_der_sig(der_sig) -> bytes:
+    r, s = get_r_and_s_from_der_sig(der_sig)
+    return sig_string_from_r_and_s(r, s)
+
+
+def der_sig_from_sig_string(sig_string: bytes) -> bytes:
+    r, s = get_r_and_s_from_sig_string(sig_string)
+    return der_sig_from_r_and_s(r, s)
+
+
+def der_sig_from_r_and_s(r: int, s: int) -> bytes:
+    sig_string = int.to_bytes(r, length=32, byteorder="big") + int.to_bytes(
+        s, length=32, byteorder="big"
+    )
+    sig = create_string_buffer(64)
+    ret = secp256k1.secp256k1_ecdsa_signature_parse_compact(
+        secp256k1.ctx, sig, sig_string
+    )
+    if not ret:
+        raise Exception("Bad signature")
+    ret = secp256k1.secp256k1_ecdsa_signature_normalize(secp256k1.ctx, sig, sig)
+    der_sig = create_string_buffer(80)  # this much space should be enough
+    der_sig_size = c_size_t(len(der_sig))
+    ret = secp256k1.secp256k1_ecdsa_signature_serialize_der(
+        secp256k1.ctx, der_sig, byref(der_sig_size), sig
+    )
+    if not ret:
+        raise Exception("failed to serialize DER sig")
+    der_sig_size = der_sig_size.value
+    return bytes(der_sig)[:der_sig_size]
+
+
+def get_r_and_s_from_raw_sig(sig: Array[c_char]) -> Tuple[int, int]:
+    secp256k1.secp256k1_ecdsa_signature_normalize(secp256k1.ctx, sig, sig)
+    compact_signature = create_string_buffer(64)
+    secp256k1.secp256k1_ecdsa_signature_serialize_compact(
+        secp256k1.ctx, compact_signature, sig
+    )
+    r = int.from_bytes(compact_signature[:32], byteorder="big")
+    s = int.from_bytes(compact_signature[32:], byteorder="big")
+    return r, s
+
+
+def get_r_and_s_from_der_sig(der_sig: bytes) -> Tuple[int, int]:
+    assert isinstance(der_sig, bytes)
+    sig = create_string_buffer(64)
+    ret = secp256k1.secp256k1_ecdsa_signature_parse_der(
+        secp256k1.ctx, sig, der_sig, len(der_sig)
+    )
+    if not ret:
+        raise Exception("Bad signature")
+    return get_r_and_s_from_raw_sig(sig)
+
+
+def get_r_and_s_from_sig_string(sig_string: bytes) -> Tuple[int, int]:
+    if not (isinstance(sig_string, bytes) and len(sig_string) == 64):
+        raise Exception("sig_string must be bytes, and 64 bytes exactly")
+    sig = create_string_buffer(64)
+    ret = secp256k1.secp256k1_ecdsa_signature_parse_compact(
+        secp256k1.ctx, sig, sig_string
+    )
+    if not ret:
+        raise Exception("Bad signature")
+    return get_r_and_s_from_raw_sig(sig)
+
+
+def sig_string_from_r_and_s(r: int, s: int) -> bytes:
+    sig_string = int.to_bytes(r, length=32, byteorder="big") + int.to_bytes(
+        s, length=32, byteorder="big"
+    )
+    sig = create_string_buffer(64)
+    ret = secp256k1.secp256k1_ecdsa_signature_parse_compact(
+        secp256k1.ctx, sig, sig_string
+    )
+    if not ret:
+        raise Exception("Bad signature")
+    ret = secp256k1.secp256k1_ecdsa_signature_normalize(secp256k1.ctx, sig, sig)
+    compact_signature = create_string_buffer(64)
+    secp256k1.secp256k1_ecdsa_signature_serialize_compact(
+        secp256k1.ctx, compact_signature, sig
+    )
+    return bytes(compact_signature)
 
 
 class EcCoordinates(NamedTuple):
@@ -130,34 +210,6 @@ def point_to_ser(
     if compressed:
         return int(2 + (y & 1)).to_bytes(1, "big") + int(x).to_bytes(32, "big")
     return b"\x04" + int(x).to_bytes(32, "big") + int(y).to_bytes(32, "big")
-
-
-def get_y_coord_from_x(x: int, odd=True) -> int:
-    curve = curve_secp256k1
-    _p = curve.p()
-    _a = curve.a()
-    _b = curve.b()
-    for offset in range(128):
-        Mx = x + offset
-        My2 = pow(Mx, 3, _p) + _a * pow(Mx, 2, _p) + _b % _p
-        My = pow(My2, (_p + 1) // 4, _p)
-        if curve.contains_point(Mx, My):
-            if odd == bool(My & 1):
-                return My
-            return _p - My
-    raise Exception("ECC_YfromX: No Y found")
-
-
-def ser_to_coordinates(ser: bytes) -> EcCoordinates:
-    if ser[0] not in (0x02, 0x03, 0x04):
-        raise ValueError(f"Unexpected first byte: {ser[0]}")
-    if ser[0] == 0x04:
-        return EcCoordinates(
-            be_bytes_to_number(ser[1:33]), be_bytes_to_number(ser[33:])
-        )
-
-    x = be_bytes_to_number(ser[1:])
-    return EcCoordinates(x, get_y_coord_from_x(x, ser[0] == 0x03))
 
 
 class MyVerifyingKey(ecdsa.VerifyingKey):
@@ -511,7 +563,7 @@ class ECPrivkey(ECPubkey):
     def sign(
         self,
         msg_hash: bytes,
-        sigencode: Callable[[int, int, int], bytes],
+        sigencode: Callable[[int, int], bytes],
     ) -> bytes:
         privkey_bytes = self.secret_scalar.to_bytes(32, byteorder="big")
         nonce_function = None
@@ -546,14 +598,14 @@ class ECPrivkey(ECPubkey):
             extra_entropy = counter.to_bytes(32, byteorder="little")
             r, s = sign_with_extra_entropy(extra_entropy=extra_entropy)
 
-        sig = sigencode(r, s, CURVE_ORDER)
+        sig = sigencode(r, s)
         # TODO: verify produced signature (self-consistency check)
         return sig
 
     def sign_transaction(self, hashed_preimage):
         return self.sign(
             hashed_preimage,
-            sigencode=ecdsa.util.sigencode_der,
+            sigencode=der_sig_from_r_and_s,
         )
 
     def sign_message(
@@ -577,7 +629,7 @@ class ECPrivkey(ECPubkey):
         msg_hash = Hash(msg_magic(message, sigtype))
         sig_string = self.sign(
             msg_hash,
-            sigencode=ecdsa.util.sigencode_string,
+            sigencode=sig_string_from_r_and_s,
         )
         sig65, recid = bruteforce_recid(sig_string)
         return sig65

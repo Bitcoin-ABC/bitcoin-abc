@@ -53,7 +53,7 @@ from .bitcoin import TYPE_SCRIPT, OpCodes, ScriptType
 from .caches import ExpiringCache
 from .constants import DEFAULT_TXIN_SEQUENCE
 from .crypto import Hash, hash_160
-from .ecc import ECPrivkey, ECPubkey, ser_to_coordinates, sig_string_from_der_sig
+from .ecc import ECPrivkey, ECPubkey, sig_string_from_der_sig
 
 #
 # Workalike python implementation of Bitcoin's CDataStream class.
@@ -1497,8 +1497,7 @@ class Transaction:
 
         # ECDSA signature
         try:
-            pubkey_coordinates = ser_to_coordinates(pubkey)
-            public_key = ECPubkey.from_point(pubkey_coordinates)
+            public_key = ECPubkey(pubkey)
             sig_string = sig_string_from_der_sig(sig)
             return public_key.verify_message_hash(sig_string, msghash)
         except Exception as e:
