@@ -25,16 +25,15 @@ ProofRef buildRandomProof(Chainstate &active_chainstate, uint32_t score,
     const Amount v = (int64_t(score) * COIN) / 100;
     const bool is_coinbase = false;
 
+    CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
     {
-        CScript script = GetScriptForDestination(PKHash(key.GetPubKey()));
-
         LOCK(cs_main);
         CCoinsViewCache &coins = active_chainstate.CoinsTip();
         coins.AddCoin(o, Coin(CTxOut(v, script), height, is_coinbase), false);
     }
 
-    ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), masterKey,
-                    UNSPENDABLE_ECREG_PAYOUT_SCRIPT);
+    // Reuse output script as payout script so random proof payouts are unique
+    ProofBuilder pb(0, std::numeric_limits<uint32_t>::max(), masterKey, script);
     BOOST_CHECK(pb.addUTXO(o, v, height, is_coinbase, std::move(key)));
     return pb.build();
 }
