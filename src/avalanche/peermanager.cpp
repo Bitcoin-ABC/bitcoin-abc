@@ -4,9 +4,9 @@
 
 #include <avalanche/peermanager.h>
 
-#include <arith_uint256.h>
 #include <avalanche/avalanche.h>
 #include <avalanche/delegation.h>
+#include <avalanche/stakecontender.h>
 #include <avalanche/validation.h>
 #include <cashaddrenc.h>
 #include <common/args.h>
@@ -23,7 +23,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <limits>
 
 namespace avalanche {
@@ -1044,12 +1043,7 @@ bool PeerManager::selectStakingRewardWinner(
                 continue;
             }
 
-            uint256 proofRewardHash;
-            CHash256()
-                .Write(prevblockhash)
-                .Write(peer.getProofId())
-                .Finalize(proofRewardHash);
-
+            StakeContenderId proofRewardHash(prevblockhash, peer.getProofId());
             if (proofRewardHash == uint256::ZERO) {
                 // This either the result of an incredibly unlikely lucky hash,
                 // or a the hash is getting abused. In this case, skip the
@@ -1061,18 +1055,9 @@ bool PeerManager::selectStakingRewardWinner(
                 continue;
             }
 
-            // To make sure the selection is properly weighted according to the
-            // proof score, we normalize the proofRewardHash to a number between
-            // 0 and 1, then take the logarithm and divide by the weight. Since
-            // it is scale-independent, we can simplify by removing constants
-            // and use base 2 logarithm.
-            // Inspired by: https://stackoverflow.com/a/30226926.
-            double proofRewardRank =
-                (256.0 -
-                 std::log2(UintToArith256(proofRewardHash).getdouble())) /
-                peer.getScore();
-
             // The best ranking is the lowest ranking value
+            double proofRewardRank =
+                proofRewardHash.ComputeProofRewardRank(peer.getScore());
             if (proofRewardRank < bestRewardRank) {
                 bestRewardRank = proofRewardRank;
                 selectedProof = peer.proof;
