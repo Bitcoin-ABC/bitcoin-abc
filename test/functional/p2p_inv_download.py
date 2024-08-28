@@ -499,7 +499,7 @@ class InventoryDownloadTest(BitcoinTestFramework):
         with self.nodes[0].assert_debug_log(
             [
                 "received getdata (1 invsz)",
-                f"received getdata for: 0x{context.inv_type:x} {itemid:x}",
+                f"received getdata for: 0x{context.inv_type:x} {uint256_hex(itemid)}",
             ],
         ):
             msg = msg_getdata()
