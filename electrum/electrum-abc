@@ -128,7 +128,6 @@ def check_imports():
     """pure-python dependencies need to be imported here for pyinstaller"""
     try:
         import dns  # pylint: disable=C0415,W0611  # noqa: F401
-        import ecdsa  # pylint: disable=C0415,W0611  # noqa: F401
         import google.protobuf  # pylint: disable=C0415,W0611  # noqa: F401
         import jsonrpclib  # pylint: disable=C0415,W0611  # noqa: F401
         import pyaes  # pylint: disable=C0415,W0611  # noqa: F401

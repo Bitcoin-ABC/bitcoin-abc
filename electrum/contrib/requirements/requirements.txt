@@ -1,5 +1,4 @@
 pyaes>=1.6.1
-ecdsa>=0.15
 requests
 qrcode
 protobuf>=3.20,<4

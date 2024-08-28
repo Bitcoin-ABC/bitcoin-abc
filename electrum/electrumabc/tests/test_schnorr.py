@@ -10,6 +10,12 @@ import unittest
 from .. import schnorr
 from ..ecc import ECPrivkey
 
+# If ecdsa is available, use it to compare results with our implementation
+try:
+    from ecdsa.numbertheory import jacobi as jac_2
+except ImportError:
+    jac_2 = None
+
 
 class TestSchnorr(unittest.TestCase):
     def test_schnorr(self):
@@ -68,12 +74,12 @@ class TestSchnorr(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             signature = requester.finalize(s_bad)
 
+    @unittest.skipIf(jac_2 is None, "Missing ecdsa dependency")
     def test_jacobi(self):
         """test the faster jacobi implementation against ecdsa package"""
         alist = [-2, -1, 0, 1, 2, 3, 4] + [secrets.randbits(256) for _ in range(100)]
         nlist = [(secrets.randbits(256) * 2 + 3) for _ in alist]
         jac_1 = schnorr.jacobi
-        from ecdsa.numbertheory import jacobi as jac_2
 
         for a, n in zip(alist, nlist):
             self.assertEqual(jac_1(a, n), jac_2(a, n), msg=(a, n))
