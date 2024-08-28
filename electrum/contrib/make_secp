@@ -20,7 +20,6 @@ if ! [ -r config.status ] ; then
         --enable-experimental \
         --enable-module-ecdh \
         --disable-jni \
-        --with-bignum=no \
         --enable-module-schnorr \
         --disable-tests \
         --disable-static \

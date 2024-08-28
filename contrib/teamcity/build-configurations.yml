@@ -996,6 +996,7 @@ builds:
 
   electrum-functional-tests:
     script: |
+      "${TOPLEVEL}"/electrum/contrib/make_secp
       pip3 install -r "${TOPLEVEL}/electrum/contrib/requirements/requirements.txt"
       pip3 install -r "${TOPLEVEL}/electrum/contrib/requirements/requirements-regtest.txt"
       pytest "${TOPLEVEL}/electrum/electrumabc/tests/regtest"
