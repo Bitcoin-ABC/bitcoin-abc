@@ -59,9 +59,9 @@ impl MempoolPlugins {
         token_data: Option<(&TokenTx, &[Option<SpentToken>])>,
         plugin_ctx: &PluginContext,
         plugin_name_map: &PluginNameMap,
-    ) -> Result<()> {
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
         if plugin_name_map.is_empty() {
-            return Ok(());
+            return Ok(BTreeMap::new());
         }
 
         let mut plugin_outputs = self.fetch_plugin_outputs(
@@ -94,7 +94,7 @@ impl MempoolPlugins {
         self.group_utxos
             .insert(tx, &is_mempool_tx, &plugin_outputs)?;
 
-        Ok(())
+        Ok(plugin_outputs)
     }
 
     /// Remove a tx from the plugin mempool index
@@ -102,16 +102,20 @@ impl MempoolPlugins {
         &mut self,
         tx: &MempoolTx,
         is_mempool_tx: impl Fn(&TxId) -> bool,
-    ) -> Result<()> {
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
         self.group_utxos
             .remove(tx, &is_mempool_tx, &self.plugin_outputs)?;
+        let mut plugin_outputs = BTreeMap::new();
         for output_idx in 0..tx.tx.outputs.len() {
-            self.plugin_outputs.remove(&OutPoint {
+            let outpoint = OutPoint {
                 txid: tx.tx.txid(),
                 out_idx: output_idx as u32,
-            });
+            };
+            if let Some(plugin_output) = self.plugin_outputs.remove(&outpoint) {
+                plugin_outputs.insert(outpoint, plugin_output);
+            }
         }
-        Ok(())
+        Ok(plugin_outputs)
     }
 
     /// Remove a mined tx from the plugin mempool index

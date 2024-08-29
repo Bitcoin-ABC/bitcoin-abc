@@ -260,6 +260,13 @@ class ChronikWs:
         )
         self.send_bytes(sub.SerializeToString())
 
+    def sub_plugin(self, plugin_name: str, group: bytes, *, is_unsub=False) -> None:
+        sub = pb.WsSub(
+            is_unsub=is_unsub,
+            plugin=pb.WsPlugin(plugin_name=plugin_name, group=group),
+        )
+        self.send_bytes(sub.SerializeToString())
+
     def close(self):
         self.ws.close()
         self.ws_thread.join(self.timeout)

@@ -22,6 +22,7 @@ chronik-bridge = { path = "../chronik-bridge" }
 chronik-db = { path = "../chronik-db" }
 chronik-indexer = { path = "../chronik-indexer" }
 chronik-proto = { path = "../chronik-proto" }
+chronik-plugin = { path = "../chronik-plugin" }
 chronik-util = { path = "../chronik-util" }
 
 # Allow traits to use async functions

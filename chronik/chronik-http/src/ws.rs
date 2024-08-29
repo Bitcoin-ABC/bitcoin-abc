@@ -10,10 +10,12 @@ use abc_rust_error::Result;
 use axum::extract::ws::{self, WebSocket};
 use bitcoinsuite_core::script::ScriptVariant;
 use bitcoinsuite_slp::{lokad_id::LokadId, token_id::TokenId};
+use chronik_db::plugins::PluginMember;
 use chronik_indexer::{
     subs::{BlockMsg, BlockMsgType},
     subs_group::{TxMsg, TxMsgType},
 };
+use chronik_plugin::data::PluginGroup;
 use chronik_proto::proto;
 use chronik_util::log_chronik;
 use futures::future::select_all;
@@ -37,6 +39,10 @@ pub enum ChronikWsError {
     /// [`proto::WsSub`] must have the `sub_type` field set.
     #[error("400: Missing sub_type in WsSub message")]
     MissingSubType,
+
+    /// Plugin with the given name not loaded.
+    #[error("404: Plugin {0:?} not loaded")]
+    PluginNotLoaded(String),
 }
 
 use self::ChronikWsError::*;
@@ -58,18 +64,21 @@ enum WsSubType {
     Script(ScriptVariant),
     TokenId(TokenId),
     LokadId(LokadId),
+    PluginGroup(String, Vec<u8>),
 }
 
 type SubRecvBlocks = Option<broadcast::Receiver<BlockMsg>>;
 type SubRecvScripts = HashMap<ScriptVariant, broadcast::Receiver<TxMsg>>;
 type SubRecvTokenId = HashMap<TokenId, broadcast::Receiver<TxMsg>>;
 type SubRecvLokadId = HashMap<LokadId, broadcast::Receiver<TxMsg>>;
+type SubRecvPluginGroups = HashMap<PluginGroup, broadcast::Receiver<TxMsg>>;
 
 struct SubRecv {
     blocks: SubRecvBlocks,
     scripts: SubRecvScripts,
     token_ids: SubRecvTokenId,
     lokad_ids: SubRecvLokadId,
+    plugin_groups: SubRecvPluginGroups,
     ws_ping_interval: Duration,
 }
 
@@ -81,6 +90,7 @@ impl SubRecv {
             action = Self::recv_scripts(&mut self.scripts) => action,
             action = Self::recv_token_ids(&mut self.token_ids) => action,
             action = Self::recv_lokad_ids(&mut self.lokad_ids) => action,
+            action = Self::recv_plugin(&mut self.plugin_groups) => action,
             action = Self::schedule_ping(self.ws_ping_interval) => action,
         }
     }
@@ -139,13 +149,33 @@ impl SubRecv {
         }
     }
 
+    async fn recv_plugin(
+        plugin_groups: &mut SubRecvPluginGroups,
+    ) -> Result<WsAction> {
+        if plugin_groups.is_empty() {
+            futures::future::pending().await
+        } else {
+            let plugin_groups_receivers = select_all(
+                plugin_groups
+                    .values_mut()
+                    .map(|receiver| Box::pin(receiver.recv())),
+            );
+            let (tx_msg, _, _) = plugin_groups_receivers.await;
+            sub_tx_msg_action(tx_msg)
+        }
+    }
+
     async fn schedule_ping(ws_ping_interval: Duration) -> Result<WsAction> {
         tokio::time::sleep(ws_ping_interval).await;
         let ping_payload = b"Bitcoin ABC Chronik Indexer".to_vec();
         Ok(WsAction::Message(ws::Message::Ping(ping_payload)))
     }
 
-    async fn handle_sub(&mut self, sub: WsSub, indexer: &ChronikIndexerRef) {
+    async fn handle_sub(
+        &mut self,
+        sub: WsSub,
+        indexer: &ChronikIndexerRef,
+    ) -> Result<WsAction> {
         let indexer = indexer.read().await;
         let mut subs = indexer.subs().write().await;
         match sub.sub_type {
@@ -204,7 +234,38 @@ impl SubRecv {
                     self.lokad_ids.insert(lokad_id, recv);
                 }
             }
+            WsSubType::PluginGroup(plugin_name, group) => {
+                let Some(plugin_idx) =
+                    indexer.plugin_name_map().idx_by_name(&plugin_name)
+                else {
+                    return Err(PluginNotLoaded(plugin_name).into());
+                };
+                let plugin_group = PluginGroup { plugin_idx, group };
+                let member = PluginMember {
+                    plugin_idx,
+                    group: &plugin_group.group,
+                };
+                if sub.is_unsub {
+                    log_chronik!(
+                        "WS unsubscribe from plugin {plugin_name}, group {}\n",
+                        hex::encode(&plugin_group.group),
+                    );
+                    std::mem::drop(self.plugin_groups.remove(&plugin_group));
+                    subs.subs_plugin_mut()
+                        .unsubscribe_from_member(&member.ser())
+                } else {
+                    log_chronik!(
+                        "WS subscribe to plugin {plugin_name}, group {}\n",
+                        hex::encode(&plugin_group.group),
+                    );
+                    let recv = subs
+                        .subs_plugin_mut()
+                        .subscribe_to_member(&member.ser());
+                    self.plugin_groups.insert(plugin_group, recv);
+                }
+            }
         }
+        Ok(WsAction::Nothing)
     }
 
     async fn cleanup(self, indexer: &ChronikIndexerRef) {
@@ -248,6 +309,9 @@ fn sub_client_msg_action(
                     ),
                     Some(SubType::LokadId(lokad_id)) => {
                         WsSubType::LokadId(parse_lokad_id(&lokad_id.lokad_id)?)
+                    }
+                    Some(SubType::Plugin(plugin)) => {
+                        WsSubType::PluginGroup(plugin.plugin_name, plugin.group)
                     }
                 },
             }))
@@ -318,6 +382,7 @@ pub async fn handle_subscribe_socket(
         scripts: Default::default(),
         token_ids: Default::default(),
         lokad_ids: Default::default(),
+        plugin_groups: Default::default(),
         ws_ping_interval: settings.ws_ping_interval,
     };
     let mut last_msg = None;
@@ -326,6 +391,12 @@ pub async fn handle_subscribe_socket(
         let sub_action = tokio::select! {
             client_msg = socket.recv() => sub_client_msg_action(client_msg),
             action = recv.recv_action() => action,
+        };
+
+        // Handle subscription so we can send the error back
+        let sub_action = match sub_action {
+            Ok(WsAction::Sub(sub)) => recv.handle_sub(sub, &indexer).await,
+            sub_action => sub_action,
         };
 
         let subscribe_action = match sub_action {
@@ -356,7 +427,7 @@ pub async fn handle_subscribe_socket(
                 recv.cleanup(&indexer).await;
                 return;
             }
-            WsAction::Sub(sub) => recv.handle_sub(sub, &indexer).await,
+            WsAction::Sub(_) => unreachable!("Handled above"),
             WsAction::Message(msg) => match socket.send(msg).await {
                 Ok(()) => {}
                 Err(_) => return,

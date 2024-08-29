@@ -492,6 +492,7 @@ impl ChronikIndexer {
             &result.mempool_tx.tx,
             TxMsgType::AddedToMempool,
             &result.token_id_aux,
+            &result.plugin_outputs,
         );
         Ok(())
     }
@@ -505,6 +506,7 @@ impl ChronikIndexer {
             &result.mempool_tx.tx,
             TxMsgType::RemovedFromMempool,
             &result.token_id_aux,
+            &result.plugin_outputs,
         );
         Ok(())
     }
@@ -595,7 +597,7 @@ impl ChronikIndexer {
             processed_token_batch = ProcessedTokenTxBatch::default();
             token_id_aux = TokenIdGroupAux::default();
         }
-        plugins_writer.insert(
+        let plugin_outputs = plugins_writer.insert(
             &mut batch,
             &index_txs,
             &processed_token_batch,
@@ -621,6 +623,7 @@ impl ChronikIndexer {
             &block.txs,
             TxMsgType::Confirmed,
             &token_id_aux,
+            &plugin_outputs,
         );
         Ok(())
     }
@@ -750,10 +753,17 @@ impl ChronikIndexer {
         } else {
             TokenIdGroupAux::default()
         };
+        let plugin_outputs = if !self.plugin_ctx.plugins().is_empty() {
+            let plugin_reader = PluginsReader::new(&self.db)?;
+            plugin_reader.txs_plugin_outputs(&index_txs)?
+        } else {
+            BTreeMap::new()
+        };
         subs.handle_block_tx_events(
             &block.txs,
             TxMsgType::Finalized,
             &token_id_aux,
+            &plugin_outputs,
         );
         Ok(())
     }
@@ -895,6 +905,11 @@ impl ChronikIndexer {
     /// Subscribers, behind read/write lock
     pub fn subs(&self) -> &RwLock<Subs> {
         &self.subs
+    }
+
+    /// Map plugin names and plugin idx
+    pub fn plugin_name_map(&self) -> &PluginNameMap {
+        &self.plugin_name_map
     }
 
     /// Build a ChronikBlock from a ffi::Block.

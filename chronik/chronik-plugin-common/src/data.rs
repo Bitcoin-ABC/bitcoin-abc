@@ -41,6 +41,15 @@ pub struct PluginNameMap {
     plugins_name: BiMap<PluginIdx, String>,
 }
 
+/// Group assigned by a plugin
+#[derive(Clone, Debug, Default, Eq, Hash, PartialEq)]
+pub struct PluginGroup {
+    /// Index of the plugin
+    pub plugin_idx: PluginIdx,
+    /// Group assigned by the plugin
+    pub group: Vec<u8>,
+}
+
 impl PluginNameMap {
     /// Create a new [`PluginNameMap`] with the mapping given as iterator
     pub fn new(mapping: impl IntoIterator<Item = (PluginIdx, String)>) -> Self {

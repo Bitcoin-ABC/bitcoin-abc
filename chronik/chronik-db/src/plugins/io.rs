@@ -182,9 +182,9 @@ impl<'a> PluginsWriter<'a> {
         txs: &[IndexTx<'_>],
         processed_token_data: &ProcessedTokenTxBatch,
         plugin_name_map: &PluginNameMap,
-    ) -> Result<()> {
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
         if self.ctx.plugins().is_empty() {
-            return Ok(());
+            return Ok(BTreeMap::new());
         }
 
         // Filter out txs that don't match any plugin
@@ -199,7 +199,7 @@ impl<'a> PluginsWriter<'a> {
 
         // Skip outputs
         if !self.col.has_any_outputs()? && plugin_txs.is_empty() {
-            return Ok(());
+            return Ok(BTreeMap::new());
         }
 
         let mut plugin_outputs =
@@ -259,7 +259,7 @@ impl<'a> PluginsWriter<'a> {
             &mut GroupUtxoMemData::default(),
         )?;
 
-        Ok(())
+        Ok(plugin_outputs)
     }
 
     /// Delete the plugin data of a batch from the DB.
@@ -385,6 +385,32 @@ impl<'a> PluginsReader<'a> {
         outpoints: impl IntoIterator<Item = (OutPoint, TxNum)> + Clone,
     ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
         self.col.fetch_plugin_outputs(outpoints)
+    }
+
+    /// Read all plugin inputs and outputs of the given indexed txs
+    pub fn txs_plugin_outputs(
+        &self,
+        txs: &[IndexTx<'_>],
+    ) -> Result<BTreeMap<OutPoint, PluginOutput>> {
+        self.plugin_outputs(txs.iter().flat_map(|index_tx| {
+            let input_outpoints = index_tx
+                .tx
+                .inputs
+                .iter()
+                .zip(index_tx.input_nums.iter())
+                .map(|(input, &input_tx_num)| (input.prev_out, input_tx_num));
+            let outpoint_outpoints =
+                (0..index_tx.tx.outputs.len()).map(|out_idx| {
+                    (
+                        OutPoint {
+                            txid: index_tx.tx.txid(),
+                            out_idx: out_idx as u32,
+                        },
+                        index_tx.tx_num,
+                    )
+                });
+            input_outpoints.chain(outpoint_outpoints)
+        }))
     }
 
     /// Read all the given outpoints by [`DbOutpoint`]s and return them as

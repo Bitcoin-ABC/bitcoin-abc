@@ -725,6 +725,17 @@ def chronik_sub_lokad_id(ws, node, lokad_id: bytes, *, is_unsub=False) -> None:
         ws.sub_lokad_id(lokad_id, is_unsub=is_unsub)
 
 
+def chronik_sub_plugin(
+    ws, node, plugin_name: str, group: bytes, *, is_unsub=False
+) -> None:
+    """Subscribe to plugin events and make sure the subscription is active before returning"""
+    subscribe_log = "unsubscribe from" if is_unsub else "subscribe to"
+    with node.assert_debug_log(
+        [f"WS {subscribe_log} plugin {plugin_name}, group {group.hex()}"]
+    ):
+        ws.sub_plugin(plugin_name, group, is_unsub=is_unsub)
+
+
 class TestFrameworkUtil(unittest.TestCase):
     def test_modinv(self):
         test_vectors = [

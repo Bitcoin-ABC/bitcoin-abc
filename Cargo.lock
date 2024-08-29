@@ -333,6 +333,7 @@ dependencies = [
  "chronik-bridge",
  "chronik-db",
  "chronik-indexer",
+ "chronik-plugin",
  "chronik-proto",
  "chronik-util",
  "futures",

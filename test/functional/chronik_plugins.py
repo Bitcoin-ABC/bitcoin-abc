@@ -18,7 +18,7 @@ from test_framework.messages import COutPoint, CTransaction, CTxIn, CTxOut
 from test_framework.script import OP_RETURN, CScript
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal
+from test_framework.util import assert_equal, chronik_sub_plugin
 
 
 class ChronikPlugins(BitcoinTestFramework):
@@ -36,8 +36,13 @@ class ChronikPlugins(BitcoinTestFramework):
         node = self.nodes[0]
         chronik = node.get_chronik_client()
 
-        def assert_start_raises(*args, **kwargs):
-            node.assert_start_raises_init_error(["-chronik"], *args, **kwargs)
+        def ws_msg(txid: str, msg_type):
+            return pb.WsMsg(
+                tx=pb.MsgTx(
+                    msg_type=msg_type,
+                    txid=bytes.fromhex(txid)[::-1],
+                )
+            )
 
         # Without a plugins.toml, setting up a plugin context is skipped
         plugins_toml = os.path.join(node.datadir, "plugins.toml")
@@ -94,6 +99,9 @@ class MyPluginPlugin(Plugin):
         ):
             self.restart_node(0, ["-chronik", "-chronikreindex"])
 
+        ws1 = chronik.ws()
+        ws2 = chronik.ws()
+
         assert_equal(
             chronik.plugin("doesntexist").utxos(b"").err(404).msg,
             '404: Plugin "doesntexist" not loaded',
@@ -108,6 +116,9 @@ class MyPluginPlugin(Plugin):
 
         self.generatetoaddress(node, COINBASE_MATURITY, ADDRESS_ECREG_UNSPENDABLE)
 
+        chronik_sub_plugin(ws1, node, "my_plugin", b"a")
+        chronik_sub_plugin(ws2, node, "my_plugin", b"b")
+
         coinvalue = 5000000000
         tx1 = CTransaction()
         tx1.vin = [CTxIn(COutPoint(int(cointx, 16), 0), SCRIPTSIG_OP_TRUE)]
@@ -119,6 +130,8 @@ class MyPluginPlugin(Plugin):
         ]
         pad_tx(tx1)
         node.sendrawtransaction(tx1.serialize().hex())
+
+        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
 
         # Plugin ran on the mempool tx
         proto_tx1 = chronik.tx(tx1.hash).ok()
@@ -150,6 +163,9 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx2)
         node.sendrawtransaction(tx2.serialize().hex())
 
+        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+
         proto_tx2 = chronik.tx(tx2.hash).ok()
         tx2_plugin_inputs = [tx1_plugin_outputs[3]]
         tx2_plugin_outputs = [
@@ -179,6 +195,12 @@ class MyPluginPlugin(Plugin):
 
         # Mine tx1 and tx2
         block1 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
+
+        # Lexicographic order
+        txids = sorted([tx1.hash, tx2.hash])
+        assert_equal(ws1.recv(), ws_msg(txids[0], pb.TX_CONFIRMED))
+        assert_equal(ws1.recv(), ws_msg(txids[1], pb.TX_CONFIRMED))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_CONFIRMED))
 
         proto_tx1 = chronik.tx(tx1.hash).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
@@ -219,6 +241,8 @@ class MyPluginPlugin(Plugin):
         pad_tx(tx3)
         node.sendrawtransaction(tx3.serialize().hex())
 
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
+
         proto_tx3 = chronik.tx(tx3.hash).ok()
         tx3_plugin_inputs = [tx2_plugin_outputs[1], tx2_plugin_outputs[3]]
         tx3_plugin_outputs = [
@@ -251,6 +275,8 @@ class MyPluginPlugin(Plugin):
         # Mine tx3
         block2 = self.generatetoaddress(node, 1, ADDRESS_ECREG_UNSPENDABLE)[-1]
 
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_CONFIRMED))
+
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
@@ -268,6 +294,7 @@ class MyPluginPlugin(Plugin):
 
         # Disconnect block2, inputs + outputs still work
         node.invalidateblock(block2)
+        assert_equal(ws2.recv(), ws_msg(tx3.hash, pb.TX_ADDED_TO_MEMPOOL))
         proto_tx3 = chronik.tx(tx3.hash).ok()
         assert_equal(
             [inpt.plugins for inpt in proto_tx3.inputs],
@@ -283,7 +310,14 @@ class MyPluginPlugin(Plugin):
             tx3_plugin_outputs[1:],
         )
 
+        # Disconnect block1
         node.invalidateblock(block1)
+
+        # Topological order
+        assert_equal(ws1.recv(), ws_msg(tx1.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws1.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+        assert_equal(ws2.recv(), ws_msg(tx2.hash, pb.TX_ADDED_TO_MEMPOOL))
+
         proto_tx1 = chronik.tx(tx1.hash).ok()
         assert_equal([inpt.plugins for inpt in proto_tx1.inputs], [{}])
         assert_equal(

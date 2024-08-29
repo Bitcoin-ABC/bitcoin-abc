@@ -4,11 +4,17 @@
 
 //! Module for [`Mempool`], to index mempool txs.
 
-use std::{borrow::Cow, collections::HashMap};
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap},
+};
 
 use abc_rust_error::Result;
-use bitcoinsuite_core::tx::{Tx, TxId};
-use chronik_plugin::{context::PluginContext, data::PluginNameMap};
+use bitcoinsuite_core::tx::{OutPoint, Tx, TxId};
+use chronik_plugin::{
+    context::PluginContext,
+    data::{PluginNameMap, PluginOutput},
+};
 use thiserror::Error;
 
 use crate::{
@@ -47,6 +53,8 @@ pub struct MempoolResult<'m> {
     pub mempool_tx: Cow<'m, MempoolTx>,
     /// [`TokenIdGroupAux`] generated while indexing the mempool tx
     pub token_id_aux: TokenIdGroupAux,
+    /// Aux data for plugins generated while indexing the mempool tx
+    pub plugin_outputs: BTreeMap<OutPoint, PluginOutput>,
 }
 
 /// Transaction in the mempool.
@@ -128,7 +136,7 @@ impl Mempool {
         if self.is_lokad_id_index_enabled {
             self.lokad_id_history.insert(&mempool_tx, &());
         }
-        self.plugins.insert(
+        let plugin_outputs = self.plugins.insert(
             db,
             &mempool_tx,
             |txid| self.txs.contains_key(txid),
@@ -148,6 +156,7 @@ impl Mempool {
         Ok(MempoolResult {
             mempool_tx: Cow::Borrowed(&self.txs[&txid]),
             token_id_aux,
+            plugin_outputs,
         })
     }
 
@@ -178,7 +187,8 @@ impl Mempool {
         } else {
             token_id_aux = TokenIdGroupAux::default();
         }
-        self.plugins
+        let plugin_outputs = self
+            .plugins
             .remove(&mempool_tx, |txid| self.txs.contains_key(txid))?;
         if self.is_lokad_id_index_enabled {
             self.lokad_id_history.remove(&mempool_tx, &());
@@ -186,6 +196,7 @@ impl Mempool {
         Ok(MempoolResult {
             mempool_tx: Cow::Owned(mempool_tx),
             token_id_aux,
+            plugin_outputs,
         })
     }
 
