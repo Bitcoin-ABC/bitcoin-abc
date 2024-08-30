@@ -20,6 +20,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { alertNewTokenIcon } from '../src/telegram';
 import cashaddr from 'ecashaddrjs';
 import { Ecc } from 'ecash-lib';
+import { rateLimit } from 'express-rate-limit';
 
 /**
  * routes.ts
@@ -48,6 +49,16 @@ var corsOptions: CorsOptions = {
         }
     },
 };
+
+// Basic IP rate limiting
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    limit: 10, // Limit each IP to 10 requests per `window` (here, per 10 minutes).
+    standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    message:
+        'If you really need some eCash, throw up a diff. reviews.bitcoinabc.org',
+});
 
 /**
  * Standard IP logger function to be called by all endpoints
@@ -253,75 +264,79 @@ export const startExpressServer = (
     });
 
     // Endpoint for Cashtab users to claim an XEC airdrop on creation of a new wallet
-    app.get('/claimxec/:address', async function (req: Request, res: Response) {
-        // Get the requested address
-        const address = req.params.address;
+    app.get(
+        '/claimxec/:address',
+        limiter,
+        async function (req: Request, res: Response) {
+            // Get the requested address
+            const address = req.params.address;
 
-        logIpInfo(req);
+            logIpInfo(req);
 
-        if (!cashaddr.isValidCashAddress(address, 'ecash')) {
-            return res.status(500).json({
+            if (!cashaddr.isValidCashAddress(address, 'ecash')) {
+                return res.status(500).json({
+                    address,
+                    error: `Invalid eCash address`,
+                });
+            }
+
+            let addressUnused;
+            try {
+                addressUnused =
+                    (await chronik.address(address).history()).numTxs === 0;
+            } catch (err) {
+                // Handle chronik error
+                return res.status(500).json({
+                    address,
+                    error: `Error querying chronik for address history: ${err}`,
+                });
+            }
+
+            if (!addressUnused) {
+                return res.status(500).json({
+                    address,
+                    error: `Only unused addresses are eligible for XEC airdrops`,
+                });
+            }
+
+            // Build and broadcast reward tx
+            let airdropSuccess;
+            try {
+                airdropSuccess = await sendXecAirdrop(
+                    chronik,
+                    ecc,
+                    secrets.prod.wallet,
+                    config.xecAirdropAmountSats,
+                    address,
+                );
+            } catch (err) {
+                // Log error for server review
+                console.log(`Error broadcasting XEC airdrop tx`);
+                console.log(err);
+
+                // Return server error response
+                return res.status(500).json({
+                    error: `Error sending XEC airdrop tx, please contact admin`,
+                    msg: `${err}`,
+                });
+            }
+
+            // Get txid before sending response
+            const { txid } = airdropSuccess.response;
+            interface SendRewardResponse {
+                address: string;
+                txid?: string;
+                msg: string;
+            }
+            const response: SendRewardResponse = {
                 address,
-                error: `Invalid eCash address`,
-            });
-        }
+                txid,
+                msg: 'Success',
+            };
 
-        let addressUnused;
-        try {
-            addressUnused =
-                (await chronik.address(address).history()).numTxs === 0;
-        } catch (err) {
-            // Handle chronik error
-            return res.status(500).json({
-                address,
-                error: `Error querying chronik for address history: ${err}`,
-            });
-        }
-
-        if (!addressUnused) {
-            return res.status(500).json({
-                address,
-                error: `Only unused addresses are eligible for XEC airdrops`,
-            });
-        }
-
-        // Build and broadcast reward tx
-        let airdropSuccess;
-        try {
-            airdropSuccess = await sendXecAirdrop(
-                chronik,
-                ecc,
-                secrets.prod.wallet,
-                config.xecAirdropAmountSats,
-                address,
-            );
-        } catch (err) {
-            // Log error for server review
-            console.log(`Error broadcasting XEC airdrop tx`);
-            console.log(err);
-
-            // Return server error response
-            return res.status(500).json({
-                error: `Error sending XEC airdrop tx, please contact admin`,
-                msg: `${err}`,
-            });
-        }
-
-        // Get txid before sending response
-        const { txid } = airdropSuccess.response;
-        interface SendRewardResponse {
-            address: string;
-            txid?: string;
-            msg: string;
-        }
-        const response: SendRewardResponse = {
-            address,
-            txid,
-            msg: 'Success',
-        };
-
-        return res.status(200).json(response);
-    });
+            return res.status(200).json(response);
+        },
+    );
 
     // Post endpoint for token ID on token creation
     // Accept a png (only from cashtab.com or browser extension domain; validation on front end)
