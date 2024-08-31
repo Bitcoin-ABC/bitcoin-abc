@@ -2614,7 +2614,7 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
                     }
                 }
             }
-            const auto nNow{SteadyClock::now()};
+            const auto nNow{NodeClock::now()};
             // Avoid writing/flushing immediately after startup.
             if (m_last_write == decltype(m_last_write){}) {
                 m_last_write = nNow;
