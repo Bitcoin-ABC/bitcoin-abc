@@ -52,7 +52,7 @@ var corsOptions: CorsOptions = {
 
 // Basic IP rate limiting
 const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
+    windowMs: 60 * 60 * 1000, // 10 minutes
     limit: 10, // Limit each IP to 10 requests per `window` (here, per 10 minutes).
     standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
