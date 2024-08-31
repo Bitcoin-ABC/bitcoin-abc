@@ -93,10 +93,8 @@ using node::UNDOFILE_CHUNK_SIZE;
 #define MICRO 0.000001
 #define MILLI 0.001
 
-/** Time to wait between writing blocks/block index to disk. */
+/** Time to wait between writing blocks/block index and chainstate to disk. */
 static constexpr std::chrono::hours DATABASE_WRITE_INTERVAL{1};
-/** Time to wait between flushing chainstate to disk. */
-static constexpr std::chrono::hours DATABASE_FLUSH_INTERVAL{24};
 const std::vector<std::string> CHECKLEVEL_DOC{
     "level 0 reads the blocks from disk",
     "level 1 verifies block validity",
@@ -2619,9 +2617,6 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             if (m_last_write == decltype(m_last_write){}) {
                 m_last_write = nNow;
             }
-            if (m_last_flush == decltype(m_last_flush){}) {
-                m_last_flush = nNow;
-            }
             // The cache is large and we're within 10% and 10 MiB of the limit,
             // but we have time now (not in the middle of a block processing).
             bool fCacheLarge = mode == FlushStateMode::PERIODIC &&
@@ -2629,19 +2624,16 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             // The cache is over the limit, we have to write now.
             bool fCacheCritical = mode == FlushStateMode::IF_NEEDED &&
                                   cache_state >= CoinsCacheSizeState::CRITICAL;
-            // It's been a while since we wrote the block index to disk. Do this
-            // frequently, so we don't need to redownload after a crash.
+            // It's been a while since we wrote the block index  and chain
+            // state to disk. Do this frequently, so we don't need to
+            // redownload or reindex after a crash.
             bool fPeriodicWrite = mode == FlushStateMode::PERIODIC &&
                                   nNow > m_last_write + DATABASE_WRITE_INTERVAL;
-            // It's been very long since we flushed the cache. Do this
-            // infrequently, to optimize cache usage.
-            bool fPeriodicFlush = mode == FlushStateMode::PERIODIC &&
-                                  nNow > m_last_flush + DATABASE_FLUSH_INTERVAL;
             // Combine all conditions that result in a full cache flush.
             fDoFullFlush = (mode == FlushStateMode::ALWAYS) || fCacheLarge ||
-                           fCacheCritical || fPeriodicFlush || fFlushForPrune;
-            // Write blocks and block index to disk.
-            if (fDoFullFlush || fPeriodicWrite) {
+                           fCacheCritical || fPeriodicWrite || fFlushForPrune;
+            // Write blocks, block index and best chain related state to disk.
+            if (fDoFullFlush) {
                 // Ensure we can write block index
                 if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {
                     return AbortNode(state, "Disk space is too low!",
@@ -2682,42 +2674,44 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
 
                     m_blockman.UnlinkPrunedFiles(setFilesToPrune);
                 }
-                m_last_write = nNow;
-            }
-            // Flush best chain related state. This can only be done if the
-            // blocks / block index write was also done.
-            if (fDoFullFlush && !CoinsTip().GetBestBlock().IsNull()) {
-                LOG_TIME_MILLIS_WITH_CATEGORY(
-                    strprintf("write coins cache to disk (%d coins, %.2fkB)",
-                              coins_count, coins_mem_usage / 1000),
-                    BCLog::BENCH);
 
-                // Typical Coin structures on disk are around 48 bytes in size.
-                // Pushing a new one to the database can cause it to be written
-                // twice (once in the log, and once in the tables). This is
-                // already an overestimation, as most will delete an existing
-                // entry or overwrite one. Still, use a conservative safety
-                // factor of 2.
-                if (!CheckDiskSpace(gArgs.GetDataDirNet(),
-                                    48 * 2 * 2 * CoinsTip().GetCacheSize())) {
-                    return AbortNode(state, "Disk space is too low!",
-                                     _("Disk space is too low!"));
-                }
+                if (!CoinsTip().GetBestBlock().IsNull()) {
+                    LOG_TIME_MILLIS_WITH_CATEGORY(
+                        strprintf(
+                            "write coins cache to disk (%d coins, %.2fkB)",
+                            coins_count, coins_mem_usage / 1000),
+                        BCLog::BENCH);
 
-                // Flush the chainstate (which may refer to block index
-                // entries).
-                const auto empty_cache{(mode == FlushStateMode::ALWAYS) ||
-                                       fCacheLarge || fCacheCritical};
-                if (empty_cache ? !CoinsTip().Flush() : !CoinsTip().Sync()) {
-                    return AbortNode(state, "Failed to write to coin database");
+                    // Typical Coin structures on disk are around 48 bytes in
+                    // size. Pushing a new one to the database can cause it to
+                    // be written twice (once in the log, and once in the
+                    // tables). This is already an overestimation, as most will
+                    // delete an existing entry or overwrite one. Still, use a
+                    // conservative safety factor of 2.
+                    if (!CheckDiskSpace(gArgs.GetDataDirNet(),
+                                        48 * 2 * 2 *
+                                            CoinsTip().GetCacheSize())) {
+                        return AbortNode(state, "Disk space is too low!",
+                                         _("Disk space is too low!"));
+                    }
+
+                    // Flush the chainstate (which may refer to block index
+                    // entries).
+                    const auto empty_cache{(mode == FlushStateMode::ALWAYS) ||
+                                           fCacheLarge || fCacheCritical};
+                    if (empty_cache ? !CoinsTip().Flush()
+                                    : !CoinsTip().Sync()) {
+                        return AbortNode(state,
+                                         "Failed to write to coin database");
+                    }
+                    full_flush_completed = true;
+                    TRACE5(utxocache, flush,
+                           int64_t{Ticks<std::chrono::microseconds>(
+                               SteadyClock::now() - nNow)},
+                           uint32_t(mode), coins_count,
+                           uint64_t(coins_mem_usage), fFlushForPrune);
                 }
-                m_last_flush = nNow;
-                full_flush_completed = true;
-                TRACE5(utxocache, flush,
-                       int64_t{Ticks<std::chrono::microseconds>(
-                           SteadyClock::now() - nNow)},
-                       uint32_t(mode), coins_count, uint64_t(coins_mem_usage),
-                       fFlushForPrune);
+                m_last_write = NodeClock::now();
             }
         }
 
