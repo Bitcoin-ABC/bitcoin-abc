@@ -2555,7 +2555,6 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
     try {
         {
             bool fFlushForPrune = false;
-            bool fDoFullFlush = false;
 
             CoinsCacheSizeState cache_state = GetCoinsCacheSizeState();
             LOCK(m_blockman.cs_LastBlockFile);
@@ -2629,11 +2628,12 @@ bool Chainstate::FlushStateToDisk(BlockValidationState &state,
             // redownload or reindex after a crash.
             bool fPeriodicWrite = mode == FlushStateMode::PERIODIC &&
                                   nNow > m_last_write + DATABASE_WRITE_INTERVAL;
-            // Combine all conditions that result in a full cache flush.
-            fDoFullFlush = (mode == FlushStateMode::ALWAYS) || fCacheLarge ||
-                           fCacheCritical || fPeriodicWrite || fFlushForPrune;
+            // Combine all conditions that result in a write to disk.
+            bool should_write = (mode == FlushStateMode::ALWAYS) ||
+                                fCacheLarge || fCacheCritical ||
+                                fPeriodicWrite || fFlushForPrune;
             // Write blocks, block index and best chain related state to disk.
-            if (fDoFullFlush) {
+            if (should_write) {
                 // Ensure we can write block index
                 if (!CheckDiskSpace(gArgs.GetBlocksDirPath())) {
                     return AbortNode(state, "Disk space is too low!",
