@@ -28,6 +28,8 @@
 
 #include <test/util/net.h>
 
+#include <optional>
+#include <ostream>
 #include <type_traits>
 #include <vector>
 
@@ -35,16 +37,8 @@ class arith_uint256;
 class CFeeRate;
 class Config;
 class FastRandomContext;
-
-// Enable BOOST_CHECK_EQUAL for enum class types
-namespace std {
-template <typename T>
-std::ostream &operator<<(
-    typename std::enable_if<std::is_enum<T>::value, std::ostream>::type &stream,
-    const T &e) {
-    return stream << static_cast<typename std::underlying_type<T>::type>(e);
-}
-} // namespace std
+class uint160;
+class uint256;
 
 static constexpr Amount CENT(COIN / 100);
 
@@ -310,11 +304,25 @@ struct TestMemPoolEntryHelper {
 
 enum class ScriptError;
 
-// Make types usable in BOOST_CHECK_*
+// Make types usable in BOOST_CHECK_* @{
+namespace std {
+template <typename T>
+    requires std::is_enum_v<T>
+inline std::ostream &operator<<(std::ostream &os, const T &e) {
+    return os << static_cast<std::underlying_type_t<T>>(e);
+}
+
+template <typename T>
+inline std::ostream &operator<<(std::ostream &os, const std::optional<T> &v) {
+    return v ? os << *v : os << "std::nullopt";
+}
+} // namespace std
+
 std::ostream &operator<<(std::ostream &os, const arith_uint256 &num);
 std::ostream &operator<<(std::ostream &os, const uint160 &num);
 std::ostream &operator<<(std::ostream &os, const uint256 &num);
 std::ostream &operator<<(std::ostream &os, const ScriptError &err);
+// @}
 
 CBlock getBlock13b8a();
 

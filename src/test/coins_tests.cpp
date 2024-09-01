@@ -619,21 +619,10 @@ struct CoinEntry {
 
     constexpr CoinEntry(const Amount v, const State s) : value{v}, state{s} {}
 
-    // TODO c++20: use default
-    bool operator==(const CoinEntry &o) const {
-        return value == o.value && state == o.state;
-    }
+    bool operator==(const CoinEntry &o) const = default;
 
     friend std::ostream &operator<<(std::ostream &os, const CoinEntry &e) {
         return os << e.value << ", " << e.state;
-    }
-    // TODO c++20: std::optional overload can be dropped
-    friend std::ostream &operator<<(std::ostream &os,
-                                    const std::optional<CoinEntry> e) {
-        if (e.has_value()) {
-            return os << e.value();
-        }
-        return os << "nullopt";
     }
 
     constexpr bool IsDirtyFresh() const { return state == State::DIRTY_FRESH; }
@@ -660,11 +649,6 @@ struct CoinEntry {
 
 using MaybeCoin = std::optional<CoinEntry>;
 using CoinOrError = std::variant<MaybeCoin, std::string>;
-
-// TODO c++20: std::optional overload can be dropped
-bool operator==(const MaybeCoin mbc, const CoinEntry &e) {
-    return mbc.has_value() && e == mbc.value();
-}
 
 constexpr MaybeCoin MISSING{std::nullopt};
 constexpr MaybeCoin SPENT_DIRTY{{SPENT, CoinEntry::State::DIRTY}};

@@ -76,26 +76,6 @@ const std::function<std::string(const char *)> G_TRANSLATION_FUN = nullptr;
  */
 static FastRandomContext g_insecure_rand_ctx_temp_path;
 
-std::ostream &operator<<(std::ostream &os, const arith_uint256 &num) {
-    os << ArithToUint256(num).ToString();
-    return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const uint160 &num) {
-    os << num.ToString();
-    return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const uint256 &num) {
-    os << num.ToString();
-    return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const ScriptError &err) {
-    os << ScriptErrorString(err);
-    return os;
-}
-
 std::vector<const char *> fixture_extra_args{};
 
 BasicTestingSetup::BasicTestingSetup(
@@ -657,3 +637,19 @@ DummyConfig::DummyConfig()
 DummyConfig::DummyConfig(std::string net)
     : chainParams(
           CreateChainParams(ArgsManager{}, ChainTypeFromString(net).value())) {}
+
+std::ostream &operator<<(std::ostream &os, const arith_uint256 &num) {
+    return os << ArithToUint256(num).ToString();
+}
+
+std::ostream &operator<<(std::ostream &os, const uint160 &num) {
+    return os << num.ToString();
+}
+
+std::ostream &operator<<(std::ostream &os, const uint256 &num) {
+    return os << num.ToString();
+}
+
+std::ostream &operator<<(std::ostream &os, const ScriptError &err) {
+    return os << ScriptErrorString(err);
+}
