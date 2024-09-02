@@ -3,6 +3,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(secp256k1 LANGUAGES C VERSION 0.1.0)
 
+option(SECP256K1_BUILD_SHARED "Build secp256k1 (only) as a shared library" OFF)
+
 # Add path for custom modules when building as a standalone project
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 
@@ -66,7 +68,10 @@ include_directories(
 )
 
 # The library
-add_library(secp256k1 src/secp256k1.c)
+if (SECP256K1_BUILD_SHARED)
+	set(SECP256K1_SHARED "SHARED")
+endif()
+add_library(secp256k1 ${SECP256K1_SHARED} src/secp256k1.c)
 target_include_directories(secp256k1 PUBLIC include)
 
 set(SECP256K1_PUBLIC_HEADERS
@@ -257,7 +262,7 @@ if(SECP256K1_PARENT_DIRECTORY)
   set(SECP256K1_INSTALL_EXCLUDE_FROM_ALL EXCLUDE_FROM_ALL)
 endif()
 
-if(BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS OR SECP256K1_BUILD_SHARED)
 	install_shared_library(secp256k1
 		PUBLIC_HEADER ${SECP256K1_PUBLIC_HEADERS}
 		${SECP256K1_INSTALL_EXCLUDE_FROM_ALL}
