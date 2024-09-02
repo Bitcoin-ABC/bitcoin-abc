@@ -65,8 +65,8 @@ const limiter = rateLimit({
  * @param request express request
  */
 function logIpInfo(req: Request) {
-    const ip = req.socket.remoteAddress;
-    console.log(`${req.url} from IP: ${ip}, host ${req.headers.host}`);
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log(`${req.url} from ${ip}`);
 }
 
 export const startExpressServer = (
