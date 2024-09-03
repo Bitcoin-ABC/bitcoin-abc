@@ -26,11 +26,14 @@ Interesting starting states could be loading a snapshot when the current chain t
 
 """
 import os
+import time
 from dataclasses import dataclass
+from shutil import rmtree
 
-from test_framework.messages import CTransaction, FromHex
+from test_framework.messages import CBlockHeader, CTransaction, FromHex, msg_headers
+from test_framework.p2p import P2PInterface
 from test_framework.test_framework import BitcoinTestFramework
-from test_framework.util import assert_equal, assert_raises_rpc_error
+from test_framework.util import assert_equal, assert_raises_rpc_error, try_rpc
 from test_framework.wallet import MiniWallet, getnewdestination
 
 START_HEIGHT = 199
@@ -235,6 +238,106 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.sync_blocks(nodes=(n0, n3))
         self.wait_until(lambda: len(n3.getchainstates()["chainstates"]) == 1)
 
+    def test_sync_from_assumeutxo_node(self, snapshot):
+        """
+        This test verifies that:
+        1. An IBD node can sync headers from an AssumeUTXO node at any time.
+        2. IBD nodes do not request historical blocks from AssumeUTXO nodes while they
+           are syncing the background-chain.
+        3. The assumeUTXO node dynamically adjusts the network services it offers
+           according to its state.
+        4. IBD nodes can fully sync from AssumeUTXO nodes after they finish the
+           background-chain sync.
+        """
+        self.log.info("Testing IBD-sync from assumeUTXO node")
+        # Node2 starts clean and loads the snapshot.
+        # Node3 starts clean and seeks to sync-up from snapshot_node.
+        miner = self.nodes[0]
+        snapshot_node = self.nodes[2]
+        ibd_node = self.nodes[3]
+
+        # Start test fresh by cleaning up node directories
+        for node in (snapshot_node, ibd_node):
+            self.stop_node(node.index)
+            rmtree(node.chain_path)
+            self.start_node(node.index, extra_args=self.extra_args[node.index])
+
+        # Sync-up headers chain on snapshot_node to load snapshot
+        headers_provider_conn = snapshot_node.add_p2p_connection(P2PInterface())
+        headers_provider_conn.wait_for_getheaders()
+        msg = msg_headers()
+        for block_num in range(1, miner.getblockcount() + 1):
+            msg.headers.append(
+                FromHex(
+                    CBlockHeader(),
+                    miner.getblockheader(miner.getblockhash(block_num), verbose=False),
+                )
+            )
+        headers_provider_conn.send_message(msg)
+
+        # Ensure headers arrived
+        default_value = {"status": ""}  # No status
+        headers_tip_hash = miner.getbestblockhash()
+        self.wait_until(
+            lambda: next(
+                filter(
+                    lambda x: x["hash"] == headers_tip_hash,
+                    snapshot_node.getchaintips(),
+                ),
+                default_value,
+            )["status"]
+            == "headers-only"
+        )
+        snapshot_node.disconnect_p2ps()
+
+        # Load snapshot
+        snapshot_node.loadtxoutset(snapshot["path"])
+
+        # Connect nodes and verify the ibd_node can sync-up the headers-chain from the snapshot_node
+        self.connect_nodes(ibd_node.index, snapshot_node.index)
+        snapshot_block_hash = snapshot["base_hash"]
+        self.wait_until(
+            lambda: next(
+                filter(
+                    lambda x: x["hash"] == snapshot_block_hash, ibd_node.getchaintips()
+                ),
+                default_value,
+            )["status"]
+            == "headers-only"
+        )
+
+        # Once the headers-chain is synced, the ibd_node must avoid requesting historical blocks from the snapshot_node.
+        # If it does request such blocks, the snapshot_node will ignore requests it cannot fulfill, causing the ibd_node
+        # to stall. This stall could last for up to 10 min, ultimately resulting in an abrupt disconnection due to the
+        # ibd_node's perceived unresponsiveness.
+        # Sleep here because we can't detect when a node avoids requesting blocks from other peer.
+        time.sleep(3)
+        assert_equal(len(ibd_node.getpeerinfo()[0]["inflight"]), 0)
+
+        # Now disconnect nodes and finish background chain sync
+        self.disconnect_nodes(ibd_node.index, snapshot_node.index)
+        self.connect_nodes(snapshot_node.index, miner.index)
+        self.sync_blocks(nodes=(miner, snapshot_node))
+        # Check the base snapshot block was stored and ensure node signals full-node service support
+        self.wait_until(
+            lambda: not try_rpc(
+                -1, "Block not found", snapshot_node.getblock, snapshot_block_hash
+            )
+        )
+        self.wait_until(
+            lambda: "NETWORK" in snapshot_node.getnetworkinfo()["localservicesnames"]
+        )
+
+        # Now that the snapshot_node is synced, verify the ibd_node can sync from it
+        self.connect_nodes(snapshot_node.index, ibd_node.index)
+        assert "NETWORK" in ibd_node.getpeerinfo()[0]["servicesnames"]
+        self.sync_blocks(nodes=(ibd_node, snapshot_node))
+
+    def assert_only_network_limited_service(self, node):
+        node_services = node.getnetworkinfo()["localservicesnames"]
+        assert "NETWORK" not in node_services
+        assert "NETWORK_LIMITED" in node_services
+
     def run_test(self):
         """
         Bring up two (disconnected) nodes, mine some new blocks on the first,
@@ -326,10 +429,17 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.test_invalid_snapshot_scenarios(dump_output["path"])
         self.test_invalid_file_path()
 
+        # Prune-node sanity check
+        assert "NETWORK" not in n1.getnetworkinfo()["localservicesnames"]
+
         self.log.info(f"Loading snapshot into second node from {dump_output['path']}")
         loaded = n1.loadtxoutset(dump_output["path"])
         assert_equal(loaded["coins_loaded"], SNAPSHOT_BASE_HEIGHT)
         assert_equal(loaded["base_height"], SNAPSHOT_BASE_HEIGHT)
+
+        self.log.info("Confirm that local services remain unchanged")
+        # Since n1 is a pruned node, the 'NETWORK' service flag must always be unset.
+        self.assert_only_network_limited_service(n1)
 
         def check_tx_counts(final: bool) -> None:
             """Check nTx and nChainTx intermediate values right after loading
@@ -411,6 +521,9 @@ class AssumeutxoTest(BitcoinTestFramework):
             1, extra_args=[f"-stopatheight={PAUSE_HEIGHT}", *self.extra_args[1]]
         )
 
+        # Upon restart during snapshot tip sync, the node must remain in 'limited' mode.
+        self.assert_only_network_limited_service(n1)
+
         # Finally connect the nodes and let them sync.
         #
         # Set `wait_for_connect=False` to avoid a race between performing connection
@@ -428,6 +541,9 @@ class AssumeutxoTest(BitcoinTestFramework):
             "Restarted node before snapshot validation completed, reloading..."
         )
         self.restart_node(1, extra_args=self.extra_args[1])
+
+        # Upon restart, the node must remain in 'limited' mode
+        self.assert_only_network_limited_service(n1)
 
         # Send snapshot block to n1 out of order. This makes the test less
         # realistic because normally the snapshot block is one of the last
@@ -448,6 +564,10 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.log.info("Ensuring background validation completes")
         self.wait_until(lambda: len(n1.getchainstates()["chainstates"]) == 1)
+
+        # Since n1 is a pruned node, it will not signal NODE_NETWORK after
+        # completing the background sync.
+        self.assert_only_network_limited_service(n1)
 
         # Ensure indexes have synced.
         completed_idx_state = {
@@ -480,11 +600,19 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.log.info("-- Testing all indexes + reindex")
         assert_equal(n2.getblockcount(), START_HEIGHT)
+        # sanity check
+        assert "NETWORK" in n2.getnetworkinfo()["localservicesnames"]
 
         self.log.info(f"Loading snapshot into third node from {dump_output['path']}")
         loaded = n2.loadtxoutset(dump_output["path"])
         assert_equal(loaded["coins_loaded"], SNAPSHOT_BASE_HEIGHT)
         assert_equal(loaded["base_height"], SNAPSHOT_BASE_HEIGHT)
+
+        # Even though n2 is a full node, it will unset the 'NETWORK' service flag during
+        # snapshot loading. This indicates other peers that the node will temporarily
+        # not provide historical blocks.
+        self.log.info("Check node2 updated the local services during snapshot load")
+        self.assert_only_network_limited_service(n2)
 
         for reindex_arg in ["-reindex=1", "-reindex-chainstate=1"]:
             self.log.info(
@@ -522,6 +650,11 @@ class AssumeutxoTest(BitcoinTestFramework):
                 dump_output["path"],
             )
 
+        # Upon restart, the node must stay in 'limited' mode until the background
+        # chain sync completes.
+        self.restart_node(2, extra_args=self.extra_args[2])
+        self.assert_only_network_limited_service(n2)
+
         self.connect_nodes(0, 2)
         self.wait_until(
             lambda: n2.getchainstates()["chainstates"][-1]["blocks"] == FINAL_HEIGHT
@@ -530,6 +663,14 @@ class AssumeutxoTest(BitcoinTestFramework):
 
         self.log.info("Ensuring background validation completes")
         self.wait_until(lambda: len(n2.getchainstates()["chainstates"]) == 1)
+
+        # Once background chain sync completes, the full node must start offering
+        # historical blocks again.
+        self.wait_until(
+            lambda: {"NETWORK", "NETWORK_LIMITED"}.issubset(
+                n2.getnetworkinfo()["localservicesnames"]
+            )
+        )
 
         completed_idx_state = {
             "basic block filter index": COMPLETE_IDX,
@@ -565,6 +706,9 @@ class AssumeutxoTest(BitcoinTestFramework):
         self.wait_until(lambda: n2.getblockcount() == FINAL_HEIGHT)
 
         self.test_snapshot_in_a_divergent_chain(dump_output["path"])
+
+        # The following test cleans node2 and node3 chain directories.
+        self.test_sync_from_assumeutxo_node(snapshot=dump_output)
 
 
 @dataclass

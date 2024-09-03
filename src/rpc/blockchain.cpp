@@ -2840,6 +2840,16 @@ static RPCHelpMan loadtxoutset() {
                                    "Unable to load UTXO snapshot " +
                                        fs::PathToString(path));
             }
+
+            // Because we can't provide historical blocks during tip or
+            // background sync. Update local services to reflect we are a
+            // limited peer until we are fully sync.
+            node.connman->RemoveLocalServices(NODE_NETWORK);
+            // Setting the limited state is usually redundant because the node
+            // can always provide the last 288 blocks, but it doesn't hurt to
+            // set it.
+            node.connman->AddLocalServices(NODE_NETWORK_LIMITED);
+
             CBlockIndex *new_tip{
                 WITH_LOCK(::cs_main, return chainman.ActiveTip())};
 

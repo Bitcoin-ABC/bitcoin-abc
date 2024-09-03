@@ -1397,7 +1397,7 @@ void CConnman::CreateNodeFromAcceptedSocket(std::unique_ptr<Sock> &&sock,
         });
     pnode->AddRef();
     for (auto interface : m_msgproc) {
-        interface->InitializeNode(*config, *pnode, nLocalServices);
+        interface->InitializeNode(*config, *pnode, GetLocalServices());
     }
 
     LogPrint(BCLog::NET, "connection from %s accepted\n", addr.ToString());
