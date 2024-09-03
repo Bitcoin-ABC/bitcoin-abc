@@ -13,7 +13,7 @@ from test_framework.p2p import P2PDataStore
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.test_node import ErrorMatch
 from test_framework.txtools import pad_tx
-from test_framework.util import assert_equal, p2p_port
+from test_framework.util import append_config, assert_equal, p2p_port, tor_port
 
 
 class P2PPermissionsTests(BitcoinTestFramework):
@@ -59,6 +59,11 @@ class P2PPermissionsTests(BitcoinTestFramework):
         self.replaceinconfig(
             1, "bind=127.0.0.1", f"whitebind=bloomfilter,forcerelay@{ip_port}"
         )
+        # Explicitly bind the tor port to prevent collisions with the default tor port
+        append_config(
+            self.nodes[1].datadir,
+            [f"bind=127.0.0.1:{tor_port(self.nodes[1].index)}=onion"],
+        )
         self.checkpermission(
             ["-whitelist=noban@127.0.0.1"],
             # Check parameter interaction forcerelay should activate relay
@@ -66,6 +71,9 @@ class P2PPermissionsTests(BitcoinTestFramework):
         )
         self.replaceinconfig(
             1, f"whitebind=bloomfilter,forcerelay@{ip_port}", "bind=127.0.0.1"
+        )
+        self.replaceinconfig(
+            1, f"bind=127.0.0.1:{tor_port(self.nodes[1].index)}=onion", ""
         )
 
         self.checkpermission(
