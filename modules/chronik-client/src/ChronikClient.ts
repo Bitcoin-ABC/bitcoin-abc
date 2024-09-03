@@ -193,9 +193,6 @@ export class ChronikClient {
     }
 }
 
-// Do not break existing implementations
-export { ChronikClient as ChronikClientNode };
-
 /** Allows fetching script history and UTXOs. */
 export class ScriptEndpoint {
     private _proxyInterface: FailoverProxy;
