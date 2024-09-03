@@ -2662,6 +2662,30 @@ public:
 };
 
 /**
+ * RAII class that temporarily rolls back the local chain in it's constructor
+ * and rolls it forward again in it's destructor.
+ */
+class TemporaryRollback {
+    ChainstateManager &m_chainman;
+    avalanche::Processor *const m_avalanche;
+    const CBlockIndex &m_invalidate_index;
+
+public:
+    TemporaryRollback(ChainstateManager &chainman,
+                      avalanche::Processor *const avalanche,
+                      const CBlockIndex &index)
+        : m_chainman(chainman), m_avalanche(avalanche),
+          m_invalidate_index(index) {
+        InvalidateBlock(m_chainman, m_avalanche,
+                        m_invalidate_index.GetBlockHash());
+    };
+    ~TemporaryRollback() {
+        ReconsiderBlock(m_chainman, m_avalanche,
+                        m_invalidate_index.GetBlockHash());
+    };
+};
+
+/**
  * Serialize the UTXO set to a file for loading elsewhere.
  *
  * @see SnapshotMetadata
@@ -2786,6 +2810,7 @@ static RPCHelpMan dumptxoutset() {
             CConnman &connman = EnsureConnman(node);
             const CBlockIndex *invalidate_index{nullptr};
             std::optional<NetworkDisable> disable_network;
+            std::optional<TemporaryRollback> temporary_rollback;
 
             // If the user wants to dump the txoutset of the current tip, we
             // don't have to roll back at all
@@ -2826,15 +2851,13 @@ static RPCHelpMan dumptxoutset() {
                 invalidate_index = WITH_LOCK(
                     ::cs_main,
                     return node.chainman->ActiveChain().Next(target_index));
-                InvalidateBlock(*node.chainman, node.avalanche.get(),
-                                invalidate_index->GetBlockHash());
+                temporary_rollback.emplace(*node.chainman, node.avalanche.get(),
+                                           *invalidate_index);
             }
 
             Chainstate *chainstate;
             std::unique_ptr<CCoinsViewCursor> cursor;
             CCoinsStats stats;
-            UniValue result;
-            UniValue error;
             {
                 // Lock the chainstate before calling PrepareUtxoSnapshot, to
                 // be able to get a UTXO database cursor while the chain is
@@ -2853,9 +2876,10 @@ static RPCHelpMan dumptxoutset() {
                 // activated as the new tip and we would not get to
                 // new_tip_index.
                 if (target_index != chainstate->m_chain.Tip()) {
-                    LogPrintf("Failed to roll back to requested height, "
-                              "reverting to tip.\n");
-                    error = JSONRPCError(
+                    LogPrintLevel(BCLog::RPC, BCLog::Level::Warning,
+                                  "Failed to roll back to requested height, "
+                                  "reverting to tip.\n");
+                    throw JSONRPCError(
                         RPC_MISC_ERROR,
                         "Could not roll back to requested height.");
                 } else {
@@ -2864,19 +2888,10 @@ static RPCHelpMan dumptxoutset() {
                 }
             }
 
-            if (error.isNull()) {
-                result = WriteUTXOSnapshot(*chainstate, cursor.get(), &stats,
-                                           tip, afile, path, temppath,
-                                           node.rpc_interruption_point);
-                fs::rename(temppath, path);
-            }
-            if (invalidate_index) {
-                ReconsiderBlock(*node.chainman, node.avalanche.get(),
-                                invalidate_index->GetBlockHash());
-            }
-            if (!error.isNull()) {
-                throw error;
-            }
+            UniValue result =
+                WriteUTXOSnapshot(*chainstate, cursor.get(), &stats, tip, afile,
+                                  path, temppath, node.rpc_interruption_point);
+            fs::rename(temppath, path);
 
             return result;
         },
